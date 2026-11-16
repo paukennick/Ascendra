@@ -1,0 +1,1374 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cissp-web-tier-data-theft",
+  "title": "Incident lead: member data leaving through the web tier",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "siem",
+          "severity": "critical",
+          "title": "SIEM: WEB02's application account read 48,000 member records in 9 minutes; outbound 1.4 GB from WEB02 to 203.0.113.88",
+          "when": "true",
+          "at": "0",
+          "status": "{not exfilPath ? \"Egress stopped\" : not isNull(siemAt) ? \"Investigating\" : \"New\"}",
+          "open": "exfilPath"
+        },
+        {
+          "id": "web3",
+          "severity": "high",
+          "title": "EDR: the same web shell file appeared on WEB03",
+          "when": "not isNull(web3At)",
+          "at": "timeAt(web3At)",
+          "status": "{isNull(web3IsoAt) ? \"Active\" : \"Isolated\"}",
+          "open": "isNull(web3IsoAt)"
+        },
+        {
+          "id": "batch2",
+          "severity": "high",
+          "title": "Egress: second 1.1 GB transfer to 203.0.113.88",
+          "when": "not isNull(batch2At)",
+          "at": "timeAt(batch2At)",
+          "status": "Completed",
+          "open": "false"
+        },
+        {
+          "id": "reinf",
+          "severity": "critical",
+          "title": "EDR: web shell back on the rebuilt WEB02",
+          "when": "not isNull(reinfectedAt)",
+          "at": "timeAt(reinfectedAt)",
+          "status": "Active",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Database monitor",
+          "text": "DB01: SELECT * FROM members in pages of 500, from the app account on WEB02",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Egress monitor",
+          "text": "WEB02 -> 203.0.113.88:443, 1.4 GB since 13:48; no business relationship with that address",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "SIEM",
+          "text": "WEB02 web log: POST /upload/avatar with a .php file at 13:31, then requests to /upload/u_7.php",
+          "when": "not isNull(siemAt)",
+          "at": "timeAt(siemAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Threat intelligence",
+          "text": "The upload flaw in the banking portal's avatar feature has a vendor fix released last week; exploitation reported",
+          "when": "not isNull(siemAt)",
+          "at": "timeAt(siemAt)"
+        },
+        {
+          "id": "e5",
+          "source": "EDR",
+          "text": "WEB03: /upload/u_7.php written from WEB02",
+          "when": "not isNull(web3At)",
+          "at": "timeAt(web3At)"
+        },
+        {
+          "id": "e6",
+          "source": "Case file",
+          "text": "WEB02 memory and disk images hashed; chain-of-custody form opened",
+          "when": "not isNull(imagedAt)",
+          "at": "timeAt(imagedAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Egress monitor",
+          "text": "Transfer to 203.0.113.88 complete: the full member table",
+          "when": "not isNull(doneAt)",
+          "at": "timeAt(doneAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "web2host",
+          "label": "WEB02",
+          "spokenLabel": "Web server 2",
+          "kind": "Online banking web server",
+          "status": "{not isNull(reinfectedAt) ? \"Reinfected\" : not isNull(restoredAt) ? \"Rebuilt; in service\" : not isNull(rebuiltAt) ? \"Rebuilt; out of service\" : not isNull(web2IsoAt) ? \"Isolated\" : \"Compromised\"}",
+          "tone": "not isNull(reinfectedAt) ? \"bad\" : not isNull(rebuiltAt) ? \"ok\" : not isNull(web2IsoAt) ? \"held\" : \"bad\""
+        },
+        {
+          "id": "web3host",
+          "label": "WEB03",
+          "spokenLabel": "Web server 3",
+          "kind": "Online banking web server",
+          "status": "{isNull(web3At) ? \"No sign of compromise\" : isNull(web3IsoAt) ? \"Compromised\" : \"Isolated\"}",
+          "tone": "isNull(web3At) ? \"ok\" : isNull(web3IsoAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "db",
+          "label": "DB01",
+          "spokenLabel": "Database server 1",
+          "kind": "Member database",
+          "status": "{not isNull(dbOffAt) ? \"Powered off: every channel down\" : \"Running\"}",
+          "tone": "not isNull(dbOffAt) ? \"held\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "out",
+          "label": "Data out",
+          "value": "{not isNull(doneAt) ? \"full member table\" : not isNull(batch2At) ? \"2.5 GB\" : \"1.4 GB\"}"
+        },
+        {
+          "id": "svc",
+          "label": "Online banking",
+          "value": "{not isNull(restoredAt) ? \"restored\" : isNull(web2IsoAt) and isNull(dbOffAt) ? \"up (compromised)\" : \"down\"}"
+        },
+        {
+          "id": "rep",
+          "label": "Reporting",
+          "value": "{isNull(counselAt) ? \"counsel not briefed\" : \"counsel briefed\"}{isNull(activateAt) ? \"; team not activated\" : \"; team and CIO briefed\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Manage incidents through detection, response, mitigation, reporting, recovery, remediation and lessons learned",
+  "secondaryObjectives": [
+    "Support investigations: evidence collection and handling, reporting, investigative techniques, digital forensics tools and artifacts",
+    "Monitor with intrusion detection and prevention, SIEM, continuous monitoring and tuning, egress monitoring, log management, threat intelligence and user and entity behavior analytics"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CISSP Certification Exam Outline (effective 2024-04-15), Domain 7: Security Operations",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline",
+      "note": "Headings read in the English PDF (footer v9/2024) on 2026-11-14 for REQ-271: '7.1 Understand and comply with investigations: evidence collection and handling; reporting and documentation; investigative techniques; digital forensics tools, tactics, and procedures; artifacts'; '7.2 Conduct logging and monitoring activities: ... SIEM; ... egress monitoring ...'; '7.6 Conduct incident management: detection; response; mitigation; reporting; recovery; remediation; lessons learned'. Domain 7 weight 13% (average). The course's objective numbering is its own."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "U.S. SEC press release 2023-139, cybersecurity risk management and incident disclosure rules (Form 8-K Item 1.05)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.sec.gov/newsroom/press-releases/2023-139",
+      "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: registrants disclose 'any cybersecurity incident they determine to be material' on Item 1.05; the filing is 'generally ... due four business days after a registrant determines' materiality. Cited only to show why counsel needs facts early; the fictional credit union is not a registrant and the sim sets no legal deadline."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You lead incident response at Calder Credit Union, a fictional lender. At 14:00 the SIEM correlates a web server reading member records in bulk with an egress spike to an outside address. Run the incident through to recovery: contain it, keep the evidence, report it to the people who decide, remediate, restore the service and set up the lessons learned.",
+    "handover": [
+      "You may isolate hosts, block traffic, order images and rebuilds, and convene the incident response team. The CIO decides on outages beyond the web tier; legal counsel decides on notifications.",
+      "Online banking runs on WEB02 and WEB03 behind a load balancer, with the member database on DB01."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "lateralDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Ten minutes until the web shell is copied to WEB03 is the author's figure."
+      }
+    },
+    "batchDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty minutes until the second transfer is the author's figure."
+      }
+    },
+    "doneDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Forty minutes until the whole table is out is the author's figure."
+      }
+    },
+    "reinfectDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Ten minutes from restoring an unpatched server to its reinfection is the author's figure."
+      }
+    },
+    "reportWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Briefing the team, the CIO and counsel within the first hour is the author's teaching figure, not a legal deadline."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "siemAt": {
+      "type": "time",
+      "init": null
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "web2IsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "web3IsoAt": {
+      "type": "time",
+      "init": null
+    },
+    "egressAt": {
+      "type": "time",
+      "init": null
+    },
+    "dbOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "imagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rebuiltAt": {
+      "type": "time",
+      "init": null
+    },
+    "patchAt": {
+      "type": "time",
+      "init": null
+    },
+    "restoredAt": {
+      "type": "time",
+      "init": null
+    },
+    "activateAt": {
+      "type": "time",
+      "init": null
+    },
+    "counselAt": {
+      "type": "time",
+      "init": null
+    },
+    "noticeAt": {
+      "type": "time",
+      "init": null
+    },
+    "web3At": {
+      "type": "time",
+      "init": null
+    },
+    "batch2At": {
+      "type": "time",
+      "init": null
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "reinfectedAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "upload",
+        "insider",
+        "ddos"
+      ],
+      "init": "unset"
+    },
+    "lessonsDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "review",
+        "none",
+        "blame"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "decide",
+        "press",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hostsHeld": {
+      "expr": "(isNull(web2IsoAt) and isNull(rebuiltAt)) or (not isNull(web3At) and isNull(web3IsoAt))"
+    },
+    "exfilPath": {
+      "expr": "isNull(egressAt) and isNull(dbOffAt) and hostsHeld"
+    },
+    "attackerActive": {
+      "expr": "hostsHeld or not isNull(reinfectedAt)"
+    },
+    "spread": {
+      "expr": "(isNull(web3At) ? 0 : 1) + (isNull(batch2At) ? 0 : 1)"
+    },
+    "evidenceKept": {
+      "expr": "not isNull(imagedAt) and (isNull(rebuiltAt) or timeAt(imagedAt) <= timeAt(rebuiltAt))"
+    },
+    "reported": {
+      "expr": "not isNull(activateAt) and timeAt(activateAt) <= reportWindow and not isNull(counselAt) and timeAt(counselAt) <= reportWindow"
+    },
+    "recoveredClean": {
+      "expr": "not isNull(restoredAt) and not isNull(patchAt) and timeAt(patchAt) <= timeAt(restoredAt) and isNull(reinfectedAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "triageSiem",
+        "scope",
+        "activate",
+        "isolateWeb2",
+        "isolateWeb3",
+        "blockEgress",
+        "dbOff",
+        "image",
+        "rebuild",
+        "patch",
+        "restore",
+        "counsel",
+        "notice",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "triageSiem": {
+      "label": "Review the SIEM correlation and WEB02's web logs",
+      "group": "Investigate",
+      "available": "not busy and isNull(siemAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "siemAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the correlated events and WEB02's web log.",
+          "kind": "act"
+        },
+        {
+          "finding": "A .php file uploaded through the avatar feature at 13:31 is a web shell; the app account behind it is paging through the member table and sending it to 203.0.113.88."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "scope": {
+      "label": "Scope: search every web server for the same file and requests",
+      "group": "Investigate",
+      "available": "not busy and isNull(scopeAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "log": "You search the web tier for u_7.php and the attacker's requests.",
+          "kind": "act"
+        },
+        {
+          "finding": "{isNull(web3At) ? \"Only WEB02 has the file.\" : \"WEB03 has it too, copied from WEB02.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "activate": {
+      "label": "Activate the incident response team and brief the CIO",
+      "group": "Communicate",
+      "available": "not busy and isNull(activateAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "activateAt",
+          "to": "t"
+        },
+        {
+          "log": "The team is convened and the CIO is briefed: what is happening, what you are doing, what decisions may need the CIO.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "isolateWeb2": {
+      "label": "Isolate WEB02 from the network (EDR containment, kept powered on)",
+      "group": "Contain",
+      "available": "not busy and isNull(web2IsoAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "web2IsoAt",
+          "to": "t"
+        },
+        {
+          "log": "WEB02 is cut off but running, so its memory is intact. Online banking runs on WEB03 alone.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "isolateWeb3": {
+      "label": "Isolate WEB03 (online banking goes down)",
+      "group": "Contain",
+      "available": "not busy and isNull(web3IsoAt) and (not isNull(web3At))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "web3IsoAt",
+          "to": "t"
+        },
+        {
+          "log": "WEB03 is cut off. Online banking is down until a clean server is back.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "blockEgress": {
+      "label": "Block 203.0.113.88 and all web-tier outbound except the payment gateway",
+      "group": "Contain",
+      "available": "not busy and isNull(egressAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "egressAt",
+          "to": "t"
+        },
+        {
+          "log": "Outbound from the web tier is limited to the payment gateway; 203.0.113.88 is blocked.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "dbOff": {
+      "label": "Power off DB01",
+      "group": "Contain",
+      "available": "not busy and isNull(dbOffAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "dbOffAt",
+          "to": "t"
+        },
+        {
+          "log": "DB01 goes down: the transfer stops, and so do branches, ATMs and card authorizations. Its memory is gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "image": {
+      "label": "Capture WEB02's memory and a disk image, hash them, start chain of custody",
+      "group": "Evidence",
+      "available": "not busy and isNull(imagedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "imagedAt",
+          "to": "t"
+        },
+        {
+          "log": "Memory and disk are captured and hashed; the chain-of-custody form names who holds them.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "rebuild": {
+      "label": "Rebuild WEB02 from the gold image",
+      "group": "Recover",
+      "available": "not busy and isNull(rebuiltAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "rebuiltAt",
+          "to": "t"
+        },
+        {
+          "log": "WEB02 is rebuilt from the gold image. {isNull(imagedAt) ? \"Nothing was captured first: the attacker's tools and the server's memory are gone.\" : \"The images are already in the case.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "patch": {
+      "label": "Deploy the vendor fix for the upload flaw to every web server image",
+      "group": "Recover",
+      "available": "not busy and isNull(patchAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "patchAt",
+          "to": "t"
+        },
+        {
+          "log": "The fix is in the gold image and on every web server; uploads now accept images only.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Bring online banking back on the rebuilt WEB02",
+      "group": "Recover",
+      "available": "not busy and isNull(restoredAt) and (not isNull(rebuiltAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "restoredAt",
+          "to": "t"
+        },
+        {
+          "log": "Online banking is back. {isNull(patchAt) ? \"The upload flaw is still there.\" : \"The flaw that let them in is fixed.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "counsel": {
+      "label": "Brief legal counsel with the facts so far: data types, member count, times",
+      "group": "Communicate",
+      "available": "not busy and isNull(counselAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "counselAt",
+          "to": "t"
+        },
+        {
+          "log": "Counsel has the facts so far and will decide on notifications and regulators.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "notice": {
+      "label": "Post a public notice now that member data was stolen",
+      "group": "Communicate",
+      "available": "not busy and isNull(noticeAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "noticeAt",
+          "to": "t"
+        },
+        {
+          "log": "A notice goes up before the scope is known or counsel has decided; it will need correcting.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "decide",
+              "label": "The CIO, legal counsel and the board's risk committee chair, through the incident channel"
+            },
+            {
+              "value": "press",
+              "label": "The local press, before counsel has decided"
+            },
+            {
+              "value": "nobody",
+              "label": "No one outside the security team"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"decide\" ? \"the CIO, counsel and the risk committee chair\" : who == \"press\" ? \"the local press\" : \"no one outside security\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "upload",
+                  "label": "An unpatched upload flaw in the banking portal let a web shell in"
+                },
+                {
+                  "value": "insider",
+                  "label": "An insider with database access"
+                },
+                {
+                  "value": "ddos",
+                  "label": "A denial-of-service attack"
+                }
+              ]
+            },
+            {
+              "id": "lessons",
+              "label": "Lessons learned",
+              "options": [
+                {
+                  "value": "review",
+                  "label": "A blameless review with owners, dated actions and patch-cycle changes"
+                },
+                {
+                  "value": "none",
+                  "label": "No review needed: it is fixed"
+                },
+                {
+                  "value": "blame",
+                  "label": "Disciplinary action for the web team"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "lessonsDoc",
+          "to": "lessons"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {cause}, {lessons}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "web3",
+      "when": "isNull(web3At) and (t >= lateralDelay and isNull(web2IsoAt) and isNull(rebuiltAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "web3At",
+          "to": "t"
+        },
+        {
+          "log": "EDR: the web shell has been copied from WEB02 to WEB03.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "batch2",
+      "when": "isNull(batch2At) and (t >= batchDelay and exfilPath) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "batch2At",
+          "to": "t"
+        },
+        {
+          "log": "Egress: a second 1.1 GB transfer to 203.0.113.88.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "done",
+      "when": "isNull(doneAt) and (t >= doneDelay and exfilPath) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "doneAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Egress: the full member table has reached 203.0.113.88. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "reinfect",
+      "when": "isNull(reinfectedAt) and (not isNull(restoredAt) and isNull(patchAt) and t >= timeAt(restoredAt) + reinfectDelay) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "reinfectedAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "EDR: the web shell is back on the rebuilt WEB02 through the same upload flaw. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive and not exfilPath",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident report: how you contained it, what you kept and reported, and how you recovered without letting it back in.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Response and mitigation",
+          "criteria": "Isolates WEB02 (kept running) and cuts the egress path quickly, scopes the web tier and isolates WEB03 if found; does not power off the database, which stops every channel and loses memory.",
+          "modelAnswer": "Isolated WEB02 without powering it off and blocked outbound to all but the payment gateway within minutes, then scoped the tier for the same file."
+        },
+        {
+          "label": "Evidence and reporting",
+          "criteria": "Captures memory and disk with hashes and chain of custody before the rebuild; activates the team, briefs the CIO and gives counsel facts early, leaving notification decisions to counsel.",
+          "modelAnswer": "Imaged WEB02's memory and disk with hashes and custody before rebuilding; convened the team, briefed the CIO and gave counsel the data types, count and times within the hour."
+        },
+        {
+          "label": "Recovery and lessons",
+          "criteria": "Remediates the root cause (the upload flaw) before returning service; plans a blameless lessons-learned review with owners and dates.",
+          "modelAnswer": "Patched the upload flaw in the image and on every server before bringing banking back, and scheduled a blameless review with owners and dated actions."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No new host and no further transfer after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(web2IsoAt) and isNull(egressAt) and isNull(dbOffAt)",
+      "class": "harm",
+      "rationale": "Ending the case with member data still leaving is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+        "checkedAt": "2026-11-14",
+        "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+      }
+    }
+  },
+  "endings": {
+    "exfiltrated": {
+      "label": "The member table left",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(doneAt)",
+      "narrative": "The whole member table reached the attacker before the path was cut."
+    },
+    "reinfected": {
+      "label": "Reinfected during recovery",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(reinfectedAt)",
+      "narrative": "Banking came back on a clean server with the same flaw, and the attacker walked back in."
+    },
+    "evidenceLost": {
+      "label": "Evidence rebuilt away",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(rebuiltAt) and not evidenceKept",
+      "narrative": "WEB02 was rebuilt before its memory and disk were captured; the investigation lost its main source."
+    },
+    "leftOpen": {
+      "label": "Closed with the attacker still in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "A web server still holding the shell was left in place when the incident closed."
+    },
+    "handled": {
+      "label": "Contained, reported, recovered clean",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and evidenceKept and reported and recoveredClean",
+      "narrative": "You cut the path fast, kept the evidence, put the right people in the decision, fixed the cause and brought banking back clean."
+    },
+    "handledLate": {
+      "label": "Recovered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The attacker is out, but late, after spread or a second transfer, with reporting late, or with service not yet restored."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident report."
+    }
+  },
+  "endingOrder": [
+    "exfiltrated",
+    "reinfected",
+    "evidenceLost",
+    "leftOpen",
+    "handled",
+    "handledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "contained",
+        "label": "Attacker cut off and egress closed within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(offAt) and timeAt(offAt) <= containWindow and not attackerActive",
+            "score": "met",
+            "why": "Contained {timeAt(offAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not attackerActive",
+            "score": "partial",
+            "why": "Contained, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The attacker still held a server."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Memory and disk captured, hashed and in custody before the rebuild",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceKept",
+            "score": "met",
+            "why": "Images in custody first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(imagedAt) ? \"Nothing captured.\" : \"Captured only after the rebuild.\"}"
+          }
+        ]
+      },
+      {
+        "id": "reported",
+        "label": "Team activated, CIO and counsel briefed within the first hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reported",
+            "score": "met",
+            "why": "Decision makers had the facts early."
+          },
+          {
+            "when": "not isNull(activateAt) or not isNull(counselAt)",
+            "score": "partial",
+            "why": "Only part of it, or late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Handled inside security alone."
+          }
+        ]
+      },
+      {
+        "id": "recovery",
+        "label": "Root cause fixed before service returned, no reinfection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "recoveredClean",
+            "score": "met",
+            "why": "Patched, then restored."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(reinfectedAt) ? \"Restored with the flaw still there.\" : \"Service not restored.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scoped",
+        "label": "Scoped the whole web tier",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt)",
+            "score": "met",
+            "why": "Searched every web server."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Only WEB02 was looked at."
+          }
+        ]
+      },
+      {
+        "id": "proportionate",
+        "label": "Contained without taking every channel down",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(dbOffAt)",
+            "score": "met",
+            "why": "The database kept running for branches and cards."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Powering off DB01 stopped every channel and lost its memory."
+          }
+        ]
+      },
+      {
+        "id": "noPremature",
+        "label": "Left public statements to counsel's decision",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(noticeAt) or (not isNull(counselAt) and timeAt(counselAt) <= timeAt(noticeAt))",
+            "score": "met",
+            "why": "No statement ahead of the facts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A public notice went out before counsel had the facts."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the root cause and a blameless lessons-learned review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"upload\" and lessonsDoc == \"review\" and notified == \"decide\"",
+            "score": "met",
+            "why": "Accurate, with owners and dates."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written response, evidence and recovery",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToContain",
+        "label": "Minutes until the attacker was cut off",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "transfers",
+        "label": "Transfers after the first alert",
+        "value": "(isNull(batch2At) ? 0 : 1) + (isNull(doneAt) ? 0 : 1)",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "minToRestore",
+        "label": "Minutes until online banking was back",
+        "value": "isNull(restoredAt) ? -1 : timeAt(restoredAt) / 60",
+        "format": "number",
+        "expert": "about 70, after the fix"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the correlation: a web shell exporting the member table. Convene the team and brief the CIO. Isolate WEB02, keep it powered on."
+      },
+      {
+        "at": "10-35 min",
+        "text": "Block the egress; image WEB02's memory and disk with hashes and custody; brief counsel; scope the web tier."
+      },
+      {
+        "at": "35-75 min",
+        "text": "Patch the upload flaw in the image and every server, rebuild WEB02, then restore banking."
+      },
+      {
+        "at": "After",
+        "text": "Notify the CIO, counsel and the risk chair; record the root cause; schedule a blameless review with owners and dates."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: the whole life cycle, in order",
+        "body": "Detection, response, mitigation, reporting, recovery, remediation and lessons learned, each in its place: contain first, preserve before you rebuild, fix before you restore."
+      },
+      "handledLate": {
+        "headline": "Recovered, with gaps",
+        "body": "The attacker is out. The criteria show what cost you: slow containment, a second host or transfer, late reporting, or service not restored."
+      },
+      "exfiltrated": {
+        "headline": "The data left first",
+        "body": "Investigating before isolating gave the transfer time to finish. Isolate and cut egress first; investigate on the images."
+      },
+      "reinfected": {
+        "headline": "Back in through the same door",
+        "body": "A rebuild removes the attacker's files, not the flaw they used. Remediate the root cause before restoring service."
+      },
+      "evidenceLost": {
+        "headline": "Evidence rebuilt away",
+        "body": "Capture memory and disk, hash them and start custody before anything is rebuilt or wiped."
+      },
+      "leftOpen": {
+        "headline": "A server was left holding the shell",
+        "body": "Scope the whole tier; a copy on a second server keeps the attacker in after you close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident report was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Contain first: isolate WEB02 without powering it off and cut web-tier egress to the payment gateway only, then scope the tier and isolate any other copy. Capture memory and disk with hashes and chain of custody before any rebuild. Activate the team, brief the CIO, and give counsel facts early; notification decisions are counsel's. Remediate the root cause (the upload flaw) in the image and on every server before restoring service, then hold a blameless lessons-learned review with owners and dates. Powering off the database is disproportionate: it stops every channel and loses volatile evidence."
+  }
+}

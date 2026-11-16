@@ -1,0 +1,674 @@
+{
+  "slug": "evening-vitals-out-of-range",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: look and ask, small cuff, full-minute pulse, findings to the nurse at once, commode with her, temperature after 15 minutes, objective note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "small"
+          },
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "full"
+          },
+          "seq": 6,
+          "tick": 95
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 155
+        },
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 8,
+          "tick": 155
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "obs": "numbers",
+            "when": "now"
+          },
+          "seq": 9,
+          "tick": 155
+        },
+        {
+          "type": "teach",
+          "prompt": "nurseQ",
+          "choice": "commode",
+          "seq": 10,
+          "tick": 155
+        },
+        {
+          "type": "act",
+          "action": "commode",
+          "seq": 11,
+          "tick": 155
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 13,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 680
+        }
+      ],
+      "expect": {
+        "ending": "sentEarly",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "technique": "met",
+          "report": "met",
+          "safeToilet": "met",
+          "temp": "met",
+          "help": "na",
+          "noWait": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toBp": 95,
+          "toReport": 0,
+          "toOrders": 1055
+        },
+        "stateHash": "90803326421a56ed"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "guessFirst",
+      "title": "Right technique, but tells the nurse a guess at a diagnosis; she comes after the med pass; commode when asked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "small"
+          },
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "full"
+          },
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "obs": "guess",
+            "when": "now"
+          },
+          "seq": 5,
+          "tick": 180
+        },
+        {
+          "type": "teach",
+          "prompt": "nurseQ",
+          "choice": "commode",
+          "seq": 6,
+          "tick": 180
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 500
+        },
+        {
+          "type": "act",
+          "action": "commode",
+          "seq": 8,
+          "tick": 500
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 9,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 10,
+          "tick": 680
+        }
+      ],
+      "expect": {
+        "ending": "sentLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "technique": "met",
+          "report": "partial",
+          "safeToilet": "met",
+          "temp": "met",
+          "help": "na",
+          "noWait": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toBp": 120,
+          "toReport": -1,
+          "toOrders": 1980
+        },
+        "stateHash": "589fa5d2e0b9a513"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "wrongTechnique",
+      "title": "Large cuff, 30-second pulse, temperature right after tea; reports the numbers at once; resident walked to the bathroom early",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "large"
+          },
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "half"
+          },
+          "seq": 4,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 5,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "obs": "numbers",
+            "when": "now"
+          },
+          "seq": 6,
+          "tick": 190
+        },
+        {
+          "type": "teach",
+          "prompt": "nurseQ",
+          "choice": "commode",
+          "seq": 7,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 8,
+          "tick": 190
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 9,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "sentLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "technique": "missed",
+          "report": "partial",
+          "safeToilet": "missed",
+          "temp": "partial",
+          "help": "na",
+          "noWait": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toBp": 100,
+          "toReport": -1,
+          "toOrders": 1090
+        },
+        "stateHash": "29c74a0abb5e67f6"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "lateEmergency",
+      "title": "Plans to report at the end of the round; commode when asked; the emergency comes; call light and a shout from her side, lays her flat",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "small"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "full"
+          },
+          "seq": 3,
+          "tick": 150
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "obs": "numbers",
+            "when": "later"
+          },
+          "seq": 5,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "commode",
+          "seq": 6,
+          "tick": 490
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 7,
+          "tick": 3501
+        },
+        {
+          "type": "act",
+          "action": "callHelp",
+          "seq": 8,
+          "tick": 3501
+        },
+        {
+          "type": "act",
+          "action": "layFlat",
+          "seq": 9,
+          "tick": 3501
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 10,
+          "tick": 3501
+        }
+      ],
+      "expect": {
+        "ending": "sentLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "technique": "met",
+          "report": "missed",
+          "safeToilet": "met",
+          "temp": "missed",
+          "help": "met",
+          "noWait": "missed",
+          "note": "met"
+        },
+        "kpis": {
+          "toBp": 150,
+          "toReport": -1,
+          "toOrders": 4161
+        },
+        "stateHash": "6876300a21d95b6a"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "leftAlone",
+      "title": "Failure: routine report and a recheck later; in the emergency, runs to find the nurse and she falls",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "small"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "half"
+          },
+          "seq": 3,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "obs": "routine",
+            "when": "now"
+          },
+          "seq": 4,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "recheckLater",
+          "seq": 5,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "commode",
+          "seq": 6,
+          "tick": 490
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 8,
+          "tick": 3501
+        },
+        {
+          "type": "act",
+          "action": "leaveForNurse",
+          "seq": 9,
+          "tick": 3501
+        }
+      ],
+      "expect": {
+        "ending": "fell",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "technique": "partial",
+          "report": "missed",
+          "safeToilet": "missed",
+          "temp": "missed",
+          "help": "missed",
+          "noWait": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toBp": 150,
+          "toReport": -1,
+          "toOrders": -1
+        },
+        "stateHash": "870db8e8c3247db6"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "unattended",
+      "title": "Failure: only a temperature, nobody told, she gets up alone",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "recheckLater",
+          "seq": 2,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "fell",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "technique": "missed",
+          "report": "missed",
+          "safeToilet": "missed",
+          "temp": "partial",
+          "help": "na",
+          "noWait": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toBp": -1,
+          "toReport": -1,
+          "toOrders": -1
+        },
+        "stateHash": "8475952716353a53"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "shockInBed",
+      "title": "Failure: commode and lying flat, but no report and no call for help; she collapses in bed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "commode",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "layFlat",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "params": {
+            "cuff": "small"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "cuffQ",
+          "choice": "low",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "params": {
+            "how": "full"
+          },
+          "seq": 5,
+          "tick": 150
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 6,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "recheckLater",
+          "seq": 7,
+          "tick": 210
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "technique": "met",
+          "report": "missed",
+          "safeToilet": "met",
+          "temp": "missed",
+          "help": "partial",
+          "noWait": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toBp": 150,
+          "toReport": -1,
+          "toOrders": -1
+        },
+        "stateHash": "cc9f15ce7d7b90f9"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

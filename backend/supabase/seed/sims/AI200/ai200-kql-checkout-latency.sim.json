@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ai200-kql-checkout-latency",
+  "title": "Checkout slowed tenfold after lunch: find out why with KQL",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "kql (law-shop)>",
+      "lines": [
+        {
+          "id": "alert",
+          "text": "12:55 alert: POST /checkout p95 above 2,000 ms for 10 minutes (normal: about 300 ms)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "deploy",
+          "text": "12:38 release: shop-web 7.3.0 (changes: checkout shows 'you may also like' recommendations)",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "lead",
+          "text": "12:56 team lead: 'Lunchtime promo email goes out at 13:30. Scale checkout out if that is what it takes.'",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "promo",
+          "text": "13:30 promo sent; checkout traffic doubles",
+          "when": "not isNull(promoAt)",
+          "at": "timeAt(promoAt)",
+          "error": "true"
+        },
+        {
+          "id": "fast",
+          "text": "monitor: POST /checkout p95 back to about 300 ms",
+          "when": "fixed",
+          "at": "timeAt(fixedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "web",
+          "label": "shop-web 7.3.0",
+          "spokenLabel": "the shop web app",
+          "kind": "Web app ({replicas|0dp} replicas)",
+          "status": "{fixed ? \"Checkout fast\" : \"Checkout p95 about 4 s; some 504s\"}",
+          "tone": "fixed ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "recs",
+          "label": "recs-api",
+          "spokenLabel": "the recommendations API",
+          "kind": "HTTP dependency",
+          "status": "{fixed ? \"No longer on the checkout path\" : \"p95 about 3.9 s, 18% failing\"}",
+          "tone": "fixed ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "sql",
+          "label": "sql-orders",
+          "spokenLabel": "the orders database",
+          "kind": "SQL dependency",
+          "status": "Normal (p95 about 20 ms)",
+          "tone": "\"up\""
+        },
+        {
+          "id": "redis",
+          "label": "redis-cart",
+          "spokenLabel": "the cart cache",
+          "kind": "Cache dependency",
+          "status": "Normal (p95 about 2 ms)",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "toRecs",
+          "from": "web",
+          "to": "recs",
+          "label": "Synchronous call in checkout",
+          "status": "{fixed ? \"Off\" : \"Slow\"}",
+          "tone": "fixed ? \"out\" : \"down\""
+        },
+        {
+          "id": "toSql",
+          "from": "web",
+          "to": "sql",
+          "label": "Orders",
+          "status": "OK",
+          "tone": "\"up\""
+        },
+        {
+          "id": "toRedis",
+          "from": "web",
+          "to": "redis",
+          "label": "Cart",
+          "status": "OK",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "abandon",
+          "label": "Checkouts abandoned since 12:40",
+          "value": "{abandoned|0dp}"
+        },
+        {
+          "id": "cost",
+          "label": "Extra replicas running",
+          "value": "{replicas - 4|0dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing logs and metrics with KQL to find errors, slow calls and their causes",
+  "secondaryObjectives": [
+    "Tracing requests across services with the OpenTelemetry SDK and Azure Monitor"
+  ],
+  "sources": [
+    {
+      "cite": "Azure Monitor Logs reference: AppRequests table, last updated 2026-07-28",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/apprequests",
+      "note": "Relevant text: columns DurationMs ('Number of milliseconds it took the application to handle the request'), Success, ResultCode, Name, OperationId and AppRoleName. Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Azure Monitor Logs reference: AppDependencies table, last updated 2026-07-28",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/appdependencies",
+      "note": "Relevant text: DurationMs ('Number of milliseconds the dependency call took to complete'), Success, ResultCode, Target ('Target of a dependency call, such as a Web or a SQL server name'), DependencyType, Name, OperationId and AppVersion among the columns. Read through a summarizing fetch on 2026-11-14."
+    },
+    {
+      "cite": "Kusto Query Language: percentile(), percentiles() aggregation functions, last updated 2025-03-17",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/kusto/query/percentiles-aggregation-function",
+      "note": "Relevant text: syntax 'percentile(expr, percentile)' and 'percentiles(expr, percentiles)'; example 'StormEvents | summarize percentiles(DamageProperty, 5, 50, 95) by State'. Read through a summarizing fetch on 2026-11-14. The query results in the scenario are authored data for the case."
+    }
+  ],
+  "brief": {
+    "situation": "You are the developer on call for shop-web at Fernhill Books (fictional). Its telemetry goes to Application Insights in the Log Analytics workspace law-shop. At 12:55 an alert says checkout's 95th-percentile time is over 2 seconds; it is usually about 300 ms. shop-web 7.3.0 went out at 12:38. A promo email at 13:30 will double checkout traffic. Find where the time goes with KQL, fix it, and show that it is fixed.",
+    "handover": [
+      "shop-web has a kill switch for each new feature that it re-reads every 30 seconds; flipping one needs no deployment. Rolling back a release takes about 10 minutes.",
+      "Scaling shop-web out is one command and costs money for every extra replica."
+    ],
+    "howItWorks": [
+      "Run queries and commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's queries run; each is a fixed query with its own result.",
+      "Each query or change takes your time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows the app and its dependencies with a status in words. Results appear in the terminal.",
+      "When you declare it fixed, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:56",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "promoDelay": {
+      "value": 2040,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The promo email goes out at 13:30, 34 minutes after the alert."
+      }
+    },
+    "abandonRate": {
+      "value": 6,
+      "unit": "checkouts/min",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. About six abandoned checkouts a minute while checkout is slow, twelve after the promo, is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "trendAt": {
+      "type": "time",
+      "init": null
+    },
+    "codesAt": {
+      "type": "time",
+      "init": null
+    },
+    "depsAt": {
+      "type": "time",
+      "init": null
+    },
+    "versionAt": {
+      "type": "time",
+      "init": null
+    },
+    "traceAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixBy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "switch",
+        "rollback"
+      ],
+      "init": "none"
+    },
+    "replicas": {
+      "type": "number",
+      "init": 4,
+      "min": 4,
+      "max": 40
+    },
+    "scaledAt": {
+      "type": "time",
+      "init": null
+    },
+    "recsRestartAt": {
+      "type": "time",
+      "init": null
+    },
+    "rollingBack": {
+      "type": "bool",
+      "init": false
+    },
+    "promoAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "abandoned": {
+      "type": "number",
+      "init": 170,
+      "min": 0,
+      "max": 100000
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "recsSync",
+        "sqlSlow",
+        "capacity"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "timeoutAsync",
+        "moreReplicas",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "not isNull(fixedAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "abandoning",
+      "when": "phase == \"incident\" and not fixed",
+      "update": {
+        "abandoned": "abandoned + abandonRate * (isNull(promoAt) ? 1 : 2) * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "trend",
+        "codes",
+        "deps",
+        "byVersion",
+        "trace",
+        "scaleOut",
+        "restartRecs",
+        "killSwitch",
+        "rollback",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "trend": {
+      "label": "AppRequests | where TimeGenerated > ago(1h) and Name == \"POST /checkout\" | summarize percentiles(DurationMs, 50, 95) by bin(TimeGenerated, 10m)",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(trendAt)",
+          "then": [
+            {
+              "set": "trendAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "kql (law-shop)> AppRequests | where TimeGenerated > ago(1h) and Name == \"POST /checkout\" | summarize percentiles(DurationMs, 50, 95) by bin(TimeGenerated, 10m)\nTimeGenerated   percentile_DurationMs_50   percentile_DurationMs_95\n12:00           142                        298\n12:10           139                        305\n12:20           146                        311\n12:30           151                        340\n12:40           1,960                      3,980\n12:50           2,010                      4,120\n{fixed ? \"now             140                        301\" : \"\"}"
+        },
+        {
+          "if": "not fixed",
+          "then": [
+            {
+              "finding": "Checkout jumped from about 300 ms to about 4,000 ms at the 95th percentile in the 12:40 bin, right after the 12:38 release."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "codes": {
+      "label": "AppRequests | where TimeGenerated > ago(30m) and Name == \"POST /checkout\" | summarize count() by ResultCode",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codesAt)",
+          "then": [
+            {
+              "set": "codesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "kql (law-shop)> AppRequests | where TimeGenerated > ago(30m) and Name == \"POST /checkout\" | summarize count() by ResultCode\nResultCode   count_\n200          {fixed ? \"3,512\" : \"3,104\"}\n504          {fixed ? \"0 since the fix\" : \"412\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "deps": {
+      "label": "AppDependencies | where TimeGenerated > ago(30m) | summarize p95 = percentile(DurationMs, 95), failed = countif(Success == false) by Target, DependencyType",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(depsAt)",
+          "then": [
+            {
+              "set": "depsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "kql (law-shop)> AppDependencies | where TimeGenerated > ago(30m) | summarize p95 = percentile(DurationMs, 95), failed = countif(Success == false) by Target, DependencyType\nTarget       DependencyType   p95       failed\nrecs-api     HTTP             3,900     {fixed ? \"0 since the fix\" : \"561\"}\nsql-orders   SQL              21        0\nredis-cart   Redis            2         0"
+        },
+        {
+          "if": "not fixed",
+          "then": [
+            {
+              "finding": "recs-api calls take about 3.9 s at p95 and 561 failed; the database and the cache are normal. The time is spent waiting on recs-api."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "byVersion": {
+      "label": "AppDependencies | where TimeGenerated > ago(2h) and Target == \"recs-api\" | summarize calls = count() by AppVersion, OperationName",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(versionAt)",
+          "then": [
+            {
+              "set": "versionAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "kql (law-shop)> AppDependencies | where TimeGenerated > ago(2h) and Target == \"recs-api\" | summarize calls = count() by AppVersion, OperationName\nAppVersion   OperationName    calls\n7.3.0        POST /checkout   {fixed ? \"4,020 (none since the fix)\" : \"4,020\"}\n7.2.4        GET /product     8,113"
+        },
+        {
+          "finding": "Only 7.3.0 calls recs-api from checkout; before it, recs-api was called only from product pages, where a slow answer did not block a purchase."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "trace": {
+      "label": "union AppRequests, AppDependencies | where OperationId == \"4bf92f3577b34da6a3ce929d0e0e4736\" | project TimeGenerated, Type, Name, Target, DurationMs",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(traceAt)",
+          "then": [
+            {
+              "set": "traceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "kql (law-shop)> union AppRequests, AppDependencies | where OperationId == \"4bf92f3577b34da6a3ce929d0e0e4736\" | project TimeGenerated, Type, Name, Target, DurationMs\nTimeGenerated   Type              Name                   Target       DurationMs\n12:51:07.112    AppRequests       POST /checkout                      4,212\n12:51:07.118    AppDependencies   SELECT cart            redis-cart   2\n12:51:07.121    AppDependencies   INSERT orders          sql-orders   19\n12:51:07.142    AppDependencies   GET /recommendations   recs-api     4,170"
+        },
+        {
+          "finding": "One slow checkout, end to end: 4.2 s, of which 4.17 s is the recs-api call."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "scaleOut": {
+      "label": "az containerapp update -n shop-web -g rg-shop --min-replicas 20",
+      "group": "Fix",
+      "available": "not busy and replicas < 20",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "replicas",
+          "to": "20"
+        },
+        {
+          "if": "isNull(scaledAt)",
+          "then": [
+            {
+              "set": "scaledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "shop-web runs 20 replicas instead of 4. Every checkout still waits on recs-api, so it is just as slow, and the bill is five times larger.",
+          "kind": "bad"
+        },
+        {
+          "output": "kql (law-shop)> az containerapp update -n shop-web -g rg-shop --min-replicas 20"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restartRecs": {
+      "label": "az containerapp revision restart -n recs-api -g rg-recs --revision recs-api--v42b",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(recsRestartAt)",
+          "then": [
+            {
+              "set": "recsRestartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "recs-api restarted. Its calls are just as slow: it is doing heavy work per request that checkout now waits for.",
+          "kind": "act"
+        },
+        {
+          "output": "kql (law-shop)> az containerapp revision restart -n recs-api -g rg-recs --revision recs-api--v42b"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "killSwitch": {
+      "label": "featurectl set checkout.recommendations off --app shop-web",
+      "group": "Fix",
+      "available": "not busy and not fixed",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fixBy",
+          "to": "\"switch\""
+        },
+        {
+          "log": "The checkout recommendations switch is off; within 30 seconds checkout stops calling recs-api.",
+          "kind": "good"
+        },
+        {
+          "output": "kql (law-shop)> featurectl set checkout.recommendations off --app shop-web"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rollback": {
+      "label": "az containerapp revision activate -n shop-web -g rg-shop --revision shop-web--7-2-4",
+      "group": "Fix",
+      "available": "not busy and not fixed",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "rollingBack",
+          "to": "true"
+        },
+        {
+          "log": "Rolling back to 7.2.4; the old revision needs about 10 minutes to start and take traffic.",
+          "kind": "act"
+        },
+        {
+          "output": "kql (law-shop)> az containerapp revision activate -n shop-web -g rg-shop --revision shop-web--7-2-4"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "AppRequests | where TimeGenerated > ago(5m) and Name == \"POST /checkout\" | summarize percentile(DurationMs, 95)",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "kql (law-shop)> AppRequests | where TimeGenerated > ago(5m) and Name == \"POST /checkout\" | summarize percentile(DurationMs, 95)\npercentile_DurationMs_95\n{fixed ? \"301\" : \"4,090\"}"
+        },
+        {
+          "if": "fixed and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "// wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "kql (law-shop)> // wait 10 minutes"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare it fixed and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "recsSync",
+                  "label": "7.3.0 added a synchronous recs-api call to checkout; recs-api's slow answers became checkout's"
+                },
+                {
+                  "value": "sqlSlow",
+                  "label": "The orders database slowed down"
+                },
+                {
+                  "value": "capacity",
+                  "label": "shop-web ran out of capacity"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "timeoutAsync",
+                  "label": "Call recs-api with a short timeout and render without it, or load recommendations after checkout; alert on dependency p95"
+                },
+                {
+                  "value": "moreReplicas",
+                  "label": "Run more shop-web replicas"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "rollingBack",
+          "then": [
+            {
+              "set": "rollingBack",
+              "to": "false"
+            },
+            {
+              "if": "isNull(fixedAt)",
+              "then": [
+                {
+                  "if": "isNull(fixedAt)",
+                  "then": [
+                    {
+                      "set": "fixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "fixBy",
+                  "to": "\"rollback\""
+                },
+                {
+                  "log": "7.2.4 is serving: checkout no longer calls recs-api.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "promo",
+      "when": "t >= promoDelay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "promoAt",
+          "to": "t"
+        },
+        {
+          "if": "not fixed",
+          "then": [
+            {
+              "log": "13:30: the promo email is out and checkout traffic doubles while checkout is still slow.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how the queries led you to the cause, what you changed and why not scaling, and how you showed it was fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "From symptom to cause",
+          "criteria": "Uses a percentile trend (not an average) to date the change, a dependency breakdown by Target to find recs-api slow while SQL and the cache are normal, and the version or a single operation's trace to tie it to 7.3.0's new synchronous call.",
+          "modelAnswer": "percentiles by 10-minute bin showed p95 jump from about 300 to 4,000 ms at 12:40. AppDependencies by Target showed recs-api at 3.9 s p95 with failures while sql-orders and redis-cart were normal, and only 7.3.0 calls recs-api from POST /checkout; one operation's trace put 4.17 of 4.2 s in that call."
+        },
+        {
+          "label": "The fix",
+          "criteria": "Turns off the new recommendations call (kill switch) or rolls back; explains that adding web replicas or restarting recs-api does not help when every request waits on a slow dependency.",
+          "modelAnswer": "I switched checkout recommendations off, which takes effect in 30 seconds without a deploy. More shop-web replicas would each still wait 4 seconds for recs-api."
+        },
+        {
+          "label": "Proof and prevention",
+          "criteria": "Re-runs the p95 query after the fix, and proposes a timeout or asynchronous load for the dependency and an alert on dependency latency.",
+          "modelAnswer": "p95 for POST /checkout over the last 5 minutes is back to about 300 ms. Next: call recs-api with a short timeout and render checkout without it, and alert on its p95."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Fixed before the 13:30 promo with time to spare; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed",
+      "class": "harm",
+      "rationale": "Closing with checkout still taking 4 seconds keeps losing purchases; it is never a safe outcome.",
+      "source": {
+        "cite": "Azure Monitor Logs reference: AppDependencies table, last updated 2026-07-28",
+        "checkedAt": "2026-11-14",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/appdependencies",
+        "note": "Relevant text: DurationMs ('Number of milliseconds the dependency call took to complete'), Success, ResultCode, Target ('Target of a dependency call, such as a Web or a SQL server name'), DependencyType, Name, OperationId and AppVersion among the columns. Read through a summarizing fetch on 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "promoSlow": {
+      "label": "The promo hit a slow checkout",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(promoAt) and (not fixed or timeAt(fixedAt) > timeAt(promoAt))",
+      "narrative": "Checkout was still slow when the 13:30 promo doubled traffic; {abandoned|0dp} checkouts were abandoned in all."
+    },
+    "stillSlow": {
+      "label": "Closed with checkout slow",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not fixed",
+      "narrative": "The incident was closed while checkout still waited four seconds on recs-api."
+    },
+    "fixed": {
+      "label": "Found with KQL and fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and timeAt(fixedAt) <= restoreWindow and not isNull(depsAt) and timeAt(depsAt) <= timeAt(fixedAt) and isNull(scaledAt) and not isNull(verifiedAt)",
+      "narrative": "The queries took you from a p95 jump to one slow dependency added by one release, the kill switch fixed it in a minute, and a final query proved it."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Checkout is fast again, but the fix was a guess, came late, paid for replicas that could not help, or was never measured."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "promoSlow",
+    "stillSlow",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "foundDep",
+        "label": "Found the slow dependency with a query before fixing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(depsAt) and (isNull(fixedAt) or timeAt(depsAt) <= timeAt(fixedAt)) and isNull(scaledAt) and isNull(recsRestartAt)",
+            "score": "met",
+            "why": "AppDependencies by Target named recs-api before any change."
+          },
+          {
+            "when": "not isNull(depsAt) or not isNull(traceAt)",
+            "score": "partial",
+            "why": "The dependency was found, but after trying a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Dependencies were never queried; the fix was a guess."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Checkout fast within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and timeAt(fixedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Fixed {timeAt(fixedAt) / 60|0dp} min after the alert."
+          },
+          {
+            "when": "fixed",
+            "score": "partial",
+            "why": "Fixed, but {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Checkout was never fixed."
+          }
+        ]
+      },
+      {
+        "id": "noWaste",
+        "label": "Did not pay for capacity that could not help",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(scaledAt)",
+            "score": "met",
+            "why": "No replicas were added for a dependency problem."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Five times the replicas, each waiting on the same slow call."
+          }
+        ]
+      },
+      {
+        "id": "dated",
+        "label": "Dated the change with a percentile trend",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(trendAt)",
+            "score": "met",
+            "why": "p95 by 10-minute bin put the jump at 12:40."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The latency trend was never queried."
+          }
+        ]
+      },
+      {
+        "id": "tied",
+        "label": "Tied the call to the release",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(versionAt) or not isNull(traceAt)",
+            "score": "met",
+            "why": "AppVersion or one operation's trace tied recs-api to 7.3.0's checkout."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The slow call was never tied to the release."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Proved the fix with a query",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "p95 over the last 5 minutes is back to about 300 ms."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fix was never measured."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"recsSync\" and preventDoc == \"timeoutAsync\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"recsSync\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written query path, fix and proof",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until checkout was fast",
+        "value": "fixed ? timeAt(fixedAt) / 60 : -1",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "abandonK",
+        "label": "Checkouts abandoned since 12:40",
+        "value": "abandoned",
+        "format": "number",
+        "expert": "250 or fewer"
+      },
+      {
+        "id": "replicasK",
+        "label": "Extra replicas added",
+        "value": "replicas - 4",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "percentiles(DurationMs, 50, 95) by 10-minute bin: p95 jumps from about 300 to 4,000 ms at 12:40."
+      },
+      {
+        "at": "2-4 min",
+        "text": "AppDependencies by Target: recs-api at 3.9 s p95 with failures; SQL and the cache normal."
+      },
+      {
+        "at": "4-6 min",
+        "text": "By AppVersion: only 7.3.0 calls recs-api from checkout. Flip the checkout.recommendations switch off."
+      },
+      {
+        "at": "6-10 min",
+        "text": "p95 over the last 5 minutes is back to about 300 ms. No scaling needed."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: found with KQL and fixed",
+        "body": "Percentiles dated the change, the dependency breakdown named recs-api, the version tied it to 7.3.0, and a kill switch fixed it without a deploy."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "Checkout is fast. The criteria show the cost: a guess, time, replicas that could not help, or no measurement after."
+      },
+      "promoSlow": {
+        "headline": "The promo arrived first",
+        "body": "Two queries, the trend and the dependency breakdown, point at recs-api within minutes; the switch takes one."
+      },
+      "stillSlow": {
+        "headline": "Closed too soon",
+        "body": "Restarting recs-api or adding web replicas leaves every checkout waiting on the same call."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A p95 trend by 10-minute bin dates the jump to 12:40, just after 7.3.0. Summarizing AppDependencies by Target shows recs-api at 3.9 s p95 with failures while SQL and Redis are normal; by AppVersion, only 7.3.0 calls it from checkout, and one operation's trace puts 4.17 of 4.2 s in that call. Turn the new call off with its kill switch (or roll back), then prove it with the p95 query. More web replicas would each wait on the same slow call."
+  }
+}

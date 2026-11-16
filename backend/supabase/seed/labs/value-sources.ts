@@ -30,6 +30,7 @@ import {
   NASEMSO_MODEL_GUIDELINES_V3,
   SCOPE_OF_PRACTICE_2019,
 } from "./ems-sources";
+import { NURSING_SPECIALTY_VALUE_SOURCES } from "./nursing-specialty-sources";
 import { ACOG_PB183, ADA_HYPOGLYCEMIA, CDC_EBP, CDC_HAND_HYGIENE, CDC_TBP, ENDOCRINE_INPATIENT_2022, ISMP_ABBREVIATIONS, NCSBN_ANA_DELEGATION } from "./nursing-sources";
 
 const CHECKED = "2026-11-08";
@@ -450,6 +451,30 @@ const NASEM_MACRO = source("https://www.ncbi.nlm.nih.gov/books/NBK56068/table/su
 const FDA_SUPPLEMENTS = source("https://www.fda.gov/food/information-consumers-using-dietary-supplements/questions-and-answers-dietary-supplements", "reference", R281);
 const CNC_SCOPE = source("https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K", "reference", R281);
 
+// --- REQ-286/REQ-287 (2026-11-14): ASWB Clinical and Masters, WA psychology jurisprudence ---
+// Every page below was read on 2026-11-14 at the URL given.
+const R286 = "2026-11-14";
+// NASW Code of Ethics (1996, revised 2021), standards 1-3 read in full on
+// socialworkers.org: 1.02, 1.03(a)-(g), 1.06(a)-(h), 1.07(c)-(d), 1.13(b),
+// 2.01, 2.10(c)-(d), 3.04, 3.05, 3.09(b). Amendments go to NASW's Delegate
+// Assembly on 2026-11-18; recheck by 2026-12-15.
+const NASW_CODE_2021 = source("https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English", "reference", R286, "2026-12-15");
+// Washington statutes and rules (app.leg.wa.gov, current text): the duty to
+// warn or protect (RCW 71.05.120(3)), child abuse reports (RCW 26.44.030:
+// psychologists and social service counselors are mandated reporters; first
+// opportunity, no later than 48 hours; (2) adult survivors), vulnerable adults
+// (RCW 74.34.020, .035), health care information (RCW 70.02.030, .050, .230),
+// psychologists (chapter 18.83 RCW; chapter 246-924 WAC: -012, -059, -161,
+// -230, -240, -255, -300, -353, -354, -355, -357, -358, -363, -366, -445, -467),
+// discipline (RCW 18.130.160, .180).
+const WA_RCW_71_05_120 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=71.05.120", "reference", R286, "2027-05-15");
+const WA_RCW_26_44_030 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=26.44.030", "reference", R286, "2027-05-15");
+const WA_RCW_74_34 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=74.34", "reference", R286, "2027-05-15");
+const WA_RCW_70_02 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=70.02", "reference", R286, "2027-05-15");
+const WA_RCW_18_83 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=18.83", "reference", R286, "2027-05-15");
+const WA_WAC_246_924 = source("https://app.leg.wa.gov/wac/default.aspx?cite=246-924", "reference", R286, "2027-05-15");
+const WA_RCW_18_130 = source("https://app.leg.wa.gov/rcw/default.aspx?cite=18.130", "reference", R286, "2027-05-15");
+
 export const VALUE_SOURCES: Record<string, ValueSources> = {
   CCRNADULT: {
     "post-cabg-tamponade": [STS_RESUSCITATION_2017, AHA_CARDIOGENIC_SHOCK_2017],
@@ -778,6 +803,8 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "aplus1-random-shutdowns-psu": [INTEL_ATX3_PSU],
     "aplus1-degraded-raid-clicking": { none: CONCEPTS_ONLY },
     "aplus1-wifi-drops-voip": [MERAKI_CHANNELS],
+    // REQ-295 (2026-11-14): density fill.
+    "aplus1-cloud-model-by-scenario": { none: CONCEPTS_ONLY },
   },
   APLUS_CORE2: {
     "aplus2-windows-commands": [MS_GPUPDATE, MS_GPRESULT, MS_SFC],
@@ -929,6 +956,8 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "ncmhce-cultural-humility": [ACA_CODE_2014],
     "ncmhce-alliance-rupture": { none: CONCEPTS_ONLY },
   },
+  // REQ-275..278 (2026-11-14): CMSRN, CEN, PCCN, FNPAANP, FNPANCC.
+  ...NURSING_SPECIALTY_VALUE_SOURCES,
   // REQ-281 (2026-11-14): NASM Certified Nutrition Coach.
   NASMCNC: {
     "nasmcnc-refer-or-coach": [CNC_SCOPE],
@@ -941,6 +970,41 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "nasmcnc-label-added-sugar": [DGA_2025],
     "nasmcnc-supplement-claims": [FDA_SUPPLEMENTS],
     "nasmcnc-weight-management-case": [CNC_SCOPE],
+  },
+  // REQ-286 (2026-11-14): ASWB Clinical and Masters.
+  ASWBCLINICAL: {
+    "aswbc-threat-against-identifiable-person": [NASW_CODE_2021, WA_RCW_71_05_120],
+    "aswbc-informed-consent-telehealth": [NASW_CODE_2021],
+    "aswbc-small-town-dual-relationship": [NASW_CODE_2021],
+    "aswbc-suicide-risk-assessment": [SAMHSA_988],
+    "aswbc-differential-depression-bipolar-substance": { none: "Applies the DSM-5-TR rule that substance and medical causes are ruled out and past elevated episodes are asked about, as concepts; quotes no criterion count or duration." },
+    "aswbc-biopsychosocial-summary": { none: "Organizes the fictional client's own facts by domain; quotes no threshold, score or standard." },
+    "aswbc-match-evidence-based-practice": { none: CONCEPTS_ONLY },
+    "aswbc-crisis-intervention-eviction": { none: "Applies a crisis intervention sequence as a concept; quotes no threshold, statute or deadline." },
+    "aswbc-countertransference-in-supervision": { none: CONCEPTS_ONLY },
+  },
+  ASWBMASTERS: {
+    "aswbm-mandated-child-abuse-report": [WA_RCW_26_44_030],
+    "aswbm-self-determination-older-adult": [NASW_CODE_2021, WA_RCW_74_34],
+    "aswbm-ethical-dilemma-model": [NASW_CODE_2021],
+    "aswbm-risk-of-harm-shelter": [NASW_CODE_2021, SAMHSA_988],
+    "aswbm-interpreter-sensitive-interview": { none: "Applies interviewing and interpreter practice as concepts; quotes no statute, threshold or standard number." },
+    "aswbm-service-plan-community-resources": { none: "Plans with the fictional family's own facts and deadlines; quotes no statute, threshold or benefit amount." },
+    "aswbm-involuntary-client-contract": [NASW_CODE_2021],
+    "aswbm-group-stages": { none: CONCEPTS_ONLY },
+    "aswbm-program-evaluation-plan": { none: CONCEPTS_ONLY },
+  },
+  // REQ-287 (2026-11-14): Washington psychology jurisprudence.
+  WAPSYCHJP: {
+    "wajp-associate-and-trainee-titles": [WA_RCW_18_83, WA_WAC_246_924],
+    "wajp-first-ce-cycle-plan": [WA_WAC_246_924],
+    "wajp-sexual-misconduct-waiting-periods": [WA_WAC_246_924],
+    "wajp-records-retention-and-closing-practice": [WA_WAC_246_924],
+    "wajp-parenting-evaluation-standards": [WA_WAC_246_924],
+    "wajp-duty-to-protect": [WA_RCW_71_05_120, WA_RCW_70_02, WA_WAC_246_924],
+    "wajp-valid-authorization": [WA_RCW_70_02],
+    "wajp-child-abuse-report-48-hours": [WA_RCW_26_44_030],
+    "wajp-unprofessional-conduct-and-sanctions": [WA_RCW_18_130, WA_RCW_18_83, WA_WAC_246_924],
   },
 };
 

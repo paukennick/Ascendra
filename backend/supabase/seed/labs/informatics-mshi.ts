@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-161: MS Health Informatics Coach (MSHI), the ten AMIA foundational
@@ -602,6 +602,44 @@ export const MSHI_LABS: SeedLabSet = {
               "Implementing and sustaining the change (steps 7-8) and how you will know",
               "Step 7 consolidate gains and produce more change: spread unit by unit using pilot lessons, keep tuning, add related improvements (lactate ordering, reassessment). Step 8 anchor in culture: make screening part of orientation, competencies and the unit dashboard; recognize units; tie to mortality reporting; leadership keeps asking about it. Measures: process (screening rate, alert override rate) and outcome (bundle compliance, mortality) with a review cadence, and a plan for when the data disappoints.",
               "7 Consolidate: roll to the next units with what the pilot taught, keep a monthly alert-tuning review with the hospitalists, and use the momentum for the next pieces -- lactate ordering, reassessment prompts. 8 Anchor it: sepsis screening in nursing orientation and annual competencies, the screening and override rates on every unit's dashboard beside falls and infections, recognition for units that hold the gains, and the CMO asking about it in every quality meeting so it does not fade when the project team leaves. You know it is working when the override rate falls and stays down, screening completion holds above target without reminders, and mortality moves; and you decide now what you will do if, at six months, it hasn't."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Health (F1) gets its second lab.
+    // Applies the course's own objective on observational data sources; no
+    // outside value is quoted.
+    {
+      slug: "choose-the-observational-data-source",
+      objective: "Observational data sources -- electronic health records, insurance claims and registries -- what each was collected for and what it tends to miss",
+      kind: "build",
+      title: "Match each research question to the data that can answer it",
+      brief:
+        "An analyst at the fictional Cascade Regional Health Collaborative has four questions from a planning meeting and access, under the right agreements, to three kinds of data: the member hospitals' electronic health records (EHR), a commercial insurer's claims, and the state cancer registry.\n\nA. What were patients' blood pressure readings and smoking status at their last clinic visit?\nB. Which patients filled a statin prescription at any pharmacy last year, including outside the member hospitals?\nC. What were the stage at diagnosis and five-year survival of colorectal cancer cases across the whole state?\nD. A colleague proposes estimating how common a condition is from billing diagnosis codes alone.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies the course objective's description of observational data sources to fictional questions; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each question to the best source, then explain what each source tends to miss and the problem with D.",
+          parts: [
+            matchPart(
+              "Best source for each question",
+              "Met: all three right -- A: the EHR (clinical detail such as vitals and smoking status); B: insurance claims (pharmacy fills across providers for covered members); C: the cancer registry (stage and follow-up for every case in the state). Two right is partly there.",
+              "The EHR was built to document care, so it holds vitals, notes and smoking status but only for care given in those hospitals. Claims were built for payment, so they capture every billed service and pharmacy fill for insured members wherever they went, without clinical values. A registry was built to track one condition completely across a population, with stage and outcomes, but only for that condition.",
+              {
+                leftHeading: "Question",
+                rightHeading: "Best source",
+                left: ["A: last clinic blood pressure and smoking status", "B: statin fills at any pharmacy last year", "C: stage at diagnosis and survival, whole state"],
+                right: ["Electronic health records", "Insurance claims", "Cancer registry", "A patient survey"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "What each misses, and D",
+              "EHR: care outside the system (fragmentation), uninsured or non-users, values recorded only when measured, free text; claims: clinical values and results, services paid out of pocket or by another insurer, people who change plans (gaps in enrollment), codes chosen for billing; registry: only the registered condition, reporting lag, limited treatment detail. D: billing codes reflect what was billed and justified payment, not confirmed disease -- they miss untreated or undiagnosed cases and include rule-out codes, so prevalence is biased; validate codes against charts (or combine codes with labs/medications) and account for the covered population.",
+              "EHR: misses care given elsewhere, people who never visit, and anything not measured or only written in notes. Claims: no blood pressures or lab results, nothing paid out of pocket or by another plan, and gaps whenever members switch insurers; codes are chosen to get paid. Registry: complete for its one condition, but nothing else, with a reporting lag and limited treatment detail.\nD: a diagnosis code records what was billed, not what is true. Untreated and undiagnosed people never appear, while 'rule-out' codes count people who turned out not to have the condition, and the count only covers insured members. Check the code list against a sample of charts, combine codes with lab results or medications, and state which population the estimate describes."
             ),
           ],
         },

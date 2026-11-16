@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, selectPart, commandPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA Network+ (N10-009, V9).
@@ -479,6 +479,48 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
               "Early warning",
               "Sets monitoring: SNMP utilization and output-drop thresholds on the WAN interface (alert at e.g. 80% for 5 minutes), ongoing flow data to spot new top talkers, and a baseline so afternoon changes stand out; documents the incident and the QoS policy.",
               "Alert from the NMS when WAN output utilization exceeds 80% for five minutes or output drops increase, and keep NetFlow so the next unexpected top talker is visible in a minute. Record the baseline (morning and afternoon utilization, normal RTT to the PBX) to compare against. Document: 'Afternoon voice quality loss caused by WAN congestion from a rescheduled 71 GB backup; fixed by moving the job overnight and adding a priority queue for EF-marked voice; alerts added at 80% utilization.'"
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Network Implementation (20%) gets
+    // its second lab. Route choice worked by longest prefix from the table in
+    // the brief; addresses from RFC 1918 and RFC 5737 documentation ranges.
+    {
+      slug: "route-selection-default-and-pat",
+      objective: "Routing technologies: static vs. dynamic routing, NAT, PAT, and first-hop redundancy protocols (FHRP, VIP)",
+      kind: "build",
+      title: "Read a routing table, add the default route, plan PAT and a gateway VIP",
+      brief:
+        "Bayview Marine Supply (fictional) has one branch router, R1, with an internet link to its ISP at 203.0.113.1 and OSPF to the head office. Its routing table today:\n\nC 10.0.0.0/30 is directly connected, Gi0/1\nC 10.0.0.4/30 is directly connected, Gi0/2\nO 10.20.0.0/16 [110/20] via 10.0.0.2\nO 10.20.30.0/24 [110/30] via 10.0.0.6\nS 10.20.30.128/25 [1/0] via 10.0.0.2\n\nThere is no default route yet, so internet traffic is dropped. The branch has 60 PCs on 192.168.50.0/24 and one public address from the ISP, 203.0.113.10. The office manager also asks why a dead R1 takes down everyone's internet, and whether a second router would help.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Route choice is worked from the routing table given in the brief (longest prefix match); the administrative distances and metrics are data in that table, and no vendor or standard value is asked for.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the route R1 uses for a packet to 10.20.30.200, type the default route, and plan PAT and the gateway redundancy.",
+          parts: [
+            selectPart(
+              "Route used for 10.20.30.200",
+              "Met: only the static 10.20.30.128/25 route.",
+              "10.20.30.200 falls inside 10.20.0.0/16, 10.20.30.0/24 and 10.20.30.128/25 (which covers .128 to .255). A router forwards on the longest matching prefix first, so the /25 wins, and the packet goes via 10.0.0.2. Administrative distance only breaks ties between routes to the SAME prefix from different sources; it does not make the static route win here.",
+              {
+                display: "table",
+                lines: ["C 10.0.0.0/30 is directly connected, Gi0/1", "C 10.0.0.4/30 is directly connected, Gi0/2", "O 10.20.0.0/16 [110/20] via 10.0.0.2", "O 10.20.30.0/24 [110/30] via 10.0.0.6", "S 10.20.30.128/25 [1/0] via 10.0.0.2"],
+                correct: [4],
+              }
+            ),
+            commandPart(
+              "Static default route to the ISP",
+              "Met: ip route 0.0.0.0 0.0.0.0 203.0.113.1 in global configuration (case does not matter). The right program with the wrong next hop or mask is partly there.",
+              "ip route 0.0.0.0 0.0.0.0 203.0.113.1 -- a destination of 0.0.0.0 with mask 0.0.0.0 matches every address, but as the shortest possible prefix (/0) it is used only when nothing longer matches, so head-office routes still go over OSPF. It shows in the table as S* 0.0.0.0/0 [1/0] via 203.0.113.1.",
+              { accepted: ["ip route 0.0.0.0 0.0.0.0 203.0.113.1"], prompt: "R1(config)#", ignoreCase: true }
+            ),
+            part(
+              "PAT and gateway redundancy",
+              "PAT (NAT overload): the 60 private 192.168.50.0/24 hosts share the one public address 203.0.113.10, told apart by translated source port numbers; inside interface on the LAN, outside on the ISP link; plain one-to-one static NAT would need 60 public addresses. Redundancy: add a second router and run an FHRP (HSRP, VRRP or GLBP) so both share a virtual IP that PCs use as their default gateway; if the active router fails the standby takes over the VIP and its virtual MAC, with no change on the PCs. Notes the second router also needs its own internet path for full redundancy.",
+              "PAT: translate every inside source 192.168.50.x to 203.0.113.10 and give each flow its own source port, so 60 PCs (and thousands of sessions) share one public address. Mark the LAN interface as NAT inside and the ISP link as outside; one-to-one static NAT is only for a server that must be reachable from outside.\n\nRedundancy: today every PC's default gateway is R1's own address, so when R1 dies nothing can leave the subnet. Add R2 and run a first-hop redundancy protocol (HSRP, VRRP or GLBP): the two routers share a virtual IP, say 192.168.50.1, and a virtual MAC. PCs point at the VIP; if the active router fails, the standby claims the VIP within seconds and the PCs never notice. Give R2 its own ISP link too, or the single internet circuit is still a single point of failure."
             ),
           ],
         },

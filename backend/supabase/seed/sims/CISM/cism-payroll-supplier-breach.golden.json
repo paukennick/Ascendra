@@ -1,0 +1,932 @@
+{
+  "slug": "cism-payroll-supplier-breach",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Reads the contract, checks our own log, rotates and restricts the key at 10 min, invokes cooperation, briefs the CFO and counsel, maps the data, records the treatment",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readContract",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pullLogs",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rotate",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callSupplier",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 19,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "dataMap",
+          "seq": 11,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 17,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "mitigate",
+            "breach": "late"
+          },
+          "seq": 18,
+          "tick": 34
+        }
+      ],
+      "expect": {
+        "ending": "handled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "contained": "met",
+          "contract": "met",
+          "escalation": "met",
+          "business": "met",
+          "logs": "met",
+          "dataMap": "met",
+          "register": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": 10,
+          "deposits": 0,
+          "unpaid": 0
+        },
+        "stateHash": "0523ed3398c3b90e"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "suspendAll",
+      "title": "Suspends the integration and rotates the key, but never resumes it: payroll misses the 10:00 cut-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readContract",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "suspend",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rotate",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "callSupplier",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "dataMap",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "seq": 13,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 41,
+          "seq": 16,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 51,
+          "seq": 18,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 61,
+          "seq": 20,
+          "tick": 51
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 22,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "mitigate",
+            "breach": "late"
+          },
+          "seq": 23,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "handledCostly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 72,
+        "criteria": {
+          "contained": "met",
+          "contract": "met",
+          "escalation": "met",
+          "business": "missed",
+          "logs": "missed",
+          "dataMap": "met",
+          "register": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": 7,
+          "deposits": 0,
+          "unpaid": 1800
+        },
+        "stateHash": "ce5f2555e850c682"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "waitSupplier",
+      "title": "Reads the contract, calls the supplier and briefs the CFO, then waits for the supplier: deposits change at 20 min and are paid out at 10:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readContract",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callSupplier",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 34,
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 12,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 44,
+          "seq": 13,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 14,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 54,
+          "seq": 15,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 16,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 64,
+          "seq": 17,
+          "tick": 54
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 19,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "accept",
+            "breach": "ontime"
+          },
+          "seq": 20,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "fraud",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "contained": "missed",
+          "contract": "met",
+          "escalation": "met",
+          "business": "missed",
+          "logs": "missed",
+          "dataMap": "missed",
+          "register": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": -1,
+          "deposits": 12,
+          "unpaid": 0
+        },
+        "stateHash": "9830088d2b0fde9f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "terminate",
+      "title": "Emails all staff, then terminates the contract (which also kills the key) and briefs the CFO afterwards",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readContract",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pullLogs",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "notice",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "terminate",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "staff"
+          },
+          "seq": 13,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "avoid",
+            "breach": "late"
+          },
+          "seq": 14,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "handledCostly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "contained": "met",
+          "contract": "partial",
+          "escalation": "partial",
+          "business": "missed",
+          "logs": "met",
+          "dataMap": "missed",
+          "register": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": 13,
+          "deposits": 0,
+          "unpaid": 0
+        },
+        "stateHash": "16d9e85afbb14a6e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "closeEarly",
+      "title": "Looks at the gateway log and closes as the supplier's problem, leaving the key valid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pullLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "accept",
+            "breach": "ontime"
+          },
+          "seq": 6,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "contained": "missed",
+          "contract": "missed",
+          "escalation": "missed",
+          "business": "met",
+          "logs": "met",
+          "dataMap": "missed",
+          "register": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToCut": -1,
+          "deposits": 0,
+          "unpaid": 0
+        },
+        "stateHash": "481cbb1534e894b5"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "lateRotate",
+      "title": "Works the contract and the people first, checks the log at 20 min after the deposits changed, rotates at 25 and has HR revert them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readContract",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callSupplier",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "dataMap",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 20,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "pullLogs",
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "rotate",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "revert",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 44,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "register",
+          "seq": 15,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 49,
+          "seq": 16,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 49
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "owners"
+          },
+          "seq": 19,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "treat": "mitigate",
+            "breach": "late"
+          },
+          "seq": 20,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "handledCostly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 94,
+        "criteria": {
+          "contained": "met",
+          "contract": "met",
+          "escalation": "met",
+          "business": "met",
+          "logs": "met",
+          "dataMap": "met",
+          "register": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToCut": 25,
+          "deposits": 12,
+          "unpaid": 0
+        },
+        "stateHash": "323d8da36ac45bd7"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

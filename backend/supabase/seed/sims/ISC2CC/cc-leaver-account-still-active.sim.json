@@ -1,0 +1,1360 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cc-leaver-account-still-active",
+  "title": "Monday morning: a contractor who left on Friday signs in",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "vpn",
+          "severity": "high",
+          "title": "VPN: j.okafor signed in from 198.51.100.23 at 08:12",
+          "detail": "Valid password and MFA approval.",
+          "when": "true",
+          "at": "0",
+          "status": "{not inByAccount ? \"Access removed\" : not isNull(hrAt) ? \"Leaver: access should have ended Friday\" : \"Open\"}",
+          "open": "inByAccount"
+        },
+        {
+          "id": "share",
+          "severity": "medium",
+          "title": "File share: j.okafor read 140 files in /Finance/Pricing in 15 minutes",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(goneAt) ? \"Copied out\" : not isNull(uploadAt) ? \"Upload seen\" : not attackerActive ? \"Stopped\" : \"Reading\"}",
+          "open": "attackerActive"
+        },
+        {
+          "id": "key",
+          "severity": "high",
+          "title": "ERP integration: j.okafor created API key erp-sync-2",
+          "when": "not isNull(keyAt)",
+          "at": "timeAt(keyAt)",
+          "status": "{not isNull(keyRevokedAt) ? \"Revoked\" : \"Active\"}",
+          "open": "isNull(keyRevokedAt)"
+        },
+        {
+          "id": "review",
+          "severity": "low",
+          "title": "Access review due today: m.reyes moved from Sales to Finance in September and still holds Sales CRM admin",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(moverFixedAt) ? \"Rights removed\" : \"Due\"}",
+          "open": "isNull(moverFixedAt)"
+        },
+        {
+          "id": "shared",
+          "severity": "low",
+          "title": "Account hygiene: warehouse-shared is used by six people; its password has not changed since 2023",
+          "when": "true",
+          "at": "0",
+          "status": "{sharedDone ? \"Replaced with named accounts\" : \"Queued\"}",
+          "open": "false"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "VPN log",
+          "text": "08:12 j.okafor connected from 198.51.100.23; MFA push approved",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "File-share audit",
+          "text": "j.okafor: 140 reads in /Finance/Pricing since 08:15",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "HR system",
+          "text": "j.okafor: contract ended Friday 17:00; IT termination ticket still open",
+          "when": "not isNull(hrAt)",
+          "at": "timeAt(hrAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Sign-in log",
+          "text": "j.okafor: sessions open on the VPN and the single sign-on portal; no sign-in from a company laptop since Friday",
+          "when": "not isNull(signinAt)",
+          "at": "timeAt(signinAt)"
+        },
+        {
+          "id": "e5",
+          "source": "VPN log",
+          "text": "New j.okafor session from 198.51.100.140 after the block on 198.51.100.23",
+          "when": "ipBlocked and inByAccount",
+          "at": "timeAt(ipBlockAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Web proxy",
+          "text": "j.okafor's session uploaded 2.1 GB to files.example.net",
+          "when": "not isNull(uploadAt)",
+          "at": "timeAt(uploadAt)"
+        },
+        {
+          "id": "e7",
+          "source": "ERP audit",
+          "text": "API key erp-sync-2 created by j.okafor",
+          "when": "not isNull(keyAt)",
+          "at": "timeAt(keyAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Web proxy",
+          "text": "Pricing and customer files finished uploading to files.example.net",
+          "when": "not isNull(goneAt)",
+          "at": "timeAt(goneAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "acct",
+          "label": "j.okafor",
+          "spokenLabel": "Account j dot okafor",
+          "kind": "Contractor account (ERP integration)",
+          "status": "{not isNull(deletedAt) ? \"Deleted\" : not isNull(disabledAt) ? \"Disabled\" : \"Enabled\"}{isNull(revokedAt) and isNull(deletedAt) ? \"; sessions open\" : \"; sessions revoked\"}",
+          "tone": "inByAccount ? \"bad\" : \"held\""
+        },
+        {
+          "id": "erp",
+          "label": "ERP integration",
+          "spokenLabel": "ERP integration tenant",
+          "kind": "API keys",
+          "status": "{inByKey ? \"Key erp-sync-2 active\" : not isNull(keyRevokedAt) ? \"erp-sync-2 revoked\" : \"No unknown keys\"}",
+          "tone": "inByKey ? \"bad\" : \"ok\""
+        },
+        {
+          "id": "crm",
+          "label": "m.reyes",
+          "spokenLabel": "Account m dot reyes",
+          "kind": "Finance employee (moved from Sales)",
+          "status": "{isNull(moverFixedAt) ? \"Still holds Sales CRM admin\" : \"Finance roles only\"}",
+          "tone": "isNull(moverFixedAt) ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evid",
+          "label": "Evidence",
+          "value": "{isNull(preservedAt) ? \"logs not exported\" : \"VPN, sign-in and file-share logs exported\"}"
+        },
+        {
+          "id": "leak",
+          "label": "Data out",
+          "value": "{not isNull(goneAt) ? \"pricing and customer files gone\" : not isNull(uploadAt) ? \"2.1 GB uploaded\" : \"none seen\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Manage the identity life cycle: define roles, provision, review and deprovision access",
+  "secondaryObjectives": [
+    "Recognize access risks: privilege creep, orphaned accounts, and shared and service accounts",
+    "Apply the principle of least privilege and separation of duties to an access request"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CC Certification Exam Outline (effective 2026-09-01), Domain 3: Identity And Access Management (IAM) Concepts",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cc/cc-certification-exam-outline",
+      "note": "Headings read on the outline page and its English PDF (footer v01/2026) on 2026-11-14 for REQ-270: '3.1 Understand identity life cycle management: roles definition; provision; review; deprovision; frameworks and tools'; '3.2 Understand logical access controls: Principle of Least Privilege (PoLP); Separation of Duties (SoD); access control models'. Domain 3 weight 20% (average)."
+    },
+    {
+      "cite": "NIST SP 800-53 Rev. 5 (release 5.2.0), AC-2 Account Management and AC-2(3) Disable Accounts",
+      "checkedAt": "2026-11-14",
+      "url": "https://csf.tools/reference/nist-sp-800-53/r5/ac/ac-2/",
+      "note": "Read 2026-11-14 through a summarizing fetch of the csf.tools mirror of the 5.2.0 catalog, not NIST's own page. Relevant text: create, enable, modify, disable and remove accounts in accordance with policy; notify account managers 'when accounts are no longer required' and when 'users are terminated or transferred'; review accounts at a defined frequency; AC-2(3) 'Disable accounts within [Assignment: organization-defined time period] when the accounts' are no longer associated with a user. A federal control catalog used as good practice, not a rule for the fictional company."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are a junior security analyst at Larchmont Supply, a fictional distributor. At 08:30 on Monday the queue shows a VPN sign-in and heavy file-share reading by j.okafor, a contractor on the ERP integration project. You are not sure yet whether j.okafor still works here. The quarterly access review is also due today. Work the queue, contain what needs containing, and write it up.",
+    "handover": [
+      "You can disable accounts and revoke sessions under the account-management procedure; the incident handler on call owns any declared incident.",
+      "Accounts are disabled first and removed only after the retention period; logs are kept for investigations."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. Whoever is using the account keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "uploadDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty minutes until the first upload is the author's figure."
+      }
+    },
+    "keyDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Thirty minutes until an API key is created is the author's figure."
+      }
+    },
+    "goneDelay": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifty minutes until the copy is complete is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "hrAt": {
+      "type": "time",
+      "init": null
+    },
+    "signinAt": {
+      "type": "time",
+      "init": null
+    },
+    "managerAt": {
+      "type": "time",
+      "init": null
+    },
+    "disabledAt": {
+      "type": "time",
+      "init": null
+    },
+    "revokedAt": {
+      "type": "time",
+      "init": null
+    },
+    "deletedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipBlockAt": {
+      "type": "time",
+      "init": null
+    },
+    "keysSearchedAt": {
+      "type": "time",
+      "init": null
+    },
+    "keyAt": {
+      "type": "time",
+      "init": null
+    },
+    "keyRevokedAt": {
+      "type": "time",
+      "init": null
+    },
+    "preservedAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "moverFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "processFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "uploadAt": {
+      "type": "time",
+      "init": null
+    },
+    "goneAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipBlocked": {
+      "type": "bool",
+      "init": false
+    },
+    "sharedDone": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "leaver",
+        "phish",
+        "vpnfault"
+      ],
+      "init": "unset"
+    },
+    "followDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "process",
+        "nothing",
+        "purge"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "handler",
+        "everyone",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "inByAccount": {
+      "expr": "isNull(deletedAt) and (isNull(disabledAt) or isNull(revokedAt))"
+    },
+    "inByKey": {
+      "expr": "not isNull(keyAt) and isNull(keyRevokedAt)"
+    },
+    "attackerActive": {
+      "expr": "inByAccount or inByKey"
+    },
+    "spread": {
+      "expr": "isNull(uploadAt) ? 0 : 1"
+    },
+    "keysClean": {
+      "expr": "not isNull(keysSearchedAt) and (isNull(keyAt) or not isNull(keyRevokedAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "checkHr",
+        "reviewSignins",
+        "callManager",
+        "disable",
+        "revoke",
+        "blockIp",
+        "searchKeys",
+        "preserve",
+        "delete",
+        "escalate",
+        "fixMover",
+        "fixShared",
+        "fixProcess",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "checkHr": {
+      "label": "Check the HR system: is j.okafor still employed?",
+      "group": "Investigate",
+      "available": "not busy and isNull(hrAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "hrAt",
+          "to": "t"
+        },
+        {
+          "log": "You look up j.okafor in the HR system.",
+          "kind": "act"
+        },
+        {
+          "finding": "The contract ended Friday at 17:00. The IT termination ticket is still open: nobody removed the access."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reviewSignins": {
+      "label": "Review j.okafor's sign-ins and sessions",
+      "group": "Investigate",
+      "available": "not busy and isNull(signinAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "signinAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull j.okafor's sign-in history.",
+          "kind": "act"
+        },
+        {
+          "finding": "VPN and single sign-on sessions are open from an outside address, not a company laptop. A password reset alone would leave them open."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "callManager": {
+      "label": "Call the contractor's former project manager",
+      "group": "Investigate",
+      "available": "not busy and isNull(managerAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "managerAt",
+          "to": "t"
+        },
+        {
+          "log": "You call the ERP project manager.",
+          "kind": "act"
+        },
+        {
+          "finding": "No further work was agreed after Friday; the manager did not know the account was still on."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "disable": {
+      "label": "Disable j.okafor's directory account",
+      "group": "Contain",
+      "available": "not busy and isNull(disabledAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "disabledAt",
+          "to": "t"
+        },
+        {
+          "log": "The account is disabled. New sign-ins fail; sessions already open are not ended by this.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "revoke": {
+      "label": "Revoke j.okafor's open VPN and single sign-on sessions",
+      "group": "Contain",
+      "available": "not busy and isNull(revokedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "revokedAt",
+          "to": "t"
+        },
+        {
+          "log": "Open sessions are revoked. {isNull(disabledAt) ? \"The account is still enabled, so the password and MFA can sign in again.\" : \"With the account disabled, nothing can sign back in.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "blockIp": {
+      "label": "Block 198.51.100.23 at the VPN",
+      "group": "Contain",
+      "available": "not busy and not ipBlocked",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ipBlocked",
+          "to": "true"
+        },
+        {
+          "set": "ipBlockAt",
+          "to": "t"
+        },
+        {
+          "log": "The address is blocked. {inByAccount ? \"A minute later the same account connects from 198.51.100.140: the credentials still work.\" : \"Nothing else changes.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "searchKeys": {
+      "label": "Search for API keys, tokens and accounts j.okafor created",
+      "group": "Contain",
+      "available": "not busy and isNull(keyRevokedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(keysSearchedAt)",
+          "then": [
+            {
+              "set": "keysSearchedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(keyAt)",
+          "then": [
+            {
+              "set": "keyRevokedAt",
+              "to": "t"
+            },
+            {
+              "set": "keysSearchedAt",
+              "to": "t"
+            },
+            {
+              "log": "You find API key erp-sync-2, made by j.okafor this morning, and revoke it.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Nothing the account created is active right now.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Export j.okafor's VPN, sign-in and file-share logs",
+      "group": "Evidence",
+      "available": "not busy and isNull(preservedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "preservedAt",
+          "to": "t"
+        },
+        {
+          "log": "You export the logs with their times and source addresses and store them in the case folder.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "delete": {
+      "label": "Delete j.okafor's account and home folder now",
+      "group": "Contain",
+      "available": "not busy and isNull(deletedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "deletedAt",
+          "to": "t"
+        },
+        {
+          "log": "The account and its folder are gone. Its sessions end, but so do the folder and the account's history that the investigation and the retention rule needed.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate to the incident handler on call",
+      "group": "Communicate",
+      "available": "not busy and isNull(escalatedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "You hand the incident handler what you have and what you have done.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fixMover": {
+      "label": "Remove m.reyes's leftover Sales CRM admin rights, after her manager confirms",
+      "group": "Review",
+      "available": "not busy and isNull(moverFixedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "moverFixedAt",
+          "to": "t"
+        },
+        {
+          "log": "Her Finance manager confirms; the Sales CRM admin role is removed (privilege creep).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "fixShared": {
+      "label": "Replace warehouse-shared with named accounts for the six users (20 min)",
+      "group": "Review",
+      "available": "not busy and not sharedDone",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "sharedDone",
+          "to": "true"
+        },
+        {
+          "log": "You set up six named accounts and retire the shared one. Worth doing, and it took 20 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "fixProcess": {
+      "label": "Close the termination ticket and add an access-removal check to the leaver process",
+      "group": "Review",
+      "available": "not busy and isNull(processFixAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "processFixAt",
+          "to": "t"
+        },
+        {
+          "log": "The ticket is closed with what was removed, and HR's leaver form now opens an access-removal task with a deadline.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "handler",
+              "label": "The incident handler, the security manager and HR, in the incident ticket"
+            },
+            {
+              "value": "everyone",
+              "label": "All staff, by email, naming the contractor"
+            },
+            {
+              "value": "nobody",
+              "label": "No one: the account is closed"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"handler\" ? \"the incident handler, the security manager and HR\" : who == \"everyone\" ? \"all staff, naming the contractor\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "leaver",
+                  "label": "A leaver's access was never removed (deprovisioning missed)"
+                },
+                {
+                  "value": "phish",
+                  "label": "A phished employee account"
+                },
+                {
+                  "value": "vpnfault",
+                  "label": "A VPN fault"
+                }
+              ]
+            },
+            {
+              "id": "follow",
+              "label": "Follow-up",
+              "options": [
+                {
+                  "value": "process",
+                  "label": "Leaver process fixed; movers and shared accounts go through the access review"
+                },
+                {
+                  "value": "nothing",
+                  "label": "None needed"
+                },
+                {
+                  "value": "purge",
+                  "label": "Delete every inactive account today"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "followDoc",
+          "to": "follow"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {cause}, {follow}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "upload",
+      "when": "isNull(uploadAt) and (t >= uploadDelay and attackerActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "uploadAt",
+          "to": "t"
+        },
+        {
+          "log": "Web proxy: j.okafor's session is uploading to files.example.net (2.1 GB so far).",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "key",
+      "when": "isNull(keyAt) and (t >= keyDelay and inByAccount) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "keyAt",
+          "to": "t"
+        },
+        {
+          "log": "ERP audit: j.okafor created API key erp-sync-2. Access that survives the account.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "gone",
+      "when": "isNull(goneAt) and (t >= goneDelay and attackerActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "goneAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Web proxy: the pricing and customer files have finished uploading. The data has left. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what this was, how you closed it, and what in the identity life cycle failed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Identifies an orphaned account of a leaver still in use, confirmed against HR before acting on it, not a routine sign-in or a phished employee.",
+          "modelAnswer": "HR shows the contract ended Friday and the termination ticket was never worked, so an account that should not exist was being used from outside."
+        },
+        {
+          "label": "Containment",
+          "criteria": "Disables the account and revokes its sessions (a password change or an address block alone leaves access), looks for anything the account created, keeps the logs, and does not delete the account before the evidence and retention needs are met.",
+          "modelAnswer": "I disabled the account and revoked its VPN and SSO sessions together, searched for keys it had made, and exported the logs; deletion waits for the retention period."
+        },
+        {
+          "label": "Life cycle",
+          "criteria": "Names deprovisioning as the failed step and fixes the process; treats the mover's leftover rights and the shared account as access-review items, after the live intrusion.",
+          "modelAnswer": "Deprovisioning failed because the leaver ticket was not acted on; the leaver process now opens an access-removal task. The mover's Sales rights are privilege creep and the shared account goes to named accounts in the review."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No upload after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(disabledAt) and isNull(deletedAt)",
+      "class": "harm",
+      "rationale": "Closing the case with a leaver's account still enabled leaves an outside party inside; it is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-53 Rev. 5 (release 5.2.0), AC-2 Account Management and AC-2(3) Disable Accounts",
+        "checkedAt": "2026-11-14",
+        "url": "https://csf.tools/reference/nist-sp-800-53/r5/ac/ac-2/",
+        "note": "Read 2026-11-14 through a summarizing fetch of the csf.tools mirror of the 5.2.0 catalog, not NIST's own page. Relevant text: create, enable, modify, disable and remove accounts in accordance with policy; notify account managers 'when accounts are no longer required' and when 'users are terminated or transferred'; review accounts at a defined frequency; AC-2(3) 'Disable accounts within [Assignment: organization-defined time period] when the accounts' are no longer associated with a user. A federal control catalog used as good practice, not a rule for the fictional company."
+      }
+    }
+  },
+  "endings": {
+    "dataGone": {
+      "label": "Pricing and customer files left",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(goneAt)",
+      "narrative": "The files finished uploading while the account was still working. A leaver's access was the whole door."
+    },
+    "evidenceLost": {
+      "label": "Evidence deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(deletedAt) and (isNull(preservedAt) or timeAt(deletedAt) < timeAt(preservedAt))",
+      "narrative": "Deleting the account before exporting its logs and folder ended the sessions but took the record of what was read and sent with it."
+    },
+    "leftOpen": {
+      "label": "Closed with access still open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "{inByKey ? \"The API key the account made still works.\" : \"The account can still sign in.\"} The incident was closed with a way in left open."
+    },
+    "contained": {
+      "label": "Access removed, cause fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and keysClean and not isNull(preservedAt) and isNull(deletedAt) and not isNull(processFixAt)",
+      "narrative": "You confirmed the leaver, cut the account and its sessions before anything left, checked for keys, kept the logs and fixed the step that failed."
+    },
+    "containedLate": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The account is closed, but data left first, a key was missed until late, the logs came late or the leaver process is unchanged."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dataGone",
+    "evidenceLost",
+    "leftOpen",
+    "contained",
+    "containedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cutFast",
+        "label": "Disabled the account and revoked its sessions within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(offAt) and timeAt(offAt) <= containWindow and not attackerActive",
+            "score": "met",
+            "why": "All access gone {timeAt(offAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not attackerActive",
+            "score": "partial",
+            "why": "Closed, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Access was still open."
+          }
+        ]
+      },
+      {
+        "id": "keys",
+        "label": "Searched for anything the account created and revoked it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "keysClean",
+            "score": "met",
+            "why": "{isNull(keyAt) ? \"Searched; nothing had been made.\" : \"erp-sync-2 found and revoked.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(keysSearchedAt) ? \"Never searched.\" : \"A key made after the search is still active.\"}"
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Exported the logs and kept the account for retention",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(preservedAt) and isNull(deletedAt)",
+            "score": "met",
+            "why": "Logs exported; account disabled, not deleted."
+          },
+          {
+            "when": "not isNull(preservedAt)",
+            "score": "partial",
+            "why": "Logs exported, but the account and folder were deleted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No logs exported."
+          }
+        ]
+      },
+      {
+        "id": "process",
+        "label": "Fixed the leaver step that failed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(processFixAt)",
+            "score": "met",
+            "why": "The leaver process now removes access."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The next leaver will keep their access too."
+          }
+        ]
+      },
+      {
+        "id": "confirmed",
+        "label": "Confirmed the person had left before acting on the account",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hrAt) and (isNull(disabledAt) or timeAt(hrAt) <= timeAt(disabledAt))",
+            "score": "met",
+            "why": "HR status checked first."
+          },
+          {
+            "when": "not isNull(hrAt)",
+            "score": "partial",
+            "why": "Checked, but after disabling."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Told the incident handler",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "met",
+            "why": "The handler has it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Handled alone."
+          }
+        ]
+      },
+      {
+        "id": "mover",
+        "label": "Removed the mover's leftover rights (privilege creep), with her manager's confirmation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(moverFixedAt)",
+            "score": "met",
+            "why": "Done in the review."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "m.reyes still holds Sales CRM admin."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded a missed deprovisioning and a process fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"leaver\" and followDoc == \"process\" and notified == \"handler\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written recognition, containment and life cycle",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToCut",
+        "label": "Minutes until all access was gone",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "uploads",
+        "label": "Uploads after the first alert",
+        "value": "(isNull(uploadAt) ? 0 : 1) + (isNull(goneAt) ? 0 : 1)",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "minToLogs",
+        "label": "Minutes until the logs were exported",
+        "value": "isNull(preservedAt) ? -1 : timeAt(preservedAt) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check HR: the contract ended Friday and the termination ticket is open. Review the sessions: VPN and SSO from outside."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Disable the account and revoke its sessions together; search for keys or accounts it created."
+      },
+      {
+        "at": "15-30 min",
+        "text": "Export the logs, tell the incident handler, close the termination ticket and fix the leaver step."
+      },
+      {
+        "at": "After",
+        "text": "Access review: remove the mover's Sales rights with her manager; plan named accounts for warehouse-shared."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: deprovisioned, fixed at the cause",
+        "body": "An orphaned account is a life-cycle failure, not a login problem. You confirmed, cut every path, kept the evidence and fixed the leaver step."
+      },
+      "containedLate": {
+        "headline": "Contained, with gaps",
+        "body": "The account is closed. The criteria show what cost you: data out first, a late key search, late logs, or no process fix."
+      },
+      "dataGone": {
+        "headline": "The files left first",
+        "body": "Blocking an address or resetting a password leaves a valid account working. Disable and revoke together, early."
+      },
+      "evidenceLost": {
+        "headline": "Evidence deleted",
+        "body": "Disable first, export the logs, and delete only when retention allows. Deleting destroyed the record of what was taken."
+      },
+      "leftOpen": {
+        "headline": "A way in was left open",
+        "body": "An account that can still sign in, or a key it made, keeps the door open after the case is closed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A sign-in by someone whose contract ended is an orphaned account in use: deprovisioning failed. Confirm with HR, then disable the account and revoke its sessions together (a password reset or an address block leaves access), search for keys or accounts it created, export the logs, and keep the account disabled for retention rather than deleting it. Tell the incident handler, close the termination ticket and fix the leaver step. The mover's leftover rights and the shared account are review items, worked after the live intrusion."
+  }
+}

@@ -20,9 +20,14 @@
 // Engineer Expert), AZ-120 (Azure for SAP Workloads Specialty). Azure
 // Developer Associate (AZ-204), Azure Security Engineer Associate (AZ-500),
 // Azure Data Scientist Associate (DP-100), and Azure AI Engineer Associate
-// (AI-102) are deliberately excluded -- all four retired with no active
-// replacement exam as of this pass, part of the same 2026 "AI job boom"
-// restructuring wave. Azure IoT Developer Specialty (AZ-220), Azure Stack Hub
+// (AI-102) are deliberately excluded -- all four retired in Microsoft's 2026
+// "AI job boom" restructuring wave. They DO have replacements (corrected
+// 2026-11-14, FAIL-1800; this header used to say "no active replacement
+// exam"): Microsoft's Skills Hub post of that name (timeline updated
+// 2026-05-28) names AI-200 for AZ-204 (retired 2026-07-31), SC-500 for AZ-500
+// (retired 2026-08-31), AI-300 for DP-100 and AI-103 for AI-102. AI-200 and
+// SC-500 are built in tracks/microsoft-2026.ts (REQ-268) with PL-300
+// (REQ-266); AI-300 and AI-103 are not built yet. Azure IoT Developer Specialty (AZ-220), Azure Stack Hub
 // Operator Associate (AZ-600), and Azure Connectivity Support Engineer
 // Specialty (AZ-720) are excluded too, retired 2023-07-31 in an earlier,
 // unrelated cleanup. Azure Cosmos DB Developer Specialty (DP-420) is active

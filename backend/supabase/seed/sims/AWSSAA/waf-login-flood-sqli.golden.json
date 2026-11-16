@@ -1,0 +1,746 @@
+{
+  "slug": "waf-login-flood-sqli",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Metrics and logs, web ACL, SQL database rule group, a 300 rate limit, origin locked to CloudFront",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "logs",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 25,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "createAcl",
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 35,
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "sqliRule",
+          "seq": 7,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 40,
+          "seq": 8,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "rateRule",
+          "params": {
+            "limit": "right"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "originLock",
+          "seq": 11,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 55,
+          "seq": 12,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 55
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "l7waf",
+            "follow": "param"
+          },
+          "seq": 15,
+          "tick": 55
+        }
+      ],
+      "expect": {
+        "ending": "protected",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "injection": "met",
+          "flood": "met",
+          "noWaste": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minSqli": 35,
+          "minLock": 45
+        },
+        "stateHash": "f868df903f45db48"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "lowLimit",
+      "title": "Everything in place, but the rate limit at 10 blocks real customers",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "logs",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 25,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "createAcl",
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 35,
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "sqliRule",
+          "seq": 7,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 40,
+          "seq": 8,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "rateRule",
+          "params": {
+            "limit": "low"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "originLock",
+          "seq": 11,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 55,
+          "seq": 12,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 55
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "l7waf",
+            "follow": "param"
+          },
+          "seq": 15,
+          "tick": 55
+        }
+      ],
+      "expect": {
+        "ending": "protectedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "evidence": "met",
+          "injection": "met",
+          "flood": "partial",
+          "noWaste": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minSqli": 35,
+          "minLock": 45
+        },
+        "stateHash": "bbd46a3ee35944df"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noOriginLock",
+      "title": "WAF rules right, the load balancer left open: the botnet goes around CloudFront before the on-sale",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "logs",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 25,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "createAcl",
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 35,
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "sqliRule",
+          "seq": 7,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 40,
+          "seq": 8,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "rateRule",
+          "params": {
+            "limit": "right"
+          },
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 45,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 60,
+          "seq": 12,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 60,
+          "seq": 13,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 14,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 75,
+          "seq": 15,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 75
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "l7waf",
+            "follow": "wafEnough"
+          },
+          "seq": 18,
+          "tick": 75
+        }
+      ],
+      "expect": {
+        "ending": "onsaleDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "evidence": "met",
+          "injection": "met",
+          "flood": "missed",
+          "noWaste": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minSqli": 35,
+          "minLock": -1
+        },
+        "stateHash": "2e18773b8f08813c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "denyAndScale",
+      "title": "Security group deny rules and scaling out; the injection is never seen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "metrics",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sgDeny",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "scaleOut",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 25,
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 40,
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 55,
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 55,
+          "seq": 11,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 12,
+          "tick": 55
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 13,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "sg",
+            "follow": "wafEnough"
+          },
+          "seq": 14,
+          "tick": 55
+        }
+      ],
+      "expect": {
+        "ending": "dataStolen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "injection": "missed",
+          "flood": "missed",
+          "noWaste": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minSqli": -1,
+          "minLock": -1
+        },
+        "stateHash": "e57cb83abfe81652"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "offline",
+      "title": "Reads the logs, then takes the whole site offline",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "logs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 15,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "offline",
+          "seq": 3,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 4,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "shieldStd",
+            "follow": "param"
+          },
+          "seq": 7,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "takenDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "evidence": "partial",
+          "injection": "missed",
+          "flood": "missed",
+          "noWaste": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minSqli": -1,
+          "minLock": -1
+        },
+        "stateHash": "d68c0a8fc4af12d6"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "rateOnly",
+      "title": "Rate rule and origin lock without reading the logs; closes with the injection unblocked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "createAcl",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rateRule",
+          "params": {
+            "limit": "right"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 15,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "originLock",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 25,
+          "seq": 6,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "layer": "shieldStd",
+            "follow": "wafEnough"
+          },
+          "seq": 9,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "stillOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "evidence": "missed",
+          "injection": "missed",
+          "flood": "met",
+          "noWaste": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minSqli": -1,
+          "minLock": 15
+        },
+        "stateHash": "d0182db5127487b0"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

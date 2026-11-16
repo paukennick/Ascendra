@@ -4993,3 +4993,188 @@ narrative, and a server-only debrief body that repeated a client narrative
 word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
+
+### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, Security+ bands (REQ-297)
+
+Nick, 2026-11-14: "Build more sims, no need to limit number, build what covers
+the material." The coverage map for every non-clinical course, before and
+after, is docs/sims-coverage-it.md. Five new documents and three bands on the
+existing terminal, security console and board screens and engine 1.2; no
+engine, renderer, schema or migration change. Each follows the pattern of
+22.7 and 22.10: learner-paced `turns` phases where every task costs minutes
+through one `work` wait, the problem's next step is an `interruptsSkip`
+trigger on the same clock, `endingOrder` with harm endings first, endings in
+all three classes, three critical criteria inside the `target` condition,
+KPIs, an expert path, a debrief per ending, one three-part reasoning moment
+and six golden paths built by `npm run sim:golden -- steps <name>` (every
+ending but `time_up`, every criterion met and missed, Good, Mediocre and Bad;
+checked by `lib/sim/it-wave3.test.ts`, which also has a behavior test per
+case).
+
+| Course / slug | Screen, profile | Core of the case | Steps name |
+|---|---|---|---|
+| APLUS_CORE1/rogue-dhcp-soho-office | terminal, infrastructure | A consultant's travel router answers DHCP on the office LAN; three PCs get 192.168.8.x. ipconfig /all against a working PC, the router's lease list, find and unplug it, renew every PC; a static address fixes one PC, a factory reset wipes the VPN forward and printer reservation; upload deadline at 60 min | aplus1-rogue |
+| APLUS_CORE2/home-office-laptop-malware | security console, security | 220-1202 2.6 in order on a Windows 11 Home laptop: verify, quarantine (network and the mapped NAS share) before the stealer's upload at 20 min, System Restore off, definitions by USB (reconnecting brings the share back), Defender Offline or safe mode, updates, a clean restore point, passwords from a clean device, educate; a decision card at 15 min on using the laptop for the bank | aplus2-malware |
+| KCNA/service-selector-no-endpoints | terminal, infrastructure | Every request 503 while 3/3 pods are Ready: Service selector `app=shopweb` against pod label `app=shop-web`, merged in Git; a live `kubectl set selector` is undone by Argo CD self-heal after 3 min (FLAG: the documentation gives no number), relabeling pods orphans them from the ReplicaSet, a Git revert stays; flash sale at 45 min | kcna-selector |
+| CKA/service-selector-no-endpoints-cka (band) | as KCNA | The KCNA case on CKA's "Troubleshoot services and networking: a Service with no endpoints ..." objective, with the CKA curriculum as an added source | cka-selector |
+| GCPACE/public-bucket-customer-exports | board, security | A bucket-wide allUsers grant exposes 14 customer exports beside the website's product images: remove the grant first (ACLs are off with uniform bucket-level access), images to their own bucket in another project (15 min), public access prevention, a signed URL for the partner, a lifecycle rule, and tell privacy that public reads are not audit-logged; listed on a bucket-search site at 45 min | gcpace-bucket |
+| GCPCDL/bigquery-dashboard-bill | board, cloud | A dashboard scans 2 TiB every 15 min ($50 an hour at $6.25 per TiB) on an unpartitioned table: billing reports and job history, the project owner's team fixes it by noon, Sales' review at 14:00 needs the dashboard, guardrails (50 TiB daily query quota, owner budget alerts, required labels, monthly review); disabling billing stops the whole project | gcpcdl-bill |
+| SECPLUS/vuln-prioritization-kev-edge-secplus (band) | as CYSAPLUS | The CySA+ KEV-versus-CVSS case on SY0-701 "Vulnerability management: scanning, CVSS scoring, and remediation prioritization" | secplus-vuln |
+| SECPLUS/alert-triage-lolbin-hunt-secplus (band) | as CYSAPLUS | The CySA+ alert triage case on SY0-701 "Security alerting and monitoring: ... alert response and remediation/validation" | secplus-triage |
+
+**Sources** carry `checkedAt` 2026-11-14 and say how each was read. Primary
+text: the CompTIA A+ 220-1201 (Version 1.2) and 220-1202 (Version 4.0)
+objectives PDFs, RFC 2131, the Kubernetes documentation as Markdown from
+kubernetes/website at commit 1bee6f03 (Debug Services, Service, Resource
+metrics pipeline, ReplicaSet; kubernetes.io itself did not answer the fetch),
+the Argo CD auto-sync page source, and the CKA Curriculum v1.37 PDF.
+Summarizing fetches: the CompTIA A+ Core 1 and Core 2, and Security+ V7 exam
+pages, Microsoft Learn ipconfig and Microsoft Defender Offline, the Google
+Cloud ACE and Cloud Digital Leader exam guides, and Google Cloud's public
+access prevention, Cloud Audit Logs, uniform bucket-level access, signed URLs,
+Object Lifecycle Management, BigQuery pricing, budgets, custom query quotas,
+partitioned tables and disabling billing pages. Not re-read: the KCNA
+curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
+
+**Findings** (recorded, not worked around; none needed a code fix):
+
+1. **The A+ 220-1200 series does not test the troubleshooting methodology.**
+   The 220-1201 objectives PDF says the methodology "will not be tested" and
+   is a competency standard only, while APLUS_CORE1 has it as an objective (it
+   passes the keyword screen). The Core 1 sim sits on the tested 5.5 objective
+   instead. Whether the course keeps that objective is a course decision.
+2. **Google Cloud now has spend cap budgets.** The budgets page (updated
+   2026-11-10) says alerts-only budgets do not cap spending, and describes
+   spend cap budgets "if supported for your service". The Digital Leader case
+   uses an alerts-only budget and does not offer a spend cap, because the
+   supported services were not read; "budgets never cap spending" is no
+   longer true without that qualifier.
+3. **An effect that should land when a task ends fired when it started.**
+   Effects apply at the tick the action is taken, and the `work` wait only
+   moves the clock, so the first build of the bucket case had the images
+   back at once and two minutes of image outage instead of seventeen. A
+   result that takes the task's time now comes from a trigger at its end
+   (`moveStartAt` + `moveDur`, as the owner's fix in the Digital Leader case
+   does). Earlier cases accept the simplification for short tasks.
+4. **Course tests counted every sim of their course.** `terminal.test.ts`
+   ("two per course") and `security-console.test.ts` (three SECPLUS
+   scenarios) filtered by course code, so any later sim in CKA or SECPLUS
+   broke them. They now check their own requirement's slugs; later waves
+   carry their own test file.
+5. **Bands across certification levels.** The Security+ bands put a CySA+
+   analyst's incident on Security+ objectives, and the CKA band a KCNA
+   outage on a CKA objective. The decisions taught match the objectives, but
+   the level is the base's; a decision for Nick.
+### 22.17 LFCS and Linux Fundamentals cases on the terminal screen (REQ-292)
+
+Two cases each for the Linux Foundation LFCS course and Linux Fundamentals on
+the terminal screen (22.10), authored without a prototype; golden paths by
+`npm run sim:golden -- steps lfcs-fstab`, `lfcs-lvm`, `linuxfund-perms` and
+`linuxfund-nginx`; checked by `lib/sim/linux-depth-terminal.test.ts` to the
+same bar as the Linux+ and CKA cases.
+
+| Course / slug | Objective (catalog title) | Critical criteria | Steps name |
+|---|---|---|---|
+| LFCS/fstab-uuid-typo-emergency | Troubleshoot and recover a system that will not boot because of a bad fstab entry, a damaged filesystem or a failing service, using the emergency and rescue targets | journal or fstab-against-blkid before any change; UUID corrected (not commented out, no xfs_repair -L); mount -a proved before continuing the boot; booted with the data disk within 30 min | lfcs-fstab |
+| LFCS/lvm-database-volume-full | Create and extend LVM physical volumes, volume groups and logical volumes, growing the filesystem with them | vgs and lsblk before any change; the in-use disk left alone (no pvcreate -ff); filesystem grown within 20 min | lfcs-lvm |
+| LINUXFUND/shared-folder-permission-denied | Configure a shared directory with group ownership, the setgid bit and the sticky bit | nora's session groups (ps supgrp) and the files' groups read first; no 777 and no usermod -G without -a; team sharing within 30 min (target also needs setgid) | linuxfund-perms |
+| LINUXFUND/web-service-fails-after-edit | Troubleshoot a service that fails to start from its status and journal | journal or nginx -t first; the line fixed, not the site removed; shop back within 30 min; nginx enabled for the night's reboot | linuxfund-nginx |
+
+What each case teaches: in emergency mode root is read-only until
+remounted; after an fstab edit, `systemctl daemon-reload` is what makes
+systemd regenerate the mount unit (systemd-fstab-generator(8)), so a boot
+continued without it fails the same way; commenting the line out boots the
+host with uploads landing on `/`. An LV cannot grow while its VG has no free
+extents; `lvextend` without `-r` leaves the XFS filesystem at its old size;
+`resize2fs` is not the XFS tool. `id nora` reads the group database while her
+running shell keeps the groups it started with (ps `supgrp`), and only setgid
+keeps new files in the folder's group; `usermod -G` without `-a` replaces a
+user's groups. nginx names the file and line of a syntax error; a reinstall
+keeps an edited conffile (dpkg(1)); starting a unit does not enable it.
+
+**Sources** carry `checkedAt` 2026-11-14 and were read in full on man7.org
+(systemd.special(7), systemd.mount(5), systemd-fstab-generator(8), fstab(5),
+blkid(8), mount(8), xfs_repair(8), vgextend(8), pvcreate(8), lvextend(8),
+xfs_growfs(8), inode(7), usermod(8), ps(1), newgrp(1), chmod(1),
+systemctl(1), journalctl(1), dpkg(1)), on nginx.org (Beginner's Guide,
+Command-line parameters) and on the LFCS exam page. Marked `FLAG` in the documents:
+local-fs.target's OnFailure= wiring to emergency.target and systemd's
+90-second default device timeout (both standard behavior, not quoted from a
+page read), and resize2fs's exact error text. Command output layouts are
+authored in each tool's style.
+
+Candidates not built (listed for a later wave): Python for Automation (a cron
+job that works by hand but not from cron: PATH, the venv's interpreter and an
+unescaped `%`; a script that hangs on a subprocess with no timeout) and Python
+for Data Analysis (no screen fits a notebook today).
+### 22.18 Clinical coverage: more sims for the existing clinical courses (REQ-296)
+
+Nick, 2026-11-14: "Build more sims, no need to limit number, build what
+covers the material." `docs/sims-coverage-clinical.md` maps every existing
+clinical course (nursing, EMS, physical therapy, mental health) against his
+selection rule of 2026-11-10 (a sim fits a sub-objective when time matters,
+there are cues to read, choices have consequences, or priorities compete),
+using the generator's keyword screen (12.2) as the first pass, with the
+recall-only titles it passes screened out by hand for PTPREREQ and DPT. It
+shows, per course, which fitting objectives a sim names as its objective
+(mastery evidence) or as a secondary objective (analytics only, 9.4), before
+and after this work. The screen reads titles only, so the counts are a
+shortlist, not a judgement.
+
+Six documents on the existing bedside and treatment-session screens and
+engine 1.2; no engine, renderer, schema or migration change. Each declares
+engine minor 2 and `endingOrder`, has endings in all three outcome classes,
+three or four critical criteria inside its `target` condition, KPIs, an
+expert path, a debrief per ending, one reasoning moment, two sourced
+teaching prompts in jsonb key order (FAIL-1362), a chapter, and five to seven
+golden paths built by `npm run sim:golden -- steps <name>`. All run in one
+`running` phase, so study pace (3x) is the default; none has a focused start.
+Every objective is a catalog title the selection screen passes; each document
+names the other fitting objectives it exercises as secondary objectives.
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| CNA/evening-vitals-out-of-range | Recognizing a measurement that falls outside the expected range | small adult cuff and a full-minute count of the irregular pulse; findings (not a guess) to the nurse within 10 min of the first out-of-range reading; a woozy resident kept off her feet | cna-vitals |
+| PTPREREQ/cycle-test-falling-pressure | Calculate pulse pressure and MAP ... interpret a narrow pulse pressure as low stroke volume | screened, resting BP and the instructor told of the donation; stopped at the systolic fall or within 1 min of dizziness; unloaded cool-down | ptprereq-gxt |
+| NCLEXRN/postpartum-hemorrhage-atony | Recognize postpartum hemorrhage ... measure blood loss quantitatively, and activate the hemorrhage team | weighed loss within 10 min; escalation with numbers within 10 min of 500 mL; massage, bladder and oxytocin; no methylergonovine with hypertension | rn-pph |
+| CCRNADULT/status-epilepticus-after-craniotomy | Treat a seizure lasting 5 minutes or more as status epilepticus ... | lorazepam 4 mg within 10 min of onset, one repeat only; airway without restraint or a bite block; second-line load by 20 min | ccrn-se |
+| DPT/dizziness-central-red-flags | Coordination and gait examination: Romberg ... cerebellar ataxia | central signs screened; 911 within 10 min of the first; no gaze stabilization or Dix-Hallpike | dpt-central |
+| NCLEXPN/first-dose-anaphylaxis | Recognizing an allergic reaction and responding to it | epinephrine IM first, within 5 min; 911 within 5 min; never stood or walked | pn-anaph |
+
+- **Harm endings** are outcomes (a fall, collapse, shock, hypoxia, refractory
+  status) except where a guideline names the action: standing or walking a
+  person in anaphylaxis (RCUK 2021, "avoid sudden changes in posture"). The
+  methylergonovine trap in the hemorrhage case is a critical criterion, not a
+  harm ending: the contraindication was read in StatPearls and one hospital
+  protocol, and ACOG Practice Bulletin 183 could not be opened (a decision
+  for Nick if he wants it to end the run).
+- **Scope.** The aide, PN and RN cases stay in scope through standing orders
+  named in the brief (vital signs and reporting; the PN's epinephrine
+  auto-injector order; the RN's oxytocin and hemorrhage protocol); the PT
+  cases refer rather than treat when the findings are not PT's.
+- **Sources** carry `checkedAt` 2026-11-14 where read that day, and say how:
+  in primary text or a summarizing fetch with quotes (ENLS status epilepticus
+  protocol v6.0 2024, Open RN Nursing Assistant 7.4, MSD Manual GI bleeding,
+  Mayo Clinic fainting first aid, OpenStax A&P 2e 20.2, the ASNC exercise-test
+  practice point, Luttrell and Halliwill 2015, Vitalant on donation and
+  exercise, StatPearls postpartum hemorrhage, the UIHC hemorrhage protocol,
+  the FIGO/ICM tranexamic acid statement, the RCUK 2021 anaphylaxis guideline
+  in a CEM Scotland copy, the APTA vestibular hypofunction CPG, the ILAE 2015
+  definition abstract); through summaries only (GRACE-3, the AES 2016 status
+  epilepticus guideline); relayed from earlier cases with their dates (the
+  NCLEX test plans, the CCRN handbook, 42 CFR 483.152, the NNAAP outline,
+  AHRQ falls, the APTA vital sign guide, CAPTE, NASEMSO v3.0). Authored
+  teaching-model numbers say so, and those standing in for a number no source
+  gives carry `FLAG`.
+- **Findings while authoring** (FAIL-1980, FAIL-1981, FAIL-1983):
+  `sim:golden` built goldens for a document the schema refuses (teaching
+  choice ids starting with a digit; only `sims:lint` checks the schema); a
+  relayed source's URL was first written from memory instead of copied; and
+  `DPT_TREATMENT_DOCUMENTS` was every DPT entry, so any new DPT sim broke the
+  REQ-232 tests (it now names the three slugs). `lib/sim/clinical-coverage.test.ts`
+  pins each: the schema parse, source notes that start with how they were
+  read, the DPT first set, plus each document's screen, running phase,
+  `endingOrder`, teaching key order and golden coverage. FAIL-1500's
+  availability warning was worked around in the CNA goldens as 22.13 says.
+- **`time_up`** is reached by no golden path in any of the six (every slow
+  path ends earlier), so the linter's warning remains.

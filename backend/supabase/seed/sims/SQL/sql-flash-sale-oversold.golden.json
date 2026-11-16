@@ -1,0 +1,800 @@
+{
+  "slug": "sql-flash-sale-oversold",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Takes the book off sale, counts sales, finds the read-then-write in pg_stat_statements, deploys the conditional UPDATE, race test passes, reopens",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sold",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "statements",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "deployAtomic",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "raceTest",
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "reopen",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 13,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "lostUpdate",
+            "prevent": "atomicTest"
+          },
+          "seq": 15,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "containFast": "met",
+          "rightFix": "met",
+          "noDamage": "met",
+          "foundCause": "met",
+          "tested": "met",
+          "reopened": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "oversoldK": 37,
+          "minToContain": 0,
+          "faultsK": 0
+        },
+        "stateHash": "d453cc21f31b7efe"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "forUpdateNoTest",
+      "title": "Investigates first, then pauses, deploys SELECT ... FOR UPDATE and reopens without a race test",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stock",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sold",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "statements",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "isolation",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "deployForUpdate",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 11,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "reopen",
+          "seq": 13,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 12,
+          "seq": 14,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "lostUpdate",
+            "prevent": "atomicTest"
+          },
+          "seq": 17,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "containFast": "met",
+          "rightFix": "met",
+          "noDamage": "met",
+          "foundCause": "met",
+          "tested": "missed",
+          "reopened": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "oversoldK": 49,
+          "minToContain": 4,
+          "faultsK": 0
+        },
+        "stateHash": "90db2e36f7296135"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "repeatableRead",
+      "title": "Pauses, resets the stock column to 500, switches the database to Repeatable Read with no retry; the race test shows errors; reopens",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resetStock",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "isolation",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "deployRR",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "raceTest",
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "reopen",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 13,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "lostUpdate",
+            "prevent": "isolation"
+          },
+          "seq": 15,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "stockReset",
+        "class": "harm",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "containFast": "met",
+          "rightFix": "partial",
+          "noDamage": "missed",
+          "foundCause": "missed",
+          "tested": "met",
+          "reopened": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "oversoldK": 37,
+          "minToContain": 0,
+          "faultsK": 2
+        },
+        "stateHash": "756329dd006b423f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "deleteOrders",
+      "title": "Deletes the 37 newest paid order lines to make the count match, then fixes checkout",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sold",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deleteOrders",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "pause",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "deployAtomic",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "reopen",
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 10,
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "negative",
+            "prevent": "nothing"
+          },
+          "seq": 13,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "ordersDeleted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "containFast": "met",
+          "rightFix": "met",
+          "noDamage": "missed",
+          "foundCause": "missed",
+          "tested": "missed",
+          "reopened": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "oversoldK": 43,
+          "minToContain": 2,
+          "faultsK": 1
+        },
+        "stateHash": "b08b33c6148fe892"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "checkOnly",
+      "title": "Adds a CHECK (stock >= 0) while still on sale, and closes with checkout unchanged",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stock",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addCheck",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "negative",
+            "prevent": "nothing"
+          },
+          "seq": 7,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "stillLeaking",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "containFast": "missed",
+          "rightFix": "missed",
+          "noDamage": "met",
+          "foundCause": "missed",
+          "tested": "missed",
+          "reopened": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "oversoldK": 46,
+          "minToContain": -1,
+          "faultsK": 0
+        },
+        "stateHash": "c62024dedc3d84a5"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowWhileSelling",
+      "title": "Leaves the book on sale while studying for 25 minutes: 100 copies oversold before the fix",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stock",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sold",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "statements",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 23,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "deployAtomic",
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 13,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "raceTest",
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 15,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "lostUpdate",
+            "prevent": "atomicTest"
+          },
+          "seq": 18,
+          "tick": 32
+        }
+      ],
+      "expect": {
+        "ending": "oversoldBadly",
+        "class": "harm",
+        "rating": "bad",
+        "score": 88,
+        "criteria": {
+          "containFast": "partial",
+          "rightFix": "met",
+          "noDamage": "met",
+          "foundCause": "met",
+          "tested": "met",
+          "reopened": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "oversoldK": 106,
+          "minToContain": 23,
+          "faultsK": 0
+        },
+        "stateHash": "7cbff793654b2677"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

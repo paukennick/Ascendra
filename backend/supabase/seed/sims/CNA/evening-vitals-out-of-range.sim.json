@@ -1,0 +1,1885 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "evening-vitals-out-of-range",
+ "title": "An evening vital sign that is out of range",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "bp",
+     "label": "BP",
+     "spokenLabel": "Blood pressure you measured",
+     "value": [
+      "bpS",
+      "bpD"
+     ],
+     "unit": "mmHg",
+     "sub": "{cuffLarge ? \"large cuff\" : \"small adult cuff\"}, at {bpAt|clock}",
+     "alarm": {
+      "low": 100
+     },
+     "announce": {
+      "bands": [
+       110,
+       100,
+       90
+      ]
+     },
+     "colour": "art",
+     "hiddenUntil": "not isNull(bpAt)"
+    },
+    {
+     "id": "pulse",
+     "label": "Pulse",
+     "spokenLabel": "Radial pulse you counted",
+     "value": "pVal",
+     "unit": "/min",
+     "sub": "{pFull ? \"full 60 s, irregular\" : \"30 s doubled\"}",
+     "alarm": {
+      "high": 100
+     },
+     "announce": {
+      "bands": [
+       100,
+       110
+      ]
+     },
+     "colour": "ecg",
+     "hiddenUntil": "not isNull(pAt)"
+    },
+    {
+     "id": "rr",
+     "label": "Resp",
+     "spokenLabel": "Breaths you counted",
+     "value": "rrVal",
+     "unit": "/min",
+     "alarm": {
+      "high": 20
+     },
+     "announce": {
+      "bands": [
+       20,
+       24
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(rrAt)"
+    },
+    {
+     "id": "temp",
+     "label": "Temp",
+     "spokenLabel": "Oral temperature you took",
+     "value": "tVal",
+     "unit": "C",
+     "sub": "{tEarly ? \"taken soon after hot tea\" : \"\"}",
+     "announce": {
+      "bands": [
+       37.4,
+       37.8
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(tAt)"
+    }
+   ],
+   "infusions": "Nurse told: {not isNull(reportEffAt)|yesno}. Mrs. Lindqvist is {fallen ? \"on the floor\" : (flat ? \"lying flat\" : \"in bed\")}.",
+   "banner": [
+    {
+     "when": "nurseHere",
+     "text": "The nurse is at the bedside."
+    },
+    {
+     "when": "not isNull(emergAt) and isNull(ordersAt)",
+     "text": "She looks like she is about to faint."
+    }
+   ]
+  }
+ },
+ "objective": "Recognizing a measurement that falls outside the expected range",
+ "secondaryObjectives": [
+  "Taking and recording temperature, pulse, respiration and blood pressure",
+  "Avoid a false oral temperature: wait if the resident has just had a hot or cold drink, chewed gum or smoked, and report a reading that does not fit how the resident looks",
+  "Choose a blood pressure cuff that fits: one that is too large reads falsely low and one that is too small reads falsely high, and the bladder should sit over the brachial artery",
+  "Observation versus interpretation, and why the aide reports the first",
+  "Reporting changes to the nurse: what, when and in what words",
+  "Recognizing an emergency and summoning help correctly",
+  "Recognizing abnormal changes in body functioning"
+ ],
+ "sources": [
+  {
+   "cite": "Credentia, 2024 National Nurse Aide Assessment Program (NNAAP) Written (Oral) Examination Content Outline (effective April 2024)",
+   "checkedAt": "2026-11-10",
+   "url": "https://kb-pa.credentia.com/en/article/the-2024-national-nurse-aide-assessment-program-nnaap",
+   "note": "Relayed from the REQ-223 CNA cases (read 2026-11-10), not re-read: Basic Nursing Skills (35% of the exam) includes Safety/Emergency and Data Collection and Reporting."
+  },
+  {
+   "cite": "42 CFR 483.152(b): nurse aide training program content",
+   "checkedAt": "2026-11-10",
+   "url": "https://www.law.cornell.edu/cfr/text/42/483.152",
+   "note": "Relayed from the REQ-223 CNA cases (read 2026-11-10, Cornell LII copy), not re-read: (b)(2)(iv) 'Recognizing abnormal changes in body functioning and the importance of reporting such changes to a supervisor'; (b)(1)(iii) safety and emergency procedures."
+  },
+  {
+   "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+   "checkedAt": "2026-11-14",
+   "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C."
+  },
+  {
+   "cite": "Ansari P. Overview of Gastrointestinal Bleeding. MSD Manual Professional Edition (full review June 2025, updated November 2025)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.msdmanuals.com/professional/gastrointestinal-disorders/gi-bleeding/overview-of-gi-bleeding",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): melena typically indicates upper GI bleeding and needs about 100-200 mL of blood; tachycardia over 100 with lesser bleeding; hypotension, syncope, pallor, diaphoresis and oliguria suggest significant hypovolemia; anticoagulants such as apixaban are associated with GI bleeding; orthostatic measurements can cause syncope in severe bleeding."
+  },
+  {
+   "cite": "Mayo Clinic. Fainting: First aid (updated 2025-01-22)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.mayoclinic.org/first-aid/first-aid-fainting/basics/art-20056606",
+   "note": "Read 2026-11-14: if you feel faint, lie down or sit down and do not get up too quickly; someone who faints is placed on the back with the legs raised, and the emergency number is called if they do not wake within a minute."
+  },
+  {
+   "cite": "AHRQ, Preventing Falls in Hospitals: A Toolkit for Improving Quality of Care (Publication No. 13-0015-EF, January 2013), 3.2.1 universal fall precautions",
+   "checkedAt": "2026-11-10",
+   "url": "https://www.mass.gov/doc/agency-for-healthcare-research-and-quality-preventing-falls-in-hospitals/download",
+   "note": "Relayed from the REQ-223 CNA fall case (read 2026-11-10), not re-read: call light within reach, safe patient handling."
+  },
+  {
+   "cite": "Ascendra CNA course catalog (backend/supabase/seed/tracks/nursing.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles."
+  }
+ ],
+ "brief": {
+  "situation": "19:00 in a long-term care home. You are the nursing assistant doing evening vital signs on your hall. Mrs. Lindqvist in Room 14, 84, finished a cup of hot tea at 18:55. She says she felt 'woozy' when she stood up after supper.",
+  "handover": [
+   "Care plan: atrial fibrillation (an irregular pulse) on apixaban, a blood thinner. Usual BP 130s/70s, pulse 70s and irregular. Small, thin arms: use the small adult cuff.",
+   "Report to the nurse at once: systolic BP under 100 or over 160, pulse under 60 or over 100, breathing over 24 a minute, temperature 37.8 C or higher, or any change in how she looks or acts.",
+   "She walks with a walker and toilets on her own. The nurse is on the hall doing the evening medication pass."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "Measuring takes a minute or two. Choose how you measure, decide what is out of range, and decide who needs to know and in what words.",
+   "Partway through you are asked to write what you found and what you did about it. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "19:00",
+  "tick": "1s",
+  "maxDuration": "2h",
+  "calendar": "clock"
+ },
+ "params": {
+  "sevRise": {
+   "value": 0.006,
+   "unit": "/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A slow upper GI bleed: untreated, she reaches shock about 1 h 50 min after 19:00, with a faint spell near 19:58. MSD gives the signs, not a rate. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "faintSev": {
+   "value": 0.4,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Above this she faints if she stands (about 19:08). MSD: syncope suggests significant hypovolemia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "emergSev": {
+   "value": 0.7,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "She becomes gray, sweaty and near-fainting and vomits coffee-ground material (about 19:58 untreated). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "collapseSev": {
+   "value": 1.0,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Shock: unresponsive with a BP near 70 systolic. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "bpTime": {
+   "value": 90,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A manual BP with the cuff on: about 1.5 min."
+   }
+  },
+  "pulseFull": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C."
+   }
+  },
+  "pulseHalf": {
+   "value": 30,
+   "unit": "s",
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C."
+   }
+  },
+  "tempTime": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "An oral electronic thermometer: about 1 min."
+   }
+  },
+  "teaClear": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C. She finished her tea at 18:55, so 15 minutes after it is 19:10 (600 s into the case)."
+   }
+  },
+  "nurseWalk": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The nurse leaves the medication cart and reaches the room: about 5 min after a report that lands."
+   }
+  },
+  "nurseLater": {
+   "value": 1200,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A report that names a guess instead of findings gets 'I'll come after the med pass': about 20 min."
+   }
+  },
+  "nurseRun": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A shout and the call light in an emergency bring the nurse in about 1 min."
+   }
+  },
+  "providerCall": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The nurse assesses, calls the provider and gets a transfer order: about 10 min."
+   }
+  },
+  "reportWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Authored window: the nurse told within 10 min of the first out-of-range reading. Open RN says abnormal readings are 'promptly reported'; the number is authored."
+   }
+  },
+  "toiletAt": {
+   "value": 480,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "At 19:08 she says she needs the bathroom now."
+   }
+  },
+  "aloneUp": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Without a safe way to toilet, she gets up on her own 5 min after asking."
+   }
+  },
+  "leftFall": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Mayo Clinic. Fainting: First aid (updated 2025-01-22)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.mayoclinic.org/first-aid/first-aid-fainting/basics/art-20056606",
+    "note": "Read 2026-11-14: if you feel faint, lie down or sit down and do not get up too quickly; someone who faints is placed on the back with the legs raised, and the emergency number is called if they do not wake within a minute. FLAG: that a near-fainting resident left alone tries to get up and falls within a minute is authored."
+   }
+  }
+ },
+ "state": {
+  "sev": {
+   "type": "number",
+   "init": 0.35,
+   "min": 0,
+   "max": 2
+  },
+  "bpAt": {
+   "type": "time",
+   "init": null
+  },
+  "bpS": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 250,
+   "unit": "mmHg"
+  },
+  "bpD": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 200,
+   "unit": "mmHg"
+  },
+  "bpPending": {
+   "type": "bool",
+   "init": false
+  },
+  "cuffLarge": {
+   "type": "bool",
+   "init": false
+  },
+  "cuffWrongEver": {
+   "type": "bool",
+   "init": false
+  },
+  "cuffRightEver": {
+   "type": "bool",
+   "init": false
+  },
+  "pAt": {
+   "type": "time",
+   "init": null
+  },
+  "pVal": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 250,
+   "unit": "/min"
+  },
+  "pFull": {
+   "type": "bool",
+   "init": false
+  },
+  "pFullEver": {
+   "type": "bool",
+   "init": false
+  },
+  "pHalfEver": {
+   "type": "bool",
+   "init": false
+  },
+  "pPending": {
+   "type": "bool",
+   "init": false
+  },
+  "rrAt": {
+   "type": "time",
+   "init": null
+  },
+  "rrVal": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 60,
+   "unit": "/min"
+  },
+  "tAt": {
+   "type": "time",
+   "init": null
+  },
+  "tVal": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 43,
+   "unit": "C"
+  },
+  "tEarly": {
+   "type": "bool",
+   "init": false
+  },
+  "tValid": {
+   "type": "bool",
+   "init": false
+  },
+  "tPending": {
+   "type": "bool",
+   "init": false
+  },
+  "abnAt": {
+   "type": "time",
+   "init": null
+  },
+  "askedAt": {
+   "type": "time",
+   "init": null
+  },
+  "lookAt": {
+   "type": "time",
+   "init": null
+  },
+  "reportAt": {
+   "type": "time",
+   "init": null
+  },
+  "reportEffAt": {
+   "type": "time",
+   "init": null
+  },
+  "reportGuess": {
+   "type": "bool",
+   "init": false
+  },
+  "nurseComing": {
+   "type": "bool",
+   "init": false
+  },
+  "nurseHere": {
+   "type": "bool",
+   "init": false
+  },
+  "ordersAt": {
+   "type": "time",
+   "init": null
+  },
+  "toiletAsked": {
+   "type": "bool",
+   "init": false
+  },
+  "toiletSafe": {
+   "type": "bool",
+   "init": false
+  },
+  "walked": {
+   "type": "bool",
+   "init": false
+  },
+  "fallen": {
+   "type": "bool",
+   "init": false
+  },
+  "emergAt": {
+   "type": "time",
+   "init": null
+  },
+  "helpAt": {
+   "type": "time",
+   "init": null
+  },
+  "leftAt": {
+   "type": "time",
+   "init": null
+  },
+  "flat": {
+   "type": "bool",
+   "init": false
+  },
+  "waited": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 10
+  },
+  "noteAt": {
+   "type": "time",
+   "init": null
+  },
+  "noteObjective": {
+   "type": "bool",
+   "init": false
+  }
+ },
+ "derived": {
+  "hrTrue": {
+   "expr": "round(clamp(82 + 60 * sev + 3 * sin(t / 23), 50, 170))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbpTrue": {
+   "expr": "round(clamp(148 - 75 * sev, 60, 200))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbpTrue": {
+   "expr": "round(sbpTrue * 0.6)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "rrTrue": {
+   "expr": "round(16 + 8 * sev)",
+   "unit": "/min",
+   "precision": 0
+  },
+  "planOn": {
+   "expr": "not isNull(ordersAt)"
+  }
+ },
+ "processes": [
+  {
+   "id": "bleed",
+   "when": "not planOn",
+   "update": {
+    "sev": "sev + sevRise * dt / 60"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "On the hall",
+   "clock": "running",
+   "actions": [
+    "look",
+    "ask",
+    "bp",
+    "pulse",
+    "resp",
+    "temp",
+    "report",
+    "commode",
+    "walk",
+    "recheckLater",
+    "callHelp",
+    "leaveForNurse",
+    "layFlat",
+    "note"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "look": {
+   "label": "Look at her: color, skin, how she is breathing",
+   "group": "Observe",
+   "effects": [
+    {
+     "if": "isNull(lookAt)",
+     "then": [
+      {
+       "set": "lookAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "sev >= emergSev",
+       "then": [
+        {
+         "log": "Gray and sweaty, eyes half closed. Her skin is cold and damp.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "sev >= 0.5",
+       "then": [
+        {
+         "log": "Pale, lips pale, skin cool. She is breathing a little fast and says she feels weak.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Paler than usual, tired. Skin warm and dry.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ask": {
+   "label": "Ask how she feels and about her bowels today",
+   "group": "Observe",
+   "effects": [
+    {
+     "if": "isNull(askedAt)",
+     "then": [
+      {
+       "set": "askedAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "log": "She says: \"Woozy when I stand. My stomach's a bit sore. And my bowel movement this afternoon was black and sticky, like tar. I didn't want to bother anyone.\"",
+     "kind": "find"
+    }
+   ]
+  },
+  "bp": {
+   "label": "Take her blood pressure",
+   "group": "Measure",
+   "available": "not bpPending",
+   "why": "Already taking it.",
+   "params": [
+    {
+     "id": "cuff",
+     "kind": "choice",
+     "label": "Cuff",
+     "options": [
+      {
+       "value": "small",
+       "label": "Small adult cuff (fits her thin arm)"
+      },
+      {
+       "value": "large",
+       "label": "Large adult cuff (the one on the cart)"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "bpPending",
+     "to": "true"
+    },
+    {
+     "set": "cuffLarge",
+     "to": "cuff == \"large\""
+    },
+    {
+     "if": "cuff == \"large\"",
+     "then": [
+      {
+       "set": "cuffWrongEver",
+       "to": "true"
+      }
+     ],
+     "else": [
+      {
+       "set": "cuffRightEver",
+       "to": "true"
+      }
+     ]
+    },
+    {
+     "schedule": "bpT",
+     "after": "bpTime"
+    },
+    {
+     "log": "Taking her blood pressure, sitting up in bed (about 1.5 min)."
+    }
+   ]
+  },
+  "pulse": {
+   "label": "Count her radial pulse",
+   "group": "Measure",
+   "available": "not pPending",
+   "why": "Already counting.",
+   "params": [
+    {
+     "id": "how",
+     "kind": "choice",
+     "label": "How long",
+     "options": [
+      {
+       "value": "full",
+       "label": "A full 60 seconds"
+      },
+      {
+       "value": "half",
+       "label": "30 seconds, doubled"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "pPending",
+     "to": "true"
+    },
+    {
+     "set": "pFull",
+     "to": "how == \"full\""
+    },
+    {
+     "if": "how == \"full\"",
+     "then": [
+      {
+       "set": "pFullEver",
+       "to": "true"
+      },
+      {
+       "schedule": "pulseT",
+       "after": "pulseFull"
+      }
+     ],
+     "else": [
+      {
+       "set": "pHalfEver",
+       "to": "true"
+      },
+      {
+       "schedule": "pulseT",
+       "after": "pulseHalf"
+      }
+     ]
+    },
+    {
+     "log": "Counting her pulse. It feels irregular."
+    }
+   ]
+  },
+  "resp": {
+   "label": "Count her breathing (30 seconds, doubled)",
+   "group": "Measure",
+   "effects": [
+    {
+     "set": "rrAt",
+     "to": "t"
+    },
+    {
+     "set": "rrVal",
+     "to": "rrTrue"
+    },
+    {
+     "log": "Breathing {rrTrue} a minute.",
+     "kind": "find"
+    }
+   ]
+  },
+  "temp": {
+   "label": "Take her oral temperature",
+   "group": "Measure",
+   "available": "not tPending",
+   "why": "Already taking it.",
+   "effects": [
+    {
+     "set": "tPending",
+     "to": "true"
+    },
+    {
+     "schedule": "tempT",
+     "after": "tempTime"
+    },
+    {
+     "log": "Oral thermometer in (about 1 min)."
+    }
+   ]
+  },
+  "report": {
+   "label": "Report to the nurse",
+   "group": "Report",
+   "available": "isNull(reportEffAt) and not nurseComing",
+   "why": "The nurse is already coming.",
+   "params": [
+    {
+     "id": "rep",
+     "kind": "form",
+     "label": "What you say",
+     "fields": [
+      {
+       "id": "obs",
+       "label": "What you tell her",
+       "options": [
+        {
+         "value": "numbers",
+         "label": "What I measured and saw: her BP, her pulse counted a full minute and irregular, her breathing; pale, woozy on standing; she says her stool was black and sticky this afternoon"
+        },
+        {
+         "value": "guess",
+         "label": "I think Mrs. Lindqvist is bleeding inside from her blood thinner"
+        },
+        {
+         "value": "routine",
+         "label": "Mrs. Lindqvist is a bit tired tonight, her numbers are a little off"
+        }
+       ]
+      },
+      {
+       "id": "when",
+       "label": "When",
+       "options": [
+        {
+         "value": "now",
+         "label": "Now: I find the nurse at the med cart and tell her face to face"
+        },
+        {
+         "value": "later",
+         "label": "At the end of my round"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "if": "isNull(reportAt)",
+     "then": [
+      {
+       "set": "reportAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "when == \"later\"",
+       "then": [
+        {
+         "add": "waited",
+         "by": "1"
+        },
+        {
+         "log": "You decide to mention it at the end of your round.",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "obs == \"numbers\" and isNull(bpAt)",
+       "then": [
+        {
+         "log": "Nurse: \"What's her blood pressure? Get me a full set and come straight back.\"",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "obs == \"numbers\"",
+       "then": [
+        {
+         "set": "reportEffAt",
+         "to": "t"
+        },
+        {
+         "set": "nurseComing",
+         "to": "true"
+        },
+        {
+         "schedule": "nurseT",
+         "after": "nurseWalk"
+        },
+        {
+         "log": "Nurse: \"Black stool, on apixaban, BP {bpS}/{bpD}, pulse {pVal}. Keep her in bed, I'm coming now.\"",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "obs == \"guess\"",
+       "then": [
+        {
+         "set": "reportGuess",
+         "to": "true"
+        },
+        {
+         "set": "nurseComing",
+         "to": "true"
+        },
+        {
+         "schedule": "nurseT",
+         "after": "nurseLater"
+        },
+        {
+         "log": "Nurse: \"What makes you say that? I'll come and look after the med pass.\" Without your findings, it sounds like a guess.",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "add": "waited",
+         "by": "1"
+        },
+        {
+         "log": "Nurse: \"Recheck her at the end of the round.\"",
+         "kind": "sys"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "log": "Spoke to the nurse."
+    }
+   ]
+  },
+  "commode": {
+   "label": "Bring the bedside commode, help her onto it and stay with her",
+   "group": "Care",
+   "available": "not toiletSafe and not fallen",
+   "why": "Already done.",
+   "effects": [
+    {
+     "set": "toiletSafe",
+     "to": "true"
+    },
+    {
+     "log": "Bed low, brakes on, commode at the bedside. You help her pivot and stay with her; call light in her hand. The stool is black and tarry.",
+     "kind": "good"
+    }
+   ]
+  },
+  "walk": {
+   "label": "Walk her to the bathroom with her walker",
+   "group": "Care",
+   "available": "not walked and not fallen",
+   "why": "Not again.",
+   "effects": [
+    {
+     "set": "walked",
+     "to": "true"
+    },
+    {
+     "if": "sev >= faintSev",
+     "then": [
+      {
+       "set": "fallen",
+       "to": "true"
+      },
+      {
+       "log": "Halfway there her knees buckle; she faints and goes down before you can hold her.",
+       "kind": "bad"
+      }
+     ],
+     "else": [
+      {
+       "log": "She gets there gray and unsteady and nearly faints on the toilet. You get her back to bed.",
+       "kind": "bad"
+      }
+     ]
+    }
+   ]
+  },
+  "recheckLater": {
+   "label": "Plan to recheck her in an hour",
+   "group": "Report",
+   "effects": [
+    {
+     "add": "waited",
+     "by": "1"
+    },
+    {
+     "log": "You plan to come back in an hour.",
+     "kind": "sys"
+    }
+   ]
+  },
+  "callHelp": {
+   "label": "Put on the call light and call out for the nurse, staying with her",
+   "group": "Emergency",
+   "available": "not isNull(emergAt) and isNull(helpAt) and not fallen",
+   "why": "Only when she looks about to faint (or help is already called).",
+   "effects": [
+    {
+     "set": "helpAt",
+     "to": "t"
+    },
+    {
+     "set": "nurseComing",
+     "to": "true"
+    },
+    {
+     "schedule": "nurseRunT",
+     "after": "nurseRun"
+    },
+    {
+     "log": "Call light on; you shout for the nurse and stay at her side.",
+     "kind": "good"
+    }
+   ]
+  },
+  "leaveForNurse": {
+   "label": "Run down the hall to find the nurse",
+   "group": "Emergency",
+   "available": "not isNull(emergAt) and isNull(helpAt) and isNull(leftAt) and not fallen",
+   "why": "Only in an emergency (or help is already called).",
+   "effects": [
+    {
+     "set": "leftAt",
+     "to": "t"
+    },
+    {
+     "set": "helpAt",
+     "to": "t"
+    },
+    {
+     "set": "nurseComing",
+     "to": "true"
+    },
+    {
+     "schedule": "nurseRunT",
+     "after": "nurseLater"
+    },
+    {
+     "schedule": "aloneT",
+     "after": "leftFall"
+    },
+    {
+     "log": "You leave her to find the nurse.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "layFlat": {
+   "label": "Lay her flat and raise her legs",
+   "group": "Emergency",
+   "available": "not flat and not fallen",
+   "why": "Already lying flat.",
+   "effects": [
+    {
+     "set": "flat",
+     "to": "true"
+    },
+    {
+     "cancel": "aloneT"
+    },
+    {
+     "log": "Head of the bed down, her legs raised on a pillow. She says the room stops spinning a little.",
+     "kind": "good"
+    }
+   ]
+  },
+  "note": {
+   "label": "Document",
+   "group": "Report",
+   "available": "isNull(noteAt)",
+   "why": "Already documented.",
+   "params": [
+    {
+     "id": "kind",
+     "kind": "choice",
+     "label": "Note",
+     "options": [
+      {
+       "value": "obj",
+       "label": "Times, each reading and how it was taken, what she said, the black stool, who was told"
+      },
+      {
+       "value": "opinion",
+       "label": "'Resident possibly bleeding internally, nurse aware'"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "noteAt",
+     "to": "t"
+    },
+    {
+     "if": "kind == \"obj\"",
+     "then": [
+      {
+       "set": "noteObjective",
+       "to": "true"
+      },
+      {
+       "log": "Note written: times, readings with cuff and method, her words, the black stool, who was told."
+      }
+     ],
+     "else": [
+      {
+       "log": "Note: 'Resident possibly bleeding internally, nurse aware.'",
+       "kind": "sys"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "timers": {
+  "bpT": {
+   "label": "blood pressure",
+   "wait": {
+    "skipLabel": "the blood pressure (about 1.5 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1.5 min."
+   },
+   "effects": [
+    {
+     "set": "bpPending",
+     "to": "false"
+    },
+    {
+     "set": "bpAt",
+     "to": "t"
+    },
+    {
+     "set": "bpS",
+     "to": "cuffLarge ? sbpTrue - 10 : sbpTrue"
+    },
+    {
+     "set": "bpD",
+     "to": "cuffLarge ? dbpTrue - 6 : dbpTrue"
+    },
+    {
+     "log": "BP {bpS}/{bpD} sitting{cuffLarge ? \", large cuff on a thin arm\" : \"\"}.",
+     "kind": "find"
+    },
+    {
+     "if": "(bpS < 100 or (pVal > 100 and not isNull(pAt))) and isNull(abnAt)",
+     "then": [
+      {
+       "set": "abnAt",
+       "to": "t"
+      }
+     ]
+    }
+   ]
+  },
+  "pulseT": {
+   "label": "pulse count",
+   "wait": {
+    "skipLabel": "the pulse count"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C."
+   },
+   "effects": [
+    {
+     "set": "pPending",
+     "to": "false"
+    },
+    {
+     "set": "pAt",
+     "to": "t"
+    },
+    {
+     "set": "pVal",
+     "to": "pFull ? hrTrue : hrTrue - 12"
+    },
+    {
+     "log": "Pulse {pVal}, irregular{pFull ? \", counted a full minute\" : \", 30 seconds doubled\"}.",
+     "kind": "find"
+    },
+    {
+     "if": "(pVal > 100 or (bpS < 100 and not isNull(bpAt))) and isNull(abnAt)",
+     "then": [
+      {
+       "set": "abnAt",
+       "to": "t"
+      }
+     ]
+    }
+   ]
+  },
+  "tempT": {
+   "label": "temperature",
+   "wait": {
+    "skipLabel": "the temperature (about 1 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1 min."
+   },
+   "effects": [
+    {
+     "set": "tPending",
+     "to": "false"
+    },
+    {
+     "set": "tAt",
+     "to": "t"
+    },
+    {
+     "if": "t < teaClear",
+     "then": [
+      {
+       "set": "tEarly",
+       "to": "true"
+      },
+      {
+       "set": "tVal",
+       "to": "37.9"
+      },
+      {
+       "log": "Temperature 37.9 C, ten minutes after hot tea.",
+       "kind": "find"
+      }
+     ],
+     "else": [
+      {
+       "set": "tEarly",
+       "to": "false"
+      },
+      {
+       "set": "tValid",
+       "to": "true"
+      },
+      {
+       "set": "tVal",
+       "to": "36.7"
+      },
+      {
+       "log": "Temperature 36.7 C.",
+       "kind": "find"
+      }
+     ]
+    }
+   ]
+  },
+  "nurseT": {
+   "label": "the nurse",
+   "wait": {
+    "skipLabel": "the nurse arriving"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "5 min after a report that lands, 20 min after one that does not."
+   },
+   "effects": [
+    {
+     "if": "not nurseHere and not fallen",
+     "then": [
+      {
+       "set": "nurseHere",
+       "to": "true"
+      },
+      {
+       "schedule": "ordersT",
+       "after": "providerCall"
+      },
+      {
+       "log": "The nurse is at the bedside: checks her, sees the stool, calls the provider.",
+       "kind": "good"
+      }
+     ]
+    }
+   ]
+  },
+  "nurseRunT": {
+   "label": "the nurse (emergency)",
+   "wait": {
+    "skipLabel": "the nurse arriving"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1 min after a shout and the call light; 20 min if you go looking for her."
+   },
+   "effects": [
+    {
+     "if": "not nurseHere and not fallen",
+     "then": [
+      {
+       "set": "nurseHere",
+       "to": "true"
+      },
+      {
+       "schedule": "ordersT",
+       "after": "providerCall"
+      },
+      {
+       "log": "The nurse runs in, checks her and calls the provider and 911.",
+       "kind": "good"
+      }
+     ]
+    }
+   ]
+  },
+  "ordersT": {
+   "label": "the provider's orders",
+   "wait": {
+    "skipLabel": "the transfer order (about 10 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 10 min."
+   },
+   "effects": [
+    {
+     "set": "ordersAt",
+     "to": "t"
+    },
+    {
+     "log": "Provider: send her to the emergency department now. The nurse arranges the transfer.",
+     "kind": "good"
+    }
+   ]
+  },
+  "toiletT": {
+   "label": "she gets up on her own",
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "5 min after asking."
+   },
+   "effects": [
+    {
+     "if": "not toiletSafe and not walked and not fallen and not nurseHere",
+     "then": [
+      {
+       "cases": [
+        {
+         "when": "sev >= faintSev",
+         "then": [
+          {
+           "set": "fallen",
+           "to": "true"
+          },
+          {
+           "log": "She gets up on her own to reach the bathroom, faints and falls beside the bed.",
+           "kind": "bad"
+          }
+         ]
+        },
+        {
+         "when": "true",
+         "then": [
+          {
+           "set": "walked",
+           "to": "true"
+          },
+          {
+           "log": "She gets herself to the bathroom, gray and unsteady.",
+           "kind": "bad"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "aloneT": {
+   "label": "she is alone",
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Mayo Clinic. Fainting: First aid (updated 2025-01-22)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.mayoclinic.org/first-aid/first-aid-fainting/basics/art-20056606",
+    "note": "Read 2026-11-14: if you feel faint, lie down or sit down and do not get up too quickly; someone who faints is placed on the back with the legs raised, and the emergency number is called if they do not wake within a minute. FLAG: the fall is authored."
+   },
+   "effects": [
+    {
+     "if": "not flat and not nurseHere and not fallen",
+     "then": [
+      {
+       "set": "fallen",
+       "to": "true"
+      },
+      {
+       "log": "Alone, she tries to sit up to reach the bathroom, faints and slides to the floor.",
+       "kind": "bad"
+      }
+     ]
+    }
+   ]
+  },
+  "endT": {
+   "label": "21:00",
+   "wait": {
+    "skipLabel": "21:00, the end of the case",
+    "routine": true
+   },
+   "instances": "one",
+   "source": {
+    "cite": "Long-term care unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The case ends at 21:00."
+   },
+   "effects": []
+  }
+ },
+ "triggers": [
+  {
+   "id": "start",
+   "when": "true",
+   "mode": "once",
+   "effects": [
+    {
+     "schedule": "endT",
+     "after": "2h"
+    }
+   ]
+  },
+  {
+   "id": "toilet",
+   "when": "t >= toiletAt",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "toiletAsked",
+     "to": "true"
+    },
+    {
+     "if": "not toiletSafe and not walked and not fallen",
+     "then": [
+      {
+       "log": "She says: \"I need the bathroom, now,\" and starts to swing her legs out of bed.",
+       "kind": "alarm"
+      },
+      {
+       "schedule": "toiletT",
+       "after": "aloneUp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "emerg",
+   "when": "sev >= emergSev and not planOn and not fallen",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "emergAt",
+     "to": "t"
+    },
+    {
+     "log": "She goes gray and sweaty, says she is going to pass out, and vomits dark material like coffee grounds.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "cues": {
+   "trigger": "not isNull(abnAt) or t >= 900",
+   "question": "Which of your readings are outside her expected range, how sure are you that each was measured right, and what do you tell the nurse, when, and in what words?",
+   "parts": [
+    {
+     "label": "Out of range, and measured right",
+     "criteria": "Names the pulse over 100 (counted a full minute because it is irregular) and the BP falling toward or under 100 against her usual 130s as outside her range; knows a large cuff on a thin arm reads falsely low and a 30-second count of an irregular pulse can miss the fast rate; does not trust an oral temperature taken soon after hot tea.",
+     "modelAnswer": "Her pulse is over 100 and irregular, counted a full minute, and her BP is well below her usual 130s/70s, heading under 100: both outside her range, and with wooziness on standing. I used the small cuff because a large cuff on her thin arm reads falsely low, and I counted a full minute because her pulse is irregular. A temperature right after hot tea is not valid; I waited 15 minutes."
+    },
+    {
+     "label": "What to say, and when",
+     "criteria": "Reports now, face to face, with observations (the numbers and how they were taken, what she said, the black sticky stool, pale and woozy) rather than a guess at a diagnosis; keeps her in bed and does not walk her; in an emergency calls for help without leaving her and lays her flat.",
+     "modelAnswer": "I tell the nurse now, in person: BP and pulse with how I took them, breathing, pale and woozy on standing, and she says her stool was black and sticky this afternoon. I don't tell her my guess; I give her what I saw and measured. Until the nurse comes I keep her in bed and use the commode, and if she starts to faint I lay her flat, raise her legs and use the call light and shout rather than leave her."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "t >= 7199 and isNull(ordersAt)",
+   "class": "harm",
+   "rationale": "A resident on a blood thinner with black stool and falling blood pressure still unseen by a nurse at the end of the case is bleeding unattended, so this case calls it harm.",
+   "source": {
+    "cite": "Ansari P. Overview of Gastrointestinal Bleeding. MSD Manual Professional Edition (full review June 2025, updated November 2025)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.msdmanuals.com/professional/gastrointestinal-disorders/gi-bleeding/overview-of-gi-bleeding",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): melena typically indicates upper GI bleeding and needs about 100-200 mL of blood; tachycardia over 100 with lesser bleeding; hypotension, syncope, pallor, diaphoresis and oliguria suggest significant hypovolemia; anticoagulants such as apixaban are associated with GI bleeding; orthostatic measurements can cause syncope in severe bleeding."
+   }
+  }
+ },
+ "endings": {
+  "fell": {
+   "label": "She fainted and fell",
+   "class": "harm",
+   "when": "fallen",
+   "terminal": true,
+   "narrative": "Mrs. Lindqvist is on the floor, pale and clammy, on a blood thinner. The nurse calls 911; she leaves for the hospital with a bleeding stomach and a new head wound."
+  },
+  "collapse": {
+   "label": "She collapses in bed",
+   "class": "harm",
+   "when": "sev >= collapseSev and not planOn",
+   "terminal": true,
+   "narrative": "She is unresponsive with a fast, weak pulse and a BP of {sbpTrue}/{dbpTrue}. 911 is called; she leaves in shock."
+  },
+  "sentEarly": {
+   "label": "Out-of-range readings reported; sent to the hospital early",
+   "class": "target",
+   "when": "planOn and not fallen and not isNull(reportEffAt) and not isNull(abnAt) and timeAt(reportEffAt) <= timeAt(abnAt) + reportWindow and not walked and pFullEver and cuffRightEver",
+   "terminal": true,
+   "narrative": "{timeAt(ordersAt)|clock}: Mrs. Lindqvist leaves for the emergency department with your readings in the nurse's transfer report. You measured right, saw that she was out of range, and said so in plain findings."
+  },
+  "sentLate": {
+   "label": "Sent to the hospital by a slower route",
+   "class": "recovered",
+   "when": "planOn and not fallen",
+   "terminal": true,
+   "narrative": "{timeAt(ordersAt)|clock}: she is on her way to the hospital, but the route cost time or safety: a reading taken the wrong way, a report that sounded like a guess or a routine note, a walk she should not have taken, or a near faint."
+  },
+  "time_up": {
+   "label": "21:00 and the nurse has not seen her",
+   "class": "harm",
+   "terminal": true,
+   "narrative": "21:00: Mrs. Lindqvist is paler and weaker, still in her room without a nurse's assessment."
+  }
+ },
+ "endingOrder": [
+  "fell",
+  "collapse",
+  "sentEarly",
+  "sentLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "technique",
+    "label": "Measured with the right technique",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(bpAt) or isNull(pAt)",
+      "score": "missed",
+      "why": "Blood pressure or pulse was never measured."
+     },
+     {
+      "when": "pFullEver and cuffRightEver",
+      "score": "met",
+      "why": "Small adult cuff on her thin arm; irregular pulse counted a full minute."
+     },
+     {
+      "when": "pFullEver or cuffRightEver",
+      "score": "partial",
+      "why": "One reading was taken a way that misleads: {cuffRightEver ? \"a 30-second count of an irregular pulse\" : \"a large cuff on a thin arm\"}."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Large cuff and a 30-second pulse count: both readings misleading."
+     }
+    ]
+   },
+   {
+    "id": "report",
+    "label": "Reported the out-of-range readings promptly, as observations",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(reportEffAt) and reportGuess",
+      "score": "partial",
+      "why": "Told the nurse a guess at a diagnosis instead of the findings, so she came later."
+     },
+     {
+      "when": "isNull(reportEffAt)",
+      "score": "missed",
+      "why": "The nurse was never given the findings."
+     },
+     {
+      "when": "not isNull(abnAt) and timeAt(reportEffAt) <= timeAt(abnAt) + reportWindow",
+      "score": "met",
+      "why": "Findings reported at {timeAt(reportEffAt)|clock}."
+     },
+     {
+      "when": "isNull(abnAt)",
+      "score": "partial",
+      "why": "Reported, but none of the readings showed the change, because of how they were taken."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Findings reported at {timeAt(reportEffAt)|clock}, more than 10 minutes after the first out-of-range reading."
+     }
+    ]
+   },
+   {
+    "id": "safeToilet",
+    "label": "Kept a woozy resident from walking",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "fallen",
+      "score": "missed",
+      "why": "She fainted and fell."
+     },
+     {
+      "when": "walked",
+      "score": "missed",
+      "why": "She walked to the bathroom while woozy."
+     },
+     {
+      "when": "toiletSafe or nurseHere",
+      "score": "met",
+      "why": "Bedside commode with you there, or she stayed in bed until the nurse came."
+     },
+     {
+      "when": "true",
+      "score": "met",
+      "why": "She stayed in bed."
+     }
+    ]
+   },
+   {
+    "id": "temp",
+    "label": "Valid oral temperature",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "tValid",
+      "score": "met",
+      "why": "Taken 15 minutes or more after her hot tea."
+     },
+     {
+      "when": "tEarly",
+      "score": "partial",
+      "why": "Taken soon after hot tea, so the 37.9 C reading is not valid."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No temperature."
+     }
+    ]
+   },
+   {
+    "id": "help",
+    "label": "In the emergency, called for help without leaving and laid her flat",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "isNull(emergAt)",
+      "score": "na",
+      "why": "No emergency happened."
+     },
+     {
+      "when": "not isNull(leftAt)",
+      "score": "missed",
+      "why": "Left her alone to find the nurse."
+     },
+     {
+      "when": "not isNull(helpAt) and flat",
+      "score": "met",
+      "why": "Call light and a shout from her side; lying flat with her legs raised."
+     },
+     {
+      "when": "not isNull(helpAt) or flat",
+      "score": "partial",
+      "why": "Only part of it: {isNull(helpAt) ? \"no call for help\" : \"not laid flat\"}."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No call for help."
+     }
+    ]
+   },
+   {
+    "id": "noWait",
+    "label": "Did not wait to recheck or report later",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "waited > 0",
+      "score": "missed",
+      "why": "Planned to recheck or report later."
+     },
+     {
+      "when": "true",
+      "score": "met",
+      "why": "No waiting."
+     }
+    ]
+   },
+   {
+    "id": "note",
+    "label": "Objective documentation",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "noteObjective",
+      "score": "met",
+      "why": "Times, readings with how they were taken, her words, who was told."
+     },
+     {
+      "when": "isNull(noteAt)",
+      "score": "missed",
+      "why": "Not documented."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "The note gave a guess instead of data."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "cues",
+    "label": "Written reasoning: out-of-range readings, measured right, reported as observations",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toBp",
+    "label": "19:00 to the first blood pressure",
+    "value": "isNull(bpAt) ? -1 : timeAt(bpAt)",
+    "format": "duration",
+    "expert": "under 5 min"
+   },
+   {
+    "id": "toReport",
+    "label": "First out-of-range reading to a report that landed",
+    "value": "isNull(reportEffAt) or isNull(abnAt) ? -1 : max(0, timeAt(reportEffAt) - timeAt(abnAt))",
+    "format": "duration",
+    "expert": "under 5 min"
+   },
+   {
+    "id": "toOrders",
+    "label": "19:00 to the transfer order",
+    "value": "isNull(ordersAt) ? -1 : timeAt(ordersAt)",
+    "format": "duration",
+    "expert": "under 25 min"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "19:00",
+    "text": "Look at her and ask how she feels: pale, woozy on standing, and black, sticky stool this afternoon."
+   },
+   {
+    "at": "19:01",
+    "text": "BP with the small adult cuff and her irregular pulse counted a full minute: pulse over 100, BP well below her usual."
+   },
+   {
+    "at": "~19:04",
+    "text": "Find the nurse and give the findings, not a guess. Keep her in bed; bedside commode when she needs it."
+   },
+   {
+    "at": "~19:10",
+    "text": "Temperature now that 15 minutes have passed since her tea. The nurse assesses and calls the provider; objective note."
+   }
+  ],
+  "debrief": {
+   "fell": {
+    "headline": "She fainted and fell",
+    "body": "A resident who is woozy on standing, with a fast pulse and a falling BP, stays in bed or uses a commode with you beside her. In an emergency, call for help from her side and lay her flat."
+   },
+   "collapse": {
+    "headline": "She collapsed in bed",
+    "body": "Out-of-range readings and black stool on a blood thinner were the cues. Find when the readings were taken, whether they were trusted, and when the nurse heard them."
+   },
+   "sentEarly": {
+    "headline": "Measured, recognized, reported",
+    "body": "Right cuff, a full-minute pulse, readings compared with her range, findings told to the nurse at once, and she stayed in bed. That is the expert path."
+   },
+   "sentLate": {
+    "headline": "She got there, by a slower route",
+    "body": "Check how each reading was taken, how long the report took, whether it gave findings or a guess, and whether she walked while woozy."
+   },
+   "time_up": {
+    "headline": "The nurse never saw her",
+    "body": "An out-of-range reading is reported promptly. When the first answer is 'recheck later' and she keeps looking worse, report again with the numbers."
+   }
+  },
+  "modelReasoning": "Out of range means outside the facility's report parameters or clearly off the resident's own baseline. Her irregular pulse, counted a full 60 seconds, is over 100, and her BP measured with a cuff that fits her thin arm is falling from her usual 130s toward 100: report both now. A 30-second count of an irregular pulse and an oversized cuff both mislead, and an oral temperature soon after hot tea is not valid. The aide reports observations (numbers and how they were taken, what she said, the black sticky stool, pale and woozy), not a diagnosis, face to face and at once; keeps a woozy resident from walking; and in an emergency calls for help from the bedside and lays her flat rather than leaving her."
+ },
+ "chapters": [
+  {
+   "id": "reported",
+   "label": "The nurse is coming",
+   "when": "nurseComing"
+  }
+ ],
+ "teaching": {
+  "cuffQ": {
+   "during": "bpT",
+   "ask": "While the cuff inflates: what does a cuff that is too large for her arm do to the reading?",
+   "choices": [
+    {
+     "id": "low",
+     "label": "Reads falsely low"
+    },
+    {
+     "id": "high",
+     "label": "Reads falsely high"
+    },
+    {
+     "id": "none",
+     "label": "No difference if you go slowly"
+    }
+   ],
+   "expect": "low",
+   "explain": "An oversized cuff gives an artificially low reading and an undersized one an artificially high reading. Use the cuff that fits.",
+   "source": {
+    "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 7.4 Obtaining Vital Signs",
+    "checkedAt": "2026-11-14",
+    "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/7-4-obtaining-vital-signs/",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): oral temperature 15 to 25 minutes after a hot or cold drink or food; count the pulse a full 60 seconds, especially if the rhythm is irregular, and report an irregular pulse; an undersized cuff reads falsely high and an oversized cuff falsely low; abnormal blood pressure readings are promptly reported to the nurse; adult resting pulse 60-100/min, respirations 12-20/min, oral temperature 35.8-37.3 C."
+   }
+  },
+  "nurseQ": {
+   "during": "nurseT",
+   "ask": "While the nurse comes, she says she needs the bathroom. What do you do?",
+   "choices": [
+    {
+     "id": "commode",
+     "label": "Bedside commode, help her pivot, stay with her"
+    },
+    {
+     "id": "walk",
+     "label": "Walk her to the bathroom with her walker"
+    },
+    {
+     "id": "wait",
+     "label": "Tell her to hold it"
+    }
+   ],
+   "expect": "commode",
+   "explain": "She is woozy on standing with a falling BP: a short pivot to a commode with you beside her, bed low and the call light in her hand. If she feels faint, she lies down and does not get up quickly.",
+   "source": {
+    "cite": "Mayo Clinic. Fainting: First aid (updated 2025-01-22)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.mayoclinic.org/first-aid/first-aid-fainting/basics/art-20056606",
+    "note": "Read 2026-11-14: if you feel faint, lie down or sit down and do not get up too quickly; someone who faints is placed on the back with the legs raised, and the emergency number is called if they do not wake within a minute."
+   }
+  }
+ }
+}

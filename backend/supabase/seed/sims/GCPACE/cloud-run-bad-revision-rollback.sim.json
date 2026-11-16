@@ -1,0 +1,1229 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cloud-run-bad-revision-rollback",
+  "title": "Release: a new Cloud Run revision fails 8% of checkouts",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "svc",
+          "label": "Cloud Run service checkout (us-central1)",
+          "spokenLabel": "the checkout service",
+          "items": [
+            {
+              "label": "Traffic: 100% to {serving}",
+              "when": "canaryRev == \"none\""
+            },
+            {
+              "label": "Traffic: 90% to {serving}, 10% to {canaryRev}",
+              "when": "canaryRev != \"none\""
+            },
+            {
+              "label": "Revisions: r41 (yesterday, good), r42 (10:00, PAYMENTS_URL wrong){deployed43 ? \", r43 (tag canary)\" : \"\"}{deployed44 ? \", r44 (tag canary)\" : \"\"}",
+              "when": "true"
+            },
+            {
+              "label": "Max instances raised from 20 to 100",
+              "when": "scaled"
+            },
+            {
+              "label": "Rebuilding the previous commit (about 15 minutes)",
+              "when": "not isNull(rebuildStartAt) and not rebuilt"
+            }
+          ]
+        },
+        {
+          "id": "pay",
+          "label": "Payments",
+          "spokenLabel": "payments",
+          "items": [
+            {
+              "label": "{unchargedOrders > 0 ? \"Orders taken but charged in the payment sandbox, not for real\" : \"Orders charged normally\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "slo",
+          "label": "Checkout SLO",
+          "spokenLabel": "the checkout SLO",
+          "items": [
+            {
+              "label": "Availability target 99.9% over the day (about 1.4 minutes of full outage)",
+              "when": "true"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "err",
+          "label": "Checkout requests failing now",
+          "value": "{round(errFrac * 1000) / 10}%"
+        },
+        {
+          "id": "avail",
+          "label": "Availability today",
+          "value": "{round(availability * 100) / 100}%"
+        },
+        {
+          "id": "unch",
+          "label": "Orders not really charged",
+          "value": "{round(unchargedOrders)}"
+        }
+      ]
+    }
+  },
+  "objective": "Deploying new versions of a Cloud Run application, and adjusting traffic-splitting across Cloud Run, Cloud Run functions, and GKE",
+  "sources": [
+    {
+      "cite": "Google Cloud, Associate Cloud Engineer certification exam guide (to verify)",
+      "checkedAt": "2026-11-14",
+      "url": "https://services.google.com/fh/files/misc/063026_associate_cloud_engineer_exam_guide_english.pdf",
+      "note": "To verify: the guide was found by a web search on 2026-11-14 but not opened (web reading was limited to search results that day), so the objective wording is the GCPACE course seed's. The ACE exam page was read through a summarizing fetch earlier on 2026-11-14 for the bucket case (section weights 1 ~20%, 2 ~17.5%, 3 ~25%, 4 ~20%, 5 ~17.5%)."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud Run: Rollbacks, gradual rollouts, and traffic migration (last updated 2026-11-10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: roll back with 'gcloud run services update-traffic SERVICE --to-revisions REVISION=100'; 'Rolling back traffic to a revision updates the routing configuration immediately'; deploy with 'gcloud run deploy --image IMAGE --no-traffic' then shift traffic in steps, for example 5 percent; '--no-traffic --tag TAG_NAME' lets you 'directly test the new revision at a specific URL, without serving traffic'; 'the percentages must add up to 100'; 'traffic routing adjustments are not instantaneous'."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cloud engineer on call for Fernbrook Outdoor, a fictional shop. At 10:00 a pipeline deployed revision r42 of the Cloud Run service checkout with all traffic. At 10:05 the alert fires: checkout errors. The SLO is 99.9% availability over the day.",
+    "handover": [
+      "Yesterday's revision r41 is still in the service with no traffic.",
+      "The pipeline deploys with the default settings: a new revision takes all traffic."
+    ],
+    "howItWorks": [
+      "The board shows the service, its traffic split and its revisions; meters show errors, today's availability and orders charged in the sandbox.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. Deploys finish later on the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "ordersPerMin": {
+      "value": 40,
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-14",
+        "note": "Checkout takes about 40 orders a minute at this hour."
+      }
+    },
+    "deployDur": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Building and deploying a revision with --no-traffic takes 10 minutes."
+      }
+    },
+    "rebuildDur": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Rebuilding the previous commit and deploying it takes 15 minutes."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstTrafficAt": {
+      "type": "time",
+      "init": null
+    },
+    "serving": {
+      "type": "enum",
+      "values": [
+        "r41",
+        "r42",
+        "r43",
+        "r44"
+      ],
+      "init": "r42"
+    },
+    "canaryRev": {
+      "type": "enum",
+      "values": [
+        "none",
+        "r43",
+        "r44"
+      ],
+      "init": "none"
+    },
+    "deploy43At": {
+      "type": "time",
+      "init": null
+    },
+    "deploy43Mode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "noTraffic",
+        "full"
+      ],
+      "init": "none"
+    },
+    "deployed43": {
+      "type": "bool",
+      "init": false
+    },
+    "deploy44At": {
+      "type": "time",
+      "init": null
+    },
+    "deployed44": {
+      "type": "bool",
+      "init": false
+    },
+    "tested43": {
+      "type": "bool",
+      "init": false
+    },
+    "tested44": {
+      "type": "bool",
+      "init": false
+    },
+    "canary44At": {
+      "type": "time",
+      "init": null
+    },
+    "promotedAt": {
+      "type": "time",
+      "init": null
+    },
+    "scaled": {
+      "type": "bool",
+      "init": false
+    },
+    "rebuildStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "rebuilt": {
+      "type": "bool",
+      "init": false
+    },
+    "rolledBackAt": {
+      "type": "time",
+      "init": null
+    },
+    "errorMin": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 100000
+    },
+    "unchargedOrders": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "env",
+        "capacity"
+      ],
+      "init": "unset"
+    },
+    "methodDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "traffic",
+        "rebuild"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "errFrac": {
+      "expr": "canaryRev == \"none\" ? (serving == \"r42\" ? 0.08 : 0) : 0.9 * (serving == \"r42\" ? 0.08 : 0)"
+    },
+    "sandboxFrac": {
+      "expr": "(serving == \"r43\" ? (canaryRev == \"none\" ? 1 : 0.9) : 0) + (canaryRev == \"r43\" ? 0.1 : 0)"
+    },
+    "availability": {
+      "expr": "100 - errorMin / 1440 * 100"
+    }
+  },
+  "processes": [
+    {
+      "id": "slo",
+      "when": "phase == \"incident\"",
+      "update": {
+        "errorMin": "errorMin + dt / 60 * errFrac",
+        "unchargedOrders": "unchargedOrders + dt / 60 * ordersPerMin * sandboxFrac"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "logs",
+        "rollback",
+        "scaleUp",
+        "rebuild",
+        "deployFix",
+        "testTag",
+        "fixAgain",
+        "canary",
+        "promote",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "metrics": {
+      "label": "Cloud Run metrics: request count by response code, by revision",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Metrics: since 10:00 all traffic is on r42, and 8% of its checkout requests return 500. r41 had none yesterday.",
+          "kind": "act"
+        },
+        {
+          "finding": "The errors started with revision r42 and only r42."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "Read r42's logs in Cloud Logging",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Logs: 'payment client: connection refused' on card payments; r42 sets PAYMENTS_URL=http://localhost:8080, a value from a developer's machine.",
+          "kind": "act"
+        },
+        {
+          "finding": "r42 has a wrong environment variable; the code is fine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rollback": {
+      "label": "gcloud run services update-traffic checkout --to-revisions r41=100",
+      "group": "Traffic",
+      "available": "not busy and (serving == \"r42\")",
+      "why": "Only while r42 is serving.",
+      "effects": [
+        {
+          "if": "isNull(firstTrafficAt)",
+          "then": [
+            {
+              "set": "firstTrafficAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(rolledBackAt)",
+          "then": [
+            {
+              "set": "rolledBackAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "serving",
+          "to": "\"r41\""
+        },
+        {
+          "set": "canaryRev",
+          "to": "\"none\""
+        },
+        {
+          "log": "All traffic goes to r41; the routing change applies immediately.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "scaleUp": {
+      "label": "Raise the service's maximum instances from 20 to 100",
+      "group": "Capacity",
+      "available": "not busy and (not scaled)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstTrafficAt)",
+          "then": [
+            {
+              "set": "firstTrafficAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "scaled",
+          "to": "true"
+        },
+        {
+          "log": "More instances of r42 start; each one fails the same 8% of payments.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rebuild": {
+      "label": "Rebuild yesterday's commit and deploy it as a new revision with all traffic",
+      "group": "Deploy",
+      "available": "not busy and (isNull(rebuildStartAt) and serving == \"r42\")",
+      "why": "Only while r42 is serving.",
+      "effects": [
+        {
+          "if": "isNull(firstTrafficAt)",
+          "then": [
+            {
+              "set": "firstTrafficAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rebuildStartAt",
+          "to": "t"
+        },
+        {
+          "log": "Build started; r42 keeps serving until the new revision is up (about 15 minutes).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "deployFix": {
+      "label": "Deploy r43 with PAYMENTS_URL fixed",
+      "group": "Deploy",
+      "available": "not busy and (isNull(deploy43At) and not isNull(logsAt))",
+      "why": "Read the logs to know what to fix, or it is deployed.",
+      "params": [
+        {
+          "id": "mode",
+          "kind": "choice",
+          "label": "Deploy as",
+          "options": [
+            {
+              "value": "noTraffic",
+              "label": "--no-traffic --tag canary"
+            },
+            {
+              "value": "full",
+              "label": "Default: the new revision takes all traffic"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "deploy43At",
+          "to": "t"
+        },
+        {
+          "set": "deploy43Mode",
+          "to": "mode"
+        },
+        {
+          "log": "{mode == \"full\" ? \"Deploying r43 to take all traffic when ready (about 10 minutes).\" : \"Deploying r43 with --no-traffic --tag canary (about 10 minutes).\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "testTag": {
+      "label": "Place a test order on the canary tag URL",
+      "group": "Test",
+      "available": "not busy and ((deployed43 and deploy43Mode == \"noTraffic\") or deployed44)",
+      "why": "Deploy a tagged revision first.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "deployed44",
+              "then": [
+                {
+                  "set": "tested44",
+                  "to": "true"
+                },
+                {
+                  "log": "r44 test order: charged in production payments and receipted. Good.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "tested43",
+                  "to": "true"
+                },
+                {
+                  "log": "r43 test order succeeds, but the charge lands in the payment sandbox: PAYMENTS_URL points at staging, not production.",
+                  "kind": "bad"
+                },
+                {
+                  "finding": "r43 would take orders without charging for them."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "fixAgain": {
+      "label": "Deploy r44 with the production PAYMENTS_URL, --no-traffic --tag canary",
+      "group": "Deploy",
+      "available": "not busy and (deployed43 and isNull(deploy44At))",
+      "why": "Deploy r43 first, or it is deployed.",
+      "effects": [
+        {
+          "set": "deploy44At",
+          "to": "t"
+        },
+        {
+          "log": "Deploying r44 with no traffic (about 10 minutes).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "canary": {
+      "label": "Send 10% of traffic to a tagged revision",
+      "group": "Traffic",
+      "available": "not busy and (serving != \"r42\" and canaryRev == \"none\" and (deployed43 or deployed44))",
+      "why": "Roll back first, deploy a revision, or a canary is running.",
+      "params": [
+        {
+          "id": "rev",
+          "kind": "choice",
+          "label": "Revision",
+          "options": [
+            {
+              "value": "r44",
+              "label": "r44"
+            },
+            {
+              "value": "r43",
+              "label": "r43"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstTrafficAt)",
+          "then": [
+            {
+              "set": "firstTrafficAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "canaryRev",
+          "to": "rev"
+        },
+        {
+          "if": "rev == \"r44\"",
+          "then": [
+            {
+              "if": "isNull(canary44At)",
+              "then": [
+                {
+                  "set": "canary44At",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "10% of checkout traffic now goes to {rev}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "promote": {
+      "label": "Send 100% of traffic to the canary revision",
+      "group": "Traffic",
+      "available": "not busy and (canaryRev != \"none\")",
+      "why": "No canary is running.",
+      "effects": [
+        {
+          "set": "serving",
+          "to": "canaryRev"
+        },
+        {
+          "set": "promotedAt",
+          "to": "t"
+        },
+        {
+          "set": "canaryRev",
+          "to": "\"none\""
+        },
+        {
+          "log": "All traffic now on {serving}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "env",
+                  "label": "r42 shipped a wrong PAYMENTS_URL environment variable"
+                },
+                {
+                  "value": "capacity",
+                  "label": "Not enough instances for the load"
+                }
+              ]
+            },
+            {
+              "id": "method",
+              "label": "How service was restored",
+              "options": [
+                {
+                  "value": "traffic",
+                  "label": "Traffic moved back to the last good revision at once; the fix went out tagged, tested, then as a canary"
+                },
+                {
+                  "value": "rebuild",
+                  "label": "Rebuilt and redeployed the old code"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "methodDoc",
+          "to": "method"
+        },
+        {
+          "log": "Recorded: {cause}, {method}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "dep43",
+      "when": "not isNull(deploy43At) and not deployed43 and t >= timeAt(deploy43At) + deployDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "deployed43",
+          "to": "true"
+        },
+        {
+          "if": "deploy43Mode == \"full\"",
+          "then": [
+            {
+              "set": "serving",
+              "to": "\"r43\""
+            },
+            {
+              "set": "canaryRev",
+              "to": "\"none\""
+            },
+            {
+              "log": "r43 is up and takes all traffic, untested.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "log": "r43 is up with no traffic, at its canary tag URL.",
+              "kind": "act"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dep44",
+      "when": "not isNull(deploy44At) and not deployed44 and t >= timeAt(deploy44At) + deployDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "deployed44",
+          "to": "true"
+        },
+        {
+          "log": "r44 is up with no traffic, at its canary tag URL.",
+          "kind": "act"
+        }
+      ]
+    },
+    {
+      "id": "rebuilt",
+      "when": "not isNull(rebuildStartAt) and not rebuilt and t >= timeAt(rebuildStartAt) + rebuildDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "rebuilt",
+          "to": "true"
+        },
+        {
+          "if": "serving == \"r42\"",
+          "then": [
+            {
+              "set": "serving",
+              "to": "\"r41\""
+            },
+            {
+              "if": "isNull(rolledBackAt)",
+              "then": [
+                {
+                  "set": "rolledBackAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "The rebuilt old code is up and takes all traffic, 15 minutes after the build started.",
+              "kind": "act"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sandboxSeen",
+      "when": "unchargedOrders >= 100 and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Finance: 100 orders in the last minutes were charged in the payment sandbox.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you found the bad revision, how you restored service, and how the fix went out safely.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Find it",
+          "criteria": "Uses metrics split by revision to tie the errors to r42, and the logs for the cause (a wrong environment variable), before changing traffic.",
+          "modelAnswer": "Errors by revision showed 8% 500s on r42 only, from 10:00; the logs showed PAYMENTS_URL pointing at localhost."
+        },
+        {
+          "label": "Restore",
+          "criteria": "Moves traffic back to the last good revision with update-traffic (immediate) rather than rebuilding or adding instances, and relates it to the error budget.",
+          "modelAnswer": "update-traffic r41=100 restored service at once; rebuilding would have taken 15 more minutes of a 99.9% budget that allows about 1.4 minutes of full outage a day, and more instances of r42 only fail faster."
+        },
+        {
+          "label": "Ship the fix",
+          "criteria": "Deploys with --no-traffic and a tag, tests the tag URL, then a small canary before 100%; notes that the test caught the second config error.",
+          "modelAnswer": "r43 went out with --no-traffic --tag canary; a test order on the tag URL showed it charging the sandbox. r44 fixed that, passed the tag test, took 10% for ten minutes, then 100%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "availabilityTarget": {
+        "value": 99.9,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-14",
+          "note": "The checkout SLO: 99.9% over the day, error-budget method."
+        }
+      },
+      "availabilityRecovered": {
+        "value": 99.85,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Kept at the default small miss."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and serving == \"r42\"",
+      "class": "harm",
+      "rationale": "Closing with r42 still taking traffic leaves 8% of payments failing; it is never a safe outcome.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud Run: Rollbacks, gradual rollouts, and traffic migration (last updated 2026-11-10)",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: roll back with 'gcloud run services update-traffic SERVICE --to-revisions REVISION=100'; 'Rolling back traffic to a revision updates the routing configuration immediately'; deploy with 'gcloud run deploy --image IMAGE --no-traffic' then shift traffic in steps, for example 5 percent; '--no-traffic --tag TAG_NAME' lets you 'directly test the new revision at a specific URL, without serving traffic'; 'the percentages must add up to 100'; 'traffic routing adjustments are not instantaneous'."
+      }
+    }
+  },
+  "endings": {
+    "budgetBlown": {
+      "label": "The SLO was missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and availability < availabilityRecovered",
+      "narrative": "Availability fell to {round(availability * 100) / 100}% today: more than the error budget allows."
+    },
+    "stillBroken": {
+      "label": "Closed with the bad revision serving",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and serving == \"r42\"",
+      "narrative": "r42 still takes traffic and fails 8% of payments."
+    },
+    "uncharged": {
+      "label": "Orders were taken without charging",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (serving == \"r43\" or canaryRev == \"r43\" or unchargedOrders >= 100)",
+      "narrative": "An untested revision took {round(unchargedOrders)} orders that were never really charged."
+    },
+    "shipped": {
+      "label": "Restored at once, fixed safely",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and availability >= availabilityTarget and serving == \"r44\" and tested44 and not isNull(canary44At) and timeAt(promotedAt) >= timeAt(canary44At) + 600 and unchargedOrders == 0 and not isNull(metricsAt) and timeAt(metricsAt) <= timeAt(firstTrafficAt) and causeDoc == \"env\" and methodDoc == \"traffic\"",
+      "narrative": "Traffic went back to the good revision within the error budget, and the fix went out tagged, tested and canaried."
+    },
+    "shippedGaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Service is back, but the budget was nearly spent, the fix was not shipped safely, or the record is wrong."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "budgetBlown",
+    "stillBroken",
+    "uncharged",
+    "shipped",
+    "shippedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Tied the errors to a revision before changing traffic or capacity",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(metricsAt) and timeAt(metricsAt) <= timeAt(firstTrafficAt) and not scaled",
+            "score": "met",
+            "why": "Metrics by revision came first."
+          },
+          {
+            "when": "not isNull(metricsAt)",
+            "score": "partial",
+            "why": "The metrics were read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody looked at which revision was failing."
+          }
+        ]
+      },
+      {
+        "id": "budget",
+        "label": "Restored within the error budget",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "availability >= availabilityTarget and serving != \"r42\"",
+            "score": "met",
+            "why": "Availability {round(availability * 100) / 100}%."
+          },
+          {
+            "when": "availability >= availabilityRecovered and serving != \"r42\"",
+            "score": "partial",
+            "why": "Restored, but {round(availability * 100) / 100}% misses 99.9%."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{serving == \"r42\" ? \"Never restored.\" : \"The error budget was blown.\"}"
+          }
+        ]
+      },
+      {
+        "id": "safeFix",
+        "label": "Fix shipped with --no-traffic, a tag test and a canary",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "serving == \"r44\" and tested44 and not isNull(canary44At) and timeAt(promotedAt) >= timeAt(canary44At) + 600 and unchargedOrders == 0",
+            "score": "met",
+            "why": "Tagged, tested, 10% for ten minutes, then 100%."
+          },
+          {
+            "when": "serving == \"r44\" or (deployed43 and deploy43Mode == \"noTraffic\" and unchargedOrders == 0)",
+            "score": "partial",
+            "why": "Part of the safe rollout was skipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{unchargedOrders > 0 ? \"An untested revision took real orders.\" : \"No fix went out.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noBlind",
+        "label": "No moves that cannot help: more instances, a rebuild instead of a rollback",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not scaled and isNull(rebuildStartAt)",
+            "score": "met",
+            "why": "Traffic did the work."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{scaled ? \"More instances of a bad revision fail faster.\" : \"A rebuild took 15 minutes a rollback does at once.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause and the method",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"env\" and methodDoc == \"traffic\"",
+            "score": "met",
+            "why": "Cause and method right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record misstates the cause or the method."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written diagnosis, rollback and rollout",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "availK",
+        "label": "Availability today at close (%)",
+        "value": "round(availability * 100) / 100",
+        "format": "number",
+        "expert": "99.95 or better"
+      },
+      {
+        "id": "rbK",
+        "label": "Minutes until traffic left r42",
+        "value": "isNull(rolledBackAt) ? -1 : timeAt(rolledBackAt) / 60",
+        "format": "number",
+        "expert": "about 4"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:05-10:11",
+        "text": "Errors by revision: r42 only. update-traffic r41=100: service restored at once."
+      },
+      {
+        "at": "10:11-10:31",
+        "text": "Logs: PAYMENTS_URL wrong. Deploy r43 with --no-traffic --tag canary; a test order on the tag URL charges the sandbox."
+      },
+      {
+        "at": "10:31-11:10",
+        "text": "Deploy r44 tagged, test it, send 10% for ten minutes, then 100%."
+      }
+    ],
+    "debrief": {
+      "shipped": {
+        "headline": "Good: back at once, fixed safely",
+        "body": "You let the metrics name the revision, used traffic to restore service in seconds of the error budget, and shipped the fix in steps that caught a second mistake before any customer saw it."
+      },
+      "shippedGaps": {
+        "headline": "Restored, with gaps",
+        "body": "Service is back. The criteria show what cost budget, what was skipped in the rollout, or what the record gets wrong."
+      },
+      "budgetBlown": {
+        "headline": "The budget ran out",
+        "body": "At 8% errors, a 99.9% day allows about 18 minutes. The previous revision was one update-traffic command away."
+      },
+      "stillBroken": {
+        "headline": "Still failing",
+        "body": "r42 still serves. More instances of a bad revision fail faster; moving traffic is the fix."
+      },
+      "uncharged": {
+        "headline": "An untested revision took real orders",
+        "body": "Deploying with all traffic, or canarying an untested revision, sent customers to a build that charged the sandbox. --no-traffic with a tag lets you test first."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Request counts by revision show 8% 500s on r42 only, since its 10:00 deploy. update-traffic --to-revisions r41=100 restores service immediately, inside a 99.9% error budget that allows about 1.4 minutes of full outage a day (18 minutes at 8%); a rebuild takes 15 minutes and more instances only fail faster. The logs show a wrong PAYMENTS_URL. Deploy the fix with --no-traffic --tag canary and test the tag URL: r43 charged the sandbox, so r44 fixes that, passes the test, takes 10% for ten minutes, then 100%."
+  }
+}

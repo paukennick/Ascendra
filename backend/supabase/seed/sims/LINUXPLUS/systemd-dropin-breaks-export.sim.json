@@ -1,0 +1,1237 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "systemd-dropin-breaks-export",
+  "title": "Outage: exportd fails after yesterday's test, 45 minutes before the bank pickup",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@fin01:~#",
+      "lines": [
+        {
+          "id": "page",
+          "text": "16:15 alert: exportd.service failed; the bank collects today's payment file from /srv/export at 17:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "chg",
+          "text": "Ticket note, yesterday: 'tested a new export path for the archive project, disabled exportd while testing'",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "reboot",
+          "text": "fin01 rebooted; exportd.service is disabled, so it did not start",
+          "when": "not isNull(rebootAt)",
+          "at": "timeAt(rebootAt)",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "17:00 bank pickup: no payment file in /srv/export",
+          "when": "not isNull(pickupMissedAt)",
+          "at": "timeAt(pickupMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "17:00 bank pickup: payments-today.csv collected",
+          "when": "not isNull(pickupOkAt)",
+          "at": "timeAt(pickupOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "svc",
+          "label": "exportd.service",
+          "spokenLabel": "the exportd service",
+          "kind": "Writes the daily payment file",
+          "status": "{running ? (loadedDir == \"good\" ? \"active (running), EXPORT_DIR=/srv/export\" : \"active (running), EXPORT_DIR=/srv/export-old\") : \"failed (exit code 1, restarted 5 times)\"}",
+          "tone": "running and loadedDir == \"good\" ? \"up\" : running ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "dropin",
+          "label": "override.conf drop-in",
+          "spokenLabel": "the drop-in override",
+          "kind": "/etc/systemd/system/exportd.service.d/",
+          "status": "{diskDir == \"good\" ? \"EXPORT_DIR=/srv/export\" : diskDir == \"none\" ? \"removed\" : \"EXPORT_DIR=/srv/export-old\"}{diskDir != loadedDir ? \" (not loaded: daemon-reload pending)\" : \"\"}",
+          "tone": "diskDir != loadedDir ? \"degraded\" : loadedDir == \"good\" ? \"up\" : \"down\""
+        },
+        {
+          "id": "enabled",
+          "label": "Boot",
+          "spokenLabel": "start at boot",
+          "kind": "systemctl is-enabled",
+          "status": "{enabled ? \"enabled\" : \"disabled\"}",
+          "tone": "enabled ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "dir",
+          "label": "/srv/export",
+          "spokenLabel": "the export directory",
+          "kind": "Bank SFTP pickup reads here",
+          "status": "{fileReady and loadedDir == \"good\" ? \"payments-today.csv ready\" : \"no file for today\"}",
+          "tone": "fileReady and loadedDir == \"good\" ? \"up\" : \"down\""
+        },
+        {
+          "id": "bank",
+          "label": "Bank pickup 17:00",
+          "spokenLabel": "the 17:00 bank pickup",
+          "kind": "Business deadline",
+          "status": "{not isNull(pickupOkAt) ? \"Collected\" : not isNull(pickupMissedAt) ? \"Missed: no file\" : \"Waiting\"}",
+          "tone": "not isNull(pickupMissedAt) ? \"down\" : not isNull(pickupOkAt) ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "dropin",
+          "to": "svc",
+          "label": "Drop-in overrides the unit",
+          "status": "Parsed after the main unit file",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l2",
+          "from": "svc",
+          "to": "dir",
+          "label": "Writes the file",
+          "status": "{loadedDir == \"good\" ? \"to /srv/export\" : \"to /srv/export-old\"}",
+          "tone": "loadedDir == \"good\" ? \"up\" : \"down\""
+        },
+        {
+          "id": "l3",
+          "from": "dir",
+          "to": "bank",
+          "label": "SFTP pickup",
+          "status": "At 17:00",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "left",
+          "label": "Minutes to the bank pickup",
+          "value": "{max(0, round((pickupAt - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "systemd service management (systemctl, journalctl)",
+  "secondaryObjectives": [
+    "Reading and interpreting system logs for root-cause analysis"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Linux+ (V8), exam XK0-006: domains System Management 23%, Troubleshooting 22%, Services and User Management 20%, Security 18%, Automation, Orchestration, and Scripting 17%",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/linux/",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: under Services and User Management, 'Systems management: Start, stop, and review services, logs, and timers'; under Troubleshooting, 'System monitoring: health, logs, and event alerts'. The page does not name systemd; the XK0-006 objectives PDF was not opened. The course objective title is the course seed's."
+    },
+    {
+      "cite": "systemd.unit(5), systemd manual (freedesktop.org, latest)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html",
+      "note": "Read through a summarizing fetch on 2026-11-14 (first 100,000 of 130,755 characters). Relevant text: drop-in .conf files in a 'name.service.d/' directory are 'parsed after the main unit file', so they change or add settings without editing it; files in /etc/ take precedence over /run/ and /usr/lib/; 'Use systemctl daemon-reload or an equivalent command to reload unit configuration while the unit is already loaded.'"
+    },
+    {
+      "cite": "systemctl(1), systemd manual (freedesktop.org, latest)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+      "note": "Read through a summarizing fetch on 2026-11-14 (first 100,000 of 124,861 characters). Relevant text: daemon-reload 'Reload the systemd manager configuration'; edit opens 'a drop-in snippet or the main unit file' (default drop-in name override.conf) and afterwards reloads, 'equivalent to systemctl daemon-reload'; cat shows the fragment and drop-ins and warns that on-disk contents 'may differ' from what is loaded without daemon-reload; enable creates the [Install] symlinks and 'does not have the effect of also starting' the unit; is-enabled prints enabled, disabled, static or masked. The exact wording of the status and journal lines in the scenario is an authored rendering."
+    },
+    {
+      "cite": "systemd.service(5), systemd manual (freedesktop.org, latest)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: with Restart=on-failure 'the service will be restarted when the process exits with a non-zero exit code'; RestartSec 'Defaults to 100ms'; restarts are 'subject to unit start rate limiting configured with StartLimitIntervalSec= and StartLimitBurst='."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Linux administrator for Ridgeway Supply, a fictional distributor. At 16:15 monitoring reports that exportd.service on fin01 has failed. exportd writes the day's supplier payment file to /srv/export, which the bank collects by SFTP at 17:00.",
+    "handover": [
+      "A colleague tested a new export path for an archive project yesterday.",
+      "exportd's unit file comes from the vendor's package in /usr/lib/systemd/system."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the service, its drop-in, boot status, the directory and the pickup.",
+      "Each command takes a minute; the clock moves only when you act or wait.",
+      "When you close the outage, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "pickupAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The bank collects the file at 17:00, 45 minutes after the 16:15 alert."
+      }
+    },
+    "genDur": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. exportd writes the day's file within 5 minutes of starting."
+      }
+    },
+    "rebootDur": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. A reboot of fin01 takes 10 minutes."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "catAt": {
+      "type": "time",
+      "init": null
+    },
+    "enabledCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "diskDir": {
+      "type": "enum",
+      "values": [
+        "old",
+        "good",
+        "none"
+      ],
+      "init": "old"
+    },
+    "loadedDir": {
+      "type": "enum",
+      "values": [
+        "old",
+        "good",
+        "none"
+      ],
+      "init": "old"
+    },
+    "vendorEdited": {
+      "type": "bool",
+      "init": false
+    },
+    "oldDirMade": {
+      "type": "bool",
+      "init": false
+    },
+    "rebootAt": {
+      "type": "time",
+      "init": null
+    },
+    "running": {
+      "type": "bool",
+      "init": false
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "fileReady": {
+      "type": "bool",
+      "init": false
+    },
+    "enabled": {
+      "type": "bool",
+      "init": false
+    },
+    "lsAt": {
+      "type": "time",
+      "init": null
+    },
+    "pickupOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "pickupMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "restoredAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dropin",
+        "binary",
+        "disk"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "healthy": {
+      "expr": "running and loadedDir == \"good\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "journal",
+        "cat",
+        "isEnabled",
+        "fix",
+        "reboot",
+        "reload",
+        "start",
+        "enable",
+        "ls",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "systemctl status exportd",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# systemctl status exportd\n● exportd.service - Daily payment export\n     Loaded: loaded (/usr/lib/systemd/system/exportd.service; {enabled ? \"enabled\" : \"disabled\"}; preset: disabled)\n    Drop-In: /etc/systemd/system/exportd.service.d\n             └─override.conf\n     Active: {running ? \"active (running)\" : \"failed (Result: exit-code)\"}"
+        },
+        {
+          "finding": "A drop-in directory overrides this unit, and the unit is disabled."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "journal": {
+      "label": "journalctl -u exportd -n 8",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(journalAt)",
+          "then": [
+            {
+              "set": "journalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# journalctl -u exportd -n 8\nexportd[2210]: EXPORT_DIR /srv/export-old: No such file or directory\nsystemd[1]: exportd.service: Main process exited, code=exited, status=1/FAILURE\nsystemd[1]: exportd.service: Scheduled restart job, restart counter is at 5.\nsystemd[1]: exportd.service: Failed with result 'exit-code'.\nsystemd[1]: Failed to start exportd.service - Daily payment export."
+        },
+        {
+          "finding": "exportd exits with status 1 because EXPORT_DIR is /srv/export-old, which does not exist; Restart=on-failure retried it until the start rate limit stopped it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cat": {
+      "label": "systemctl cat exportd",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(catAt)",
+          "then": [
+            {
+              "set": "catAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# systemctl cat exportd\n# /usr/lib/systemd/system/exportd.service\n[Service]\nEnvironment=EXPORT_DIR=/srv/export\nExecStart=/usr/local/bin/exportd\nRestart=on-failure\n[Install]\nWantedBy=multi-user.target\n\n# /etc/systemd/system/exportd.service.d/override.conf\n{diskDir == \"none\" ? \"(removed)\" : diskDir == \"good\" ? \"[Service]\nEnvironment=EXPORT_DIR=/srv/export\" : \"[Service]\nEnvironment=EXPORT_DIR=/srv/export-old\"}"
+        },
+        {
+          "finding": "The drop-in, parsed after the main unit file, sets EXPORT_DIR=/srv/export-old: yesterday's test was never undone."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "isEnabled": {
+      "label": "systemctl is-enabled exportd",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(enabledCheckAt)",
+          "then": [
+            {
+              "set": "enabledCheckAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# systemctl is-enabled exportd\n{enabled ? \"enabled\" : \"disabled\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "change something",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "change == \"systemctlEdit\"",
+              "then": [
+                {
+                  "set": "diskDir",
+                  "to": "\"good\""
+                },
+                {
+                  "set": "loadedDir",
+                  "to": "\"good\""
+                },
+                {
+                  "output": "root@fin01:~# systemctl edit exportd\n(override.conf: Environment=EXPORT_DIR=/srv/export; saved, and systemd reloaded its configuration)"
+                },
+                {
+                  "log": "The drop-in now points at /srv/export, and systemctl edit reloaded the configuration.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "change == \"rmDropin\"",
+              "then": [
+                {
+                  "set": "diskDir",
+                  "to": "\"none\""
+                },
+                {
+                  "output": "root@fin01:~# rm /etc/systemd/system/exportd.service.d/override.conf"
+                },
+                {
+                  "log": "The drop-in file is gone from disk; systemd still has the old configuration loaded until a daemon-reload.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "change == \"editVendor\"",
+              "then": [
+                {
+                  "set": "vendorEdited",
+                  "to": "true"
+                },
+                {
+                  "output": "root@fin01:~# vi /usr/lib/systemd/system/exportd.service\n(EXPORT_DIR=/srv/export was already set here; saved)"
+                },
+                {
+                  "log": "The vendor unit file already says /srv/export. The drop-in, parsed after it, still overrides it, and a package update will overwrite this file.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "oldDirMade",
+                  "to": "true"
+                },
+                {
+                  "output": "root@fin01:~# mkdir -p /srv/export-old"
+                },
+                {
+                  "log": "/srv/export-old exists now. exportd will start, and write the bank's file where the bank never looks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "change",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "systemctlEdit",
+              "label": "systemctl edit exportd: set EXPORT_DIR=/srv/export in the override"
+            },
+            {
+              "value": "rmDropin",
+              "label": "rm the override.conf drop-in"
+            },
+            {
+              "value": "editVendor",
+              "label": "Edit /usr/lib/systemd/system/exportd.service"
+            },
+            {
+              "value": "mkdirOld",
+              "label": "mkdir /srv/export-old so the service can start"
+            }
+          ]
+        }
+      ]
+    },
+    "reboot": {
+      "label": "systemctl reboot",
+      "group": "Fix",
+      "available": "not busy and (isNull(rebootAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rebootAt",
+          "to": "t"
+        },
+        {
+          "set": "running",
+          "to": "false"
+        },
+        {
+          "set": "fileReady",
+          "to": "false"
+        },
+        {
+          "set": "loadedDir",
+          "to": "diskDir == \"none\" ? \"good\" : diskDir"
+        },
+        {
+          "if": "enabled and (loadedDir == \"good\" or oldDirMade)",
+          "then": [
+            {
+              "set": "running",
+              "to": "true"
+            },
+            {
+              "set": "startAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# systemctl reboot"
+        },
+        {
+          "log": "fin01 goes down for about 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "systemctl daemon-reload",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "loadedDir",
+          "to": "diskDir == \"none\" ? \"good\" : diskDir"
+        },
+        {
+          "output": "root@fin01:~# systemctl daemon-reload"
+        },
+        {
+          "log": "systemd reloads the unit files from disk.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "start": {
+      "label": "systemctl start exportd",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "running",
+              "then": [
+                {
+                  "output": "root@fin01:~# systemctl start exportd\n(already running)"
+                }
+              ]
+            },
+            {
+              "when": "loadedDir == \"good\" or oldDirMade",
+              "then": [
+                {
+                  "set": "running",
+                  "to": "true"
+                },
+                {
+                  "set": "startAt",
+                  "to": "t"
+                },
+                {
+                  "output": "root@fin01:~# systemctl start exportd"
+                },
+                {
+                  "log": "exportd is running and building today's file (about 5 minutes).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "root@fin01:~# systemctl start exportd\nJob for exportd.service failed because the control process exited with error code."
+                },
+                {
+                  "log": "It fails again: the loaded configuration still says /srv/export-old.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "enable": {
+      "label": "systemctl enable exportd",
+      "group": "Fix",
+      "available": "not busy and (not enabled)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "enabled",
+          "to": "true"
+        },
+        {
+          "output": "root@fin01:~# systemctl enable exportd\nCreated symlink /etc/systemd/system/multi-user.target.wants/exportd.service → /usr/lib/systemd/system/exportd.service."
+        },
+        {
+          "log": "exportd will start at boot. (Enabling does not start it.)",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ls": {
+      "label": "ls -l /srv/export",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(lsAt)",
+          "then": [
+            {
+              "set": "lsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@fin01:~# ls -l /srv/export\n{fileReady and loadedDir == \"good\" ? \"-rw-r----- 1 exportd finance 2481920 payments-today.csv\" : \"total 0\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "dropin",
+                  "label": "Yesterday's drop-in override set EXPORT_DIR to a directory that does not exist, and the unit was left disabled"
+                },
+                {
+                  "value": "binary",
+                  "label": "The exportd binary is broken"
+                },
+                {
+                  "value": "disk",
+                  "label": "The disk under /srv is failing"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "gen",
+      "when": "running and not fileReady and t >= timeAt(startAt) + genDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fileReady",
+          "to": "true"
+        },
+        {
+          "if": "loadedDir == \"good\"",
+          "then": [
+            {
+              "set": "restoredAt",
+              "to": "t"
+            },
+            {
+              "log": "payments-today.csv is in /srv/export.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "exportd wrote payments-today.csv to /srv/export-old.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pickup",
+      "when": "t >= pickupAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fileReady and loadedDir == \"good\"",
+          "then": [
+            {
+              "set": "pickupOkAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: the bank collects the payment file.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "pickupMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: the bank finds no file; today's supplier payments will not go out.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what the logs and unit files showed, why your fix holds, and what you checked before closing.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Evidence",
+          "criteria": "Uses journalctl for the error (EXPORT_DIR missing, exit status 1, restarts) and systemctl cat to find the drop-in that overrides the unit.",
+          "modelAnswer": "journalctl -u exportd showed 'EXPORT_DIR /srv/export-old: No such file or directory' and the restarts; systemctl cat showed the override.conf drop-in setting that path over the unit's /srv/export."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Corrects or removes the drop-in (not the vendor file, which the drop-in overrides and an update overwrites), makes systemd load it (systemctl edit reloads; a manual edit needs daemon-reload), starts it, and enables it for boot.",
+          "modelAnswer": "systemctl edit put EXPORT_DIR=/srv/export in the override and reloaded systemd; then start, and enable because yesterday's test left it disabled. Editing /usr/lib would change nothing while the drop-in overrides it, and creating /srv/export-old would write the file where the bank never looks."
+        },
+        {
+          "label": "Verified",
+          "criteria": "Checks the file is in /srv/export before 17:00 and the unit's state.",
+          "modelAnswer": "ls showed payments-today.csv in /srv/export before 17:00; status active, is-enabled enabled."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "The file must be in place before the 17:00 pickup; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No second fault: an edited vendor unit file or a stray export directory."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not healthy",
+      "class": "harm",
+      "rationale": "Closing with exportd down or writing to the wrong directory leaves the bank without a file; it is never a safe outcome.",
+      "source": {
+        "cite": "systemd.unit(5), systemd manual (freedesktop.org, latest)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html",
+        "note": "Read through a summarizing fetch on 2026-11-14 (first 100,000 of 130,755 characters). Relevant text: drop-in .conf files in a 'name.service.d/' directory are 'parsed after the main unit file', so they change or add settings without editing it; files in /etc/ take precedence over /run/ and /usr/lib/; 'Use systemctl daemon-reload or an equivalent command to reload unit configuration while the unit is already loaded.'"
+      }
+    }
+  },
+  "endings": {
+    "pickupMissed": {
+      "label": "The bank pickup was missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(pickupMissedAt)",
+      "narrative": "At 17:00 there was no file in /srv/export; today's payments did not go out."
+    },
+    "stillDown": {
+      "label": "Closed with the export still broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not healthy",
+      "narrative": "exportd is not running with the right directory."
+    },
+    "restored": {
+      "label": "Fixed in the drop-in, verified, enabled",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and healthy and not isNull(restoredAt) and timeAt(restoredAt) <= restoreWindow and enabled and not vendorEdited and not oldDirMade and isNull(rebootAt) and not isNull(journalAt) and not isNull(catAt) and timeAt(catAt) <= timeAt(firstFixAt) and not isNull(lsAt) and timeAt(lsAt) >= timeAt(restoredAt) and causeDoc == \"dropin\"",
+      "narrative": "The logs and unit files named the drop-in, the fix went where systemd reads it, the file was in place before 17:00, and exportd starts at boot again."
+    },
+    "restoredGaps": {
+      "label": "Running, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The file made it, but the fix left a side effect, skipped a check, or will not survive a reboot."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "pickupMissed",
+    "stillDown",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the journal and the unit files before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(journalAt) and not isNull(catAt) and timeAt(catAt) <= timeAt(firstFixAt) and timeAt(journalAt) <= timeAt(firstFixAt)",
+            "score": "met",
+            "why": "The journal gave the error and systemctl cat the drop-in."
+          },
+          {
+            "when": "not isNull(journalAt) or not isNull(catAt)",
+            "score": "partial",
+            "why": "Some evidence, or only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fix was a guess."
+          }
+        ]
+      },
+      {
+        "id": "rightFix",
+        "label": "Right directory loaded and the file in /srv/export by 17:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "healthy and not isNull(restoredAt) and timeAt(restoredAt) <= restoreWindow",
+            "score": "met",
+            "why": "File ready {timeAt(restoredAt) / 60|0dp} min in."
+          },
+          {
+            "when": "healthy",
+            "score": "partial",
+            "why": "Fixed, but after the pickup."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{running ? \"exportd runs, writing to the wrong directory.\" : \"exportd never ran.\"}"
+          }
+        ]
+      },
+      {
+        "id": "survives",
+        "label": "Enabled again, so it starts at boot",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "enabled and healthy",
+            "score": "met",
+            "why": "is-enabled: enabled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left disabled: the next reboot stops the export again."
+          }
+        ]
+      },
+      {
+        "id": "noSideEffects",
+        "label": "No side effects: vendor file untouched, no stray directory, no reboot",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not vendorEdited and not oldDirMade and isNull(rebootAt)",
+            "score": "met",
+            "why": "Only the drop-in changed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{vendorEdited ? \"The vendor unit file was edited; an update overwrites it.\" : oldDirMade ? \"/srv/export-old now exists for nothing.\" : \"A reboot cost ten minutes and fixed nothing.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the drop-in",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"dropin\"",
+            "score": "met",
+            "why": "Cause right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames something that was fine."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written evidence, fix and verification",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minFix",
+        "label": "Minutes until the file was in /srv/export",
+        "value": "isNull(restoredAt) ? -1 : timeAt(restoredAt) / 60",
+        "format": "number",
+        "expert": "about 10"
+      },
+      {
+        "id": "faultK",
+        "label": "Side effects left (vendor edit, stray directory, reboot)",
+        "value": "(vendorEdited ? 1 : 0) + (oldDirMade ? 1 : 0) + (isNull(rebootAt) ? 0 : 1)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:15-16:18",
+        "text": "systemctl status: a drop-in, and disabled. journalctl -u exportd: EXPORT_DIR /srv/export-old does not exist. systemctl cat: the override sets it."
+      },
+      {
+        "at": "16:18-16:20",
+        "text": "systemctl edit exportd: EXPORT_DIR=/srv/export (it reloads systemd); systemctl start exportd; systemctl enable exportd."
+      },
+      {
+        "at": "16:20-16:26",
+        "text": "The file is written in about 5 minutes; ls -l /srv/export confirms it before the 17:00 pickup."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: fixed where systemd reads it",
+        "body": "You read the journal and the unit files first, changed the drop-in that overrode the unit, let systemd load it, checked the file, and re-enabled the service so a reboot cannot undo the day."
+      },
+      "restoredGaps": {
+        "headline": "Running, with gaps",
+        "body": "The file made it. The criteria show the side effect, the skipped check, or the disabled unit."
+      },
+      "pickupMissed": {
+        "headline": "The bank found nothing",
+        "body": "The journal named the missing directory and systemctl cat named the drop-in. Making /srv/export-old, or rebooting, or editing the overridden vendor file, never put the file where the bank looks."
+      },
+      "stillDown": {
+        "headline": "Still broken",
+        "body": "exportd is not running with the right directory. A drop-in is parsed after the unit file; fix the drop-in and reload."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "systemctl status shows a drop-in and a disabled unit. journalctl -u exportd shows exit status 1 because EXPORT_DIR=/srv/export-old does not exist, and Restart=on-failure retrying until the start rate limit. systemctl cat shows yesterday's override.conf setting that path; drop-ins are parsed after the unit file, so editing /usr/lib/systemd/system/exportd.service changes nothing. systemctl edit exportd fixes the override and reloads (removing it by hand needs systemctl daemon-reload). Start it, enable it (yesterday's test disabled it), and check /srv/export before the 17:00 pickup. Creating /srv/export-old would make it run but write where the bank never looks."
+  }
+}
