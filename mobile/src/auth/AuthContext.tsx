@@ -31,6 +31,7 @@ import {
   refreshFailure,
   refreshTokenToKeep,
   rotationWrite,
+  unlockToken,
   withRefreshLock,
   type RefreshResult,
 } from "@/lib/sessionStore";
@@ -70,6 +71,9 @@ const REFRESH_TOKEN_KEY = "ascendra_refresh_token";
 // requireAuthentication), and REFRESH_TOKEN_KEY is deleted, so there is no
 // plain copy anywhere that would make the gate skippable.
 const REFRESH_TOKEN_SECURE_KEY = "ascendra_refresh_token_secure";
+// REQ-305: the newest rotated token while the sealed copy is behind (only
+// with biometric unlock on). Read only after the sealed key's OS prompt passes.
+const REFRESH_TOKEN_LATEST_KEY = "ascendra_refresh_token_latest";
 const BIOMETRIC_ENABLED_KEY = "ascendra_biometric_enabled";
 // REQ-192: the web app keeps no refresh token (an httpOnly cookie holds it,
 // src/lib/sessionStore.ts). REFRESH_TOKEN_KEY on web is only read to move
@@ -267,6 +271,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // found switched off after going to sign in or create an account.
   const endSealedSession = useCallback(async (reason: SealedSessionEnd) => {
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
     if (keepsBiometricPreference(reason)) {
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
       setBiometricSessionFlag("0");
@@ -296,12 +301,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS);
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
       setBiometricSessionFlag("1");
+      await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
       sealSuspendedRef.current = false;
       await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
     } catch {
       sealSuspendedRef.current = true;
       await secureStorage.setItem(REFRESH_TOKEN_KEY, token);
       await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
       setBiometricSessionFlag("0");
     }
@@ -350,6 +357,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           if (rotationWrite({ biometricOn: biometricEnabledRef.current, sealSuspended: sealSuspendedRef.current }) === "mark-dirty") {
             sealDirtyRef.current = true;
+            // REQ-305: survives a reload or kill that skips the background write.
+            await secureStorage.setItem(REFRESH_TOKEN_LATEST_KEY, keep);
           } else {
             await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
           }
@@ -560,7 +569,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const endSession = useCallback(async () => {
     const legacyWebToken = IS_WEB ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
     const plainToken =
-      !IS_WEB && !refreshTokenRef.current ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
+      !IS_WEB && !refreshTokenRef.current
+        ? (await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null)) ??
+          (await secureStorage.getItem(REFRESH_TOKEN_LATEST_KEY).catch(() => null))
+        : null;
     const calls = logoutCalls({
       web: IS_WEB,
       refreshToken: IS_WEB ? null : refreshTokenRef.current ?? plainToken,
@@ -574,6 +586,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     if (!IS_WEB && biometricEnabledRef.current) {
       await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
       setBiometricSessionFlag("0");
     }
@@ -739,6 +752,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1"); // last: the preference is on only once the rest is in place
     } catch {
       await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
       await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
       if (!(await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null))) {
         await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current).catch(() => undefined);
@@ -761,6 +775,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current);
     }
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY);
+    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY);
     await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
     setBiometricSessionFlag("0");
@@ -782,9 +797,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await clearAuth();
         return false;
       }
-      refreshTokenRef.current = token;
+      // REQ-305: the prompt has passed; send the newest token, which the sealed
+      // copy may be behind (an update or a kill skipped the background write).
+      const latest = await secureStorage.getItem(REFRESH_TOKEN_LATEST_KEY).catch(() => null);
+      const useToken = unlockToken(token, latest) ?? token;
+      refreshTokenRef.current = useToken;
       const res = await api.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", {
-        refreshToken: token,
+        refreshToken: useToken,
       });
       accessTokenRef.current = res.accessToken;
       refreshTokenRef.current = res.refreshToken;

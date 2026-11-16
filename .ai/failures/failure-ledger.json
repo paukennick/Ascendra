@@ -17984,6 +17984,30 @@
       "prevention_rules": [],
       "prevention_notes": "Tools that run a scenario document validate it first; the engine is not a validator.",
       "recurrence_of": "FAIL-1980"
+    },
+    {
+      "id": "FAIL-2100",
+      "date": "2026-11-16",
+      "title": "Biometric sign-in failed after an over-the-air update or an app close (Android)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Nick, Android: biometric sign-in doesn't always work after an update or after closing the app; the learner is sent to the password screen.",
+      "how_detected": "reported by Nick; traced in mobile/src/auth/AuthContext.tsx (not reproduced on a device)",
+      "root_cause": "With biometric unlock on, a silent refresh rotates the refresh token in memory only (sealDirtyRef) and the sealed copy is rewritten only on the AppState background event. Updates.reloadAsync (an over-the-air update), a crash or the OS ending the app in the foreground skip that event, so the next unlock sent a spent token; after the 10 s reuse grace the server treats it as theft, revokes the family and the app ends the sealed session.",
+      "requirement": "REQ-305",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "fix_summary": "Each rotated token is also written to a plain secure-store key (ascendra_refresh_token_latest). Unlock still reads the sealed key first (the OS prompt), then sends the newest token (unlockToken). The latest copy is deleted wherever the sealed key is, and when a seal succeeds.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/sessionStore.test.ts REQ-305: unlock sends the newest token once the OS prompt has passed"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A token the server has rotated must be on durable storage before anything can restart the app.",
+      "recurrence_of": ""
     }
   ]
 }
