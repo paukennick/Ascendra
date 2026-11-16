@@ -1,4 +1,4 @@
-// REQ-282: the NASM Certified Nutrition Coach coaching sessions. Same screen,
+// REQ-282 (docs/sims.md 22.19): the NASM Certified Nutrition Coach coaching sessions. Same screen,
 // profile and pacing as the NBCC sessions (REQ-239): learner-paced turns, the
 // clinical-session profile (harm = a required protective step not taken; here
 // the referral a coach's scope requires), registered by course code and exact
