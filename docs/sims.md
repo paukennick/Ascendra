@@ -5107,7 +5107,7 @@ Candidates not built (listed for a later wave): Python for Automation (a cron
 job that works by hand but not from cron: PATH, the venv's interpreter and an
 unescaped `%`; a script that hangs on a subprocess with no timeout) and Python
 for Data Analysis (no screen fits a notebook today).
-### 22.16 Clinical coverage: more sims for the existing clinical courses (REQ-296)
+### 22.18 Clinical coverage: more sims for the existing clinical courses (REQ-296)
 
 Nick, 2026-11-14: "Build more sims, no need to limit number, build what
 covers the material." `docs/sims-coverage-clinical.md` maps every existing

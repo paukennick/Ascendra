@@ -26,16 +26,16 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **125 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **149 courses**:
 
-- **IT and cloud (68):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications
+- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications from ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH); Linux Fundamentals and the Linux Foundation LFCS; ITIL 4 Foundation; Red Hat (2) and Docker (1) container certifications
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
-- **Project management (12):** PMI certifications
-- **Nursing and critical care (10):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal) and MS Health Informatics
-- **Fitness (6):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications
+- **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and the ASQ Six Sigma Green Belt
+- **Nursing and critical care (15):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, CEN, PCCN, the AANP and ANCC family nurse practitioner exams, and MS Health Informatics
+- **Fitness (7):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications, and the NASM Certified Nutrition Coach
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
-- **Software development (8):** Python, JavaScript, TypeScript and Node.js, SQL, the Python Institute's PCEP and PCAP exams, Computer Science Degree Foundations and MSCS foundations
-- **Mental health (3):** the EPPP (psychology licensure) and the NCE and NCMHCE (counselor licensure), behind a one-time 18+ confirmation
+- **Software development (10):** Python, Python for Automation and Scripting, Python for Data Analysis, JavaScript, TypeScript and Node.js, SQL, the Python Institute's PCEP and PCAP exams, Computer Science Degree Foundations and MSCS foundations
+- **Mental health (6):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), the NCE and NCMHCE (counselor licensure), and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
 
 Exam-prep courses are named "Prep for the <official exam name> Exam"; Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
 

@@ -1,5 +1,5 @@
 // REQ-292: the LFCS and Linux Fundamentals cases on the terminal screen
-// (docs/sims.md 22.16): boot to emergency mode on a mistyped fstab UUID and
+// (docs/sims.md 22.17): boot to emergency mode on a mistyped fstab UUID and
 // a full database volume grown online with LVM (LFCS); a shared folder that
 // says Permission denied and a web server that will not start after an edit
 // (LINUXFUND). The same bar as the Linux+ and CKA cases
