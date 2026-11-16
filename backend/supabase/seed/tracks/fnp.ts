@@ -168,7 +168,7 @@ const AANP_KNOWLEDGE = [
   "Knowledge area: Health Assessment (diagnostic and therapeutic tests; specialized assessments, e.g., developmental, functional, psychological; health history; physical examination)",
   "Knowledge area: Pathophysiology (anatomy; physiology; pathophysiology; co-morbidities)",
   "Knowledge area: Therapeutics (pharmacologic; non-pharmacologic; integrative)",
-  "Knowledge area: Evidence-Informed Practice (crisis management; diagnostic reasoning; health promotion, harm reduction, and disease prevention; healthcare economics; interprofessional practice; legal and ethical issues; patient and family education and counselling; principles of epidemiology, population health, and social drivers of health; procedures; transitions of care; cultural responsiveness; therapeutic communication; pain management)",
+  "Knowledge area: Evidence-Informed Practice (crisis management; diagnostic reasoning; health promotion, harm reduction, and disease prevention; healthcare economics; interprofessional practice; legal and ethical issues; patient and family education and counseling; principles of epidemiology, population health, and social drivers of health; procedures; transitions of care; cultural responsiveness; therapeutic communication; pain management)",
 ];
 const AGE_BANDS = "patient age, scored items: Newborn 3 (2%), Infant 4 (3%), Toddler 5 (4%), Child 6 (4%), Adolescent 12 (9%), Young Adult 30 (22%), Middle Adult 35 (26%), Older Adult 40 (30%); adolescent, young adult and middle adult include prenatal";
 

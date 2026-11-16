@@ -1,0 +1,783 @@
+{
+  "slug": "web-service-fails-after-edit",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "status and journal name line 31, the line above lacks a semicolon; fix, nginx -t passes, restart, enable, curl",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "showLine",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fixLine",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "enable",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "syntax",
+            "fix": "semicolon"
+          },
+          "seq": 19,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "fast": "met",
+          "boot": "met",
+          "noBlind": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minUp": 5,
+          "blindK": 0
+        },
+        "stateHash": "8d0e602ea143ce0b"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "notEnabled",
+      "title": "Restarts twice blindly, then reads the journal, fixes the line and restarts without testing; never enables nginx",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fixLine",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "syntax",
+            "fix": "semicolon"
+          },
+          "seq": 15,
+          "tick": 6
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "fast": "met",
+          "boot": "missed",
+          "noBlind": "missed",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minUp": 4,
+          "blindK": 3
+        },
+        "stateHash": "999f2d10976a3cf9"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "removeSite",
+      "title": "Removes the shop's site so nginx starts, and enables it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "removeSite",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "enable",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "syntax",
+            "fix": "removed"
+          },
+          "seq": 15,
+          "tick": 6
+        }
+      ],
+      "expect": {
+        "ending": "siteRemoved",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "evidence": "partial",
+          "rightFix": "missed",
+          "fast": "missed",
+          "boot": "met",
+          "noBlind": "met",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minUp": -1,
+          "blindK": 0
+        },
+        "stateHash": "65d7b45e9b4f5f1e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "reinstallLate",
+      "title": "Reinstalls nginx and waits, then finds the semicolon after the 09:45 cutoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reinstall",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 19,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 24,
+          "seq": 10,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 39,
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 44,
+          "seq": 18,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 44,
+          "seq": 19,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 20,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 45,
+          "seq": 21,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "fixLine",
+          "seq": 22,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 23,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 24,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 47,
+          "seq": 25,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 26,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 48,
+          "seq": 27,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "enable",
+          "seq": 28,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 49,
+          "seq": 29,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 30,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 50,
+          "seq": 31,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 32,
+          "tick": 50
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 33,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "package",
+            "fix": "reinstall"
+          },
+          "seq": 34,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "cutoffMissed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 69,
+        "criteria": {
+          "evidence": "partial",
+          "rightFix": "met",
+          "fast": "partial",
+          "boot": "met",
+          "noBlind": "met",
+          "verified": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minUp": 47,
+          "blindK": 0
+        },
+        "stateHash": "fbfb552ab6c78a84"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "givesUp",
+      "title": "Restarts once, sees it fail and closes blaming the package",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "package",
+            "fix": "reinstall"
+          },
+          "seq": 5,
+          "tick": 1
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "rightFix": "missed",
+          "fast": "missed",
+          "boot": "missed",
+          "noBlind": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minUp": -1,
+          "blindK": 1
+        },
+        "stateHash": "03849b3200c7d34d"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

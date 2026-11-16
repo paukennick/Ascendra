@@ -1,0 +1,1351 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cc-triage-phish-correlation",
+  "title": "The morning queue: four alerts, one intrusion",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "fw",
+          "severity": "high",
+          "title": "Firewall: 40 blocked inbound connections to 203.0.113.10 port 3389 from 198.51.100.0/24",
+          "when": "true",
+          "at": "0",
+          "status": "{fwVerdict == \"unset\" ? \"New\" : fwVerdict == \"noise\" ? \"Closed: blocked background scanning\" : \"Escalated as critical\"}",
+          "open": "fwVerdict == \"unset\""
+        },
+        {
+          "id": "report",
+          "severity": "medium",
+          "title": "User report: a.lind forwarded a 'shared invoice' email that asked for her password; she says she typed it in",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(declaredAt) ? \"Part of a declared incident\" : not isNull(corrAt) ? \"Correlated with the sign-in\" : \"New\"}",
+          "open": "isNull(declaredAt)"
+        },
+        {
+          "id": "signin",
+          "severity": "low",
+          "title": "Sign-in: a.lind from 192.0.2.77, a country she has never signed in from, at 08:41",
+          "when": "true",
+          "at": "0",
+          "status": "{not acctOpen ? \"Sessions revoked\" : not isNull(corrAt) ? \"Correlated with the report\" : \"New\"}",
+          "open": "acctOpen"
+        },
+        {
+          "id": "av",
+          "severity": "medium",
+          "title": "Antivirus: EICAR test file detected on IT-LAB-03",
+          "when": "true",
+          "at": "0",
+          "status": "{avVerdict == \"unset\" ? \"New\" : avVerdict == \"benign\" ? \"Closed: IT's scheduled test\" : \"Escalated as malware\"}",
+          "open": "avVerdict == \"unset\""
+        },
+        {
+          "id": "rule",
+          "severity": "high",
+          "title": "Mailbox: new rule forwards a.lind's mail containing 'invoice' to an outside address",
+          "when": "not isNull(ruleAt)",
+          "at": "timeAt(ruleAt)",
+          "status": "{ruleActive ? \"Active\" : \"Removed\"}",
+          "open": "ruleActive"
+        },
+        {
+          "id": "spread",
+          "severity": "high",
+          "title": "Mail: a.lind sent the 'shared invoice' email to 30 colleagues",
+          "when": "not isNull(spreadAt)",
+          "at": "timeAt(spreadAt)",
+          "status": "{not isNull(purgedAt) ? \"Pulled from inboxes\" : \"In 30 inboxes\"}",
+          "open": "isNull(purgedAt)"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Firewall",
+          "text": "203.0.113.10:3389 drop x40 from 198.51.100.0/24; port 3389 is closed to the internet by policy",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Mail gateway",
+          "text": "08:36 'Shared invoice' from billing@invoice-share.example.net delivered to a.lind and 11 others",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e3",
+          "source": "Sign-in log",
+          "text": "08:41 a.lind from 192.0.2.77; password and MFA approved",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e4",
+          "source": "Antivirus",
+          "text": "IT-LAB-03: EICAR test string quarantined; change ticket CHG-2231 schedules an antivirus test today",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e5",
+          "source": "Correlation",
+          "text": "Same user, 5 minutes apart: a.lind reported entering her password at 08:38; sign-in from 192.0.2.77 at 08:41",
+          "when": "not isNull(corrAt)",
+          "at": "timeAt(corrAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Mailbox audit",
+          "text": "Rule 'sync' created on a.lind's mailbox from 192.0.2.77",
+          "when": "not isNull(ruleAt)",
+          "at": "timeAt(ruleAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Mail gateway",
+          "text": "Internal message from a.lind to 30 colleagues: 'Shared invoice, please sign in to view'",
+          "when": "not isNull(spreadAt)",
+          "at": "timeAt(spreadAt)"
+        },
+        {
+          "id": "e8",
+          "source": "Sign-in log",
+          "text": "j.berg signed in from 192.0.2.77 after opening the internal 'invoice' email",
+          "when": "not isNull(victim2At)",
+          "at": "timeAt(victim2At)"
+        },
+        {
+          "id": "e9",
+          "source": "Payables portal",
+          "text": "a.lind changed a supplier's bank details; tonight's payment run includes them",
+          "when": "not isNull(fraudAt)",
+          "at": "timeAt(fraudAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "acct",
+          "label": "a.lind",
+          "spokenLabel": "Account a dot lind",
+          "kind": "Accounts payable clerk",
+          "status": "{acctOpen ? \"Signed in from 192.0.2.77\" : \"Password reset; sessions revoked\"}{ruleActive ? \"; forwarding rule active\" : \"\"}",
+          "tone": "attackerActive ? \"bad\" : \"held\""
+        },
+        {
+          "id": "mail",
+          "label": "Mail",
+          "spokenLabel": "Company mail",
+          "kind": "Phishing messages",
+          "status": "{not isNull(purgedAt) ? \"Pulled from every inbox\" : not isNull(spreadAt) ? \"In 42 inboxes\" : \"In 12 inboxes\"}{isNull(blockedAt) ? \"\" : \"; sender blocked\"}",
+          "tone": "not isNull(victim2At) ? \"bad\" : isNull(purgedAt) ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "lab",
+          "label": "IT-LAB-03",
+          "spokenLabel": "IT lab PC 3",
+          "kind": "Test workstation",
+          "status": "Antivirus test running",
+          "tone": "\"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evid",
+          "label": "Case file",
+          "value": "{isNull(preservedAt) ? \"empty\" : \"reported email with headers and the sign-in log saved\"}"
+        },
+        {
+          "id": "irp",
+          "label": "Incident response plan",
+          "value": "{isNull(declaredAt) ? \"no incident declared\" : \"incident declared; handler paged\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Monitor and log security events, and triage them by incident use case, priority and correlation",
+  "secondaryObjectives": [
+    "Implement an incident response plan and test it with exercises such as tabletops",
+    "Build a security culture: leadership support, and awareness of social engineering, phishing and password protection"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CC Certification Exam Outline (effective 2026-09-01), Domain 5: Security Operations and Incident Response; Domain 2: Security Governance",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cc/cc-certification-exam-outline",
+      "note": "Headings read on the outline page and its English PDF (footer v01/2026) on 2026-11-14 for REQ-270: '5.2 Understand security operations: logging and monitoring security events; security event triage (e.g., incident use cases, prioritization, correlation)'; '5.3 Understand Incident Response (IR): data handling policy implementing Incident Response Plan (IRP)'; '2.3 Understand security awareness: ... concepts (e.g., social engineering, password protection, phishing)'. Domain 5 weight 17.3%, Domain 2 17.3% (average)."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are a junior analyst in the security operations team at Fenwick Logistics, a fictional freight company. At 09:00 four alerts wait in the queue. Triage them, decide which is an incident, follow the incident response plan, and write it up.",
+    "handover": [
+      "The incident response plan says: an analyst who confirms an incident declares it and pages the incident handler; the phishing playbook lets an analyst reset a password, revoke sessions, block a sender and pull messages.",
+      "Severity labels come from the tools, not from what is happening."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. An attacker, if there is one, works on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "ruleDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until the attacker sets a forwarding rule is the author's figure."
+      }
+    },
+    "spreadDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty-five minutes until the internal phishing email is the author's figure."
+      }
+    },
+    "victimDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until a colleague enters a password on the internal phish is the author's figure."
+      }
+    },
+    "fraudDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Forty-five minutes until the supplier bank details are changed is the author's figure."
+      }
+    },
+    "declareWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Declaring within 15 minutes of the alerts is the author's teaching figure; the plan in the brief asks for a declaration once an incident is confirmed."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "corrAt": {
+      "type": "time",
+      "init": null
+    },
+    "declaredAt": {
+      "type": "time",
+      "init": null
+    },
+    "cutAt": {
+      "type": "time",
+      "init": null
+    },
+    "ruleCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ruleAt": {
+      "type": "time",
+      "init": null
+    },
+    "ruleRemovedAt": {
+      "type": "time",
+      "init": null
+    },
+    "preservedAt": {
+      "type": "time",
+      "init": null
+    },
+    "purgedAt": {
+      "type": "time",
+      "init": null
+    },
+    "blockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "warnedAt": {
+      "type": "time",
+      "init": null
+    },
+    "spreadAt": {
+      "type": "time",
+      "init": null
+    },
+    "victim2At": {
+      "type": "time",
+      "init": null
+    },
+    "fraudAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "fwVerdict": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "noise",
+        "critical"
+      ],
+      "init": "unset"
+    },
+    "avVerdict": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "benign",
+        "malware"
+      ],
+      "init": "unset"
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "phish",
+        "rdp",
+        "malware"
+      ],
+      "init": "unset"
+    },
+    "useDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "credphish",
+        "noise"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "handler",
+        "everyone",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "acctOpen": {
+      "expr": "isNull(cutAt)"
+    },
+    "ruleActive": {
+      "expr": "not isNull(ruleAt) and isNull(ruleRemovedAt)"
+    },
+    "attackerActive": {
+      "expr": "acctOpen or ruleActive"
+    },
+    "spread": {
+      "expr": "isNull(spreadAt) ? 0 : 1"
+    },
+    "ruleClean": {
+      "expr": "not isNull(ruleCheckedAt) and (isNull(ruleAt) or not isNull(ruleRemovedAt))"
+    },
+    "dispositioned": {
+      "expr": "fwVerdict == \"noise\" and avVerdict == \"benign\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "correlate",
+        "triageFw",
+        "triageAv",
+        "declare",
+        "cut",
+        "checkRule",
+        "preserve",
+        "purge",
+        "blockSender",
+        "warnStaff",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "correlate": {
+      "label": "Correlate the open alerts by user, host and time",
+      "group": "Investigate",
+      "available": "not busy and isNull(corrAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "corrAt",
+          "to": "t"
+        },
+        {
+          "log": "You line the alerts up by user, host and time.",
+          "kind": "act"
+        },
+        {
+          "finding": "The user report and the sign-in are the same person five minutes apart: she typed her password into a phishing page and someone used it from 192.0.2.77. That is a credential-phishing incident, whatever its low label says."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "triageFw": {
+      "label": "Triage the firewall alert",
+      "group": "Investigate",
+      "available": "not busy and fwVerdict == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "verdict",
+          "kind": "choice",
+          "label": "Disposition",
+          "options": [
+            {
+              "value": "noise",
+              "label": "Blocked background scanning: close it with a note"
+            },
+            {
+              "value": "critical",
+              "label": "A critical attack: escalate it first"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "fwVerdict",
+          "to": "verdict"
+        },
+        {
+          "log": "You check the firewall alert: every connection was dropped and the port is closed by policy.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "triageAv": {
+      "label": "Triage the antivirus alert",
+      "group": "Investigate",
+      "available": "not busy and avVerdict == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "verdict",
+          "kind": "choice",
+          "label": "Disposition",
+          "options": [
+            {
+              "value": "benign",
+              "label": "IT's scheduled test (CHG-2231): close it"
+            },
+            {
+              "value": "malware",
+              "label": "Malware: escalate it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "avVerdict",
+          "to": "verdict"
+        },
+        {
+          "log": "You check the antivirus alert: the EICAR string is a harmless test file and a change ticket schedules the test.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "declare": {
+      "label": "Declare an incident under the plan and page the incident handler",
+      "group": "Communicate",
+      "available": "not busy and isNull(declaredAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declaredAt",
+          "to": "t"
+        },
+        {
+          "log": "You declare a credential-phishing incident and page the incident handler with what you have.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "cut": {
+      "label": "Playbook: reset a.lind's password and revoke her sessions",
+      "group": "Contain",
+      "available": "not busy and isNull(cutAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "cutAt",
+          "to": "t"
+        },
+        {
+          "log": "Her password is reset and every session is revoked; 192.0.2.77 is signed out.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "checkRule": {
+      "label": "Check a.lind's mailbox for forwarding rules and remove any",
+      "group": "Contain",
+      "available": "not busy and (isNull(ruleCheckedAt) or ruleActive)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ruleCheckedAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(ruleAt)",
+          "then": [
+            {
+              "set": "ruleRemovedAt",
+              "to": "t"
+            },
+            {
+              "log": "You find the 'sync' rule forwarding invoice mail outside and remove it.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "No forwarding rules on the mailbox.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Save the reported email with its headers and the sign-in log to the case",
+      "group": "Evidence",
+      "available": "not busy and isNull(preservedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "preservedAt",
+          "to": "t"
+        },
+        {
+          "log": "The reported email, its full headers and the sign-in log are saved to the case.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "purge": {
+      "label": "Pull every copy of the 'invoice' emails from all inboxes",
+      "group": "Contain",
+      "available": "not busy and isNull(purgedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "purgedAt",
+          "to": "t"
+        },
+        {
+          "log": "Every copy is pulled. {isNull(preservedAt) ? \"Nothing was saved first: the case has no copy of the message or its headers.\" : \"A copy is already in the case.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "blockSender": {
+      "label": "Block the sender's domain invoice-share.example.net",
+      "group": "Contain",
+      "available": "not busy and isNull(blockedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "blockedAt",
+          "to": "t"
+        },
+        {
+          "log": "The domain is blocked at the mail gateway. Mail sent from inside the company is not affected.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "warnStaff": {
+      "label": "Send the awareness team's phishing warning to all staff",
+      "group": "Communicate",
+      "available": "not busy and isNull(warnedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "warnedAt",
+          "to": "t"
+        },
+        {
+          "log": "Staff get the warning: what the email looks like, not to sign in from it, and to report it with the report button.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "handler",
+              "label": "The incident handler and a.lind's manager, in the incident ticket"
+            },
+            {
+              "value": "everyone",
+              "label": "All staff, naming a.lind as the cause"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"handler\" ? \"the incident handler and a.lind's manager\" : who == \"everyone\" ? \"all staff, naming a.lind\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "phish",
+                  "label": "Credentials entered on a phishing page, then used from outside"
+                },
+                {
+                  "value": "rdp",
+                  "label": "An attack on remote desktop (the firewall alert)"
+                },
+                {
+                  "value": "malware",
+                  "label": "Malware (the antivirus alert)"
+                }
+              ]
+            },
+            {
+              "id": "use",
+              "label": "Incident use case",
+              "options": [
+                {
+                  "value": "credphish",
+                  "label": "Credential phishing with account takeover"
+                },
+                {
+                  "value": "noise",
+                  "label": "No incident: alerts closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "useDoc",
+          "to": "use"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {cause}, {use}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "rule",
+      "when": "isNull(ruleAt) and (t >= ruleDelay and acctOpen) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "ruleAt",
+          "to": "t"
+        },
+        {
+          "log": "Mailbox audit: a rule on a.lind's mailbox now forwards invoice mail to an outside address.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "spread",
+      "when": "isNull(spreadAt) and (t >= spreadDelay and acctOpen) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "spreadAt",
+          "to": "t"
+        },
+        {
+          "log": "Mail: a.lind's account sent the 'shared invoice' email to 30 colleagues. From inside, it passes the sender block.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "victim2",
+      "when": "isNull(victim2At) and (not isNull(spreadAt) and t >= timeAt(spreadAt) + victimDelay and isNull(purgedAt) and isNull(warnedAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "victim2At",
+          "to": "t"
+        },
+        {
+          "log": "Sign-in log: j.berg entered her password on the page from the internal email; 192.0.2.77 is in a second account.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "when": "isNull(fraudAt) and (t >= fraudDelay and acctOpen) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fraudAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Payables portal: a.lind's account changed a supplier's bank details, and tonight's payment run includes them. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how you triaged the queue, why you declared what you declared, and what you did about the people involved.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Triage",
+          "criteria": "Ranks by what is happening, not the tool's label: correlates the user report with the sign-in (same user, minutes apart) as the incident, and closes the blocked firewall traffic and the scheduled antivirus test on evidence.",
+          "modelAnswer": "The low-labelled sign-in and the user report were one event: her password used from 192.0.2.77 minutes after she typed it in. The firewall drops and the EICAR test were noise I closed with notes."
+        },
+        {
+          "label": "Plan",
+          "criteria": "Declares the incident and pages the handler as the plan says; resets and revokes, removes the forwarding rule, keeps the message and log before pulling copies.",
+          "modelAnswer": "I declared it and paged the handler, ran the playbook (reset, revoke, rule removed), saved the email and log, then pulled every copy and blocked the domain."
+        },
+        {
+          "label": "People",
+          "criteria": "Treats the reporting user as an ally, not a culprit; warns staff; notifies only the handler and manager.",
+          "modelAnswer": "a.lind reported it, which is what we want people to do; I warned staff with the awareness team's message and told only the handler and her manager."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No internal phishing email sent after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declaredAt) and isNull(cutAt)",
+      "class": "harm",
+      "rationale": "Closing the queue without acting on a stolen password leaves an attacker in the account; it is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+        "checkedAt": "2026-11-14",
+        "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+      }
+    }
+  },
+  "endings": {
+    "fraud": {
+      "label": "Payment fraud set up",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(fraudAt)",
+      "narrative": "The account changed a supplier's bank details before anyone cut it off. The low-labelled sign-in was the alert that mattered."
+    },
+    "evidenceLost": {
+      "label": "Message pulled before it was saved",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(purgedAt) and (isNull(preservedAt) or timeAt(purgedAt) < timeAt(preservedAt))",
+      "narrative": "Every copy of the phishing email was pulled before one was saved with its headers; the case lost the sender's trail."
+    },
+    "leftOpen": {
+      "label": "Closed with access still open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "{acctOpen ? \"The stolen password still works.\" : \"The forwarding rule still sends invoice mail outside.\"} The queue was closed with the attacker still in."
+    },
+    "handled": {
+      "label": "Triaged, declared, contained",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(declaredAt) and timeAt(declaredAt) <= declareWindow and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and not isNull(preservedAt) and (isNull(purgedAt) or timeAt(preservedAt) <= timeAt(purgedAt)) and isNull(victim2At) and (isNull(spreadAt) or not isNull(purgedAt))",
+      "narrative": "You found the intrusion under a low label, declared it, cut the account before it spread, kept the evidence and closed the noise on its merits."
+    },
+    "handledLate": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The account is closed, but late, after the internal phish went out, or with the plan or the evidence handled out of order."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "fraud",
+    "evidenceLost",
+    "leftOpen",
+    "handled",
+    "handledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "declared",
+        "label": "Declared the incident and paged the handler within 15 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(declaredAt) and timeAt(declaredAt) <= declareWindow",
+            "score": "met",
+            "why": "Declared {timeAt(declaredAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not isNull(declaredAt)",
+            "score": "partial",
+            "why": "Declared, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No incident was declared."
+          }
+        ]
+      },
+      {
+        "id": "cutFast",
+        "label": "Every attacker path closed within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(offAt) and timeAt(offAt) <= containWindow and not attackerActive",
+            "score": "met",
+            "why": "All access gone {timeAt(offAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not attackerActive",
+            "score": "partial",
+            "why": "Closed, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The attacker still had a way in."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Saved the message and the log before pulling copies",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(preservedAt) and (isNull(purgedAt) or timeAt(preservedAt) <= timeAt(purgedAt))",
+            "score": "met",
+            "why": "Saved first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(preservedAt) ? \"Nothing was saved.\" : \"Saved only after the copies were gone.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noSecond",
+        "label": "No second account caught by the internal phish",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(victim2At) and (isNull(spreadAt) or not isNull(purgedAt))",
+            "score": "met",
+            "why": "{isNull(spreadAt) ? \"It was never sent.\" : \"Pulled and staff warned in time.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(victim2At) ? \"The internal phish is still in 30 inboxes.\" : \"j.berg's account was caught too.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noise",
+        "label": "Closed the firewall and antivirus alerts on evidence",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dispositioned",
+            "score": "met",
+            "why": "Blocked scanning and a scheduled test, closed with notes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fwVerdict == \"unset\" or avVerdict == \"unset\" ? \"Left untriaged.\" : \"Escalated noise as an incident.\"}"
+          }
+        ]
+      },
+      {
+        "id": "rule",
+        "label": "Checked the mailbox for forwarding rules",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "ruleClean",
+            "score": "met",
+            "why": "{isNull(ruleAt) ? \"Checked; none set.\" : \"Found and removed.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(ruleCheckedAt) ? \"Never checked.\" : \"A rule made after the check is still active.\"}"
+          }
+        ]
+      },
+      {
+        "id": "blocked",
+        "label": "Blocked the outside sender",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(blockedAt)",
+            "score": "met",
+            "why": "Blocked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "More could arrive."
+          }
+        ]
+      },
+      {
+        "id": "warned",
+        "label": "Warned staff with the awareness message",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(warnedAt)",
+            "score": "met",
+            "why": "Staff warned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Staff not warned."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded credential phishing and told the right people",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"phish\" and useDoc == \"credphish\" and notified == \"handler\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written triage, plan and people",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToDeclare",
+        "label": "Minutes until the incident was declared",
+        "value": "isNull(declaredAt) ? -1 : timeAt(declaredAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "minToCut",
+        "label": "Minutes until every attacker path was closed",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "accounts",
+        "label": "Accounts the attacker held",
+        "value": "1 + (isNull(victim2At) ? 0 : 1)",
+        "format": "number",
+        "expert": "1"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Correlate: the user report and the 'low' sign-in are one person, minutes apart. That is the incident."
+      },
+      {
+        "at": "5-15 min",
+        "text": "Declare it and page the handler; reset and revoke; check for forwarding rules."
+      },
+      {
+        "at": "15-30 min",
+        "text": "Save the email and log, block the sender, pull every copy, warn staff."
+      },
+      {
+        "at": "After",
+        "text": "Close the firewall drops and the scheduled antivirus test with notes; record credential phishing; tell the handler and her manager."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: correlated, declared, contained",
+        "body": "The tool's labels pointed the wrong way. Correlating by user and time found the one real incident, and the plan did the rest."
+      },
+      "handledLate": {
+        "headline": "Contained, with gaps",
+        "body": "The account is closed. The criteria show what cost you: a late declaration, the internal phish going out, or evidence saved late."
+      },
+      "fraud": {
+        "headline": "The fraud came first",
+        "body": "Working the queue by its labels left the stolen password working for 45 minutes. Correlate before you sort."
+      },
+      "evidenceLost": {
+        "headline": "Evidence pulled with the mail",
+        "body": "Save one copy with its headers before you pull the rest; the plan's data handling rules exist for this."
+      },
+      "leftOpen": {
+        "headline": "A way in was left open",
+        "body": "A reset without a session revoke, or a forwarding rule left behind, keeps the attacker in after the queue is clear."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Triage by what is happening, not by the label. The user report and the new-country sign-in are the same person minutes apart: credential phishing with a live session, the incident use case in this queue. Declare it under the plan and page the handler, reset the password and revoke sessions, check for forwarding rules, save the email with headers and the sign-in log, then block the sender, pull every copy and warn staff. The firewall drops (blocked, port closed) and the EICAR alert (a scheduled test) are closed with notes. The user who reported it is an ally."
+  }
+}

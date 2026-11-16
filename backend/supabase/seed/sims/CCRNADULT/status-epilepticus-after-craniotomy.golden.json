@@ -1,0 +1,525 @@
+{
+  "slug": "status-epilepticus-after-craniotomy",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: timed, side-lying, suction, non-rebreather, glucose; lorazepam 4 mg at 5 minutes, early call, levetiracetam load, one repeat dose, EEG",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "time",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "no",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 8,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "say": "se"
+          },
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "levetiracetam",
+          "seq": 10,
+          "tick": 360
+        },
+        {
+          "type": "teach",
+          "prompt": "levQ",
+          "choice": "by20",
+          "seq": 11,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 12,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 13,
+          "tick": 660
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 14,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "eeg",
+          "seq": 15,
+          "tick": 780
+        }
+      ],
+      "expect": {
+        "ending": "stoppedEarly",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "benzo": "met",
+          "airway": "met",
+          "escalate": "met",
+          "glucose": "met",
+          "eeg": "met",
+          "timed": "met"
+        },
+        "kpis": {
+          "toBenzo": 300,
+          "toLoad": 300,
+          "szLen": 720
+        },
+        "stateHash": "a18a67c430ef6bcc"
+      },
+      "reasoning": {
+        "plan": "met"
+      }
+    },
+    {
+      "id": "smallDose",
+      "title": "Airway right, but 2 mg lorazepam twice and a call at 21 minutes; the load is late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "time",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 4,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "2"
+          },
+          "seq": 5,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "2"
+          },
+          "seq": 6,
+          "tick": 760
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "say": "se"
+          },
+          "seq": 7,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "levetiracetam",
+          "seq": 8,
+          "tick": 1320
+        },
+        {
+          "type": "teach",
+          "prompt": "levQ",
+          "choice": "by20",
+          "seq": 9,
+          "tick": 1320
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1920
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 11,
+          "tick": 1920
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "no",
+          "seq": 12,
+          "tick": 1920
+        }
+      ],
+      "expect": {
+        "ending": "stoppedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "benzo": "partial",
+          "airway": "met",
+          "escalate": "partial",
+          "glucose": "met",
+          "eeg": "missed",
+          "timed": "met"
+        },
+        "kpis": {
+          "toBenzo": 360,
+          "toLoad": 1260,
+          "szLen": 1860
+        },
+        "stateHash": "cde70ca3713e295a"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "biteBlock",
+      "title": "Benzodiazepine and load on time, but a bite block and late positioning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "biteBlock",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "no",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "say": "se"
+          },
+          "seq": 5,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "levetiracetam",
+          "seq": 6,
+          "tick": 360
+        },
+        {
+          "type": "teach",
+          "prompt": "levQ",
+          "choice": "by20",
+          "seq": 7,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 8,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "time",
+          "seq": 10,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 11,
+          "tick": 420
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 960
+        },
+        {
+          "type": "act",
+          "action": "eeg",
+          "seq": 13,
+          "tick": 960
+        }
+      ],
+      "expect": {
+        "ending": "stoppedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "benzo": "met",
+          "airway": "missed",
+          "escalate": "met",
+          "glucose": "met",
+          "eeg": "met",
+          "timed": "partial"
+        },
+        "kpis": {
+          "toBenzo": 300,
+          "toLoad": 300,
+          "szLen": 900
+        },
+        "stateHash": "68f93035a6cbcab9"
+      },
+      "reasoning": {
+        "plan": "partial"
+      }
+    },
+    {
+      "id": "benzoOnly",
+      "title": "Failure: protects the airway and keeps giving lorazepam, calls only to say 'call back'; refractory",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "time",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "say": "fyi"
+          },
+          "seq": 5,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 6,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 7,
+          "tick": 660
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "params": {
+            "mg": "4"
+          },
+          "seq": 8,
+          "tick": 960
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 9,
+          "tick": 960
+        }
+      ],
+      "expect": {
+        "ending": "refractory",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "benzo": "missed",
+          "airway": "met",
+          "escalate": "missed",
+          "glucose": "missed",
+          "eeg": "missed",
+          "timed": "met"
+        },
+        "kpis": {
+          "toBenzo": 300,
+          "toLoad": -1,
+          "szLen": 2400
+        },
+        "stateHash": "ca60da0911abcfce"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    },
+    {
+      "id": "restrained",
+      "title": "Failure: holds him down and waits for the glucose, no oxygen; he desaturates",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restrain",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "no",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "plan",
+          "answered": true,
+          "seq": 4,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "hypoxia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "benzo": "missed",
+          "airway": "missed",
+          "escalate": "missed",
+          "glucose": "met",
+          "eeg": "missed",
+          "timed": "missed"
+        },
+        "kpis": {
+          "toBenzo": -1,
+          "toLoad": -1,
+          "szLen": 1290
+        },
+        "stateHash": "a079d87f2f9ab1b3"
+      },
+      "reasoning": {
+        "plan": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1296 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ai200-containerapp-keyvault-revision",
+  "title": "Release v42 is stuck and the database password rotates at 10:45",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@cloudshell:~$",
+      "lines": [
+        {
+          "id": "deployFail",
+          "text": "10:00 pipeline: recs-api revision recs-api--v42 failed to become ready; recs-api--v41 still serves 100% of traffic",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "rotation",
+          "text": "10:00 security: the recs database password rotates at 10:45; only v42 reads it from Key Vault (v41 holds the old value as a plain secret)",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "forced",
+          "text": "frontdoor: recs.fernhill.example answers 503; all traffic goes to a revision with no ready replicas",
+          "when": "not isNull(forcedAt) and isNull(readyAt)",
+          "at": "timeAt(forcedAt)",
+          "error": "true"
+        },
+        {
+          "id": "rotated",
+          "text": "10:45 postgres: password authentication failed for user recs_app (password rotated)",
+          "when": "not isNull(rotatedAt)",
+          "at": "timeAt(rotatedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ready",
+          "text": "recs-api--v42b is ready; traffic switched from v41",
+          "when": "not isNull(readyAt)",
+          "at": "timeAt(readyAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "fd",
+          "label": "front door",
+          "spokenLabel": "the front door",
+          "kind": "HTTPS entry",
+          "status": "{serving ? \"Serving\" : \"503\"}",
+          "tone": "serving ? \"up\" : \"down\""
+        },
+        {
+          "id": "v41",
+          "label": "recs-api--v41",
+          "spokenLabel": "revision v41",
+          "kind": "Old revision (plain secret)",
+          "status": "{not isNull(readyAt) ? \"Deactivated\" : not isNull(forcedAt) ? \"Running, no traffic\" : \"Running, 100% traffic\"}",
+          "tone": "not isNull(readyAt) ? \"out\" : not isNull(rotatedAt) ? \"down\" : \"up\""
+        },
+        {
+          "id": "v42",
+          "label": "new revision (v42)",
+          "spokenLabel": "the new revision",
+          "kind": "New revision (Key Vault reference)",
+          "status": "{not isNull(readyAt) ? (serving ? \"v42b ready, 100% traffic\" : \"v42b failing: stale plain password\") : \"v42 failed: cannot read secret db-password\"}",
+          "tone": "not isNull(readyAt) and serving ? \"up\" : \"down\""
+        },
+        {
+          "id": "kv",
+          "label": "kv-recs",
+          "spokenLabel": "Key Vault kv-recs",
+          "kind": "Key Vault (RBAC)",
+          "status": "{roleGranted ? \"recs-api identity: Key Vault Secrets User\" : roleBroad ? \"recs-api identity: Key Vault Administrator on the subscription\" : \"No role for recs-api's identity\"}",
+          "tone": "roleGranted or roleBroad ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "db",
+          "label": "recs-db",
+          "spokenLabel": "the recommendations database",
+          "kind": "PostgreSQL",
+          "status": "{not isNull(rotatedAt) ? \"Password rotated at 10:45\" : \"Password rotates at 10:45\"}",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "fdApp",
+          "from": "fd",
+          "to": "v41",
+          "label": "Traffic",
+          "status": "{not isNull(readyAt) or not isNull(forcedAt) ? \"None\" : \"100%\"}",
+          "tone": "not isNull(readyAt) or not isNull(forcedAt) ? \"out\" : \"up\""
+        },
+        {
+          "id": "kvLink",
+          "from": "v42",
+          "to": "kv",
+          "label": "Secret reference",
+          "status": "{roleGranted or roleBroad ? \"Allowed\" : \"403 Forbidden\"}",
+          "tone": "roleGranted or roleBroad ? \"up\" : \"down\""
+        },
+        {
+          "id": "dbLink",
+          "from": "v41",
+          "to": "db",
+          "label": "Database login",
+          "status": "{not isNull(rotatedAt) and isNull(readyAt) ? \"Failing\" : \"OK\"}",
+          "tone": "not isNull(rotatedAt) and isNull(readyAt) ? \"down\" : \"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "until",
+          "label": "Minutes until the rotation",
+          "value": "{t < rotateDelay ? (rotateDelay - t) / 60 : 0|0dp}"
+        },
+        {
+          "id": "revs",
+          "label": "Failed revisions",
+          "value": "{failedRevisions|0dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting AKS and Container Apps from logs, events and connectivity checks",
+  "secondaryObjectives": [
+    "Reading secrets from Key Vault with a managed identity and planning their rotation"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, 'Update and deploy changes in Azure Container Apps' (revisions), page footer 2025-10-27",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/container-apps/revisions",
+      "note": "Relevant text: single revision mode: 'If an update fails, traffic remains pointed to the old revision'; 'The existing active revision isn't deactivated until the new revision is ready'; a revision is ready when it 'has provisioned successfully', has scaled up and 'All the replicas have passed their startup and readiness probes'; multiple mode lets you 'split traffic between revisions'. Read through a summarizing fetch on 2026-11-14. The az commands and their output in the scenario are authored renderings in the CLI's style; their flags were not checked against the az reference."
+    },
+    {
+      "cite": "Microsoft Learn, 'Manage secrets in Azure Container Apps' (Key Vault references), last updated 2026-09-11",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets",
+      "note": "Relevant text: 'To reference a secret from Key Vault, you must first enable managed identity in your container app and grant the identity access to the Key Vault secrets'; 'grant the Azure RBAC role Key Vault Secrets User to the managed identity'; troubleshooting row 'Authentication failed: The managed identity lacks the required permissions to read the secret'; 'If a version isn't specified in the URI ... the app automatically retrieves the latest version within 30 minutes' and active revisions referencing it in an environment variable are restarted. Read through a summarizing fetch on 2026-11-14."
+    }
+  ],
+  "brief": {
+    "situation": "You are the developer on call for recs-api, the recommendations API of Fernhill Books (fictional), running on Azure Container Apps in single revision mode. Release v42 moves the database password from a plain Container Apps secret to a Key Vault reference, so that the rotation security runs at 10:45 is picked up automatically. At 10:00 the pipeline reports that revision v42 never became ready; v41 still serves all traffic with the old password, which stops working at 10:45. Find out why v42 fails, get a working revision serving before 10:45, and do it without widening anyone's access.",
+    "handover": [
+      "recs-api has a system-assigned managed identity. kv-recs uses Azure RBAC, not access policies.",
+      "You may create role assignments on resources in rg-recs."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows each host, service or job and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "rotateDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The password rotation runs at 10:45, 45 minutes after the first report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "revListAt": {
+      "type": "time",
+      "init": null
+    },
+    "sysLogAt": {
+      "type": "time",
+      "init": null
+    },
+    "consoleLogAt": {
+      "type": "time",
+      "init": null
+    },
+    "idAt": {
+      "type": "time",
+      "init": null
+    },
+    "rolesAt": {
+      "type": "time",
+      "init": null
+    },
+    "roleGranted": {
+      "type": "bool",
+      "init": false
+    },
+    "roleBroad": {
+      "type": "bool",
+      "init": false
+    },
+    "grantedAt": {
+      "type": "time",
+      "init": null
+    },
+    "plainSet": {
+      "type": "bool",
+      "init": false
+    },
+    "plainAt": {
+      "type": "time",
+      "init": null
+    },
+    "forcedAt": {
+      "type": "time",
+      "init": null
+    },
+    "readyAt": {
+      "type": "time",
+      "init": null
+    },
+    "readyPlain": {
+      "type": "bool",
+      "init": false
+    },
+    "failedRevisions": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 20
+    },
+    "rotatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "kvRole",
+        "image",
+        "probe"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "roleInIac",
+        "adminRole",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "serving": {
+      "expr": "not isNull(readyAt) ? not (readyPlain and not isNull(rotatedAt)) : (isNull(forcedAt) and isNull(rotatedAt))"
+    },
+    "kvOk": {
+      "expr": "roleGranted or roleBroad"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "revList",
+        "sysLogs",
+        "consoleLogs",
+        "identity",
+        "roles",
+        "grantSecretsUser",
+        "grantAdmin",
+        "plainSecret",
+        "forceTraffic",
+        "newRevision",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "revList": {
+      "label": "az containerapp revision list -n recs-api -g rg-recs -o table",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(revListAt)",
+          "then": [
+            {
+              "set": "revListAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(readyAt)",
+              "then": [
+                {
+                  "output": "dev@cloudshell:~$ az containerapp revision list -n recs-api -g rg-recs -o table\nName             Active    TrafficWeight    RunningState    ProvisioningState\n---------------  --------  ---------------  --------------  -----------------\nrecs-api--v42b   True      100              Running         Provisioned\nrecs-api--v41    False     0                Stopped         Provisioned"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "dev@cloudshell:~$ az containerapp revision list -n recs-api -g rg-recs -o table\nName             Active    TrafficWeight    RunningState    ProvisioningState\n---------------  --------  ---------------  --------------  -----------------\nrecs-api--v41    True      {isNull(forcedAt) ? 100 : 0}              Running         Provisioned\nrecs-api--v42    True      {isNull(forcedAt) ? 0 : 100}                Failed          Failed"
+                },
+                {
+                  "finding": "v42 failed to provision and has no ready replica; single revision mode left v41 serving, as it does when an update fails."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sysLogs": {
+      "label": "az containerapp logs show -n recs-api -g rg-recs --type system --tail 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sysLogAt)",
+          "then": [
+            {
+              "set": "sysLogAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp logs show -n recs-api -g rg-recs --type system --tail 20\n10:00:12 recs-api--v42 SecretRefFailed: unable to fetch secret 'db-password' from Key Vault kv-recs (versionless reference): 403 Forbidden (the caller does not have permission to get secrets)\n10:00:12 recs-api--v42 RevisionProvisioningFailed"
+        },
+        {
+          "finding": "The platform could not read db-password from kv-recs: 403. The revision never started a container; the app's own code is not the problem."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "consoleLogs": {
+      "label": "az containerapp logs show -n recs-api -g rg-recs --revision recs-api--v42 --tail 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(consoleLogAt)",
+          "then": [
+            {
+              "set": "consoleLogAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp logs show -n recs-api -g rg-recs --revision recs-api--v42 --tail 20\n(no console output: no replica of recs-api--v42 ever started)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "identity": {
+      "label": "az containerapp identity show -n recs-api -g rg-recs --query principalId -o tsv",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(idAt)",
+          "then": [
+            {
+              "set": "idAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp identity show -n recs-api -g rg-recs --query principalId -o tsv\n5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "roles": {
+      "label": "az role assignment list --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --all -o table",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rolesAt)",
+          "then": [
+            {
+              "set": "rolesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "roleGranted",
+              "then": [
+                {
+                  "output": "dev@cloudshell:~$ az role assignment list --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --all -o table\nRole                    Scope\n----------------------  -------------------------------------------------------------\nKey Vault Secrets User  /subscriptions/.../resourceGroups/rg-recs/providers/Microsoft.KeyVault/vaults/kv-recs"
+                }
+              ]
+            },
+            {
+              "when": "roleBroad",
+              "then": [
+                {
+                  "output": "dev@cloudshell:~$ az role assignment list --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --all -o table\nRole                     Scope\n-----------------------  ------------------\nKey Vault Administrator  /subscriptions/..."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "dev@cloudshell:~$ az role assignment list --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --all -o table\n(no role assignments)"
+                },
+                {
+                  "finding": "recs-api's managed identity has no role at all on kv-recs."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "grantSecretsUser": {
+      "label": "az role assignment create --role \"Key Vault Secrets User\" --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --scope $(az keyvault show -n kv-recs --query id -o tsv)",
+      "group": "Fix",
+      "available": "not busy and not roleGranted",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "roleGranted",
+          "to": "true"
+        },
+        {
+          "if": "isNull(grantedAt)",
+          "then": [
+            {
+              "set": "grantedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "recs-api's identity can now read secrets in kv-recs, and nothing else.",
+          "kind": "act"
+        },
+        {
+          "output": "dev@cloudshell:~$ az role assignment create --role \"Key Vault Secrets User\" --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --scope $(az keyvault show -n kv-recs --query id -o tsv)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "grantAdmin": {
+      "label": "az role assignment create --role \"Key Vault Administrator\" --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --scope /subscriptions/$SUB",
+      "group": "Fix",
+      "available": "not busy and not roleBroad",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "roleBroad",
+          "to": "true"
+        },
+        {
+          "if": "isNull(grantedAt)",
+          "then": [
+            {
+              "set": "grantedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "recs-api's identity can now manage every key vault in the subscription, keys, secrets and certificates included.",
+          "kind": "bad"
+        },
+        {
+          "output": "dev@cloudshell:~$ az role assignment create --role \"Key Vault Administrator\" --assignee 5f1d7c2e-9a3b-4c61-8e0f-2b7a4d9c1e35 --scope /subscriptions/$SUB"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "plainSecret": {
+      "label": "az containerapp secret set -n recs-api -g rg-recs --secrets db-password=<pasted from the vault>",
+      "group": "Fix",
+      "available": "not busy and not plainSet",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "plainSet",
+          "to": "true"
+        },
+        {
+          "if": "isNull(plainAt)",
+          "then": [
+            {
+              "set": "plainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "db-password is a plain Container Apps secret again, with today's value pasted from the vault into your shell. It will not follow the 10:45 rotation.",
+          "kind": "bad"
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp secret set -n recs-api -g rg-recs --secrets db-password=<pasted from the vault>"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "forceTraffic": {
+      "label": "az containerapp revision set-mode -n recs-api -g rg-recs --mode multiple && az containerapp ingress traffic set -n recs-api -g rg-recs --revision-weight recs-api--v42=100",
+      "group": "Fix",
+      "available": "not busy and isNull(forcedAt) and isNull(readyAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(forcedAt)",
+          "then": [
+            {
+              "set": "forcedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "All traffic now goes to recs-api--v42, which has no ready replica: the API answers 503.",
+          "kind": "alarm"
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp revision set-mode -n recs-api -g rg-recs --mode multiple && az containerapp ingress traffic set -n recs-api -g rg-recs --revision-weight recs-api--v42=100"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "newRevision": {
+      "label": "az containerapp update -n recs-api -g rg-recs --revision-suffix v42b",
+      "group": "Fix",
+      "available": "not busy and isNull(readyAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "plainSet and not kvOk",
+              "then": [
+                {
+                  "if": "isNull(readyAt)",
+                  "then": [
+                    {
+                      "set": "readyAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "set": "readyPlain",
+                  "to": "true"
+                },
+                {
+                  "log": "recs-api--v42b, using the plain secret, is ready and takes all traffic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "kvOk",
+              "then": [
+                {
+                  "if": "isNull(readyAt)",
+                  "then": [
+                    {
+                      "set": "readyAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "recs-api--v42b read db-password from kv-recs, passed its probes and took all traffic from v41.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "failedRevisions",
+                  "by": "1"
+                },
+                {
+                  "log": "recs-api--v42b failed the same way: 403 from kv-recs. v41 still serves.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~$ az containerapp update -n recs-api -g rg-recs --revision-suffix v42b"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "curl -s https://recs.fernhill.example/healthz",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "dev@cloudshell:~$ curl -s https://recs.fernhill.example/healthz\n{serving ? (isNull(readyAt) ? \"ok (v41)\" : \"ok (v42b)\") : \"503 Service Unavailable\"}"
+        },
+        {
+          "if": "not isNull(readyAt) and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "dev@cloudshell:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare it resolved and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "kvRole",
+                  "label": "The app's managed identity had no Key Vault Secrets User role on kv-recs, so the Key Vault reference failed with 403"
+                },
+                {
+                  "value": "image",
+                  "label": "A broken container image"
+                },
+                {
+                  "value": "probe",
+                  "label": "A failing readiness probe"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "roleInIac",
+                  "label": "Create the identity's Key Vault Secrets User assignment in the same template as the Key Vault reference, scoped to the vault"
+                },
+                {
+                  "value": "adminRole",
+                  "label": "Give app identities Key Vault Administrator"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "rotate",
+      "when": "t >= rotateDelay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "rotatedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(readyAt) and kvOk",
+              "then": [
+                {
+                  "log": "10:45: the database password rotated. v42b's versionless Key Vault reference picks up the new value.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "not isNull(readyAt)",
+              "then": [
+                {
+                  "log": "10:45: the database password rotated. v42b holds the pasted plain value, which no longer works: the API fails every request.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "10:45: the database password rotated. v41's plain secret no longer works: the API fails every request.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how you found why v42 never became ready, what you changed and why that scope, and what makes the next Key Vault reference work first time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Diagnosis",
+          "criteria": "Uses the revision state and the system logs (not the empty console logs) to find the 403 on the Key Vault reference, then confirms the managed identity has no role on the vault.",
+          "modelAnswer": "revision list showed v42 Failed with v41 still at 100%; the system log showed SecretRefFailed, 403 from kv-recs; role assignment list for the app's principal ID was empty."
+        },
+        {
+          "label": "Least-privilege fix",
+          "criteria": "Grants Key Vault Secrets User to the app's identity at the vault scope, makes a new revision and lets single revision mode switch traffic when it is ready; rejects Key Vault Administrator at subscription scope, a pasted plain secret (which misses the rotation) and forcing traffic to a failed revision.",
+          "modelAnswer": "I assigned Key Vault Secrets User on kv-recs only and created revision v42b; once it passed its probes, traffic moved from v41 automatically. Administrator on the subscription would let the app manage every vault; a plain secret would break at 10:45; forcing traffic to v42 would have taken the API down."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "Ships the role assignment with the Key Vault reference in infrastructure as code, scoped to the vault.",
+          "modelAnswer": "The Bicep for recs-api now creates the identity's Key Vault Secrets User assignment on kv-recs next to the secret reference."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "A working v42 well before the 10:45 rotation; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself (an over-broad role, a pasted plain secret, a forced outage)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not serving",
+      "class": "harm",
+      "rationale": "Closing while the API fails every request is never a safe outcome.",
+      "source": {
+        "cite": "Microsoft Learn, 'Update and deploy changes in Azure Container Apps' (revisions), page footer 2025-10-27",
+        "checkedAt": "2026-11-14",
+        "url": "https://learn.microsoft.com/en-us/azure/container-apps/revisions",
+        "note": "Relevant text: single revision mode: 'If an update fails, traffic remains pointed to the old revision'; 'The existing active revision isn't deactivated until the new revision is ready'; a revision is ready when it 'has provisioned successfully', has scaled up and 'All the replicas have passed their startup and readiness probes'; multiple mode lets you 'split traffic between revisions'. Read through a summarizing fetch on 2026-11-14. The az commands and their output in the scenario are authored renderings in the CLI's style; their flags were not checked against the az reference."
+      }
+    }
+  },
+  "endings": {
+    "forcedOutage": {
+      "label": "Traffic forced onto a failed revision",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(forcedAt)",
+      "narrative": "All traffic was sent to a revision with no ready replica, taking down an API that single revision mode had kept serving."
+    },
+    "rotationOutage": {
+      "label": "The rotation broke the API",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(rotatedAt) and not serving",
+      "narrative": "At 10:45 the password rotated and the revision serving traffic still held the old value."
+    },
+    "stillBroken": {
+      "label": "Closed with v42 still failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and isNull(readyAt)",
+      "narrative": "The incident was closed with v41 serving on a password that stops working at 10:45."
+    },
+    "fixed": {
+      "label": "Fixed with least privilege",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and serving and not isNull(readyAt) and timeAt(readyAt) <= restoreWindow and faultsAdded <= newFaults and roleGranted and not isNull(sysLogAt) and timeAt(sysLogAt) <= timeAt(grantedAt) and not isNull(verifiedAt)",
+      "narrative": "You read the platform's own log, granted the narrowest role at the vault, and let a new revision take over cleanly, with the rotation now handled by Key Vault."
+    },
+    "fixedGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "A new revision serves, but the fix was over-broad, a pasted secret, late, guessed, or never checked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "forcedOutage",
+    "rotationOutage",
+    "stillBroken",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "readSystemLog",
+        "label": "Found the cause in the system log before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sysLogAt) and (isNull(grantedAt) or timeAt(sysLogAt) <= timeAt(grantedAt)) and isNull(plainAt) and isNull(forcedAt)",
+            "score": "met",
+            "why": "The system log showed the 403 on the Key Vault reference first."
+          },
+          {
+            "when": "not isNull(sysLogAt)",
+            "score": "partial",
+            "why": "The system log was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The platform's system log was never read."
+          }
+        ]
+      },
+      {
+        "id": "leastPrivilege",
+        "label": "Granted only Key Vault Secrets User on the vault",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "roleGranted and not roleBroad and not plainSet",
+            "score": "met",
+            "why": "The narrowest role, at the vault scope."
+          },
+          {
+            "when": "roleBroad or plainSet",
+            "score": "missed",
+            "why": "{roleBroad ? \"Key Vault Administrator on the whole subscription.\" : \"The secret was pasted back as a plain value.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The identity was never given access."
+          }
+        ]
+      },
+      {
+        "id": "readyInTime",
+        "label": "A working revision serving within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(readyAt) and timeAt(readyAt) <= restoreWindow",
+            "score": "met",
+            "why": "Ready {timeAt(readyAt) / 60|0dp} min after the report."
+          },
+          {
+            "when": "not isNull(readyAt)",
+            "score": "partial",
+            "why": "Ready, but {timeAt(readyAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No working revision serves traffic."
+          }
+        ]
+      },
+      {
+        "id": "noForce",
+        "label": "Let single revision mode switch traffic when ready",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(forcedAt)",
+            "score": "met",
+            "why": "Traffic stayed on v41 until the new revision was ready."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Traffic was forced onto a revision with no ready replica."
+          }
+        ]
+      },
+      {
+        "id": "checkedRoles",
+        "label": "Confirmed the identity and its role assignments",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(rolesAt) and not isNull(idAt)",
+            "score": "met",
+            "why": "Principal ID and its (empty) role list were checked."
+          },
+          {
+            "when": "not isNull(rolesAt) or not isNull(idAt)",
+            "score": "partial",
+            "why": "Half checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The identity's access was never checked."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified the new revision serves",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The health endpoint answered from v42b."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the new revision answers."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"kvRole\" and preventDoc == \"roleInIac\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"kvRole\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written diagnosis, fix and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToReady",
+        "label": "Minutes until a working revision served",
+        "value": "isNull(readyAt) ? -1 : timeAt(readyAt) / 60",
+        "format": "number",
+        "expert": "12 or less"
+      },
+      {
+        "id": "failedK",
+        "label": "Failed revisions",
+        "value": "failedRevisions",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "revision list: v42 Failed, v41 at 100%. System logs: SecretRefFailed, 403 from kv-recs."
+      },
+      {
+        "at": "2-4 min",
+        "text": "Principal ID of recs-api's system-assigned identity; its role assignment list is empty."
+      },
+      {
+        "at": "4-6 min",
+        "text": "Assign Key Vault Secrets User at the kv-recs scope."
+      },
+      {
+        "at": "6-11 min",
+        "text": "Create revision v42b; it passes its probes and takes traffic from v41. Check the health endpoint, then put the role assignment in the template."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed with least privilege",
+        "body": "The system log named the 403, the role list confirmed it, and the narrowest role at the vault let a new revision take over without a minute of downtime."
+      },
+      "fixedGaps": {
+        "headline": "Working, with gaps",
+        "body": "A new revision serves. The criteria show the cost: an over-broad role, a pasted secret, a guess, time, or no check."
+      },
+      "forcedOutage": {
+        "headline": "Forced an outage",
+        "body": "Single revision mode was protecting you: v41 kept serving until a new revision was ready. Fix the revision, not the traffic."
+      },
+      "rotationOutage": {
+        "headline": "The rotation won",
+        "body": "Only a revision that reads the password from Key Vault survives 10:45. The 403 was in the system log at 10:00."
+      },
+      "stillBroken": {
+        "headline": "Closed too soon",
+        "body": "v41 still holds a password that stops working at 10:45."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "v42 failed to provision and single revision mode left v41 serving. No container started, so console logs are empty; the system log shows SecretRefFailed with 403 from kv-recs. The app's managed identity has no role on the vault. Grant Key Vault Secrets User at the vault scope, create a new revision and let it take traffic once ready; then the versionless reference follows the 10:45 rotation. Key Vault Administrator on the subscription is far too broad, a pasted plain secret breaks at 10:45, and forcing traffic to the failed revision causes the outage you are trying to avoid."
+  }
+}

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-158: CompTIA CloudNetX (CNX-001, V1).
@@ -397,6 +397,43 @@ export const CLOUDNETX_LABS: SeedLabSet = {
               "D: SYN in, nothing out",
               "Reads SYNs arriving with no reply at all as a host-level drop: a host firewall silently dropping inbound 443, or a return-route problem (replies leaving by another path); notes that a service bound only to localhost would answer with a RST rather than silence; checks the host firewall rules, the routing table and the listening socket.",
               "The packets reach the server, so the cloud network and security groups are passing them; the host is not answering. Silence means something is discarding the SYN or the reply: most likely the host firewall dropping inbound 443, or the server has no route back to the client (or replies leave by another interface). A service listening only on 127.0.0.1:443 would not cause silence -- the kernel would answer the SYN with a RST, which tcpdump would show. Check the host firewall rules and the routing table, and confirm the listener with ss -ltnp; add the firewall allow or fix the route, then watch tcpdump for the SYN-ACK."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Network Architecture Design (31%)
+    // gets its third lab. Concepts only; no product limit is quoted.
+    {
+      slug: "availability-technology-for-each-need",
+      objective: "Availability technologies: load-balancing methods, active-active/active-passive high availability, link aggregation, autoscaling, regions/availability zones, and CDNs",
+      kind: "build",
+      title: "Pick the availability technology for each design need",
+      brief:
+        "The architecture team at Kestrel Marine Insurance (fictional) is reviewing five needs from a design workshop:\n\nA. Two firewalls at headquarters; only one may pass traffic at a time because the pair keeps one session table.\nB. Web servers in one cloud region must survive the loss of a single datacenter.\nC. Customers in Asia and South America see slow downloads of the same PDF policy documents from a European origin.\nD. The core switch-to-server connection needs more bandwidth and must survive one cable failure.\nE. A quote API's load triples every Monday morning and drops by noon.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies availability technologies from the CloudNetX objectives the set cites; quotes no product limit or price.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each need to its technology, then compare active-active and active-passive for A.",
+          parts: [
+            matchPart(
+              "Technology for each need",
+              "Met: all five right -- A: active-passive high availability pair; B: instances spread across availability zones behind a load balancer; C: a content delivery network; D: link aggregation (LACP); E: autoscaling. Four right is partly there.",
+              "A pair that must share one session table with one member forwarding is active-passive. Zones are separate datacenters inside a region, so spreading across them survives one datacenter loss. A CDN caches the PDFs at edge locations near each user. Link aggregation bundles cables into one logical link for more bandwidth and survives one member failing. Autoscaling adds and removes instances with load. DNS round robin balances without health checks and fits none of these well.",
+              {
+                leftHeading: "Need",
+                rightHeading: "Technology",
+                left: ["A: two firewalls, one forwarding, one session table", "B: survive the loss of one datacenter in a region", "C: slow downloads of the same files far from the origin", "D: more bandwidth and survive one cable failing", "E: load triples on Monday mornings"],
+                right: ["Active-passive HA pair", "Spread across availability zones behind a load balancer", "Content delivery network", "Link aggregation (LACP)", "Autoscaling", "DNS round robin"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Active-active vs active-passive",
+              "Active-passive: one unit forwards, the standby takes over on failure (session sync keeps connections), simpler and predictable, but half the capacity idles and failover takes a moment. Active-active: both forward and share load, using all capacity and failing over faster, but needs state sharing or symmetric flows and each unit must be able to carry the whole load alone (keep each under about half). For stateful firewalls with one session table, active-passive is the safer choice; asymmetric routing breaks active-active stateful inspection.",
+              "Active-passive: one firewall carries all traffic while the other waits with a synchronized session table, taking over if the first fails. It is simple and predictable, but the standby's capacity sits idle and there is a brief failover. Active-active: both carry traffic, so all the capacity is used and a failure only shifts load, but each must be able to carry everything alone (so neither can safely run above roughly half), and stateful inspection needs sessions shared or both directions of a flow kept on the same unit -- asymmetric routing otherwise drops connections. For A, where the pair keeps one session table, active-passive is the sound choice."
             ),
           ],
         },

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, selectPart, matchPart, numericPart, orderPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-161: JavaScript Programming Coach (JAVASCRIPT), nine units, no exam
@@ -346,6 +346,177 @@ export const JAVASCRIPT_LABS: SeedLabSet = {
               "Two requests at once",
               "Node runs JavaScript on one thread with an event loop: both requests are accepted; their data/end callbacks interleave as chunks arrive, but each callback runs to completion without being interrupted, so per-request state (raw, body) is in the closure for that request and cannot mix. Long synchronous work in a handler would delay the other request. Races appear only where a handler reads shared state, awaits something, then writes based on what it read; a synchronous counter increment cannot be interrupted.",
               "Both connections are accepted and their 'data'/'end' events are interleaved on the single JavaScript thread, one callback at a time. Each request's raw buffer lives in its own closure, so the two bodies cannot mix, and nothing in a callback is pre-empted mid-way. The costs: a slow synchronous step (a tight CPU loop, a synchronous file read) in one handler stalls the other request until it finishes. A module-level counter incremented in one synchronous statement (id = ++nextId) is safe, because no other callback can run between the read and the write. Real races appear when a handler reads shared state, awaits I/O, then acts on what it read: once bookings go to a database, two requests can both check 'room free' before either inserts, and both book it. The fix is to make the check-and-write atomic in the store (a unique constraint or a conditional insert) or serialize access to that room."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): the density fill. Units 1, 2, 3, 5 and 6 take
+    // the remaining extra labs (no exam weights, so the six extras go to the
+    // earliest units; The DOM & events already had two). Every snippet and
+    // output below was run on Node 22.23.4 on 2026-11-14 and the values
+    // quoted are the ones observed.
+    {
+      slug: "coercion-cart-total",
+      objective: "Primitive types, typeof, and type coercion pitfalls (== vs. ===)",
+      kind: "build",
+      title: "A cart total of \"023\": predict the coercions",
+      brief:
+        "The checkout page at Juniper Kites (fictional) reads quantities from two form fields, which always give strings:\n\nconst cart = [\"2\", \"3\"];\nconst items = cart.reduce((sum, q) => sum + q, 0);\nconsole.log(\"Items:\", items);\n\nIt prints Items: 023. A reviewer also flags several == comparisons elsewhere in the file.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each expression to its value, give the correct item count, and fix the total.",
+          parts: [
+            matchPart(
+              "Value of each expression",
+              "Met: all five right -- \"5\" + 3 is \"53\"; \"5\" - 3 is 2; \"0\" == false is true; null == 0 is false; typeof null is \"object\". Three or four right is partly there.",
+              "+ with a string operand concatenates, so \"5\" + 3 is \"53\" -- the same thing that turned 0 + \"2\" + \"3\" into \"023\". - only does arithmetic, so \"5\" - 3 converts and gives 2. With ==, \"0\" and false both convert to the number 0, so they are loosely equal. null is loosely equal only to undefined (and itself), so null == 0 is false. typeof null is \"object\", a historical quirk of the language.",
+              {
+                leftHeading: "Expression",
+                rightHeading: "Value",
+                left: ["\"5\" + 3", "\"5\" - 3", "\"0\" == false", "null == 0", "typeof null"],
+                right: ["\"53\"", "2", "true", "false", "\"object\"", "NaN", "\"null\""],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            numericPart("Correct item count", "Met: 5 exactly.", "2 + 3 = 5 once each quantity is converted to a number before adding.", { answer: 5, tolerance: 0, unit: "items" }),
+            part(
+              "Fixed total, and the == rule",
+              "Converts each string explicitly before adding (Number(q), or parseInt(q, 10) with a NaN check) so the result is 5; explains the start value 0 plus a string concatenates; recommends === / !== by default because they never coerce, keeping == null only as a deliberate null-or-undefined check if the team allows it.",
+              "const items = cart.reduce((sum, q) => sum + Number(q), 0);   // 5\n\nThe reduce started from the number 0, but 0 + \"2\" is \"02\" because + concatenates when either side is a string, and \"02\" + \"3\" is \"023\". Converting each field first keeps the sum numeric; check Number.isNaN on user input so a blank or 'abc' does not slip through as NaN. For comparisons, use === and !==: they compare without coercion, so \"0\" === false is false, as a reader expects. x == null is the one loose comparison some style guides allow, because it means exactly 'null or undefined'."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "closure-rate-limiter",
+      objective: "Closures: what they capture and a real use case for one",
+      kind: "build",
+      title: "Give each rate limiter its own memory",
+      brief:
+        "Aldergrove Library's (fictional) web app limits how often two buttons can call the server:\n\nlet used = 0;\nfunction makeRateLimiter(limit) {\n  return function tryCall() {\n    if (used >= limit) return false;\n    used += 1;\n    return true;\n  };\n}\nconst search = makeRateLimiter(2);\nconst upload = makeRateLimiter(2);\n\nAfter two searches, the first upload is refused: search(), search(), upload() print true true false.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the line that makes the two limiters share a count, explain what a closure captures, and fix it.",
+          parts: [
+            selectPart(
+              "The line that shares the count",
+              "Met: only 'let used = 0;' at the top of the module.",
+              "used is declared once, at module level, so both tryCall functions close over the same variable. A closure captures the variable binding in the scope where the function was created, not a copy of its value -- and both functions were created in a scope where the only 'used' is the module's.",
+              {
+                display: "config",
+                lines: ["let used = 0;", "function makeRateLimiter(limit) {", "  return function tryCall() {", "    if (used >= limit) return false;", "    used += 1;", "    return true;", "  };", "}"],
+                correct: [0],
+              }
+            ),
+            part(
+              "Fix and explanation",
+              "Moves 'let used = 0;' inside makeRateLimiter so each call creates a fresh binding that only its returned function closes over; states that search(), search(), search(), upload() then give true, true, false, true; names the use case (private state without a class or global).",
+              "function makeRateLimiter(limit) {\n  let used = 0;\n  return function tryCall() {\n    if (used >= limit) return false;\n    used += 1;\n    return true;\n  };\n}\n\nEach call to makeRateLimiter runs its body again, so each creates its own used and its own tryCall that closes over it. search(), search(), search(), upload() now return true, true, false, true. Nothing outside can read or reset used: the closure gives each limiter private state, which is the everyday use of closures (counters, caches, debouncers, configured handlers)."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "shallow-copy-leaks-edits",
+      objective: "Shallow vs. deep copying, and why reference semantics matter",
+      kind: "build",
+      title: "Find the edits that leak through a spread copy",
+      brief:
+        "In Ridgeback Gym's (fictional) member editor, a draft copy is edited before the user presses Save:\n\nconst original = {\n  name: \"Kit\",\n  tags: [\"new\"],\n  address: { city: \"Tacoma\" },\n  joined: new Date(\"2026-01-02T00:00:00Z\"),\n};\nconst draft = { ...original };\ndraft.name = \"Kit B\";\ndraft.tags.push(\"vip\");\ndraft.address.city = \"Olympia\";\n\nThe user presses Cancel, yet the saved member now shows the tag vip and the city Olympia.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the edits that also change original, then give a copy that keeps the draft separate.",
+          parts: [
+            selectPart(
+              "Edits that change original",
+              "Met: exactly the tags.push line and the address.city line. One right and none wrong is partly there.",
+              "Spread copies the top-level properties only. name is a string, so draft.name gets its own value and original.name stays 'Kit'. tags and address are objects: the copy holds references to the same array and the same object, so pushing to draft.tags and setting draft.address.city change what original sees too. After the four lines, original is { name: 'Kit', tags: ['new', 'vip'], address: { city: 'Olympia' }, ... }.",
+              {
+                display: "config",
+                lines: ["const draft = { ...original };", "draft.name = \"Kit B\";", "draft.tags.push(\"vip\");", "draft.address.city = \"Olympia\";"],
+                correct: [2, 3],
+              }
+            ),
+            part(
+              "A copy that keeps the draft separate",
+              "Uses structuredClone(original) (or copies each nested level by hand), shows original stays Tacoma and ['new'], and notes that JSON.parse(JSON.stringify(...)) would turn the Date into a string (and drop functions and undefined), while structuredClone keeps the Date a Date.",
+              "const draft = structuredClone(original);\n\nstructuredClone copies nested arrays and objects, so editing draft.address.city leaves original.address.city as 'Tacoma', and draft.joined is still a Date (instanceof Date is true). The older trick JSON.parse(JSON.stringify(original)) also deep-copies, but joined comes back as a string, and functions, undefined and Map/Set are lost. If only one level is edited, a targeted copy works too: { ...original, tags: [...original.tags], address: { ...original.address } }."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "event-loop-log-order",
+      objective: "The event loop, call stack, and task queue (conceptual model)",
+      kind: "build",
+      title: "Put seven log lines in the order the event loop prints them",
+      brief:
+        "A developer at Saltmarsh Transit (fictional) is puzzled by the order of these logs in Node:\n\nconsole.log(\"A\");\nsetTimeout(() => console.log(\"B timeout\"), 0);\nPromise.resolve().then(() => console.log(\"C microtask\"));\nqueueMicrotask(() => console.log(\"D microtask2\"));\n(async () => {\n  console.log(\"E async start\");\n  await null;\n  console.log(\"F after await\");\n})();\nconsole.log(\"G sync end\");",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Order the seven lines as they print, then explain the order with the call stack, the microtask queue and the task queue.",
+          parts: [
+            orderPart(
+              "Print order",
+              "Met: exactly A, E async start, G sync end, C microtask, D microtask2, F after await, B timeout. Two single moves from that is partly there.",
+              "Observed on Node 22: A, E async start, G sync end, C microtask, D microtask2, F after await, B timeout. The synchronous lines run first, including the async function's body up to its first await. Then the microtask queue drains in the order jobs were queued (C, D, then F, the continuation queued by await). Only then does the event loop take the timer callback from the task queue.",
+              ["A", "E async start", "G sync end", "C microtask", "D microtask2", "F after await", "B timeout"]
+            ),
+            part(
+              "Why that order",
+              "Explains: the script itself runs to completion on the call stack (A, E, G), and an async function runs synchronously until its first await; promise reactions, queueMicrotask and await continuations are microtasks, which all run as soon as the stack empties and before any task; setTimeout(..., 0) queues a task, which waits for the microtask queue to drain, so 0 ms means 'next task', not 'now'.",
+              "The call stack runs the whole script first: A prints, the timer is registered, two microtasks are queued, the async arrow runs and prints E, reaches await null and queues its continuation as a third microtask, then G prints. When the stack is empty the engine drains every microtask in FIFO order -- C, D, F -- before taking the next task. The setTimeout callback is a task, so B prints last even with a 0 ms delay. A long chain of microtasks can therefore starve timers and rendering; that is why heavy work should be split with setTimeout or moved off the main thread."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "nullish-settings-defaults",
+      objective: "Optional chaining and nullish coalescing",
+      kind: "build",
+      title: "Defaults that keep a volume of 0",
+      brief:
+        "Bramble Podcasts' (fictional) player loads saved settings:\n\nconst settings = {\n  volume: 0,\n  theme: \"\",\n  user: { name: \"Ari\", address: null },\n  notify: undefined,\n};\n\nThe old code used || for every default, so listeners who muted the player (volume 0) find it at 50 again, and a missing address crashes the profile page with TypeError: Cannot read properties of null (reading 'city').",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Every value is the output of the snippet itself, run on Node 22.23.4 on 2026-11-14; language behavior follows MDN and the ECMAScript specification cited for the set (read 2026-11-07). No outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each expression to its value, then rewrite the settings defaults.",
+          parts: [
+            matchPart(
+              "Value of each expression",
+              "Met: all five right -- settings.volume || 50 is 50; settings.volume ?? 50 is 0; settings.theme ?? \"dark\" is the empty string; settings.user?.address?.city ?? \"unknown\" is \"unknown\"; settings.user.getAvatar?.() is undefined. Three or four right is partly there.",
+              "|| falls back on any falsy value, so a volume of 0 becomes 50. ?? falls back only on null or undefined, so 0 and \"\" are kept. ?. stops and gives undefined when the thing on its left is null or undefined -- address is null, so .city is never read, and ?? then supplies \"unknown\". getAvatar?.() calls the method only if it exists; it does not, so the result is undefined, not a TypeError.",
+              {
+                leftHeading: "Expression",
+                rightHeading: "Value",
+                left: ["settings.volume || 50", "settings.volume ?? 50", "settings.theme ?? \"dark\"", "settings.user?.address?.city ?? \"unknown\"", "settings.user.getAvatar?.()"],
+                right: ["50", "0", "\"\" (the empty string)", "\"unknown\"", "undefined", "\"dark\"", "A TypeError"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Rewritten defaults",
+              "Uses ?? where 0, \"\" or false are valid saved values (volume ?? 50, notify ?? true), ?. for the optional address (user?.address?.city ?? \"unknown\"), and says whether an empty theme should mean 'default' (then || or an explicit check is the deliberate choice). Does not wrap the whole thing in try/catch.",
+              "const volume = settings.volume ?? 50;            // 0 stays 0\nconst notify = settings.notify ?? true;          // undefined -> true\nconst city = settings.user?.address?.city ?? \"unknown\";\nconst theme = settings.theme || \"dark\";          // deliberate: \"\" means 'not chosen'\n\n?? keeps every real value, including 0, \"\" and false, and only fills in for null or undefined. ?. makes the missing address an expected case instead of a crash. The theme line is the one place || is right, because an empty theme name is not a theme -- say so in a comment, so the next reader knows it was chosen."
             ),
           ],
         },

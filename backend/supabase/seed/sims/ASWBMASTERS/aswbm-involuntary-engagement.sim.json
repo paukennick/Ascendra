@@ -1,0 +1,1387 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbm-involuntary-engagement",
+  "title": "Session: 'I'm only here because I have to be'",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Andre Wallace",
+        "presentation": "{distress >= 6 ? \"Hood up, staring at his phone\" : distress >= 3 ? \"Slouched, arms folded\" : \"Sitting up, phone away\"}; {rapport >= 6 ? \"he is talking with you\" : rapport >= 3 ? \"he answers, watching you\" : \"one-word answers\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "mandate",
+          "label": "Referral",
+          "text": "Pretrial diversion: six sessions. Signed release: attendance and completion only, to his diversion officer.",
+          "when": "true"
+        },
+        {
+          "id": "consent",
+          "label": "Consent",
+          "text": "{consentDone ? \"Explained: the six sessions, what the officer is told, his right to refuse and what it means, the limits of confidentiality.\" : \"Not yet explained.\"}",
+          "when": "true",
+          "alert": "not consentDone"
+        },
+        {
+          "id": "goal",
+          "label": "His goals",
+          "text": "Back on at the warehouse; his mom's trust; being someone his little brother can look up to.",
+          "when": "goalFound"
+        },
+        {
+          "id": "story",
+          "label": "What happened",
+          "text": "Laid off in August; rent due; took headphones to sell.",
+          "when": "storyHeard and disclosed >= 3"
+        },
+        {
+          "id": "plan",
+          "label": "Objectives",
+          "text": "{measurableSet ? \"Call the warehouse supervisor by Friday; three applications a week; bring the list.\" : partialized ? \"The job first; no measures yet.\" : \"\"}",
+          "when": "partialized"
+        },
+        {
+          "id": "traps",
+          "label": "Discord",
+          "text": "{lectured ? \"You lectured him.\" : \"\"} {labeled ? \"You labeled him.\" : \"\"}",
+          "when": "lectured or labeled",
+          "alert": "lectured or labeled"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Mandated-client consent explained",
+            "when": "consentDone"
+          },
+          {
+            "label": "Contract signed: {contractKind == \"his\" ? \"his goals\" : \"goals set for him\"}",
+            "when": "contracted"
+          },
+          {
+            "label": "Officer told: {report}",
+            "when": "report != \"none\""
+          },
+          {
+            "label": "Documented: {recordDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Engage an involuntary client and contract for goals",
+  "sources": [
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Masters content outline: III Intervention and Practice, 32% (IIIB 'Methods for engaging and motivating voluntary and involuntary clients/client systems'; 'Contracting and goal-setting techniques (e.g., partializing, measurable objectives)'); I Values and Ethics, 35% (IA informed consent); the 2026 blueprint in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Read in full 2026-11-14 for the course outline (REQ-286)."
+    },
+    {
+      "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.02 self-determination; 1.03(a) informed consent in clear language, including the right to refuse; 1.03(d) involuntary clients are told the nature and extent of services and the extent of their right to refuse; 1.07(c) confidentiality kept except for compelling professional reasons; 1.07(e) discuss the limits of confidentiality as soon as possible",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Read 2026-11-14. NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+    },
+    {
+      "cite": "SAMHSA, TIP 35: Enhancing Motivation for Change in Substance Use Disorder Treatment (updated 2019), chapter 3, Motivational Interviewing as a Counseling Style: the four processes (engaging, focusing, evoking, planning); the spirit (partnership, acceptance, compassion, evocation); traps (expert, labeling, question-and-answer, premature focus, blaming); discord is 'a two-way street': do not argue or follow the righting reflex; reflect, and emphasize personal autonomy",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK571068/",
+      "note": "Read 2026-11-14. Written for substance use treatment; the engagement methods are used here for a mandated client in general, which is the author's application."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed social worker at a community counseling agency. Andre Wallace, 19 (a fictional client), was charged with shoplifting and offered pretrial diversion: if he completes six sessions here, the charge is dismissed. He signed a release letting the agency tell his diversion officer whether he attends and completes, nothing more. This is session 1. He walks in, sits by the door and says, 'I'm only here because I have to be.' You have 50 minutes.",
+    "handover": [
+      "Referral: first offense; no treatment history; lives with his mother and younger brother."
+    ],
+    "howItWorks": [
+      "Choose what to say from the action groups. Andre answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation, send the officer an update and document."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-14",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "consentDone": {
+      "type": "bool",
+      "init": false
+    },
+    "consentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lectured": {
+      "type": "bool",
+      "init": false
+    },
+    "labeled": {
+      "type": "bool",
+      "init": false
+    },
+    "autonomyStressed": {
+      "type": "bool",
+      "init": false
+    },
+    "goalFound": {
+      "type": "bool",
+      "init": false
+    },
+    "storyHeard": {
+      "type": "bool",
+      "init": false
+    },
+    "partialized": {
+      "type": "bool",
+      "init": false
+    },
+    "measurableSet": {
+      "type": "bool",
+      "init": false
+    },
+    "imposed": {
+      "type": "bool",
+      "init": false
+    },
+    "overpromised": {
+      "type": "bool",
+      "init": false
+    },
+    "contracted": {
+      "type": "bool",
+      "init": false
+    },
+    "contractKind": {
+      "type": "enum",
+      "values": [
+        "none",
+        "his",
+        "imposed"
+      ],
+      "init": "none"
+    },
+    "report": {
+      "type": "enum",
+      "values": [
+        "none",
+        "attendance",
+        "content"
+      ],
+      "init": "none"
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "explainRole",
+        "reflectSustain",
+        "lecture",
+        "label",
+        "autonomy",
+        "askWants",
+        "askStory",
+        "partialize",
+        "measurable",
+        "imposeGoals",
+        "promiseCourt",
+        "contract",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "reportOfficer",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "explainRole": {
+      "label": "Explain the mandate plainly: what the program requires, what his officer hears (attendance only), his right to refuse and what that means, and the limits of confidentiality",
+      "group": "Open",
+      "available": "not talking and (not consentDone)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You lay it out plainly: six sessions are the program's condition; with his signed release you tell his diversion officer only whether he came; he can refuse, and then the officer sends the case back to court; what he says here stays here unless someone is at serious risk.",
+          "kind": "act"
+        },
+        {
+          "set": "consentDone",
+          "to": "true"
+        },
+        {
+          "set": "consentAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "lectured or labeled",
+              "then": [
+                {
+                  "finding": "\"Whatever.\" He is not listening any more."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "add": "distress",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "He looks up. \"So you don't tell her what I say? Just if I showed up?\" You confirm. \"Huh. Okay.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflectSustain": {
+      "label": "Reflect his position: 'You didn't choose to be here, and you're not sure this is any use to you'",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 3)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect what he said without arguing with it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Pretty much. No offense.\" A half smile."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Tell him he broke the law and this program is his chance to turn things around",
+      "group": "Respond",
+      "available": "not talking and (not lectured)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell him this is a chance he should take seriously; he broke the law.",
+          "kind": "act"
+        },
+        {
+          "set": "lectured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"I know what I did. I don't need another speech.\" Arms folded."
+        },
+        {
+          "log": "The righting reflex and the blaming trap: arguing for change draws out more reasons not to (TIP 35).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "label": {
+      "label": "Name the problem for him: 'It sounds like stealing has become a pattern for you'",
+      "group": "Respond",
+      "available": "not talking and (not labeled)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You put a label on him.",
+          "kind": "act"
+        },
+        {
+          "set": "labeled",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"A pattern? It was one time. You don't know me.\""
+        },
+        {
+          "log": "The labeling trap (TIP 35): a label invites a fight about the label.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "autonomy": {
+      "label": "Emphasize his choice: the sessions are required; what you work on in them is up to him",
+      "group": "Respond",
+      "available": "not talking and (not autonomyStressed)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell him the six sessions are the program's, but what you work on is his call.",
+          "kind": "act"
+        },
+        {
+          "set": "autonomyStressed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "\"For real? Like anything?\" You nod. He sits back."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWants": {
+      "label": "Ask: 'If these six weeks turned out to be worth something, what would be different?'",
+      "group": "Explore",
+      "available": "not talking and (not goalFound)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask what would make the six weeks worth his while.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "set": "goalFound",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "He thinks. \"Get back on at the warehouse. They said maybe, if this goes away. And my mom trusting me again. My little brother looks up to me, you know?\""
+                },
+                {
+                  "log": "His own goals, in his own words.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"Nothing. Get it over with.\" (He doesn't trust you enough yet to say.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askStory": {
+      "label": "Ask what happened, in his own words",
+      "group": "Explore",
+      "available": "not talking and (not storyHeard)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask him to tell you what happened.",
+          "kind": "act"
+        },
+        {
+          "set": "storyHeard",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"Got laid off in August. Rent was due. I took headphones to sell. Dumb.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"It's in the file.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "partialize": {
+      "label": "Break his goal into small steps with him (partializing)",
+      "group": "Plan",
+      "available": "not talking and (goalFound and not partialized)",
+      "why": "Find his goal first (or it is done).",
+      "effects": [
+        {
+          "log": "You break 'get my life back' into pieces with him: the job, his mom, money.",
+          "kind": "act"
+        },
+        {
+          "set": "partialized",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"The job first. If I'm working, my mom sees it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "measurable": {
+      "label": "Turn the first step into measurable objectives with him",
+      "group": "Plan",
+      "available": "not talking and (partialized and not measurableSet)",
+      "why": "Break the goal into steps first (or it is done).",
+      "effects": [
+        {
+          "log": "You agree objectives you can both check: call the warehouse supervisor by Friday; three job applications a week; bring the list next session.",
+          "kind": "act"
+        },
+        {
+          "set": "measurableSet",
+          "to": "true"
+        },
+        {
+          "finding": "He writes them on his phone. \"Three's doable.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "imposeGoals": {
+      "label": "Set the goals for him: no more theft, attend every session, stay out of trouble",
+      "group": "Plan",
+      "available": "not talking and (not imposed)",
+      "why": "Already set.",
+      "effects": [
+        {
+          "log": "You write the goals for him.",
+          "kind": "act"
+        },
+        {
+          "set": "imposed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Fine. Whatever you want.\""
+        },
+        {
+          "log": "Goals set for him are compliance, not commitment.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "promiseCourt": {
+      "label": "Promise him you'll tell the officer he's doing great",
+      "group": "Address",
+      "available": "not talking and (not overpromised)",
+      "why": "Already promised.",
+      "effects": [
+        {
+          "log": "You promise a good report.",
+          "kind": "act"
+        },
+        {
+          "set": "overpromised",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Cool.\""
+        },
+        {
+          "log": "A promise outside the release and outside your role: the release covers attendance only.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "contract": {
+      "label": "Write and sign the service contract together",
+      "group": "Plan",
+      "available": "not talking and ((goalFound or imposed) and not contracted)",
+      "why": "Agree goals first (or it is signed).",
+      "effects": [
+        {
+          "log": "You write the contract: the goals, the objectives, the six sessions, what the officer is told.",
+          "kind": "act"
+        },
+        {
+          "set": "contracted",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "goalFound and not imposed",
+              "then": [
+                {
+                  "set": "contractKind",
+                  "to": "\"his\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "He signs. \"First time I've signed something that's mine.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "contractKind",
+                  "to": "\"imposed\""
+                },
+                {
+                  "finding": "He signs without reading it."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reportOfficer": {
+      "label": "Send the diversion officer the session update",
+      "group": "After the session",
+      "available": "report == \"none\"",
+      "why": "Sent.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Update",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What you send",
+              "options": [
+                {
+                  "value": "attendance",
+                  "label": "Attended session 1 of 6"
+                },
+                {
+                  "value": "content",
+                  "label": "Attended; also what he told you about the layoff and the rent, and his goals"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "report",
+          "to": "what"
+        },
+        {
+          "log": "Sent: {what}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the session",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "record",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "Consent for a mandated client given and understood, release scope, his goals and the measurable objectives, the contract, the plan for session 2"
+                },
+                {
+                  "value": "brief",
+                  "label": "'Client attended, resistant'"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {record}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictStart",
+      "when": "t >= 0 and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "firstMove"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "firstMove": {
+      "title": "Predict (not scored)",
+      "context": "Andre says he is only here because he has to be. What helps engagement most at this moment?",
+      "choices": [
+        {
+          "id": "reflect",
+          "label": "Reflect it and be clear about the mandate and his choices",
+          "effects": [
+            {
+              "log": "Prediction: reflect and inform.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. TIP 35 treats discord as a two-way street: reflect it rather than argue. NASW 1.03(d) asks that involuntary clients hear the nature and extent of services and their right to refuse; being plain about what the officer will and won't hear is part of that."
+        },
+        {
+          "id": "persuade",
+          "label": "Persuade him the program is good for him",
+          "effects": [
+            {
+              "log": "Prediction: persuade.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not usually. Arguing for change is the righting reflex; TIP 35 notes it tends to draw out more reasons not to change. Reflect first, inform, and let his own reasons come."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: how you engaged Andre as a mandated client, and how the contract you reached is his.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Engaging a mandated client",
+          "criteria": "Informed consent for an involuntary client early (the nature and extent of services, his right to refuse and its consequence, what the officer is told, the limits of confidentiality: NASW 1.03(d), 1.07(e)); reflected discord and stressed autonomy instead of lecturing or labeling (TIP 35).",
+          "modelAnswer": "I named the mandate plainly in the first minutes: the six sessions are the program's condition, his officer hears only attendance under his release, he can refuse and the case would then go back to court, and what he says stays here except for serious risk (NASW 1.03(d), 1.07(e)). I reflected his 'I have to be here' instead of arguing, and stressed that what we work on is his choice."
+        },
+        {
+          "label": "A contract that is his",
+          "criteria": "Evoked his own goals, partialized them, set measurable objectives with him, signed a contract in his words, and kept the officer's update to attendance (NASW 1.07(c)).",
+          "modelAnswer": "Asked what would make the six weeks worth it, he named the warehouse job, his mother's trust and his brother. We broke that down to the job first and agreed measures: call the supervisor by Friday and three applications a week. The contract is in his words; the officer is told he attended session 1, nothing else."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 600,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Tightened from the profile's 1200 s: the mandate, the release and his right to refuse are explained within the first 10 minutes, before he is asked to disclose anything (author's scenario timing; NASW 1.07(e) asks for the limits of confidentiality 'as soon as possible')."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not contracted",
+      "class": "recovered",
+      "rationale": "He attended and nothing harmful happened, but no goals were agreed; the mandate is met on paper only.",
+      "source": {
+        "cite": "SAMHSA, TIP 35: Enhancing Motivation for Change in Substance Use Disorder Treatment (updated 2019), chapter 3, Motivational Interviewing as a Counseling Style: the four processes (engaging, focusing, evoking, planning); the spirit (partnership, acceptance, compassion, evocation); traps (expert, labeling, question-and-answer, premature focus, blaming); discord is 'a two-way street': do not argue or follow the righting reflex; reflect, and emphasize personal autonomy",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK571068/",
+        "note": "Read 2026-11-14. Written for substance use treatment; the engagement methods are used here for a mandated client in general, which is the author's application."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Andre walked out of session 1. The program will tell the court he did not engage, and the charge goes back on the docket."
+    },
+    "overshared": {
+      "label": "Told the officer more than he agreed to",
+      "class": "harm",
+      "when": "documented and not walkedOut and report == \"content\"",
+      "terminal": true,
+      "narrative": "His officer now has his account of the theft and his goals, which his release did not cover. He trusted you because you said she would hear only whether he came."
+    },
+    "compliance": {
+      "label": "A contract that is yours",
+      "class": "recovered",
+      "when": "documented and not walkedOut and contractKind == \"imposed\"",
+      "terminal": true,
+      "narrative": "Andre signed goals you wrote. He will likely attend six sessions and change nothing."
+    },
+    "engaged": {
+      "label": "Engaged, with a contract that is his",
+      "class": "target",
+      "when": "documented and not walkedOut and consentDone and timeAt(consentAt) <= safetyWindow and autonomyStressed and contractKind == \"his\" and partialized and measurableSet and not lectured and not labeled and not overpromised and report == \"attendance\" and recordDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Andre left with objectives he wrote down himself, the warehouse call by Friday, and a reason to come back that is not the court's."
+    },
+    "gaps": {
+      "label": "Engaged, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "He is coming back, but parts of the consent, the engagement or the contract were late, missing or not his."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "overshared",
+    "compliance",
+    "engaged",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "consentCrit",
+        "label": "Informed consent for a mandated client, in the first 10 minutes (NASW 1.03(d))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "consentDone and timeAt(consentAt) <= safetyWindow",
+            "score": "met",
+            "why": "Explained {timeAt(consentAt) / 60} min in."
+          },
+          {
+            "when": "consentDone",
+            "score": "partial",
+            "why": "Explained, but only {timeAt(consentAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never explained what the officer hears or his right to refuse."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "noTraps",
+        "label": "Met discord without arguing, lecturing or labeling (TIP 35)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not lectured and not labeled and autonomyStressed",
+            "score": "met",
+            "why": "Reflected and stressed his choice."
+          },
+          {
+            "when": "not lectured and not labeled",
+            "score": "partial",
+            "why": "No traps, but his choice never named."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{lectured ? \"Lectured\" : \"Labeled\"} him."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "contractCrit",
+        "label": "A contract of his own goals, partialized and measurable",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "contractKind == \"his\" and partialized and measurableSet",
+            "score": "met",
+            "why": "His goals, broken down and measurable."
+          },
+          {
+            "when": "contractKind == \"his\"",
+            "score": "partial",
+            "why": "His goals, not yet measurable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{contractKind == \"imposed\" ? \"Goals set for him\" : \"No contract\"}."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "releaseCrit",
+        "label": "The officer told only what the release covers",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "report == \"attendance\" and not overpromised",
+            "score": "met",
+            "why": "Attendance only."
+          },
+          {
+            "when": "report == \"attendance\"",
+            "score": "partial",
+            "why": "Attendance only, but you promised a good report."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Session content sent beyond the release, or nothing sent."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "recordCrit",
+        "label": "Documented consent, goals and contract",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "recordDoc == \"full\"",
+            "score": "met",
+            "why": "Consent, release scope, goals, objectives, contract."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A line, not a record."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToConsent",
+        "label": "Minutes to explaining the mandate and his choices",
+        "value": "isNull(consentAt) ? -1 : timeAt(consentAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Reflect 'I have to be here'; explain the mandate, the release, his right to refuse and the limits of confidentiality."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Stress that what you work on is his choice; hear what happened; ask what would make the six weeks worth it."
+      },
+      {
+        "at": "20-40 min",
+        "text": "Partialize his goal, set measurable objectives with him, sign the contract in his words."
+      },
+      {
+        "at": "After",
+        "text": "Tell the officer he attended; document consent, goals and the contract."
+      }
+    ],
+    "debrief": {
+      "engaged": {
+        "headline": "Good: engaged, and the contract is his",
+        "body": "You were plain about the mandate and his choices, met discord with reflection, evoked his own goals and turned them into measurable objectives."
+      },
+      "gaps": {
+        "headline": "Engaged, with gaps",
+        "body": "He will come back, but the criteria below show what was late, missing or not his."
+      },
+      "compliance": {
+        "headline": "Compliance, not commitment",
+        "body": "Goals written for a mandated client get signatures, not change. Evoke his reasons, then partialize and measure them with him."
+      },
+      "overshared": {
+        "headline": "Beyond the release",
+        "body": "His release covers attendance and completion. Session content is confidential (NASW 1.07(c)); the officer gets what he agreed to, no more."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Arguing with a mandated client's 'I have to be here' makes it stronger (TIP 35). Reflect it, inform him, and give him a choice inside the mandate."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "With a mandated client, engagement starts with honesty about the mandate: what the program requires, what the officer hears under his release, his right to refuse and its consequence, the limits of confidentiality (NASW 1.03(d), 1.07(e)). Meet 'I have to be here' with reflection, not argument or labels, and give him a real choice inside the mandate. Evoke his own goals, partialize them, set measurable objectives with him, and write the contract in his words; the officer hears attendance only."
+  }
+}

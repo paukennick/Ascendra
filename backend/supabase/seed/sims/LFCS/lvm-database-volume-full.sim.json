@@ -1,0 +1,1202 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "lvm-database-volume-full",
+  "title": "Outage risk: the database volume is 97% full",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "db2:~#",
+      "lines": [
+        {
+          "id": "alert",
+          "text": "10:05 monitoring: /var/lib/pgsql on db2 at 97% (820M free)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "importFail",
+          "text": "10:30 orchard-import: could not extend file: No space left on device",
+          "when": "not isNull(importFailAt)",
+          "at": "timeAt(importFailAt)",
+          "error": "true"
+        },
+        {
+          "id": "grownLine",
+          "text": "monitoring: /var/lib/pgsql on db2 at 39%",
+          "when": "grown",
+          "at": "timeAt(fsGrownAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "fs",
+          "label": "/var/lib/pgsql",
+          "spokenLabel": "the database filesystem",
+          "kind": "XFS on vg_data/lv_pg",
+          "status": "{grown ? \"50G, 39% used\" : not isNull(lvGrownAt) ? \"20G filesystem on a 50G volume, 97% used\" : \"20G, 97% used\"}",
+          "tone": "grown ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "vg",
+          "label": "vg_data",
+          "spokenLabel": "the volume group vg_data",
+          "kind": "LVM volume group",
+          "status": "{wipedPv ? \"Metadata on /dev/vdb overwritten\" : vgExtended ? \"Two PVs (vdb, vdc)\" : \"One PV (vdb), no free space\"}",
+          "tone": "wipedPv ? \"down\" : vgExtended ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "vdc",
+          "label": "/dev/vdc",
+          "spokenLabel": "the new 50 gigabyte disk",
+          "kind": "New disk",
+          "status": "{vgExtended ? \"In vg_data\" : pvNew ? \"Physical volume, not in a group\" : \"Empty\"}",
+          "tone": "vgExtended ? \"up\" : \"out\""
+        },
+        {
+          "id": "import",
+          "label": "orchard-import 10:30",
+          "spokenLabel": "the 10:30 import job",
+          "kind": "Scheduled job",
+          "status": "{not isNull(importFailAt) ? \"Failed: no space\" : grown ? \"Will have room\" : \"Needs about 2G at 10:30\"}",
+          "tone": "not isNull(importFailAt) ? \"down\" : grown ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "pvlink",
+          "from": "vdc",
+          "to": "vg",
+          "label": "Physical volume in the group",
+          "status": "{vgExtended ? \"Added\" : \"Not added\"}",
+          "tone": "vgExtended ? \"up\" : \"out\""
+        },
+        {
+          "id": "write",
+          "from": "import",
+          "to": "fs",
+          "label": "Import writes",
+          "status": "{grown ? \"Room to write\" : \"Will run out of space\"}",
+          "tone": "grown ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "use",
+          "label": "/var/lib/pgsql use",
+          "value": "{grown ? \"39%\" : \"97%\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Create and extend LVM physical volumes, volume groups and logical volumes, growing the filesystem with them",
+  "secondaryObjectives": [
+    "Troubleshoot disk space problems, including deleted files still held open and inode exhaustion",
+    "Create, check and repair ext4 and XFS filesystems and troubleshoot mount failures",
+    "Monitor storage performance with iostat, iotop and df, and identify a saturated device"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Storage 20%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Storage, 'Configure and manage LVM storage'; 'Create, manage, and troubleshoot filesystems'; Essential Commands, 'Troubleshoot diskspace issues'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "vgextend(8) and pvcreate(8) (lvm2, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/vgextend.8.html",
+      "note": "Relevant text: vgextend: 'If the specified PVs have not yet been initialized with pvcreate, vgextend will initialize them.' pvcreate(8): 'Repeating the force option (-ff) will forcibly create a PV, overriding checks that normally prevent it, e.g. if the PV is already in a VG.' Read in full 2026-11-14."
+    },
+    {
+      "cite": "lvextend(8) (lvm2, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/lvextend.8.html",
+      "note": "Relevant text: 'lvextend extends the size of an LV. This requires allocating logical extents from the VG's free physical extents.' -r|--resizefs: 'Resize underlying filesystem together with the LV using fsadm(8).' Read in full 2026-11-14."
+    },
+    {
+      "cite": "xfs_growfs(8) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/xfs_growfs.8.html",
+      "note": "Relevant text: 'The filesystem must be mounted to be grown'; shrinking is limited ('Only shrinking the last AG without removing it is implemented'). Read in full 2026-11-14. That resize2fs refuses an XFS filesystem follows from resize2fs being the ext2/3/4 resizer; its exact error text is authored."
+    }
+  ],
+  "brief": {
+    "situation": "You administer db2, the PostgreSQL server at Okanogan Orchards (fictional). Monitoring says /var/lib/pgsql is 97% full. At 10:30 the nightly orchard-import job loads about 2G of harvest data, which will not fit. The cloud team attached a new 50G disk an hour ago. Give the database room without stopping it and without risking the data already there.",
+    "handover": [
+      "/var/lib/pgsql is an XFS filesystem on the logical volume vg_data/lv_pg.",
+      "The database must stay up; nobody wants a maintenance window today."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "importDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The import starts at 10:30, 25 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "dfAt": {
+      "type": "time",
+      "init": null
+    },
+    "vgsAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsblkAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pvNew": {
+      "type": "bool",
+      "init": false
+    },
+    "vgExtended": {
+      "type": "bool",
+      "init": false
+    },
+    "lvGrownAt": {
+      "type": "time",
+      "init": null
+    },
+    "fsGrownAt": {
+      "type": "time",
+      "init": null
+    },
+    "oneStep": {
+      "type": "bool",
+      "init": false
+    },
+    "wipedPv": {
+      "type": "bool",
+      "init": false
+    },
+    "wrongTool": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "importFailAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "disk",
+        "db"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "grow",
+        "lvonly",
+        "newpv"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "grown": {
+      "expr": "not isNull(fsGrownAt) and not wipedPv"
+    },
+    "faultsAdded": {
+      "expr": "wipedPv ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage risk",
+      "clock": "turns",
+      "actions": [
+        "df",
+        "vgs",
+        "lsblk",
+        "pvcreateNew",
+        "pvcreateForce",
+        "vgextend",
+        "lvextendR",
+        "lvextend",
+        "xfsGrowfs",
+        "resize2fs",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "df": {
+      "label": "df -h /var/lib/pgsql",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "dfAt",
+          "to": "t"
+        },
+        {
+          "output": "db2:~# df -h /var/lib/pgsql\nFilesystem                  Size  Used Avail Use% Mounted on\n/dev/mapper/vg_data-lv_pg  {isNull(fsGrownAt) ? \" 20G   20G  820M  97%\" : \" 50G   20G   31G  39%\"} /var/lib/pgsql"
+        },
+        {
+          "if": "not isNull(fsGrownAt) and isNull(verifiedAt) and not wipedPv",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vgs": {
+      "label": "vgs vg_data",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "vgsAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(lsblkAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "db2:~# vgs vg_data\n  VG      #PV #LV #SN Attr   VSize   VFree\n  vg_data {vgExtended ? \"  2\" : \"  1\"}   1   0 wz--n- {vgExtended ? \"<70.00g\" : \"<20.00g\"} {isNull(lvGrownAt) ? (vgExtended ? \"<50.00g\" : \"    0 \") : \"<20.00g\"}"
+        },
+        {
+          "if": "not vgExtended",
+          "then": [
+            {
+              "finding": "vg_data has no free space: the logical volume cannot grow until the volume group gets another physical volume."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsblk": {
+      "label": "lsblk",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "lsblkAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(vgsAt)",
+          "then": [
+            {
+              "if": "isNull(evidenceAt)",
+              "then": [
+                {
+                  "set": "evidenceAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "db2:~# lsblk\nNAME             MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS\nvda              252:0    0   30G  0 disk\n└─vda1           252:1    0   30G  0 part /\nvdb              252:16   0   20G  0 disk\n└─vg_data-lv_pg  253:0    0   20G  0 lvm  /var/lib/pgsql\nvdc              252:32   0   50G  0 disk"
+        },
+        {
+          "finding": "vdc is the new, empty 50G disk; vdb already holds vg_data."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pvcreateNew": {
+      "label": "pvcreate /dev/vdc",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pvNew",
+          "to": "true"
+        },
+        {
+          "output": "db2:~# pvcreate /dev/vdc\n  Physical volume \"/dev/vdc\" successfully created."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pvcreateForce": {
+      "label": "pvcreate -ff -y /dev/vdb",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "wipedPv",
+          "to": "true"
+        },
+        {
+          "output": "db2:~# pvcreate -ff -y /dev/vdb\n  WARNING: PV /dev/vdb is used by VG vg_data.\n  WARNING: Forced pvcreate on PV /dev/vdb.\n  Physical volume \"/dev/vdb\" successfully created."
+        },
+        {
+          "log": "A new, empty PV label was written over /dev/vdb, the disk that holds vg_data: the volume group's metadata on it is gone. The mounted filesystem keeps working until the next reboot or deactivation.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vgextend": {
+      "label": "vgextend vg_data /dev/vdc",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "wipedPv",
+          "then": [
+            {
+              "output": "db2:~# vgextend vg_data /dev/vdc\n  Volume group \"vg_data\" not found\n  Cannot process volume group vg_data"
+            }
+          ],
+          "else": [
+            {
+              "set": "vgExtended",
+              "to": "true"
+            },
+            {
+              "set": "pvNew",
+              "to": "true"
+            },
+            {
+              "output": "db2:~# vgextend vg_data /dev/vdc\n  Volume group \"vg_data\" successfully extended"
+            },
+            {
+              "log": "vg_data now has /dev/vdc's 50G free.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lvextendR": {
+      "label": "lvextend -r -L +30G vg_data/lv_pg",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "vgExtended and isNull(lvGrownAt)",
+          "then": [
+            {
+              "set": "lvGrownAt",
+              "to": "t"
+            },
+            {
+              "set": "fsGrownAt",
+              "to": "t"
+            },
+            {
+              "set": "oneStep",
+              "to": "true"
+            },
+            {
+              "output": "db2:~# lvextend -r -L +30G vg_data/lv_pg\n  Size of logical volume vg_data/lv_pg changed from <20.00 GiB to <50.00 GiB.\n  Logical volume vg_data/lv_pg successfully resized.\ndata blocks changed from 5242880 to 13107200"
+            },
+            {
+              "log": "The logical volume and its XFS filesystem grew together, online.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "output": "db2:~# lvextend -r -L +30G vg_data/lv_pg\n  Insufficient free space: 7680 extents needed, but only {vgExtended ? \"5119\" : \"0\"} available"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lvextend": {
+      "label": "lvextend -L +30G vg_data/lv_pg",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "vgExtended and isNull(lvGrownAt)",
+          "then": [
+            {
+              "set": "lvGrownAt",
+              "to": "t"
+            },
+            {
+              "output": "db2:~# lvextend -L +30G vg_data/lv_pg\n  Size of logical volume vg_data/lv_pg changed from <20.00 GiB to <50.00 GiB.\n  Logical volume vg_data/lv_pg successfully resized."
+            },
+            {
+              "log": "The logical volume is 50G, but the XFS filesystem on it is still 20G until it is grown too.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "output": "db2:~# lvextend -L +30G vg_data/lv_pg\n  Insufficient free space: 7680 extents needed, but only {vgExtended ? \"5119\" : \"0\"} available"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "xfsGrowfs": {
+      "label": "xfs_growfs /var/lib/pgsql",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(lvGrownAt) and isNull(fsGrownAt)",
+          "then": [
+            {
+              "set": "fsGrownAt",
+              "to": "t"
+            },
+            {
+              "output": "db2:~# xfs_growfs /var/lib/pgsql\ndata blocks changed from 5242880 to 13107200"
+            },
+            {
+              "log": "The XFS filesystem now fills the 50G logical volume.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "output": "db2:~# xfs_growfs /var/lib/pgsql\ndata size unchanged, skipping"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "resize2fs": {
+      "label": "resize2fs /dev/vg_data/lv_pg",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "wrongTool",
+          "by": "1"
+        },
+        {
+          "output": "db2:~# resize2fs /dev/vg_data/lv_pg\nresize2fs: Bad magic number in super-block while trying to open /dev/vg_data/lv_pg"
+        },
+        {
+          "log": "resize2fs is for ext2/3/4; this filesystem is XFS.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "db2:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "The 20G volume for /var/lib/pgsql filled up as the database grew; vg_data had no free space"
+                },
+                {
+                  "value": "disk",
+                  "label": "A failing disk"
+                },
+                {
+                  "value": "db",
+                  "label": "A runaway database query"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "grow",
+                  "label": "Added /dev/vdc to vg_data and grew the logical volume and its XFS filesystem online"
+                },
+                {
+                  "value": "lvonly",
+                  "label": "Extended the logical volume"
+                },
+                {
+                  "value": "newpv",
+                  "label": "Recreated the physical volume"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "import",
+      "when": "t >= importDelay and phase == \"incident\" and not grown",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "importFailAt",
+          "to": "t"
+        },
+        {
+          "log": "10:30: orchard-import failed with No space left on device.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the change record: why the volume could not simply be extended, what you did in which order, and how you know the database has room now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Says the 20G filesystem was nearly full and vg_data had no free extents, so lvextend alone had nothing to allocate; the new disk had to join the volume group first.",
+          "modelAnswer": "vgs showed vg_data with 0 free, so there were no extents to give the logical volume. The new 50G disk /dev/vdc had to become a physical volume in vg_data first."
+        },
+        {
+          "label": "Steps",
+          "criteria": "pvcreate (optional) and vgextend with /dev/vdc, then lvextend -r (or lvextend then xfs_growfs on the mount point); never pvcreate on /dev/vdb, never resize2fs on XFS; all online.",
+          "modelAnswer": "pvcreate /dev/vdc, vgextend vg_data /dev/vdc, lvextend -r -L +30G vg_data/lv_pg, which grew the XFS filesystem with the volume while mounted. /dev/vdb was never touched."
+        },
+        {
+          "label": "Proof",
+          "criteria": "Shows df -h /var/lib/pgsql with the new size (and vgs/lvs), not only the lvextend message.",
+          "modelAnswer": "df -h now shows 50G with 39% used, so the 10:30 import's 2G fits."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Grown with time to spare before the 10:30 import; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the in-use physical volume relabeled."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not grown",
+      "class": "harm",
+      "rationale": "Closing with the filesystem still 97% full leaves the 10:30 import to fail; it is never a safe outcome.",
+      "source": {
+        "cite": "lvextend(8) (lvm2, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man8/lvextend.8.html",
+        "note": "Relevant text: 'lvextend extends the size of an LV. This requires allocating logical extents from the VG's free physical extents.' -r|--resizefs: 'Resize underlying filesystem together with the LV using fsadm(8).' Read in full 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "metadataWiped": {
+      "label": "Overwrote the volume group's disk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and wipedPv",
+      "narrative": "pvcreate -ff wrote a new label over /dev/vdb, which held vg_data. The database runs for now, but the volume group will not come back at the next reboot without a metadata restore."
+    },
+    "importFailed": {
+      "label": "The 10:30 import ran out of space",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(importFailAt)",
+      "narrative": "orchard-import failed with No space left on device at 10:30."
+    },
+    "stillFull": {
+      "label": "Closed with the volume still full",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not grown",
+      "narrative": "The filesystem was still 20G and 97% full when the change was closed."
+    },
+    "fixed": {
+      "label": "Grown online, in order",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and grown and timeAt(fsGrownAt) <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and not isNull(verifiedAt)",
+      "narrative": "The new disk joined vg_data, the volume and its XFS filesystem grew while mounted, and df proves the room."
+    },
+    "fixedGaps": {
+      "label": "Room made, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The database has room, but the change was late, guessed, unverified, or tried the wrong tool on the way."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no change record."
+    }
+  },
+  "endingOrder": [
+    "metadataWiped",
+    "importFailed",
+    "stillFull",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Checked the volume group's free space and found the new disk before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "vgs and lsblk were read first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked vgs and lsblk together."
+          }
+        ]
+      },
+      {
+        "id": "safeDisk",
+        "label": "Left the in-use disk /dev/vdb alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wipedPv",
+            "score": "missed",
+            "why": "pvcreate -ff relabeled /dev/vdb."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Only the new disk was initialized."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Grew the filesystem within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "grown and timeAt(fsGrownAt) <= restoreWindow",
+            "score": "met",
+            "why": "Grown {timeAt(fsGrownAt) / 60|0dp} min in."
+          },
+          {
+            "when": "grown",
+            "score": "partial",
+            "why": "Grown, but {timeAt(fsGrownAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The filesystem never grew."
+          }
+        ]
+      },
+      {
+        "id": "fsToo",
+        "label": "Grew the filesystem with the volume (lvextend -r, or xfs_growfs after)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "oneStep",
+            "score": "met",
+            "why": "lvextend -r grew both at once."
+          },
+          {
+            "when": "grown",
+            "score": "partial",
+            "why": "The filesystem needed a separate xfs_growfs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The filesystem was not grown."
+          }
+        ]
+      },
+      {
+        "id": "rightTool",
+        "label": "Used the XFS tools on an XFS filesystem",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "wrongTool == 0",
+            "score": "met",
+            "why": "No ext4 tools were tried."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "resize2fs was run on XFS."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the new size with df",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "df showed 50G."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the filesystem's size."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the change accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"full\" and fixDoc == \"grow\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"full\"",
+            "score": "partial",
+            "why": "The cause is right; the change recorded is incomplete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, steps and proof",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRoom",
+        "label": "Minutes until the filesystem grew",
+        "value": "grown ? timeAt(fsGrownAt) / 60 : -1",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Damage left at close",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "wrongK",
+        "label": "Wrong-tool attempts",
+        "value": "wrongTool",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "df -h /var/lib/pgsql (97%), vgs vg_data (0 free), lsblk (vdc is the new empty disk)."
+      },
+      {
+        "at": "3-6 min",
+        "text": "pvcreate /dev/vdc and vgextend vg_data /dev/vdc."
+      },
+      {
+        "at": "6-9 min",
+        "text": "lvextend -r -L +30G vg_data/lv_pg grows the volume and the XFS filesystem online."
+      },
+      {
+        "at": "9-10 min",
+        "text": "df -h /var/lib/pgsql shows 50G; record the change and an alert threshold for next time."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: grown online, in order",
+        "body": "You checked where the space could come from, added only the new disk, and grew the volume and filesystem together without stopping the database."
+      },
+      "fixedGaps": {
+        "headline": "Room made, with gaps",
+        "body": "The database has room. The criteria show what it cost: time, a change before the evidence, a second step, or the wrong tool tried first."
+      },
+      "metadataWiped": {
+        "headline": "The volume group's disk was relabeled",
+        "body": "-ff overrides the check that /dev/vdb is already in a VG. Only the empty disk (lsblk shows vdc with nothing on it) should be initialized."
+      },
+      "importFailed": {
+        "headline": "The import ran out of space",
+        "body": "vgs and lsblk show in two minutes that the space must come from vdc; the whole change takes about ten."
+      },
+      "stillFull": {
+        "headline": "Closed too soon",
+        "body": "Check df before you close: an extended logical volume is not a bigger filesystem until the filesystem grows too."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A full filesystem on LVM with no free extents in the volume group needs a new physical volume first. Confirm with df, vgs and lsblk; pvcreate /dev/vdc and vgextend vg_data /dev/vdc; then lvextend -r -L +30G vg_data/lv_pg so the XFS filesystem grows with the volume while mounted; prove it with df. Never touch the disk already in the group, and use xfs_growfs, not resize2fs, for XFS."
+  }
+}

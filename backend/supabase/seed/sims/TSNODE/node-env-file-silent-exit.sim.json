@@ -1,0 +1,1288 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "node-env-file-silent-exit",
+  "title": "After a deploy, order emails stopped and nothing alarmed",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@app02:~#",
+      "lines": [
+        {
+          "id": "ticket",
+          "text": "14:30 support: three customers say they never got an order confirmation since about 14:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "deploy",
+          "text": "14:02 deploy: notifier 3.8.0 released; config files moved to /etc/notifier",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "loop",
+          "text": "notifier[5120]: started; SMTP connection open; sending queued emails",
+          "when": "running",
+          "at": "timeAt(upAt)"
+        },
+        {
+          "id": "expire",
+          "text": "queue: order emails older than 60 minutes are expiring unsent",
+          "when": "not isNull(expiredAt)",
+          "at": "timeAt(expiredAt)",
+          "error": "true"
+        },
+        {
+          "id": "purged",
+          "text": "queue: 1,840 messages deleted",
+          "when": "purged",
+          "at": "timeAt(purgedAt)",
+          "error": "true"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "svc",
+          "label": "notifier.service",
+          "spokenLabel": "the notifier service",
+          "kind": "Node.js 26 service (systemd)",
+          "status": "{running ? \"Running\" : \"Inactive (dead): exited with status 0\"}",
+          "tone": "running ? \"up\" : \"down\""
+        },
+        {
+          "id": "envf",
+          "label": "/etc/notifier/notifier.env",
+          "spokenLabel": "the notifier environment file",
+          "kind": "Config file (SMTP_URL and others)",
+          "status": "{unitFixed ? \"Loaded with --env-file\" : \"Present, but the unit points at /etc/notifier/env\"}",
+          "tone": "unitFixed ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "q",
+          "label": "email queue",
+          "spokenLabel": "the email queue",
+          "kind": "Queue (60-minute message lifetime)",
+          "status": "{purged ? \"Emptied by hand\" : running ? \"Draining\" : \"Backing up since 14:02\"}",
+          "tone": "purged ? \"down\" : running ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "smtp",
+          "label": "smtp relay",
+          "spokenLabel": "the SMTP relay",
+          "kind": "Mail relay",
+          "status": "Accepting mail",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "cfg",
+          "from": "svc",
+          "to": "envf",
+          "label": "Configuration",
+          "status": "{unitFixed ? \"Loaded\" : \"Not loaded (file name changed)\"}",
+          "tone": "unitFixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "consume",
+          "from": "svc",
+          "to": "q",
+          "label": "Consumer",
+          "status": "{running ? \"Consuming\" : \"No consumer\"}",
+          "tone": "running ? \"up\" : \"down\""
+        },
+        {
+          "id": "send",
+          "from": "svc",
+          "to": "smtp",
+          "label": "SMTP",
+          "status": "{running ? \"Sending\" : \"Idle\"}",
+          "tone": "running ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "depth",
+          "label": "Emails waiting",
+          "value": "{purged ? 0 : running ? 0 : 1840|0dp}"
+        },
+        {
+          "id": "restarts",
+          "label": "Restarts that exited at once",
+          "value": "{silentRestarts|0dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Read configuration from process.env and --env-file, and exit with a meaningful code on failure",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Node.js v26.13.1 API, Command-line options: --env-file and --env-file-if-exists",
+      "checkedAt": "2026-11-14",
+      "url": "https://nodejs.org/api/cli.html",
+      "note": "Relevant text: --env-file 'Loads environment variables from a file ... making them available to applications on process.env'; 'If the same variable is defined in the environment and in the file, the value from the environment takes precedence'; 'An error is thrown if the file does not exist.' --env-file-if-exists: 'Behavior is the same as --env-file, but an error is not thrown if the file does not exist.' Both 'no longer experimental' since v24.10.0 and v22.21.0. Read through a summarizing fetch on 2026-11-14 (the first 100,000 characters, which held both sections)."
+    },
+    {
+      "cite": "Node.js v26.13.1 API, process: process.exit() and process.exitCode",
+      "checkedAt": "2026-11-14",
+      "url": "https://nodejs.org/api/process.html",
+      "note": "Relevant text: process.exit(): 'If code is omitted, exit uses either the 'success' code 0 or the value of process.exitCode if it has been set'; 'Rather than calling process.exit() directly, the code should set the process.exitCode and allow the process to exit naturally'; an uncaught exception exits 'with code 1' by default. Read through a summarizing fetch on 2026-11-14 (the first 100,000 characters; the Exit codes section was not reached)."
+    },
+    {
+      "cite": "systemd 262, systemd.service(5): Restart=",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html",
+      "note": "Relevant text: 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', is terminated by a signal, or times out; in the page's table a 'Clean exit code or signal' restarts only under always and on-success. Read through a summarizing fetch on 2026-11-14. Why a service that exits 0 on a missing setting is not restarted and is not reported as failed. The journal and systemctl output in the scenario are authored renderings in the tools' style."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call engineer at Fernhill Books, a fictional online bookshop. The notifier service, a Node.js 26 LTS program run by systemd, sends order confirmation emails from a queue. Release 3.8.0 went out at 14:02. At 14:30 support reports missing confirmations, yet no alert fired. Queued emails expire after 60 minutes, so the oldest start to expire at 15:02. Find out why the service is not sending, get it sending again without losing mail, and make sure the next failure of this kind is loud.",
+    "handover": [
+      "notifier reads SMTP_URL and other settings from process.env. The release also renamed its environment file.",
+      "Monitoring alerts when a systemd unit is in the failed state; the unit has Restart=on-failure."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows each host, service or job and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "expireDelay": {
+      "value": 1920,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The queue's 60-minute message lifetime makes the 14:02 emails expire at 15:02, 32 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "unitAt": {
+      "type": "time",
+      "init": null
+    },
+    "lsAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "unitEdited": {
+      "type": "enum",
+      "values": [
+        "none",
+        "envFile",
+        "ifExists"
+      ],
+      "init": "none"
+    },
+    "reloaded": {
+      "type": "bool",
+      "init": false
+    },
+    "unitFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "exitFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "silentRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "purged": {
+      "type": "bool",
+      "init": false
+    },
+    "purgedAt": {
+      "type": "time",
+      "init": null
+    },
+    "expiredAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "envName",
+        "smtpDown",
+        "nodeBug"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "loud",
+        "restartAlways",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "unitFixed": {
+      "expr": "unitEdited == \"envFile\" and reloaded"
+    },
+    "running": {
+      "expr": "not isNull(upAt)"
+    },
+    "loud": {
+      "expr": "unitFixed or not isNull(exitFixedAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "journal",
+        "catUnit",
+        "lsEtc",
+        "grepCode",
+        "restart",
+        "editEnvFile",
+        "editIfExists",
+        "reload",
+        "patchExit",
+        "purgeQueue",
+        "depth",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "systemctl status notifier",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app02:~# systemctl status notifier\n● notifier.service - Fernhill order notifier\n     Loaded: loaded (/etc/systemd/system/notifier.service; enabled)\n     Active: {running ? \"active (running)\" : \"inactive (dead)\"}\n    Process: {running ? \"5120 ExecStart=/usr/bin/node ... (running)\" : \"4987 ExecStart=/usr/bin/node ... (code=exited, status=0/SUCCESS)\"}"
+        },
+        {
+          "if": "not running",
+          "then": [
+            {
+              "finding": "The service is not running, but it exited with status 0 (success): systemd's on-failure policy does not restart a clean exit, and the unit is not in the failed state monitoring watches."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "journal": {
+      "label": "journalctl -u notifier -n 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(journalAt)",
+          "then": [
+            {
+              "set": "journalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app02:~# journalctl -u notifier -n 20\n14:02:31 app02 systemd[1]: Started notifier.service - Fernhill order notifier.\n14:02:31 app02 node[4987]: config: SMTP_URL is not set; nothing to send with\n14:02:31 app02 systemd[1]: notifier.service: Deactivated successfully."
+        },
+        {
+          "finding": "The program started, found no SMTP_URL in process.env, and exited at once without an error code."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "catUnit": {
+      "label": "systemctl cat notifier",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(unitAt)",
+          "then": [
+            {
+              "set": "unitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app02:~# systemctl cat notifier\n# /etc/systemd/system/notifier.service\n[Service]\nExecStart=/usr/bin/node {unitEdited == \"envFile\" ? \"--env-file=/etc/notifier/notifier.env\" : unitEdited == \"ifExists\" ? \"--env-file-if-exists=/etc/notifier/notifier.env\" : \"--env-file-if-exists=/etc/notifier/env\"} /srv/notifier/src/main.ts\nRestart=on-failure\nUser=notifier"
+        },
+        {
+          "if": "unitEdited == \"none\"",
+          "then": [
+            {
+              "finding": "The unit loads /etc/notifier/env with --env-file-if-exists, which says nothing when the file is missing."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsEtc": {
+      "label": "ls -l /etc/notifier",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(lsAt)",
+          "then": [
+            {
+              "set": "lsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app02:~# ls -l /etc/notifier\ntotal 4\n-rw-r----- 1 root notifier 212 Nov 14 14:01 notifier.env"
+        },
+        {
+          "finding": "There is no file called env: the release renamed it notifier.env. The settings exist; the service never loads them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "grepCode": {
+      "label": "grep -n SMTP_URL /srv/notifier/src/config.ts",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codeAt)",
+          "then": [
+            {
+              "set": "codeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "isNull(exitFixedAt)",
+              "then": [
+                {
+                  "output": "root@app02:~# grep -n SMTP_URL /srv/notifier/src/config.ts\n14:  const smtpUrl = process.env.SMTP_URL;\n15:  if (!smtpUrl) console.log('config: SMTP_URL is not set; nothing to send with');\n16:  if (!smtpUrl) process.exit();"
+                },
+                {
+                  "finding": "process.exit() with no code exits 0: a missing required setting is reported to systemd as success."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "root@app02:~# grep -n SMTP_URL /srv/notifier/src/config.ts\n14:  const smtpUrl = process.env.SMTP_URL;\n15:  if (!smtpUrl) throw new Error('config: SMTP_URL is not set');"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "systemctl restart notifier",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "running",
+              "then": [
+                {
+                  "log": "notifier restarted.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "unitEdited != \"none\" and not reloaded",
+              "then": [
+                {
+                  "output": "root@app02:~# systemctl restart notifier\nWarning: The unit file, source configuration file or drop-ins of notifier.service changed on disk. Run 'systemctl daemon-reload' to reload units."
+                },
+                {
+                  "add": "silentRestarts",
+                  "by": "1"
+                },
+                {
+                  "log": "systemd ran the old unit definition: notifier started and exited with status 0 again.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "unitEdited == \"none\"",
+              "then": [
+                {
+                  "add": "silentRestarts",
+                  "by": "1"
+                },
+                {
+                  "log": "notifier started and exited with status 0 a moment later. Nothing changed.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "unitEdited == \"ifExists\"",
+              "then": [
+                {
+                  "set": "upAt",
+                  "to": "t"
+                },
+                {
+                  "log": "notifier started with the renamed file and is sending queued email.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "upAt",
+                  "to": "t"
+                },
+                {
+                  "log": "notifier started with --env-file and is sending queued email.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editEnvFile": {
+      "label": "sed -i 's|--env-file-if-exists=/etc/notifier/env|--env-file=/etc/notifier/notifier.env|' /etc/systemd/system/notifier.service",
+      "group": "Fix",
+      "available": "not busy and unitEdited == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "unitEdited",
+          "to": "\"envFile\""
+        },
+        {
+          "set": "reloaded",
+          "to": "false"
+        },
+        {
+          "log": "The unit now loads notifier.env with --env-file, which fails at startup if the file is missing.",
+          "kind": "act"
+        },
+        {
+          "output": "root@app02:~# sed -i 's|--env-file-if-exists=/etc/notifier/env|--env-file=/etc/notifier/notifier.env|' /etc/systemd/system/notifier.service"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editIfExists": {
+      "label": "sed -i 's|/etc/notifier/env|/etc/notifier/notifier.env|' /etc/systemd/system/notifier.service",
+      "group": "Fix",
+      "available": "not busy and unitEdited == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "unitEdited",
+          "to": "\"ifExists\""
+        },
+        {
+          "set": "reloaded",
+          "to": "false"
+        },
+        {
+          "log": "The unit points at the new file name, still with --env-file-if-exists.",
+          "kind": "act"
+        },
+        {
+          "output": "root@app02:~# sed -i 's|/etc/notifier/env|/etc/notifier/notifier.env|' /etc/systemd/system/notifier.service"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "systemctl daemon-reload",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "reloaded",
+          "to": "true"
+        },
+        {
+          "if": "unitEdited == \"envFile\"",
+          "then": [
+            {
+              "if": "isNull(unitFixedAt)",
+              "then": [
+                {
+                  "set": "unitFixedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "root@app02:~# systemctl daemon-reload"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "patchExit": {
+      "label": "deploy notifier 3.8.1 (config.ts throws on a missing setting, so Node.js exits with code 1)",
+      "group": "Fix",
+      "available": "not busy and isNull(exitFixedAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "exitFixedAt",
+          "to": "t"
+        },
+        {
+          "log": "3.8.1 deployed: a missing required setting now exits with code 1, so systemd marks the unit failed and monitoring alerts.",
+          "kind": "act"
+        },
+        {
+          "output": "root@app02:~# deploy notifier 3.8.1 (config.ts throws on a missing setting, so Node.js exits with code 1)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "purgeQueue": {
+      "label": "node /srv/notifier/scripts/queue.ts purge",
+      "group": "Fix",
+      "available": "not busy and not purged",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "purged",
+          "to": "true"
+        },
+        {
+          "if": "isNull(purgedAt)",
+          "then": [
+            {
+              "set": "purgedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "1,840 order confirmations are deleted unsent.",
+          "kind": "alarm"
+        },
+        {
+          "output": "root@app02:~# node /srv/notifier/scripts/queue.ts purge\npurged 1840 messages"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "depth": {
+      "label": "node /srv/notifier/scripts/queue.ts depth",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app02:~# node /srv/notifier/scripts/queue.ts depth\n{purged ? \"0 waiting (purged)\" : running ? \"0 waiting; 1840 sent since start\" : \"1840 waiting; oldest 14:02:35\"}"
+        },
+        {
+          "if": "running and not purged and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@app02:~# sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "envName",
+                  "label": "The release renamed the env file; --env-file-if-exists skipped it silently and the code exited 0 on the missing SMTP_URL"
+                },
+                {
+                  "value": "smtpDown",
+                  "label": "The SMTP relay was down"
+                },
+                {
+                  "value": "nodeBug",
+                  "label": "A Node.js 26 bug in process.env"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "loud",
+                  "label": "Load required config with --env-file and exit non-zero on a missing setting so systemd and monitoring see the failure"
+                },
+                {
+                  "value": "restartAlways",
+                  "label": "Set Restart=always"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "expire",
+      "when": "t >= expireDelay and phase == \"incident\" and not running and not purged",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "expiredAt",
+          "to": "t"
+        },
+        {
+          "log": "15:02: the first queued order confirmations reach their 60-minute lifetime and expire unsent.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why the service stopped without any alert, how you got mail flowing without losing any, and what makes the next missing setting loud.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it was silent",
+          "criteria": "Explains that --env-file-if-exists skips a missing file without error, so SMTP_URL was absent from process.env, and that process.exit() with no code exits 0, which Restart=on-failure does not restart and monitoring of failed units does not see.",
+          "modelAnswer": "The release renamed the env file. The unit used --env-file-if-exists=/etc/notifier/env, which quietly loads nothing when the file is missing, so process.env.SMTP_URL was undefined. config.ts then called process.exit() with no code, which is exit 0: systemd treated it as success, did not restart it and never marked it failed."
+        },
+        {
+          "label": "Restoring without loss",
+          "criteria": "Points the unit at the right file, reloads systemd before restarting, checks the queue drains; never purges the queue.",
+          "modelAnswer": "I changed the unit to --env-file=/etc/notifier/notifier.env, ran daemon-reload, restarted, and watched the queue drain to 0 with every waiting confirmation sent."
+        },
+        {
+          "label": "Making it loud",
+          "criteria": "Uses --env-file (which errors on a missing file) and/or exits with a non-zero code (process.exitCode = 1 or a thrown error) on missing required settings.",
+          "modelAnswer": "--env-file fails at startup if the file is missing, and 3.8.1 sets process.exitCode = 1 on a missing setting. Either way systemd marks the unit failed and monitoring alerts."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Sending again before the first queued emails expire at 15:02; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself (a purged queue)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not running",
+      "class": "harm",
+      "rationale": "Closing with the notifier stopped leaves every order without a confirmation and the queue expiring; it is never a safe outcome.",
+      "source": {
+        "cite": "systemd 262, systemd.service(5): Restart=",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html",
+        "note": "Relevant text: 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', is terminated by a signal, or times out; in the page's table a 'Clean exit code or signal' restarts only under always and on-success. Read through a summarizing fetch on 2026-11-14. Why a service that exits 0 on a missing setting is not restarted and is not reported as failed. The journal and systemctl output in the scenario are authored renderings in the tools' style."
+      }
+    }
+  },
+  "endings": {
+    "purgedQueue": {
+      "label": "Order emails deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and purged",
+      "narrative": "1,840 order confirmations were purged from the queue. Those customers will never get one."
+    },
+    "expired": {
+      "label": "Emails expired unsent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(expiredAt)",
+      "narrative": "The notifier was still stopped at 15:02, and the oldest order confirmations expired unsent."
+    },
+    "stillDown": {
+      "label": "Closed with the notifier stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not running",
+      "narrative": "The incident was closed while the notifier was still exiting at startup."
+    },
+    "restored": {
+      "label": "Restored, and made loud",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and running and timeAt(upAt) <= restoreWindow and faultsAdded <= newFaults and loud and not isNull(journalAt) and timeAt(journalAt) <= timeAt(upAt) and not isNull(verifiedAt)",
+      "narrative": "You read why it exited, loaded the renamed file the loud way, drained every waiting email and made sure the next missing setting fails the unit."
+    },
+    "restoredGaps": {
+      "label": "Sending again, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Mail flows again, but the next missing setting will be just as silent, the fix was late or a guess, or the drain was never checked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "purgedQueue",
+    "expired",
+    "stillDown",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "readWhy",
+        "label": "Read why the service stopped before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(journalAt) and silentRestarts == 0 and (isNull(upAt) or timeAt(journalAt) <= timeAt(upAt))",
+            "score": "met",
+            "why": "The journal showed SMTP_URL missing and a clean exit."
+          },
+          {
+            "when": "not isNull(journalAt)",
+            "score": "partial",
+            "why": "The journal was read only after restarts or the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The service's own log was never read."
+          }
+        ]
+      },
+      {
+        "id": "noLoss",
+        "label": "Restored without losing queued email",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "purged",
+            "score": "missed",
+            "why": "The queue was purged."
+          },
+          {
+            "when": "not isNull(expiredAt)",
+            "score": "partial",
+            "why": "Nothing was deleted, but the oldest emails expired before sending resumed."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Every waiting email was kept."
+          }
+        ]
+      },
+      {
+        "id": "restoredFast",
+        "label": "Sending again within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "running and timeAt(upAt) <= restoreWindow",
+            "score": "met",
+            "why": "Sending {timeAt(upAt) / 60|0dp} min after the report."
+          },
+          {
+            "when": "running",
+            "score": "partial",
+            "why": "Sending, but {timeAt(upAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The notifier never came back."
+          }
+        ]
+      },
+      {
+        "id": "loudNext",
+        "label": "Made the next missing setting fail loudly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "unitFixed and not isNull(exitFixedAt)",
+            "score": "met",
+            "why": "--env-file errors on a missing file, and 3.8.1 exits 1 on a missing setting."
+          },
+          {
+            "when": "loud",
+            "score": "partial",
+            "why": "One of the two silent paths is fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A missing file or setting would still exit 0 with no alert."
+          }
+        ]
+      },
+      {
+        "id": "foundFile",
+        "label": "Found the renamed file and the unit's flag",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lsAt) and not isNull(unitAt)",
+            "score": "met",
+            "why": "Saw the unit loading /etc/notifier/env and the file now called notifier.env."
+          },
+          {
+            "when": "not isNull(lsAt) or not isNull(unitAt)",
+            "score": "partial",
+            "why": "Saw only half of the mismatch."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The mismatch was never looked at."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the queue drained",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Queue depth went to 0 with the emails sent."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked that the waiting emails were sent."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"envName\" and preventDoc == \"loud\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"envName\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, restore and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRestore",
+        "label": "Minutes until email was sending",
+        "value": "running ? timeAt(upAt) / 60 : -1",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "restartsK",
+        "label": "Restarts that changed nothing",
+        "value": "silentRestarts",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "systemctl status: inactive (dead), status=0/SUCCESS, so on-failure never restarted it. journalctl: SMTP_URL not set, clean exit."
+      },
+      {
+        "at": "2-4 min",
+        "text": "systemctl cat and ls /etc/notifier: the unit loads /etc/notifier/env with --env-file-if-exists; the release renamed it notifier.env."
+      },
+      {
+        "at": "4-7 min",
+        "text": "Point the unit at notifier.env with --env-file (it fails loudly if the file goes missing), daemon-reload, restart, and watch the queue drain."
+      },
+      {
+        "at": "After",
+        "text": "Ship 3.8.1, which throws on a missing setting so Node.js exits with code 1, and record both silent paths."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: restored and made loud",
+        "body": "A clean exit hid the failure from systemd and monitoring. You loaded the renamed file with --env-file, drained the queue, and made the next missing setting fail the unit."
+      },
+      "restoredGaps": {
+        "headline": "Sending again, with gaps",
+        "body": "Mail flows. The criteria show the gaps: still silent on the next missing file, late, restarted blind, or the drain never checked."
+      },
+      "purgedQueue": {
+        "headline": "Order emails deleted",
+        "body": "The queue was the one thing working as designed: it held the mail until the notifier came back. Fix the consumer; keep the messages."
+      },
+      "expired": {
+        "headline": "The emails expired",
+        "body": "The journal said what was wrong within two minutes: no SMTP_URL, clean exit. The renamed file was one ls away."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "A restart with nothing changed exits 0 again. Fix where the settings come from, reload systemd, then restart."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The unit loaded /etc/notifier/env with --env-file-if-exists, which loads nothing and says nothing when the file is missing; the release renamed it notifier.env, so SMTP_URL was undefined. The code then called process.exit() with no code, exit 0, which Restart=on-failure does not restart and which never puts the unit in the failed state that monitoring watches. Point the unit at the file with --env-file (which errors if it is missing), daemon-reload, restart and watch the queue drain; then exit with a non-zero code on any missing required setting. Never purge the queue."
+  }
+}

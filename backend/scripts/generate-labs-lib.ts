@@ -92,8 +92,39 @@ export function apportion(n: number, weights: (number | null)[]): number[] {
 // length no longer matches the course's units (the density tests then fail,
 // so a reshaped course is noticed).
 export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
-  DP900: [2, 2, 2, 2],
+  DP900: [3, 2, 2, 3], // REQ-295: raised from [2, 2, 2, 2] to the rule
   ABPTSPWCS: [2, 3, 3],
+  // REQ-295 (Nick, 2026-11-14): "build more labs" to the rule as he states
+  // it -- one per unit plus six per course by exam weight, at most three per
+  // unit -- without the performance-verb cap, which had held these courses
+  // at one lab per unit. Measured in docs/labs-coverage.md.
+  PYTHON: [2, 2, 2, 2, 2, 2, 1, 1, 1],
+  JAVASCRIPT: [2, 2, 2, 2, 2, 2, 1, 1, 1],
+  CNA: [2, 2, 2, 2, 2, 2, 1],
+  NASMCPT: [2, 2, 2, 2, 2, 2],
+  APLUS_CORE1: [2, 2, 2, 2, 3],
+  NETWORKPLUS: [2, 2, 2, 2, 3],
+  LINUXPLUS: [3, 2, 2, 2, 2],
+  PENTESTPLUS: [2, 2, 2, 3, 2],
+  SECAIPLUS: [2, 3, 3, 2],
+  AZ900: [3, 3, 3],
+  AZ305: [3, 2, 2, 3],
+  GCPDBE: [3, 3, 2, 2],
+  GCPMLE: [2, 2, 2, 2, 2, 2],
+  DATAPLUS: [2, 2, 3, 2, 2],
+  TECHPLUS: [2, 2, 2, 2, 2, 2],
+  AUTOOPSPLUS: [3, 3, 2, 2],
+  CLOUDNETX: [3, 3, 2, 2],
+  DATAAI: [2, 3, 2, 2, 2],
+  PROJECTPLUS: [3, 3, 2, 2],
+  PMISP: [2, 3, 3, 1, 2],
+  CSPP: [2, 2, 3, 2, 2],
+  KCSA: [2, 2, 2, 2, 2, 2],
+  CAPA: [3, 3, 2, 2],
+  CCA: [2, 2, 2, 2, 2, 2, 1, 1],
+  MSCS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  MSHI: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1],
+  CMPCBS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

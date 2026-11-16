@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, selectPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Cilium Certified Associate (CCA).
@@ -558,6 +558,53 @@ export const CCA_LABS: SeedLabSet = {
               "Verification",
               "cilium bgp peers shows sessions Established with received/advertised prefix counts; cilium bgp routes advertised ipv4 unicast lists the Pod CIDRs and LB IPs per node; on the router, show ip bgp neighbors / routes confirms learned prefixes; a ping/curl from a plant host to a Pod IP and to a LoadBalancer address proves the path.",
               "cilium bgp peers\n  Node    Local AS  Peer AS  Peer Address  Session State  Uptime  Family        Received  Advertised\n  node-1  65010     65000    10.50.0.1     established    2m10s   ipv4/unicast  2         3\ncilium bgp routes advertised ipv4 unicast   # 10.244.1.0/24 (node-1's PodCIDR), 192.0.2.10/32 (LB IP) ...\nOn the router: the cluster's /24s and /32s appear with next-hop the node addresses. From a plant workstation: curl http://192.0.2.10/ answers from the Service and ping 10.244.1.17 reaches the Pod directly."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Cluster Mesh (10%) gets its second
+    // lab. Concepts from the CCA outline the set cites; no limit is quoted.
+    {
+      slug: "clustermesh-benefits-and-prereqs",
+      objective: "Understand the benefits of Cluster Mesh for multi-cluster connectivity: Pod IP routing across clusters, shared identities and policy, and high availability",
+      kind: "build",
+      title: "Decide whether Cluster Mesh fits two clusters",
+      brief:
+        "Fairweather Games (fictional) runs two Kubernetes clusters with Cilium, one per region. Players' sessions are served in each region; the leaderboard service runs in both; the accounts database runs only in the eu cluster. The platform team asks: should they connect the clusters with Cilium Cluster Mesh, and what would they gain? Their current clusters both use the Pod CIDR 10.0.0.0/16 and the cluster name 'default'.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies Cluster Mesh concepts to the fictional clusters; quotes no product limit.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each need to the Cluster Mesh capability, tap the settings that block it, and write the recommendation.",
+          parts: [
+            matchPart(
+              "Capability for each need",
+              "Met: all three right -- leaderboard keeps working if one cluster's copy fails: global services with load balancing across clusters; policy in us cluster allowing only the accounts-client Pods to reach the eu database: shared security identities across clusters; Pods in us reaching eu Pods directly: Pod IP routing between clusters. Two right is partly there.",
+              "A global service spreads a Service's endpoints across clusters, so if the local backends fail traffic can go to the other cluster. Identities derived from labels are shared, so a policy can name Pods in the other cluster by label rather than by IP. And Pod IPs are routable across the mesh without gateways in front of every service.",
+              {
+                leftHeading: "Need",
+                rightHeading: "Cluster Mesh capability",
+                left: ["Leaderboard survives one cluster's copy failing", "Only accounts-client Pods may reach the eu database", "us Pods reach eu Pods directly"],
+                right: ["Global services load-balanced across clusters", "Security identities shared across clusters", "Pod IP routing between clusters", "Per-cluster ingress controllers"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            selectPart(
+              "Settings that block Cluster Mesh",
+              "Met: exactly the four lines that clash -- both Pod CIDRs (they overlap) and both cluster names (they are identical). (Right picks minus wrong picks) of at least two is partly there.",
+              "Cluster Mesh routes Pod IPs between clusters, so the Pod CIDRs must not overlap; each cluster also needs a unique name and cluster ID. Both clusters running Cilium and having node-to-node connectivity between regions are prerequisites they already meet.",
+              {
+                display: "list",
+                lines: ["eu cluster Pod CIDR 10.0.0.0/16", "us cluster Pod CIDR 10.0.0.0/16", "eu cluster name 'default'", "us cluster name 'default'", "Both clusters run Cilium as the CNI", "Nodes in each region can reach nodes in the other"],
+                correct: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Recommendation",
+              "Recommends Cluster Mesh for cross-cluster failover of the leaderboard and identity-based policy to the eu database, after fixing prerequisites (non-overlapping Pod CIDRs -- which means rebuilding one cluster's Pod network -- and unique cluster names and IDs, then enabling and connecting with the Cilium CLI); marks the leaderboard Service global (with affinity to prefer local endpoints) and keeps session services local; notes trade-offs: cross-region latency and data-transfer cost for failover traffic, a wider blast radius for mistakes, and that the eu-only database is still a single point of failure the mesh does not fix.",
+              "Yes, for two needs: failover for the leaderboard and identity-based access to the eu database from us. First fix the blockers: give the clusters non-overlapping Pod CIDRs (realistically, rebuild the us cluster's Pod network, for example 10.1.0.0/16) and unique names and cluster IDs; then enable and connect the mesh with the Cilium CLI (cilium clustermesh enable in each cluster, cilium clustermesh connect between them, and cilium clustermesh status to check). Mark the leaderboard Service as global, preferring local endpoints so traffic crosses regions only on failure, and keep player-session services local. Write the database policy by label, which now works across clusters. Be clear about the limits: failover traffic pays cross-region latency and transfer costs, a bad policy can now affect both clusters, and the accounts database in eu alone is still a single point of failure that Cluster Mesh does not remove."
             ),
           ],
         },

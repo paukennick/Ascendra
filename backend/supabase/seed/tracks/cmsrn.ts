@@ -227,7 +227,7 @@ export const CMSRN_TRACK: SeedTrack = {
       weight: 17,
       sources: [
         bp("Elements of Interprofessional Care", 21, [
-          "Nursing Process/Clinical Judgement Measurement Model: nursing process; strategies to individualize care",
+          "Nursing Process/Clinical Judgment Measurement Model: nursing process; strategies to individualize care",
           "Interprofessional Collaboration: role within the interdisciplinary team; interprofessional rounding; care coordination; collaborative problem solving",
           "Care Coordination and Transition Management: community resources; discharge planning, mobility, physical therapy; health history from multiple sources; discharge procedures (medication reconciliation); patient/family centered care; care coordination and transition; interprofessional roles; continuum of care; patients at risk for readmissions; social determinants of health; quality patient outcome measures",
           "Documentation: documentation of patient care; electronic health records; downtime procedures; coaching for documentation performance improvement",
@@ -284,7 +284,7 @@ export const CMSRN_TRACK: SeedTrack = {
         bp("Nursing Teamwork and Collaboration", 26, [
           "Delegation and Supervision: delegation and/or supervision practices; scope of practice (licensed and unlicensed team members); prioritization skills; budgetary considerations",
           "Career Development Relationships: professional engagement; mentoring and coaching resources; reflective practice; roles and responsibilities; coaching and learning theories; professional empowerment; orientation planning and preceptor best practices; career development resources",
-          "Professional Development: professional nursing practice and individual competencies; professional behaviors; clinical judgement; peer review methods; educational needs assessment",
+          "Professional Development: professional nursing practice and individual competencies; professional behaviors; clinical judgment; peer review methods; educational needs assessment",
           "Leadership: regulatory and compliance standards; organizational structure; shared decision-making; nursing philosophy; leadership models; nursing care delivery systems; change management (ADKAR); recruitment and retention; employee engagement; staff advocacy; conflict management; financial stewardship",
           "Disaster Planning and Management: emergency procedures; hospital incident command structure",
         ]),

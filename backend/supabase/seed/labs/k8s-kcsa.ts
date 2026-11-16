@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, selectPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Kubernetes and Cloud Native Security Associate (KCSA).
@@ -526,6 +526,54 @@ export const KCSA_LABS: SeedLabSet = {
               "Frameworks and threat modeling",
               "Recognizes the wording as PCI DSS (segmentation, individual admin accountability, encryption of stored data, hardening standards, vulnerability management), with CIS Benchmarks as the hardening standard and NIST SP 800-190 as container-specific guidance; explains a checklist proves known controls exist, while a threat model (STRIDE or the container ATT&CK matrix) finds the attacks the checklist did not anticipate, and the two feed each other.",
               "The requests read as PCI DSS: network segmentation of the cardholder data environment, individually attributable administrative access with reviews, encryption of stored secrets with access logging, configuration to an industry standard (CIS Benchmarks are the accepted standard for Kubernetes), and vulnerability management with approved sources. NIST SP 800-190 is the container-specific guidance assessors also cite, and SOC 2 / ISO 27001 would ask similar questions in different words. A checklist verifies controls someone already thought of; a threat model (STRIDE per data flow, or the MITRE ATT&CK containers matrix per attack stage) asks how this specific platform could be attacked and turns each answer into a control or a detection -- and the gaps it finds become next year's checklist items."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Compliance and Security Frameworks
+    // (10%) gets its second lab. The scan output is authored in kube-bench's
+    // style without control numbers; no benchmark value is quoted.
+    {
+      slug: "compliance-scan-to-evidence",
+      objective: "Automation and tooling for compliance: kube-bench, policy-as-code (Kyverno, OPA Gatekeeper), continuous scanning and audit evidence collection, and reporting",
+      kind: "build",
+      title: "Turn a benchmark scan into fixes and audit evidence",
+      brief:
+        "Tallis Pay (fictional) must show its auditor that its Kubernetes clusters follow its hardening standard. A kube-bench run on a control-plane node printed these results (control numbers removed):\n\n[PASS] Ensure that the --anonymous-auth argument is set to false (API server)\n[FAIL] Ensure that the --profiling argument is set to false (API server)\n[PASS] Ensure that the --authorization-mode argument includes RBAC\n[FAIL] Ensure that the --audit-log-path argument is set\n[WARN] Ensure that the admission control plugin AlwaysPullImages is set\n[PASS] Ensure that the --client-cert-auth argument is set to true (etcd)\n\nDevelopers also keep deploying Pods that run as root, which the standard forbids.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Scan results are the fictional cluster's, given in the brief; the lab applies compliance tooling concepts and quotes no benchmark value.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the results that need action, match each need to its tool, and describe the evidence trail.",
+          parts: [
+            selectPart(
+              "Results that need action",
+              "Met: exactly the two FAIL lines and the WARN line. (Right picks minus wrong picks) of at least two is partly there.",
+              "Both FAILs are settings to change (profiling off, an audit log path set with a policy). A WARN means the check could not be decided automatically or is a judgment call, so it needs a documented decision -- enable it or record why not. The PASS lines need nothing beyond keeping them passing.",
+              {
+                display: "log",
+                lines: ["[PASS] --anonymous-auth set to false (API server)", "[FAIL] --profiling not set to false (API server)", "[PASS] --authorization-mode includes RBAC", "[FAIL] --audit-log-path not set", "[WARN] admission plugin AlwaysPullImages not set", "[PASS] --client-cert-auth set to true (etcd)"],
+                correct: [1, 3, 4],
+              }
+            ),
+            matchPart(
+              "Tool for each need",
+              "Met: all three right -- check node and control-plane settings against the benchmark: kube-bench; block Pods that run as root at admission: a policy engine (Kyverno or OPA Gatekeeper); keep a record of who did what in the API: audit logging shipped off the cluster. Two right is partly there.",
+              "kube-bench checks component configuration against the CIS benchmark. A policy engine enforces rules on objects as they are admitted, so a root Pod is rejected (or reported in audit mode) before it runs. The API server's audit log, shipped somewhere the cluster cannot alter, records requests for later review. An image scanner checks images, not these needs.",
+              {
+                leftHeading: "Need",
+                rightHeading: "Tool",
+                left: ["Check control-plane and node settings against the benchmark", "Stop Pods that run as root from being admitted", "A record of who did what through the API"],
+                right: ["kube-bench", "A policy engine (Kyverno or OPA Gatekeeper)", "API server audit logging shipped off the cluster", "An image vulnerability scanner"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "Evidence trail",
+              "Fixes the FAILs through version-controlled configuration (not by hand on a node) and records a decision for the WARN; runs kube-bench on a schedule (e.g. as a Job) and stores dated results; writes the no-root rule as policy-as-code in git, rolled out in audit mode then enforce, with policy reports as evidence; ships audit logs to protected storage with retention; maps each control to its evidence (scan reports, policy reports, change records, exceptions with owners and expiry dates) so the auditor sees continuous, dated proof rather than a one-off screenshot.",
+              "Change the API server flags through the cluster's version-controlled configuration so the fix is reviewed and repeatable, and write down the decision on AlwaysPullImages (enable it, or accept the risk with an owner and review date). Run kube-bench as a scheduled Job on every node type and keep the dated JSON results. Put 'no root containers' in Kyverno or Gatekeeper policy stored in git: start in audit mode to find offenders, then enforce; the policy reports become evidence. Point --audit-log-path at a policy and ship the logs to storage the cluster admins cannot edit, with a retention period. Then hand the auditor a control-to-evidence map: for each requirement, where the dated proof lives and who owns any exception."
             ),
           ],
         },
