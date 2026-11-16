@@ -22,6 +22,7 @@ export const NURSING_SPECIALTY_SIMS: readonly { course: string; slug: string; sc
   { course: "CEN", slug: "triage-sepsis-first-hour", screen: "bedside" },
   { course: "CEN", slug: "waiting-room-esi-retriage", screen: "bedside" },
   { course: "FNPAANP", slug: "clinic-severe-bp-stroke-signs", screen: "bedside" },
+  { course: "FNPANCC", slug: "clinic-sulfonylurea-hypoglycemia", screen: "bedside" },
 ];
 
 interface GoldenPath { id: string; expect: { ending: string; rating: string; criteria: Record<string, string> } }
