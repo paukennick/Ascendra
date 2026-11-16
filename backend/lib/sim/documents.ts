@@ -156,6 +156,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-275 to REQ-278 (nursing specialty bedside sims): CMSRN, CEN,
+  // PCCN and the two FNP courses. Keep these entries together. ----
+  entry("PCCN", "femoral-access-retroperitoneal-bleed"),
+  entry("PCCN", "copd-exacerbation-niv"),
+  // ---- end REQ-275 to REQ-278 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

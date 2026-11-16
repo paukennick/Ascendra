@@ -1,0 +1,1718 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "femoral-access-retroperitoneal-bleed",
+  "title": "Back pain four hours after the stent",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              90,
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "announce": {
+            "bands": [
+              70,
+              65,
+              60
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "hgbTile",
+          "label": "Hgb",
+          "spokenLabel": "Hemoglobin result",
+          "value": "hgbSeen",
+          "unit": "g/dL",
+          "announce": {
+            "bands": [
+              10,
+              8,
+              7
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(hgbResultAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Lactated Ringer's left to run: {crystLeft|0dp} mL. Red cells running: {prodPending|0dp} mL. Pressure above the site: {pressure|yesno}. Flat: {flat|yesno}.",
+      "banner": [
+        {
+          "when": "rrtHere",
+          "text": "The rapid response team is in the room."
+        },
+        {
+          "when": "f >= 0.3",
+          "text": "He is pale, cool and sweaty."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize retroperitoneal bleeding after femoral catheterization from back or flank pain, falling blood pressure and a rising heart rate, and act before the hemoglobin result",
+  "secondaryObjectives": [
+    "Assess the access site and the limb beyond it after catheterization -- hematoma, pulses, color, warmth, sensation -- and apply firm pressure above the puncture for bleeding"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation, PCCN Exam Handbook - Direct Care (July 2026 edition): PCCN Test Plan (exams on and after 2024-02-06), Cardiovascular",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Read 2026-11-14 for the course seed (backend/supabase/seed/tracks/pccn.ts). Cardiovascular is 20% of the exam; the plan lists acute coronary syndromes and interventional cardiology, and the testable nursing actions include recognizing procedural complications and urgent situations."
+    },
+    {
+      "cite": "Kiernan TJ, Ajani AE, Yan BP. Management of access site and systemic complications of percutaneous coronary and peripheral interventions. J Invasive Cardiol 2008;20:463-469",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.hmpgloballearningnetwork.com/site/jic/articles/management-access-site-and-systemic-complications-percutaneous-coronary-and-peripheral",
+      "note": "Read 2026-11-14 through a summarizing fetch. Hypotension after an endovascular procedure should always include retroperitoneal bleeding in the differential; lower abdominal or flank pain and an acute hematocrit drop suggest it; a high puncture above the inguinal ligament is the main risk; confirmed by CT of the abdomen and pelvis; stable patients: transfusion, heparin reversal with protamine and close blood pressure monitoring; unstable patients: volume resuscitation and urgent angiography from the other side, with balloon, covered stent or surgery. A 2008 review: no newer society guideline on this complication was found."
+    },
+    {
+      "cite": "Sui YG, Teng SY, Qian J, et al. Cross-sectional study of retroperitoneal hematoma after invasive intervention in a Chinese population. Exp Ther Med 2020;20(4):2975-2984",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.spandidos-publications.com/10.3892/etm.2020.9040",
+      "note": "Read 2026-11-14 through a summarizing fetch. Incidence 0.15-6% in published series; 'the most serious and potentially fatal complication of percutaneous intervention'; early signs are indistinct until hypovolemia; pain (abdominal, leg, waist) was the most common symptom; most cases were managed conservatively with transfusion; embolization or emergency surgery for the rest."
+    },
+    {
+      "cite": "Kern MJ. Back to basics: femoral artery access and hemostasis. Cath Lab Digest 2013;21(10)",
+      "checkedAt": "2026-11-14",
+      "url": "https://hmpgloballearningnetwork.com/site/cathlab/articles/back-basics-femoral-artery-access-hemostasis",
+      "note": "Read 2026-11-14 through a summarizing fetch. The needle enters the artery higher than the skin entry site, so manual compression goes over the artery about an inch cranial to the skin incision; firm pressure for 15-20 minutes, longer on antiplatelet drugs; pedal pulses checked every 2-3 minutes during compression; more than 500 mL can be lost before anyone notices."
+    },
+    {
+      "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+      "checkedAt": "2026-11-14",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+      "note": "PubMed abstract read 2026-11-14 for the course seed. The restrictive thresholds (hemoglobin 7 g/dL; 8 with preexisting cardiovascular disease) are for hemodynamically stable hospitalized adults; they do not apply to active hemorrhage."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "Relayed from the CCRN Adult bleeding case (CCRNADULT/bleeding-after-whipple, read 2026-11-10); not re-read for this scenario. Classes: I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume. FLAG: the vital-sign anchors in this model follow the classic table and are a teaching simplification."
+    },
+    {
+      "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80. doi:10.1186/s13054-023-04327-7",
+      "checkedAt": "2026-11-10",
+      "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+      "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10); the full text could not be re-read on 2026-11-14 (to verify). Used only for one teaching point: a single normal hemoglobin does not rule out early bleeding, so it is repeated."
+    }
+  ],
+  "brief": {
+    "situation": "18:40 on a progressive care unit. Mr. Adeyemi in Room 9, 64, 85 kg, presses his call light: \"My back is killing me and I can't get comfortable.\" He is on telemetry with automatic blood pressures every 5 minutes.",
+    "handover": [
+      "NSTEMI. One drug-eluting stent at 14:00 through a 6 French right femoral sheath; heparin during the case. Sheath pulled at 16:30 with 20 minutes of manual pressure. Aspirin and ticagrelor.",
+      "16:30: heart rate 72, blood pressure 134/78, hemoglobin 13.4 this morning, type and screen sent at 18:00. Groin checks every 15 minutes have been clean.",
+      "Post-procedure standing orders: bed rest flat for 4 hours; 500 mL lactated Ringer's bolus for hypotension or signs of bleeding, then call the interventional fellow; stat hemoglobin and type and crossmatch by protocol."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize what this is, act, and escalate. Labs, blood and the cath lab team take time to arrive.",
+      "Partway through you are asked to write what you think is happening. The case ends by 20:40, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "18:40",
+    "tick": "1s",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "tbv": {
+      "value": 5950,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "85 kg x 70 mL/kg (about 7% of body weight), relayed from the CCRN Adult bleeding case; not re-read."
+      }
+    },
+    "bleedRate": {
+      "value": 28,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A high femoral puncture bleeding into the retroperitoneum. Untreated, the deficit moves from about 13% at 18:40 to class III (30%) in about 35 minutes and past 42% in about an hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pressK": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Firm pressure over the artery above the skin puncture slows, but does not stop, a bleed that tracks behind the inguinal ligament. Kern 2013 gives the position; the size of the effect is the model's. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "retain": {
+      "value": 0.33,
+      "source": {
+        "cite": "Classic '3 mL of crystalloid for each 1 mL of blood lost' teaching",
+        "checkedAt": "2026-11-10",
+        "url": "https://empendium.com/mcmtextbook/chapter/B31.II.2.2.1.1",
+        "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10): about a third of an isotonic crystalloid stays in the vessels. Here applied at once, without the redistribution delay (a simplification)."
+      }
+    },
+    "crystFlow": {
+      "value": 34,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A 500 mL bolus by pump over about 15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "refillK": {
+      "value": 0.15,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Transcapillary refill, relayed from the CCRN Adult bleeding case: about 15% of the deficit per hour moves back into the vessels and dilutes the hemoglobin. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rbcVol": {
+      "value": 300,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Volume of one red cell unit, rounded (as the CCRN Adult bleeding case). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rbcHgb": {
+      "value": 60,
+      "unit": "g",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Hemoglobin mass in one red cell unit, chosen so one unit raises a stable adult's hemoglobin by about 1 g/dL (as the CCRN Adult bleeding case). Not checked against the AABB Circular of Information. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "infuseRate": {
+      "value": 20,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A red cell unit for active bleeding over about 15 minutes through a pump. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestF": {
+      "value": 0.42,
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Class IV hemorrhage (more than 40% of blood volume) is immediately life-threatening. FLAG: the model calls a pulseless arrest at 42%, a teaching simplification relayed from the CCRN Adult bleeding case."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The interventional cardiology fellow calls back in about 2 minutes."
+      }
+    },
+    "bloodPrep": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Two crossmatched red cell units ready about 25 minutes after the order (a sample from the 18:00 type and screen is already in the blood bank). Local times vary; FLAG."
+      }
+    },
+    "labPrep": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The cath lab team is called in and ready for angiography about 40 minutes after the decision. FLAG: local times vary."
+      }
+    },
+    "labTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A stat hemoglobin from the ward reported about 45 minutes after it is drawn (tube, transport, analysis). FLAG."
+      }
+    },
+    "rrtArrive": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The rapid response team is at the bedside in about 5 minutes."
+      }
+    },
+    "reviewAt": {
+      "value": 7199,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 20:40, two hours after the call light."
+      }
+    },
+    "pressWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Kern MJ. Back to basics: femoral artery access and hemostasis. Cath Lab Digest 2013;21(10)",
+        "checkedAt": "2026-11-14",
+        "url": "https://hmpgloballearningnetwork.com/site/cathlab/articles/back-basics-femoral-artery-access-hemostasis",
+        "note": "Pressure over the artery above the skin puncture and flat bed rest within 10 minutes of the first sign. FLAG: the 10-minute window is this case's."
+      }
+    },
+    "callWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Kiernan TJ, Ajani AE, Yan BP. Management of access site and systemic complications of percutaneous coronary and peripheral interventions. J Invasive Cardiol 2008;20:463-469",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.hmpgloballearningnetwork.com/site/jic/articles/management-access-site-and-systemic-complications-percutaneous-coronary-and-peripheral",
+        "note": "Falling blood pressure after a femoral procedure means retroperitoneal bleeding until proved otherwise, so the interventional team is called within 15 minutes, before any hemoglobin result. FLAG: the 15-minute window is this case's."
+      }
+    },
+    "bolusWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The post-procedure standing order allows a 500 mL lactated Ringer's bolus for signs of bleeding; started within 15 minutes. FLAG: the window is this case's."
+      }
+    },
+    "bloodWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+        "checkedAt": "2026-11-14",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+        "note": "Active bleeding: the first unit within 15 minutes of the blood being ready, without waiting for a hemoglobin threshold (the 7 g/dL threshold is for stable adults). FLAG: the 15-minute window is this case's."
+      }
+    },
+    "nadirTarget": {
+      "value": 60,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. MAP never below 60 mm Hg on the target path. FLAG: no source gives a number for this complication; 60 is this case's line for 'kept perfused'. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 10 minutes in."
+      }
+    },
+    "okLook": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A focused assessment within 5 minutes of the call light."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": 800,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "hgbMass": {
+      "type": "number",
+      "init": 690.1,
+      "min": 0,
+      "max": 5000,
+      "unit": "g"
+    },
+    "crystInfused": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "crystLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "crystOrdered": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "prodPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "hgbPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000,
+      "unit": "g"
+    },
+    "productIV": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "refilled": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000,
+      "unit": "mL"
+    },
+    "rbcStock": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "rbcGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "pressure": {
+      "type": "bool",
+      "init": false
+    },
+    "pressAt": {
+      "type": "time",
+      "init": null
+    },
+    "flat": {
+      "type": "bool",
+      "init": false
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbResultAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbSeen": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 25,
+      "unit": "g/dL"
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "selfCall": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "bloodReadyAt": {
+      "type": "time",
+      "init": null
+    },
+    "bloodAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtHere": {
+      "type": "bool",
+      "init": false
+    },
+    "morphine": {
+      "type": "bool",
+      "init": false
+    },
+    "morphineEarly": {
+      "type": "bool",
+      "init": false
+    },
+    "leftForLab": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "mapNadir": {
+      "type": "number",
+      "init": 90,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    }
+  },
+  "derived": {
+    "intravasc": {
+      "expr": "tbv - lost + retain * crystInfused + productIV + refilled",
+      "unit": "mL",
+      "precision": 0
+    },
+    "f": {
+      "expr": "clamp((tbv - intravasc) / tbv, 0, 1)",
+      "precision": 2
+    },
+    "rate": {
+      "expr": "bleedRate * (pressure ? pressK : 1)",
+      "unit": "mL/min",
+      "precision": 0
+    },
+    "hgbRaw": {
+      "expr": "hgbMass / (max(intravasc, 500) / 100)",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "hgb": {
+      "expr": "round(hgbRaw * 10) / 10",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "hr": {
+      "expr": "round(clamp(72 + 107 * min(f, 0.15) + 133 * clamp(f - 0.15, 0, 0.15) + 200 * clamp(f - 0.3, 0, 0.2) + 1.5 * sin(t / 37), 50, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(134 - 60 * clamp(f - 0.1, 0, 0.05) - 107 * clamp(f - 0.15, 0, 0.15) - 270 * clamp(f - 0.3, 0, 0.1) - 300 * clamp(f - 0.4, 0, 0.2) + 1.5 * sin(t / 23))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(min(78 + 27 * clamp(f - 0.15, 0, 0.15) - 160 * clamp(f - 0.3, 0, 0.1) - 220 * clamp(f - 0.4, 0, 0.2), sbp - 12))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 40 * clamp(f - 0.15, 0, 0.35))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(97 - 8 * clamp(f - 0.35, 0, 0.3))",
+      "unit": "%",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "not leftForLab",
+      "update": {
+        "lost": "lost + rate * dt / 60",
+        "hgbMass": "hgbMass - rate * dt / 60 * hgbRaw / 100"
+      }
+    },
+    {
+      "id": "crystalloid",
+      "update": {
+        "crystInfused": "crystInfused + min(crystLeft, crystFlow * dt / 60)",
+        "crystLeft": "crystLeft - min(crystLeft, crystFlow * dt / 60)"
+      }
+    },
+    {
+      "id": "products",
+      "when": "prodPending > 0",
+      "update": {
+        "productIV": "productIV + min(prodPending, infuseRate * dt / 60)",
+        "hgbMass": "hgbMass + min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "hgbPending": "hgbPending - min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "prodPending": "prodPending - min(prodPending, infuseRate * dt / 60)"
+      }
+    },
+    {
+      "id": "refill",
+      "update": {
+        "refilled": "refilled + refillK * max(0, tbv - intravasc) * dt / 3600"
+      }
+    },
+    {
+      "id": "nadir",
+      "update": {
+        "mapNadir": "min(mapNadir, map)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Room 9",
+      "clock": "running",
+      "actions": [
+        "look",
+        "flat",
+        "pressure",
+        "bolus",
+        "labs",
+        "call",
+        "rrt",
+        "transfuse",
+        "morphine",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Assess him: pain, the groin, the leg beyond it, skin and mental status",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "f >= 0.3",
+              "then": [
+                {
+                  "log": "Pale, cool and clammy, anxious, asking what is wrong. Low back and right flank pain 8/10. The groin is soft with a clean dressing and no hematoma or bruit. Right foot warm, pedal pulses palpable, sensation normal.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Restless, shifting in bed. Low back and right flank pain 7/10 that started about 15 minutes ago. The groin is soft, dressing dry, no hematoma, no bruit. Right foot warm, pedal pulses 2+ both feet, sensation and movement normal.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "flat": {
+      "label": "Keep him flat with the right leg straight",
+      "group": "Act",
+      "available": "isNull(flatAt)",
+      "why": "Already flat with the leg straight.",
+      "effects": [
+        {
+          "set": "flat",
+          "to": "true"
+        },
+        {
+          "if": "isNull(flatAt)",
+          "then": [
+            {
+              "set": "flatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Head of the bed down, right leg straight, call light in reach; he is told not to lift his head."
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Hold firm pressure over the artery about an inch above the skin puncture",
+      "group": "Act",
+      "available": "not pressure",
+      "why": "Pressure is being held.",
+      "effects": [
+        {
+          "set": "pressure",
+          "to": "true"
+        },
+        {
+          "if": "isNull(pressAt)",
+          "then": [
+            {
+              "set": "pressAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Firm pressure over the femoral pulse above the puncture; a colleague takes over the pressure so your hands are free. Pedal pulse still palpable."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Start a 500 mL lactated Ringer's bolus (post-procedure standing order)",
+      "group": "Act",
+      "available": "crystLeft <= 1000",
+      "why": "Three boluses are already running or queued.",
+      "effects": [
+        {
+          "add": "crystLeft",
+          "by": "500"
+        },
+        {
+          "add": "crystOrdered",
+          "by": "500"
+        },
+        {
+          "if": "isNull(bolusAt)",
+          "then": [
+            {
+              "set": "bolusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "500 mL lactated Ringer's running over 15 minutes. {crystOrdered|0dp} mL ordered so far."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw a stat hemoglobin and type and crossmatch (post-procedure protocol)",
+      "group": "Act",
+      "available": "isNull(labsAt)",
+      "why": "Already drawn.",
+      "effects": [
+        {
+          "if": "isNull(labsAt)",
+          "then": [
+            {
+              "set": "labsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hgbSeen",
+          "to": "hgb"
+        },
+        {
+          "schedule": "hgbT",
+          "after": "labTime"
+        },
+        {
+          "log": "Drawn and sent. The lab quotes about 45 minutes for the hemoglobin."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the interventional cardiology fellow (SBAR)",
+      "group": "Escalate",
+      "available": "isNull(callEffAt)",
+      "why": "Cardiology has the picture.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "change",
+                  "label": "Mr. Adeyemi in 9, 4 hours after PCI by the right femoral artery: new low back and right flank pain, restless, heart rate up from 72 to the high 80s and pressure drifting down"
+                },
+                {
+                  "value": "pain",
+                  "label": "Mr. Adeyemi in 9 has back pain from lying flat"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "NSTEMI, one stent at 14:00 through a 6 French right femoral sheath, pulled at 16:30 with 20 minutes of pressure; aspirin and ticagrelor; heparin during the case; groin looks clean"
+                },
+                {
+                  "value": "min",
+                  "label": "Had a heart cath today"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "rp",
+                  "label": "I think he is bleeding into the retroperitoneum from the femoral puncture, and he is starting to compensate"
+                },
+                {
+                  "value": "msk",
+                  "label": "I think it is musculoskeletal pain from bed rest"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now. I am holding pressure above the site, he is flat, a bolus is running and a stat hemoglobin is drawn; can we crossmatch blood and get imaging or angiography?"
+                },
+                {
+                  "value": "wait",
+                  "label": "Can I give him something for pain and recheck after the evening hemoglobin?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"change\" and asmt == \"rp\"",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "set": "selfCall",
+              "to": "true"
+            },
+            {
+              "if": "morphine",
+              "then": [
+                {
+                  "set": "morphineEarly",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "schedule": "callbackT",
+              "after": "callback"
+            },
+            {
+              "log": "Fellow: \"Agreed, that is a retroperitoneal bleed until proved otherwise. Keep the pressure on. I'm coming and calling my attending.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Fellow: \"Probably muscular from bed rest. Give him acetaminophen and check the evening hemoglobin.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "rrt": {
+      "label": "Call the rapid response team",
+      "group": "Escalate",
+      "available": "isNull(rrtAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(rrtAt)",
+          "then": [
+            {
+              "set": "rrtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rrtT",
+          "after": "rrtArrive"
+        },
+        {
+          "log": "Rapid response team paged."
+        }
+      ]
+    },
+    "transfuse": {
+      "label": "Transfuse one unit of red cells (ordered, checked at the bedside)",
+      "group": "Act",
+      "available": "rbcStock > 0",
+      "why": "No blood at the bedside yet.",
+      "effects": [
+        {
+          "add": "prodPending",
+          "by": "rbcVol"
+        },
+        {
+          "add": "hgbPending",
+          "by": "rbcHgb"
+        },
+        {
+          "add": "rbcStock",
+          "by": "-1"
+        },
+        {
+          "add": "rbcGiven",
+          "by": "1"
+        },
+        {
+          "if": "isNull(bloodAt)",
+          "then": [
+            {
+              "set": "bloodAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Red cells checked with a second nurse at the bedside and running over about 15 minutes."
+        }
+      ]
+    },
+    "morphine": {
+      "label": "Give morphine 2 mg IV for the back pain (PRN order)",
+      "group": "Act",
+      "available": "not morphine",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "morphine",
+          "to": "true"
+        },
+        {
+          "if": "isNull(callEffAt)",
+          "then": [
+            {
+              "set": "morphineEarly",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Morphine given. The pain eases for a while; his heart rate does not.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Times, pain, vital-sign trend, groin and limb checks, pressure, fluids, who was called and the orders"
+            },
+            {
+              "value": "opinion",
+              "label": "'Back pain from bed rest, comfort measures given'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: 18:40 flank and back pain, heart rate and blood pressure trend, groin soft without hematoma, distal pulses, pressure above the site, bolus, cardiology called, orders."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Back pain from bed rest, comfort measures given.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "callbackT": {
+      "label": "the cardiology orders",
+      "wait": {
+        "skipLabel": "the cardiology orders (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The interventional cardiology fellow calls back in about 2 minutes."
+      },
+      "effects": [
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Orders: crossmatch 2 units of red cells and give them as soon as they are ready, second large-bore IV, nothing by mouth, CT of the abdomen and pelvis or angiography from the left side; the cath lab team is being called in.",
+          "kind": "good"
+        },
+        {
+          "schedule": "bloodT",
+          "after": "bloodPrep"
+        },
+        {
+          "schedule": "labReadyT",
+          "after": "labPrep - callback"
+        }
+      ]
+    },
+    "bloodT": {
+      "label": "the crossmatched blood",
+      "wait": {
+        "skipLabel": "the crossmatched blood (about 25 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Two crossmatched red cell units ready about 25 minutes after the order (a sample from the 18:00 type and screen is already in the blood bank). Local times vary; FLAG."
+      },
+      "effects": [
+        {
+          "if": "isNull(bloodReadyAt)",
+          "then": [
+            {
+              "set": "bloodReadyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rbcStock",
+          "to": "2"
+        },
+        {
+          "log": "Two crossmatched red cell units are at the bedside.",
+          "kind": "good"
+        }
+      ]
+    },
+    "labReadyT": {
+      "label": "the cath lab team",
+      "wait": {
+        "skipLabel": "the cath lab team ready (about 40 min after the decision)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The cath lab team is called in and ready for angiography about 40 minutes after the decision. FLAG: local times vary."
+      },
+      "effects": [
+        {
+          "set": "leftForLab",
+          "to": "true"
+        },
+        {
+          "log": "The cath lab is ready; he goes down with the fellow.",
+          "kind": "good"
+        }
+      ]
+    },
+    "hgbT": {
+      "label": "the hemoglobin result",
+      "wait": {
+        "skipLabel": "the hemoglobin result (about 45 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A stat hemoglobin from the ward reported about 45 minutes after it is drawn (tube, transport, analysis). FLAG."
+      },
+      "effects": [
+        {
+          "if": "isNull(hgbResultAt)",
+          "then": [
+            {
+              "set": "hgbResultAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hemoglobin {hgbSeen|1dp} g/dL on the sample drawn at {timeAt(labsAt)|clock} (13.4 this morning). Now he looks like this: heart rate {hr}, blood pressure {sbp}/{dbp}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "rrtT": {
+      "label": "the rapid response team",
+      "wait": {
+        "skipLabel": "the rapid response team (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The rapid response team is at the bedside in about 5 minutes."
+      },
+      "effects": [
+        {
+          "set": "rrtHere",
+          "to": "true"
+        },
+        {
+          "log": "The rapid response team is at the bedside.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "if": "morphine",
+              "then": [
+                {
+                  "set": "morphineEarly",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "schedule": "callbackT",
+              "after": "callback"
+            },
+            {
+              "log": "The team's nurse calls the interventional fellow about a possible retroperitoneal bleed.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "20:40",
+      "wait": {
+        "skipLabel": "20:40, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 20:40, two hours after the call light."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "pressureLow",
+      "when": "sbp < 90",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Blood pressure alarm: {sbp}/{dbp}.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "What do you think is happening to Mr. Adeyemi, why might the groin look normal, and why act before the hemoglobin comes back?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Names a retroperitoneal bleed from the femoral puncture: new back or flank pain, restlessness and a rising heart rate with a drifting pressure after a femoral procedure on antiplatelet drugs and heparin; explains that a high puncture bleeds behind the inguinal ligament where nothing shows at the groin.",
+          "modelAnswer": "Back and flank pain, restlessness, a heart rate up from 72 to the high 80s and a pressure drifting down, four hours after a femoral PCI on aspirin, ticagrelor and heparin, is a retroperitoneal bleed until proved otherwise. A puncture above the inguinal ligament bleeds into the retroperitoneum, so the groin can look perfect while liters collect behind it."
+        },
+        {
+          "label": "Why not wait",
+          "criteria": "Explains that the first hemoglobin lags behind acute loss and that compensation hides the volume lost until the pressure falls; acts now: flat, pressure above the puncture, a bolus, SBAR to the interventional team naming the bleed, blood when ready, imaging or angiography; no opioid in place of escalation.",
+          "modelAnswer": "His hemoglobin will barely move at first because he is losing whole blood, and his heart rate is compensating; by the time the pressure falls he has lost a large share of his volume. So: flat with the leg straight, firm pressure above the puncture, a bolus by the standing order, a stat hemoglobin and crossmatch, and an SBAR to the fellow that names a retroperitoneal bleed. Then blood as soon as it arrives and angiography or CT. Morphine for the pain without telling anyone would hide the warning."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and not leftForLab",
+      "class": "harm",
+      "rationale": "A retroperitoneal bleed that nobody has escalated after two hours keeps bleeding; this case calls that harm.",
+      "source": {
+        "cite": "Sui YG, Teng SY, Qian J, et al. Cross-sectional study of retroperitoneal hematoma after invasive intervention in a Chinese population. Exp Ther Med 2020;20(4):2975-2984",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.spandidos-publications.com/10.3892/etm.2020.9040",
+        "note": "Read 2026-11-14 through a summarizing fetch. Incidence 0.15-6% in published series; 'the most serious and potentially fatal complication of percutaneous intervention'; early signs are indistinct until hypovolemia; pain (abdominal, leg, waist) was the most common symptom; most cases were managed conservatively with transfusion; embolization or emergency surgery for the rest."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Pulseless arrest from blood loss",
+      "class": "harm",
+      "when": "f >= arrestF",
+      "terminal": true,
+      "narrative": "Heart rate {hr} and then no pulse on the monitor's pleth; his blood pressure cannot be heard. He has lost more than 40% of his blood volume into the retroperitoneum. The code team starts compressions."
+    },
+    "labTarget": {
+      "label": "To angiography early, perfused and transfused",
+      "class": "target",
+      "terminal": true,
+      "when": "leftForLab and selfCall and timeAt(callEffAt) <= callWindow and not isNull(pressAt) and timeAt(pressAt) <= pressWindow and not isNull(flatAt) and timeAt(flatAt) <= pressWindow and not isNull(bolusAt) and timeAt(bolusAt) <= bolusWindow and not isNull(bloodAt) and timeAt(bloodAt) <= timeAt(bloodReadyAt) + bloodWindow and mapNadir >= nadirTarget and not morphineEarly",
+      "narrative": "{t|clock}: he leaves for angiography with a heart rate of {hr} and a blood pressure of {sbp}/{dbp}, blood running, {round(lost)|0dp} mL lost. You called it before any hemoglobin came back."
+    },
+    "labLate": {
+      "label": "To angiography, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "leftForLab",
+      "narrative": "{t|clock}: he reaches angiography with a heart rate of {hr} and a blood pressure of {sbp}/{dbp}, {round(lost)|0dp} mL lost. The bleed is found and sealed, but the route cost time: a late or unclear call, no pressure or fluids early, blood waiting, or the pain treated first."
+    },
+    "time_up": {
+      "label": "20:40 and still bleeding on the unit",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "20:40: heart rate {hr}, blood pressure {sbp}/{dbp}. Two hours after the flank pain began, nobody has looked for the bleed."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "labTarget",
+    "labLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "escalate",
+        "label": "Called it a retroperitoneal bleed within 15 minutes, before any hemoglobin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The interventional team was never told he was bleeding."
+          },
+          {
+            "when": "not isNull(hgbResultAt) and timeAt(hgbResultAt) <= timeAt(callEffAt)",
+            "score": "missed",
+            "why": "The call waited for the hemoglobin result."
+          },
+          {
+            "when": "selfCall and timeAt(callEffAt) <= callWindow",
+            "score": "met",
+            "why": "SBAR at {timeAt(callEffAt)|clock} named the bleed."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The bleed was named, but late or by the rapid response team."
+          }
+        ]
+      },
+      {
+        "id": "local",
+        "label": "Pressure above the puncture and flat with the leg straight within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(pressAt) or isNull(flatAt)",
+            "score": "missed",
+            "why": "No pressure over the artery, or he was not kept flat."
+          },
+          {
+            "when": "timeAt(pressAt) <= pressWindow and timeAt(flatAt) <= pressWindow",
+            "score": "met",
+            "why": "Pressure at {timeAt(pressAt)|clock}, flat at {timeAt(flatAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Both done, but after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "volume",
+        "label": "Volume started within 15 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bolusAt)",
+            "score": "missed",
+            "why": "No fluid while he bled."
+          },
+          {
+            "when": "timeAt(bolusAt) <= bolusWindow",
+            "score": "met",
+            "why": "Bolus at {timeAt(bolusAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Bolus started after 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "blood",
+        "label": "Blood given as soon as it was ready",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bloodReadyAt)",
+            "score": "missed",
+            "why": "No blood was ever ordered: the bleed was not escalated."
+          },
+          {
+            "when": "isNull(bloodAt)",
+            "score": "missed",
+            "why": "Blood was at the bedside but never hung."
+          },
+          {
+            "when": "timeAt(bloodAt) <= timeAt(bloodReadyAt) + bloodWindow",
+            "score": "met",
+            "why": "First unit at {timeAt(bloodAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Blood waited more than 15 minutes after it arrived."
+          }
+        ]
+      },
+      {
+        "id": "assess",
+        "label": "Assessed the groin and the limb beyond it early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(lookAt)",
+            "score": "missed",
+            "why": "Never examined the groin or the leg."
+          },
+          {
+            "when": "timeAt(lookAt) <= okLook",
+            "score": "met",
+            "why": "Assessed at {timeAt(lookAt)|clock}: no visible hematoma, which is the point."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Assessed after 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "noMask",
+        "label": "Did not treat the pain as the problem",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "morphineEarly",
+            "score": "missed",
+            "why": "Morphine before anyone was told he might be bleeding."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Pain reported as a sign, not only treated."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Findings, times and actions documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of findings."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: a hidden bleed after femoral access, and why not wait for the hemoglobin",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "18:40 to the call that named the bleed",
+        "value": "isNull(callEffAt) ? -1 : timeAt(callEffAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toPressure",
+        "label": "18:40 to pressure above the site",
+        "value": "isNull(pressAt) ? -1 : timeAt(pressAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "nadir",
+        "label": "Lowest MAP",
+        "value": "mapNadir",
+        "format": "number",
+        "expert": "65 mm Hg or more"
+      },
+      {
+        "id": "lost",
+        "label": "Blood lost (model)",
+        "value": "round(lost)",
+        "format": "number",
+        "expert": "under 1,800 mL"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "18:41",
+        "text": "Assess: flank and back pain, restless, heart rate up, pressure drifting; groin soft with no hematoma, pulses intact. Flat with the leg straight, pressure above the puncture, bolus started, stat hemoglobin and crossmatch drawn."
+      },
+      {
+        "at": "18:42",
+        "text": "SBAR to the interventional fellow: retroperitoneal bleed until proved otherwise; come now, blood, imaging or angiography."
+      },
+      {
+        "at": "~19:07",
+        "text": "Blood arrives and is hung at once, one unit after the other."
+      },
+      {
+        "at": "~19:22",
+        "text": "To angiography from the other side, perfused, before the first hemoglobin is back."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Arrest from a hidden bleed",
+        "body": "The groin looked fine because the blood went behind it. New back or flank pain with a rising heart rate after a femoral procedure needs pressure, volume and a call that names the bleed, not a wait for the hemoglobin."
+      },
+      "labTarget": {
+        "headline": "Recognized and acted on before the hemoglobin",
+        "body": "Pressure above the puncture, flat, a bolus, an SBAR that named a retroperitoneal bleed, blood as soon as it came and angiography while he was still perfused. That is the expert path."
+      },
+      "labLate": {
+        "headline": "To angiography, by a slower route",
+        "body": "He reached angiography, but check how soon the bleed was named, whether pressure and fluids started early, whether blood waited, and whether the pain was treated before anyone was told."
+      },
+      "time_up": {
+        "headline": "Still bleeding at 20:40",
+        "body": "No one put the flank pain together with the heart rate and the pressure, so the interventional team never came. A normal-looking groin does not rule out a retroperitoneal bleed."
+      }
+    },
+    "modelReasoning": "Back and flank pain, restlessness, a heart rate climbing from 72 and a pressure drifting down four hours after a femoral PCI on aspirin, ticagrelor and heparin is a retroperitoneal bleed until proved otherwise, even with a clean groin: a puncture above the inguinal ligament bleeds into the retroperitoneum. The first hemoglobin lags behind acute loss and the heart rate hides the deficit, so act before the result: keep him flat with the leg straight, hold firm pressure over the artery about an inch above the skin puncture, start the standing-order bolus, draw a stat hemoglobin and crossmatch, and call the interventional fellow with an SBAR that names the bleed. Give blood as soon as it arrives (the restrictive thresholds are for stable patients) and get him to imaging or angiography while he is still perfused. An opioid for the pain without escalation hides the warning."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Cardiology called",
+      "when": "not isNull(callEffAt)"
+    }
+  ],
+  "teaching": {
+    "hgbQ": {
+      "during": "hgbT",
+      "ask": "The first hemoglobin may come back close to this morning's. What does that tell you?",
+      "choices": [
+        {
+          "id": "fine",
+          "label": "That he is not bleeding much"
+        },
+        {
+          "id": "lags",
+          "label": "Little: hemoglobin lags behind acute blood loss, so it is repeated"
+        }
+      ],
+      "expect": "lags",
+      "explain": "Whole blood is lost at the same concentration, so the number barely moves at first; it falls as fluid refills the vessels and as crystalloid runs in. Act on the trend in his vital signs and his symptoms, and repeat the hemoglobin.",
+      "source": {
+        "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80. doi:10.1186/s13054-023-04327-7",
+        "checkedAt": "2026-11-10",
+        "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+        "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10); the full text could not be re-read on 2026-11-14 (to verify). Used only for one teaching point: a single normal hemoglobin does not rule out early bleeding, so it is repeated."
+      }
+    },
+    "bloodQ": {
+      "during": "bloodT",
+      "ask": "If his hemoglobin is still above 7 g/dL, should the blood wait?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "Yes: the restrictive threshold is 7 g/dL"
+        },
+        {
+          "id": "give",
+          "label": "No: the thresholds are for stable patients, not active bleeding"
+        }
+      ],
+      "expect": "give",
+      "explain": "The 2023 AABB thresholds (7 g/dL, 8 with cardiovascular disease) are for hemodynamically stable hospitalized adults. A patient who is actively bleeding and compensating is transfused on his bleeding and his vital signs.",
+      "source": {
+        "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+        "checkedAt": "2026-11-14",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+        "note": "PubMed abstract read 2026-11-14 for the course seed. The restrictive thresholds (hemoglobin 7 g/dL; 8 with preexisting cardiovascular disease) are for hemodynamically stable hospitalized adults; they do not apply to active hemorrhage."
+      }
+    },
+    "groinQ": {
+      "during": "callbackT",
+      "ask": "His groin is soft with no hematoma. Does that make a bleed unlikely?",
+      "choices": [
+        {
+          "id": "unlikely",
+          "label": "Yes: a bleed would show at the site"
+        },
+        {
+          "id": "hidden",
+          "label": "No: a puncture above the inguinal ligament bleeds into the retroperitoneum, out of sight"
+        }
+      ],
+      "expect": "hidden",
+      "explain": "A high puncture bleeds backward into the retroperitoneal space, where there is room for liters of blood and nothing shows at the groin. Back, flank or lower abdominal pain with a rising heart rate and a falling pressure after a femoral procedure is a retroperitoneal bleed until proved otherwise.",
+      "source": {
+        "cite": "Kiernan TJ, Ajani AE, Yan BP. Management of access site and systemic complications of percutaneous coronary and peripheral interventions. J Invasive Cardiol 2008;20:463-469",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.hmpgloballearningnetwork.com/site/jic/articles/management-access-site-and-systemic-complications-percutaneous-coronary-and-peripheral",
+        "note": "Read 2026-11-14 through a summarizing fetch. Hypotension after an endovascular procedure should always include retroperitoneal bleeding in the differential; lower abdominal or flank pain and an acute hematocrit drop suggest it; a high puncture above the inguinal ligament is the main risk; confirmed by CT of the abdomen and pelvis; stable patients: transfusion, heparin reversal with protamine and close blood pressure monitoring; unstable patients: volume resuscitation and urgent angiography from the other side, with balloon, covered stent or surgery. A 2008 review: no newer society guideline on this complication was found."
+      }
+    }
+  }
+}

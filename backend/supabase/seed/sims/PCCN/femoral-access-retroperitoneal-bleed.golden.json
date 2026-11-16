@@ -1,0 +1,627 @@
+{
+  "slug": "femoral-access-retroperitoneal-bleed",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: assess, flat, pressure above the puncture, bolus, stat labs, an SBAR naming a retroperitoneal bleed, an objective note while the blood is crossmatched, both units hung on arrival",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "rp",
+            "rec": "come"
+          },
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 9,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 10,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "bloodQ",
+          "choice": "give",
+          "seq": 11,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 12,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 13,
+          "tick": 1650
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 14,
+          "tick": 1650
+        }
+      ],
+      "expect": {
+        "ending": "labTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "escalate": "met",
+          "local": "met",
+          "volume": "met",
+          "blood": "met",
+          "assess": "met",
+          "noMask": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toCall": 30,
+          "toPressure": 30,
+          "nadir": 90,
+          "lost": 1486
+        },
+        "stateHash": "c7d2041660820a27"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "slowCall",
+      "title": "A first call about muscle pain, local care and a bolus at 12 minutes, the bleed named at 18 minutes, blood hung on arrival",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "pain",
+            "bg": "min",
+            "asmt": "msk",
+            "rec": "wait"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 4,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 5,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 7,
+          "tick": 720
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "rp",
+            "rec": "come"
+          },
+          "seq": 9,
+          "tick": 1080
+        },
+        {
+          "type": "teach",
+          "prompt": "groinQ",
+          "choice": "hidden",
+          "seq": 10,
+          "tick": 1080
+        },
+        {
+          "type": "teach",
+          "prompt": "bloodQ",
+          "choice": "give",
+          "seq": 11,
+          "tick": 1200
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 13,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 14,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 15,
+          "tick": 2700
+        }
+      ],
+      "expect": {
+        "ending": "labLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "escalate": "partial",
+          "local": "partial",
+          "volume": "met",
+          "blood": "met",
+          "assess": "met",
+          "noMask": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toCall": 1080,
+          "toPressure": 720,
+          "nadir": 90,
+          "lost": 1909
+        },
+        "stateHash": "c1a353d9fe77d625"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "teamCalls",
+      "title": "Fast local care and fluids, then the rapid response team instead of a call; the blood is never hung",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "rrt",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "groinQ",
+          "choice": "hidden",
+          "seq": 7,
+          "tick": 330
+        },
+        {
+          "type": "teach",
+          "prompt": "bloodQ",
+          "choice": "give",
+          "seq": 8,
+          "tick": 450
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 9,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "labLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "escalate": "partial",
+          "local": "met",
+          "volume": "met",
+          "blood": "missed",
+          "assess": "met",
+          "noMask": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toCall": 330,
+          "toPressure": 30,
+          "nadir": 90,
+          "lost": 1570
+        },
+        "stateHash": "88574d510860764f"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "painFirst",
+      "title": "Morphine for the back pain first, then a clear SBAR, local care and blood, but no fluid until it arrives",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "morphine",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "rp",
+            "rec": "come"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "groinQ",
+          "choice": "hidden",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "bloodQ",
+          "choice": "give",
+          "seq": 7,
+          "tick": 180
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 8,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 10,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 11,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "labLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "escalate": "met",
+          "local": "met",
+          "volume": "missed",
+          "blood": "met",
+          "assess": "met",
+          "noMask": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toPressure": 60,
+          "nadir": 90,
+          "lost": 1500
+        },
+        "stateHash": "29b680e69e74ebb2"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "waitHgb",
+      "title": "Failure: stat labs and morphine, a call about muscle pain, then a wait for the hemoglobin before naming the bleed; no pressure, no fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "morphine",
+          "seq": 2,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "pain",
+            "bg": "min",
+            "asmt": "msk",
+            "rec": "wait"
+          },
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "change",
+            "bg": "full",
+            "asmt": "rp",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 3000
+        },
+        {
+          "type": "teach",
+          "prompt": "groinQ",
+          "choice": "hidden",
+          "seq": 7,
+          "tick": 3000
+        },
+        {
+          "type": "teach",
+          "prompt": "bloodQ",
+          "choice": "give",
+          "seq": 8,
+          "tick": 3120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "escalate": "missed",
+          "local": "missed",
+          "volume": "missed",
+          "blood": "missed",
+          "assess": "missed",
+          "noMask": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toCall": 3000,
+          "toPressure": -1,
+          "nadir": 68,
+          "lost": 2798
+        },
+        "stateHash": "f4bef00571e0a797"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "comfortOnly",
+      "title": "Failure: never examined, morphine and a note about bed rest, nobody told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "morphine",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "escalate": "missed",
+          "local": "missed",
+          "volume": "missed",
+          "blood": "missed",
+          "assess": "missed",
+          "noMask": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toPressure": -1,
+          "nadir": 68,
+          "lost": 2798
+        },
+        "stateHash": "99fb487f4cfd9612"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}
