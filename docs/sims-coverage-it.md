@@ -39,20 +39,20 @@ its course.
 | Course | Objectives | Fit (keyword) | Sims | Covered | Fit covered |
 |---|---|---|---|---|---|
 | MSCS | 113 | 1 | 0 / 0 | 0 / 0 | 0 / 0 |
-| SECPLUS | 77 | 28 | 3 / 5 | 3 / 5 | 3 / 5 |
+| SECPLUS | 77 | 28 | 3 / 6 | 3 / 6 | 3 / 6 |
 | SECPLUSV8 | 106 | 29 | 3 / 3 | 3 / 3 | 0 / 0 |
 | PYTHON | 50 | 2 | 0 / 0 | 0 / 0 | 0 / 0 |
 | JAVASCRIPT | 45 | 0 | 0 / 0 | 0 / 0 | 0 / 0 |
-| LINUXPLUS | 31 | 0 | 2 / 2 | 2 / 2 | 0 / 0 |
+| LINUXPLUS | 31 | 0 | 2 / 3 | 2 / 3 | 0 / 0 |
 | CYSAPLUS | 56 | 14 | 2 / 2 | 2 / 2 | 2 / 2 |
 | PENTESTPLUS | 22 | 1 | 2 / 2 | 2 / 2 | 0 / 0 |
 | SECURITYX | 19 | 2 | 2 / 2 | 2 / 2 | 0 / 0 |
 | CMPCBS | 102 | 0 | 0 / 0 | 0 / 0 | 0 / 0 |
 | AWSCLF | 80 | 4 | 2 / 2 | 2 / 2 | 2 / 2 |
 | AWSAIF | 79 | 8 | 0 / 0 | 0 / 0 | 0 / 0 |
-| AWSSAA | 99 | 13 | 2 / 2 | 2 / 2 | 0 / 0 |
+| AWSSAA | 99 | 13 | 2 / 3 | 2 / 3 | 0 / 1 |
 | AWSDVA | 114 | 2 | 2 / 2 | 2 / 2 | 2 / 2 |
-| AWSSOA | 59 | 12 | 2 / 2 | 2 / 2 | 2 / 2 |
+| AWSSOA | 59 | 12 | 2 / 3 | 2 / 3 | 2 / 3 |
 | AWSDEA | 113 | 4 | 0 / 0 | 0 / 0 | 0 / 0 |
 | AWSMLA | 107 | 17 | 3 / 3 | 3 / 3 | 3 / 3 |
 | AWSSAP | 115 | 19 | 1 / 1 | 1 / 1 | 0 / 0 |
@@ -70,7 +70,7 @@ its course.
 | AZ400 | 86 | 11 | 0 / 0 | 0 / 0 | 0 / 0 |
 | AZ120 | 78 | 8 | 0 / 0 | 0 / 0 | 0 / 0 |
 | GCPCDL | 65 | 7 | 0 / 1 | 0 / 1 | 0 / 1 |
-| GCPACE | 86 | 1 | 0 / 1 | 0 / 1 | 0 / 0 |
+| GCPACE | 86 | 1 | 0 / 2 | 0 / 2 | 0 / 0 |
 | GCPPCA | 101 | 11 | 0 / 0 | 0 / 0 | 0 / 0 |
 | GCPPDE | 70 | 8 | 0 / 0 | 0 / 0 | 0 / 0 |
 | GCPDEVOPS | 79 | 10 | 0 / 0 | 0 / 0 | 0 / 0 |
@@ -110,7 +110,7 @@ its course.
 | NSCACSCS | 37 | 8 | 0 / 0 | 0 / 0 | 0 / 0 |
 | NSCACPT | 18 | 7 | 0 / 0 | 0 / 0 | 0 / 0 |
 | NCCPTCPT | 25 | 7 | 0 / 0 | 0 / 0 | 0 / 0 |
-| CKA | 39 | 6 | 2 / 3 | 2 / 3 | 0 / 1 |
+| CKA | 39 | 6 | 2 / 4 | 2 / 4 | 0 / 2 |
 | CKAD | 33 | 1 | 0 / 0 | 0 / 0 | 0 / 0 |
 | KCNA | 32 | 4 | 0 / 1 | 0 / 1 | 0 / 1 |
 | CKS | 28 | 2 | 0 / 0 | 0 / 0 | 0 / 0 |
@@ -141,6 +141,18 @@ its course.
 | GCPCDL | `bigquery-dashboard-bill` | board | Google-recommended practices for cloud financial governance, including who owns cost management | Keyword fit (choices, priorities) |
 | SECPLUS | `vuln-prioritization-kev-edge-secplus` (band of the CySA+ case) | security console | Vulnerability management: scanning, CVSS scoring, and remediation prioritization | Keyword fit; the same KEV-versus-CVSS decision SY0-701 4.3 asks for |
 | SECPLUS | `alert-triage-lolbin-hunt-secplus` (band of the CySA+ case) | security console | Security alerting and monitoring: ... alert response and remediation/validation (quarantine, alert tuning) ... | Keyword fit; triaging four alerts and responding is SY0-701 4.4's alert response |
+| AWSSAA | `waf-login-flood-sqli` | board | Protecting applications from external threats: AWS WAF and AWS Shield against DDoS and injection | Keyword fit (time, choices) |
+| AWSSOA | `rds-update-without-where-pitr` | board | Restoring databases, including point-in-time restore, against RTO, RPO, and cost requirements | Keyword fit (time, priorities) |
+| GCPACE | `cloud-run-bad-revision-rollback` | board | Deploying new versions of a Cloud Run application, and adjusting traffic-splitting ... | Judgement (the screen matches only "choices"): an error budget running out by the minute (time), errors split by revision and logs (cues), rollback/rebuild/scale/deploy-with-traffic choices, restoring service against shipping the fix (priorities) |
+| LINUXPLUS | `systemd-dropin-breaks-export` | terminal | systemd service management (systemctl, journalctl) | Judgement (the screen matches only "choices"): a bank pickup in 45 minutes (time), journal and `systemctl cat` output (cues), edit/rm/vendor-file/mkdir/reboot choices with side effects, a running service against one that survives a reboot (priorities) |
+| CKA | `apiserver-static-pod-bad-flag` | terminal | Troubleshoot cluster components: static pod manifests ... reading their logs when kubectl itself fails | Keyword fit (cues, choices) |
+| SECPLUS | `firewall-change-backout` | security console | Change management and its security impact: ... backout plan, maintenance window ... and version control | Keyword fit (time, choices); the case walks the objective's own list: approval, owner, stakeholders, backout plan, window, service restart, diagrams, version control |
+
+The last six were added on 2026-11-14 after the first eight (the work
+resumed after a stop). Their sources were read on 2026-11-14 before web
+reading was narrowed to search results that day; two that could not be
+opened are marked "to verify" in the documents (the Google Cloud ACE exam
+guide PDF and the Kubernetes ports page).
 
 ## Launch and mixed-round courses in detail
 
@@ -148,12 +160,13 @@ its course.
 marked (J). "Covered by" names the sim; "2nd" means a secondary only.
 
 **Security+ (SECPLUS, SY0-701).** 28 of 77 fit; 3 covered before (phishing
-account takeover 2.4, ransomware IR 4.8, cloud IAM backdoor 4.6), 5 after:
+account takeover 2.4, ransomware IR 4.8, cloud IAM backdoor 4.6), 6 after:
+change management with a backout plan (1.3, on the console), and
 vulnerability management and security alerting and monitoring, as bands of the
 CySA+ incidents (the analyst's case at Security+'s objective; whether a CySA+
 case is the right level for Security+ is a decision for Nick). Uncovered fits
 that would make strong console incidents: host,
-protocol and email defenses; change management with a backout plan; resilience
+protocol and email defenses; resilience
 and recovery (hot/warm/cold sites); automation and orchestration (guard rails,
 escalation); security awareness (responding to reported phishing); third-party
 and supply-chain risk. The risk-analysis objectives (ALE/SLE/ARO, governance
@@ -161,18 +174,17 @@ documents) fit the screen's words but are calculation and policy topics a lab
 covers better. SECPLUSV8 mirrors the three as bands, on V8 objectives the screen does not
 pass; all 29 V8 keyword fits are uncovered.
 
-**AWS Solutions Architect Associate (AWSSAA).** 13 of 99 fit; the two sims
+**AWS Solutions Architect Associate (AWSSAA).** 13 of 99 fit; 1 covered after REQ-297 (WAF and Shield against DDoS and injection). The first two sims
 (TicketBurst, NAT gateway bill) sit on objectives the screen does not pass
 (single points of failure; routing that minimizes transfer cost) and touch
-five more as secondaries. Uncovered fits: WAF and Shield against DDoS and
-injection; GuardDuty and Macie findings; backup and replication as a security
+five more as secondaries. Uncovered fits: GuardDuty and Macie findings; backup and replication as a security
 control; Availability Zones, Regions and Route 53 in a resilient design;
 load-balancing strategy; storage, backup, purchasing option, instance and
 database selection on cost; throttling strategy. All suit the board.
 
-**AWS CloudOps/SysOps (AWSSOA).** 12 of 59 fit; 2 covered (stack update
-rollback, EC2 status-check recovery). Uncovered: ELB health checks; database
-point-in-time restore against RTO/RPO; EBS performance and volume type;
+**AWS CloudOps/SysOps (AWSSOA).** 12 of 59 fit; 3 covered (stack update
+rollback, EC2 status-check recovery, and REQ-297's point-in-time restore).
+Uncovered: ELB health checks; EBS performance and volume type;
 KMS and ACM troubleshooting; Security Hub/GuardDuty/Config findings;
 CloudFront caching issues; compliance with Config conformance packs.
 
@@ -192,8 +204,9 @@ application development; compute vocabulary.
 
 **Google Cloud Associate Cloud Engineer (GCPACE).** 1 of 86 fits by keyword
 (load balancers); 0 before, 1 after (Cloud Storage security, judgement).
-Judgement fits still open: load balancer choice; autoscaled managed instance
-groups; Cloud Run traffic splitting during a bad release; firewall rules and
+Cloud Run traffic splitting during a bad release is covered after REQ-297
+(judgement). Judgement fits still open: load balancer choice; autoscaled
+managed instance groups; firewall rules and
 Cloud NGFW day to day; Cloud Monitoring alerts; snapshots and database
 backup/restore; service account permissions and impersonation.
 
@@ -210,13 +223,13 @@ covered (branch DNS route typo) and switching/routing as a judgement fit
 attacks and mitigations; high availability and disaster recovery.
 
 **Linux+ (LINUXPLUS).** 0 of 31 fit by keyword; both sims are judgement fits
-(storage, SELinux). Open judgement fits: boot and GRUB failures; systemd
-service failures; network configuration; performance (CPU, memory, OOM).
+(storage, SELinux). systemd service management is covered after REQ-297 (judgement). Open
+judgement fits: boot and GRUB failures; network configuration; performance (CPU, memory, OOM).
 
 **KCNA and CKA.** KCNA: 4 of 32 fit; 0 before, 1 after. CKA: 6 of 39 fit;
-2 before (judgement), 3 after (the band covers "Service with no endpoints").
-Open CKA fits: control-plane component troubleshooting (static pod
-manifests); highly available control plane; storage access modes and reclaim
+2 before (judgement), 4 after (the band covers "Service with no endpoints";
+the API server static pod case covers cluster components). Open CKA fits:
+highly available control plane; storage access modes and reclaim
 policies; cluster upgrades with kubeadm.
 
 **Python, JavaScript (PYTHON, JAVASCRIPT).** 2 of 50 and 0 of 45 fit by
@@ -268,10 +281,10 @@ terminal (REQ-237).
 
 ## What remains on existing screens
 
-Ordered by launch status, then fits left: SECPLUS (23 fits open, console),
-AWSSAA (13, board), AWSMLA (14, board), AWSSOA (10, board or terminal),
+Ordered by launch status, then fits left: SECPLUS (22 fits open, console),
+AWSSAA (12, board), AWSMLA (14, board), AWSSOA (9, board or terminal),
 SECPLUSV8 (29, console or bands), GCPCDL (6), GCPACE (judgement fits above),
-APLUS_CORE2 (4), KCNA (3), CKA (4), then the non-launch AWS, Azure, Google
+APLUS_CORE2 (4), KCNA (3), CKA (3), then the non-launch AWS, Azure, Google
 Cloud and CNCF courses (about 300 keyword fits, all board, terminal or
 console shaped). At the pace of this wave (a sim with sources, six golden
 paths and a behavior test each) that is weeks of authoring; the generator
