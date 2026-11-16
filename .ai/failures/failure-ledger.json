@@ -17961,6 +17961,36 @@
       "prevention_rules": [],
       "prevention_notes": "Fixed test sets are named by slug, never by course.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2002",
+      "date": "2026-11-14",
+      "title": "Sim DB tests counted every sim of their course (FAIL-2000 again, in the dbtests)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After the six later wave 3 sims, lib/sims-security.dbtest.ts and lib/sims-terminal.dbtest.ts failed in CI on the checkpoint merge (#193): their seeding and listing counts expected only their own requirement's SECPLUS, LINUXPLUS and CKA sims.",
+      "how_detected": "CI on the checkpoint merge; the lead pinned both suites on master (e7650405)",
+      "root_cause": "FAIL-2000 fixed the two unit suites that selected documents by course code but did not look for the same pattern in the DB suites, which were never run on the branch before the checkpoint.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/lib/sims-security.dbtest.ts",
+        "backend/lib/sims-terminal.dbtest.ts"
+      ],
+      "fix_summary": "The lead pinned both DB suites to their original slugs (e7650405). Wave 3 now has its own DB suite, lib/sims-it-wave3.dbtest.ts, selecting by slug from lib/sim/it-wave3.ts, shared with the unit suite.",
+      "fix_commits": [
+        "e7650405"
+      ],
+      "regression_tests": [
+        "backend/lib/sims-it-wave3.dbtest.ts",
+        "backend/lib/sims-security.dbtest.ts",
+        "backend/lib/sims-terminal.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist, sim documents item: a sim test, unit or DB, selects its documents by slug from its own requirement's list; run test:db before reporting a sim wave done.",
+      "recurrence_of": "FAIL-2000"
     }
   ]
 }
