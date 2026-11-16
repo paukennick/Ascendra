@@ -58,28 +58,29 @@ test("FAIL-1108: the live constants stay consistent", () => {
   );
 });
 
-// REQ-261: the 2026-11-14 Privacy Policy is a bump of one document. What that
-// means for each kind of account and build, on the live constants.
-test("REQ-261: a Privacy-only bump asks for the Privacy Policy only, and strands no installed build", () => {
-  assert.equal(LEGAL_VERSIONS.privacy, "2026-11-14");
+// REQ-261 / REQ-306: Privacy-only bumps (2026-11-14, then 2026-11-16). What
+// that means for each kind of account and build, on the live constants.
+test("REQ-306: a Privacy-only bump asks for the Privacy Policy only, and strands no installed build", () => {
+  assert.equal(LEGAL_VERSIONS.privacy, "2026-11-16");
   assert.equal(LEGAL_VERSIONS.terms, "2026-11-13", "the Terms did not change");
   const current = { legacy: false, declared: LEGAL_VERSIONS.privacy };
-  // accepted the 2026-11-13 pair: the web app and an updated build ask for the Privacy Policy only
-  const old = [{ document: "terms", version: "2026-11-13" }, { document: "privacy", version: "2026-11-13" }];
-  assert.deepEqual(pendingFromRows(old, current), ["privacy"]);
+  // accepted the previous pair: asked for the Privacy Policy only
+  const prev = [{ document: "terms", version: "2026-11-13" }, { document: "privacy", version: "2026-11-14" }];
+  assert.deepEqual(pendingFromRows(prev, current), ["privacy"]);
   // a new account accepts both at once
   assert.deepEqual(pendingFromRows([], current), ["terms", "privacy"]);
-  assert.deepEqual(pendingFromRows([...old.slice(0, 1), { document: "privacy", version: "2026-11-14" }], current), []);
-  // an installed build that carries the 2026-11-13 text declares it: its own pair is enough, so it is not asked again
+  assert.deepEqual(pendingFromRows([prev[0], { document: "privacy", version: "2026-11-16" }], current), []);
+  // installed builds that carry the 2026-11-14, 2026-11-13 or 2026-11-10 text declare it and are not asked again
+  assert.deepEqual(pendingFromRows(prev, { legacy: false, declared: "2026-11-14" }), []);
+  assert.deepEqual(acceptableGenerationsIn({ legacy: false, declared: "2026-11-14" }, liveSet()).map((g) => g.version), ["2026-11-16", "2026-11-14"]);
+  assert.deepEqual(acceptableGenerationsIn({ legacy: false, declared: "2026-11-13" }, liveSet()).map((g) => g.version), ["2026-11-16", "2026-11-13"]);
+  assert.deepEqual(acceptableGenerationsIn({ legacy: false, declared: "2026-11-10" }, liveSet()).map((g) => g.version), ["2026-11-16", "2026-11-10"]);
+  const old = [{ document: "terms", version: "2026-11-13" }, { document: "privacy", version: "2026-11-13" }];
   assert.deepEqual(pendingFromRows(old, { legacy: false, declared: "2026-11-13" }), []);
-  assert.deepEqual(acceptableGenerationsIn({ legacy: false, declared: "2026-11-13" }, liveSet()).map((g) => g.version), ["2026-11-14", "2026-11-13"]);
-  // and one from before that (2026-11-10), which PREVIOUS_LEGAL_VERSIONS held until now, is still accepted
-  assert.deepEqual(acceptableGenerationsIn({ legacy: false, declared: "2026-11-10" }, liveSet()).map((g) => g.version), ["2026-11-14", "2026-11-10"]);
-  assert.deepEqual(pendingFromRows([{ document: "terms", version: "2026-11-10" }, { document: "privacy", version: "2026-11-10" }], { legacy: false, declared: "2026-11-10" }), []);
   // the single-string versions are all different, so no version stands for two pairs
   const versions = acceptableGenerationsIn({ legacy: true }, liveSet()).map((g) => g.version);
   assert.equal(new Set(versions).size, versions.length);
-  assert.deepEqual(versions, ["2026-11-14", "2026-11-13", "2026-11-10", "2026-11-09", "2026-11-07"]);
+  assert.deepEqual(versions, ["2026-11-16", "2026-11-14", "2026-11-13", "2026-11-10", "2026-11-09", "2026-11-07"]);
 });
 
 function liveSet() {

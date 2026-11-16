@@ -10933,7 +10933,7 @@
       "title": "One session per device; web sessions end after 14 days unused",
       "description": "Nick 2026-11-16: active sessions should stack and end on devices not used after a time. Approved: one session per device (a random device id per install or browser, X-Ascendra-Device; a new sign-in on the same device ends its older session), 30 days unused in the app and 14 on the web, and the smoke test signs out after itself.",
       "priority": "medium",
-      "status": "pending",
+      "status": "completed",
       "minimum_access_scope": [
         "backend/lib/auth/tokens.ts",
         "backend/lib/auth/util.ts",
@@ -10948,7 +10948,8 @@
         "Other devices and sessions without a device id are untouched",
         "Rotation keeps the family's device id",
         "Web sessions expire 14 days after last use, app sessions 30",
-        "The app sends X-Ascendra-Device on every request and the server allows the header"
+        "The app sends X-Ascendra-Device on every request and the server allows the header",
+        "Privacy Policy and Cookies 2026-11-16 name the device id, the session limits and the newest biometric token"
       ],
       "validation_required": [
         "cd backend && npm test && npm run test:db",
@@ -10960,7 +10961,7 @@
         "docs/legal/data-inventory.md"
       ],
       "risk_notes": [
-        "New identifier: the Privacy Policy and the Cookies & Device Storage page must name the random device id before this ships (Nick's decision on a new legal version)",
+        "Privacy Policy and Cookies 2026-11-16 disclose the device id (Nick approved the new version, 2026-11-16): everyone agrees to the Privacy Policy once more",
         "Migration 086 must be applied before the backend: sign-in writes device_id"
       ]
     },
