@@ -1,4 +1,4 @@
-// REQ-288: the ASWB client sessions (docs/sims.md 22.17). Same screen, profile
+// REQ-288: the ASWB client sessions (docs/sims.md 22.19). Same screen, profile
 // and pacing as the NCE/NCMHCE sessions (REQ-239): learner-paced turns, the
 // clinical-session profile, registered by course code and exact objective
 // title. Each case has endings in all three classes, 3-4 critical criteria,
@@ -8,7 +8,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { ASWB_OBJECTIVES, ASWB_SESSION_DOCUMENTS, loadDocument } from "./documents.ts";
+import { ASWB_OBJECTIVES, ASWB_SESSION_DOCUMENTS, WAJP_OBJECTIVES, WAJP_SESSION_DOCUMENTS, loadDocument } from "./documents.ts";
 import { applyCommand, createRun, readValue, validateScenario, waits } from "./engine/v1/index.ts";
 import type { Command, GoldenFile, ScenarioDoc } from "./engine/v1/index.ts";
 import { pacingEligible } from "./server-run.ts";
@@ -23,7 +23,9 @@ describe("REQ-288: ASWB client sessions", () => {
     assert.ok(ASWB_SESSION_DOCUMENTS.length >= 2);
     assert.deepEqual(Object.keys(ASWB_OBJECTIVES).sort(), ASWB_SESSION_DOCUMENTS.map((e) => e.slug).sort());
     const seeded = [...Object.values(ASWB_CLINICAL_SIM_OBJECTIVES), ...Object.values(ASWB_MASTERS_SIM_OBJECTIVES)];
-    for (const title of Object.values(ASWB_OBJECTIVES)) assert.ok(seeded.includes(title as never), `the seed exports "${title}"`);
+    // REQ-288's four flagship titles are exported by the seed; the REQ-289
+    // coverage sessions sit on ordinary outline objectives (checked below).
+    for (const title of seeded) assert.ok(Object.values(ASWB_OBJECTIVES).includes(title), `a session is registered to "${title}"`);
     for (const e of ASWB_SESSION_DOCUMENTS) {
       assert.ok(e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS");
       assert.match(e.slug, e.course === "ASWBCLINICAL" ? /^aswbc-/ : /^aswbm-/);
@@ -71,7 +73,7 @@ describe("REQ-288: ASWB client sessions", () => {
       assert.ok(critical >= 3 && critical <= 4, `${e.slug}: ${critical} critical`);
       assert.ok(d.scoring.kpis!.length >= 3 && d.scoring.kpis!.every((k) => k.expert), e.slug);
       assert.ok(d.scoring.expertPath!.length >= 4, e.slug);
-      assert.ok(d.sources.length >= 3, e.slug);
+      assert.ok(d.sources.length >= 2, e.slug);
       for (const s of d.sources) assert.equal(s.checkedAt, "2026-11-14", `${e.slug}: ${s.cite}`);
       assert.ok(d.sources.some((s) => /aswb\.org/.test(s.url ?? "")), `${e.slug}: cites the ASWB outline`);
       assert.ok(d.sources.some((s) => /socialworkers\.org/.test(s.url ?? "")), `${e.slug}: cites the NASW Code`);
@@ -100,6 +102,34 @@ describe("REQ-288: ASWB client sessions", () => {
     const d = docOf("aswbc-suicide-violence-risk");
     assert.ok(d.sources.some((s) => /988/.test(s.cite)));
     assert.match(JSON.stringify(d.actions.planStep), /988 by call or text/);
+  });
+});
+
+describe("REQ-289: coverage sessions and bands", () => {
+  test("the shared ASWB objectives reuse one session per pair through a band, and each band is on its own course's objective", () => {
+    const bands = ASWB_SESSION_DOCUMENTS.filter((e) => e.kind === "band").map((e) => e.slug).sort();
+    assert.deepEqual(bands, ["aswbc-boundaries-small-town", "aswbm-suicide-violence-risk", "aswbm-termination-nonpayment"]);
+    for (const slug of bands) {
+      const d = docOf(slug);
+      assert.ok(d.sources[0].url?.includes("aswb.org"));
+      assert.match(d.sources[0].cite, slug.startsWith("aswbc-") ? /Clinical content outline/ : /Masters content outline/, slug);
+    }
+    assert.doesNotMatch(docOf("aswbm-suicide-violence-risk").brief.situation, /clinical social worker/, "a Masters social worker in the Masters band");
+  });
+
+  test("the Washington jurisprudence course has the EPPP duty-to-protect session on its own objective, with Washington's reference list cited", () => {
+    assert.deepEqual(WAJP_SESSION_DOCUMENTS.map((e) => [e.course, e.slug, e.kind]), [["WAPSYCHJP", "wajp-duty-to-protect-threat", "band"]]);
+    const e = WAJP_SESSION_DOCUMENTS[0];
+    const d = loadDocument(e);
+    assert.equal(d.objective, WAJP_OBJECTIVES[e.slug]);
+    const track = CATALOG_TRACKS.find((t) => t.code === "WAPSYCHJP")!;
+    assert.equal(track.subcategorySlug, "psychology-licensure");
+    assert.equal(activeUnits(track).filter((u) => u.objectives.includes(d.objective)).length, 1);
+    assert.deepEqual(validateScenario(d).map(String), []);
+    assert.ok(d.sources.some((s) => /doh\.wa\.gov/.test(s.url ?? "")), "DOH's reference list");
+    assert.ok(d.sources.some((s) => /71\.05\.120/.test(s.cite)), "RCW 71.05.120(3)");
+    const g = JSON.parse(readFileSync(e.golden!, "utf8")) as GoldenFile;
+    assert.equal(g.paths.find((p) => p.id === "expert")!.expect.rating, "good");
   });
 });
 

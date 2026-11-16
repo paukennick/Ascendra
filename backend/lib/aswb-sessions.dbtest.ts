@@ -1,4 +1,5 @@
-// REQ-288: the ASWB client sessions as seeded (npm run seed, as CI runs it
+// REQ-288 / REQ-289: the ASWB client sessions (and the Washington jurisprudence
+// band of the EPPP duty-to-protect session) as seeded (npm run seed, as CI runs it
 // before test:db), against a real Postgres with every migration applied:
 //   - starting one refuses with 403 mature_content_required until the learner
 //     confirms the per-course 18+ acknowledgment (REQ-259; the course sits in
@@ -19,7 +20,11 @@ import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
 import { recordStudyNoticeAcceptance } from "./study-notice";
 import { MATURE_CONTENT_NOTICE_VERSION } from "./mature-content";
-import { ASWB_SESSION_DOCUMENTS, loadDocument } from "./sim/documents.ts";
+import { ASWB_SESSION_DOCUMENTS, WAJP_SESSION_DOCUMENTS, loadDocument } from "./sim/documents.ts";
+
+// REQ-289: the ASWB coverage sessions and bands, and the Washington jurisprudence band.
+const DOCS = [...ASWB_SESSION_DOCUMENTS, ...WAJP_SESSION_DOCUMENTS];
+const CODES = ["ASWBCLINICAL", "ASWBMASTERS", "WAPSYCHJP"];
 import { replayGoldenPath, stateHash } from "./sim/engine/v1/index.ts";
 import type { GoldenFile, GoldenPath, ScenarioDoc } from "./sim/engine/v1/index.ts";
 import { replayRun } from "./sim/server-run.ts";
@@ -54,12 +59,12 @@ const runCtx = (runId: string) => ({ params: Promise.resolve({ runId }) });
 // REQ-259: the 18+ acknowledgement is per course, and the account's first one carries a date of birth.
 const confirm = (u: string, trackId: string) =>
   acceptPost(req(u, "/api/mature-content/accept", "POST", { trackId, version: MATURE_CONTENT_NOTICE_VERSION, attested: true, dateOfBirth: "1990-01-15", source: "course" })).then(json);
-const docOf = (slug: string): ScenarioDoc => loadDocument(ASWB_SESSION_DOCUMENTS.find((e) => e.slug === slug)!);
-const goldenOf = (slug: string): GoldenFile => JSON.parse(readFileSync(ASWB_SESSION_DOCUMENTS.find((e) => e.slug === slug)!.golden!, "utf8")) as GoldenFile;
+const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
+const goldenOf = (slug: string): GoldenFile => JSON.parse(readFileSync(DOCS.find((e) => e.slug === slug)!.golden!, "utf8")) as GoldenFile;
 
 before(async () => {
   setAiCallSink(null);
-  for (const code of ["ASWBCLINICAL", "ASWBMASTERS"]) {
+  for (const code of CODES) {
     const t = await queryOne<{ id: string }>(`select id from subject_tracks where code = $1 and user_id is null`, [code]);
     assert.ok(t, `${code} is seeded (run npm run seed before npm run test:db)`);
     tracks[code] = t!.id;
@@ -99,13 +104,13 @@ after(async () => {
 
 describe("REQ-288: the seeded ASWB client sessions", () => {
   test("starting a session refuses until the 18+ acknowledgment for that course", async () => {
-    for (const code of ["ASWBCLINICAL", "ASWBMASTERS"]) {
+    for (const code of CODES) {
       const id = tracks[code];
       const u = await newUser();
       await recordStudyNoticeAcceptance(u);
       const listed = await json(await simsGet(req(u, `/api/sims?trackId=${id}`)));
       assert.equal(listed.status, 200);
-      assert.equal(listed.body.sims.length, 2, `${code}: two sessions listed`);
+      assert.equal(listed.body.sims.length, DOCS.filter((e) => e.course === code).length, `${code}: every session listed`);
       const simId = listed.body.sims[0].id as string;
       const r = await json(await runsPost(req(u, "/api/x", "POST", { restart: true, deviceId: "dev-a" }), idCtx(simId)));
       assert.equal(r.status, 403, `${code}: ${JSON.stringify(r.body)}`);
@@ -118,16 +123,16 @@ describe("REQ-288: the seeded ASWB client sessions", () => {
     }
   });
 
-  test("the four sessions are seeded as session sims on their exact objectives", async () => {
+  test("every session is seeded as session sims on their exact objectives", async () => {
     const rows = await query<{ slug: string; screen_type: string; objective: string; code: string }>(
       `select s.slug, s.screen_type, o.title as objective, t.code
          from sims s join objectives o on o.id = s.objective_id join course_units cu on cu.id = o.unit_id join subject_tracks t on t.id = cu.track_id
         where s.slug = any($1::text[]) order by s.slug`,
-      [ASWB_SESSION_DOCUMENTS.map((e) => e.slug)]
+      [DOCS.map((e) => e.slug)]
     );
-    assert.equal(rows.length, ASWB_SESSION_DOCUMENTS.length);
+    assert.equal(rows.length, DOCS.length);
     for (const r of rows) {
-      const e = ASWB_SESSION_DOCUMENTS.find((x) => x.slug === r.slug)!;
+      const e = DOCS.find((x) => x.slug === r.slug)!;
       assert.equal(r.code, e.course);
       assert.equal(r.screen_type, "session");
       assert.equal(r.objective, docOf(r.slug).objective);
@@ -144,7 +149,7 @@ function momentOpening(doc: ScenarioDoc, path: GoldenPath): { openedSeq: number;
 }
 
 describe("REQ-288: each ASWB session's expert path through the routes", () => {
-  for (const e of ASWB_SESSION_DOCUMENTS) {
+  for (const e of DOCS) {
     test(`${e.course}/${e.slug}: target ending, a Good rating, one attempt`, async () => {
       const u = await newUser();
       await recordStudyNoticeAcceptance(u);
