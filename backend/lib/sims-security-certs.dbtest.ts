@@ -1,4 +1,4 @@
-// REQ-274 (docs/sims.md 22.16): the ISC2 CC, CISSP, ISACA CISM and
+// REQ-274 (docs/sims.md 22.19): the ISC2 CC, CISSP, ISACA CISM and
 // EC-Council CEH incidents on the security console against a real Postgres
 // with every migration applied. Stand-in courses carry the catalog objective titles, so
 // the test does not depend on the catalog seed; the seed resolves each by

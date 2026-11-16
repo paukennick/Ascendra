@@ -1,0 +1,1255 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rds-update-without-where-pitr",
+  "title": "Data: an UPDATE without WHERE cancels every open order at 13:52",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "prod",
+          "label": "RDS for PostgreSQL orders-prod (production)",
+          "spokenLabel": "the production database",
+          "items": [
+            {
+              "label": "orders: {repaired ? \"statuses restored for the 180,000 open orders\" : \"180,000 open orders wrongly marked cancelled at 13:52\"}",
+              "when": "true"
+            },
+            {
+              "label": "New orders keep arriving (about 60 a minute)",
+              "when": "not swapped"
+            },
+            {
+              "label": "Automated backups: 7-day retention; last snapshot 04:00",
+              "when": "true"
+            },
+            {
+              "label": "Replaced by the restored copy at {swapAt|clock}",
+              "when": "swapped"
+            }
+          ]
+        },
+        {
+          "id": "copy",
+          "label": "Restored instance orders-pitr",
+          "spokenLabel": "the restored instance",
+          "items": [
+            {
+              "label": "Not created",
+              "when": "restoreTo == \"none\""
+            },
+            {
+              "label": "{restoredReady ? \"Available\" : \"Creating (about 30 minutes)\"}: restored to {restoreTo == \"pre\" ? \"13:51:00, before the UPDATE\" : restoreTo == \"latest\" ? \"the latest restorable time, after the UPDATE\" : \"the 04:00 snapshot\"}",
+              "when": "restoreTo != \"none\" and not restoredDeleted"
+            },
+            {
+              "label": "Security group: {restoreSg == \"custom\" ? \"orders-db-sg (the repair host can connect)\" : \"default VPC security group (nothing else can connect)\"}",
+              "when": "restoreTo != \"none\" and not restoredDeleted"
+            },
+            {
+              "label": "Deleted after the repair",
+              "when": "restoredDeleted"
+            }
+          ]
+        },
+        {
+          "id": "apps",
+          "label": "Workers",
+          "spokenLabel": "the workers",
+          "items": [
+            {
+              "label": "Refund worker: {refundsPaused ? \"paused\" : \"refunds every cancelled order every 10 minutes\"}",
+              "when": "true"
+            },
+            {
+              "label": "Courier pickup at 15:30 reads the open orders (90 minutes from now)",
+              "when": "isNull(pickupOkAt) and isNull(pickupMissedAt)"
+            },
+            {
+              "label": "Courier pickup: {isNull(pickupOkAt) ? \"missed, no open orders to ship\" : \"ran on the right orders\"}",
+              "when": "not isNull(pickupOkAt) or not isNull(pickupMissedAt)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "refunds",
+          "label": "Wrong refunds sent",
+          "value": "{refundsOut}"
+        },
+        {
+          "id": "lost",
+          "label": "Minutes of orders lost",
+          "value": "{lostMin}"
+        }
+      ]
+    }
+  },
+  "objective": "Restoring databases, including point-in-time restore, against RTO, RPO, and cost requirements",
+  "sources": [
+    {
+      "cite": "AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide, Content Domain 2 Reliability and Business Continuity (22%), Task 2.3 Implement backup and restore strategies",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03-domain2.html",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: Skill 2.3.2 'Use various methods to restore databases (for example, point-in-time restore) to meet recovery time objective (RTO), recovery point objective (RPO), and cost requirements.' Domain weights from the guide's overview page the same day: 22, 22, 22, 16, 18."
+    },
+    {
+      "cite": "Amazon RDS User Guide: Restoring a DB instance to a specified time",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html",
+      "note": "Read through a summarizing fetch on 2026-11-14 (no last-updated date shown). Relevant text: 'You can restore a DB instance to a specific point in time, creating a new DB instance without modifying the source DB instance'; 'RDS uploads transaction logs for DB instances to Amazon S3 every five minutes'; LatestRestorableTime is read with describe-db-instances; 'You can restore to any point in time within your backup retention period'; on restore 'you can choose the default virtual private cloud (VPC) security group. Or you can apply a custom VPC security group'; 'Restored DB instances are automatically associated with the default DB parameter and option groups.' The page does not say how long a restore takes; the scenario's 30 minutes is authored."
+    }
+  ],
+  "brief": {
+    "situation": "You are the CloudOps engineer for Larkspur Goods, a fictional online store. At 14:00 support reports that every open order shows as cancelled. A schema migration ran against the RDS for PostgreSQL instance orders-prod a few minutes ago. Customers keep ordering, a refund worker refunds cancelled orders every 10 minutes, and the courier pickup at 15:30 ships whatever is open.",
+    "handover": [
+      "Requirements: no order placed after the incident may be lost (RPO 5 minutes); statuses right before the 15:30 pickup; no spare database left running.",
+      "Automated backups are on with a 7-day retention; the repair host reaches databases in the orders-db-sg security group."
+    ],
+    "howItWorks": [
+      "The board shows production, the restored instance and the workers; meters show refunds and lost orders.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. Restores and repairs finish later on the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "restoreDur": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. A point-in-time restore of this instance takes 30 minutes; the RDS page gives no duration."
+      }
+    },
+    "repairDur": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Copying the status column for 180,000 orders from the restored copy takes 20 minutes."
+      }
+    },
+    "refundEvery": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The refund worker runs every 10 minutes and refunds 500 cancelled orders per run."
+      }
+    },
+    "pickupAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The courier pickup at 15:30 is 90 minutes after the start."
+      }
+    },
+    "snapshotLossMin": {
+      "value": 600,
+      "unit": "min",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-14",
+        "note": "The 04:00 snapshot is 10 hours (600 minutes) older than the bad UPDATE."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "refundsPaused": {
+      "type": "bool",
+      "init": false
+    },
+    "pausedAt": {
+      "type": "time",
+      "init": null
+    },
+    "refundsOut": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "lastRefundAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "restoreTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pre",
+        "latest",
+        "snapshot"
+      ],
+      "init": "none"
+    },
+    "restoreSg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "custom",
+        "default"
+      ],
+      "init": "none"
+    },
+    "restoreStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "restoredReady": {
+      "type": "bool",
+      "init": false
+    },
+    "sgFixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "repairStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "repairing": {
+      "type": "bool",
+      "init": false
+    },
+    "repaired": {
+      "type": "bool",
+      "init": false
+    },
+    "repairedAt": {
+      "type": "time",
+      "init": null
+    },
+    "repairFailed": {
+      "type": "bool",
+      "init": false
+    },
+    "swapped": {
+      "type": "bool",
+      "init": false
+    },
+    "swapAt": {
+      "type": "time",
+      "init": null
+    },
+    "lostMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "min"
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "refundsResumed": {
+      "type": "bool",
+      "init": false
+    },
+    "restoredDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "pickupOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "pickupMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "where",
+        "rds"
+      ],
+      "init": "unset"
+    },
+    "methodDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pitrColumn",
+        "swap",
+        "snapshot"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "statusesOk": {
+      "expr": "repaired or swapped"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "pauseRefunds",
+        "readLog",
+        "restore",
+        "fixSg",
+        "repair",
+        "swap",
+        "verify",
+        "resumeRefunds",
+        "deleteCopy",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "pauseRefunds": {
+      "label": "Pause the refund worker",
+      "group": "Contain",
+      "available": "not busy and (not refundsPaused and not refundsResumed)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "refundsPaused",
+          "to": "true"
+        },
+        {
+          "set": "pausedAt",
+          "to": "t"
+        },
+        {
+          "log": "Refund worker paused: no more refunds for the wrongly cancelled orders.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "readLog": {
+      "label": "Read the migration job's log and the instance's LatestRestorableTime",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logAt)",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Migration log: 'UPDATE orders SET status = 'cancelled'' committed at 13:52:10, no WHERE clause, 180,000 rows. describe-db-instances: LatestRestorableTime 13:57 (transaction logs reach S3 every five minutes).",
+          "kind": "act"
+        },
+        {
+          "finding": "The bad change has an exact time: restore to 13:51:00. The latest restorable time is after it, and the 04:00 snapshot is ten hours older."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Restore orders-prod to a point in time as a new instance, orders-pitr",
+      "group": "Restore",
+      "available": "not busy and (isNull(restoreStartAt) or (restoredReady and not repairing))",
+      "why": "A restore is already running.",
+      "params": [
+        {
+          "id": "point",
+          "kind": "choice",
+          "label": "Restore to",
+          "options": [
+            {
+              "value": "pre",
+              "label": "13:51:00, just before the UPDATE"
+            },
+            {
+              "value": "latest",
+              "label": "The latest restorable time"
+            },
+            {
+              "value": "snapshot",
+              "label": "The 04:00 automated snapshot"
+            }
+          ]
+        },
+        {
+          "id": "sg",
+          "kind": "choice",
+          "label": "VPC security group",
+          "options": [
+            {
+              "value": "default",
+              "label": "The default VPC security group"
+            },
+            {
+              "value": "custom",
+              "label": "orders-db-sg, as production uses"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "restoreTo",
+          "to": "point"
+        },
+        {
+          "set": "restoreSg",
+          "to": "sg"
+        },
+        {
+          "set": "restoreStartAt",
+          "to": "t"
+        },
+        {
+          "set": "restoredReady",
+          "to": "false"
+        },
+        {
+          "set": "restoredDeleted",
+          "to": "false"
+        },
+        {
+          "log": "Restore started: a new instance, orders-pitr; production is untouched. About 30 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "fixSg": {
+      "label": "Modify orders-pitr to use the orders-db-sg security group",
+      "group": "Restore",
+      "available": "not busy and (restoredReady and restoreSg == \"default\" and not restoredDeleted)",
+      "why": "Only for a restored copy on the default security group.",
+      "effects": [
+        {
+          "set": "restoreSg",
+          "to": "\"custom\""
+        },
+        {
+          "set": "sgFixedAt",
+          "to": "t"
+        },
+        {
+          "log": "orders-pitr now uses orders-db-sg: the repair host can connect.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "repair": {
+      "label": "Copy the status column of the affected orders from orders-pitr into production",
+      "group": "Repair",
+      "available": "not busy and (restoredReady and not repairing and not repaired and not restoredDeleted and not swapped)",
+      "why": "The restored instance must be available, or a repair is running.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "restoreSg != \"custom\"",
+              "then": [
+                {
+                  "set": "repairFailed",
+                  "to": "true"
+                },
+                {
+                  "log": "The repair host times out connecting to orders-pitr: the restored instance has the default security group.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "repairStartAt",
+                  "to": "t"
+                },
+                {
+                  "set": "repairing",
+                  "to": "true"
+                },
+                {
+                  "log": "Repair running: each affected order gets its status from the restored copy; new orders are left alone. About 20 minutes.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "swap": {
+      "label": "Point the application at orders-pitr instead of production",
+      "group": "Repair",
+      "available": "not busy and (restoredReady and not swapped and not restoredDeleted)",
+      "why": "The restored instance must be available.",
+      "effects": [
+        {
+          "set": "swapped",
+          "to": "true"
+        },
+        {
+          "set": "swapAt",
+          "to": "t"
+        },
+        {
+          "set": "lostMin",
+          "to": "restoreTo == \"snapshot\" ? snapshotLossMin + round(t / 60) + 9 : round(t / 60) + 9"
+        },
+        {
+          "log": "The application now uses orders-pitr. Every order placed after its restore point exists only in the old instance.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check order counts by status against this morning's report",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "verifiedAt",
+          "to": "t"
+        },
+        {
+          "if": "statusesOk and not swapped",
+          "then": [
+            {
+              "log": "Counts match the morning report plus today's new orders.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "{swapped ? \"Counts are missing every order placed since the restore point.\" : \"180,000 open orders are still cancelled.\"}",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "resumeRefunds": {
+      "label": "Resume the refund worker",
+      "group": "Verify",
+      "available": "not busy and (refundsPaused)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "refundsResumed",
+          "to": "true"
+        },
+        {
+          "set": "refundsPaused",
+          "to": "false"
+        },
+        {
+          "if": "repaired",
+          "then": [
+            {
+              "log": "Refunds resume for genuinely cancelled orders only.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Refunds resume while 180,000 orders are still marked cancelled.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "deleteCopy": {
+      "label": "Take a final snapshot of orders-pitr and delete it",
+      "group": "Cost",
+      "available": "not busy and (restoredReady and not repairing and not restoredDeleted and not swapped)",
+      "why": "Only a finished, unused restored copy.",
+      "effects": [
+        {
+          "set": "restoredDeleted",
+          "to": "true"
+        },
+        {
+          "log": "orders-pitr deleted after a final snapshot: it stops billing by the hour.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "where",
+                  "label": "A migration ran UPDATE without a WHERE clause at 13:52:10"
+                },
+                {
+                  "value": "rds",
+                  "label": "An RDS fault corrupted the table"
+                }
+              ]
+            },
+            {
+              "id": "method",
+              "label": "Recovery method",
+              "options": [
+                {
+                  "value": "pitrColumn",
+                  "label": "Point-in-time restore to 13:51 as a new instance, then copy the affected column back: no orders lost"
+                },
+                {
+                  "value": "swap",
+                  "label": "Point-in-time restore and switch the application to the copy"
+                },
+                {
+                  "value": "snapshot",
+                  "label": "Restore last night's snapshot"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "methodDoc",
+          "to": "method"
+        },
+        {
+          "log": "Recorded: {cause}, {method}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "ready",
+      "when": "not isNull(restoreStartAt) and not restoredReady and t >= timeAt(restoreStartAt) + restoreDur",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "restoredReady",
+          "to": "true"
+        },
+        {
+          "log": "orders-pitr is available.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "repairDone",
+      "when": "repairing and t >= timeAt(repairStartAt) + repairDur",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "repairing",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "restoreTo == \"pre\"",
+              "then": [
+                {
+                  "set": "repaired",
+                  "to": "true"
+                },
+                {
+                  "set": "repairedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Repair done: 180,000 orders have their 13:51 status again; orders placed since are untouched.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "restoreTo == \"latest\"",
+              "then": [
+                {
+                  "log": "Repair done, and nothing changed: the copy was restored after the UPDATE, so it says 'cancelled' too.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "repaired",
+                  "to": "true"
+                },
+                {
+                  "set": "repairedAt",
+                  "to": "t"
+                },
+                {
+                  "set": "lostMin",
+                  "to": "snapshotLossMin"
+                },
+                {
+                  "log": "Repair done from the 04:00 snapshot: every status change since 04:00 (shipped, paid, delivered) is rolled back.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refundRun",
+      "when": "not refundsPaused and not repaired and not swapped and t >= lastRefundAt + refundEvery and phase == \"incident\"",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "add": "refundsOut",
+          "by": "500"
+        },
+        {
+          "set": "lastRefundAt",
+          "to": "t"
+        },
+        {
+          "log": "The refund worker refunds 500 more wrongly cancelled orders.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "pickup",
+      "when": "t >= pickupAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "statusesOk",
+          "then": [
+            {
+              "set": "pickupOkAt",
+              "to": "t"
+            },
+            {
+              "log": "15:30: the courier pickup runs on the open orders.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "pickupMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "15:30: the courier pickup finds no open orders; today's parcels stay in the warehouse.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what happened and when, how you chose the restore point and method against RPO and RTO, and what it cost.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What and when",
+          "criteria": "Names the UPDATE without WHERE at 13:52:10 from the job log, and stops the refund worker that was turning bad data into refunds.",
+          "modelAnswer": "A migration ran UPDATE orders SET status = 'cancelled' with no WHERE at 13:52:10. The refund worker was refunding every cancelled order, so I paused it first."
+        },
+        {
+          "label": "Restore point and method",
+          "criteria": "Restores to just before the change (not the latest restorable time or the snapshot) as a new instance with the right security group, and repairs only the affected column so no orders after 13:51 are lost (RPO) before the 15:30 pickup (RTO).",
+          "modelAnswer": "Point-in-time restore to 13:51:00 into a new instance with orders-db-sg, then copy the status column back for the affected rows. Switching to the copy would have lost every order since 13:51; the 04:00 snapshot would have lost ten hours of status changes; the latest restorable time already had the bad UPDATE."
+        },
+        {
+          "label": "Cost and follow-up",
+          "criteria": "Deletes the temporary instance after a final snapshot, verifies counts and resumes refunds; proposes a guard (reviewed migrations, a WHERE check, or testing on a copy).",
+          "modelAnswer": "Counts verified against the morning report, refunds resumed, orders-pitr deleted after a final snapshot so it stops billing. Migrations now run against a restored copy first and are reviewed for unbounded UPDATEs."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {
+      "rpoMinutes": {
+        "value": 5,
+        "source": {
+          "cite": "Cloud outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Kept at the default: no order placed after the bad change may be lost."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not statusesOk",
+      "class": "harm",
+      "rationale": "Closing with 180,000 orders still cancelled stops shipping and keeps refunds pending; it is never a safe outcome.",
+      "source": {
+        "cite": "Amazon RDS User Guide: Restoring a DB instance to a specified time",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html",
+        "note": "Read through a summarizing fetch on 2026-11-14 (no last-updated date shown). Relevant text: 'You can restore a DB instance to a specific point in time, creating a new DB instance without modifying the source DB instance'; 'RDS uploads transaction logs for DB instances to Amazon S3 every five minutes'; LatestRestorableTime is read with describe-db-instances; 'You can restore to any point in time within your backup retention period'; on restore 'you can choose the default virtual private cloud (VPC) security group. Or you can apply a custom VPC security group'; 'Restored DB instances are automatically associated with the default DB parameter and option groups.' The page does not say how long a restore takes; the scenario's 30 minutes is authored."
+      }
+    }
+  },
+  "endings": {
+    "dataLost": {
+      "label": "Orders were lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and lostMin > rpoMinutes",
+      "narrative": "The recovery threw away {lostMin} minutes of orders or status changes."
+    },
+    "pickupMissed": {
+      "label": "The courier pickup was missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(pickupMissedAt)",
+      "narrative": "The statuses were still wrong at 15:30 and nothing shipped today."
+    },
+    "refundStorm": {
+      "label": "Wrong refunds went out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and refundsOut >= 1500",
+      "narrative": "{refundsOut} customers were refunded for orders they still expect to receive."
+    },
+    "notRepaired": {
+      "label": "Closed with the orders still cancelled",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not statusesOk",
+      "narrative": "180,000 open orders are still marked cancelled."
+    },
+    "restored": {
+      "label": "Repaired to the minute, nothing lost",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and repaired and restoreTo == \"pre\" and lostMin <= rpoMinutes and refundsOut == 0 and not isNull(logAt) and timeAt(logAt) <= timeAt(restoreStartAt) and not isNull(verifiedAt) and timeAt(verifiedAt) >= timeAt(repairedAt) and refundsResumed and restoredDeleted and causeDoc == \"where\" and methodDoc == \"pitrColumn\"",
+      "narrative": "Refunds stopped before any went out, the copy was restored to the minute before the UPDATE, and only the damaged column came back: nothing after 13:51 was lost, and the temporary instance is gone."
+    },
+    "restoredGaps": {
+      "label": "Repaired, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The orders are right again, but refunds went out, the cleanup was skipped, or the record is wrong."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "dataLost",
+    "pickupMissed",
+    "refundStorm",
+    "notRepaired",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopDamage",
+        "label": "Paused the refund worker before it refunded anyone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "refundsOut == 0",
+            "score": "met",
+            "why": "No wrong refunds."
+          },
+          {
+            "when": "refundsOut < 1500",
+            "score": "partial",
+            "why": "{refundsOut} wrong refunds went out first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{refundsOut} wrong refunds went out."
+          }
+        ]
+      },
+      {
+        "id": "timeFirst",
+        "label": "Found the exact time of the change before choosing a restore point",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and timeAt(logAt) <= timeAt(restoreStartAt) and restoreTo == \"pre\"",
+            "score": "met",
+            "why": "The job log gave 13:52:10, so the restore went to 13:51."
+          },
+          {
+            "when": "not isNull(logAt)",
+            "score": "partial",
+            "why": "The log was read only after the restore was chosen."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The restore point was a guess."
+          }
+        ]
+      },
+      {
+        "id": "noLoss",
+        "label": "Restored to the minute before the change and repaired only the damage",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "repaired and restoreTo == \"pre\" and lostMin <= rpoMinutes and isNull(pickupMissedAt)",
+            "score": "met",
+            "why": "Nothing after 13:51 lost; done {timeAt(repairedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "statusesOk and lostMin <= rpoMinutes",
+            "score": "partial",
+            "why": "Repaired, but after the pickup."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{lostMin > rpoMinutes ? \"Orders were lost beyond the 5-minute RPO.\" : \"The orders were never repaired.\"}"
+          }
+        ]
+      },
+      {
+        "id": "cleanup",
+        "label": "Verified, resumed refunds, deleted the temporary instance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt) and timeAt(verifiedAt) >= timeAt(repairedAt) and repaired and refundsResumed and restoredDeleted",
+            "score": "met",
+            "why": "Checked, back to normal, and not paying for a spare database."
+          },
+          {
+            "when": "not isNull(verifiedAt) or restoredDeleted",
+            "score": "partial",
+            "why": "Some of the cleanup was left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No check, and the copy keeps billing."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause and the method",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"where\" and methodDoc == \"pitrColumn\"",
+            "score": "met",
+            "why": "Cause and method right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record misstates the cause or the method."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, restore choice and cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "refK",
+        "label": "Wrong refunds sent",
+        "value": "refundsOut",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "minRep",
+        "label": "Minutes until the statuses were right",
+        "value": "isNull(repairedAt) ? -1 : timeAt(repairedAt) / 60",
+        "format": "number",
+        "expert": "about 60"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00-14:10",
+        "text": "Pause the refund worker; the job log gives 13:52:10, and LatestRestorableTime is already after it."
+      },
+      {
+        "at": "14:10-14:50",
+        "text": "Point-in-time restore to 13:51:00 as a new instance with orders-db-sg; it takes about 30 minutes."
+      },
+      {
+        "at": "14:50-15:20",
+        "text": "Copy the status column back for the affected orders, check counts, resume refunds, delete the copy after a final snapshot."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: to the minute, nothing lost",
+        "body": "You stopped the damage spreading, used the log to pick the restore point, and repaired only what was broken, so neither the RPO nor the pickup suffered and the temporary instance stopped billing."
+      },
+      "restoredGaps": {
+        "headline": "Repaired, with gaps",
+        "body": "The orders are right again. The criteria show what went out, what was skipped, or what the record gets wrong."
+      },
+      "dataLost": {
+        "headline": "The recovery lost data",
+        "body": "Switching to the copy discards every order since its restore point, and a snapshot is hours old. A point-in-time restore to a new instance lets you copy back only what the bad statement changed."
+      },
+      "pickupMissed": {
+        "headline": "Too slow for the pickup",
+        "body": "The latest restorable time was already after the UPDATE. Reading the log first gives the restore point once, and a restore costs about 30 minutes each time."
+      },
+      "refundStorm": {
+        "headline": "Refunds went out",
+        "body": "While the data was wrong, a worker kept acting on it. Stopping the damage comes before the repair."
+      },
+      "notRepaired": {
+        "headline": "Still broken",
+        "body": "The orders are still cancelled. A point-in-time restore never changes the source instance; something has to copy the data back."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Pause the refund worker first: it refunds every cancelled order. The migration log shows the UPDATE without a WHERE clause committed at 13:52:10; LatestRestorableTime (13:57) is after it and the 04:00 snapshot is ten hours older, so restore to 13:51:00. A point-in-time restore creates a new instance and never changes the source; give it the production security group (the default one blocks the repair host). Copy the status column back for the affected orders so orders placed since 13:51 are kept (RPO), finishing before the 15:30 pickup (RTO). Verify counts, resume refunds and delete the temporary instance after a final snapshot (cost)."
+  }
+}

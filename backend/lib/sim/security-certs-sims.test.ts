@@ -1,4 +1,4 @@
-// REQ-274 (docs/sims.md 22.16): security-console sims for the non-CompTIA
+// REQ-274 (docs/sims.md 22.19): security-console sims for the non-CompTIA
 // security courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH), built to the
 // REQ-238 pattern. Each is valid, learner-paced, on its course's own catalog
 // objective (one that meets the generator's selection rule), and names only

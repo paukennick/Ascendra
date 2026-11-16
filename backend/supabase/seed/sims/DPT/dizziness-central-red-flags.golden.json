@@ -1,0 +1,556 @@
+{
+  "slug": "dizziness-central-red-flags",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: neurologic symptoms, nystagmus, head impulse, finger-to-nose; central impression; 911 with the last-known-well time; referrer told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "bp",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "nys",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "hitQ",
+          "choice": "central",
+          "seq": 6,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "hit",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "fn",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "central"
+          },
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "ems",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tellReferrer",
+          "seq": 12,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "sentFast",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "screen": "met",
+          "refer": "met",
+          "noVestibularRx": "met",
+          "guard": "met",
+          "impression": "met",
+          "referrer": "met"
+        },
+        "kpis": {
+          "toRedFlag": 5,
+          "toCall": 180,
+          "toLeave": 785
+        },
+        "stateHash": "9825ae0599101362"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "officeVisit",
+      "title": "Full screen with a gait belt and a walking test, a central impression, but a same-day office visit instead of 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "nys",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "hitQ",
+          "choice": "central",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hit",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "central"
+          },
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "ems",
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "tellReferrer",
+          "seq": 12,
+          "tick": 72
+        }
+      ],
+      "expect": {
+        "ending": "sentSlow",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "screen": "met",
+          "refer": "missed",
+          "noVestibularRx": "met",
+          "guard": "met",
+          "impression": "met",
+          "referrer": "met"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 180,
+          "toLeave": 2160
+        },
+        "stateHash": "b8d048bec6e047bb"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "treatedFirst",
+      "title": "Treats as referred first (Dix-Hallpike, gaze stabilization), then finds the signs and calls 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dix",
+          "seq": 2,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "vor",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "nys",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "hitQ",
+          "choice": "central",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hit",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "central"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "ems",
+          "seq": 11,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "sentSlow",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "screen": "partial",
+          "refer": "met",
+          "noVestibularRx": "missed",
+          "guard": "met",
+          "impression": "met",
+          "referrer": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 120,
+          "toLeave": 900
+        },
+        "stateHash": "4e401718ff483c86"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Thorough exam with a belt, but 911 more than 10 minutes after the first central sign",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nys",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "hitQ",
+          "choice": "central",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hit",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "fn",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "romberg",
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 10,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "central"
+          },
+          "seq": 11,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 12,
+          "tick": 150
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "ems",
+          "seq": 13,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "tellReferrer",
+          "seq": 14,
+          "tick": 150
+        }
+      ],
+      "expect": {
+        "ending": "sentSlow",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "screen": "met",
+          "refer": "partial",
+          "noVestibularRx": "met",
+          "guard": "met",
+          "impression": "met",
+          "referrer": "met"
+        },
+        "kpis": {
+          "toRedFlag": 0,
+          "toCall": 750,
+          "toLeave": 1350
+        },
+        "stateHash": "38d9b3fb78e46b4a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noBelt",
+      "title": "Failure: stands him feet together without a gait belt",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "romberg",
+          "seq": 2,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "screen": "missed",
+          "refer": "missed",
+          "noVestibularRx": "met",
+          "guard": "missed",
+          "impression": "missed",
+          "referrer": "missed"
+        },
+        "kpis": {
+          "toRedFlag": -1,
+          "toCall": -1,
+          "toLeave": -1
+        },
+        "stateHash": "c144d5ed77488041"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "asReferred",
+      "title": "Failure: accepts the referral, records vestibular neuritis, starts gaze stabilization and never refers",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "peripheral"
+          },
+          "seq": 2,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "vor",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "screen": "missed",
+          "refer": "missed",
+          "noVestibularRx": "missed",
+          "guard": "met",
+          "impression": "missed",
+          "referrer": "missed"
+        },
+        "kpis": {
+          "toRedFlag": -1,
+          "toCall": -1,
+          "toLeave": -1
+        },
+        "stateHash": "f7784cd087b80058"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

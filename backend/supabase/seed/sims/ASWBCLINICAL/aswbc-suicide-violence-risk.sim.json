@@ -1,0 +1,1712 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbc-suicide-violence-risk",
+  "title": "Session: 'everyone'd be better off', and a remark about his wife's new partner",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Walter Brandt",
+        "presentation": "{distress >= 6 ? \"Jaw set, hands gripping his cap\" : distress >= 3 ? \"Tired, heavy, answering slowly\" : \"Calmer, sitting back\"}; {rapport >= 6 ? \"he talks to you directly\" : rapport >= 3 ? \"he glances at you, then away\" : \"he has gone flat and short\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What he said",
+          "text": "'Everyone'd be better off without me.' And Gary 'ought to be knocked down a peg.'",
+          "when": "cuesHeard",
+          "alert": "cuesHeard and not siAsked"
+        },
+        {
+          "id": "si",
+          "label": "Suicidal thoughts",
+          "text": "{siKnown ? \"Most nights; has thought of killing himself.\" : \"\"} {methodKnown ? \"Method: the deer rifle in the hall closet, ammunition in the dresser.\" : \"\"} {intentAsked ? \"No intent: his daughter's baby is due in March.\" : \"\"} {planAsked ? \"No plan.\" : \"\"}",
+          "when": "siKnown",
+          "alert": "methodKnown and not meansSecured"
+        },
+        {
+          "id": "hist",
+          "label": "Past behavior",
+          "text": "Last spring he sat in his truck with the rifle, then put it back. Never told anyone.",
+          "when": "historyKnown",
+          "alert": "historyKnown"
+        },
+        {
+          "id": "gary",
+          "label": "About Gary",
+          "text": "{hiExplored ? \"Anger, not a threat: no intent, plan or weapon toward him, never violent, does not know where he lives.\" : \"Not yet explored.\"}",
+          "when": "cuesHeard"
+        },
+        {
+          "id": "drink",
+          "label": "Alcohol",
+          "text": "Four or five beers a night, more on weekends, more since the separation.",
+          "when": "alcoholAsked"
+        },
+        {
+          "id": "warn",
+          "label": "Disclosure",
+          "text": "You told him you would notify Gary and the police.",
+          "when": "warned",
+          "alert": "warned"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "C-SSRS items asked: {siAsked ? 1 : 0} ideation, {methodKnown ? 1 : 0} method, {intentAsked ? 1 : 0} intent, {planAsked ? 1 : 0} plan, {historyAsked ? 1 : 0} behavior",
+            "when": "siAsked"
+          },
+          {
+            "label": "Risk to others explored",
+            "when": "hiExplored"
+          },
+          {
+            "label": "Safety plan steps written: {count(plan)} of 6",
+            "when": "count(plan) > 0"
+          },
+          {
+            "label": "Follow-up: {followUp == \"call24\" ? \"a phone check tomorrow and a session within the week\" : followUp == \"week\" ? \"next week's session\" : \"in two weeks\"}",
+            "when": "followUp != \"none\""
+          },
+          {
+            "label": "Documented: suicide risk {riskDoc}, violence {violenceDoc}, disposition {dispo}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Assess suicide and violence risk in a clinical social work session",
+  "sources": [
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Clinical content outline: II Assessment and Planning, 32% (IIB 'Methods of assessing risk of harm to self and others'); the 2026 blueprint in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Read in full 2026-11-14 for the course outline (REQ-286)."
+    },
+    {
+      "cite": "Columbia-Suicide Severity Rating Scale (C-SSRS), Screen Version (2008): 1 wish to be dead; 2 suicidal thoughts; if yes, 3 method, 4 intent without plan, 5 intent with plan; 6 suicidal behavior, with how long ago (over a year, three months to a year, within three months)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.thenationalcouncil.org/wp-content/uploads/2021/04/Columbia_Suicide_Severity_Rating_Scale.pdf",
+      "note": "Read 2026-11-14. The scale's own site (cssrs.columbia.edu, read 2026-11-14) says the questions are ones 'anyone can ask'. The screen asks and records; it sets no level of care, so the risk level in this case is the author's teaching formulation."
+    },
+    {
+      "cite": "Stanley B, Brown GK. Safety planning intervention (Cogn Behav Pract 2012;19:256-264); SPRC summary of the six steps; Stanley-Brown Safety Plan form (2008, 2021; form dated 05-02-2024)",
+      "checkedAt": "2026-11-14",
+      "url": "https://sprc.org/?p=15670",
+      "note": "SPRC page read 2026-11-14: (1) early warning signs, (2) coping strategies that need no one else, (3) people and social settings for distraction, (4) people to ask for help, (5) professionals or crisis services, (6) limiting access to lethal means. The form (suicidesafetyplan.com, read 2026-11-14) titles step 6 'Making the environment safer (plan for lethal means safety)' and lists a crisis line 'e.g. 988' under step 5."
+    },
+    {
+      "cite": "988 Suicide & Crisis Lifeline: call or text 988, or chat; available 24/7",
+      "checkedAt": "2026-11-14",
+      "url": "https://988lifeline.org/",
+      "note": "Read 2026-11-14."
+    },
+    {
+      "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.01 commitment to clients; 1.02 self-determination; 1.07(c) disclosure only when necessary to prevent serious, foreseeable, and imminent harm, the least information necessary; 1.07(e) discuss the limits of confidentiality",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Read 2026-11-14. NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+    },
+    {
+      "cite": "RCW 71.05.120(3) (last amended 2020 c 302 s 11): the duty to warn or take reasonable precautions arises where the patient 'has communicated an actual threat of physical violence against a reasonably identifiable victim or victims', and is discharged by reasonable efforts to communicate the threat to the victim and to law enforcement",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=71.05.120",
+      "note": "Read 2026-11-14. A remark with no threat of violence, no intent and no plan is not an actual threat; disclosing it would break confidentiality without that basis."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed clinical social worker at a community mental health clinic. Walter Brandt, 61 (a fictional client), was laid off from the mill where he worked for 31 years; four months ago his wife Linda moved out and now lives with a man named Gary. He started seeing you three weeks ago for depressed mood. His daughter Emily is expecting her first child in March. This is his third session. You have 50 minutes.",
+    "handover": [
+      "Intake: depressed mood after a layoff and a separation; sleeping badly; no treatment before. Risk screen at intake: denied suicidal thoughts. Lives alone."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Walter answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation, then document the risk to himself, the risk to others and the disposition."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-14",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "planComplete": {
+      "value": 5,
+      "source": {
+        "cite": "Stanley B, Brown GK. Safety planning intervention (Cogn Behav Pract 2012;19:256-264); SPRC summary of the six steps; Stanley-Brown Safety Plan form (2008, 2021; form dated 05-02-2024)",
+        "checkedAt": "2026-11-14",
+        "url": "https://sprc.org/?p=15670",
+        "note": "SPRC page read 2026-11-14: (1) early warning signs, (2) coping strategies that need no one else, (3) people and social settings for distraction, (4) people to ask for help, (5) professionals or crisis services, (6) limiting access to lethal means. The form (suicidesafetyplan.com, read 2026-11-14) titles step 6 'Making the environment safer (plan for lethal means safety)' and lists a crisis line 'e.g. 988' under step 5."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "cuesHeard": {
+      "type": "bool",
+      "init": false
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "methodKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "intentAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "planAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "historyAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "historyKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "alcoholAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "hiExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "warned": {
+      "type": "bool",
+      "init": false
+    },
+    "reasonsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "contractUsed": {
+      "type": "bool",
+      "init": false
+    },
+    "meansSecured": {
+      "type": "bool",
+      "init": false
+    },
+    "plan": {
+      "type": "set",
+      "of": [
+        "warning",
+        "coping",
+        "distract",
+        "people",
+        "pros",
+        "means"
+      ],
+      "init": []
+    },
+    "followUp": {
+      "type": "enum",
+      "values": [
+        "none",
+        "call24",
+        "week",
+        "twoWeeks"
+      ],
+      "init": "none"
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "low",
+        "elevated",
+        "imminent"
+      ],
+      "init": "none"
+    },
+    "violenceDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "low",
+        "threat"
+      ],
+      "init": "none"
+    },
+    "dispo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "outpatient",
+        "ed",
+        "routine"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "askSI",
+        "askMethod",
+        "askIntent",
+        "askPlan",
+        "askHistory",
+        "askAlcohol",
+        "askHarm",
+        "warnGary",
+        "askReasons",
+        "contract",
+        "planStep",
+        "followUp",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'How has this week been?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have checked in.",
+      "effects": [
+        {
+          "log": "You ask an open question and give him room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Long. The mill's gone, Linda's gone. Some nights I think everyone'd be better off without me around.\" He snorts. \"And that Gary she's living with. Somebody ought to knock him down a peg.\""
+        },
+        {
+          "set": "cuesHeard",
+          "to": "true"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Walter rubs his jaw. \"Yeah. Thirty-one years at one place, and then nothing.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSI": {
+      "label": "Ask directly: 'Have you wished you were dead, or had thoughts of killing yourself?' (C-SSRS 1-2)",
+      "group": "Ask about risk",
+      "available": "not talking and (not siKnown)",
+      "why": "He has answered.",
+      "effects": [
+        {
+          "log": "You ask him directly about wishing he were dead and about thoughts of killing himself.",
+          "kind": "act"
+        },
+        {
+          "set": "siAsked",
+          "to": "true"
+        },
+        {
+          "set": "siAskedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 3",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "add": "distress",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "A long pause. \"Yeah. Most nights, lately. I'd go to sleep and not mind if that was it. And I've thought about doing it.\""
+                },
+                {
+                  "log": "Suicidal thoughts disclosed: ask the follow-up questions.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"I'm not crazy.\" He folds his arms."
+                },
+                {
+                  "set": "siAsked",
+                  "to": "false"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askMethod": {
+      "label": "Ask: 'Have you been thinking about how you might do it?' (C-SSRS 3)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not methodKnown)",
+      "why": "Ask about suicidal thoughts first (or it is asked).",
+      "effects": [
+        {
+          "log": "You ask whether he has thought about how.",
+          "kind": "act"
+        },
+        {
+          "set": "methodKnown",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"The deer rifle. It's in the hall closet. Ammunition's in the dresser.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askIntent": {
+      "label": "Ask: 'Have you had these thoughts and some intention of acting on them?' (C-SSRS 4)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not intentAsked)",
+      "why": "Ask about suicidal thoughts first (or it is asked).",
+      "effects": [
+        {
+          "log": "You ask about intent.",
+          "kind": "act"
+        },
+        {
+          "set": "intentAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No.\" Firmly. \"Emily's having a baby in March. I wouldn't do that to her.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPlan": {
+      "label": "Ask: 'Have you worked out the details, a time or a place?' (C-SSRS 5)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not planAsked)",
+      "why": "Ask about suicidal thoughts first (or it is asked).",
+      "effects": [
+        {
+          "log": "You ask whether he has worked out a plan.",
+          "kind": "act"
+        },
+        {
+          "set": "planAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. No day, nothing like that.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askHistory": {
+      "label": "Ask: 'Have you ever done anything, or started to, or prepared to end your life?' (C-SSRS 6)",
+      "group": "Ask about risk",
+      "available": "not talking and (not historyKnown)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask about anything he has done or prepared.",
+          "kind": "act"
+        },
+        {
+          "set": "historyAsked",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "set": "historyKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "finding": "He is quiet a while. \"Last spring, after the layoff notice. I took the rifle out to the truck and sat with it. Then I put it back. Never told anybody.\""
+                },
+                {
+                  "log": "Preparatory behavior between three months and a year ago, with the same method: it raises his risk.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"No.\" He looks at the floor. (He is not ready to say more to you yet.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askAlcohol": {
+      "label": "Ask how much he has been drinking",
+      "group": "Ask",
+      "available": "not talking and (not alcoholAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about drinking, plainly and without judgment.",
+          "kind": "act"
+        },
+        {
+          "set": "alcoholAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"More since she left. Four, five beers a night. More on weekends.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askHarm": {
+      "label": "Ask about the remark about Gary: any thoughts of hurting him, a plan, a weapon, any past violence",
+      "group": "Ask about risk",
+      "available": "not talking and (cuesHeard and not hiExplored)",
+      "why": "Hear what he is saying first (or it is explored).",
+      "effects": [
+        {
+          "log": "You come back to what he said about Gary and ask directly about thoughts of hurting him, a plan, and past violence.",
+          "kind": "act"
+        },
+        {
+          "set": "hiExplored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 3",
+              "then": [
+                {
+                  "finding": "\"Hurt him? No. I'm sore, that's all. I've never raised a hand to anybody. I don't even know where they live.\""
+                },
+                {
+                  "log": "No intent, no plan, no history of violence, no known address: anger, not a threat.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"I said what I said. Forget it.\" (He will not say more while he feels judged.)"
+                },
+                {
+                  "set": "hiExplored",
+                  "to": "false"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "warnGary": {
+      "label": "Tell him you will have to notify Gary and the police about what he said",
+      "group": "Address",
+      "available": "not talking and (cuesHeard and not warned)",
+      "why": "Hear what he is saying first (or it is said).",
+      "effects": [
+        {
+          "log": "You tell Walter that what he said about Gary means you have to notify Gary and the police.",
+          "kind": "act"
+        },
+        {
+          "set": "warned",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "He stares at you. \"For saying a guy needs taking down a peg? That's what you do with what I tell you?\""
+        },
+        {
+          "log": "No actual threat of physical violence against an identifiable person: disclosing it would break confidentiality without a legal basis (RCW 71.05.120(3); NASW 1.07(c)).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askReasons": {
+      "label": "Ask what keeps him going, what he would miss",
+      "group": "Ask about risk",
+      "available": "not talking and (not reasonsAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about his reasons for living.",
+          "kind": "act"
+        },
+        {
+          "set": "reasonsAsked",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Emily. The baby. My brother Ron and I still fish Saturdays, when I go.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "contract": {
+      "label": "Ask him to promise he won't hurt himself before next session (a no-suicide contract)",
+      "group": "Plan",
+      "available": "not talking and (not contractUsed)",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "log": "You ask him to promise not to hurt himself.",
+          "kind": "act"
+        },
+        {
+          "set": "contractUsed",
+          "to": "true"
+        },
+        {
+          "finding": "\"Sure. I promise.\" He says it to end the topic."
+        },
+        {
+          "log": "A no-harm promise is no substitute for a safety plan and means safety (Stanley and Brown 2012).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "planStep": {
+      "label": "Write a safety plan step together (Stanley-Brown)",
+      "group": "Plan",
+      "available": "not talking and (siKnown)",
+      "why": "A safety plan follows the risk assessment: ask about suicidal thoughts first.",
+      "effects": [
+        {
+          "log": "You work on one step of the safety plan with him, in his words.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "step == \"means\" and not methodKnown",
+              "then": [
+                {
+                  "finding": "You suggest he make home 'safer'. He shrugs: you do not yet know what is there."
+                },
+                {
+                  "log": "A means step needs to know the means: ask first.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "step == \"means\" and rapport < 5",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "finding": "\"Maybe. I'll think about it.\" (He agrees in principle, not yet to a step.)"
+                }
+              ]
+            },
+            {
+              "when": "step == \"means\"",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "set": "meansSecured",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "He agrees: Ron will hold the rifle and the ammunition at his house, starting tonight, and Walter will call you once it is done."
+                },
+                {
+                  "log": "Means safety agreed: the rifle leaves the house today.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "step == \"warning\"",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "finding": "Warning signs, in his words: 'Sitting up after midnight with a beer, not answering Emily.'"
+                }
+              ]
+            },
+            {
+              "when": "step == \"coping\"",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "finding": "Things he can do alone: walk the dog, the workbench in the garage, the radio ballgame."
+                }
+              ]
+            },
+            {
+              "when": "step == \"distract\"",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "finding": "People and places: the hardware store coffee counter, Saturday fishing with Ron."
+                }
+              ]
+            },
+            {
+              "when": "step == \"people\"",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "People he can ask for help: Ron first, then Emily."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "push": "plan",
+                  "value": "step"
+                },
+                {
+                  "finding": "Professionals and crisis lines: your clinic number, 988 by call or text, 911 in an emergency. He saves 988 in his phone."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "step",
+          "kind": "choice",
+          "label": "Step",
+          "options": [
+            {
+              "value": "warning",
+              "label": "1. Warning signs"
+            },
+            {
+              "value": "coping",
+              "label": "2. Things he can do on his own"
+            },
+            {
+              "value": "distract",
+              "label": "3. People and places that distract"
+            },
+            {
+              "value": "people",
+              "label": "4. People he can ask for help"
+            },
+            {
+              "value": "pros",
+              "label": "5. Professionals and crisis lines"
+            },
+            {
+              "value": "means",
+              "label": "6. Making the environment safer (the rifle)"
+            }
+          ]
+        }
+      ]
+    },
+    "followUp": {
+      "label": "Arrange follow-up",
+      "group": "Plan",
+      "available": "not talking",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You agree the next contact.",
+          "kind": "act"
+        },
+        {
+          "set": "followUp",
+          "to": "when"
+        },
+        {
+          "finding": "He writes it on the back of his appointment card."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "when",
+          "kind": "choice",
+          "label": "When",
+          "options": [
+            {
+              "value": "call24",
+              "label": "A phone check tomorrow and a session within the week"
+            },
+            {
+              "value": "week",
+              "label": "Next week's session"
+            },
+            {
+              "value": "twoWeeks",
+              "label": "A session in two weeks"
+            }
+          ]
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the risk formulation and disposition",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Session note",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Suicide risk (your formulation)",
+              "options": [
+                {
+                  "value": "low",
+                  "label": "Low"
+                },
+                {
+                  "value": "elevated",
+                  "label": "Elevated, not imminent"
+                },
+                {
+                  "value": "imminent",
+                  "label": "Imminent"
+                }
+              ]
+            },
+            {
+              "id": "violence",
+              "label": "Risk of violence toward Gary",
+              "options": [
+                {
+                  "value": "low",
+                  "label": "Low: anger, no intent, plan, means toward him or history"
+                },
+                {
+                  "value": "threat",
+                  "label": "An actual threat against an identifiable person"
+                }
+              ]
+            },
+            {
+              "id": "disposition",
+              "label": "Disposition",
+              "options": [
+                {
+                  "value": "outpatient",
+                  "label": "Outpatient care with the safety plan, the rifle out of the house and close follow-up"
+                },
+                {
+                  "value": "ed",
+                  "label": "Emergency evaluation today"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine outpatient care, nothing added"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "violenceDoc",
+          "to": "violence"
+        },
+        {
+          "set": "dispo",
+          "to": "disposition"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: suicide risk {risk}, violence {violence}, disposition {disposition}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictGary",
+      "when": "cuesHeard and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "garyRemark"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "garyRemark": {
+      "title": "Predict (not scored)",
+      "context": "Walter said Gary 'ought to be knocked down a peg'. Before you know more, does that remark by itself start a duty to warn Gary and the police?",
+      "choices": [
+        {
+          "id": "explore",
+          "label": "Not by itself: explore it first (intent, plan, means, history)",
+          "effects": [
+            {
+              "log": "Prediction: explore first.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. Washington's statute speaks of 'an actual threat of physical violence against a reasonably identifiable victim' (RCW 71.05.120(3)), and NASW 1.07(c) allows disclosure only to prevent serious, foreseeable, and imminent harm. A remark is where the assessment starts, not where it ends."
+        },
+        {
+          "id": "warn",
+          "label": "Yes: any remark about a named person must be reported",
+          "effects": [
+            {
+              "log": "Prediction: warn now.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not yet. The duty turns on an actual threat of physical violence against an identifiable person (RCW 71.05.120(3)); you find out whether there is one by asking about intent, plan, means and history."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your risk formulation for Walter: his risk of suicide, his risk of violence toward Gary, and why your disposition fits.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Suicide risk",
+          "criteria": "Names the risk factors (thoughts with a method, a firearm at home, preparatory behavior last spring, recent losses, more drinking, living alone, an older man) and the protective ones (no intent or plan, his daughter and the coming grandchild, his brother), and reaches elevated but not imminent.",
+          "modelAnswer": "Walter has suicidal thoughts with a method (his rifle), sat with that rifle last spring, has lost his job and his marriage, is drinking more and lives alone. He reports no intent and no plan, and has strong reasons to live (Emily and the baby) and a brother he trusts. Elevated, not imminent: outpatient care is safe with the rifle out of the house today, a written safety plan and contact tomorrow."
+        },
+        {
+          "label": "Risk to others",
+          "criteria": "Separates anger from a threat: no intent, plan, weapon toward Gary or history of violence, so no duty to warn arises and disclosing would break confidentiality.",
+          "modelAnswer": "His remark about Gary is anger, not a threat: asked directly, he has no intent or plan, has never been violent and does not know where Gary lives. That is not an actual threat against an identifiable person (RCW 71.05.120(3)), so I keep it confidential, note the assessment and revisit it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "The direct question about suicide should come within the first 20 minutes so the follow-ups and the plan fit in the hour (author's scenario timing, as the NCMHCE suicide session)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siKnown and count(plan) == 0 and dispo != \"ed\"",
+      "class": "harm",
+      "rationale": "Suicidal thoughts with a firearm at home: ending the session with no safety plan and no other protective step leaves him at foreseeable risk; waiting is not reasonable.",
+      "source": {
+        "cite": "Stanley B, Brown GK. Safety planning intervention (Cogn Behav Pract 2012;19:256-264); SPRC summary of the six steps; Stanley-Brown Safety Plan form (2008, 2021; form dated 05-02-2024)",
+        "checkedAt": "2026-11-14",
+        "url": "https://sprc.org/?p=15670",
+        "note": "SPRC page read 2026-11-14: (1) early warning signs, (2) coping strategies that need no one else, (3) people and social settings for distraction, (4) people to ask for help, (5) professionals or crisis services, (6) limiting access to lethal means. The form (suicidesafetyplan.com, read 2026-11-14) titles step 6 'Making the environment safer (plan for lethal means safety)' and lists a crisis line 'e.g. 988' under step 5."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Walter left mid-session after the conversation broke down, with suicidal thoughts and a rifle in the hall closet, and nothing in place."
+    },
+    "breach": {
+      "label": "Confidentiality broken",
+      "class": "harm",
+      "when": "documented and not walkedOut and warned",
+      "terminal": true,
+      "narrative": "You treated an angry remark as a threat and told Walter you would disclose it. He has stopped trusting what he tells you, and a man with suicidal thoughts and a rifle is less likely to tell you when things get worse."
+    },
+    "unsafe": {
+      "label": "Left at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not walkedOut and (not siKnown or (dispo != \"ed\" and (count(plan) == 0 or not meansSecured)))",
+      "narrative": "Walter went home with {siKnown ? \"his suicidal thoughts known but\" : \"his suicide risk never assessed and\"} the rifle still in the hall closet."
+    },
+    "edReferral": {
+      "label": "Sent for an emergency evaluation",
+      "class": "recovered",
+      "when": "documented and not walkedOut and dispo == \"ed\"",
+      "terminal": true,
+      "narrative": "Walter went, angry, for an emergency evaluation. He was seen and sent home that evening, rifle still in the closet; he says he is not sure he will come back."
+    },
+    "safe": {
+      "label": "Safe for now, with a plan",
+      "class": "target",
+      "when": "documented and not walkedOut and not warned and siKnown and timeAt(siAskedAt) <= safetyWindow and methodKnown and intentAsked and planAsked and historyKnown and hiExplored and meansSecured and count(plan) >= planComplete and \"pros\" in plan and followUp == \"call24\" and riskDoc == \"elevated\" and violenceDoc == \"low\" and dispo == \"outpatient\" and not contractUsed and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Walter left with a safety plan in his words, Ron coming for the rifle tonight, 988 in his phone and a call from you tomorrow. What he said about Gary stays in the room."
+    },
+    "gaps": {
+      "label": "Safe for now, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "Walter left with the rifle out of the house and a plan, but parts of the assessment, the plan or the follow-up were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "breach",
+    "unsafe",
+    "edReferral",
+    "safe",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "askedDirectly",
+        "label": "Asked directly about suicide, within 20 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "siKnown and timeAt(siAskedAt) <= safetyWindow",
+            "score": "met",
+            "why": "Asked {timeAt(siAskedAt) / 60} min in."
+          },
+          {
+            "when": "siKnown",
+            "score": "partial",
+            "why": "Asked, but only {timeAt(siAskedAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked directly."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "fullScreen",
+        "label": "Followed up: method, intent, plan and past behavior (C-SSRS)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "methodKnown and intentAsked and planAsked and historyKnown",
+            "score": "met",
+            "why": "Method, intent, plan and the rifle last spring are known."
+          },
+          {
+            "when": "methodKnown and intentAsked and planAsked and historyAsked",
+            "score": "partial",
+            "why": "Asked about past behavior before he trusted you enough to say."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Follow-up questions missing."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "means",
+        "label": "The rifle out of the house today, in a written safety plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "meansSecured and count(plan) >= planComplete",
+            "score": "met",
+            "why": "Rifle to Ron tonight; {count(plan)} plan steps."
+          },
+          {
+            "when": "meansSecured or count(plan) > 0",
+            "score": "partial",
+            "why": "Some of the plan or means safety, not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No safety plan and the rifle still at home."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "violence",
+        "label": "Assessed the risk to Gary and kept it confidential",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "warned",
+            "score": "missed",
+            "why": "Disclosure threatened without an actual threat."
+          },
+          {
+            "when": "hiExplored and violenceDoc == \"low\"",
+            "score": "met",
+            "why": "Explored and rightly judged anger, not a threat."
+          },
+          {
+            "when": "hiExplored",
+            "score": "partial",
+            "why": "Explored, but documented as an actual threat."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The remark about Gary was never explored."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "followUpCrit",
+        "label": "Close follow-up and the least restrictive safe setting",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "followUp == \"call24\" and dispo == \"outpatient\"",
+            "score": "met",
+            "why": "A call tomorrow, outpatient with the plan."
+          },
+          {
+            "when": "dispo == \"ed\" or followUp == \"week\"",
+            "score": "partial",
+            "why": "Safe, but {dispo == \"ed\" ? \"more restrictive than needed\" : \"follow-up a week away\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No close follow-up."
+          }
+        ]
+      },
+      {
+        "id": "noContract",
+        "label": "No no-suicide contract",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "contractUsed",
+            "score": "missed",
+            "why": "Asked for a promise instead of a plan."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No contract."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToAsk",
+        "label": "Minutes to the direct question",
+        "value": "isNull(siAskedAt) ? -1 : timeAt(siAskedAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "planSteps",
+        "label": "Safety plan steps",
+        "value": "count(plan)",
+        "format": "number",
+        "expert": "6"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in, reflect the losses, then ask directly about suicidal thoughts."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Follow up: method, intent, plan; reasons for living; past behavior once he trusts you; drinking. Explore the remark about Gary: intent, plan, weapon, history."
+      },
+      {
+        "at": "25-45 min",
+        "text": "A six-step safety plan in his words, with the rifle to his brother tonight and 988 saved; a phone check tomorrow."
+      },
+      {
+        "at": "After",
+        "text": "Formulate: elevated, not imminent; anger, not a threat. Document both and the outpatient plan."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Good: safe for now, confidentiality kept",
+        "body": "You asked directly, completed the screen, found the rifle and last spring's episode, put means safety in a written plan, and separated an angry remark from an actual threat."
+      },
+      "gaps": {
+        "headline": "Safe, with gaps",
+        "body": "The rifle is out of the house, but the criteria below show what was late or missing."
+      },
+      "edReferral": {
+        "headline": "Safe, at a cost",
+        "body": "With no intent or plan, protective reasons to live and a brother ready to take the rifle, outpatient care with a plan was safe; the least restrictive safe setting respects his self-determination (NASW 1.02)."
+      },
+      "unsafe": {
+        "headline": "Left at risk",
+        "body": "Suicidal thoughts and a firearm at home call for a safety plan with means safety before he leaves, not a promise or a wait."
+      },
+      "breach": {
+        "headline": "Confidentiality broken without a basis",
+        "body": "Disclosure is for an actual threat against an identifiable person (RCW 71.05.120(3)), or serious, foreseeable, imminent harm (NASW 1.07(c)). Explore a remark before acting on it."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "A man in a suicidal crisis who feels judged stops talking. Reflection and plain, calm questions keep him in the room."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Ask directly and early, then complete the C-SSRS follow-ups: Walter has thoughts with a method (his rifle), no intent and no plan, and sat with the rifle last spring, which he tells you only once he trusts you. Explore the remark about Gary the same way; it is anger without intent, plan or history, not an actual threat, so it stays confidential. Elevated, not imminent: a six-step safety plan with the rifle at his brother's tonight, 988, and a call tomorrow keeps him safe in the least restrictive setting."
+  }
+}
