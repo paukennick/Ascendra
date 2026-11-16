@@ -99,6 +99,49 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-16: the checkpoint and wave ships (#193, #199), desktop web
+    // column (REQ-304), biometric unlock fix (REQ-305), one session per device
+    // (REQ-306). The sims item is gated like every sims mention.
+    id: "2026-11-16",
+    date: "2026-11-16",
+    appVersion: "2.0.0",
+    covers: ["REQ-304", "REQ-305", "REQ-306"],
+    title: "28 new courses, and sign-in fixes",
+    items: [
+      {
+        icon: "book-open",
+        headline: "28 new courses",
+        body: "Python and Linux, SQL, TypeScript, Power BI and Microsoft security, CISSP, CISM and CEH, nursing specialties and FNP, Scrum, ITIL, Six Sigma, nutrition coaching, and social work licensure.",
+      },
+      {
+        icon: "compass",
+        headline: "More hands-on scenarios",
+        body: "Dozens of new simulations across IT, security, cloud, nursing, physical therapy and counseling courses, each with an expert path and a debrief.",
+        requires: "sims",
+      },
+      {
+        icon: "tool",
+        headline: "More labs",
+        body: "Every unit in the launch courses now has its full set of labs.",
+      },
+      {
+        icon: "shield",
+        headline: "Fingerprint unlock that sticks",
+        body: "Biometric unlock keeps working after an app update or after the app is closed, instead of asking for your password.",
+      },
+      {
+        icon: "smartphone",
+        headline: "One session per device",
+        body: "Signing in again on a device replaces its old session, so Active sessions lists each device once. Unused sessions end after 30 days in the app and 14 on the web.",
+      },
+      {
+        icon: "eye",
+        headline: "Easier reading on a big screen",
+        body: "On a wide browser window, pages sit in a centered column instead of stretching edge to edge.",
+      },
+    ],
+  },
+  {
     // 2026-11-14: REQ-290 study keyboard shortcuts (web). The sims item is
     // gated like every sims mention (lib/release-notes.test.ts).
     id: "2026-11-14",
