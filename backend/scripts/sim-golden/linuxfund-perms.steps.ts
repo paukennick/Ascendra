@@ -30,12 +30,12 @@ export function spec(): StepsSpec {
       },
       {
         id: "noSetgid",
-        title: "Asks nora to log in again before looking, fixes the files' group and write bit, never sets setgid or checks a new file",
+        title: "Looks at nora's session and the files first, then a new login and the files' group and write bit; never sets setgid or checks a new file",
         reasoning: "partial",
         drive: (c) => {
-          run(c, "relog");
           run(c, "psNora");
           run(c, "lsl");
+          run(c, "relog");
           run(c, "chgrp");
           run(c, "groupWrite");
           close(c);

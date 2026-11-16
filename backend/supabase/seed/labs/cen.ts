@@ -322,7 +322,7 @@ export const CEN_LABS: SeedLabSet = {
             part(
               "Perforation",
               "Recognizes possible perforation, calls for immediate surgical evaluation, supports breathing and circulation, and prepares for surgery.",
-              "A rigid distended abdomen after reduction suggests perforation: call the surgeon now, support airway and circulation, keep NPO and prepare for theatre."
+              "A rigid distended abdomen after reduction suggests perforation: call the surgeon now, support airway and circulation, keep NPO and prepare for the operating room."
             ),
           ],
         },
@@ -548,7 +548,7 @@ export const CEN_LABS: SeedLabSet = {
             part(
               "Actions",
               "Calls hand surgery immediately, elevates and splints, gives analgesia (avoiding a digital block that adds pressure), tetanus status and antibiotics as ordered, imaging, and keeps him NPO.",
-              "Hand surgeon now; splint and elevate; IV analgesia as ordered (no digital block); update tetanus; antibiotics as ordered; x-ray; NPO for theatre."
+              "Hand surgeon now; splint and elevate; IV analgesia as ordered (no digital block); update tetanus; antibiotics as ordered; x-ray; NPO for the operating room."
             ),
           ],
         },

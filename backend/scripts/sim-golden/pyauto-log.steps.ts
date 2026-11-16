@@ -27,6 +27,21 @@ export function spec(): StepsSpec {
         },
       },
       {
+        id: "fixBeforeLooking",
+        title: "Truncates sync.log straight away (before du), then sets up RotatingFileHandler and restarts; never checks that it rolls over",
+        reasoning: "partial",
+        drive: (c) => {
+          run(c, "truncate");
+          run(c, "df");
+          run(c, "du");
+          run(c, "grepConf");
+          run(c, "editRot");
+          run(c, "restart");
+          close(c);
+          c.act("document", { cause: "debuglog", fix: "rotate" });
+        },
+      },
+      {
         id: "rmThenRestart",
         title: "Deletes the log (df unchanged: still held open), restarts invsync to free it, and leaves the FileHandler as it was",
         reasoning: "partial",

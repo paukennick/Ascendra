@@ -28,7 +28,7 @@ function review(objectiveId: string, days: number, verdict: ShadowReview["verdic
 }
 
 describe("predictShadow (REQ-301)", () => {
-  test("first review after enrolment: the fresh state's recall after the gap at the prior's k, stage starting", () => {
+  test("first review after enrollment: the fresh state's recall after the gap at the prior's k, stage starting", () => {
     const p = predictShadow({
       history: [],
       enrolledAtMs: new Map([[OBJ, at(0)]]),
@@ -125,7 +125,7 @@ describe("predictShadow (REQ-301)", () => {
     assert.ok(p);
   });
 
-  test("an enrolment stamped after the first review (bad data) does not give a negative gap", () => {
+  test("an enrollment stamped after the first review (bad data) does not give a negative gap", () => {
     const p = predictShadow({
       history: [review(OBJ, 1)],
       enrolledAtMs: new Map([[OBJ, at(3)]]),
