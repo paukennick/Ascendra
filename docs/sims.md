@@ -4993,3 +4993,134 @@ narrative, and a server-only debrief body that repeated a client narrative
 word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up` is reached by no golden path in any of the eight (every
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
+
+### 22.16 Security wave 3: ISC2 CC, CISSP, ISACA CISM and EC-Council CEH on the security console (REQ-274)
+
+Eight documents, two per course, on the existing `security-console@1`
+screen (22.7) and engine 1.2. No engine, renderer, schema or migration
+change. Each follows the REQ-238 pattern (22.11): learner-paced `turns`
+phases, one `work` wait, the attacker's steps as `interruptsSkip` triggers on
+the same clock, outcome profile `security`, `endingOrder` with harm endings
+first, endings in all three classes, four critical criteria (all inside the
+target ending's condition), three KPIs, an expert path, a debrief per ending,
+one three-part reasoning moment and six golden paths built by
+`npm run sim:golden -- steps <name>` (every ending but `time_up`, every
+criterion met and missed). Every address and domain is from the
+documentation ranges (RFC 5737, RFC 2606); `lib/sim/security-certs-sims.test.ts`
+scans every learner-visible string for that and pins one behavior per case.
+`lib/sims-security-certs.dbtest.ts` seeds them against stand-in courses,
+negotiates the renderer, refuses pacing and plays two golden paths per case
+through the routes (run 2026-11-14 on a throwaway Postgres 16 with every
+migration and the full seed: 19 pass; the real seed resolved all eight to
+their catalog objectives).
+
+| Course / slug | Objective (abridged) | Core of the case | Steps name |
+|---|---|---|---|
+| ISC2CC/cc-triage-phish-correlation | Monitor and log security events, and triage them ... | Four alerts; the "low" new-country sign-in and a user's phishing report are one intrusion; forwarding rule at 15 min, internal phish at 25, a second victim 15 min later unless pulled or warned, supplier bank details changed at 45; firewall drops and an EICAR test are noise | cc-triage |
+| ISC2CC/cc-leaver-account-still-active | Manage the identity life cycle ... | A contractor whose contract ended Friday signs in Monday; disable without revoke, or an address block, leaves access; an API key made at 30 min outlives the account; deleting the account destroys the logs; the mover's privilege creep and a shared account compete for time | cc-leaver |
+| CISSP/cissp-web-tier-data-theft | Manage incidents through detection, response, mitigation, reporting, recovery, remediation and lessons learned | A web shell exporting the member table; isolate (kept powered on) and cut egress, scope the tier (copy on WEB03 at 10 min), image before rebuild, brief the CIO and counsel, patch before restore (an unpatched restore is reinfected in 10 min), powering off the database is disproportionate | cissp-incident |
+| CISSP/cissp-ransomware-recovery-site | Implement recovery strategies: backup storage, hot, warm and cold recovery sites ... | Ransomware with a stolen domain admin; replication carries encryption to the warm site at 20 min, domain-joined backups deleted at 30; only the clean replica meets Claims' 15-minute RPO; failover before krbtgt and privileged resets is reinfected; Payroll (RTO 72 h) competes with Claims (RTO 4 h) | cissp-recovery |
+| CISM/cism-payroll-supplier-breach | Manage external services -- suppliers, third parties and nth parties ... | A payroll supplier's late, vague notice; the stolen key is in use from outside; rotate and restrict (payroll keeps running) versus suspend or terminate (1,800 unpaid); deposit changes at 20 min paid out at the 10:00 cut-off; the contract's cooperation clause names the subprocessor | cism-supplier |
+| CISM/cism-checkout-skimmer-containment | Choose incident containment methods | A card skimmer on checkout on sale day; the continuity plan's hosted-page fallback stops capture and keeps sales; a CSP block is evaded at +10 min, removing the script with the account still active is undone at +10 min, closing the store needs the owner; evidence before removal | cism-contain |
+| CEH/ceh-arp-poisoning-finance-vlan | Recognize sniffing attacks ... and choose detection techniques and countermeasures | One gateway IP on two MACs; clearing caches is undone in seconds; capture, trace, shut the port; a plain-HTTP session hijacked at 15 min and passwords at 20; DHCP snooping with DAI; the device bagged, not reimaged | ceh-arp |
+| CEH/ceh-blind-sqli-search | Recognize SQL injection types ... methodology and evasion techniques | Time-based blind injection in a search; an address block and WAF signatures or a keyword filter are evaded (encoding, rotation) at +10 min; the feature flag stops the code; parameterized query, least-privilege login (the customers table out of reach even while injectable), audit check | ceh-sqli |
+
+**Level and framing.** CC is the entry-level analyst following the plan
+(declare, run the playbook, escalate); CISSP the incident and recovery lead
+(scope, evidence, reporting, BIA-driven strategy); CISM the security manager
+choosing among business-costed options (contract remedies, risk treatment,
+proportionate containment); CEH is defensive work on the learner's own
+network and application, pairing each attack with its detection and
+countermeasure, with no payloads or tool commands (the course's REQ-273 rule).
+
+**Sources** (on each document with `checkedAt` 2026-11-14 and how each was
+read): the four outlines as read for REQ-270 to REQ-273 (ISC2 CC and CISSP
+outline PDFs, the ISACA CISM outline page, the CEH Exam Blueprint v5.0);
+NIST SP 800-61 Rev. 3 (CSRC page through a summarizing fetch; RS outcome text
+relayed from the REQ-238 reading of 2026-11-11); NIST SP 800-34 Rev. 1 and
+SP 800-161 Rev. 1 (CSRC pages, summarizing fetches); the CISA #StopRansomware
+Guide (September 2023, summarizing fetch); NIST SP 800-53 Rev. 5 AC-2 (the
+csf.tools mirror, summarizing fetch, not NIST's own page); MITRE ATT&CK
+T1557.002 (summarizing fetch); the OWASP SQL Injection Prevention Cheat Sheet
+(summarizing fetch); the SEC's 2023-139 release on Form 8-K Item 1.05
+(summarizing fetch; cited only for why counsel needs facts early, no legal
+deadline in the case); RFC 5737 and 2606. Every step time, task duration,
+window and count is the author's teaching figure and says so on its param.
+
+**Findings while authoring** (FAIL-1823; caught by the validator, the
+linter or the golden driver; none in engine code): an asset reused an alert's
+id (`web3`; console ids are unique across alerts, events and assets), two
+cases had no golden path rated Mediocre until a path was retuned, and two
+criteria were "partial" but never "missed" on any path. `time_up` is reached by
+no golden path in any of the eight, so the linter's warning remains, as in
+the earlier security cases.
+
+#### Coverage table (Nick, 2026-11-14: sims follow coverage, not a count)
+
+Selection rule: an objective gets a sim when doing it well depends on time,
+on reading cues, on choices with consequences or on competing priorities,
+and an existing screen can show it. Status: **Built** (primary objective of
+a sim above), **Secondary** (exercised as a secondary objective of a built
+sim), **Fits** (meets the rule on the named existing screen; not built yet,
+next batch), **Screen** (meets the rule but needs a screen that does not
+exist; see the proposals below), **No** (knowledge, design or calculation
+work with nothing unfolding; the labs cover it). Numbers are the catalog
+order within each course (unit.objective).
+
+ISC2 CC (31 objectives): Built 3.1, 5.3. Secondary 2.4, 3.3 (least
+privilege in the leaver case), 3.5, 5.5. Fits (console): 2.2 BC/DR recovery
+objectives during an outage, 4.3 a rogue access point or an IoT camera
+botnet, 4.5 zero trust (a device failing posture mid-session), 5.4 a threat
+advisory turned into a hunt, 5.6 an end-of-life device exploited with an
+emergency change. Fits (terminal and network screen, 22.10): 4.2 firewall
+rules, 4.4 segmentation. Screen: 1.8 an ethics dilemma (a conversation
+screen). No: 1.1-1.7, 2.1, 2.3, 2.5, 3.2, 3.4, 4.1, 4.6, 4.7, 5.1, 5.2, 5.7.
+
+CISSP (47): Built 7.5, 7.8. Secondary 1.7, 7.1, 7.2, 7.9. Fits (console):
+1.8 a hostile termination, 1.12 a compromised software update, 2.6 a DLP
+alert of data leaving, 3.4 a container escape, 3.5 a certificate authority
+key or certificate-expiry incident, 3.6 pass-the-hash or Kerberoasting,
+4.3 a cloud network exposure, 4.4 network access control failing, 5.3 a
+federation incident, 5.5 a service account's privilege escalation, 5.6 an
+OAuth consent phishing grant, 6.4 a critical test finding and its
+disclosure, 7.3 privileged account misuse, 7.6 IDS tuning and a honeypot hit,
+7.7 an emergency patch under change management, 8.2 a poisoned CI/CD
+pipeline, 8.4 a vulnerable acquired component. Fits (terminal and network):
+4.2 segmentation. Screen: 1.1 ethics (conversation), 3.7 and 7.11 a facility
+or physical-security console (fire suppression, duress, tailgating), 7.10 a
+tabletop exercise. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
+4.5, 5.1, 5.2, 5.4, 6.1-6.3, 6.5, 7.4, 8.1, 8.3, 8.5.
+
+ISACA CISM (36): Built 3.11, 4.8. Secondary 2.4, 4.2, 4.7, 4.9. Fits
+(console): 2.5 a risk exception that turns into an incident, 4.6 a SOAR
+playbook that misfires, 4.10 eradication and recovery after a breach.
+Screen: Domain 1 governance, 2.1-2.3, 2.6 and Domain 3's program objectives
+need a governance or stakeholder-board screen (decisions with a budget and
+politics over a quarter, not minutes), 4.5 a tabletop exercise. No: 1.3,
+4.1, 4.3, 4.4, 4.11.
+
+EC-Council CEH (37): Built 4.1, 5.3. Secondary 4.4, 5.2, 5.4. Fits
+(console): 1.3 an engagement's scope boundary (the PenTest+ pattern), 3.1 a
+vulnerability report to triage, 3.2 with 3.3 an intruder's phases seen from
+the logs (privilege escalation, log clearing), 3.4 fileless malware, 4.2 a
+help-desk vishing reset, 4.3 a DDoS, 4.5 IDS and firewall evasion, 5.1 a web
+server attack and patching, 6.2 an evil-twin access point, 7.1 a lost or
+compromised mobile device under MDM, 7.2 an IoT botnet, 7.3 an OT intrusion,
+8.2 a cloud misconfiguration exploited, 9.2 a PKI or disk-encryption key
+incident. Fits (terminal and network): 2.4, 2.5, 2.6 scanning, scan output
+and enumeration in an authorized engagement (needs the REQ-273 no-payload
+rule applied to terminal commands; a decision for Nick). Screen: 3.5 malware
+analysis (a sandbox report screen). No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
+8.1, 9.1, 9.3.
+
+Totals: 8 built; 43 objectives fit an existing screen and are not built yet
+(37 console, 6 terminal and network); 13 need a screen that does not exist.
+
+**Screen proposals** (not built): a *conversation* screen for ethics
+dilemmas (the session renderer's shape without the clinical profile); a
+*facility console* for physical security and personnel safety (doors, alarms,
+fire suppression, people); a *tabletop* screen for exercises (injects on a
+timeline, a facilitator's log, roles); a *governance board* for CISM Domains
+1 to 3 (a quarter's decisions against budget, risk appetite and
+stakeholders); a *sandbox report* screen for static and dynamic malware
+analysis.
