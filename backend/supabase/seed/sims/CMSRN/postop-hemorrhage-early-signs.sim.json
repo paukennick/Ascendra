@@ -1,0 +1,1566 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "postop-hemorrhage-early-signs",
+  "title": "Restless five hours after a hemicolectomy",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              90,
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "uoTile",
+          "label": "Urine",
+          "spokenLabel": "Urine output this hour",
+          "value": "uo",
+          "unit": "mL/h",
+          "announce": {
+            "bands": [
+              40,
+              30,
+              20
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(uoAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Lactated Ringer's left to run: {crystLeft|0dp} mL. Red cells running: {prodPending|0dp} mL.",
+      "banner": [
+        {
+          "when": "rrtHere",
+          "text": "The rapid response team is in the room."
+        },
+        {
+          "when": "f >= 0.3",
+          "text": "She is pale and confused."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize early postoperative hemorrhage from a rising heart rate, falling urine output and restlessness before the blood pressure falls, and escalate",
+  "secondaryObjectives": [
+    "Call the rapid response team on early warning signs of deterioration"
+  ],
+  "sources": [
+    {
+      "cite": "MSNCB, 2023 CMSRN Exam Blueprint: Patient/Care Management (32%)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/cmsrn.ts), which read the blueprint 2026-11-14. Patient/Care Management covers the nursing process, safety, medication and pre- and post-procedure care."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "Relayed from the CCRN Adult bleeding case (CCRNADULT/bleeding-after-whipple, read 2026-11-10); not re-read. Class I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume; heart rate rises and urine output falls before the systolic pressure does (class II). FLAG: the model's vital-sign anchors follow the classic table and are a teaching simplification."
+    },
+    {
+      "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+      "checkedAt": "2026-11-14",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+      "note": "Read 2026-11-14 (PubMed abstract) for the course seed. The restrictive thresholds (7 g/dL; 8 with preexisting cardiovascular disease or orthopedic surgery) are for hemodynamically stable hospitalized adults, not active hemorrhage."
+    },
+    {
+      "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80",
+      "checkedAt": "2026-11-10",
+      "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+      "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10); not re-read (to verify). Used for one teaching point: a single normal hemoglobin does not rule out early bleeding."
+    },
+    {
+      "cite": "Classic '3 mL of crystalloid for each 1 mL of blood lost' teaching",
+      "checkedAt": "2026-11-10",
+      "url": "https://empendium.com/mcmtextbook/chapter/B31.II.2.2.1.1",
+      "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10): about a third of an isotonic crystalloid stays in the vessels."
+    }
+  ],
+  "brief": {
+    "situation": "20:00 on a surgical unit. Mrs. Okafor in Room 31, 68, 75 kg, returned from a laparoscopic right hemicolectomy at 15:00. The nursing assistant says she seems 'off' and her heart rate on the 20:00 check is higher than before.",
+    "handover": [
+      "17:00: heart rate 80, blood pressure 128/74, urine 60 mL an hour by catheter, pain 3/10 on hydromorphone PRN. Pulse oximetry on; vital signs every hour.",
+      "Hemoglobin 12.1 this morning; type and screen current. Enoxaparin 40 mg due at 22:00.",
+      "Standing orders: 500 mL lactated Ringer's bolus for hypotension, tachycardia over 100 or urine under 0.5 mL/kg/h, then call the surgical resident; stat hemoglobin and crossmatch by protocol."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize what this is, act and escalate. Labs, blood and the operating room take time.",
+      "Partway through you are asked to write what you think is happening. The case ends by 22:00, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "20:00",
+    "tick": "1s",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "tbv": {
+      "value": 5250,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Relayed: 75 kg x 70 mL/kg (about 7% of body weight)."
+      }
+    },
+    "bleedRate": {
+      "value": 22,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A slipped clip on a mesenteric vessel. Untreated, the deficit reaches class II (15%) about 15 minutes in, class III (30%) at about 55 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "retain": {
+      "value": 0.33,
+      "source": {
+        "cite": "Classic '3 mL of crystalloid for each 1 mL of blood lost' teaching",
+        "checkedAt": "2026-11-10",
+        "url": "https://empendium.com/mcmtextbook/chapter/B31.II.2.2.1.1",
+        "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10): about a third of an isotonic crystalloid stays in the vessels; applied at once here (a simplification)."
+      }
+    },
+    "crystFlow": {
+      "value": 34,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A 500 mL bolus by pump over about 15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "refillK": {
+      "value": 0.15,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Transcapillary refill, as the CCRN Adult bleeding case: about 15% of the deficit per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rbcVol": {
+      "value": 300,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Volume of one red cell unit, rounded. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rbcHgb": {
+      "value": 60,
+      "unit": "g",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Hemoglobin mass per red cell unit, so one unit raises a stable adult's hemoglobin by about 1 g/dL. Not checked against the AABB Circular of Information. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "infuseRate": {
+      "value": 20,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A red cell unit for active bleeding over about 15 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestF": {
+      "value": 0.42,
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Relayed: class IV (more than 40% of blood volume) is immediately life-threatening. FLAG: the model calls an arrest at 42%."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The surgical resident calls back in about 3 minutes."
+      }
+    },
+    "bloodPrep": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Two crossmatched units ready about 25 minutes after the order (a type and screen is current). FLAG: local times vary."
+      }
+    },
+    "orPrep": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Back to the operating room about 45 minutes after the surgeon decides. FLAG."
+      }
+    },
+    "labTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A stat hemoglobin from the ward reported about 45 minutes after it is drawn. FLAG."
+      }
+    },
+    "rrtArrive": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The rapid response team at the bedside in about 5 minutes."
+      }
+    },
+    "reviewAt": {
+      "value": 7199,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 22:00, two hours in."
+      }
+    },
+    "callWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Relayed: a rising heart rate and falling urine output are class II signs, before the blood pressure falls, so the surgeon is called within 15 minutes, before any hemoglobin. FLAG: the window is this case's."
+      }
+    },
+    "uoWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The hourly urine output checked within 10 minutes of the first change. FLAG: the window is this case's."
+      }
+    },
+    "bolusWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The post-operative standing order's 500 mL bolus started within 15 minutes. FLAG."
+      }
+    },
+    "bloodWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+        "checkedAt": "2026-11-14",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+        "note": "Active bleeding: the first unit within 15 minutes of the blood being ready, not held for a threshold. FLAG: the window is this case's."
+      }
+    },
+    "nadirTarget": {
+      "value": 60,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. MAP never below 60 mm Hg on the target path. FLAG: no source gives a number; this case's line for 'kept perfused'. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 10 minutes in."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": 500,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "hgbMass": {
+      "type": "number",
+      "init": 598.5,
+      "min": 0,
+      "max": 5000,
+      "unit": "g"
+    },
+    "crystInfused": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "crystLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "crystOrdered": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "prodPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "hgbPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000,
+      "unit": "g"
+    },
+    "productIV": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "refilled": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000,
+      "unit": "mL"
+    },
+    "rbcStock": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "rbcGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "uoAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbResultAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbSeen": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 25,
+      "unit": "g/dL"
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "selfCall": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "bloodReadyAt": {
+      "type": "time",
+      "init": null
+    },
+    "bloodAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtAt": {
+      "type": "time",
+      "init": null
+    },
+    "rrtHere": {
+      "type": "bool",
+      "init": false
+    },
+    "opioid": {
+      "type": "bool",
+      "init": false
+    },
+    "opioidEarly": {
+      "type": "bool",
+      "init": false
+    },
+    "toOr": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "mapNadir": {
+      "type": "number",
+      "init": 92,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    }
+  },
+  "derived": {
+    "intravasc": {
+      "expr": "tbv - lost + retain * crystInfused + productIV + refilled",
+      "unit": "mL",
+      "precision": 0
+    },
+    "f": {
+      "expr": "clamp((tbv - intravasc) / tbv, 0, 1)",
+      "precision": 2
+    },
+    "hgbRaw": {
+      "expr": "hgbMass / (max(intravasc, 500) / 100)",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "hgb": {
+      "expr": "round(hgbRaw * 10) / 10",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "hr": {
+      "expr": "round(clamp(80 + 107 * min(f, 0.15) + 133 * clamp(f - 0.15, 0, 0.15) + 200 * clamp(f - 0.3, 0, 0.2) + 1.5 * sin(t / 37), 50, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(128 - 107 * clamp(f - 0.15, 0, 0.15) - 270 * clamp(f - 0.3, 0, 0.1) - 300 * clamp(f - 0.4, 0, 0.2) + 1.5 * sin(t / 23))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(min(74 + 27 * clamp(f - 0.15, 0, 0.15) - 160 * clamp(f - 0.3, 0, 0.1) - 220 * clamp(f - 0.4, 0, 0.2), sbp - 12))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(16 + 40 * clamp(f - 0.15, 0, 0.35))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 8 * clamp(f - 0.35, 0, 0.3))",
+      "unit": "%",
+      "precision": 0
+    },
+    "uo": {
+      "expr": "round(clamp(60 - 200 * clamp(f - 0.1, 0, 0.3), 2, 80))",
+      "unit": "mL/h",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "not toOr",
+      "update": {
+        "lost": "lost + bleedRate * dt / 60",
+        "hgbMass": "hgbMass - bleedRate * dt / 60 * hgbRaw / 100"
+      }
+    },
+    {
+      "id": "crystalloid",
+      "update": {
+        "crystInfused": "crystInfused + min(crystLeft, crystFlow * dt / 60)",
+        "crystLeft": "crystLeft - min(crystLeft, crystFlow * dt / 60)"
+      }
+    },
+    {
+      "id": "products",
+      "when": "prodPending > 0",
+      "update": {
+        "productIV": "productIV + min(prodPending, infuseRate * dt / 60)",
+        "hgbMass": "hgbMass + min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "hgbPending": "hgbPending - min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "prodPending": "prodPending - min(prodPending, infuseRate * dt / 60)"
+      }
+    },
+    {
+      "id": "refill",
+      "update": {
+        "refilled": "refilled + refillK * max(0, tbv - intravasc) * dt / 3600"
+      }
+    },
+    {
+      "id": "nadir",
+      "update": {
+        "mapNadir": "min(mapNadir, map)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Room 31",
+      "clock": "running",
+      "actions": [
+        "look",
+        "urine",
+        "bolus",
+        "labs",
+        "call",
+        "rrt",
+        "transfuse",
+        "opioid",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Assess her: mental status, skin, abdomen, port sites",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "f >= 0.3",
+              "then": [
+                {
+                  "log": "Pale, cold and clammy, confused about where she is. Abdomen distended and tight, port dressings dry.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Restless, picking at the sheets, says she 'feels wrong'. Skin cool at the hands. Abdomen a little fuller than at 17:00 and tender all over; port dressings dry.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "urine": {
+      "label": "Check the hourly urine output on the catheter",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(uoAt)",
+          "then": [
+            {
+              "set": "uoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Urine output this hour: {uo} mL (60 mL an hour after surgery).",
+          "kind": "find"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Start a 500 mL lactated Ringer's bolus (post-operative standing order)",
+      "group": "Act",
+      "available": "crystLeft <= 1000",
+      "why": "Three boluses are already running or queued.",
+      "effects": [
+        {
+          "add": "crystLeft",
+          "by": "500"
+        },
+        {
+          "add": "crystOrdered",
+          "by": "500"
+        },
+        {
+          "if": "isNull(bolusAt)",
+          "then": [
+            {
+              "set": "bolusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "500 mL running over 15 minutes; {crystOrdered|0dp} mL ordered so far."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw a stat hemoglobin and type and crossmatch (protocol)",
+      "group": "Act",
+      "available": "isNull(labsAt)",
+      "why": "Already drawn.",
+      "effects": [
+        {
+          "if": "isNull(labsAt)",
+          "then": [
+            {
+              "set": "labsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hgbSeen",
+          "to": "hgb"
+        },
+        {
+          "schedule": "hgbT",
+          "after": "labTime"
+        },
+        {
+          "log": "Drawn and sent; about 45 minutes."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the surgical resident (SBAR)",
+      "group": "Escalate",
+      "available": "isNull(callEffAt)",
+      "why": "Surgery has the picture.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "bleed",
+                  "label": "Mrs. Okafor in 31, 5 hours after a laparoscopic right hemicolectomy: heart rate up from 80 to the 90s, hourly urine output falling, restless and cool; pressure still normal"
+                },
+                {
+                  "value": "pain",
+                  "label": "Mrs. Okafor in 31 is restless and asking for more pain medicine"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "Uneventful surgery, 200 mL estimated loss; enoxaparin due at 22:00; hemoglobin 12.1 this morning; type and screen current"
+                },
+                {
+                  "value": "min",
+                  "label": "Bowel surgery today"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "bleed",
+                  "label": "I think she is bleeding internally and compensating; the pressure will fall next"
+                },
+                {
+                  "value": "pain",
+                  "label": "I think it is pain and anxiety"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now. A bolus is running and a stat hemoglobin and crossmatch are drawn; can we have blood ready and hold the enoxaparin?"
+                },
+                {
+                  "value": "prn",
+                  "label": "Can I give her more hydromorphone and recheck in an hour?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"bleed\" and asmt == \"bleed\"",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "set": "selfCall",
+              "to": "true"
+            },
+            {
+              "if": "opioid",
+              "then": [
+                {
+                  "set": "opioidEarly",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "schedule": "callbackT",
+              "after": "callback"
+            },
+            {
+              "log": "Resident: \"That sounds like bleeding. Hold the enoxaparin, I'm coming and calling my attending.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Resident: \"Give her the PRN and call me if her pressure drops.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "rrt": {
+      "label": "Call the rapid response team",
+      "group": "Escalate",
+      "available": "isNull(rrtAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(rrtAt)",
+          "then": [
+            {
+              "set": "rrtAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "rrtT",
+          "after": "rrtArrive"
+        },
+        {
+          "log": "Rapid response team paged."
+        }
+      ]
+    },
+    "transfuse": {
+      "label": "Transfuse one unit of red cells (ordered, checked at the bedside)",
+      "group": "Act",
+      "available": "rbcStock > 0",
+      "why": "No blood at the bedside yet.",
+      "effects": [
+        {
+          "add": "prodPending",
+          "by": "rbcVol"
+        },
+        {
+          "add": "hgbPending",
+          "by": "rbcHgb"
+        },
+        {
+          "add": "rbcStock",
+          "by": "-1"
+        },
+        {
+          "add": "rbcGiven",
+          "by": "1"
+        },
+        {
+          "if": "isNull(bloodAt)",
+          "then": [
+            {
+              "set": "bloodAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Red cells checked with a second nurse and running over about 15 minutes."
+        }
+      ]
+    },
+    "opioid": {
+      "label": "Give hydromorphone 0.5 mg IV for her restlessness (PRN order)",
+      "group": "Act",
+      "available": "not opioid",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "opioid",
+          "to": "true"
+        },
+        {
+          "if": "isNull(callEffAt)",
+          "then": [
+            {
+              "set": "opioidEarly",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Hydromorphone given. She settles a little; her heart rate does not.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Times, heart rate, blood pressure and urine output trend, abdomen, the bolus, who was called and the orders"
+            },
+            {
+              "value": "opinion",
+              "label": "'Anxious post-op, PRN given'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: vital-sign and urine-output trend, abdomen, bolus, resident called, orders."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Anxious post-op, PRN given.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "callbackT": {
+      "label": "the surgical orders",
+      "wait": {
+        "skipLabel": "the surgical orders (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The surgical resident calls back in about 3 minutes."
+      },
+      "effects": [
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Orders: enoxaparin held, crossmatch 2 units and give them as soon as ready, nothing by mouth, consent for a return to the operating room.",
+          "kind": "good"
+        },
+        {
+          "schedule": "bloodT",
+          "after": "bloodPrep"
+        },
+        {
+          "schedule": "orT",
+          "after": "orPrep"
+        }
+      ]
+    },
+    "bloodT": {
+      "label": "the crossmatched blood",
+      "wait": {
+        "skipLabel": "the crossmatched blood (about 25 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Two crossmatched units ready about 25 minutes after the order (a type and screen is current). FLAG: local times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(bloodReadyAt)",
+          "then": [
+            {
+              "set": "bloodReadyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rbcStock",
+          "to": "2"
+        },
+        {
+          "log": "Two crossmatched units are at the bedside.",
+          "kind": "good"
+        }
+      ]
+    },
+    "orT": {
+      "label": "the operating room",
+      "wait": {
+        "skipLabel": "the operating room ready (about 45 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Back to the operating room about 45 minutes after the surgeon decides. FLAG."
+      },
+      "effects": [
+        {
+          "set": "toOr",
+          "to": "true"
+        },
+        {
+          "log": "The operating room is ready; she goes back with the surgeon.",
+          "kind": "good"
+        }
+      ]
+    },
+    "hgbT": {
+      "label": "the hemoglobin result",
+      "wait": {
+        "skipLabel": "the hemoglobin result (about 45 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A stat hemoglobin from the ward reported about 45 minutes after it is drawn. FLAG."
+      },
+      "effects": [
+        {
+          "if": "isNull(hgbResultAt)",
+          "then": [
+            {
+              "set": "hgbResultAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Hemoglobin {hgbSeen|1dp} g/dL on the sample drawn at {timeAt(labsAt)|clock} (12.1 this morning).",
+          "kind": "find"
+        }
+      ]
+    },
+    "rrtT": {
+      "label": "the rapid response team",
+      "wait": {
+        "skipLabel": "the rapid response team (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The rapid response team at the bedside in about 5 minutes."
+      },
+      "effects": [
+        {
+          "set": "rrtHere",
+          "to": "true"
+        },
+        {
+          "log": "The rapid response team is at the bedside.",
+          "kind": "good"
+        },
+        {
+          "if": "isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "if": "opioid",
+              "then": [
+                {
+                  "set": "opioidEarly",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "schedule": "callbackT",
+              "after": "callback"
+            },
+            {
+              "log": "The team's nurse calls the surgical resident about bleeding.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "22:00",
+      "wait": {
+        "skipLabel": "22:00, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 22:00, two hours in."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "pressureLow",
+      "when": "sbp < 90",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Blood pressure alarm: {sbp}/{dbp}.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "What do you think is happening to Mrs. Okafor, and why act before her blood pressure falls?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Names early postoperative hemorrhage from a rising heart rate, falling urine output, restlessness, cool hands and a fuller tender abdomen hours after surgery, with an anticoagulant due.",
+          "modelAnswer": "A heart rate climbing from 80, urine output falling from 60 mL an hour, new restlessness, cool hands and a fuller tender abdomen five hours after a hemicolectomy is bleeding until proved otherwise. She is compensating."
+        },
+        {
+          "label": "Why act now",
+          "criteria": "Explains that the pressure falls late and the first hemoglobin lags; acts now: bolus by standing order, stat hemoglobin and crossmatch, SBAR that names bleeding and asks the surgeon to come and the enoxaparin to be held, blood when ready; no opioid in place of escalation.",
+          "modelAnswer": "Blood pressure holds until a large share of volume is gone and the hemoglobin lags, so waiting for either loses time. Start the bolus, draw a stat hemoglobin and crossmatch, and give the resident an SBAR that names bleeding and asks for a bedside review and the enoxaparin held. Hang blood as soon as it comes. An opioid for restlessness hides the warning."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and not toOr",
+      "class": "harm",
+      "rationale": "A post-operative bleed nobody has escalated after two hours keeps bleeding; this case calls that harm.",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Relayed from the CCRN Adult bleeding case (CCRNADULT/bleeding-after-whipple, read 2026-11-10); not re-read. Class I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume; heart rate rises and urine output falls before the systolic pressure does (class II). FLAG: the model's vital-sign anchors follow the classic table and are a teaching simplification."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Pulseless arrest from blood loss",
+      "class": "harm",
+      "when": "f >= arrestF",
+      "terminal": true,
+      "narrative": "No pulse with a narrow rhythm on the monitor: she has lost more than 40% of her blood volume into her abdomen. The code team starts compressions."
+    },
+    "orTarget": {
+      "label": "Back to the operating room early, perfused",
+      "class": "target",
+      "terminal": true,
+      "when": "toOr and selfCall and timeAt(callEffAt) <= callWindow and not isNull(uoAt) and timeAt(uoAt) <= uoWindow and not isNull(bolusAt) and timeAt(bolusAt) <= bolusWindow and not isNull(bloodAt) and timeAt(bloodAt) <= timeAt(bloodReadyAt) + bloodWindow and mapNadir >= nadirTarget and not opioidEarly",
+      "narrative": "{t|clock}: she goes back to the operating room with a heart rate of {hr} and a pressure of {sbp}/{dbp}, blood running. You called it on the heart rate, the urine and her behavior, before the pressure fell."
+    },
+    "orLate": {
+      "label": "Back to the operating room, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "toOr",
+      "narrative": "{t|clock}: she reaches the operating room with a heart rate of {hr} and a pressure of {sbp}/{dbp}. The bleeding vessel is tied, but the route cost time: a late or unclear call, fluids late, blood waiting, or the restlessness treated first."
+    },
+    "time_up": {
+      "label": "22:00 and still bleeding on the unit",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "22:00: heart rate {hr}, pressure {sbp}/{dbp}, urine {uo} mL an hour. Nobody has called it bleeding."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "orTarget",
+    "orLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "escalate",
+        "label": "Called it bleeding within 15 minutes, before the pressure or the hemoglobin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "Surgery was never told she was bleeding."
+          },
+          {
+            "when": "selfCall and timeAt(callEffAt) <= callWindow",
+            "score": "met",
+            "why": "SBAR at {timeAt(callEffAt)|clock} named bleeding."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Bleeding named, but late or by the rapid response team."
+          }
+        ]
+      },
+      {
+        "id": "urine",
+        "label": "Checked the urine output within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(uoAt)",
+            "score": "missed",
+            "why": "The urine output was never checked."
+          },
+          {
+            "when": "timeAt(uoAt) <= uoWindow",
+            "score": "met",
+            "why": "Checked at {timeAt(uoAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Checked after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "volume",
+        "label": "Bolus started within 15 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bolusAt)",
+            "score": "missed",
+            "why": "No fluid while she bled."
+          },
+          {
+            "when": "timeAt(bolusAt) <= bolusWindow",
+            "score": "met",
+            "why": "Bolus at {timeAt(bolusAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Bolus after 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "blood",
+        "label": "Blood given as soon as it was ready",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bloodReadyAt)",
+            "score": "missed",
+            "why": "No blood was ordered: the bleeding was not escalated."
+          },
+          {
+            "when": "isNull(bloodAt)",
+            "score": "missed",
+            "why": "Blood at the bedside but never hung."
+          },
+          {
+            "when": "timeAt(bloodAt) <= timeAt(bloodReadyAt) + bloodWindow",
+            "score": "met",
+            "why": "First unit at {timeAt(bloodAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Blood waited more than 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "noMask",
+        "label": "Did not treat the restlessness as the problem",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "opioidEarly",
+            "score": "missed",
+            "why": "An opioid for restlessness before anyone was told she might be bleeding."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Restlessness reported as a sign."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Trend, findings and actions documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of findings."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: early hemorrhage before the pressure falls",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "20:00 to the call that named bleeding",
+        "value": "isNull(callEffAt) ? -1 : timeAt(callEffAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "nadir",
+        "label": "Lowest MAP",
+        "value": "mapNadir",
+        "format": "number",
+        "expert": "65 mm Hg or more"
+      },
+      {
+        "id": "lost",
+        "label": "Blood lost (model)",
+        "value": "round(lost)",
+        "format": "number",
+        "expert": "under 1,800 mL"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "20:01",
+        "text": "Assess: restless, cool hands, abdomen fuller and tender. Urine output down to about 50 mL an hour and falling. Bolus started; stat hemoglobin and crossmatch."
+      },
+      {
+        "at": "20:02",
+        "text": "SBAR: bleeding until proved otherwise; come now, blood, hold the enoxaparin."
+      },
+      {
+        "at": "~20:30",
+        "text": "Blood hung on arrival."
+      },
+      {
+        "at": "~20:50",
+        "text": "Back to the operating room while still perfused."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Arrest from an unrecognized bleed",
+        "body": "The heart rate, urine output and restlessness changed long before the pressure. Find when each was noticed and when the surgeon was told."
+      },
+      "orTarget": {
+        "headline": "Called before the pressure fell",
+        "body": "Urine output checked, a bolus, an SBAR that named bleeding, blood as soon as it came and back to the operating room while she was perfused. That is the expert path."
+      },
+      "orLate": {
+        "headline": "To the operating room, by a slower route",
+        "body": "She got there, but check how soon the urine was measured, when the bleeding was named, whether fluid and blood waited, and whether her restlessness was treated before anyone was told."
+      },
+      "time_up": {
+        "headline": "Still bleeding at 22:00",
+        "body": "No one put the heart rate, the urine and her restlessness together, so surgery never came."
+      }
+    },
+    "modelReasoning": "A rising heart rate, falling hourly urine output, new restlessness, cool hands and a fuller, tender abdomen five hours after surgery, with enoxaparin due, is early postoperative hemorrhage. The blood pressure falls late (class III) and the first hemoglobin lags, so act on the trend: start the standing-order bolus, draw a stat hemoglobin and crossmatch, and give the surgical resident an SBAR that names bleeding, asks for a bedside review and the anticoagulant held. Give blood as soon as it arrives (the restrictive threshold is for stable patients) and prepare her for the operating room. An opioid for restlessness without escalation hides the warning."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Surgery called",
+      "when": "not isNull(callEffAt)"
+    }
+  ],
+  "teaching": {
+    "bpQ": {
+      "during": "callbackT",
+      "ask": "Her blood pressure is still normal. Why not wait for it to fall?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "A normal pressure means she has not lost much"
+        },
+        {
+          "id": "late",
+          "label": "The pressure falls late; heart rate, urine output and behavior change first"
+        }
+      ],
+      "expect": "late",
+      "explain": "In the classic hemorrhage classes the heart rate climbs and urine output falls with a 15-30% loss while the systolic pressure holds; it falls in class III. Waiting for the pressure means waiting for a large loss.",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "Relayed from the CCRN Adult bleeding case (CCRNADULT/bleeding-after-whipple, read 2026-11-10); not re-read. Class I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume; heart rate rises and urine output falls before the systolic pressure does (class II). FLAG: the model's vital-sign anchors follow the classic table and are a teaching simplification."
+      }
+    },
+    "hgbQ": {
+      "during": "hgbT",
+      "ask": "If the first hemoglobin comes back near 12, is she safe?",
+      "choices": [
+        {
+          "id": "safe",
+          "label": "Yes"
+        },
+        {
+          "id": "lags",
+          "label": "No: hemoglobin lags behind acute loss; act on the trend and repeat it"
+        }
+      ],
+      "expect": "lags",
+      "explain": "Whole blood is lost at the same concentration, so the number barely moves at first and falls as fluid refills the vessels. A single normal value does not rule out early bleeding.",
+      "source": {
+        "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80",
+        "checkedAt": "2026-11-10",
+        "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+        "note": "Relayed from the CCRN Adult bleeding case (read there 2026-11-10); not re-read (to verify). Used for one teaching point: a single normal hemoglobin does not rule out early bleeding."
+      }
+    }
+  }
+}

@@ -237,6 +237,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // PCCN and the two FNP courses. Keep these entries together. ----
   entry("PCCN", "femoral-access-retroperitoneal-bleed"),
   entry("PCCN", "copd-exacerbation-niv"),
+  entry("CMSRN", "postop-hemorrhage-early-signs"),
   // ---- end REQ-275 to REQ-278 ----
 ];
 
