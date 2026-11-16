@@ -5121,11 +5121,11 @@ shows, per course, which fitting objectives a sim names as its objective
 and after this work. The screen reads titles only, so the counts are a
 shortlist, not a judgement.
 
-Six documents on the existing bedside and treatment-session screens and
+Nine documents (six on 2026-11-14, three on 2026-11-16) on the existing bedside and treatment-session screens and
 engine 1.2; no engine, renderer, schema or migration change. Each declares
 engine minor 2 and `endingOrder`, has endings in all three outcome classes,
 three or four critical criteria inside its `target` condition, KPIs, an
-expert path, a debrief per ending, one reasoning moment, two sourced
+expert path, a debrief per ending, one reasoning moment, one or two sourced
 teaching prompts in jsonb key order (FAIL-1362), a chapter, and five to seven
 golden paths built by `npm run sim:golden -- steps <name>`. All run in one
 `running` phase, so study pace (3x) is the default; none has a focused start.
@@ -5140,6 +5140,9 @@ names the other fitting objectives it exercises as secondary objectives.
 | CCRNADULT/status-epilepticus-after-craniotomy | Treat a seizure lasting 5 minutes or more as status epilepticus ... | lorazepam 4 mg within 10 min of onset, one repeat only; airway without restraint or a bite block; second-line load by 20 min | ccrn-se |
 | DPT/dizziness-central-red-flags | Coordination and gait examination: Romberg ... cerebellar ataxia | central signs screened; 911 within 10 min of the first; no gaze stabilization or Dix-Hallpike | dpt-central |
 | NCLEXPN/first-dose-anaphylaxis | Recognizing an allergic reaction and responding to it | epinephrine IM first, within 5 min; 911 within 5 min; never stood or walked | pn-anaph |
+| NCLEXRN/hyperkalemia-critical-value | Identify hyperkalemia ... peaked T waves ... dysrhythmia and cardiac arrest | KCl stopped within 10 min; the hospitalist called with the value and the ECG within 10 min; calcium first, within 10 min of the orders; glucose checked before and after the insulin with dextrose 10% running and no hypoglycemia | rn-hyperk |
+| NCLEXPN/postpartum-check-boggy-fundus | Monitor the recovery of a stable postpartum client ... fundus, bladder and lochia | fundus massaged within 5 min; bladder emptied in bed within 15 min (never walked); heavy bleeding reported with numbers from the bedside within 10 min | pn-postpartum |
+| DPT/parkinson-freezing-session | Parkinson disease management: aerobic exercise ..., external cueing for freezing ... | gait belt before he is upright; freezing met with an external cue, never a pull; orthostatic hypotension found, sat down within 30 s and reported the same visit | dpt-parkinson |
 
 - **Harm endings** are outcomes (a fall, collapse, shock, hypoxia, refractory
   status) except where a guideline names the action: standing or walking a
@@ -5176,7 +5179,34 @@ names the other fitting objectives it exercises as secondary objectives.
   read, the DPT first set, plus each document's screen, running phase,
   `endingOrder`, teaching key order and golden coverage. FAIL-1500's
   availability warning was worked around in the CNA goldens as 22.13 says.
-- **`time_up`** is reached by no golden path in any of the six (every slow
+- **Wave 2 (2026-11-16)**: the three rows after the anaphylaxis case. The
+  hyperkalemia case makes the treatment's own risk part of the case: insulin
+  with dextrose lowers glucose too, so a run that skips the dextrose 10%
+  infusion for a pre-treatment glucose under 126 mg/dL and the 30- and
+  60-minute checks reaches a seizure (harm). Its values are the UK Kidney
+  Association guideline (updated July 2026), read 2026-11-14 in the primary
+  PDF through a summarizing fetch with quotes (severe at 6.5 or more,
+  calcium gluconate 10% 30 mL over 10 minutes with effect in 3 minutes for
+  30-60 minutes, insulin 10 units with 25 g glucose lowering K by 0.65-1.0 at
+  30-60 minutes, glucose 10% at 50 mL/h for 5 hours below 7.0 mmol/L,
+  albuterol 10-20 mg never alone, bicarbonate not routine). A US guideline
+  was not read; the NCLEX objective's own number (above 5.1) is the course's.
+  The postpartum and Parkinson cases rest on sources relayed from their
+  course seeds (OpenStax Maternal-Newborn Nursing 20.1, 20.3 and 21.2; the
+  2022 APTA Parkinson CPG, Osborne et al.) and the earlier cases (StatPearls
+  PPH, the APTA vital sign guide), because web reading was limited to search
+  results from 2026-11-14 on: their notes say "to verify", with the URL a
+  search returned. No dose number is taken from the Parkinson CPG; the
+  session goals (10 minutes of aerobic work, 5 of gait training) are
+  authored and say so. Every case still has authored teaching-model sizes
+  marked `FLAG`.
+- **Findings while authoring, wave 2** (FAIL-1984): a template slot that
+  holds a quoted string with its own `{slot}` inside (`{x ? "rate {hr}" :
+  ...}`) fails only when the engine renders it ("unterminated string"), so
+  the golden builder found it, not the linter; written as `cases` with one
+  log line each instead. The linter caught one timer scheduled without its
+  declared `with` field.
+- **`time_up`** is reached by no golden path in any of the nine (every slow
   path ends earlier), so the linter's warning remains.
 ### 22.19 Security wave 3: ISC2 CC, CISSP, ISACA CISM and EC-Council CEH on the security console (REQ-274)
 

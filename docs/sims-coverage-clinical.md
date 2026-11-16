@@ -24,7 +24,7 @@ consequences, or priorities compete.
 
 ## Summary
 
-Before = master at cb4d18a2; after = this branch. Columns: fitting objectives;
+Before = master at cb4d18a2 (before REQ-296); after = this branch, both waves (2026-11-14 and 2026-11-16). Columns: fitting objectives;
 fitting objectives that are a sim's main objective; fitting objectives a sim
 names at all (main or secondary); sims on the course.
 
@@ -32,8 +32,8 @@ names at all (main or secondary); sims on the course.
 
 | Course | Fitting | Main, before | Main, after | Any, before | Any, after | Sims before | Sims after |
 |---|---|---|---|---|---|---|---|
-| **NCLEXRN** | 111 | 1 | 2 | 3 | 9 | 2 | 3 |
-| **NCLEXPN** | 44 | 0 | 1 | 2 | 5 | 2 | 3 |
+| **NCLEXRN** | 111 | 1 | 3 | 3 | 15 | 2 | 4 |
+| **NCLEXPN** | 44 | 0 | 2 | 2 | 8 | 2 | 4 |
 | **CNA** | 7 | 1 | 2 | 3 | 4 | 2 | 3 |
 | ADNRN | 31 | 2 | 2 | 2 | 2 | 2 | 2 |
 | BSNRN | 23 | 2 | 2 | 3 | 3 | 2 | 2 |
@@ -55,7 +55,7 @@ names at all (main or secondary); sims on the course.
 
 | Course | Fitting | Main, before | Main, after | Any, before | Any, after | Sims before | Sims after |
 |---|---|---|---|---|---|---|---|
-| **DPT** | 15 | 0 | 1 | 4 | 7 | 3 | 4 |
+| **DPT** | 15 | 0 | 2 | 4 | 9 | 3 | 5 |
 | **PTPREREQ** | 2 | 0 | 1 | 0 | 1 | 0 | 1 |
 | NPTEPT | 32 | 0 | 0 | 0 | 0 | 0 | 0 |
 | NPTEPTA | 20 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -120,7 +120,7 @@ course's fitting objectives.
 - Recognize the forms of abuse a client may disclose and follow state and facility reporting rules, including adult and child protective services and police where required (none)
 - Triage with the ABCDE sequence -- airway, breathing, circulation, disability, exposure -- assessing the airway first whatever the underlying cause (none)
 - Know the phases of disaster response, starting with mitigation that reduces the risk and impact of future disasters before one occurs (none)
-- Prevent medication errors through the safety checks in four groups: identify the client correctly, check the order for errors, keep the environment safe, and monitor for adverse reactions (none)
+- Prevent medication errors through the safety checks in four groups: identify the client correctly, check the order for errors, keep the environment safe, and monitor for adverse reactions (secondary: hyperkalemia-critical-value)
 - Recognize oncologic emergencies the nurse must report at once, such as tumor lysis syndrome with its high potassium, high phosphate and low calcium (none)
 - Screen every client for intimate partner violence and know that pregnancy raises the risk of physical abuse and of serious maternal and newborn complications (none)
 - Manage aggression with the least restrictive measure that is safe, treat an emergency medication order as an interim step, and stay with the client afterwards to monitor its effect (none)
@@ -160,7 +160,7 @@ course's fitting objectives.
 - Recognize that loss of basic ADLs such as bathing, feeding and dressing sharply raises the chance of nursing home admission, and plan support that preserves them (none)
 - Use the TIME principles to prepare a wound bed -- tissue, infection or inflammation, moisture balance, edges -- and choose a dressing that fits the wound at that stage (none)
 - Titrating a dose against assessment and ordered parameters (none)
-- Evaluating the client's response to a medication over time (none)
+- Evaluating the client's response to a medication over time (secondary: hyperkalemia-critical-value)
 - Administering blood products and evaluating the response (none)
 - Read anticoagulant monitoring: a higher aPTT, INR or anti-Xa level means blood that clots more slowly and a client more prone to bleeding (none)
 - Monitor digoxin for toxicity -- anorexia, nausea, vomiting, visual changes and dysrhythmias -- and remember low potassium and magnesium increase the risk (none)
@@ -173,7 +173,7 @@ course's fitting objectives.
 - Know that ultra-rapid CYP2D6 metabolizers can turn codeine into too much morphine, risking life-threatening respiratory depression (none)
 - Assessing and responding to changes and trends in vital signs (secondary: postpartum-hemorrhage-atony)
 - Applying pathophysiology when measuring and interpreting vital signs (none)
-- Testing within the nurse's scope: ECG, point-of-care testing, fetal monitoring (none)
+- Testing within the nurse's scope: ECG, point-of-care testing, fetal monitoring (secondary: hyperkalemia-critical-value)
 - Risk assessment for falls, sensory impairment, mobility and skin integrity (none)
 - Recognizing a trend in the client's condition and intervening on it (secondary: postpartum-hemorrhage-atony)
 - Monitoring for signs of bleeding (secondary: postpartum-hemorrhage-atony)
@@ -184,10 +184,10 @@ course's fitting objectives.
 - Identifying the pathophysiology behind an acute or chronic condition (none)
 - Evaluating response to treatment for an infectious disease (none)
 - Implementing and monitoring phototherapy (none)
-- Medical emergencies: applying pathophysiology under time pressure (none)
-- Unexpected adverse response to therapy, and recognizing complications early (none)
+- Medical emergencies: applying pathophysiology under time pressure (secondary: hyperkalemia-critical-value)
+- Unexpected adverse response to therapy, and recognizing complications early (secondary: hyperkalemia-critical-value)
 - Evaluating achievement of the client's treatment goals (none)
-- Identify hyperkalemia -- serum potassium above 5.1 mEq/L -- by irritability, cramping, diarrhea and peaked T waves, and know it can progress to dysrhythmia and cardiac arrest (none)
+- Identify hyperkalemia -- serum potassium above 5.1 mEq/L -- by irritability, cramping, diarrhea and peaked T waves, and know it can progress to dysrhythmia and cardiac arrest (main: hyperkalemia-critical-value)
 - Recognize Cushing's triad -- widening pulse pressure, bradycardia and irregular breathing -- as a sign of increased intracranial pressure, alongside headache, vomiting and a falling level of consciousness (none)
 - Know the common seizure triggers -- high fever, tumor, stroke, head injury, infection, hypoglycemia and alcohol -- so you can anticipate seizures and protect the client (none)
 - Prioritize respiratory distress and falling oxygenation in pneumonia: monitor vital signs, give oxygen and prepare the client for imaging (none)
@@ -210,7 +210,7 @@ Sims on objectives the screen does not pass:
 - Assignment and delegation as they apply to the PN, including delegation to assistive personnel (none)
 - Ethical practice and recognizing an ethical dilemma (none)
 - Resource management and cost-conscious care (none)
-- Contribute to the six clinical judgment steps -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment (secondary: ltc-change-in-condition)
+- Contribute to the six clinical judgment steps -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment (secondary: ltc-change-in-condition, postpartum-check-boggy-fundus)
 - Know that a licensed nurse who delegates keeps accountability for the client and cannot delegate nursing judgment, and that state law decides whether an LPN/VN may delegate to assistive personnel (none)
 - Accept a delegated task only if it is within your scope and you are competent, and ask clarifying questions before you begin (none)
 - Monitor the work of assistive personnel and intervene or report when care is unsafe or incomplete (none)
@@ -222,10 +222,10 @@ Sims on objectives the screen does not pass:
 - Emergency response plans and participation in drills (none)
 - Identify and address unsafe conditions in health care and home settings, including fall hazards for older adults and medications such as opioids that raise fall risk (none)
 - Screen clients for intimate partner violence and know that pregnancy raises the risk of physical abuse (none)
-- Postpartum care, including signs of hemorrhage and infection (none)
+- Postpartum care, including signs of hemorrhage and infection (secondary: postpartum-check-boggy-fundus)
 - Identify clients who need required or voluntary immunizations, and know that immunization is primary prevention while screening is secondary prevention (none)
-- Monitor the recovery of a stable postpartum client: report a temperature above 100.4 F (38 C), and check the fundus, bladder and lochia (none)
-- Recognize postpartum hemorrhage as blood loss of 1,000 mL or more within 24 hours of birth, and report heavy bleeding at once (none)
+- Monitor the recovery of a stable postpartum client: report a temperature above 100.4 F (38 C), and check the fundus, bladder and lochia (main: postpartum-check-boggy-fundus)
+- Recognize postpartum hemorrhage as blood loss of 1,000 mL or more within 24 hours of birth, and report heavy bleeding at once (secondary: postpartum-check-boggy-fundus)
 - Reinforce newborn care teaching, including safe sleep, car seat use and the warning signs that need urgent care (none)
 - Support early skin-to-skin contact for a stable newborn and the delayed first bath that protects temperature and blood sugar (none)
 - Know that HPV and hepatitis B vaccines prevent some cancers, while mammograms, colonoscopy and cervical screening catch cancer early (none)
@@ -688,14 +688,14 @@ Sims on objectives the screen does not pass:
 - Screen older adults for fall risk with the 2025 APTA-Geriatrics measures and cut-offs (TUG over 11 s, 5 times sit-to-stand over 12 s, single-limb stance under 6.5 s, Berg under 50, gait speed under 1.0 m/s) (secondary: stroke-balance-fall-risk)
 - Select from the neurologic core outcome set -- Berg Balance Scale, ABC Scale, Functional Gait Assessment, 10 Meter Walk Test, 6-Minute Walk Test and 5 Times Sit-to-Stand -- for adults in neurologic rehabilitation (secondary: stroke-balance-fall-risk)
 - Coordination and gait examination: the Romberg test with eyes closed for proprioception versus station with eyes open, and cerebellar ataxia as a cause of abnormal findings (main: dizziness-central-red-flags)
-- Measure orthostatic vital signs, recognizing orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing (secondary: stroke-balance-fall-risk)
+- Measure orthostatic vital signs, recognizing orthostatic hypotension as a fall of at least 20 mm Hg systolic or 10 mm Hg diastolic within 3 minutes of standing (secondary: stroke-balance-fall-risk, parkinson-freezing-session)
 - Determining a physical therapy diagnosis that guides management (secondary: dizziness-central-red-flags)
-- Monitoring and adjusting the plan of care to optimize health outcomes (secondary: icu-early-mobility)
+- Monitoring and adjusting the plan of care to optimize health outcomes (secondary: icu-early-mobility, parkinson-freezing-session)
 - Managing the delivery of care consistent with the practice environment's policies, including environmental emergencies (none)
 - Vestibular rehabilitation: supervised therapy for unilateral and bilateral hypofunction, gaze-stabilization doses from the guideline, and stopping when goals are met, symptoms resolve or progress plateaus (secondary: dizziness-central-red-flags)
-- Parkinson disease management: aerobic exercise at moderate to high intensity, balance and gait training, external cueing for freezing, and behavior-change approaches to raise physical activity (none)
+- Parkinson disease management: aerobic exercise at moderate to high intensity, balance and gait training, external cueing for freezing, and behavior-change approaches to raise physical activity (main: parkinson-freezing-session)
 - Fall-prevention exercise for older adults: a minimum weekly dose of 150 minutes to 3 hours over 6 to 12 months with progressive, challenging balance training, inside a multifactorial program (none)
-- Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies (none)
+- Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies (secondary: parkinson-freezing-session)
 
 Sims on objectives the screen does not pass:
 

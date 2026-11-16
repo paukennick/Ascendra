@@ -1,0 +1,744 @@
+{
+  "slug": "hyperkalemia-critical-value",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: KCl stopped, monitor, 12-lead, glucose, a full SBAR; calcium, insulin with dextrose, dextrose 10%, albuterol; meds held; glucose at 30 and 60 min; K recheck",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stopKcl",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "full"
+          },
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "holdMeds",
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "orders",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "calcium",
+          "seq": 12,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 13,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "seq": 14,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 15,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 16,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 17,
+          "tick": 1925
+        },
+        {
+          "type": "act",
+          "action": "recheckK",
+          "seq": 18,
+          "tick": 2885
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "six",
+          "seq": 19,
+          "tick": 2885
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 20,
+          "tick": 3725
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopK": "met",
+          "escalate": "met",
+          "calcium": "met",
+          "shift": "met",
+          "glucose": "met",
+          "monitor": "met",
+          "meds": "met",
+          "recheck": "met"
+        },
+        "kpis": {
+          "toStop": 5,
+          "toCal": 125,
+          "lowGlu": 92
+        },
+        "stateHash": "cce8d53dd2f0b64a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "slow",
+      "title": "Redraws first and calls with the number only; monitor later; insulin before calcium; KCl stopped at 12 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "redraw",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "six",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "kOnly"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "stopKcl",
+          "seq": 7,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 9,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "full"
+          },
+          "seq": 10,
+          "tick": 720
+        },
+        {
+          "type": "chapter",
+          "chapter": "orders",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 12,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "seq": 13,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "calcium",
+          "seq": 14,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 15,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "holdMeds",
+          "seq": 16,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 17,
+          "tick": 2640
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 18,
+          "tick": 3840
+        },
+        {
+          "type": "act",
+          "action": "recheckK",
+          "seq": 19,
+          "tick": 3840
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 72,
+        "criteria": {
+          "stopK": "partial",
+          "escalate": "partial",
+          "calcium": "met",
+          "shift": "met",
+          "glucose": "met",
+          "monitor": "partial",
+          "meds": "met",
+          "recheck": "partial"
+        },
+        "kpis": {
+          "toStop": 720,
+          "toCal": 840,
+          "lowGlu": 90
+        },
+        "stateHash": "5a826508c95b88fa"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noCalcium",
+      "title": "Fast and careful with glucose but no calcium and no albuterol; meds left alone; no note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stopKcl",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "full"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "orders",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "d10",
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 10,
+          "tick": 1930
+        },
+        {
+          "type": "act",
+          "action": "recheckK",
+          "seq": 11,
+          "tick": 2890
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "six",
+          "seq": 12,
+          "tick": 2890
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 13,
+          "tick": 3730
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 61,
+        "criteria": {
+          "stopK": "met",
+          "escalate": "met",
+          "calcium": "missed",
+          "shift": "partial",
+          "glucose": "met",
+          "monitor": "partial",
+          "meds": "partial",
+          "recheck": "partial"
+        },
+        "kpis": {
+          "toStop": 10,
+          "toCal": -1,
+          "lowGlu": 92
+        },
+        "stateHash": "a2d8639b0f83b5ec"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lowCaught",
+      "title": "No dextrose infusion, but glucose checked: a low at 62 min caught and treated with dextrose 50%",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stopKcl",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "full"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "orders",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "calcium",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "holdMeds",
+          "seq": 11,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 12,
+          "tick": 1930
+        },
+        {
+          "type": "act",
+          "action": "recheckK",
+          "seq": 13,
+          "tick": 2890
+        },
+        {
+          "type": "teach",
+          "prompt": "gluQ",
+          "choice": "six",
+          "seq": 14,
+          "tick": 2890
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 15,
+          "tick": 3830
+        },
+        {
+          "type": "act",
+          "action": "rescue",
+          "seq": 16,
+          "tick": 3830
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 17,
+          "tick": 3830
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 78,
+        "criteria": {
+          "stopK": "met",
+          "escalate": "met",
+          "calcium": "met",
+          "shift": "met",
+          "glucose": "missed",
+          "monitor": "partial",
+          "meds": "met",
+          "recheck": "met"
+        },
+        "kpis": {
+          "toStop": 10,
+          "toCal": 130,
+          "lowGlu": 68
+        },
+        "stateHash": "dea29de1e02b0463"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noD10",
+      "title": "Failure: quick calcium and insulin, but no glucose infusion and no glucose checks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stopKcl",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "full"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "orders",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "calcium",
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "albuterol",
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "holdMeds",
+          "seq": 10,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "stopK": "met",
+          "escalate": "met",
+          "calcium": "met",
+          "shift": "met",
+          "glucose": "missed",
+          "monitor": "partial",
+          "meds": "met",
+          "recheck": "missed"
+        },
+        "kpis": {
+          "toStop": 10,
+          "toCal": 130,
+          "lowGlu": 39
+        },
+        "stateHash": "4bd80e4fe3fa3e31"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "arrest",
+      "title": "Failure: calls with the number only, gives the 09:00 meds, leaves the KCl running",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "callProv",
+          "params": {
+            "say": "kOnly"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "calQ",
+          "choice": "calcium",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "giveMeds",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopK": "missed",
+          "escalate": "missed",
+          "calcium": "missed",
+          "shift": "missed",
+          "glucose": "missed",
+          "monitor": "missed",
+          "meds": "missed",
+          "recheck": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toCal": -1,
+          "lowGlu": 92
+        },
+        "stateHash": "e4807ec513586b82"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

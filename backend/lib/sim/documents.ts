@@ -243,6 +243,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "status-epilepticus-after-craniotomy"),
   entry("DPT", "dizziness-central-red-flags"),
   entry("NCLEXPN", "first-dose-anaphylaxis"),
+  entry("NCLEXRN", "hyperkalemia-critical-value"),
+  entry("NCLEXPN", "postpartum-check-boggy-fundus"),
+  entry("DPT", "parkinson-freezing-session"),
   // ---- end REQ-296 ----
 ];
 

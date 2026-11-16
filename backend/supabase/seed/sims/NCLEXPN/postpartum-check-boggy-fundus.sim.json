@@ -1,0 +1,1372 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "postpartum-check-boggy-fundus",
+ "title": "A 04:00 postpartum check with a soft uterus",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate",
+     "value": "hr",
+     "unit": "/min",
+     "announce": {
+      "bands": [
+       100,
+       110
+      ]
+     },
+     "colour": "ecg",
+     "alarm": {
+      "high": 100
+     },
+     "hiddenUntil": "vitalsDone"
+    },
+    {
+     "id": "bp",
+     "label": "BP",
+     "spokenLabel": "Blood pressure",
+     "value": [
+      "sbp",
+      "dbp"
+     ],
+     "unit": "mmHg",
+     "announce": {
+      "bands": [
+       100,
+       90
+      ]
+     },
+     "colour": "art",
+     "alarm": {
+      "low": 90
+     },
+     "hiddenUntil": "vitalsDone"
+    },
+    {
+     "id": "temp",
+     "label": "Temp",
+     "spokenLabel": "Temperature in Fahrenheit",
+     "value": "tempF",
+     "unit": "F",
+     "announce": {
+      "bands": [
+       100.4
+      ]
+     },
+     "colour": "neutral",
+     "alarm": {
+      "high": 100.4
+     },
+     "hiddenUntil": "vitalsDone"
+    },
+    {
+     "id": "qbl",
+     "label": "QBL",
+     "spokenLabel": "Measured blood loss since birth, from weighed pads",
+     "value": "qbl",
+     "unit": "mL",
+     "announce": {
+      "bands": [
+       500,
+       1000
+      ]
+     },
+     "colour": "neutral",
+     "alarm": {
+      "high": 999
+     },
+     "hiddenUntil": "weighed"
+    }
+   ],
+   "infusions": "Fundus: {atony >= 0.5 ? \"soft\" : (atony >= 0.2 ? \"firming\" : \"firm\")}. Bladder: {bladderFull ? \"not emptied since birth\" : \"emptied\"}. RN: {rnHere ? \"at the bedside\" : (rnPending ? \"on the way\" : \"not told\")}.",
+   "banner": [
+    {
+     "when": "away",
+     "text": "You have left the room to find the RN."
+    }
+   ]
+  }
+ },
+ "objective": "Monitor the recovery of a stable postpartum client: report a temperature above 100.4 F (38 C), and check the fundus, bladder and lochia",
+ "secondaryObjectives": [
+  "Recognize postpartum hemorrhage as blood loss of 1,000 mL or more within 24 hours of birth, and report heavy bleeding at once",
+  "Postpartum care, including signs of hemorrhage and infection",
+  "Contribute to the six clinical judgment steps -- recognize and analyze cues, prioritize hypotheses, generate solutions, take action, evaluate outcomes -- within the PN role, reporting findings that need RN or provider judgment",
+  "Give a clear handoff, using a structured tool such as SBAR -- situation, background, assessment, recommendation -- when reporting a concern"
+ ],
+ "sources": [
+  {
+   "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+   "checkedAt": "2026-11-11",
+   "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+   "note": "Relayed from the REQ-240 LPN/VN cases (read 2026-11-11, primary PDF), not re-read: 'Recognize and report change in client condition'; the course seed tags the postpartum objective to page 13 of this plan (health promotion: care of the client in the postpartum period)."
+  },
+  {
+   "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles. Their values (report a temperature above 100.4 F (38 C); check the fundus, bladder and lochia; a boggy uterus displaced above the umbilicus and to one side often means a full bladder, so help the client empty it and massage the fundus; postpartum hemorrhage is 1,000 mL or more within 24 hours) are the course seed's reading of OpenStax Maternal-Newborn Nursing (2024) sections 20.1, 20.3 and 21.2 (PDF read 2026-10-31 and 2026-11-02)."
+  },
+  {
+   "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+   "checkedAt": "2026-11-02",
+   "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+   "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+  },
+  {
+   "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638)",
+   "checkedAt": "2026-11-14",
+   "url": "https://statpearls.com/point-of-care/27638",
+   "note": "Relayed from the NCLEX-RN postpartum hemorrhage case (read 2026-11-14, summarizing fetch with quotes), not re-read: cumulative blood loss over 1000 mL, or blood loss with signs of hypovolemia, within 24 hours of birth; uterine atony is the most common cause; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs."
+  }
+ ],
+ "brief": {
+  "situation": "04:00 on a postpartum unit. You are the LPN caring for four stable postpartum clients with an RN. Ms. Alvarez, 29, had a vaginal birth at 22:00 after a long labor; birth loss was 350 mL. You wake her for her 04:00 check. She says she feels 'wet' and a bit crampy.",
+  "handover": [
+   "Second baby; epidural removed at 23:30. Oxytocin infusion finished at 00:00. Up once with help at 01:00; has not voided since the birth.",
+   "Order set: straight catheter if unable to void within 6 hours of birth; vital signs every 4 hours; call the RN with any change.",
+   "Unit practice: weigh pads to measure blood loss (1 g is 1 mL). Your phone reaches the RN at once."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "Medicines for bleeding are the RN's and the provider's; your part is to find it, act within your scope and report it so it lands.",
+   "Partway through you are asked to write what is happening and why. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "04:00",
+  "tick": "1s",
+  "maxDuration": "90min",
+  "calendar": "clock"
+ },
+ "params": {
+  "baseBleed": {
+   "value": 2,
+   "unit": "mL/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Expected lochia flow with a firm uterus. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "atonyBleed": {
+   "value": 22,
+   "unit": "mL/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Extra flow at full atony; about 13 mL/min at the start. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "atonyRise": {
+   "value": 0.02,
+   "unit": "/min",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it. FLAG: the rate at which a full bladder keeps the uterus soft is authored."
+   }
+  },
+  "atonyFall": {
+   "value": 0.015,
+   "unit": "/min",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it. FLAG: how fast the uterus firms once the bladder is empty is authored."
+   }
+  },
+  "massageDrop": {
+   "value": 0.25,
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it. FLAG: the size of a massage's effect is authored; massage firms the uterus for a while, and it softens again while the bladder stays full."
+   }
+  },
+  "oxyDrop": {
+   "value": 0.5,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The RN's uterotonic (by the provider's order) firms the uterus. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "pphLevel": {
+   "value": 1000,
+   "unit": "mL",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+   }
+  },
+  "shockLevel": {
+   "value": 1800,
+   "unit": "mL",
+   "source": {
+    "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638)",
+    "checkedAt": "2026-11-14",
+    "url": "https://statpearls.com/point-of-care/27638",
+    "note": "Relayed from the NCLEX-RN postpartum hemorrhage case (read 2026-11-14, summarizing fetch with quotes), not re-read: cumulative blood loss over 1000 mL, or blood loss with signs of hypovolemia, within 24 hours of birth; uterine atony is the most common cause; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs. FLAG: that she is in shock at 1,800 mL in this case is authored; the source says compensation can hide a large loss behind normal vital signs."
+   }
+  },
+  "faintLevel": {
+   "value": 900,
+   "unit": "mL",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "At this loss, standing to walk to the bathroom makes her faint and fall in this case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "feverF": {
+   "value": 100.4,
+   "unit": "F",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+   }
+  },
+  "fundusWindow": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Authored target: the fundus checked and massaged within 5 minutes of 04:00."
+   }
+  },
+  "reportWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Authored target: heavy bleeding reported to the RN with numbers within 10 minutes of 04:00 ('report heavy bleeding at once')."
+   }
+  },
+  "bladderWindow": {
+   "value": 900,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Authored target: the bladder emptied within 15 minutes of 04:00 (it is already 6 hours since the birth)."
+   }
+  },
+  "rnWalk": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The RN reaches the room about 2 min after a clear call."
+   }
+  },
+  "rnSlow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A vague report ('bleeding a bit more') gets the RN in about 10 min."
+   }
+  },
+  "weighTime": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Weighing the pads and the underpad takes about 2 min."
+   }
+  },
+  "cathTime": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A straight catheter takes about 5 min."
+   }
+  },
+  "bedpanTime": {
+   "value": 240,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Voiding on a bedpan in bed takes about 4 min."
+   }
+  },
+  "settleTime": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The case closes 5 minutes after the RN arrives, once the fundus has been rechecked firm with the RN."
+   }
+  },
+  "awayTime": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Walking off to find the RN in person takes about 3 min."
+   }
+  }
+ },
+ "state": {
+  "atony": {
+   "type": "number",
+   "init": 0.5,
+   "min": 0,
+   "max": 1
+  },
+  "qblTrue": {
+   "type": "number",
+   "init": 450,
+   "min": 0,
+   "max": 5000
+  },
+  "qbl": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 5000
+  },
+  "weighed": {
+   "type": "bool",
+   "init": false
+  },
+  "weighPending": {
+   "type": "bool",
+   "init": false
+  },
+  "fundusAt": {
+   "type": "time",
+   "init": null
+  },
+  "massageAt": {
+   "type": "time",
+   "init": null
+  },
+  "bladderFull": {
+   "type": "bool",
+   "init": true
+  },
+  "bladderAt": {
+   "type": "time",
+   "init": null
+  },
+  "voidPending": {
+   "type": "bool",
+   "init": false
+  },
+  "walked": {
+   "type": "bool",
+   "init": false
+  },
+  "fell": {
+   "type": "bool",
+   "init": false
+  },
+  "vitalsDone": {
+   "type": "bool",
+   "init": false
+  },
+  "rnPending": {
+   "type": "bool",
+   "init": false
+  },
+  "rnHere": {
+   "type": "bool",
+   "init": false
+  },
+  "rnAt": {
+   "type": "time",
+   "init": null
+  },
+  "goodReportAt": {
+   "type": "time",
+   "init": null
+  },
+  "vagueReport": {
+   "type": "bool",
+   "init": false
+  },
+  "oxyGiven": {
+   "type": "bool",
+   "init": false
+  },
+  "away": {
+   "type": "bool",
+   "init": false
+  },
+  "leftAlone": {
+   "type": "bool",
+   "init": false
+  },
+  "feverCall": {
+   "type": "bool",
+   "init": false
+  },
+  "noteAt": {
+   "type": "time",
+   "init": null
+  }
+ },
+ "derived": {
+  "bleedRate": {
+   "expr": "baseBleed + atonyBleed * atony",
+   "unit": "mL/min",
+   "precision": 0
+  },
+  "hr": {
+   "expr": "round(84 + 30 * clamp((qblTrue - 800) / 1000, 0, 1.5))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "round(118 - 34 * clamp((qblTrue - 1100) / 700, 0, 1.3))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "round(sbp * 0.62)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "tempF": {
+   "expr": "100.0",
+   "unit": "F",
+   "precision": 1
+  }
+ },
+ "processes": [
+  {
+   "id": "uterus",
+   "update": {
+    "atony": "oxyGiven ? max(0.05, atony - 0.04 * dt / 60) : (bladderFull ? atony + atonyRise * dt / 60 : max(0.1, atony - atonyFall * dt / 60))",
+    "qblTrue": "qblTrue + (baseBleed + atonyBleed * atony) * dt / 60"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "At the bedside",
+   "clock": "running",
+   "actions": [
+    "fundus",
+    "massage",
+    "lochia",
+    "weigh",
+    "void",
+    "vitals",
+    "callRn",
+    "goFind",
+    "feverCall",
+    "note"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "fundus": {
+   "label": "Check the fundus (one hand supporting above the pubic bone)",
+   "group": "Collect data",
+   "available": "not away",
+   "why": "You are out of the room.",
+   "effects": [
+    {
+     "if": "isNull(fundusAt)",
+     "then": [
+      {
+       "set": "fundusAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "atony >= 0.5 and bladderFull",
+       "then": [
+        {
+         "log": "Fundus soft and boggy, 2 finger-breadths above the umbilicus and pushed to the right. A bulge above the pubic bone.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "atony >= 0.5",
+       "then": [
+        {
+         "log": "Fundus soft and boggy at the umbilicus, midline.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "atony >= 0.2",
+       "then": [
+        {
+         "log": "Fundus firming, at the umbilicus{bladderFull ? \", still pushed to the right\" : \", midline\"}.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Fundus firm, midline, at the umbilicus.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "massage": {
+   "label": "Massage the fundus until firm, supporting the lower uterus",
+   "group": "Act",
+   "available": "not away and (isNull(massageAt) or since(massageAt) >= 180)",
+   "why": "Out of the room, or massaged in the last 3 minutes.",
+   "effects": [
+    {
+     "set": "massageAt",
+     "to": "t"
+    },
+    {
+     "set": "atony",
+     "to": "max(0.05, atony - massageDrop)"
+    },
+    {
+     "log": "Massaged until it firmed; clots expressed. It is uncomfortable for her.",
+     "kind": "act"
+    }
+   ]
+  },
+  "lochia": {
+   "label": "Look at the lochia and the pad",
+   "group": "Collect data",
+   "available": "not away",
+   "why": "You are out of the room.",
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "atony >= 0.4",
+       "then": [
+        {
+         "log": "Bright red lochia, the pad soaked through, blood pooling under her buttocks, small clots.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Red lochia, moderate on a fresh pad.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "weigh": {
+   "label": "Weigh the pads and underpad (1 g = 1 mL)",
+   "group": "Collect data",
+   "available": "not away and not weighPending",
+   "why": "Out of the room, or weighing now.",
+   "effects": [
+    {
+     "set": "weighPending",
+     "to": "true"
+    },
+    {
+     "schedule": "weighT",
+     "after": "weighTime"
+    },
+    {
+     "log": "Collecting the pads and underpad to weigh."
+    }
+   ]
+  },
+  "void": {
+   "label": "Help her empty her bladder",
+   "group": "Act",
+   "available": "not away and bladderFull and not voidPending",
+   "why": "Out of the room, already emptied, or in progress.",
+   "params": [
+    {
+     "id": "how",
+     "kind": "choice",
+     "label": "How",
+     "options": [
+      {
+       "value": "walk",
+       "label": "Walk her to the bathroom"
+      },
+      {
+       "value": "bedpan",
+       "label": "Bedpan in bed"
+      },
+      {
+       "value": "cath",
+       "label": "Straight catheter (standing order: not voided within 6 hours)"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "voidPending",
+     "to": "true"
+    },
+    {
+     "cases": [
+      {
+       "when": "how == \"walk\"",
+       "then": [
+        {
+         "set": "walked",
+         "to": "true"
+        },
+        {
+         "if": "qblTrue >= faintLevel",
+         "then": [
+          {
+           "set": "fell",
+           "to": "true"
+          },
+          {
+           "log": "She stands, goes white and slides to the floor before you can hold her.",
+           "kind": "alarm"
+          }
+         ],
+         "else": [
+          {
+           "schedule": "voidT",
+           "after": "bedpanTime"
+          },
+          {
+           "log": "Walking her slowly to the bathroom, gait belt on.",
+           "kind": "act"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "when": "how == \"bedpan\"",
+       "then": [
+        {
+         "schedule": "voidT",
+         "after": "bedpanTime"
+        },
+        {
+         "log": "Bedpan in place; running water to help.",
+         "kind": "act"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "schedule": "voidT",
+         "after": "cathTime"
+        },
+        {
+         "log": "Straight catheter by the standing order.",
+         "kind": "act"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "vitals": {
+   "label": "Take her vital signs",
+   "group": "Collect data",
+   "available": "not away",
+   "why": "You are out of the room.",
+   "effects": [
+    {
+     "set": "vitalsDone",
+     "to": "true"
+    },
+    {
+     "log": "BP {sbp}/{dbp}, HR {hr}, temperature {tempF|1dp} F, RR 18.",
+     "kind": "find"
+    }
+   ]
+  },
+  "callRn": {
+   "label": "Phone the RN to the room (SBAR)",
+   "group": "Report",
+   "available": "not rnHere and not rnPending and not away",
+   "why": "The RN is coming or here.",
+   "params": [
+    {
+     "id": "say",
+     "kind": "choice",
+     "label": "What you report",
+     "options": [
+      {
+       "value": "numbers",
+       "label": "Boggy fundus 2 cm above and to the right, not voided in 6 h, pads soaked (measured loss if weighed), HR and BP: please come now"
+      },
+      {
+       "value": "vague",
+       "label": "Ms. Alvarez is bleeding a bit more than usual"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "rnPending",
+     "to": "true"
+    },
+    {
+     "cases": [
+      {
+       "when": "say == \"numbers\"",
+       "then": [
+        {
+         "if": "isNull(goodReportAt)",
+         "then": [
+          {
+           "set": "goodReportAt",
+           "to": "t"
+          }
+         ]
+        },
+        {
+         "schedule": "rnT",
+         "after": "rnWalk"
+        },
+        {
+         "log": "RN: 'Coming now. Keep massaging; I'll bring the oxytocin and call the provider.'",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "set": "vagueReport",
+         "to": "true"
+        },
+        {
+         "schedule": "rnT",
+         "after": "rnSlow"
+        },
+        {
+         "log": "RN: 'Okay, I'll look in after my 04:00 meds.'",
+         "kind": "bad"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "goFind": {
+   "label": "Leave the room to find the RN in person",
+   "group": "Report",
+   "available": "not rnHere and not rnPending and not away",
+   "why": "The RN is coming or here.",
+   "effects": [
+    {
+     "set": "away",
+     "to": "true"
+    },
+    {
+     "set": "leftAlone",
+     "to": "true"
+    },
+    {
+     "schedule": "backT",
+     "after": "awayTime"
+    },
+    {
+     "log": "You leave Ms. Alvarez to look for the RN.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "feverCall": {
+   "label": "Call the provider about a fever",
+   "group": "Report",
+   "available": "vitalsDone and not feverCall",
+   "why": "Take her temperature first.",
+   "effects": [
+    {
+     "set": "feverCall",
+     "to": "true"
+    },
+    {
+     "log": "Her temperature is {tempF|1dp} F, under 100.4 F: not a fever to report as infection in the first day. The provider asks why you called.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "note": {
+   "label": "Document the check, measured loss, actions and report",
+   "group": "Report",
+   "available": "isNull(noteAt) and not away",
+   "why": "Already done.",
+   "effects": [
+    {
+     "set": "noteAt",
+     "to": "t"
+    },
+    {
+     "log": "Documented: fundus, bladder, lochia, measured loss, vital signs, actions and the report to the RN.",
+     "kind": "act"
+    }
+   ]
+  }
+ },
+ "timers": {
+  "weighT": {
+   "label": "pad weights",
+   "wait": {
+    "skipLabel": "the pad weights (about 2 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min."
+   },
+   "effects": [
+    {
+     "set": "weighPending",
+     "to": "false"
+    },
+    {
+     "set": "weighed",
+     "to": "true"
+    },
+    {
+     "set": "qbl",
+     "to": "round(qblTrue)"
+    },
+    {
+     "cases": [
+      {
+       "when": "qblTrue >= pphLevel",
+       "then": [
+        {
+         "log": "Measured loss since birth: {round(qblTrue)} mL. That is postpartum hemorrhage.",
+         "kind": "alarm"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Measured loss since birth: {round(qblTrue)} mL.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "voidT": {
+   "label": "bladder",
+   "wait": {
+    "skipLabel": "her bladder emptying (a few minutes)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A few minutes."
+   },
+   "effects": [
+    {
+     "set": "voidPending",
+     "to": "false"
+    },
+    {
+     "set": "bladderFull",
+     "to": "false"
+    },
+    {
+     "set": "bladderAt",
+     "to": "t"
+    },
+    {
+     "log": "650 mL of urine. The fundus drops to the midline.",
+     "kind": "good"
+    }
+   ]
+  },
+  "rnT": {
+   "label": "the RN",
+   "wait": {
+    "skipLabel": "the RN arriving"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min after a clear call, 10 after a vague one."
+   },
+   "effects": [
+    {
+     "set": "rnPending",
+     "to": "false"
+    },
+    {
+     "set": "rnHere",
+     "to": "true"
+    },
+    {
+     "if": "isNull(rnAt)",
+     "then": [
+      {
+       "set": "rnAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "set": "oxyGiven",
+     "to": "true"
+    },
+    {
+     "set": "atony",
+     "to": "max(0.05, atony - oxyDrop)"
+    },
+    {
+     "log": "The RN is here, takes over the hemorrhage response and gives the provider-ordered oxytocin.",
+     "kind": "good"
+    }
+   ]
+  },
+  "backT": {
+   "label": "you, back in the room",
+   "wait": {
+    "skipLabel": "getting back to the room (about 3 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 3 min."
+   },
+   "effects": [
+    {
+     "set": "away",
+     "to": "false"
+    },
+    {
+     "set": "rnPending",
+     "to": "true"
+    },
+    {
+     "schedule": "rnT",
+     "after": "rnWalk"
+    },
+    {
+     "log": "You found the RN; she follows you back.",
+     "kind": "act"
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "pph",
+   "when": "qblTrue >= pphLevel",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "The underpad is soaked again; she says she feels dizzy.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "why": {
+   "trigger": "not isNull(fundusAt) or t >= 180",
+   "question": "What is happening, why, and what do you do first? What is yours to do, and what goes to the RN?",
+   "parts": [
+    {
+     "label": "Recognition",
+     "criteria": "Names uterine atony with heavy bleeding (boggy fundus, soaked pads), caused or worsened by a full bladder (fundus high and pushed to one side, not voided in 6 hours); knows that 1,000 mL is postpartum hemorrhage and that vital signs can stay normal until late; the temperature of 100.0 F is not a fever to report.",
+     "modelAnswer": "Her uterus is boggy and she is bleeding heavily. It sits high and off to the right because her bladder is full: she hasn't voided since the birth. If the loss reaches 1,000 mL it is a hemorrhage, and her pulse and pressure may look fine until late. 100.0 F is not a fever."
+    },
+    {
+     "label": "Actions and scope",
+     "criteria": "Massage the fundus at once; empty the bladder without walking her (bedpan or the standing-order catheter); weigh the pads; phone the RN with numbers and stay with her; vital signs; the RN gives the uterotonic; document.",
+     "modelAnswer": "Massage the fundus until firm, phone the RN from the room with the findings and numbers, empty her bladder on a bedpan or with the catheter rather than walking her, weigh the pads and take her vital signs. The oxytocin is the RN's. Then document."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "t >= 5399 and not rnHere",
+   "class": "recovered",
+   "rationale": "Bleeding controlled by massage and an empty bladder but never reported leaves her safe for now with nobody who can treat a recurrence told, so this case calls it recovered, not target.",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+   }
+  }
+ },
+ "endings": {
+  "fall": {
+   "label": "She fainted and fell",
+   "class": "harm",
+   "when": "fell",
+   "terminal": true,
+   "narrative": "{t|clock}: Ms. Alvarez is on the bathroom floor, pale and clammy. The RN and the rapid response team are called."
+  },
+  "shock": {
+   "label": "Hemorrhagic shock",
+   "class": "harm",
+   "when": "qblTrue >= shockLevel",
+   "terminal": true,
+   "narrative": "{t|clock}: BP {sbp}/{dbp}, HR {hr}, gray and confused. The obstetric hemorrhage team is called."
+  },
+  "controlled": {
+   "label": "Bleeding found, reported and controlled",
+   "class": "target",
+   "when": "rnHere and since(rnAt) >= settleTime and atony < 0.2 and not isNull(massageAt) and timeAt(massageAt) <= fundusWindow and not bladderFull and timeAt(bladderAt) <= bladderWindow and not walked and not isNull(goodReportAt) and timeAt(goodReportAt) <= reportWindow and not leftAlone",
+   "terminal": true,
+   "narrative": "{t|clock}: the fundus is firm and midline, the bleeding has slowed and the RN is managing the hemorrhage response with you."
+  },
+  "controlledLate": {
+   "label": "Controlled, by a slower or riskier route",
+   "class": "recovered",
+   "when": "rnHere and since(rnAt) >= settleTime and atony < 0.2",
+   "terminal": true,
+   "narrative": "{t|clock}: the fundus is firm and the RN is here, but the route cost blood, time or safety."
+  },
+  "time_up": {
+   "label": "Never reported",
+   "class": "recovered",
+   "terminal": true,
+   "narrative": "05:30 and the RN still has not been told about the bleeding."
+  }
+ },
+ "endingOrder": [
+  "fall",
+  "shock",
+  "controlled",
+  "controlledLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "fundus",
+    "label": "Fundus checked and massaged within 5 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(massageAt)",
+      "score": "missed",
+      "why": "No fundal massage."
+     },
+     {
+      "when": "timeAt(massageAt) <= fundusWindow",
+      "score": "met",
+      "why": "Massaged at {timeAt(massageAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Massaged at {timeAt(massageAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "bladder",
+    "label": "Bladder emptied safely within 15 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "walked",
+      "score": "missed",
+      "why": "Walked her to the bathroom while bleeding."
+     },
+     {
+      "when": "bladderFull",
+      "score": "missed",
+      "why": "Bladder never emptied."
+     },
+     {
+      "when": "timeAt(bladderAt) <= bladderWindow",
+      "score": "met",
+      "why": "Emptied at {timeAt(bladderAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Emptied at {timeAt(bladderAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "report",
+    "label": "Heavy bleeding reported to the RN with numbers within 10 minutes, from the bedside",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(goodReportAt) and vagueReport",
+      "score": "partial",
+      "why": "Only a vague report: the RN came 10 minutes later."
+     },
+     {
+      "when": "isNull(goodReportAt) and not leftAlone",
+      "score": "missed",
+      "why": "No clear report."
+     },
+     {
+      "when": "leftAlone",
+      "score": "partial",
+      "why": "Left her alone to find the RN."
+     },
+     {
+      "when": "timeAt(goodReportAt) <= reportWindow",
+      "score": "met",
+      "why": "Reported at {timeAt(goodReportAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Reported at {timeAt(goodReportAt)|clock}, late{vagueReport ? \", after a vague first call\" : \"\"}."
+     }
+    ]
+   },
+   {
+    "id": "measure",
+    "label": "Measured the loss by weighing",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "weighed",
+      "score": "met",
+      "why": "Weighed: {qbl} mL."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Loss never measured."
+     }
+    ]
+   },
+   {
+    "id": "vitals",
+    "label": "Vital signs taken; no false fever call",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "vitalsDone and not feverCall",
+      "score": "met",
+      "why": "Vital signs taken and read correctly."
+     },
+     {
+      "when": "vitalsDone",
+      "score": "partial",
+      "why": "Called 100.0 F a fever."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No vital signs."
+     }
+    ]
+   },
+   {
+    "id": "note",
+    "label": "Documented",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(noteAt)",
+      "score": "met",
+      "why": "Documented."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Not documented."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "why",
+    "label": "Written reasoning: atony, full bladder, scope and report",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toMassage",
+    "label": "04:00 to the first massage",
+    "value": "isNull(massageAt) ? -1 : timeAt(massageAt)",
+    "format": "duration",
+    "expert": "under 2 min"
+   },
+   {
+    "id": "toReport",
+    "label": "04:00 to a clear report",
+    "value": "isNull(goodReportAt) ? -1 : timeAt(goodReportAt)",
+    "format": "duration",
+    "expert": "under 3 min"
+   },
+   {
+    "id": "loss",
+    "label": "Blood loss since birth (mL)",
+    "value": "round(qblTrue)",
+    "format": "number",
+    "expert": "under 700"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "04:00",
+    "text": "Fundus: boggy, high and to the right. Massage until firm. Look at the pad: soaked."
+   },
+   {
+    "at": "04:01",
+    "text": "Phone the RN from the bedside: boggy fundus, deviated, no void in 6 hours, soaked pads, vital signs. Come now."
+   },
+   {
+    "at": "04:02",
+    "text": "Bedpan or the standing-order catheter, not a walk. Weigh the pads. Vital signs: 100.0 F is not a fever."
+   },
+   {
+    "at": "~04:05",
+    "text": "RN arrives and gives oxytocin. Recheck the fundus; document."
+   }
+  ],
+  "debrief": {
+   "fall": {
+    "headline": "She fainted and fell",
+    "body": "After a heavy loss, standing can drop her blood pressure. Empty the bladder in bed: bedpan or the catheter order."
+   },
+   "shock": {
+    "headline": "Hemorrhagic shock",
+    "body": "A boggy uterus with soaked pads needs massage, an empty bladder and a clear report at once. Vital signs can look normal until late."
+   },
+   "controlled": {
+    "headline": "Found, reported and controlled",
+    "body": "You massaged the fundus, emptied her bladder safely, measured the loss and got the RN there with numbers. That is the expert path."
+   },
+   "controlledLate": {
+    "headline": "Controlled, by a slower or riskier route",
+    "body": "Look at when you massaged, how and when her bladder was emptied, and how the RN was reached."
+   },
+   "time_up": {
+    "headline": "Never reported",
+    "body": "Heavy postpartum bleeding is reported to the RN at once, even when your own measures are working."
+   }
+  },
+  "modelReasoning": "A boggy fundus above the umbilicus and pushed to one side, with soaked pads in a woman who has not voided for 6 hours, is uterine atony worsened by a full bladder. Massage the fundus until firm while supporting the lower uterus, and empty the bladder in bed (a bedpan, or the standing-order catheter), not by walking her, because a heavy loss can make her faint. Phone the RN from the bedside with the findings and the numbers; weighing the pads turns 'a lot of blood' into milliliters, and 1,000 mL is a hemorrhage. Her pulse and pressure may stay normal until late. The uterotonic is the RN's, by the provider's order. A temperature of 100.0 F in the first day is not a fever to report. Document it all."
+ },
+ "chapters": [
+  {
+   "id": "rn",
+   "label": "The RN is at the bedside",
+   "when": "rnHere"
+  }
+ ],
+ "teaching": {
+  "rnQ": {
+   "during": "rnT",
+   "ask": "While the RN comes: her fundus is firm after massage. Is that enough?",
+   "choices": [
+    {
+     "id": "recheck",
+     "label": "No: recheck it often; it can soften again while the bladder is full"
+    },
+    {
+     "id": "done",
+     "label": "Yes: once firm it stays firm"
+    }
+   ],
+   "expect": "recheck",
+   "explain": "A full bladder keeps pushing the uterus up and out of line; it can soften again until the bladder is emptied.",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+   }
+  },
+  "voidQ": {
+   "during": "voidT",
+   "ask": "While she voids: her loss is near 1,000 mL. What does that make it?",
+   "choices": [
+    {
+     "id": "pph",
+     "label": "Postpartum hemorrhage"
+    },
+    {
+     "id": "normal",
+     "label": "Normal lochia after a second baby"
+    }
+   ],
+   "expect": "pph",
+   "explain": "1,000 mL or more within 24 hours of birth is postpartum hemorrhage; report heavy bleeding at once.",
+   "source": {
+    "cite": "OpenStax. Maternal-Newborn Nursing (2024), sections 20.1, 20.3 and 21.2",
+    "checkedAt": "2026-11-02",
+    "url": "https://openstax.org/books/maternal-newborn-nursing/pages/20-3-nursing-care-during-the-postpartum-period",
+    "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts, PDF read 2026-10-31 and 2026-11-02), not re-read for this case (web reading was limited to search on 2026-11-14): a boggy uterus above the umbilicus and to one side usually means a full bladder: help her empty it and massage the fundus; report a temperature above 100.4 F (38 C); postpartum hemorrhage is 1,000 mL or more within 24 hours of birth; report heavy bleeding at once. The URL is section 20.3 as found by a web search on 2026-11-16 (title only, no text shown); the values are to verify against it."
+   }
+  }
+ }
+}
