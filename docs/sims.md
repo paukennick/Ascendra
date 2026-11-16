@@ -5251,7 +5251,7 @@ exist; see the proposals below), **No** (knowledge, design or calculation
 work with nothing unfolding; the labs cover it). Numbers are the catalog
 order within each course (unit.objective).
 
-ISC2 CC (31 objectives): Built 3.1, 5.3. Secondary 2.4, 3.3 (least
+ISC2 CC (32 objectives): Built 3.1, 5.3. Secondary 2.4, 3.3 (least
 privilege in the leaver case), 3.5, 5.5. Fits (console): 2.2 BC/DR recovery
 objectives during an outage, 4.3 a rogue access point or an IoT camera
 botnet, 4.5 zero trust (a device failing posture mid-session), 5.4 a threat
@@ -5260,7 +5260,7 @@ emergency change. Fits (terminal and network screen, 22.10): 4.2 firewall
 rules, 4.4 segmentation. Screen: 1.8 an ethics dilemma (a conversation
 screen). No: 1.1-1.7, 2.1, 2.3, 2.5, 3.2, 3.4, 4.1, 4.6, 4.7, 5.1, 5.2, 5.7.
 
-CISSP (47): Built 7.5, 7.8. Secondary 1.7, 7.1, 7.2, 7.9. Fits (console):
+CISSP (59): Built 7.5, 7.8. Secondary 1.7, 7.1, 7.2, 7.9. Fits (console):
 1.8 a hostile termination, 1.12 a compromised software update, 2.6 a DLP
 alert of data leaving, 3.4 a container escape, 3.5 a certificate authority
 key or certificate-expiry incident, 3.6 pass-the-hash or Kerberoasting,
@@ -5283,7 +5283,7 @@ need a governance or stakeholder-board screen (decisions with a budget and
 politics over a quarter, not minutes), 4.5 a tabletop exercise. No: 1.3,
 4.1, 4.3, 4.4, 4.11.
 
-EC-Council CEH (37): Built 4.1, 5.3. Secondary 4.4, 5.2, 5.4. Fits
+EC-Council CEH (35): Built 4.1, 5.3. Secondary 4.4, 5.2, 5.4. Fits
 (console): 1.3 an engagement's scope boundary (the PenTest+ pattern), 3.1 a
 vulnerability report to triage, 3.2 with 3.3 an intruder's phases seen from
 the logs (privilege escalation, log clearing), 3.4 fileless malware, 4.2 a
@@ -5297,8 +5297,10 @@ rule applied to terminal commands; a decision for Nick). Screen: 3.5 malware
 analysis (a sandbox report screen). No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
 8.1, 9.1, 9.3.
 
-Totals: 8 built; 43 objectives fit an existing screen and are not built yet
-(37 console, 6 terminal and network); 13 need a screen that does not exist.
+Totals over 162 objectives: 8 built; 46 fit an existing screen and are not
+built yet (40 console, 6 terminal and network); 28 need a screen that does not
+exist (22 of them CISM governance and program objectives); the rest are
+secondary in a built sim or are not sim material.
 
 **Screen proposals** (not built): a *conversation* screen for ethics
 dilemmas (the session renderer's shape without the clinical profile); a

@@ -10414,25 +10414,39 @@
     {
       "id": "REQ-274",
       "category": "content",
-      "title": "Security-console flagship sims for CC, CISSP, CISM and CEH",
-      "description": "Two flagship sims per course on the existing security-console@1 screen (docs/sims.md 22.7, 22.11 pattern: learner-paced turns, outcome profile security, endingOrder, six golden paths). Not built in the REQ-270 wave (time went to four courses and 50 labs); candidates: CC alert triage of a compromised mailbox and a joiner-mover-leaver access cleanup; CISSP ransomware with a DR site decision (RTO vs cost) and a federation/IAM incident; CISM a supplier breach run as the security manager (notification, containment vs business impact) and an exception that turns into an incident; CEH an authorized engagement that finds a real attacker's web shell (stop and report) and a scope-boundary decision on a shared host. Each needs an exact catalog objective that passes isPerformanceObjective.",
+      "title": "Security-console sims for CC, CISSP, CISM and CEH, by coverage",
+      "description": "Nick 2026-11-14: sims follow coverage, not a count. Eight security-console@1 sims, two per course, engine 1.2, REQ-238 pattern (learner-paced turns, security profile, endingOrder, six golden paths each): ISC2CC cc-triage-phish-correlation, cc-leaver-account-still-active; CISSP cissp-web-tier-data-theft, cissp-ransomware-recovery-site; CISM cism-payroll-supplier-breach, cism-checkout-skimmer-containment; CEH ceh-arp-poisoning-finance-vlan, ceh-blind-sqli-search (defensive framing, no payloads). docs/sims.md 22.19 has the coverage table for all 162 objectives (8 built, 46 fit an existing screen and are listed for the next batch, 28 need a new screen; five screen proposals).",
       "priority": "medium",
-      "status": "proposed",
+      "status": "completed",
       "minimum_access_scope": [
-        "backend/supabase/seed/sims",
+        "backend/supabase/seed/sims/ISC2CC",
+        "backend/supabase/seed/sims/CISSP",
+        "backend/supabase/seed/sims/CISM",
+        "backend/supabase/seed/sims/CEH",
         "backend/lib/sim/documents.ts",
         "backend/scripts/sim-golden",
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sims-security-certs.dbtest.ts",
         "docs/sims.md"
       ],
-      "acceptance_criteria": [],
+      "acceptance_criteria": [
+        "each sim valid, on its course's own catalog objective that passes isPerformanceObjective",
+        "golden paths cover every ending but time_up and every criterion met and missed",
+        "documentation addresses and domains only",
+        "coverage table in docs/sims.md"
+      ],
       "validation_required": [
-        "doctor",
-        "validate"
+        "backend npm test",
+        "npm run test:db (sims-security-certs.dbtest.ts)",
+        "sims:lint"
       ],
       "documentation_required": [
         "changelog"
       ],
-      "risk_notes": []
+      "risk_notes": [
+        "Sources read 2026-11-14 through summarizing fetches are marked so on each document; no source was re-read after the WebFetch stop.",
+        "46 objectives fit an existing screen but are not built yet (listed in docs/sims.md 22.19)."
+      ]
     },
     {
       "id": "REQ-277",

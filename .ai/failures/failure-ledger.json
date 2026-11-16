@@ -17961,6 +17961,34 @@
       "prevention_rules": [],
       "prevention_notes": "Fixed test sets are named by slug, never by course.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1823",
+      "date": "2026-11-14",
+      "title": "REQ-274 sim authoring slips: a console asset reused an alert id, and golden sets lacked a Mediocre path or a missed criterion",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "validateScenario: 'screen.console.assets[1]: duplicate id web3' (CISSP web-tier case); sims lint: 'no golden path is rated mediocre (9.2)' (CISSP web-tier), 'endings.pointsDestroyed: reached by no golden path' (CISSP recovery), 'scoring.criteria.contract/escalation: missed by no golden path' (CISM supplier).",
+      "how_detected": "validator and sims linter while authoring, before commit",
+      "root_cause": "Console ids are unique across alerts, events and assets, and the asset was named after the host the alert also used; golden paths were drafted before checking the 9.2 coverage rules (every ending, every criterion met and missed, one Good, Mediocre and Bad path).",
+      "requirement": "REQ-274",
+      "affected": [
+        "backend/supabase/seed/sims/CISSP/cissp-web-tier-data-theft.sim.json",
+        "backend/scripts/sim-golden/cissp-incident.steps.ts",
+        "backend/scripts/sim-golden/cissp-recovery.steps.ts",
+        "backend/scripts/sim-golden/cism-supplier.steps.ts"
+      ],
+      "fix_summary": "Asset ids renamed (web2host, web3host); the golden paths were retuned so each case has Good, Mediocre and Bad paths, reaches every ending but time_up, and meets and misses every criterion.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts::at least two per course, each valid, ...",
+        "backend/lib/sim/security-certs-sims.test.ts::every golden KPI is a whole number and every golden path has the six-path spread",
+        "npm run sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the one-document lint (checkDocument) right after building the goldens; name console assets differently from alert ids.",
+      "recurrence_of": ""
     }
   ]
 }
