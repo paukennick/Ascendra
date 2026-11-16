@@ -1,0 +1,585 @@
+{
+  "slug": "triage-sepsis-first-hour",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: ESI 2, protocol and a first liter, assess, antimicrobials on the order, two more liters, reassess after the fluid, timed note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "protocol",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "abxQ",
+          "choice": "now",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "chapter",
+          "chapter": "ordered",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 9,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 10,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 11,
+          "tick": 320
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 12,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 13,
+          "tick": 3000
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 14,
+          "tick": 3000
+        }
+      ],
+      "expect": {
+        "ending": "bundleTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "triage": "met",
+          "abx": "met",
+          "fluid": "met",
+          "reassess": "met",
+          "pressor": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toAbx": 320,
+          "fluid": 3000,
+          "mapLow": 80
+        },
+        "stateHash": "03747e2388f0befa"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "esi3",
+      "title": "Triaged ESI 3 to the waiting room; full care once the physician sees her at 40 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "protocol",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "abxQ",
+          "choice": "now",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "ordered",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 2460
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 8,
+          "tick": 2460
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 9,
+          "tick": 2460
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 10,
+          "tick": 2460
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 11,
+          "tick": 2460
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 12,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 13,
+          "tick": 4800
+        }
+      ],
+      "expect": {
+        "ending": "bundleLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "triage": "missed",
+          "abx": "met",
+          "fluid": "partial",
+          "reassess": "met",
+          "pressor": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toAbx": 2460,
+          "fluid": 3000,
+          "mapLow": 64
+        },
+        "stateHash": "25221c6121723bef"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "oneLiter",
+      "title": "ESI 2 and antimicrobials on time, but one liter only and no reassessment; norepinephrine for the pressure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "protocol",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "abxQ",
+          "choice": "now",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "chapter",
+          "chapter": "ordered",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 6,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 320
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 8,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 9,
+          "tick": 1500
+        }
+      ],
+      "expect": {
+        "ending": "bundleLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "triage": "met",
+          "abx": "met",
+          "fluid": "partial",
+          "reassess": "partial",
+          "pressor": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toAbx": 320,
+          "fluid": 1000,
+          "mapLow": 79
+        },
+        "stateHash": "68c43b79758d8dd0"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "abxFirst",
+      "title": "ESI 2, antimicrobials hung before cultures were drawn, fluid at 35 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "chapter",
+          "chapter": "ordered",
+          "choice": "continue",
+          "seq": 3,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 4,
+          "tick": 320
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "protocol",
+          "seq": 6,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 8,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 9,
+          "tick": 2100
+        },
+        {
+          "type": "teach",
+          "prompt": "abxQ",
+          "choice": "now",
+          "seq": 10,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 11,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 12,
+          "tick": 4200
+        }
+      ],
+      "expect": {
+        "ending": "bundleLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "triage": "met",
+          "abx": "partial",
+          "fluid": "partial",
+          "reassess": "met",
+          "pressor": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toAbx": 320,
+          "fluid": 2000,
+          "mapLow": 79
+        },
+        "stateHash": "3428666fd756a837"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "waitingRoom",
+      "title": "Failure: ESI 3, no protocol, norepinephrine with no fluid, the antimicrobial 20 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "ordered",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 2520
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "seq": 5,
+          "tick": 2700
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 6,
+          "tick": 3900
+        }
+      ],
+      "expect": {
+        "ending": "bundleLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "triage": "missed",
+          "abx": "partial",
+          "fluid": "missed",
+          "reassess": "missed",
+          "pressor": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toAbx": 3900,
+          "fluid": 0,
+          "mapLow": 60
+        },
+        "stateHash": "11c677f4b5f84548"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "noCare",
+      "title": "Failure: ESI 3 and a note; nothing started while she waits",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triage",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "triQ",
+          "choice": "risk",
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "refractory",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "triage": "missed",
+          "abx": "missed",
+          "fluid": "missed",
+          "reassess": "missed",
+          "pressor": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "fluid": 0,
+          "mapLow": 42
+        },
+        "stateHash": "9b622ae93dcf6207"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

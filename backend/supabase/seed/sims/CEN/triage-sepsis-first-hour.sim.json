@@ -1,0 +1,1267 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "triage-sepsis-first-hour",
+  "title": "Fever and confusion at the triage desk",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120,
+              140
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "announce": {
+            "bands": [
+              70,
+              65,
+              55
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              22,
+              26,
+              30
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "lac",
+          "label": "Lactate",
+          "spokenLabel": "Lactate result",
+          "value": "lactateSeen",
+          "unit": "mmol/L",
+          "announce": {
+            "bands": [
+              2,
+              4
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "lactateBack"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Crystalloid in: {round(fluidIn)|0dp} mL; still to run: {round(fluidLeft)|0dp} mL. Antimicrobials: {not isNull(abxAt)|yesno}. Norepinephrine: {neOn|yesno}.",
+      "banner": [
+        {
+          "when": "provHere",
+          "text": "The emergency physician is at the bedside."
+        },
+        {
+          "when": "esi == 3 and not provHere",
+          "text": "She is back in the waiting room."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize sepsis at triage and start cultures, antimicrobials and fluid within the first hour",
+  "secondaryObjectives": [
+    "Assign ESI levels to a waiting room of patients and re-triage when vital signs or symptoms change"
+  ],
+  "sources": [
+    {
+      "cite": "BCEN, CEN Exam Content Outline (effective July 2026): Medical Emergencies",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14. Medical Emergencies lists sepsis and septic shock."
+    },
+    {
+      "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+      "note": "Relayed from the course seed, which read the SCCM page 2026-11-14. Antimicrobials immediately, ideally within 1 hour, for possible septic shock or probable sepsis; blood cultures as soon as possible and ideally before antimicrobials; at least 30 mL/kg crystalloid in the first 3 hours for sepsis-induced hypoperfusion (conditional), reassessed; lactate measured; initial MAP target 65 mm Hg; norepinephrine first line."
+    },
+    {
+      "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+      "checkedAt": "2026-11-14",
+      "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+      "note": "Relayed from the course seed, which read it 2026-11-14. Decision point B: a high-risk situation or new confusion is level 2; decision point D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt reconsidering level 2."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 at the triage desk. Mrs. Haddad, 74, 80 kg, is brought in by her daughter: three days of burning on urination, fever since last night, and today she is 'not making sense'.",
+    "handover": [
+      "Triage vital signs: temperature 38.9 C, heart rate 105, respiratory rate 24, blood pressure 118/62 (MAP about 81), SpO2 95% on room air.",
+      "Type 2 diabetes on metformin; no allergies. The department has a nurse-initiated sepsis protocol (IVs, cultures, lactate, labs) and fluid bolus orders once a physician confirms."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Triage her, start the protocol and carry out the physician's orders; fluid runs in over time and labs take a while.",
+      "Partway through you are asked to write what you think is happening. The case ends 1 hour 45 minutes after arrival, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1s",
+    "maxDuration": "110min",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 80,
+      "unit": "kg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Her weight, for the 30 mL/kg volume. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sevRise": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Untreated, the septic process deepens about 0.012 a minute (0.4 = probable sepsis with hypoperfusion at arrival, 1.6 = refractory shock). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "abxFall": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. After antimicrobials it eases slowly over the next hours. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fluidGain": {
+      "value": 0.00045,
+      "unit": "/mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Each mL of crystalloid that has run in adds this much 'filling' (0 to 1), with diminishing need once 30 mL/kg is in. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "neGain": {
+      "value": 18,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Norepinephrine at the ordered starting rate raises the MAP by about 18 mm Hg after a few minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusVol": {
+      "value": 1000,
+      "unit": "mL",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed: 30 mL/kg in the first 3 hours; given here as 1 L boluses with reassessment after each. The 1 L size and the 30-minute run are the case's."
+      }
+    },
+    "bolusFlow": {
+      "value": 33,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A 1 L bolus on a pressure bag over about 30 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "maxBoluses": {
+      "value": 3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. At most three boluses run or wait at once (the engine's bolus cap, docs/sims.md 3.2). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "refractory": {
+      "value": 1.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Shock the model calls refractory (harm). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "labTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Point-of-care lactate in about 20 minutes. FLAG."
+      }
+    },
+    "pharmTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Antimicrobials from the department's automated cabinet and hung about 10 minutes after the order. FLAG."
+      }
+    },
+    "provTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The emergency physician at the bedside about 5 minutes after a level 2 page."
+      }
+    },
+    "provLate": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A patient triaged level 3 waits about 40 minutes for a physician in a busy department. FLAG."
+      }
+    },
+    "abxWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed: ideally within 1 hour of recognition for probable sepsis or possible shock."
+      }
+    },
+    "fluidWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed: fluid started early for hypoperfusion. FLAG: the 30-minute start window is this case's."
+      }
+    },
+    "triageWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed: triage level assigned within 5 minutes of arrival. FLAG: the 5-minute window is this case's."
+      }
+    },
+    "mapTarget": {
+      "value": 65,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed: initial MAP target 65 mm Hg."
+      }
+    },
+    "reviewAt": {
+      "value": 6300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends 1 hour 45 minutes after arrival."
+      }
+    },
+    "reasonAt": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 15 minutes in."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 3
+    },
+    "fluidIn": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000,
+      "unit": "mL"
+    },
+    "fluidLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3000,
+      "unit": "mL"
+    },
+    "boluses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "fluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "triageAt": {
+      "type": "time",
+      "init": null
+    },
+    "esi": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "provHere": {
+      "type": "bool",
+      "init": false
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "culturesAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxOrdered": {
+      "type": "bool",
+      "init": false
+    },
+    "lactateAt": {
+      "type": "time",
+      "init": null
+    },
+    "lactateSeen": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20,
+      "unit": "mmol/L"
+    },
+    "lactateBack": {
+      "type": "bool",
+      "init": false
+    },
+    "neOn": {
+      "type": "bool",
+      "init": false
+    },
+    "neAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "reassessAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "mapLow": {
+      "type": "number",
+      "init": 80,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    }
+  },
+  "derived": {
+    "fill": {
+      "expr": "clamp(fluidIn * fluidGain, 0, 1)"
+    },
+    "shock": {
+      "expr": "max(0, sev - 0.6 * fill)"
+    },
+    "map": {
+      "expr": "round(clamp(96 - 34 * shock + (neOn and not isNull(neAt) and t - timeAt(neAt) >= 300 ? neGain : 0), 30, 110))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(map * 1.45)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(map * 0.78)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(96 + 30 * shock + 1.5 * sin(t / 29), 60, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(22 + 8 * shock, 12, 40))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(95 - 3 * shock, 80, 99))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.9 + 0.2 * min(sev, 1)) * 10) / 10",
+      "unit": "degC",
+      "precision": 1
+    },
+    "lactate": {
+      "expr": "round((1.2 + 2.2 * shock) * 10) / 10",
+      "unit": "mmol/L",
+      "precision": 1
+    }
+  },
+  "processes": [
+    {
+      "id": "sepsis",
+      "update": {
+        "sev": "max(0, sev + dt / 60 * (isNull(abxAt) ? sevRise : -abxFall))"
+      }
+    },
+    {
+      "id": "fluid",
+      "update": {
+        "fluidIn": "fluidIn + min(fluidLeft, bolusFlow * dt / 60)",
+        "fluidLeft": "fluidLeft - min(fluidLeft, bolusFlow * dt / 60)"
+      }
+    },
+    {
+      "id": "low",
+      "update": {
+        "mapLow": "min(mapLow, map)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Triage and resuscitation room",
+      "clock": "running",
+      "actions": [
+        "triage",
+        "assess",
+        "protocol",
+        "abx",
+        "bolus",
+        "norepi",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "triage": {
+      "label": "Assign the triage level",
+      "group": "Triage",
+      "available": "isNull(triageAt)",
+      "why": "Already triaged.",
+      "params": [
+        {
+          "id": "lvl",
+          "kind": "choice",
+          "label": "ESI level",
+          "options": [
+            {
+              "value": "2",
+              "label": "ESI 2: high risk, room now, physician to the bedside"
+            },
+            {
+              "value": "3",
+              "label": "ESI 3: stable, will need many resources, back to the waiting room"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(triageAt)",
+          "then": [
+            {
+              "set": "triageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "lvl == \"2\"",
+          "then": [
+            {
+              "set": "esi",
+              "to": "2"
+            },
+            {
+              "schedule": "provT",
+              "after": "provTime"
+            },
+            {
+              "log": "ESI 2. Straight to a resuscitation room; the emergency physician is paged."
+            }
+          ],
+          "else": [
+            {
+              "set": "esi",
+              "to": "3"
+            },
+            {
+              "schedule": "provT",
+              "after": "provLate"
+            },
+            {
+              "log": "ESI 3. Back to the waiting room for the next open bed.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "assess": {
+      "label": "Assess her: mental status, skin, source of infection",
+      "group": "Assess",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "set": "reassessAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "shock >= 1",
+              "then": [
+                {
+                  "log": "Confused and mottled to the knees, capillary refill 5 seconds, hands cold. Temperature {temp|1dp} C.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Drowsy and slow to answer (her daughter says she was sharp yesterday). Flank tenderness on the right, dysuria for three days. Capillary refill 4 seconds, skin warm, temperature {temp|1dp} C.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "protocol": {
+      "label": "Start the department sepsis protocol: two IVs, blood cultures x2, lactate, labs",
+      "group": "Act",
+      "available": "isNull(culturesAt)",
+      "why": "Protocol started.",
+      "effects": [
+        {
+          "if": "isNull(culturesAt)",
+          "then": [
+            {
+              "set": "culturesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(lactateAt)",
+          "then": [
+            {
+              "set": "lactateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lactateSeen",
+          "to": "lactate"
+        },
+        {
+          "schedule": "lactateT",
+          "after": "labTime"
+        },
+        {
+          "log": "Two large-bore IVs, blood cultures from two sites, lactate and labs sent."
+        }
+      ]
+    },
+    "abx": {
+      "label": "Hang the ordered broad-spectrum antimicrobials",
+      "group": "Act",
+      "available": "abxOrdered and isNull(abxAt)",
+      "why": "No order yet, or already given.",
+      "effects": [
+        {
+          "if": "isNull(abxAt)",
+          "then": [
+            {
+              "set": "abxAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(culturesAt)",
+          "then": [
+            {
+              "log": "Antimicrobials running; no cultures were drawn first.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Antimicrobials running."
+            }
+          ]
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give a 1 L crystalloid bolus (sepsis protocol), then reassess",
+      "group": "Act",
+      "available": "fluidLeft <= 2 * bolusVol and not isNull(culturesAt)",
+      "why": "No IV access yet, or three boluses already running or waiting.",
+      "effects": [
+        {
+          "add": "fluidLeft",
+          "by": "bolusVol"
+        },
+        {
+          "add": "boluses",
+          "by": "1"
+        },
+        {
+          "if": "isNull(fluidAt)",
+          "then": [
+            {
+              "set": "fluidAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "1 L running. {boluses|0dp} L ordered so far (30 mL/kg is about {round(weight * 30)|0dp} mL)."
+        }
+      ]
+    },
+    "norepi": {
+      "label": "Start norepinephrine (ordered) through the IV with close monitoring",
+      "group": "Act",
+      "available": "not neOn and not isNull(ordersAt) and map < mapTarget",
+      "why": "Not ordered, already running, or the MAP is at target.",
+      "effects": [
+        {
+          "set": "neOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(neAt)",
+          "then": [
+            {
+              "set": "neAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Norepinephrine started at the ordered rate; MAP rechecked every 5 minutes."
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Triage findings and level, times of cultures, antimicrobials, each bolus, lactate, MAP after each reassessment"
+            },
+            {
+              "value": "opinion",
+              "label": "'UTI, febrile, fluids given'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: timed sepsis bundle and reassessments."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'UTI, febrile, fluids given.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "provT": {
+      "label": "the emergency physician",
+      "wait": {
+        "skipLabel": "the emergency physician"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The emergency physician at the bedside about 5 minutes after a level 2 page."
+      },
+      "effects": [
+        {
+          "set": "provHere",
+          "to": "true"
+        },
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "abxOrdered",
+          "to": "true"
+        },
+        {
+          "log": "Physician at the bedside: probable urosepsis with hypoperfusion. Orders: piperacillin-tazobactam IV now, 30 mL/kg crystalloid, norepinephrine for a MAP under 65 after fluids, repeat lactate.",
+          "kind": "good"
+        }
+      ]
+    },
+    "lactateT": {
+      "label": "the lactate",
+      "wait": {
+        "skipLabel": "the lactate (about 20 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Point-of-care lactate in about 20 minutes. FLAG."
+      },
+      "effects": [
+        {
+          "set": "lactateBack",
+          "to": "true"
+        },
+        {
+          "log": "Lactate {lactateSeen|1dp} mmol/L on the first sample.",
+          "kind": "find"
+        }
+      ]
+    },
+    "endT": {
+      "label": "the end of the case",
+      "wait": {
+        "skipLabel": "1 hour 45 minutes after arrival",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends 1 hour 45 minutes after arrival."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "mapLowAlarm",
+      "when": "map < 65",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "MAP alarm: {map} mm Hg.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "What is happening to Mrs. Haddad, and what has to happen in her first hour?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Names probable sepsis from a urinary source with hypoperfusion: fever, new confusion, heart rate over 100, respiratory rate over 20, slow capillary refill, in an older adult with diabetes; explains why that is ESI 2.",
+          "modelAnswer": "Fever and dysuria with new confusion, a heart rate of 105, a respiratory rate of 24 and slow capillary refill in a 74-year-old with diabetes is probable sepsis from a urinary source with hypoperfusion. New confusion and danger-zone vital signs make her ESI 2."
+        },
+        {
+          "label": "The first hour",
+          "criteria": "Cultures before antimicrobials without delaying them; antimicrobials ideally within 1 hour; lactate; 30 mL/kg crystalloid for hypoperfusion with reassessment after each bolus; norepinephrine for a MAP under 65 after fluid.",
+          "modelAnswer": "Room her now, start the sepsis protocol (IVs, blood cultures, lactate), get the physician, hang antimicrobials within the hour after cultures, run 30 mL/kg (about 2.4 L) in boluses and reassess after each, and start norepinephrine if the MAP stays under 65 once fluid is in."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and map < mapTarget",
+      "class": "harm",
+      "rationale": "Septic shock not reversed after nearly two hours is harm here: each hour without antimicrobials and resuscitation is associated with worse outcomes.",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed from the course seed, which read the SCCM page 2026-11-14. Antimicrobials immediately, ideally within 1 hour, for possible septic shock or probable sepsis; blood cultures as soon as possible and ideally before antimicrobials; at least 30 mL/kg crystalloid in the first 3 hours for sepsis-induced hypoperfusion (conditional), reassessed; lactate measured; initial MAP target 65 mm Hg; norepinephrine first line."
+      }
+    }
+  },
+  "endings": {
+    "refractory": {
+      "label": "Refractory septic shock",
+      "class": "harm",
+      "when": "sev >= refractory",
+      "terminal": true,
+      "narrative": "MAP {map} despite what is running; mottled to the thighs, lactate about {lactate|1dp}. She is intubated and moved to the ICU on two vasopressors."
+    },
+    "bundleTarget": {
+      "label": "Sepsis care inside the hour, MAP at target",
+      "class": "target",
+      "terminal": true,
+      "when": "t >= reviewAt and map >= mapTarget and esi == 2 and timeAt(triageAt) <= triageWindow and not isNull(culturesAt) and not isNull(abxAt) and timeAt(culturesAt) <= timeAt(abxAt) and timeAt(abxAt) <= abxWindow and not isNull(fluidAt) and timeAt(fluidAt) <= fluidWindow and fluidIn + fluidLeft >= 30 * weight - 500 and reassessN >= 2",
+      "narrative": "{t|clock}: MAP {map}, heart rate {hr}, lactate trending down. Cultures, antimicrobials inside the hour, 30 mL/kg with reassessment, and a pressor only once fluid was in."
+    },
+    "bundleLate": {
+      "label": "Stabilizing, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "t >= reviewAt and map >= mapTarget",
+      "narrative": "{t|clock}: MAP {map}. She is stabilizing, but the route cost time: a lower triage level, antimicrobials after the hour or before cultures, late or partial fluid, or too little reassessment."
+    },
+    "time_up": {
+      "label": "Still hypotensive",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "MAP {map} and heart rate {hr} after nearly two hours: her shock has not been reversed."
+    }
+  },
+  "endingOrder": [
+    "refractory",
+    "bundleTarget",
+    "bundleLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "triage",
+        "label": "ESI 2 within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(triageAt) or esi != 2",
+            "score": "missed",
+            "why": "Not triaged as high risk: new confusion, a heart rate over 100 and a respiratory rate over 20 in a febrile patient."
+          },
+          {
+            "when": "timeAt(triageAt) <= triageWindow",
+            "score": "met",
+            "why": "ESI 2 at {timeAt(triageAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "ESI 2, after 5 minutes."
+          }
+        ]
+      },
+      {
+        "id": "abx",
+        "label": "Cultures, then antimicrobials within the hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(abxAt)",
+            "score": "missed",
+            "why": "No antimicrobials."
+          },
+          {
+            "when": "timeAt(abxAt) <= abxWindow and not isNull(culturesAt) and timeAt(culturesAt) <= timeAt(abxAt)",
+            "score": "met",
+            "why": "Cultures, then antimicrobials at {timeAt(abxAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Antimicrobials after the hour, or before cultures."
+          }
+        ]
+      },
+      {
+        "id": "fluid",
+        "label": "30 mL/kg started within 30 minutes and given",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(fluidAt)",
+            "score": "missed",
+            "why": "No fluid for hypoperfusion."
+          },
+          {
+            "when": "timeAt(fluidAt) <= fluidWindow and fluidIn + fluidLeft >= 30 * weight - 500",
+            "score": "met",
+            "why": "Started at {timeAt(fluidAt)|clock}; {round(fluidIn + fluidLeft)|0dp} mL ordered."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Fluid late or well short of 30 mL/kg."
+          }
+        ]
+      },
+      {
+        "id": "reassess",
+        "label": "Reassessed after the fluid",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "Reassessed {reassessN|0dp} times."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Assessed once, not after the fluid."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never examined."
+          }
+        ]
+      },
+      {
+        "id": "pressor",
+        "label": "Norepinephrine only for a MAP under 65 after fluid",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "neOn and boluses < 2",
+            "score": "missed",
+            "why": "A vasopressor before fluid was in."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Vasopressor used only after fluid, or not needed."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective, timed documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Bundle times documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of times."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: sepsis at triage and the first hour",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAbx",
+        "label": "Arrival to antimicrobials",
+        "value": "isNull(abxAt) ? -1 : timeAt(abxAt)",
+        "format": "duration",
+        "expert": "under 30 min"
+      },
+      {
+        "id": "fluid",
+        "label": "Crystalloid ordered (mL)",
+        "value": "round(fluidIn + fluidLeft)",
+        "format": "number",
+        "expert": "about 2,400 mL (30 mL/kg)"
+      },
+      {
+        "id": "mapLow",
+        "label": "Lowest MAP",
+        "value": "mapLow",
+        "format": "number",
+        "expert": "65 mm Hg or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "ESI 2 on new confusion and danger-zone vital signs; to a room."
+      },
+      {
+        "at": "14:01",
+        "text": "Protocol: two IVs, blood cultures x2, lactate, labs; first 1 L bolus. Assess: right flank tenderness, slow capillary refill."
+      },
+      {
+        "at": "~14:05",
+        "text": "Physician orders: antimicrobials hung at once; second and third boluses."
+      },
+      {
+        "at": "~14:45",
+        "text": "Reassess after the fluid; MAP holding at or above 65 without a pressor."
+      }
+    ],
+    "debrief": {
+      "refractory": {
+        "headline": "Refractory shock",
+        "body": "Find the triage level, the time of the first antimicrobial dose and how much fluid ran in before the pressure fell."
+      },
+      "bundleTarget": {
+        "headline": "The first hour, done",
+        "body": "High-risk triage, cultures then antimicrobials inside the hour, 30 mL/kg with reassessment and no pressor before fluid. That is the expert path."
+      },
+      "bundleLate": {
+        "headline": "Stabilizing, by a slower route",
+        "body": "She is better, but check the triage level, the antimicrobial time and order, how much fluid ran and when, and how often she was reassessed."
+      },
+      "time_up": {
+        "headline": "Still in shock",
+        "body": "Septic shock needs the antimicrobial, the fluid and, if the MAP stays low, a vasopressor."
+      }
+    },
+    "modelReasoning": "Fever, dysuria and new confusion with a heart rate of 105, a respiratory rate of 24 and slow capillary refill in a 74-year-old with diabetes is probable sepsis with hypoperfusion from a urinary source: ESI 2 (a high-risk situation with new confusion, and danger-zone vital signs). Start the sepsis protocol at once: two IVs, blood cultures before antimicrobials, lactate. Get the physician and hang antimicrobials as soon as possible, ideally within 1 hour. Give 30 mL/kg crystalloid (about 2.4 L) in boluses in the first 3 hours, reassessing after each, aiming for a MAP of 65; if it stays under 65 after fluid, norepinephrine first line. Re-triage anyone who worsens in the waiting room."
+  },
+  "chapters": [
+    {
+      "id": "ordered",
+      "label": "Physician orders in",
+      "when": "provHere"
+    }
+  ],
+  "teaching": {
+    "abxQ": {
+      "during": "lactateT",
+      "ask": "The lactate is 20 minutes away. Should the antimicrobials wait for it?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "Yes: confirm sepsis with the lactate first"
+        },
+        {
+          "id": "now",
+          "label": "No: give them as soon as possible, ideally within the hour, after cultures"
+        }
+      ],
+      "expect": "now",
+      "explain": "For probable sepsis or possible shock the 2026 guideline asks for antimicrobials immediately, ideally within 1 hour, with blood cultures first when that causes no delay. The lactate guides resuscitation; it does not gate the antimicrobials.",
+      "source": {
+        "cite": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+        "note": "Relayed from the course seed, which read the SCCM page 2026-11-14. Antimicrobials immediately, ideally within 1 hour, for possible septic shock or probable sepsis; blood cultures as soon as possible and ideally before antimicrobials; at least 30 mL/kg crystalloid in the first 3 hours for sepsis-induced hypoperfusion (conditional), reassessed; lactate measured; initial MAP target 65 mm Hg; norepinephrine first line."
+      }
+    },
+    "triQ": {
+      "during": "provT",
+      "ask": "Her heart rate is 105 and respiratory rate 24, and she is newly drowsy. Which ESI rule applies?",
+      "choices": [
+        {
+          "id": "res",
+          "label": "Count resources: she will need many, so ESI 3"
+        },
+        {
+          "id": "risk",
+          "label": "A high-risk situation with new confusion and danger-zone vital signs: ESI 2"
+        }
+      ],
+      "expect": "risk",
+      "explain": "ESI decision point B (high risk, new confusion) comes before counting resources, and decision point D's adult danger-zone vital signs (heart rate over 100, respiratory rate over 20) point to level 2.",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed from the course seed, which read it 2026-11-14. Decision point B: a high-risk situation or new confusion is level 2; decision point D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt reconsidering level 2."
+      }
+    }
+  }
+}
