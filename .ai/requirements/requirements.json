@@ -11008,6 +11008,44 @@
       ]
     },
     {
+      "id": "REQ-306",
+      "category": "auth",
+      "title": "One session per device; web sessions end after 14 days unused",
+      "description": "Nick 2026-11-16: active sessions should stack and end on devices not used after a time. Approved: one session per device (a random device id per install or browser, X-Ascendra-Device; a new sign-in on the same device ends its older session), 30 days unused in the app and 14 on the web, and the smoke test signs out after itself.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/auth/tokens.ts",
+        "backend/lib/auth/util.ts",
+        "backend/app/api/auth",
+        "backend/supabase/migrations/086_refresh_device_id.sql",
+        "mobile/src/lib/deviceId.ts",
+        "mobile/src/updates/deviceIdentity.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "acceptance_criteria": [
+        "A sign-in with a device id revokes that user's live tokens with the same device id",
+        "Other devices and sessions without a device id are untouched",
+        "Rotation keeps the family's device id",
+        "Web sessions expire 14 days after last use, app sessions 30",
+        "The app sends X-Ascendra-Device on every request and the server allows the header",
+        "Privacy Policy and Cookies 2026-11-16 name the device id, the session limits and the newest biometric token"
+      ],
+      "validation_required": [
+        "cd backend && npm test && npm run test:db",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/legal/data-inventory.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy and Cookies 2026-11-16 disclose the device id (Nick approved the new version, 2026-11-16): everyone agrees to the Privacy Policy once more",
+        "Migration 086 must be applied before the backend: sign-in writes device_id"
+      ]
+    },
+    {
       "id": "REQ-305",
       "category": "auth",
       "title": "Biometric sign-in survives over-the-air updates and app closes",
