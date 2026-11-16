@@ -163,7 +163,8 @@ export const EXPORT_SECTIONS = {
                   order by created_at asc, id asc`,
   // REQ-093: sign-in providers linked to the account (no tokens).
   linkedAccounts: "select provider, email, created_at from oauth_accounts where user_id = $1 order by created_at asc, provider asc",
-  sessions: `select id, device_label, user_agent, ip, created_at, last_used_at, expires_at, revoked_at
+  // REQ-306: device_id, the random id the app or browser sent for one session per device.
+  sessions: `select id, device_label, user_agent, ip, created_at, last_used_at, expires_at, revoked_at, device_id
                from refresh_tokens where user_id = $1 order by created_at asc, id asc`,
   // REQ-122 (migration 049): plans paid for or given, the payment events
   // received for the account (type, time, outcome -- no payload), the free

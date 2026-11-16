@@ -2,7 +2,7 @@ import { ok, badRequest, unauthorized, serverError, UserFacingError, INVALID_JSO
 import { rotateRefreshToken, RefreshTokenError, revokeRefreshToken } from "@/lib/auth/tokens";
 import { signAccessToken } from "@/lib/auth/tokens";
 import { queryOne } from "@/lib/db";
-import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { getClientIp, getDeviceId, getUserAgent } from "@/lib/auth/util";
 import {
   clearRefreshCookie,
   cookieRequestAllowed,
@@ -67,6 +67,8 @@ export async function POST(req: Request) {
         deviceLabel: typeof deviceLabel === "string" ? deviceLabel : undefined,
         userAgent: getUserAgent(req),
         ip: getClientIp(req),
+        deviceId: getDeviceId(req),
+        web: isWebClient(req),
       });
     } catch (err) {
       if (err instanceof RefreshTokenError) {

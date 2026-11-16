@@ -521,6 +521,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      and s.slug in ('agile-scrum-certifications', 'quality-six-sigma-certifications')) = 2 as ok`,
   },
   {
+    // REQ-306: sign-in and refresh write refresh_tokens.device_id; without the
+    // column every sign-in fails.
+    migration: "086_refresh_device_id.sql",
+    what: "refresh_tokens.device_id (one session per device; sign-in and refresh write it)",
+    sql: `select exists(select 1 from information_schema.columns
+                       where table_schema = 'public' and table_name = 'refresh_tokens' and column_name = 'device_id')
+             and exists(select 1 from pg_constraint where conname = 'refresh_tokens_device_id_086' and conrelid = 'refresh_tokens'::regclass) as ok`,
+  },
+  {
     // REQ-301: every review is followed by a savepointed write of the shadow
     // prediction (lib/decay-shadow.ts). The code tolerates the columns being
     // absent (the write is skipped and logged), so this is a soft dependency:

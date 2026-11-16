@@ -214,8 +214,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-14",
-  updated: "November 14, 2026",
+  version: "2026-11-16",
+  updated: "November 16, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -223,7 +223,7 @@ export const PRIVACY: LegalDoc = {
       title: "1. What we collect",
       body: [
         "• Account: email address, optional display name, optional profile photo, and a hashed password (never the password itself). If you sign in with Google, the Google account's ID and email address.",
-        "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details and IP address; a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
+        "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details, IP address and a random ID that the app or your browser creates for that device (it lets a new sign-in on the same device replace the old session, so your session list shows each device once); a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
         "• Study activity: the courses you add or favorite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you, because your answers showed you'd moved up, or because you accepted a suggestion to move a unit down; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed, why you're taking a course answered or put aside and where you were asked, that question's card shown in a lesson, a suggestion to move a unit's level down and whether you said “Not now”, and whether a typed guess was close, partly right or off) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
@@ -283,6 +283,7 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account, study (including answers, milestones and exam results), age confirmations and date of birth, coach and support data: while your account is open.",
         "• Sign-in and security event log: 90 days.",
+        "• Signed-in sessions: a session ends after 30 days without use in the app, or 14 days on the web.",
         "• Ended or expired sessions: 30 days after they end.",
         "• Used or expired one-time codes: 7 days after they expire.",
         "• Email address change requests (so the link we send to your old address can still cancel one): 30 days after they expire.",
@@ -333,15 +334,15 @@ export const PRIVACY: LegalDoc = {
 
 export const COOKIES: LegalDoc = {
   title: "Cookies & Device Storage",
-  version: "2026-11-14",
-  updated: "November 14, 2026",
+  version: "2026-11-16",
+  updated: "November 16, 2026",
   sections: [
     {
       title: "What we store on your device",
       body: [
         "Ascendra uses no advertising or tracking cookies. To keep you signed in it stores:",
-        "• In the mobile app: your sign-in token, kept in the operating system's secure storage (iOS Keychain or Android Keystore). If you turn on biometric unlock, a second copy of the token that your device only releases after a fingerprint, face or passcode check, plus a setting that remembers you turned it on.",
-        "• On the web: one cookie, `ascendra_rt`, holding your sign-in token. The page's scripts can't read it, your browser sends it only to our sign-in address, and the browser deletes it when you close it.",
+        "• In the mobile app: your sign-in token, kept in the operating system's secure storage (iOS Keychain or Android Keystore). If you turn on biometric unlock, a copy of the token that your device only releases after a fingerprint, face or passcode check, plus a setting that remembers you turned it on; because the token is renewed while you use the app, its newest version is also kept in secure storage, and the app only uses it after that fingerprint, face or passcode check. A random ID for this install, so a new sign-in replaces this device's old session.",
+        "• On the web: one cookie, `ascendra_rt`, holding your sign-in token. The page's scripts can't read it, your browser sends it only to our sign-in address, and the browser deletes it when you close it. And, in the browser's local storage, a random ID for this browser (not a sign-in token), so a new sign-in replaces this browser's old session; it stays until you clear the site's data.",
         "It also keeps your own study work in progress on the device, so nothing is lost if the app closes: unsent answer drafts, your place in a lesson or scenario, and your study reminder settings. Drafts and reminder settings stay on the device; your place in a lesson is also saved to your account so it follows you to another device. Signing out removes all of it from the device. Separately, for the device rather than your account, it remembers your app-lock choice and when the app was last used, so it knows when to lock; these stay until you clear the site's data or remove the app.",
       ],
     },

@@ -5,7 +5,7 @@ import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, Challe
 import { spendTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
-import { sessionResponse } from "@/lib/auth/refreshCookie";
+import { isWebClient, sessionResponse } from "@/lib/auth/refreshCookie";
 import {
   consumeRateLimit,
   recordAuthEvent,
@@ -14,7 +14,7 @@ import {
   MFA_USER_LIMIT,
   MFA_USER_LOCKED_MESSAGE,
 } from "@/lib/auth/rateLimit";
-import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { getClientIp, getDeviceId, getUserAgent } from "@/lib/auth/util";
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +119,8 @@ export async function POST(req: Request) {
       deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null,
       userAgent: getUserAgent(req),
       ip: getClientIp(req),
+      deviceId: getDeviceId(req),
+      web: isWebClient(req),
     });
     return sessionResponse(req, session);
   } catch (err) {
