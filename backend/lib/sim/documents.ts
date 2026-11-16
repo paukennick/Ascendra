@@ -238,6 +238,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PCCN", "femoral-access-retroperitoneal-bleed"),
   entry("PCCN", "copd-exacerbation-niv"),
   entry("CMSRN", "postop-hemorrhage-early-signs"),
+  entry("CMSRN", "delegation-morning-assignment"),
   entry("CEN", "triage-sepsis-first-hour"),
   entry("CEN", "waiting-room-esi-retriage"),
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),

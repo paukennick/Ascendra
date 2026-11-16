@@ -19,6 +19,7 @@ export const NURSING_SPECIALTY_SIMS: readonly { course: string; slug: string; sc
   { course: "PCCN", slug: "femoral-access-retroperitoneal-bleed", screen: "bedside" },
   { course: "PCCN", slug: "copd-exacerbation-niv", screen: "bedside" },
   { course: "CMSRN", slug: "postop-hemorrhage-early-signs", screen: "bedside" },
+  { course: "CMSRN", slug: "delegation-morning-assignment", screen: "bedside" },
   { course: "CEN", slug: "triage-sepsis-first-hour", screen: "bedside" },
   { course: "CEN", slug: "waiting-room-esi-retriage", screen: "bedside" },
   { course: "FNPAANP", slug: "clinic-severe-bp-stroke-signs", screen: "bedside" },
