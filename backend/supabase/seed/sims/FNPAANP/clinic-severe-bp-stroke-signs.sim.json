@@ -1,0 +1,951 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "clinic-severe-bp-stroke-signs",
+  "title": "A blood pressure check that isn't routine",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              100
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "announce": {
+            "bands": [
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Fingerstick glucose",
+          "value": "glucose",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              70
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(glucoseAt)"
+        }
+      ],
+      "waveforms": [],
+      "infusions": "911 called: {not isNull(callAt)|yesno}. Last known well established: {not isNull(lkwAt)|yesno}.",
+      "banner": [
+        {
+          "when": "emsHere",
+          "text": "EMS is in the exam room."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize red flags that need emergency referral: chest pain, stroke symptoms, sepsis, an acute abdomen, ectopic pregnancy and suicidal intent",
+  "secondaryObjectives": [
+    "Evaluate blood pressure, A1C, lipid and symptom control against targets and intensify or simplify treatment"
+  ],
+  "sources": [
+    {
+      "cite": "AANPCB, Family Nurse Practitioner (FNP) certification exam blueprint (2024): Diagnose",
+      "checkedAt": "2026-11-14",
+      "url": "https://candidateportal.aanpcert.org/certs/fnp",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fnp.ts), which read the blueprint 2026-11-14. Diagnose is 26.5% of the exam and includes recognizing conditions that need emergency referral."
+    },
+    {
+      "cite": "2025 AHA/ACC et al. Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults (AHA 'Top things to know')",
+      "checkedAt": "2026-11-14",
+      "url": "https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know",
+      "note": "Relayed from the course seed, which read the AHA page 2026-11-14 (and the PCCN seed re-read it the same day). Severe hypertension above 180/120 WITHOUT acute target-organ damage is evaluated and treated as an outpatient with oral drugs; WITH acute target-organ damage it is a hypertensive emergency treated in hospital."
+    },
+    {
+      "cite": "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA 'Top things to know')",
+      "checkedAt": "2026-11-14",
+      "url": "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
+      "note": "Relayed from the PCCN and CEN course seeds, which read the AHA page 2026-11-14. IV thrombolysis within 4.5 hours of onset (selected patients later with advanced imaging), so the time last known well decides treatment; blood pressure below 185/110 before thrombolysis is a hospital step."
+    },
+    {
+      "cite": "American Diabetes Association, hypoglycemia (professional resource, 2025)",
+      "checkedAt": "2026-11-07",
+      "url": "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
+      "note": "Relayed from the course seed (read 2026-11-07). Level 1 hypoglycemia below 70 mg/dL; used here only because low glucose can mimic a stroke, so a fingerstick is part of the check."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in a family practice. Mr. Petrov, 61, is here for a blood pressure follow-up. The medical assistant's reading is 194/123; he says he has 'a bit of a headache' and wants a refill.",
+    "handover": [
+      "Hypertension on amlodipine 10 mg; type 2 diabetes on metformin; no anticoagulant. Last visit 136/84.",
+      "The office has a portable monitor and a glucometer; the nearest stroke center is 15 minutes away by ambulance."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Decide whether this is severe hypertension to manage here or an emergency to send out.",
+      "Partway through you are asked to write your reasoning. The case ends 45 minutes in, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1s",
+    "maxDuration": "55min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progress": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Untreated, his deficit worsens about 0.012 a minute (0.15 = a mild arm drift and slurred speech at the start, 0.6 = a dense deficit). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dense": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A dense hemiparesis with aphasia: the harm outcome of a stroke left in the office. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lkwOnset": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
+        "note": "Relayed. His symptoms started 40 minutes before the case opens; thrombolysis is possible within 4.5 hours of last known well. The 40 minutes are the case's."
+      }
+    },
+    "emsArrive": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "EMS arrives at a city primary care office about 12 minutes after a 911 call. FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
+        "note": "Relayed: every minute counts against the 4.5-hour window. FLAG: the 10-minute window from the first neurological finding to the 911 call is this case's."
+      }
+    },
+    "examWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "2025 AHA/ACC et al. Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know",
+        "note": "Relayed: severe hypertension is triaged by whether there is acute target-organ damage, so the case expects a focused neurological check within 10 minutes. FLAG: the window is this case's."
+      }
+    },
+    "clonidineDrop": {
+      "value": 25,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Oral clonidine in the office lowers his systolic about 25 mm Hg within the hour; with a stroke in progress the model lets the deficit worsen faster (a teaching consequence). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reviewAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends 45 minutes in."
+      }
+    },
+    "reasonAt": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 8 minutes in."
+      }
+    }
+  },
+  "state": {
+    "deficit": {
+      "type": "number",
+      "init": 0.15,
+      "min": 0,
+      "max": 1
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "lkwAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsHere": {
+      "type": "bool",
+      "init": false
+    },
+    "clonidine": {
+      "type": "bool",
+      "init": false
+    },
+    "clonidineAt": {
+      "type": "time",
+      "init": null
+    },
+    "aspirin": {
+      "type": "bool",
+      "init": false
+    },
+    "sentHome": {
+      "type": "bool",
+      "init": false
+    },
+    "ekgAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "handoffFull": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "sbp": {
+      "expr": "round(194 - (clonidine and not isNull(clonidineAt) ? min(clonidineDrop, (t - timeAt(clonidineAt)) / 60) : 0) + 2 * sin(t / 41))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.63)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(78 + 2 * sin(t / 33))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "glucose": {
+      "expr": "142",
+      "unit": "mg/dL",
+      "precision": 0
+    },
+    "lkwMin": {
+      "expr": "round((lkwOnset + t) / 60)",
+      "unit": "min",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "stroke",
+      "when": "not emsHere",
+      "update": {
+        "deficit": "min(1, deficit + dt / 60 * progress * (clonidine ? 1.5 : 1))"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Exam room 3",
+      "clock": "running",
+      "actions": [
+        "history",
+        "neuro",
+        "glucose",
+        "lkw",
+        "call911",
+        "clonidine",
+        "aspirin",
+        "sendHome",
+        "handoff"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "history": {
+      "label": "Ask about the headache and any other new symptoms",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"The headache came on this morning. And my wife thought my words were slurred at breakfast; my left hand felt clumsy buttoning my coat, around 9:20.\" He missed two days of amlodipine.",
+          "kind": "find"
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Do a focused neurological check (face, arm drift, speech, vision)",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(neuroAt)",
+          "then": [
+            {
+              "set": "neuroAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "deficit >= 0.4",
+              "then": [
+                {
+                  "log": "Left facial droop, left arm falls to the bed, speech thick and slow, left visual field cut.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Mild left facial droop, left arm drifts down within 10 seconds, speech slightly slurred. No headache-only picture: this is a focal deficit.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Check a fingerstick glucose",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(glucoseAt)",
+          "then": [
+            {
+              "set": "glucoseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glucose {glucose} mg/dL: not hypoglycemia.",
+          "kind": "find"
+        }
+      ]
+    },
+    "lkw": {
+      "label": "Pin down when he was last known well, and who can confirm it",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lkwAt)",
+          "then": [
+            {
+              "set": "lkwAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Last known well 09:20, confirmed by his wife on the phone: {lkwMin} minutes ago.",
+          "kind": "find"
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911 for a suspected stroke, to a stroke center",
+      "group": "Refer",
+      "available": "isNull(callAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "emsT",
+          "after": "emsArrive"
+        },
+        {
+          "log": "911 called: suspected acute stroke, last known well 09:20, BP {sbp}/{dbp}."
+        }
+      ]
+    },
+    "clonidine": {
+      "label": "Give clonidine 0.1 mg by mouth now and recheck the pressure in an hour",
+      "group": "Treat",
+      "available": "not clonidine",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "clonidine",
+          "to": "true"
+        },
+        {
+          "if": "isNull(clonidineAt)",
+          "then": [
+            {
+              "set": "clonidineAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Clonidine given. His pressure will drift down over the next hour.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "aspirin": {
+      "label": "Give aspirin 325 mg to chew",
+      "group": "Treat",
+      "available": "not aspirin",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "aspirin",
+          "to": "true"
+        },
+        {
+          "log": "Aspirin chewed. Without imaging, a bleed has not been ruled out.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "sendHome": {
+      "label": "Restart amlodipine, add a second drug and see him in a week",
+      "group": "Plan",
+      "available": "not sentHome",
+      "why": "Already planned.",
+      "effects": [
+        {
+          "set": "sentHome",
+          "to": "true"
+        },
+        {
+          "log": "Plan written for an outpatient increase. He gets up to leave.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Hand off to EMS",
+      "group": "Refer",
+      "available": "emsHere and isNull(noteAt)",
+      "why": "EMS is not here yet, or the handoff is done.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Handoff",
+          "options": [
+            {
+              "value": "full",
+              "label": "Last known well 09:20 (confirmed), the deficits and their time, BP, glucose 142, medications including any anticoagulant, nothing by mouth, wife's phone number"
+            },
+            {
+              "value": "brief",
+              "label": "'High blood pressure and a headache, please take him in'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"full\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "set": "handoffFull",
+                  "to": "true"
+                },
+                {
+                  "log": "EMS has everything the stroke team needs."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "EMS takes him with 'high blood pressure and a headache'.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "emsT": {
+      "label": "EMS",
+      "wait": {
+        "skipLabel": "EMS (about 12 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "EMS arrives at a city primary care office about 12 minutes after a 911 call. FLAG."
+      },
+      "effects": [
+        {
+          "set": "emsHere",
+          "to": "true"
+        },
+        {
+          "log": "EMS is in the room.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "the end of the case",
+      "wait": {
+        "skipLabel": "45 minutes in",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends 45 minutes in."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "deficit >= 0.4",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "His speech is getting harder to understand.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "Is Mr. Petrov's blood pressure something to manage in the office or an emergency, and what decides it?",
+      "parts": [
+        {
+          "label": "What decides it",
+          "criteria": "Says that above 180/120 the question is acute target-organ damage; names the arm drift, facial droop and slurred speech as a focal neurological deficit (possible stroke), which makes it an emergency; glucose checked to exclude a mimic.",
+          "modelAnswer": "194/123 alone is severe hypertension; without acute target-organ damage it is managed as an outpatient. His slurred speech, left facial droop and arm drift are a focal deficit, so this is a possible acute stroke and an emergency. A normal glucose rules out hypoglycemia as a mimic."
+        },
+        {
+          "label": "What to do",
+          "criteria": "Calls 911 to a stroke center at once; fixes the time last known well (09:20) because treatment depends on it; gives no oral antihypertensive or aspirin in the office; hands off onset time, deficits, glucose and medications.",
+          "modelAnswer": "Call 911 for a suspected stroke now, establish last known well (09:20, confirmed by his wife), give nothing by mouth (no clonidine to chase the number, no aspirin before imaging), and hand off the onset time, the deficits, the glucose and his medications."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(callAt)",
+      "class": "harm",
+      "rationale": "A stroke left in the office for 45 minutes loses treatment time; this case calls that harm.",
+      "source": {
+        "cite": "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
+        "note": "Relayed from the PCCN and CEN course seeds, which read the AHA page 2026-11-14. IV thrombolysis within 4.5 hours of onset (selected patients later with advanced imaging), so the time last known well decides treatment; blood pressure below 185/110 before thrombolysis is a hospital step."
+      }
+    }
+  },
+  "endings": {
+    "denseDeficit": {
+      "label": "A dense stroke in the office",
+      "class": "harm",
+      "terminal": true,
+      "when": "deficit >= dense",
+      "narrative": "{t|clock}: he cannot lift his left arm or find his words. EMS is called from the floor of the exam room; the window for treatment is closing."
+    },
+    "wentHome": {
+      "label": "Sent home with a stroke in progress",
+      "class": "harm",
+      "terminal": true,
+      "when": "sentHome and isNull(callAt)",
+      "narrative": "He leaves with a new prescription. His wife calls 911 from home an hour later."
+    },
+    "strokeTarget": {
+      "label": "To a stroke center inside the window, with what they need",
+      "class": "target",
+      "terminal": true,
+      "when": "emsHere and handoffFull and not isNull(neuroAt) and timeAt(neuroAt) <= examWindow and timeAt(callAt) - timeAt(neuroAt) <= callWindow and not isNull(lkwAt) and not isNull(glucoseAt) and not clonidine and not aspirin and not sentHome",
+      "narrative": "{t|clock}: EMS leaves for the stroke center with last known well {lkwMin} minutes ago, the deficits timed, glucose normal, and his pressure untouched for the stroke team to manage."
+    },
+    "strokeLate": {
+      "label": "To the hospital, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "emsHere and not isNull(noteAt)",
+      "narrative": "{t|clock}: he is on his way, but the route cost time or safety: a late exam or call, no last-known-well time, no glucose, an office drug that should have waited, or a thin handoff."
+    },
+    "time_up": {
+      "label": "Still in the office",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Nearly an hour later he is still in the exam room."
+    }
+  },
+  "endingOrder": [
+    "denseDeficit",
+    "wentHome",
+    "strokeTarget",
+    "strokeLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "neuro",
+        "label": "Looked for target-organ damage: a neurological check within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(neuroAt)",
+            "score": "missed",
+            "why": "No neurological check for a man with severe hypertension and a headache."
+          },
+          {
+            "when": "timeAt(neuroAt) <= examWindow",
+            "score": "met",
+            "why": "Checked at {timeAt(neuroAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Checked after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "refer",
+        "label": "911 within 10 minutes of the deficit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No emergency referral."
+          },
+          {
+            "when": "not isNull(neuroAt) and timeAt(callAt) - timeAt(neuroAt) <= callWindow",
+            "score": "met",
+            "why": "911 at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "911 called late, or before any examination."
+          }
+        ]
+      },
+      {
+        "id": "lkw",
+        "label": "Last known well pinned down, glucose checked",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lkwAt) and not isNull(glucoseAt)",
+            "score": "met",
+            "why": "Last known well 09:20 and glucose 142."
+          },
+          {
+            "when": "not isNull(lkwAt) or not isNull(glucoseAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the onset time nor the glucose."
+          }
+        ]
+      },
+      {
+        "id": "noOfficeTx",
+        "label": "No office drug that belongs to the stroke team",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "clonidine or aspirin",
+            "score": "missed",
+            "why": "Clonidine or aspirin given before imaging; blood pressure and antithrombotics in a stroke are the hospital's decisions."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No office treatment."
+          }
+        ]
+      },
+      {
+        "id": "handoff",
+        "label": "A full handoff to EMS",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "handoffFull",
+            "score": "met",
+            "why": "Onset time, deficits, glucose, medications."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "No handoff."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "A thin handoff."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: severe hypertension and target-organ damage",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "to911",
+        "label": "10:00 to the 911 call",
+        "value": "isNull(callAt) ? -1 : timeAt(callAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "lkw",
+        "label": "Minutes since last known well at the 911 call (model)",
+        "value": "isNull(callAt) ? -1 : round((lkwOnset + timeAt(callAt)) / 60)",
+        "format": "number",
+        "expert": "under 45"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Ask about new symptoms: slurred speech and a clumsy left hand since 09:20."
+      },
+      {
+        "at": "10:01",
+        "text": "Focused neurological check: facial droop, arm drift, slurred speech. Fingerstick glucose 142."
+      },
+      {
+        "at": "10:02",
+        "text": "911 for a suspected stroke; last known well confirmed with his wife. Nothing by mouth."
+      },
+      {
+        "at": "~10:14",
+        "text": "Full handoff to EMS."
+      }
+    ],
+    "debrief": {
+      "denseDeficit": {
+        "headline": "A stroke progressed in the office",
+        "body": "Find when the neurological check happened and when 911 was called. The number on the cuff was not the question; the deficit was."
+      },
+      "wentHome": {
+        "headline": "Sent home with a stroke",
+        "body": "Severe hypertension is outpatient only without acute organ damage. Asking about new symptoms and checking face, arm and speech would have found it."
+      },
+      "strokeTarget": {
+        "headline": "Red flag found and referred",
+        "body": "A neurological check, 911 within minutes, last known well, glucose, no office drug and a full handoff. That is the expert path."
+      },
+      "strokeLate": {
+        "headline": "Referred, by a slower route",
+        "body": "He went, but check when the exam and the call happened, whether onset and glucose were known, whether a drug was given that the stroke team should decide on, and the handoff."
+      },
+      "time_up": {
+        "headline": "Still in the office",
+        "body": "A focal deficit with severe hypertension is an emergency referral."
+      }
+    },
+    "modelReasoning": "A reading of 194/123 is severe hypertension. The 2025 guideline manages severe hypertension WITHOUT acute target-organ damage as an outpatient, so the question is whether there is organ damage. His new slurred speech, left facial droop and arm drift are a focal neurological deficit: a possible acute stroke, which makes this an emergency referral. Check a glucose to exclude a mimic, establish last known well (treatment depends on it: thrombolysis within 4.5 hours), call 911 to a stroke center, give nothing by mouth (no oral agent to chase the number, no aspirin before imaging), and hand off onset time, deficits, glucose and medications."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "911 called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "bpQ": {
+      "during": "emsT",
+      "ask": "His pressure is 194/123. Should you bring it down in the office before EMS arrives?",
+      "choices": [
+        {
+          "id": "lower",
+          "label": "Yes: give an oral agent now"
+        },
+        {
+          "id": "leave",
+          "label": "No: with a stroke in progress, blood pressure is managed by the stroke team"
+        }
+      ],
+      "expect": "leave",
+      "explain": "Severe hypertension with acute target-organ damage is an emergency treated in hospital. In acute stroke, the blood pressure target depends on whether he gets thrombolysis (below 185/110 before it), which only the stroke team can decide after imaging.",
+      "source": {
+        "cite": "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
+        "note": "Relayed from the PCCN and CEN course seeds, which read the AHA page 2026-11-14. IV thrombolysis within 4.5 hours of onset (selected patients later with advanced imaging), so the time last known well decides treatment; blood pressure below 185/110 before thrombolysis is a hospital step."
+      }
+    },
+    "sevQ": {
+      "during": "emsT",
+      "ask": "Without the arm drift and slurred speech, what would 194/123 with a mild headache have meant?",
+      "choices": [
+        {
+          "id": "er",
+          "label": "An emergency department visit anyway"
+        },
+        {
+          "id": "outpt",
+          "label": "Severe hypertension without organ damage: outpatient treatment and close follow-up"
+        }
+      ],
+      "expect": "outpt",
+      "explain": "The 2025 guideline treats severe hypertension above 180/120 without acute target-organ damage as an outpatient problem. The deficit, not the number, makes this an emergency.",
+      "source": {
+        "cite": "2025 AHA/ACC et al. Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults (AHA 'Top things to know')",
+        "checkedAt": "2026-11-14",
+        "url": "https://professional.heart.org/en/science-news/2025-high-blood-pressure-guideline/top-things-to-know",
+        "note": "Relayed from the course seed, which read the AHA page 2026-11-14 (and the PCCN seed re-read it the same day). Severe hypertension above 180/120 WITHOUT acute target-organ damage is evaluated and treated as an outpatient with oral drugs; WITH acute target-organ damage it is a hypertensive emergency treated in hospital."
+      }
+    }
+  }
+}

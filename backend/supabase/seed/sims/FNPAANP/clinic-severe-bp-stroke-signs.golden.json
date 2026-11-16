@@ -1,0 +1,366 @@
+{
+  "slug": "clinic-severe-bp-stroke-signs",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, neuro check, glucose, last known well, 911, full handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "leave",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "sevQ",
+          "choice": "outpt",
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 9,
+          "tick": 480
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 740
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "kind": "full"
+          },
+          "seq": 11,
+          "tick": 740
+        }
+      ],
+      "expect": {
+        "ending": "strokeTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "neuro": "met",
+          "refer": "met",
+          "lkw": "met",
+          "noOfficeTx": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "to911": 20,
+          "lkw": 40
+        },
+        "stateHash": "cc89515badfa08d4"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "slowExam",
+      "title": "History first, the neuro check at 12 minutes, 911 at 15, no glucose, full handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 2,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 4,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "lkw",
+          "seq": 5,
+          "tick": 900
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "leave",
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "teach",
+          "prompt": "sevQ",
+          "choice": "outpt",
+          "seq": 7,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 1620
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "kind": "full"
+          },
+          "seq": 9,
+          "tick": 1620
+        }
+      ],
+      "expect": {
+        "ending": "strokeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "neuro": "partial",
+          "refer": "met",
+          "lkw": "partial",
+          "noOfficeTx": "met",
+          "handoff": "met"
+        },
+        "kpis": {
+          "to911": 900,
+          "lkw": 55
+        },
+        "stateHash": "2751169572b4369d"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "officeDrugs",
+      "title": "Deficit found and 911 called at once, but clonidine and aspirin while waiting, and a thin handoff",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "clonidine",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "leave",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "sevQ",
+          "choice": "outpt",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 480
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 740
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "params": {
+            "kind": "brief"
+          },
+          "seq": 9,
+          "tick": 740
+        }
+      ],
+      "expect": {
+        "ending": "strokeLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "neuro": "met",
+          "refer": "met",
+          "lkw": "missed",
+          "noOfficeTx": "missed",
+          "handoff": "partial"
+        },
+        "kpis": {
+          "to911": 20,
+          "lkw": 40
+        },
+        "stateHash": "4519f1887f57ebd2"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "chaseNumber",
+      "title": "Failure: clonidine for the number and a recheck, no neuro check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "clonidine",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 2,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "denseDeficit",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "neuro": "missed",
+          "refer": "missed",
+          "lkw": "missed",
+          "noOfficeTx": "missed",
+          "handoff": "missed"
+        },
+        "kpis": {
+          "to911": -1,
+          "lkw": -1
+        },
+        "stateHash": "1d7cabcc53635da5"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "sentHome",
+      "title": "Failure: a refill and a second drug, home with a follow-up in a week",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "sendHome",
+          "seq": 2,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "wentHome",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "neuro": "missed",
+          "refer": "missed",
+          "lkw": "missed",
+          "noOfficeTx": "met",
+          "handoff": "missed"
+        },
+        "kpis": {
+          "to911": -1,
+          "lkw": -1
+        },
+        "stateHash": "2b6dedb62cdf8c46"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

@@ -155,6 +155,9 @@ const D = {
 } as const;
 
 export const FNP_SIM_OBJECTIVES = {
+  // The bedside sims (lib/sim/documents.ts): the red-flag case is registered
+  // to FNPAANP, the hypoglycemia case to FNPANCC; both titles are in both courses.
+  hypoglycemia: "Recognize hypoglycemia from diabetes treatment and adjust the regimen to prevent it",
   chestPain: "Recognize red flags that need emergency referral: chest pain, stroke symptoms, sepsis, an acute abdomen, ectopic pregnancy and suicidal intent",
 } as const;
 
