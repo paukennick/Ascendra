@@ -5273,7 +5273,7 @@ names the other fitting objectives it exercises as secondary objectives.
 - **`time_up`** is reached by no golden path in any of the nine (every slow
   path ends earlier), so the linter's warning remains.
 
-### 22.19 Nursing specialty and FNP bedside sims: CMSRN, CEN, PCCN, AANPCB FNP and ANCC FNP-BC (REQ-279)
+### 22.23 Nursing specialty and FNP bedside sims: CMSRN, CEN, PCCN, AANPCB FNP and ANCC FNP-BC (REQ-279)
 
 Nick, 2026-11-14: sims for the new nursing courses (REQ-275 to REQ-278)
 follow coverage, not a count. `docs/sims-coverage-nursing-specialty.md` maps

@@ -1,5 +1,5 @@
 // REQ-275 to REQ-278 (docs/sims-coverage-nursing-specialty.md, docs/sims.md
-// 22.19): the bedside sims for the new nursing specialty and FNP courses,
+// 22.23): the bedside sims for the new nursing specialty and FNP courses,
 // checked the way lib/sim/clinical-coverage.test.ts checks REQ-296. Each is a running clinical case on
 // an existing screen, registers to a catalog objective of its course that the
 // selection rule (lib/sim/generator/selection.ts) passes, orders its endings,
