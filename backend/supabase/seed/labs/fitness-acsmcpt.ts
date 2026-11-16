@@ -1,4 +1,4 @@
-import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { FITNESS_SAFETY, part, selectPart, matchPart, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-149: ACSM Certified Personal Trainer (ACSMCPT), authored to the depth
@@ -403,6 +403,126 @@ export const ACSMCPT_LABS: SeedLabSet = {
               "Program in the meantime",
               "Adjusts for safety while awaiting review (for example seated or supported balance work, footwear and surface checks) and continues only as the physician advises.",
               "Until she's seen, keep balance work supported, check her feet and footwear, and use stable surfaces; continue as her physician advises."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, two labs. Read 2026-11-14:
+    // ACSM and NCHPAD, "Setting Client-centered Goals" (PDF on acsm.org, no
+    // date or author shown): S.M.A.R.T.S. adds an S to SMART -- specific,
+    // measurable, achievable, relevant, timely and self-determined (the
+    // client sets the goal); "let your clients take the wheel ... Help them
+    // navigate, but let them steer." ADA professional infographic
+    // "Hypoglycemia" (based on Standards of Care in Diabetes--2025): level 1
+    // below 70 and at or above 54 mg/dL; level 2 below 54 mg/dL; level 3
+    // altered mental and/or physical status needing assistance at any
+    // glucose; for most alert people, 15 g of fast-acting carbohydrate, retest
+    // after 15 minutes, repeat every 15 minutes until resolved; glucagon when
+    // the person is unable or unwilling to take carbohydrate by mouth.
+    {
+      slug: "acsm-smarts-goal-rewrite",
+      objective: "Behavior-change theories and strategies: setting S.M.A.R.T.S. goals and supporting adherence",
+      kind: "build",
+      title: "From 'get in shape' to a S.M.A.R.T.S. goal",
+      brief:
+        "You are a fictional ACSM Certified Personal Trainer. Your new client, Mr. Banerjee, a fictional 45-year-old accountant cleared for exercise, says: 'I want to get in shape. My daughter is running a 5K in April and I'd like to do it with her.' It is January. You explain the acronym ACSM uses. You draft some goals together. Some of your early drafts are below.",
+      safetyNote: FITNESS_SAFETY,
+      sources: [source("https://acsm.org/wp-content/uploads/2025/02/ACSM-NCHPAD-Setting-Client-centered-Goals-PDF.pdf", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Match each letter of S.M.A.R.T.S. to what it stands for. Then: tap the drafts that have no time frame, then write one S.M.A.R.T.S. goal for him, in his words, with how you will support adherence.",
+          parts: [
+            matchPart(
+              "S.M.A.R.T.S.",
+              "Met: all six matched. Partly there: five of six.",
+              "Specific, measurable, achievable, relevant, timely -- the familiar SMART -- plus a final S for self-determined: the client sets the goal, with the trainer helping him navigate.",
+              {
+                left: ["First S", "M", "A", "R", "T", "Final S"],
+                right: ["Specific", "Measurable", "Achievable", "Relevant", "Timely", "Self-determined", "Supervised", "Strenuous"],
+                pairs: [0, 1, 2, 3, 4, 5],
+                leftHeading: "Letter",
+                rightHeading: "Stands for",
+              }
+            ),
+            selectPart(
+              "Drafts with no time frame",
+              "Met: exactly the three drafts with no time frame. (Right picks minus wrong picks) of at least two is partly there.",
+              "A goal is timely when it says by when, or how often over what period. 'Run more', 'get faster at running' and 'lose some weight' give no date or period; the others do.",
+              {
+                display: "list",
+                lines: [
+                  "Run more",
+                  "Walk-jog 20 minutes, 3 days a week, for the next 4 weeks",
+                  "Get faster at running",
+                  "Finish the 5K with my daughter on April 18",
+                  "Lose some weight",
+                  "Log every session in the app each week until the race",
+                ],
+                correct: [0, 2, 4],
+              }
+            ),
+            part(
+              "His S.M.A.R.T.S. goal and adherence support",
+              "The goal is his own choice (self-determined, not imposed), specific and measurable (what, how much, how often), achievable from his baseline, relevant to running with his daughter, and timely (a date or period); ideally a long-term goal with short-term process goals; adherence support such as scheduling sessions at fixed times, logging, regular check-ins and revising the goal with him if it proves too hard or easy.",
+              "In his words: \"I'll finish the April 18 5K with my daughter. To get there I'll walk-jog three mornings a week -- Monday, Wednesday, Saturday -- building from 20 to 35 minutes by the end of March, and log each one.\" He chose the race and the days; you helped shape the numbers from his baseline. Support: put the sessions in his calendar, review the log with him every two weeks, and change the plan together if it's too easy or too hard."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "acsm-hypoglycemia-in-session",
+      objective: "Risk management, emergency procedures and documentation in the training setting",
+      kind: "case",
+      title: "Shaky in the middle of a session",
+      brief:
+        "You are a fictional ACSM Certified Personal Trainer at a fictional fitness center with a written emergency plan. Your client, Ms. Ito, a fictional 38-year-old with type 1 diabetes, is cleared for exercise and carries her own glucose meter and glucose tablets (4 g each). Thirty minutes into her session she says she feels shaky and sweaty.",
+      safetyNote: FITNESS_SAFETY,
+      sources: [source("https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf", "clinical_guideline", "2026-11-14")],
+      steps: [
+        {
+          text: "You stop the exercise and she sits down. She is alert and talking normally. Her own meter reads 62 mg/dL.",
+          ask: "Answer the two questions, then say what happens next.",
+          parts: [
+            numericPart(
+              "Grams of fast-acting carbohydrate she takes now",
+              "Met: 15 within 1. Partly there within 3.",
+              "For most alert people with low blood glucose, the ADA's rule is 15 g of fast-acting carbohydrate, then retest after 15 minutes. With 4 g tablets, that is about four tablets (16 g).",
+              { answer: 15, tolerance: 1, partialTolerance: 3, unit: "g" }
+            ),
+            numericPart(
+              "Minutes before she retests",
+              "Met: 15 within 1. Partly there within 3.",
+              "Retest after 15 minutes, and repeat the treatment every 15 minutes until the low resolves. Exercise does not restart while she is low.",
+              { answer: 15, tolerance: 1, partialTolerance: 3, unit: "min" }
+            ),
+            part(
+              "What happens next",
+              "She treats herself with her own carbohydrate (the trainer doesn't diagnose or dose); exercise stops and she is not left alone; retest at 15 minutes and repeat 15 g if still low; resume only when she has recovered and she and her own diabetes plan say so, otherwise end the session; if she becomes confused, can't safely swallow, or loses responsiveness, she gets nothing by mouth, the trainer calls 911 and follows the facility's emergency plan (glucagon is for someone who can't take carbohydrate by mouth, given by someone trained under her plan); the trainer knows 62 is level 1 (below 70, at or above 54).",
+              "She takes four of her 4 g tablets (16 g) -- her own supplies, her own decision; you don't dose. You stay with her, no exercise. At 15 minutes she retests; if she's still below 70 she takes another 15 g and you wait again. Restart only if she has recovered and her own plan allows it; otherwise end the session there. If she becomes confused, can't swallow safely or stops responding, give nothing by mouth, call 911 and follow the emergency plan -- glucagon is the treatment when she can't take carbohydrate by mouth, given by someone trained to under her plan."
+            ),
+          ],
+        },
+        {
+          text: "She recovers. After the session your manager asks you to fill in the incident report.",
+          ask: "Tap the readings that would be level 2 hypoglycemia, then say what the report must contain.",
+          parts: [
+            selectPart(
+              "Level 2 readings",
+              "Met: exactly the two readings below 54 mg/dL. (Right picks minus wrong picks) of at least one is partly there.",
+              "Level 1 is below 70 and at or above 54 mg/dL; level 2 is below 54 mg/dL. Level 3 isn't a number: it means altered mental or physical status needing someone's help, at any glucose.",
+              {
+                display: "list",
+                lines: ["62 mg/dL", "53 mg/dL", "54 mg/dL", "48 mg/dL", "69 mg/dL"],
+                correct: [1, 3],
+              }
+            ),
+            part(
+              "What the report contains",
+              "Objective facts with times: what she reported and what was seen, her meter readings and times, what she took and how much, retest results, whether exercise resumed or stopped, whether EMS was called, who was present; no diagnosis or blame; signed and dated; stored per the facility's confidentiality policy and shared only with those who need it; a note to review the plan with her (e.g., checking glucose before sessions, carrying supplies) and, with her permission, any communication with her health care provider.",
+              "Facts and times only: 10:30 she reported feeling shaky and sweaty; exercise stopped; her meter 62 mg/dL; she took 16 g of glucose tablets; 10:46 retest result; whether she resumed or went home; that EMS was not needed (or was called, and when). Names of who was there, your signature, the date. No diagnosis, no blame. File it under the center's confidentiality policy, and plan a talk with her about checking her glucose before sessions and keeping supplies on the floor -- and, if she agrees, letting her diabetes team know."
             ),
           ],
         },

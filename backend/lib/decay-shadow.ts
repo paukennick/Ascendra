@@ -118,7 +118,7 @@ export interface ShadowPrediction {
 
 const round6 = (x: number) => Math.round(x * 1e6) / 1e6;
 
-// null when there is nothing to predict from: the target has no enrolment, or
+// null when there is nothing to predict from: the target has no enrollment, or
 // a number came out non-finite.
 export function predictShadow(input: ShadowInput): ShadowPrediction | null {
   const { target } = input;
@@ -135,8 +135,8 @@ export function predictShadow(input: ShadowInput): ShadowPrediction | null {
   }
   for (const list of byObjective.values()) list.sort((a, b) => a.atMs - b.atMs);
 
-  // The fit's input: an enrolment (Good) then each review, per objective. An
-  // enrolment stamped after the first review (bad data) moves back to it.
+  // The fit's input: an enrollment (Good) then each review, per objective. An
+  // enrollment stamped after the first review (bad data) moves back to it.
   const log: LoggedReview[] = [];
   const enrollDay = (objectiveId: string, enrolledMs: number): number => {
     const first = byObjective.get(objectiveId)?.[0]?.atMs;
@@ -204,7 +204,7 @@ export interface ShadowRow {
 
 // Reads that both the live write and the backfill make. The course of an
 // objective, the learner's goal and level there, and (for the live write) the
-// objective's enrolment. Retired objectives' old reviews are kept on purpose:
+// objective's enrollment. Retired objectives' old reviews are kept on purpose:
 // they are real observations of this learner's memory, and nothing here
 // shows them to anyone.
 export const COURSE_PROFILE_SQL = `

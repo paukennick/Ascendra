@@ -103,8 +103,8 @@ describe("the live write (REQ-301)", () => {
       assert.ok(Number(r.model_stability) > 0 && Number(r.model_difficulty) >= 1 && Number(r.model_k) > 0);
     }
     assert.equal(rows[0].model_fit_stage, "starting");
-    // The first review of objective 0 is 1.5 days after enrolment on a fresh state, so recall is below 100% and
-    // the stability it used is the enrolment's.
+    // The first review of objective 0 is 1.5 days after enrollment on a fresh state, so recall is below 100% and
+    // the stability it used is the enrollment's.
     assert.ok(Number(rows[0].predicted_recall) < 1);
     // The state a review used is the state the earlier reviews left: stability grows after a correct unaided answer.
     const own = rows.filter((r) => r.objective_id === objs[0]);

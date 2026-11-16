@@ -406,6 +406,11 @@ const LEMS_REVIEW_2024 = source("https://practicalneurology.com/articles/2024-ap
 const CERVICAL_RADICULOPATHY_EDX_2025 = source("https://doi.org/10.1055/s-0045-1812893", "reference", ECS_CHECKED);
 const EAN_PNS_CIDP_2021 = source("https://doi.org/10.1111/ene.14959", "clinical_guideline", ECS_CHECKED);
 const ROBINSON_NERVE_INJURY_2000 = source("https://pubmed.ncbi.nlm.nih.gov/10842261/", "reference", ECS_CHECKED);
+// REQ-295 (read 2026-11-14): Trevethan R, Sensitivity, Specificity, and
+// Predictive Values: Foundations, Pliabilities, and Pitfalls in Research and
+// Practice, Front Public Health 2017;5:307 -- definitions in words of
+// sensitivity, specificity, PPV and NPV and the 2x2 cells each rests on.
+const TREVETHAN_2017 = source("https://doi.org/10.3389/fpubh.2017.00307", "reference", "2026-11-14");
 
 const NO_VALUE = "Quotes no clinical threshold, dose or target (recognition, priorities, communication or ethics).";
 const CASE_DATA = "Its numbers are the fictional patient's own readings, not a threshold or dose the lab teaches.";
@@ -568,6 +573,7 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "ecs-cervical-radiculopathy-emg-case": [CERVICAL_RADICULOPATHY_EDX_2025],
     "ecs-formulate-diagnosis-polyneuropathy-case": [EAN_PNS_CIDP_2021],
     "ecs-preganglionic-plexus-injury": [CERVICAL_RADICULOPATHY_EDX_2025],
+    "ecs-sensitivity-specificity-cts": [TREVETHAN_2017],
   },
   // REQ-174: NREMT EMT. Sources in ems-sources.ts (read 2026-11-09). The
   // Scope of Practice Model is a "reference" (12-month re-check) and backs

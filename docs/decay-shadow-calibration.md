@@ -6,6 +6,19 @@ Shadow mode stores what the memory model predicted for each review beside what
 the learner actually did. Nothing here changes scheduling, readiness or any
 screen.
 
+## Status (2026-11-16)
+
+Migration 085 is applied in production and the live write is on (checkpoint
+#193, 2026-11-14). The backfill has not been run there: nothing replays history
+until someone runs `npm run decay:backfill` (dry run) and then `-- --apply`
+with the owner connection. Until then the report holds only reviews made since
+the deploy (`--source live`), and the 200-review minimum per slice will take a
+while to reach on the smaller slices. What to check first in production: that
+`select count(*) filter (where predicted_recall is not null), count(*) from
+review_log where reviewed_at > '<deploy time>' and scheduler is not null`
+shows nearly every stepped review predicted (an unenrolled answer stores none,
+and a skipped prediction logs `[decay-shadow] prediction skipped`).
+
 ## Order of operations
 
 1. Apply migration 085 (`npm run migrate`). Safe before or after the backend.

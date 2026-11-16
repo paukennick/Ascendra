@@ -309,6 +309,9 @@
   is added to the documents' declared minor; an app still on the older minor is
   told to update, so say so in the change notes. Maps the engine still reads
   in key order (`teaching`, FAIL-1250) are listed in docs/sims.md 22.6.
+  A sim test, unit or DB, selects its documents by slug from its own
+  requirement's list, never by course code, so a later sim in the same course
+  cannot break it (FAIL-2000, FAIL-2002; `lib/sim/it-wave3.ts`).
 - Best-effort side writes (REQ-301, FAIL-2060, FAIL-2061): a write that must
   never fail the request it rides on (the shadow-mode prediction in
   lib/decay-shadow.ts) runs in a savepoint, puts back any `SET LOCAL` it made

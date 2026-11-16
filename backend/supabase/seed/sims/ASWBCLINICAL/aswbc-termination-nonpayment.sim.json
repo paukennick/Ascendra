@@ -1,0 +1,1221 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbc-termination-nonpayment",
+  "title": "Session: three months unpaid, and 'I should probably just stop coming'",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Daniel Okafor",
+        "presentation": "{distress >= 6 ? \"Embarrassed, staring at his shoes\" : distress >= 3 ? \"Uneasy, apologetic\" : \"Calmer, sitting back\"}; {rapport >= 6 ? \"he talks with you openly\" : rapport >= 3 ? \"he keeps it short\" : \"he has closed off\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "balance",
+          "label": "Account",
+          "text": "Lost his job and his insurance in August; three months unpaid, $1,140. He signed the practice's fee agreement at intake.",
+          "when": "true"
+        },
+        {
+          "id": "risk",
+          "label": "Risk",
+          "text": "{riskScreened ? \"No suicidal thoughts since April; no imminent danger.\" : \"Not yet asked today. In April he had passive thoughts of death.\"}",
+          "when": "true",
+          "alert": "not riskScreened"
+        },
+        {
+          "id": "goals",
+          "label": "Goals",
+          "text": "Sleep and exercise met; anger at his father still open.",
+          "when": "progressReviewed"
+        },
+        {
+          "id": "plan",
+          "label": "Plan",
+          "text": "{plan == \"transfer\" ? \"Three closing sessions at a reduced fee, then the sliding-scale clinic\" : plan == \"waive\" ? \"Free, open-ended\" : plan == \"today\" ? \"Ended today until paid\" : \"Not agreed\"}{releaseSigned ? \"; release signed for a summary to the clinic.\" : \".\"}",
+          "when": "plan != \"none\"",
+          "alert": "plan == \"today\""
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Fee agreement and balance reviewed",
+            "when": "arrangementReviewed"
+          },
+          {
+            "label": "Risk screened before the plan",
+            "when": "riskScreened"
+          },
+          {
+            "label": "Plan: {plan}",
+            "when": "plan != \"none\""
+          },
+          {
+            "label": "Letter: {letter}",
+            "when": "letter != \"none\""
+          },
+          {
+            "label": "Documented: {recordDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "End services ethically: planned termination, transfer, nonpayment and avoiding abandonment",
+  "sources": [
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Clinical content outline: I Values and Ethics, 36% (IB termination of services, including nonpayment and avoiding abandonment); III Intervention and Practice, 32%; the 2026 blueprint in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Read in full 2026-11-14 for the course outline (REQ-286)."
+    },
+    {
+      "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.17(b) take reasonable steps to avoid abandoning clients who are still in need of services; 1.17(c) terminate for an overdue balance only if the financial arrangements were made clear, the client does not pose an imminent danger to self or others, and the consequences of nonpayment have been addressed and discussed with the client; 1.02 self-determination",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Standards 1-3 read in full 2026-11-14 for the course (REQ-286); the wording here is the course's record of them, not a quotation. NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+    },
+    {
+      "cite": "Columbia-Suicide Severity Rating Scale (C-SSRS), Screen Version (2008): wish to be dead; suicidal thoughts; then method, intent, plan; suicidal behavior",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.thenationalcouncil.org/wp-content/uploads/2021/04/Columbia_Suicide_Severity_Rating_Scale.pdf",
+      "note": "Read 2026-11-14. Used here only for the screening questions before a planned ending."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed clinical social worker in a small group practice. Daniel Okafor, 41 (a fictional client), has seen you for eight months for depression after his divorce; in April he had passive thoughts of death, which have since gone. He lost his job and his health insurance in August and has paid nothing since. The practice's fee agreement, which he signed at intake, says unpaid balances are discussed in session before any change to services. You have 50 minutes.",
+    "handover": [
+      "Goals: sleep, exercise, the anger at his father. Last risk screen (six weeks ago): no suicidal thoughts."
+    ],
+    "howItWorks": [
+      "Choose what to say from the action groups. Daniel answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say.",
+      "The hour ends at 50 minutes. After the session you send a letter and document; then you write a short formulation."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-14",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "demanded": {
+      "type": "bool",
+      "init": false
+    },
+    "arrangementReviewed": {
+      "type": "bool",
+      "init": false
+    },
+    "riskScreened": {
+      "type": "bool",
+      "init": false
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "optionsExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "progressReviewed": {
+      "type": "bool",
+      "init": false
+    },
+    "releaseSigned": {
+      "type": "bool",
+      "init": false
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "transfer",
+        "waive",
+        "today"
+      ],
+      "init": "none"
+    },
+    "letter": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plan",
+        "collections",
+        "noLetter"
+      ],
+      "init": "none"
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "demand",
+        "reviewArrangement",
+        "screenRisk",
+        "exploreOptions",
+        "progress",
+        "agreePlan",
+        "consent",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "letter",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'How have the last couple of weeks been?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have checked in.",
+      "effects": [
+        {
+          "log": "You ask an open question and give him room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Better than in spring. Sleeping. Back to running.\" He looks away. \"I know I owe you for three months. Since the job ended I don't have insurance. I should probably just stop coming.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Daniel nods. \"Yeah. I hate owing people.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reviewArrangement": {
+      "label": "Go back over the payment agreement you both signed at intake, and what the balance is",
+      "group": "Address",
+      "available": "not talking and (not arrangementReviewed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You go over the fee agreement he signed at intake and the balance, plainly and without blame.",
+          "kind": "act"
+        },
+        {
+          "set": "arrangementReviewed",
+          "to": "true"
+        },
+        {
+          "finding": "\"Right. I remember. $1,140. I just couldn't open the bills.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "demand": {
+      "label": "Tell him the balance has to be paid in full before you can keep seeing him",
+      "group": "Address",
+      "available": "not talking and (not demanded)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell him the balance must be paid before sessions can continue.",
+          "kind": "act"
+        },
+        {
+          "set": "demanded",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2.5"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "His face closes. \"I don't have it. You know I don't have it.\""
+        },
+        {
+          "log": "A demand before the arrangement, his risk and the options are discussed skips 1.17(c).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "screenRisk": {
+      "label": "Ask about his mood now, including any thoughts of being better off dead or of suicide (C-SSRS 1-2)",
+      "group": "Ask about risk",
+      "available": "not talking and (not riskScreened)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about his mood and ask directly about suicidal thoughts.",
+          "kind": "act"
+        },
+        {
+          "set": "riskScreened",
+          "to": "true"
+        },
+        {
+          "set": "riskAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "add": "disclosed",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"No. Not since April. The worst I get now is a bad Sunday.\""
+                },
+                {
+                  "log": "No current suicidal thoughts; no imminent danger.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"I'm fine.\" (He says it fast.)"
+                },
+                {
+                  "set": "riskScreened",
+                  "to": "false"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "exploreOptions": {
+      "label": "Explore the options with him: a reduced fee or payment plan, a sliding-scale clinic, a planned ending",
+      "group": "Plan",
+      "available": "not talking and (arrangementReviewed and not optionsExplored)",
+      "why": "Go over the agreement first (or it is done).",
+      "effects": [
+        {
+          "log": "You lay out the options and ask what fits him.",
+          "kind": "act"
+        },
+        {
+          "set": "optionsExplored",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "\"Twenty a session I could do. Or the clinic on Fourth Street, if they'd take me.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "progress": {
+      "label": "Review his progress toward his goals and what's still open",
+      "group": "Plan",
+      "available": "not talking and (not progressReviewed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You review the goals together.",
+          "kind": "act"
+        },
+        {
+          "set": "progressReviewed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Sleep and running, yes. The anger at my dad, not really. That's the one I'd want to keep working on.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "agreePlan": {
+      "label": "Agree the plan with him",
+      "group": "Plan",
+      "available": "not talking and (plan == \"none\")",
+      "why": "Agreed.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "pick == \"transfer\"",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "pick"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Three more sessions at twenty, then the clinic. You'll call them with me?\" You agree to a warm handoff with his written consent."
+                }
+              ]
+            },
+            {
+              "when": "pick == \"waive\"",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "pick"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Free? Forever? I... okay.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "pick"
+                },
+                {
+                  "add": "rapport",
+                  "by": "-2"
+                },
+                {
+                  "add": "distress",
+                  "by": "2"
+                },
+                {
+                  "finding": "He stands up. \"Okay. So that's it then.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ],
+      "params": [
+        {
+          "id": "pick",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "transfer",
+              "label": "Three closing sessions at a reduced fee, then a warm handoff to the sliding-scale clinic for the work on his father"
+            },
+            {
+              "value": "waive",
+              "label": "Waive the balance and keep seeing him free, open-ended"
+            },
+            {
+              "value": "today",
+              "label": "Today is the last session until the balance is paid"
+            }
+          ]
+        }
+      ]
+    },
+    "consent": {
+      "label": "Get his written consent to send a summary to the clinic",
+      "group": "Plan",
+      "available": "not talking and (plan == \"transfer\" and not releaseSigned)",
+      "why": "Agree a transfer first (or it is signed).",
+      "effects": [
+        {
+          "log": "You explain what the summary would contain and get his signed release.",
+          "kind": "act"
+        },
+        {
+          "set": "releaseSigned",
+          "to": "true"
+        },
+        {
+          "finding": "He signs. \"Only the summary, right?\" You confirm."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "letter": {
+      "label": "Send him a closing letter",
+      "group": "After the session",
+      "available": "letter == \"none\"",
+      "why": "Sent.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Letter",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What it says",
+              "options": [
+                {
+                  "value": "plan",
+                  "label": "The plan you agreed, the date of the last session, the clinic's contact and intake hours, 988 and how to reach you until then"
+                },
+                {
+                  "value": "collections",
+                  "label": "That the account goes to collections and services have ended"
+                },
+                {
+                  "value": "noLetter",
+                  "label": "No letter"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "letter",
+          "to": "what"
+        },
+        {
+          "log": "Letter: {what}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document",
+      "group": "Document",
+      "available": "not documented and letter != \"none\"",
+      "why": "Decide about the letter first (or it is documented).",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "record",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "The fee discussion, the risk screen, his progress and open goals, the plan and why, the release, the handoff and the letter"
+                },
+                {
+                  "value": "brief",
+                  "label": "'Terminated for nonpayment'"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {record}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictNonpay",
+      "when": "disclosed >= 1 and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "conditions"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "conditions": {
+      "title": "Predict (not scored)",
+      "context": "Daniel owes three months. Under NASW 1.17(c), what has to be true before services may end for nonpayment?",
+      "choices": [
+        {
+          "id": "three",
+          "label": "The arrangement was clear, he is not an imminent danger, and the consequences were discussed with him",
+          "effects": [
+            {
+              "log": "Prediction: the three conditions.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. 1.17(c) names all three; 1.17(b) adds that a client still in need should not be abandoned, which is why a planned transfer beats a stop."
+        },
+        {
+          "id": "balance",
+          "label": "Only that the balance is overdue",
+          "effects": [
+            {
+              "log": "Prediction: overdue is enough.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not quite. An overdue balance is where 1.17(c) starts: the arrangement must have been clear, he must not be an imminent danger, and the consequences must be discussed with him."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your rationale for how services with Daniel will end, naming the NASW standards.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Conditions for ending",
+          "criteria": "The fee agreement was clear and reviewed; a current risk screen found no imminent danger; the consequences and options were discussed with him (1.17(c)).",
+          "modelAnswer": "His fee agreement was signed at intake and we went over it together. I screened for suicide risk today, given April's history: no current thoughts, no imminent danger. We discussed the balance and the options openly, as 1.17(c) requires before ending for nonpayment."
+        },
+        {
+          "label": "Avoiding abandonment",
+          "criteria": "Open goals are named; a planned ending with closing sessions and a warm handoff, with his written release, keeps him in care (1.17(b)); a free open-ended arrangement is weighed as unsustainable; the letter gives the plan and crisis contacts.",
+          "modelAnswer": "The work on his father is still open, so ending today would leave him in need (1.17(b)). We agreed three closing sessions at a reduced fee and a warm handoff to the sliding-scale clinic, with his signed release for a summary only. The letter confirms the plan, the clinic's contact, 988 and how to reach me until the last session."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Given his history of passive thoughts of death in April, the risk screen comes within the first 20 minutes, before any plan is agreed (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and plan == \"none\"",
+      "class": "recovered",
+      "rationale": "No plan was agreed: he is not abandoned yet, but nothing about the balance or the ending is settled.",
+      "source": {
+        "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.17(b) take reasonable steps to avoid abandoning clients who are still in need of services; 1.17(c) terminate for an overdue balance only if the financial arrangements were made clear, the client does not pose an imminent danger to self or others, and the consequences of nonpayment have been addressed and discussed with the client; 1.02 self-determination",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+        "note": "Standards 1-3 read in full 2026-11-14 for the course (REQ-286); the wording here is the course's record of them, not a quotation. NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Daniel left mid-session, ashamed, with his anger at his father unworked and nothing in place."
+    },
+    "abandoned": {
+      "label": "Ended without the conditions",
+      "class": "harm",
+      "when": "documented and not walkedOut and (plan == \"today\" or letter == \"collections\")",
+      "terminal": true,
+      "narrative": "Services ended {riskScreened ? \"\" : \"without today's risk screen, \"}with work still open and no handoff: what 1.17(b) calls abandonment."
+    },
+    "waived": {
+      "label": "Kept on, unsustainably",
+      "class": "recovered",
+      "when": "documented and not walkedOut and plan == \"waive\"",
+      "terminal": true,
+      "narrative": "Daniel stays, free and open-ended. He is not abandoned, but nothing is planned and the practice may not be able to keep it up."
+    },
+    "planned": {
+      "label": "A planned ending, with a handoff",
+      "class": "target",
+      "when": "documented and not walkedOut and arrangementReviewed and riskScreened and timeAt(riskAt) <= safetyWindow and optionsExplored and progressReviewed and plan == \"transfer\" and releaseSigned and not demanded and letter == \"plan\" and recordDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Daniel has three closing sessions he can afford, a warm handoff to the clinic for the work on his father, and a letter that says so."
+    },
+    "gaps": {
+      "label": "A planned ending, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "He has a way forward, but parts of the review, the risk screen, the handoff or the record were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "abandoned",
+    "waived",
+    "planned",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "conditions",
+        "label": "The 1.17(c) conditions: agreement reviewed, risk screened, consequences discussed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "arrangementReviewed and riskScreened and optionsExplored and timeAt(riskAt) <= safetyWindow",
+            "score": "met",
+            "why": "All three, with the risk screen {timeAt(riskAt) / 60} min in."
+          },
+          {
+            "when": "arrangementReviewed and riskScreened",
+            "score": "partial",
+            "why": "Reviewed and screened, but {optionsExplored ? \"the screen came late\" : \"no options discussed\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{riskScreened ? \"The agreement never reviewed\" : \"No risk screen before deciding\"}."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "noAbandon",
+        "label": "No abandonment: a planned ending with a handoff (1.17(b))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "plan == \"transfer\" and releaseSigned",
+            "score": "met",
+            "why": "Closing sessions and a warm handoff, with consent."
+          },
+          {
+            "when": "plan == \"transfer\" or plan == \"waive\"",
+            "score": "partial",
+            "why": "{plan == \"waive\" ? \"Kept him, with no plan\" : \"A transfer, but no release for the handoff\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{plan == \"today\" ? \"Ended today\" : \"No plan\"}."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "goalsCrit",
+        "label": "Reviewed his progress and what is still open",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "progressReviewed",
+            "score": "met",
+            "why": "Progress and the open goal named."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reviewed."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "letterCrit",
+        "label": "A closing letter with the plan and crisis contacts, and a full record",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "letter == \"plan\" and recordDoc == \"full\"",
+            "score": "met",
+            "why": "Letter and record."
+          },
+          {
+            "when": "letter == \"plan\" or recordDoc == \"full\"",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToScreen",
+        "label": "Minutes to the risk screen",
+        "value": "isNull(riskAt) ? -1 : timeAt(riskAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in and reflect his embarrassment; review the fee agreement and balance without blame."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Screen for suicide risk, given April; review his progress and what is still open."
+      },
+      {
+        "at": "20-45 min",
+        "text": "Explore options; agree closing sessions at a reduced fee and a warm handoff; get his release for a summary."
+      },
+      {
+        "at": "After",
+        "text": "Send a letter with the plan, the clinic, 988 and your contact; document."
+      }
+    ],
+    "debrief": {
+      "planned": {
+        "headline": "Good: a planned ending, not an abandonment",
+        "body": "You met 1.17(c)'s conditions, named the open work, and ended with closing sessions and a warm handoff he agreed to."
+      },
+      "gaps": {
+        "headline": "Planned, with gaps",
+        "body": "He has a way forward; the criteria below show what was late or missing."
+      },
+      "waived": {
+        "headline": "Kind, but not a plan",
+        "body": "Free, open-ended care avoids abandonment today but plans nothing. A reduced fee for closing sessions and a handoff serve him better."
+      },
+      "abandoned": {
+        "headline": "Abandonment",
+        "body": "NASW 1.17(c) allows ending for nonpayment only once the arrangement was clear, imminent danger is ruled out and the consequences are discussed; 1.17(b) asks you not to leave a client still in need without a path."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Money is shaming for many clients. Reflect it, review the agreement without blame, and plan the ending with him."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Before ending for nonpayment, meet 1.17(c): the fee agreement was clear (review it), he is not an imminent danger (screen today, given April), and the consequences are discussed with him. His work on his father is open, so ending today would abandon him (1.17(b)): agree closing sessions he can afford and a warm handoff to a sliding-scale clinic with his written release, confirm it in a letter with crisis contacts, and document."
+  }
+}

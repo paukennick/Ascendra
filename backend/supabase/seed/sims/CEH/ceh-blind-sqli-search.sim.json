@@ -1,0 +1,1260 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ceh-blind-sqli-search",
+  "title": "Slow searches: a blind SQL injection in progress",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "waf",
+          "severity": "high",
+          "title": "WAF (detect only): SQL injection signatures in the 'dest' parameter of /search from 203.0.113.70",
+          "when": "true",
+          "at": "0",
+          "status": "{injectable ? \"Still injectable\" : not isNull(fixAt) ? \"Fixed in code\" : \"Blocked for now\"}",
+          "open": "injectable"
+        },
+        {
+          "id": "slow",
+          "severity": "medium",
+          "title": "Database: /search queries alternating between 20 ms and exactly 5 seconds",
+          "when": "true",
+          "at": "0",
+          "status": "{injectable ? \"Ongoing\" : \"Stopped\"}",
+          "open": "injectable"
+        },
+        {
+          "id": "enum",
+          "severity": "high",
+          "title": "Database audit: the search login read the list of tables and columns",
+          "when": "not isNull(enumAt)",
+          "at": "timeAt(enumAt)",
+          "status": "Read",
+          "open": "false"
+        },
+        {
+          "id": "evade",
+          "severity": "high",
+          "title": "WAF: the same requests now arrive from many 198.51.100.0/24 addresses with mixed-case and encoded keywords, not matching the signatures",
+          "when": "not isNull(evadeAt)",
+          "at": "timeAt(evadeAt)",
+          "status": "{injectable ? \"Getting through\" : \"Stopped\"}",
+          "open": "injectable"
+        },
+        {
+          "id": "dump",
+          "severity": "critical",
+          "title": "Database audit: the search login is reading the customers table, passport numbers included",
+          "when": "not isNull(dumpStartAt)",
+          "at": "timeAt(dumpStartAt)",
+          "status": "{not isNull(dumpedAt) ? \"Table read in full\" : injectable ? \"Reading\" : \"Stopped\"}",
+          "open": "injectable"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "WAF",
+          "text": "203.0.113.70: /search requests whose 'dest' value adds a condition and a timed delay; no error pages, no data in the responses",
+          "when": "not isNull(readAt)",
+          "at": "timeAt(readAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Slow-query log",
+          "text": "Each 5-second query matches a true condition; the attacker reads one answer per request",
+          "when": "not isNull(readAt)",
+          "at": "timeAt(readAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Code",
+          "text": "Search handler builds its SQL by joining the 'dest' text into the query string",
+          "when": "not isNull(readAt)",
+          "at": "timeAt(readAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Firewall",
+          "text": "203.0.113.70 blocked; requests continue from 198.51.100.14",
+          "when": "not isNull(ipBlockAt)",
+          "at": "timeAt(ipBlockAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Database audit",
+          "text": "{not isNull(dumpStartAt) ? \"Read by the search login: table list, column list, and customer rows\" : not isNull(enumAt) ? \"Read by the search login: table list and column list; no customer rows\" : \"Read by the search login: database version only\"}",
+          "when": "not isNull(checkAt)",
+          "at": "timeAt(checkAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "search",
+          "label": "/search",
+          "spokenLabel": "Search endpoint",
+          "kind": "Destination search",
+          "status": "{not isNull(fixAt) ? \"Parameterized query\" : \"String-built query\"}{searchOff ? \"; turned off\" : \"; live\"}",
+          "tone": "injectable ? \"bad\" : searchOff ? \"held\" : \"ok\""
+        },
+        {
+          "id": "dblogin",
+          "label": "app_search",
+          "spokenLabel": "Database login app search",
+          "kind": "Application database login",
+          "status": "{isNull(privAt) ? \"db_owner: can read every table\" : \"Read-only on the search views\"}",
+          "tone": "isNull(privAt) ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "custdb",
+          "label": "Customers table",
+          "spokenLabel": "Customers table",
+          "kind": "Names, emails, passport numbers",
+          "status": "{not isNull(dumpedAt) ? \"Read in full\" : not isNull(dumpStartAt) ? \"Being read\" : \"Not read\"}",
+          "tone": "not isNull(dumpStartAt) ? \"bad\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "stage",
+          "label": "Attacker's stage",
+          "value": "{not isNull(dumpedAt) ? \"data extracted\" : not isNull(dumpStartAt) ? \"extracting customer rows\" : not isNull(enumAt) ? \"mapping tables\" : \"fingerprinting the database\"}"
+        },
+        {
+          "id": "evid",
+          "label": "Evidence",
+          "value": "{isNull(preservedAt) ? \"logs not exported\" : \"WAF, web and database logs exported\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Recognize SQL injection types -- in-band, blind (inferential) and out-of-band -- and the SQL injection methodology and evasion techniques",
+  "secondaryObjectives": [
+    "Implement SQL injection countermeasures such as parameterized queries, input validation and least-privilege database accounts",
+    "Analyze web application threats with the web application hacking methodology: authentication, authorization, access control, sessions, input validation, logic flaws, and web APIs, webhooks and web shells"
+  ],
+  "sources": [
+    {
+      "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 5: Web Application Hacking",
+      "checkedAt": "2026-11-14",
+      "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+      "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'SQL Injection': SQL Injection Concepts; Types of SQL Injection; SQL Injection Methodology; SQL Injection Tools; Evasion Techniques; SQL Injection Countermeasures. Domain 5 weight 14% (18 of 125 questions)."
+    },
+    {
+      "cite": "OWASP Cheat Sheet Series, SQL Injection Prevention Cheat Sheet",
+      "checkedAt": "2026-11-14",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+      "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: primary defenses are 'parameterized queries when including dynamic data in SQL requests' and mapping structural choices to 'a strict allow-list of fixed, application-owned values'; manual escaping is strongly discouraged; least privilege: never give application accounts DBA or admin rights, and grant access through views; 'Input validation complements parameter binding; it does not replace it.'"
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the application security engineer at Larkspur Travel, a fictional booking site. At 15:00 the web application firewall, in detect-only mode, flags requests to the destination search from 203.0.113.70, and the database's slow-query log is filling. Work out what kind of attack it is, stop it, fix it properly, find out what was read, and write it up.",
+    "handover": [
+      "You own the booking application and can ship emergency changes, switch WAF rules and turn features off with flags. The app's database login is currently db_owner.",
+      "This is your own application: everything here is defensive work on systems you are responsible for."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "enumDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until the attacker has mapped the tables is the author's figure."
+      }
+    },
+    "evadeDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Ten minutes for the attacker to vary encoding and addresses after being blocked is the author's figure."
+      }
+    },
+    "dumpDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Forty minutes until customer rows are being read is the author's figure."
+      }
+    },
+    "doneDelay": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifty minutes until the customers table is read in full is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "readAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipBlockAt": {
+      "type": "time",
+      "init": null
+    },
+    "sigAt": {
+      "type": "time",
+      "init": null
+    },
+    "wafAt": {
+      "type": "time",
+      "init": null
+    },
+    "filterAt": {
+      "type": "time",
+      "init": null
+    },
+    "searchOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "restoredAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "privAt": {
+      "type": "time",
+      "init": null
+    },
+    "preservedAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "enumAt": {
+      "type": "time",
+      "init": null
+    },
+    "evadeAt": {
+      "type": "time",
+      "init": null
+    },
+    "dumpStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "dumpedAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "typeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "blind",
+        "inband",
+        "oob"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "param",
+        "filter",
+        "waf"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "handler",
+        "public",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "searchOff": {
+      "expr": "not isNull(searchOffAt) and isNull(restoredAt)"
+    },
+    "injectable": {
+      "expr": "isNull(fixAt) and not searchOff and (isNull(sigAt) or not isNull(evadeAt))"
+    },
+    "attackerActive": {
+      "expr": "injectable"
+    },
+    "spread": {
+      "expr": "isNull(enumAt) ? 0 : 1"
+    },
+    "searchUp": {
+      "expr": "isNull(searchOffAt) or not isNull(restoredAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "read",
+        "blockIp",
+        "wafBlock",
+        "filter",
+        "flagOff",
+        "fix",
+        "restore",
+        "leastPriv",
+        "preserve",
+        "checkData",
+        "escalate",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "read": {
+      "label": "Read the WAF detections, the slow-query log and the search handler",
+      "group": "Investigate",
+      "available": "not busy and isNull(readAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "readAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the detections, the slow queries and the handler's code.",
+          "kind": "act"
+        },
+        {
+          "finding": "No errors and no data in the responses, but each true condition makes the query take 5 seconds: time-based blind (inferential) SQL injection, possible because the handler joins user text into the SQL."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "blockIp": {
+      "label": "Block 203.0.113.70 at the firewall",
+      "group": "Contain",
+      "available": "not busy and isNull(ipBlockAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ipBlockAt",
+          "to": "t"
+        },
+        {
+          "log": "The address is blocked. Within a minute the same requests come from another address.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wafBlock": {
+      "label": "Switch the WAF's SQL injection rules for /search from detect to block",
+      "group": "Contain",
+      "available": "not busy and isNull(wafAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "wafAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(sigAt)",
+          "then": [
+            {
+              "set": "sigAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Requests matching the signatures are blocked. Signatures match patterns; a determined attacker varies them.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "filter": {
+      "label": "Add a filter that strips quotes and SQL keywords from the search box",
+      "group": "Contain",
+      "available": "not busy and isNull(filterAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "filterAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(sigAt)",
+          "then": [
+            {
+              "set": "sigAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The filter is live. It breaks searches for destinations with apostrophes, and a blocklist can be encoded around.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "flagOff": {
+      "label": "Turn the destination search off with its feature flag",
+      "group": "Contain",
+      "available": "not busy and isNull(searchOffAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "searchOffAt",
+          "to": "t"
+        },
+        {
+          "log": "Search is off: customers browse by region instead. The injectable code no longer runs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "Ship the fix: a parameterized query for the search handler (emergency change, 20 min)",
+      "group": "Recover",
+      "available": "not busy and isNull(fixAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "The handler now binds 'dest' as a parameter; no input can change the query's structure.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Turn search back on with the fixed handler",
+      "group": "Recover",
+      "available": "not busy and isNull(restoredAt) and (not isNull(searchOffAt) and not isNull(fixAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "restoredAt",
+          "to": "t"
+        },
+        {
+          "log": "Search is back, running the parameterized query.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "leastPriv": {
+      "label": "Move the app's database login from db_owner to read-only on the search views",
+      "group": "Recover",
+      "available": "not busy and isNull(privAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "privAt",
+          "to": "t"
+        },
+        {
+          "log": "app_search can now read only the search views; the customers table is out of its reach.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Export the WAF, web server and database logs for the attack window",
+      "group": "Evidence",
+      "available": "not busy and isNull(preservedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "preservedAt",
+          "to": "t"
+        },
+        {
+          "log": "The logs are exported with times and addresses and hashed for the case.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "checkData": {
+      "label": "Check the database audit log for what the search login read",
+      "group": "Investigate",
+      "available": "not busy and isNull(checkAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "checkAt",
+          "to": "t"
+        },
+        {
+          "log": "You list everything the search login read since 14:30.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Tell the incident handler and the privacy officer",
+      "group": "Communicate",
+      "available": "not busy and isNull(escalatedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "The incident handler and the privacy officer know what happened, what was reachable and what you are checking.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "handler",
+              "label": "The incident handler and the privacy officer, with the audit findings"
+            },
+            {
+              "value": "public",
+              "label": "A public blog post today"
+            },
+            {
+              "value": "nobody",
+              "label": "No one: it is fixed"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"handler\" ? \"the incident handler and the privacy officer\" : who == \"public\" ? \"the public\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "type",
+              "label": "Injection type",
+              "options": [
+                {
+                  "value": "blind",
+                  "label": "Time-based blind (inferential)"
+                },
+                {
+                  "value": "inband",
+                  "label": "In-band (error or union based)"
+                },
+                {
+                  "value": "oob",
+                  "label": "Out-of-band"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Lasting countermeasure",
+              "options": [
+                {
+                  "value": "param",
+                  "label": "Parameterized query, with a least-privilege database login"
+                },
+                {
+                  "value": "filter",
+                  "label": "Keyword filter on input"
+                },
+                {
+                  "value": "waf",
+                  "label": "WAF blocking rules"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "typeDoc",
+          "to": "type"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {type}, {fix}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "evade",
+      "when": "isNull(evadeAt) and (not isNull(sigAt) and t >= timeAt(sigAt) + evadeDelay and isNull(fixAt) and not searchOff) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "evadeAt",
+          "to": "t"
+        },
+        {
+          "log": "WAF: requests now arrive from many addresses with mixed-case and encoded keywords; the signatures and the filter no longer match.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "enum",
+      "when": "isNull(enumAt) and (t >= enumDelay and injectable) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "enumAt",
+          "to": "t"
+        },
+        {
+          "log": "Database audit: the search login read the list of tables and columns.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "dumpStart",
+      "when": "isNull(dumpStartAt) and (t >= dumpDelay and injectable and isNull(privAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "dumpStartAt",
+          "to": "t"
+        },
+        {
+          "log": "Database audit: the search login is reading the customers table, passport numbers included.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "dumped",
+      "when": "isNull(dumpedAt) and (t >= doneDelay and injectable and isNull(privAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "dumpedAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Database audit: the customers table has been read in full. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what kind of injection this was and how you knew, how you stopped it, and what makes it stay stopped.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Type and stage",
+          "criteria": "Names time-based blind (inferential) injection from the evidence (no errors or data in responses, 5-second delays on true conditions) and places the attacker in the methodology (fingerprinting, then mapping tables, then extracting).",
+          "modelAnswer": "No errors or data came back, but true conditions took exactly 5 seconds: time-based blind injection. The attacker was fingerprinting and would move on to the table list and then customer rows."
+        },
+        {
+          "label": "Containment against evasion",
+          "criteria": "Stops the vulnerable code from running (feature flag) rather than relying on an address block, WAF signatures or a keyword filter, which are evaded by changing addresses, case and encoding.",
+          "modelAnswer": "I turned search off: an address block, WAF signatures and a keyword filter are all evaded by rotating addresses and encoding."
+        },
+        {
+          "label": "Lasting fix",
+          "criteria": "Fixes with a parameterized query, moves the database login to least privilege, restores the feature after the fix, and checks the audit log for what was read.",
+          "modelAnswer": "A parameterized query fixes the cause; a read-only login on the search views limits any future flaw; search came back after the fix; the audit log shows what was read."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "The attacker gets no further than fingerprinting after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and injectable",
+      "class": "harm",
+      "rationale": "Closing the case with the search still injectable leaves the customers table open; it is never a safe outcome.",
+      "source": {
+        "cite": "OWASP Cheat Sheet Series, SQL Injection Prevention Cheat Sheet",
+        "checkedAt": "2026-11-14",
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+        "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: primary defenses are 'parameterized queries when including dynamic data in SQL requests' and mapping structural choices to 'a strict allow-list of fixed, application-owned values'; manual escaping is strongly discouraged; least privilege: never give application accounts DBA or admin rights, and grant access through views; 'Input validation complements parameter binding; it does not replace it.'"
+      }
+    }
+  },
+  "endings": {
+    "dumped": {
+      "label": "Customer table read",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(dumpedAt)",
+      "narrative": "The attacker read every customer row, passport numbers included, one true-or-false answer at a time."
+    },
+    "leftOpen": {
+      "label": "Closed while still injectable",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and injectable",
+      "narrative": "{not isNull(evadeAt) ? \"The attacker evaded the signatures and the search is still injectable.\" : \"The search is still injectable.\"}"
+    },
+    "handled": {
+      "label": "Stopped and fixed at the cause",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not injectable and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and not isNull(fixAt) and searchUp and not isNull(privAt) and not isNull(preservedAt) and not isNull(checkAt)",
+      "narrative": "You recognized blind injection, stopped the code from running, fixed it with a parameterized query, limited the login and checked what was read."
+    },
+    "handledCostly": {
+      "label": "Stopped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The injection is stopped, but late, after the tables were mapped, without the lasting fixes, or with search left off."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dumped",
+    "leftOpen",
+    "handled",
+    "handledCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopped",
+        "label": "Injection stopped before the tables were mapped",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not injectable and spread == 0",
+            "score": "met",
+            "why": "Stopped {timeAt(offAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not injectable",
+            "score": "partial",
+            "why": "Stopped, after the tables were mapped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still injectable."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Parameterized query shipped and search back on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and searchUp",
+            "score": "met",
+            "why": "Fixed at the cause; customers can search."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Fixed, but search left off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The handler still builds SQL from user text."
+          }
+        ]
+      },
+      {
+        "id": "priv",
+        "label": "Database login moved to least privilege",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(privAt)",
+            "score": "met",
+            "why": "The customers table is out of the search login's reach."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still db_owner."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Logs exported and the audit log checked for what was read",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(preservedAt) and not isNull(checkAt)",
+            "score": "met",
+            "why": "Evidence kept; exposure known."
+          },
+          {
+            "when": "not isNull(preservedAt) or not isNull(checkAt)",
+            "score": "partial",
+            "why": "Only one of them."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "noFilter",
+        "label": "Did not rely on a keyword blocklist",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(filterAt)",
+            "score": "met",
+            "why": "Validation complements parameters; it does not replace them."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A blocklist broke real searches and was encoded around."
+          }
+        ]
+      },
+      {
+        "id": "escalated",
+        "label": "Told the incident handler and the privacy officer",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded blind injection and the right lasting fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "typeDoc == \"blind\" and fixDoc == \"param\" and notified == \"handler\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written type, containment and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToStop",
+        "label": "Minutes until the search stopped being injectable",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "stage",
+        "label": "Attacker's furthest stage (0 fingerprint, 1 tables, 2 customer rows, 3 all rows)",
+        "value": "not isNull(dumpedAt) ? 3 : not isNull(dumpStartAt) ? 2 : not isNull(enumAt) ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "searchMin",
+        "label": "Minutes search was off",
+        "value": "isNull(searchOffAt) ? 0 : isNull(restoredAt) ? t / 60 - timeAt(searchOffAt) / 60 : timeAt(restoredAt) / 60 - timeAt(searchOffAt) / 60",
+        "format": "number",
+        "expert": "about 30"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the evidence: no errors, 5-second delays on true conditions: time-based blind injection. Export the logs."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Turn search off with its flag; the vulnerable code stops running."
+      },
+      {
+        "at": "15-45 min",
+        "text": "Ship the parameterized query, move the login to read-only views, turn search back on."
+      },
+      {
+        "at": "After",
+        "text": "Check the audit log for what was read; tell the handler and the privacy officer; record it."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: recognized, stopped, fixed at the cause",
+        "body": "Blind injection leaves no errors, only timing. You stopped the code from running, then fixed the query and the login's privileges."
+      },
+      "handledCostly": {
+        "headline": "Stopped, with gaps",
+        "body": "The criteria show what cost you: the tables mapped first, no least privilege, no audit check, or search left off."
+      },
+      "dumped": {
+        "headline": "The customers table was read",
+        "body": "An address block is evaded in a minute. Stop the vulnerable code from running, then fix it."
+      },
+      "leftOpen": {
+        "headline": "Still injectable",
+        "body": "WAF signatures and keyword filters are evaded by encoding and case changes. Only the parameterized query closes it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "No errors or data in the responses, but true conditions take exactly 5 seconds: time-based blind (inferential) SQL injection, made possible by a handler that joins user text into SQL. Export the logs and turn the feature off so the vulnerable code stops running; an address block, WAF signatures and a keyword filter are evaded by rotating addresses and encoding. Ship a parameterized query, move the database login to least privilege, turn search back on, and check the audit log for what was read before telling the handler and the privacy officer."
+  }
+}

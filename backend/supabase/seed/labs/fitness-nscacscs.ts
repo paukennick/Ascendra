@@ -1,4 +1,4 @@
-import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { FITNESS_SAFETY, part, selectPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-149: NSCA Certified Strength and Conditioning Specialist (NSCACSCS),
@@ -573,6 +573,70 @@ export const NSCACSCS_LABS: SeedLabSet = {
               "Professional action",
               "Proposes a safe alternative discipline, documents the concern, and escalates through the chain of command and sports medicine staff if the order stands, following the standard of care.",
               "Offer a non-exercise consequence, record the concern in writing, and take it to the head athletic trainer and athletics director if he insists -- the standard of care comes first."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Scientific Foundations: sport
+    // psychology gets its second lab. Read 2026-11-14: NCAA Sport Science
+    // Institute, "Mental Health Best Practices: Understanding and Supporting
+    // Student-Athlete Mental Health", second edition (2016, revised 2020,
+    // updated 2024), an inter-association consensus document the NSCA
+    // endorsed: formal evaluation and treatment by a licensed mental health
+    // provider; coaches support help-seeking and staff help identify those at
+    // risk, with no diagnostic or treatment role; symptoms named include
+    // anxiety, depression, disordered eating, insomnia and substance misuse;
+    // emergency action plans cover suicidal ideation and other acute needs
+    // and list emergency numbers (911 and 988). No graphic content; the
+    // athlete is fictional.
+    {
+      slug: "cscs-injured-athlete-referral",
+      objective: "Athlete mental health and wellness: setbacks, identity, anxiety, depression and disordered eating, and when to refer",
+      kind: "case",
+      title: "After the season-ending injury",
+      brief:
+        "You are a fictional strength and conditioning coach at a fictional university. Your athletics department has a written mental health referral plan: concerns go to the team's athletic trainer and the department's licensed mental health provider, and emergencies follow the emergency action plan. Leah, a fictional 20-year-old volleyball player, tore her ACL in October and now trains with you in the weight room while she rehabilitates.",
+      safetyNote: FITNESS_SAFETY,
+      sources: [source("https://ncaaorg.s3.amazonaws.com/ssi/mental/SSI_MentalHealthBestPractices.pdf", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "Over three weeks you notice and hear several things.",
+          ask: "Tap the observations to pass on through the referral plan, then say how you raise it with Leah.",
+          parts: [
+            selectPart(
+              "Observations to pass on",
+              "Met: exactly the four that point to a mental health concern -- sleeping three or four hours a night, skipping meals and talking about 'earning' food, saying she feels anxious and on edge all the time, and drinking heavily most nights. (Right picks minus wrong picks) of at least two is partly there.",
+              "Insomnia, signs of disordered eating, ongoing anxiety and substance misuse are among the symptoms the NCAA consensus names; a coach passes them on through the plan rather than judging how serious they are. Being frustrated with a slow knee, missing her teammates and asking when she can jump are ordinary parts of an injury setback.",
+              {
+                display: "list",
+                lines: [
+                  "Frustrated that her knee bend is behind schedule",
+                  "Says she sleeps three or four hours a night, most nights, for two weeks",
+                  "Skips meals and talks about having to 'earn' food since she can't play",
+                  "Misses traveling with the team",
+                  "Says she feels anxious and on edge all the time",
+                  "Mentions she has been drinking heavily most nights",
+                  "Asks when she can start jumping again",
+                ],
+                correct: [1, 2, 4, 5],
+              }
+            ),
+            part(
+              "How you raise it with Leah",
+              "Private, calm and caring; states what was noticed without labels or diagnosis; listens; normalizes that injury is hard and that support helps; offers to connect her with the athletic trainer and the department's licensed mental health provider (and walks her there or makes the call with her); does not promise secrecy but explains who will be told and why; does not counsel, diagnose or give diet advice; follows up; passes the concern on through the plan the same day even if she declines.",
+              "Find a private moment: \"Leah, I've noticed you're sleeping very little and skipping meals, and you said you feel on edge all the time. I'm not judging -- an injury like this is hard. There are people here whose job is helping with exactly this. Can I walk you over to see the athletic trainer and set up a time with our counselor?\" Don't diagnose or give her a meal plan, and don't promise to keep it secret -- tell her you'll let the athletic trainer know because you want her to have support. Pass it on today through the plan, and check in with her again."
+            ),
+          ],
+        },
+        {
+          text: "A week later, after a session, Leah says quietly: 'Honestly, sometimes I think everyone would be better off without me.'",
+          ask: "Say what you do now.",
+          parts: [
+            part(
+              "What you do now",
+              "Treats it as a possible emergency: stays with her and does not leave her alone; listens calmly and takes it seriously; follows the department's emergency action plan at once (contacting the licensed mental health provider or on-call service named there; calling 911 if there is immediate danger); knows 988 as the crisis line; does not promise confidentiality; documents and informs the people the plan names; follows up afterwards.",
+              "Take it seriously and stay with her -- don't leave her alone. \"Thank you for telling me. I'm going to stay with you and get you some help right now.\" Follow the emergency action plan immediately: call the mental health provider or on-call number it names, and 911 if she is in immediate danger. 988 is the crisis line if you need guidance in the moment. Don't promise to keep it secret. Afterwards, tell the people the plan names, write down what happened, and keep checking in on her."
             ),
           ],
         },
