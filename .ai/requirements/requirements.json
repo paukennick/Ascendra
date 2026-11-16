@@ -10101,7 +10101,7 @@
       "id": "REQ-292",
       "category": "content",
       "title": "Python and Linux depth courses: Python for Automation and Scripting, Python for Data Analysis, Linux Fundamentals, and Prep for the LFCS; LPIC-1 not built",
-      "description": "Nick (2026-11-14): go deeper in Python and Linux. Four new courses. PYAUTO (Python for Automation and Scripting, 10 units) and PYDATA (Python for Data Analysis, 9 units) follow the PYTHON course on its technology_aligned model (graduate track type, language_reference curriculum, 12-month review), built on the Python 3.15 docs, pytest 9.2, pandas 3.1, NumPy 2.5 and Matplotlib 3.11 read 2026-11-14; key values pin what 3.14/3.15 and pandas 3.0 changed (argparse exit 2 and suggest_on_error, Path.copy/move, re.prefixmatch, PEP 686 UTF-8, Copy-on-Write and chained assignment, str dtype, ME/QE/YE aliases, datetime64[us]). LINUXFUND (Linux Fundamentals, 10 units, no certification, self_defined curriculum on the man-pages 6.19, FHS 3.0 and systemd pages) and LFCS (Prep for the Linux Foundation Certified System Administrator (LFCS) Exam): five domains at 25/25/20/20/10 with the competency lines as outline headings, read on training.linuxfoundation.org 2026-11-14 (page modified 2026-10-30); 17-20 tasks, 2 hours, 67% to pass (docs.linuxfoundation.org Important Instructions: LFCS); distribution-neutral. Red Hat: nothing built (REQ-194 hid EX188/EX280 because Red Hat's guidelines require a training partnership and bar course numbers; RHCSA would hit the same rules). LPIC-1 not built: overlaps Linux+ XK0-006 and LFCS, v5.0 objectives (2019) still carry X11/MTA/printing and LPI lists planned changes; revisit when LPI publishes the next version. Labs at hybrid density: PYAUTO 16, PYDATA 14, LINUXFUND 16, LFCS 11 (57 labs, needs_expert_review). Two LFCS terminal sims (fstab UUID typo to emergency mode; full LVM volume grown online) with golden paths. Study paths python-automation, python-data and linux-admin (LINUXFUND, LFCS, CKA). sourceVerifiedAt 2026-11-14 on all four after the sources were read; levelFlow left off.",
+      "description": "Nick (2026-11-14): go deeper in Python and Linux. Four new courses. PYAUTO (Python for Automation and Scripting, 10 units) and PYDATA (Python for Data Analysis, 9 units) follow the PYTHON course on its technology_aligned model (graduate track type, language_reference curriculum, 12-month review), built on the Python 3.15 docs, pytest 9.2, pandas 3.1, NumPy 2.5 and Matplotlib 3.11 read 2026-11-14; key values pin what 3.14/3.15 and pandas 3.0 changed (argparse exit 2 and suggest_on_error, Path.copy/move, re.prefixmatch, PEP 686 UTF-8, Copy-on-Write and chained assignment, str dtype, ME/QE/YE aliases, datetime64[us]). LINUXFUND (Linux Fundamentals, 10 units, no certification, self_defined curriculum on the man-pages 6.19, FHS 3.0 and systemd pages) and LFCS (Prep for the Linux Foundation Certified System Administrator (LFCS) Exam): five domains at 25/25/20/20/10 with the competency lines as outline headings, read on training.linuxfoundation.org 2026-11-14 (page modified 2026-10-30); 17-20 tasks, 2 hours, 67% to pass (docs.linuxfoundation.org Important Instructions: LFCS); distribution-neutral. Red Hat: nothing built (REQ-194 hid EX188/EX280 because Red Hat's guidelines require a training partnership and bar course numbers; RHCSA would hit the same rules). LPIC-1 not built: overlaps Linux+ XK0-006 and LFCS, v5.0 objectives (2019) still carry X11/MTA/printing and LPI lists planned changes; revisit when LPI publishes the next version. Labs at hybrid density: PYAUTO 16, PYDATA 14, LINUXFUND 16, LFCS 11 (57 labs, needs_expert_review). Two LFCS terminal sims (fstab UUID typo to emergency mode; full LVM volume grown online) with golden paths. Study paths python-automation, python-data and linux-admin (LINUXFUND, LFCS, CKA). sourceVerifiedAt 2026-11-14 on all four after the sources were read; levelFlow left off. Coverage round (Nick 2026-11-14, sims follow coverage, not a count): seven more terminal sims, one on every objective the selection screen passes -- LFCS report-workers-starve-api, clock-skew-blocks-logins, sale-traffic-third-backend, service-no-restart-after-update; LINUXFUND nightly-backup-missing; PYAUTO debug-log-fills-var; PYDATA board-orders-by-region (terminal screen with a >>> prompt, data outcome profile). Coverage table in docs/sims-coverage-depth.md.",
       "priority": "medium",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -10122,27 +10122,36 @@
         "backend/lib/sim/lfcs-terminal.test.ts",
         "docs/labs.md",
         "docs/sims.md",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "backend/supabase/seed/sims/LINUXFUND",
+        "backend/supabase/seed/sims/PYAUTO",
+        "backend/supabase/seed/sims/PYDATA",
+        "backend/scripts/sim-golden",
+        "backend/lib/sim/linux-depth-terminal.test.ts",
+        "docs/sims-coverage-depth.md",
+        "README.md"
       ],
       "acceptance_criteria": [
         "Four courses in the catalog once each with dated unit sources and sourceVerifiedAt 2026-11-14",
         "LFCS domains and weights match the exam page",
         "Labs follow the hybrid density unit by unit",
-        "Two LFCS terminal sims valid with goldens reaching every ending but time_up",
-        "No Red Hat or LPI course added"
+        "No Red Hat or LPI course added",
+        "Eleven terminal sims (LFCS 6, LINUXFUND 3, PYAUTO 1, PYDATA 1): every objective the selection screen passes has one; each valid, with good, mediocre and bad goldens reaching every ending but time_up",
+        "docs/sims-coverage-depth.md maps every objective of the four courses"
       ],
       "validation_required": [
         "backend npm test",
         "mobile npm test",
         "python3 omni gate",
         "lib/depth-courses.test.ts",
-        "lib/sim/lfcs-terminal.test.ts"
+        "lib/sim/linux-depth-terminal.test.ts"
       ],
       "documentation_required": [
         "changelog"
       ],
       "risk_notes": [
-        "Two Linux Fundamentals terminal sims added (shared-folder-permission-denied, web-service-fails-after-edit); sim test renamed lib/sim/linux-depth-terminal.test.ts."
+        "Two Linux Fundamentals terminal sims added (shared-folder-permission-denied, web-service-fails-after-edit); sim test renamed lib/sim/linux-depth-terminal.test.ts.",
+        "Coverage round: sources for the seven new sims were read through summarizing fetches on 2026-11-14, before the lead's no-WebFetch rule; three points are inferences, marked in the source notes."
       ]
     },
     {

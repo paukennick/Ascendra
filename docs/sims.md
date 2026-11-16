@@ -5135,10 +5135,42 @@ local-fs.target's OnFailure= wiring to emergency.target and systemd's
 page read), and resize2fs's exact error text. Command output layouts are
 authored in each tool's style.
 
-Candidates not built (listed for a later wave): Python for Automation (a cron
-job that works by hand but not from cron: PATH, the venv's interpreter and an
-unescaped `%`; a script that hangs on a subprocess with no timeout) and Python
-for Data Analysis (no screen fits a notebook today).
+**Coverage round (Nick, 2026-11-14: "sims follow coverage, not a count").**
+Seven more cases, one on every objective of the four REQ-292 courses that
+the selection screen passes; the full map, with the judgement candidates
+not built, is `docs/sims-coverage-depth.md`.
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| LFCS/report-workers-starve-api | Diagnose and manage processes ... change priority, and send the right signal | looked first; every report process at nice 19 (the parent alone changes nothing); API fast in 20 min; postgres never killed | lfcs-proc |
+| LFCS/clock-skew-blocks-logins | Configure time synchronization with chrony ... | looked first; source fixed in chrony.conf, not a date -s; clock right in 20 min; Kerberos clockskew left at 300 s | lfcs-chrony |
+| LFCS/sale-traffic-third-backend | Implement a reverse proxy and load balancer with nginx or HAProxy | looked first; app3 listening and in the pool; no restart on an invalid file (slow_start is commercial-only); capacity in 20 min | lfcs-lb |
+| LFCS/service-no-restart-after-update | Create and configure systemd service units, including drop-in overrides | looked first; only the bad file quarantined; Restart= in a loaded /etc drop-in; rendering in 20 min | lfcs-unit |
+| LINUXFUND/nightly-backup-missing | Read service logs with journalctl filtered by unit, boot, priority and time | found in the journal first (-b -1 or -u --since; the run was before a reboot); never wrote into the unmounted directory; NAS mounted; backup done before 08:00 | linuxfund-journal |
+| PYAUTO/debug-log-fills-var | Write logs to a file that rotates by size or time | looked first; space back in 10 min (truncate; rm on an open file frees nothing); RotatingFileHandler with backupCount > 0, loaded | pyauto-log |
+| PYDATA/board-orders-by-region | Interpret group results correctly, including count versus size and missing keys | checked the draft's total; sent a table counting every row (size, dropna=False); asserted against the raw data | pydata-groupby |
+
+The Python data case runs on the terminal screen with a `>>>` prompt and the
+`data` outcome profile (its first use: harm is a wrong table shipped,
+sending nothing is `recovered`); the rest use `infrastructure`. Every case
+has good, mediocre and bad golden paths. Sources carry `checkedAt`
+2026-11-14 and were read through summarizing fetches on man7.org (sched(7),
+renice(1), kill(1), signal(7), systemd.service(5), systemd.unit(5),
+systemctl(1), systemd-system.conf(5), journalctl(1), mount(8), unlink(2)),
+chrony-project.org (chrony.conf(5), chronyc(1), 4.6), web.mit.edu
+(krb5.conf clockskew), nginx.org (upstream, proxy, control),
+docs.python.org (3.15 logging.handlers, Logging Cookbook) and
+pandas.pydata.org (3.1 groupby, size, count). Inferences are marked in the
+source notes: a source added with `chronyc add` is not written to
+chrony.conf; a restart on an invalid nginx file leaves nginx stopped; a
+package update replaces its own unit under /usr/lib. The objective test
+now accepts an objective the selection screen qualifies as well as a
+hands-on one (`isPerformanceObjective`), since "Read service logs ..." is
+not in the labs' performance list.
+
+Candidates still not built are in the coverage doc; the strongest are a
+cron job that overlaps its next run (PYAUTO), a many-to-many merge that
+inflates a total (PYDATA) and a firewall change over SSH (LFCS).
 ### 22.18 Clinical coverage: more sims for the existing clinical courses (REQ-296)
 
 Nick, 2026-11-14: "Build more sims, no need to limit number, build what
