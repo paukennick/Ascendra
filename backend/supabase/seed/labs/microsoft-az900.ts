@@ -308,5 +308,43 @@ export const AZ900_LABS: SeedLabSet = {
         },
       ],
     },
+    // REQ-295 (2026-11-14): density fill, Azure Architecture and Services
+    // (39%) gets its third lab. Concepts from the AZ-900 skills outline the
+    // set cites; no service limit, price or SLA figure is quoted.
+    {
+      slug: "sign-in-methods-for-each-need",
+      objective: "Authentication methods: single sign-on, multifactor authentication, and passwordless authentication",
+      kind: "build",
+      title: "Pick the sign-in method for five complaints",
+      brief:
+        "The two-person IT team at Thornbury Opticians (fictional) moved its staff to Microsoft Entra ID. The owner forwards five notes from staff and the auditor:\n\nA. 'I sign in to email, the booking app and the HR portal separately every morning.'\nB. The auditor: 'A stolen password alone should never be enough to get into email.'\nC. 'I'd rather use my face or a key on my keyring than type a password at all.'\nD. 'Our visiting optometrist from a partner practice needs the booking app with her own work account.'\nE. The auditor: 'Sign-ins from outside the UK or from unmanaged devices should be challenged or blocked.'",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies Microsoft Entra sign-in features from the AZ-900 outline the set cites; quotes no limit, price or SLA.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each note to the feature that answers it, then explain how MFA and passwordless differ and why the auditor's E needs more than MFA alone.",
+          parts: [
+            matchPart(
+              "Feature for each note",
+              "Met: all five right -- A single sign-on; B multifactor authentication; C passwordless (Windows Hello for Business or a FIDO2 security key); D external identities (B2B guest access); E Conditional Access. Four right is partly there.",
+              "SSO lets one Entra ID sign-in open every connected app. MFA adds a second factor so a password alone is not enough. Passwordless replaces the password with something you have plus a biometric or PIN. A partner's own account is brought in as an external (B2B) identity. Conditional Access applies if-then rules on signals such as location and device state. Self-service password reset solves none of these notes.",
+              {
+                leftHeading: "Note",
+                rightHeading: "Feature",
+                left: ["A: separate sign-ins to three apps", "B: a stolen password alone must not be enough", "C: face or a key instead of a password", "D: partner optometrist with her own work account", "E: challenge or block risky locations and unmanaged devices"],
+                right: ["Single sign-on", "Multifactor authentication", "Passwordless authentication", "External identities (B2B)", "Conditional Access", "Self-service password reset"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "MFA vs passwordless, and why E needs Conditional Access",
+              "MFA requires two or more of something you know, have and are, and usually still includes the password; passwordless removes the password and uses a device-bound credential with a biometric or PIN, which is also harder to phish. E needs Conditional Access because it decides when to require MFA or block based on signals (location, device compliance, risk); MFA by itself is applied the same way regardless.",
+              "MFA asks for at least two different kinds of proof -- something you know, have or are -- and typically the password is one of them. Passwordless drops the password entirely: a device-bound credential (Windows Hello, a FIDO2 key, the Authenticator app) unlocked by a face, fingerprint or PIN, so there is no password to steal or phish. E is a policy question, not a factor: Conditional Access reads signals such as the sign-in's country and whether the device is managed, then grants access, requires MFA or blocks. MFA is one of the controls Conditional Access can require; it cannot by itself tell a sign-in from abroad from one at the shop."
+            ),
+          ],
+        },
+      ],
+    },
   ],
 };

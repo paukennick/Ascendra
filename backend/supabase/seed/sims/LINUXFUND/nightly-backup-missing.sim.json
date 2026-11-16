@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nightly-backup-missing",
+  "title": "Last night's backup never reached the NAS",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@office1:~#",
+      "lines": [
+        {
+          "id": "miss",
+          "text": "07:10 NAS report: no backup received from office1 last night",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "offsite",
+          "text": "08:00 NAS: off-site replication ran without office1's backup",
+          "when": "not isNull(offsiteAt)",
+          "at": "timeAt(offsiteAt)",
+          "error": "true"
+        },
+        {
+          "id": "full",
+          "text": "monitoring: office1 root filesystem 100% full",
+          "when": "rootFilled",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "doneLine",
+          "text": "NAS report: backup received from office1",
+          "when": "backupDone",
+          "at": "doneSec >= 0 ? doneSec : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "job",
+          "label": "backup.service",
+          "spokenLabel": "the backup job",
+          "kind": "Timer at 01:30 nightly",
+          "status": "{backupDone ? \"Completed\" : \"Failed at 01:30\"}",
+          "tone": "backupDone ? \"up\" : \"down\""
+        },
+        {
+          "id": "mnt",
+          "label": "/mnt/backup",
+          "spokenLabel": "the NAS mount",
+          "kind": "CIFS mount of //nas1/backup",
+          "status": "{mounted ? \"Mounted\" : \"Not mounted\"}",
+          "tone": "mounted ? \"up\" : \"down\""
+        },
+        {
+          "id": "root",
+          "label": "/ (root)",
+          "spokenLabel": "the root filesystem",
+          "kind": "Local disk",
+          "status": "{rootFilled ? \"100% full\" : \"35% used\"}",
+          "tone": "rootFilled ? \"down\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "toNas",
+          "from": "job",
+          "to": "mnt",
+          "label": "Writes the backup",
+          "status": "{backupDone ? \"Sent\" : \"Nothing sent\"}",
+          "tone": "backupDone ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "paging",
+          "label": "Minutes spent paging the unfiltered journal",
+          "value": "{pagingMin}"
+        }
+      ]
+    }
+  },
+  "objective": "Read service logs with journalctl filtered by unit, boot, priority and time",
+  "secondaryObjectives": [
+    "Mount filesystems by hand and at boot through /etc/fstab using UUIDs",
+    "Troubleshoot a service that fails to start from its status and journal"
+  ],
+  "sources": [
+    {
+      "cite": "journalctl(1) (systemd, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+      "note": "Relevant text: -b, 'The argument may be empty, in which case logs for the current boot will be shown' (-1 selects the boot before); -p, 'If a single log level is specified, all messages with this log level or a lower' numeric value, that is more important, are shown; -u, 'Show messages for the specified systemd unit'; -S/--since, 'the strings \"yesterday\", \"today\", \"tomorrow\" are understood'; --list-boots, 'Show a tabular list of boot numbers (relative to the current boot), their IDs' and first and last message times. Read through a summarizing fetch 2026-11-14."
+    },
+    {
+      "cite": "mount(8) (util-linux, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man8/mount.8.html",
+      "note": "Relevant text: 'The previous contents (if any) and owner and mode of dir become invisible, and as long as this filesystem remains mounted, the pathname dir refers to the root of the filesystem on device.' So with nothing mounted, /mnt/backup is an ordinary directory on the root filesystem. Read through a summarizing fetch 2026-11-14. The CIFS 'mount error(13): Permission denied' line is authored in mount.cifs's style."
+    },
+    {
+      "cite": "systemd.unit(5), RequiresMountsFor= (systemd, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man5/systemd.unit.5.html",
+      "note": "Relevant text: RequiresMountsFor= 'Takes a space-separated list of absolute paths. Automatically adds dependencies of type Requires= and After= for all mount units required to access the specified path.' Read through a summarizing fetch 2026-11-14. Used in the debrief as the follow-up, not as an action."
+    }
+  ],
+  "brief": {
+    "situation": "You look after office1, the file server at Pembrook and Shah Accounting (fictional). A systemd timer runs backup.service at 01:30, which copies client files to //nas1/backup mounted at /mnt/backup. The NAS reports nothing arrived last night. The NAS copies everything off-site at 08:00, and a backup takes about 20 minutes. office1 also rebooted for updates at 02:00.",
+    "handover": [
+      "The NAS administrator changed the backup account's password yesterday at 17:00; the new one is in the password manager.",
+      "/mnt/backup is mounted from /etc/fstab with the credentials file /etc/backup-nas.cred."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:10",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {
+    "offsiteDelay": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. Off-site replication runs at 08:00, 50 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pagingMin": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500
+    },
+    "credFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "mounted": {
+      "type": "bool",
+      "init": false
+    },
+    "rootFilled": {
+      "type": "bool",
+      "init": false
+    },
+    "backupDoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "failedStarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "offsiteAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "password",
+        "reboot",
+        "disk"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "mounted",
+        "local",
+        "rerun"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "backupDone": {
+      "expr": "not isNull(backupDoneAt)"
+    },
+    "doneSec": {
+      "expr": "not isNull(backupDoneAt) ? timeAt(backupDoneAt) : -1"
+    },
+    "faultsAdded": {
+      "expr": "rootFilled ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Investigation",
+      "clock": "turns",
+      "actions": [
+        "everything",
+        "bootErr",
+        "listBoots",
+        "prevErr",
+        "unitSince",
+        "fixCred",
+        "mount",
+        "startBackup",
+        "rsyncManual",
+        "df",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "everything": {
+      "label": "journalctl",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "pagingMin",
+          "by": "6"
+        },
+        {
+          "output": "root@office1:~# journalctl\nOct 02 09:14:07 office1 kernel: Linux version 6.12.48 ...\nOct 02 09:14:07 office1 kernel: Command line: ...\n(412,880 lines from six weeks of logs; six minutes of paging and you are still in October)"
+        },
+        {
+          "log": "Six minutes of paging through every message since October.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "bootErr": {
+      "label": "journalctl -b -p err",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@office1:~# journalctl -b -p err\nNov 14 02:01:09 office1 kernel: ACPI Error: AE_NOT_FOUND, While resolving a named reference package element (20240827/dspkginit-438)"
+        },
+        {
+          "log": "Only this boot's errors: the machine rebooted for updates at 02:00, after the backup's 01:30 run.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "listBoots": {
+      "label": "journalctl --list-boots | tail -2",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@office1:~# journalctl --list-boots | tail -2\n -1 4f0c...e1 Thu 2026-11-12 08:02:51 PST  Sat 2026-11-14 02:00:14 PST\n  0 a9d2...07 Sat 2026-11-14 02:01:05 PST  Sat 2026-11-14 07:10:44 PST"
+        },
+        {
+          "finding": "The previous boot ended at 02:00:14; the 01:30 backup ran in boot -1."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "prevErr": {
+      "label": "journalctl -b -1 -p err",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@office1:~# journalctl -b -1 -p err\nNov 14 01:30:02 office1 mount[48811]: mount error(13): Permission denied\nNov 14 01:30:02 office1 systemd[1]: Failed to mount mnt-backup.mount - /mnt/backup.\nNov 14 01:30:03 office1 systemd[1]: Failed to start backup.service - Nightly client-files backup."
+        },
+        {
+          "finding": "In the previous boot at 01:30 the NAS refused the mount (Permission denied), so the backup did not start."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "unitSince": {
+      "label": "journalctl -u backup.service -u mnt-backup.mount --since yesterday",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@office1:~# journalctl -u backup.service -u mnt-backup.mount --since yesterday\nNov 13 01:30:41 office1 backup.sh[39120]: 41,207 files sent to //nas1/backup (12.4 GB)\nNov 14 01:30:02 office1 mount[48811]: mount error(13): Permission denied\nNov 14 01:30:03 office1 backup.sh[48815]: /mnt/backup is not mounted; refusing to run\nNov 14 01:30:03 office1 systemd[1]: backup.service: Main process exited, code=exited, status=1/FAILURE"
+        },
+        {
+          "finding": "Thursday night's backup worked; Friday night's mount was refused and the script refused to write to an unmounted path."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixCred": {
+      "label": "vi /etc/backup-nas.cred   (replace the password with the one in the password manager)",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "credFixed",
+          "to": "true"
+        },
+        {
+          "output": "root@office1:~# vi /etc/backup-nas.cred"
+        },
+        {
+          "log": "The credentials file has the password the NAS administrator set yesterday at 17:00.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "mount": {
+      "label": "mount /mnt/backup",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "credFixed",
+          "then": [
+            {
+              "set": "mounted",
+              "to": "true"
+            },
+            {
+              "output": "root@office1:~# mount /mnt/backup"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@office1:~# mount /mnt/backup\nmount error(13): Permission denied"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "startBackup": {
+      "label": "systemctl start backup.service",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "mounted and not rootFilled",
+          "then": [
+            {
+              "output": "root@office1:~# systemctl start backup.service"
+            },
+            {
+              "if": "isNull(backupDoneAt)",
+              "then": [
+                {
+                  "schedule": "backupRun",
+                  "after": "20min"
+                },
+                {
+                  "log": "The backup job is running; it takes about 20 minutes.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "add": "failedStarts",
+              "by": "1"
+            },
+            {
+              "output": "root@office1:~# systemctl start backup.service\nJob for backup.service failed because the control process exited with error code."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rsyncManual": {
+      "label": "rsync -a /srv/clients/ /mnt/backup/",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "mounted",
+          "then": [
+            {
+              "output": "root@office1:~# rsync -a /srv/clients/ /mnt/backup/"
+            },
+            {
+              "if": "isNull(backupDoneAt)",
+              "then": [
+                {
+                  "schedule": "backupRun",
+                  "after": "15min"
+                },
+                {
+                  "log": "rsync is copying the files to the NAS by hand, outside the backup job and its log.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "set": "rootFilled",
+              "to": "true"
+            },
+            {
+              "output": "root@office1:~# rsync -a /srv/clients/ /mnt/backup/\nrsync: [receiver] write failed on \"/mnt/backup/2026/ledger.db\": No space left on device (28)"
+            },
+            {
+              "log": "Nothing was mounted, so rsync wrote into the /mnt/backup directory on the root filesystem until it was full.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "df": {
+      "label": "df -h / /mnt/backup",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@office1:~# df -h / /mnt/backup\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/sda2        40G  {rootFilled ? \"40G     0 100%\" : \"14G   26G  35%\"} /\n{mounted ? \"//nas1/backup   4.0T  2.1T  1.9T  53% /mnt/backup\" : \"/dev/sda2        40G  (same filesystem: /mnt/backup is not mounted)\"}"
+        },
+        {
+          "if": "mounted and backupDone and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@office1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "password",
+                  "label": "The NAS password was changed yesterday; at 01:30 the mount was refused and the backup refused to run"
+                },
+                {
+                  "value": "reboot",
+                  "label": "The 02:00 update reboot interrupted the backup"
+                },
+                {
+                  "value": "disk",
+                  "label": "The NAS was full"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "mounted",
+                  "label": "Updated the credentials file, mounted the NAS, ran the backup job and checked the mount"
+                },
+                {
+                  "value": "local",
+                  "label": "Copied the files with rsync"
+                },
+                {
+                  "value": "rerun",
+                  "label": "Reran the backup job"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "backupRun": {
+      "label": "Backup copying",
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "if": "isNull(backupDoneAt)",
+          "then": [
+            {
+              "set": "backupDoneAt",
+              "to": "t"
+            },
+            {
+              "log": "The backup finished: 41,322 files are on the NAS.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "offsite",
+      "when": "t >= offsiteDelay and phase == \"incident\" and not backupDone",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "offsiteAt",
+          "to": "t"
+        },
+        {
+          "log": "08:00: the off-site copy ran without office1's backup.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why last night's backup failed, which journalctl filters found it, and what stops it failing silently next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the NAS refusing the mount at 01:30 after yesterday's password change, and the backup script refusing to run on an unmounted path.",
+          "modelAnswer": "The password changed at 17:00; at 01:30 mount.cifs got Permission denied, and backup.sh exited 1 because /mnt/backup was not mounted."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses a filter that reaches the previous boot or the unit since yesterday (-b -1, -u with --since), not the current boot's errors or the whole journal.",
+          "modelAnswer": "The 02:00 reboot put 01:30 in boot -1: journalctl -b -1 -p err, or -u backup.service -u mnt-backup.mount --since yesterday, showed the mount error and the refusal."
+        },
+        {
+          "label": "Fix and follow-up",
+          "criteria": "Updates the credentials, mounts, runs the backup job before 08:00 and checks the mount; never writes the backup into the unmounted directory; suggests RequiresMountsFor= or an alert on failure.",
+          "modelAnswer": "New password in /etc/backup-nas.cred, mount /mnt/backup, systemctl start backup.service (done 07:3x), df shows //nas1 on /mnt/backup. Follow-up: RequiresMountsFor=/mnt/backup and an OnFailure= alert."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), set to 50 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "The backup must finish before the 08:00 off-site copy; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the root filesystem filled."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not backupDone",
+      "class": "harm",
+      "rationale": "Closing with no backup leaves a day of client files with no copy; it is never a safe outcome.",
+      "source": {
+        "cite": "journalctl(1) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+        "note": "Relevant text: -b, 'The argument may be empty, in which case logs for the current boot will be shown' (-1 selects the boot before); -p, 'If a single log level is specified, all messages with this log level or a lower' numeric value, that is more important, are shown; -u, 'Show messages for the specified systemd unit'; -S/--since, 'the strings \"yesterday\", \"today\", \"tomorrow\" are understood'; --list-boots, 'Show a tabular list of boot numbers (relative to the current boot), their IDs' and first and last message times. Read through a summarizing fetch 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "rootFilled": {
+      "label": "Root filesystem filled",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rootFilled",
+      "narrative": "The backup was written into the unmounted /mnt/backup directory and filled the server's own disk."
+    },
+    "noBackup": {
+      "label": "Closed with no backup",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not backupDone",
+      "narrative": "The record was written with last night's backup still missing."
+    },
+    "fixed": {
+      "label": "Found fast, backed up in time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and backupDone and doneSec <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and mounted",
+      "narrative": "A filtered journal read found the refused mount in the previous boot; the backup reached the NAS before the off-site copy."
+    },
+    "fixedGaps": {
+      "label": "Backed up, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The backup reached the NAS, but after the off-site copy, or the cause was guessed before it was read."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record."
+    }
+  },
+  "endingOrder": [
+    "rootFilled",
+    "noBackup",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Found the failure in the journal before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Read the failure first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Read it only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never found the failure in the journal."
+          }
+        ]
+      },
+      {
+        "id": "safe",
+        "label": "Never wrote the backup into the unmounted directory",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not rootFilled",
+            "score": "met",
+            "why": "The root filesystem is untouched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "rsync filled the root filesystem."
+          }
+        ]
+      },
+      {
+        "id": "mountFixed",
+        "label": "Fixed the credentials and mounted the NAS",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mounted",
+            "score": "met",
+            "why": "//nas1/backup is mounted."
+          },
+          {
+            "when": "credFixed",
+            "score": "partial",
+            "why": "Credentials fixed, never mounted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The NAS is not mounted."
+          }
+        ]
+      },
+      {
+        "id": "onTime",
+        "label": "Backup finished before the 08:00 off-site copy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "backupDone and doneSec <= restoreWindow",
+            "score": "met",
+            "why": "Done {doneSec / 60|0dp} min in."
+          },
+          {
+            "when": "backupDone",
+            "score": "partial",
+            "why": "Done, but {doneSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No backup reached the NAS."
+          }
+        ]
+      },
+      {
+        "id": "filtered",
+        "label": "Filtered the journal instead of paging all of it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "pagingMin == 0",
+            "score": "met",
+            "why": "No unfiltered paging."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{pagingMin} minutes paging the whole journal."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the NAS was mounted under the backup",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "df showed //nas1/backup on /mnt/backup."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked where the backup went."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"password\" and fixDoc == \"mounted\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"password\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and follow-up",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minDone",
+        "label": "Minutes until the backup was on the NAS",
+        "value": "doneSec >= 0 ? doneSec / 60 : -1",
+        "format": "number",
+        "expert": "27 or less"
+      },
+      {
+        "id": "pagingK",
+        "label": "Minutes paging the unfiltered journal",
+        "value": "pagingMin",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "The 02:00 reboot means 01:30 is in boot -1: journalctl -b -1 -p err, or the two units --since yesterday."
+      },
+      {
+        "at": "2-3 min",
+        "text": "mount error(13) at 01:30 and 'not mounted; refusing to run': yesterday's password change."
+      },
+      {
+        "at": "3-6 min",
+        "text": "Put the new password in /etc/backup-nas.cred and mount /mnt/backup."
+      },
+      {
+        "at": "6-27 min",
+        "text": "systemctl start backup.service (about 20 minutes), df to confirm the NAS is under /mnt/backup; propose RequiresMountsFor= and a failure alert."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: found fast, backed up in time",
+        "body": "You reached for the previous boot and the right units, read the actual error, and got the backup to the NAS before it went off-site."
+      },
+      "fixedGaps": {
+        "headline": "Backed up, with gaps",
+        "body": "The backup is on the NAS. The criteria show what it cost: minutes paging, or a fix before the evidence that pushed it past 08:00."
+      },
+      "rootFilled": {
+        "headline": "The server's own disk filled",
+        "body": "With nothing mounted, /mnt/backup is just a directory on /. The backup script refused for exactly that reason; a manual rsync did not."
+      },
+      "noBackup": {
+        "headline": "Closed with no backup",
+        "body": "journalctl -b alone shows only this boot. The backup ran before the 02:00 reboot, so ask for -b -1 or a unit with --since."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The machine rebooted after the backup's run, so this boot's journal cannot show it: filter the previous boot (-b -1 -p err) or the units with --since yesterday. The mount was refused after the password change and the script refused to write to an unmounted path. Fix the credentials, mount, run the job, and check with df; never copy into the bare directory."
+  }
+}

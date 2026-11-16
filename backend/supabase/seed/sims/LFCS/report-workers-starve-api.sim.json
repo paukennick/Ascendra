@@ -1,0 +1,1116 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "report-workers-starve-api",
+  "title": "Outage: a month-end report starves the order API of CPU",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@api1:~#",
+      "lines": [
+        {
+          "id": "slow",
+          "text": "10:02 monitoring: order API p95 latency 4.8 s (normal 0.2 s)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "sla",
+          "text": "10:32 monitoring: order API latency SLA breached (30 minutes over 1 s)",
+          "when": "not isNull(slaAt)",
+          "at": "timeAt(slaAt)",
+          "error": "true"
+        },
+        {
+          "id": "fastLine",
+          "text": "monitoring: order API p95 back under 1 s",
+          "when": "apiFast",
+          "at": "not isNull(allNicedAt) ? timeAt(allNicedAt) : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "report",
+          "label": "qclose.py",
+          "spokenLabel": "the quarter-close report",
+          "kind": "Finance batch job, 9 processes",
+          "status": "{reportKilled ? \"Stopped: must start again\" : not isNull(allNicedAt) ? \"Running at nice 19\" : \"Running at nice 0 on every CPU\"}",
+          "tone": "reportKilled ? \"out\" : not isNull(allNicedAt) ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "api",
+          "label": "api (gunicorn)",
+          "spokenLabel": "the order API",
+          "kind": "Service on api1",
+          "status": "{dbKilled ? \"Failing: no database\" : apiFast ? \"Responding normally\" : \"Slow: waiting for CPU\"}",
+          "tone": "dbKilled ? \"down\" : apiFast ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "db",
+          "label": "postgres",
+          "spokenLabel": "the PostgreSQL database",
+          "kind": "Database on api1",
+          "status": "{dbKilled ? \"Killed: crash recovery needed\" : \"Running\"}",
+          "tone": "dbKilled ? \"down\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "apiDb",
+          "from": "api",
+          "to": "db",
+          "label": "API queries the database",
+          "status": "{dbKilled ? \"Connection refused\" : \"Connected\"}",
+          "tone": "dbKilled ? \"down\" : \"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "restarts",
+          "label": "API restarts",
+          "value": "{apiRestarts}"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnose and manage processes: find them with ps, top and pgrep, change priority, and send the right signal",
+  "secondaryObjectives": [
+    "Monitor and troubleshoot system performance: load, CPU, memory and I/O with uptime, top, free and vmstat",
+    "Troubleshoot a service that fails to start using systemctl status, journalctl and its unit file"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Operations Deployment 25%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Operations Deployment, 'Diagnose, identify, manage, and troubleshoot processes and services'; Operations Deployment, 'Manage and troubleshoot system performance'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "sched(7) (Linux man-pages, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man7/sched.7.html",
+      "note": "Relevant text: 'On modern Linux, the range is -20 (high priority) to +19 (low priority)'; under CFS each unit of difference in nice value 'results in a factor of 1.25 in the degree to which the scheduler favors the higher priority process'; 'on Linux, the nice value is a per-thread attribute'. Read through a summarizing fetch 2026-11-14."
+    },
+    {
+      "cite": "renice(1) (util-linux, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/renice.1.html",
+      "note": "Relevant text: 'renice alters the scheduling priority of one or more running processes'; -p 'Interpret the succeeding arguments as process IDs (the default)'; 'an unprivileged user can only increase the \"nice value\"'; 'The superuser may alter the priority of any process'. Read through a summarizing fetch 2026-11-14."
+    },
+    {
+      "cite": "kill(1) and signal(7) (man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man7/signal.7.html",
+      "note": "Relevant text: kill(1), 'If no signal is specified, the TERM signal is sent' and 'If a process does not terminate after a TERM signal has been sent, then the KILL signal may be used'; signal(7), 'The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored'. Both read through summarizing fetches 2026-11-14. That a SIGKILLed PostgreSQL server must run crash recovery on restart is the database's documented behavior after an unclean stop; the minutes it takes here are authored."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call administrator for api1, an 8-CPU server that runs the order API and its PostgreSQL database for Larkspur Logistics (fictional). Since about 09:55 the API has been slow, and the latency agreement is breached if it stays over 1 second until 10:32. Finance started the quarter-close report on this host at 09:50; the controller needs it by noon, and it takes about 70 minutes on its own.",
+    "handover": [
+      "The report is /opt/reports/qclose.py, run by the user fin; it uses one worker process per core it finds.",
+      "Nothing was deployed to the API this week."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:02",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "slaDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The latency agreement is breached at 10:32, 30 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pgrepAt": {
+      "type": "time",
+      "init": null
+    },
+    "parentNiced": {
+      "type": "bool",
+      "init": false
+    },
+    "allNicedAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportKilled": {
+      "type": "bool",
+      "init": false
+    },
+    "dbKilled": {
+      "type": "bool",
+      "init": false
+    },
+    "apiRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "slaAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "workers",
+        "db",
+        "api"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "renice",
+        "killed",
+        "restarted"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "apiFast": {
+      "expr": "not dbKilled and (not isNull(allNicedAt) or reportKilled)"
+    },
+    "fastAt": {
+      "expr": "not isNull(allNicedAt) ? timeAt(allNicedAt) : -1"
+    },
+    "faultsAdded": {
+      "expr": "dbKilled ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "uptime",
+        "top",
+        "pgrep",
+        "psNi",
+        "reniceParent",
+        "reniceAll",
+        "killTerm",
+        "killDb",
+        "restartApi",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "uptime": {
+      "label": "uptime",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@api1:~# uptime\n 10:03:11 up 41 days,  2:17,  1 user,  load average: 16.42, 14.90, 8.31"
+        },
+        {
+          "finding": "Load average 16 on an 8-CPU host: twice as many runnable tasks as CPUs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "top": {
+      "label": "top -b -n 1 -o %CPU | head -15",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "reportKilled",
+          "then": [
+            {
+              "output": "root@api1:~# top -b -n 1 -o %CPU | head -15\n    PID USER     NI  %CPU COMMAND\n   1021 postgres  0  38.0 postgres\n   2210 api       0  21.0 gunicorn"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@api1:~# top -b -n 1 -o %CPU | head -15\n    PID USER     NI  %CPU COMMAND\n  48220 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  97.1 python3\n  48221 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  96.8 python3\n  48222 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  96.5 python3\n  48223 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  96.0 python3\n  48224 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  95.7 python3\n  48225 fin     {isNull(allNicedAt) ? \"  0\" : \" 19\"}  95.2 python3\n   1021 postgres  0  61.0 postgres\n   2210 api       0  24.0 gunicorn\n  48213 fin     {parentNiced or not isNull(allNicedAt) ? \" 19\" : \"  0\"}   0.3 python3"
+            }
+          ]
+        },
+        {
+          "finding": "Python processes owned by fin take a whole CPU each at nice 0; postgres is busy because the API is waiting on it, not the cause."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pgrep": {
+      "label": "pgrep -a -u fin python3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pgrepAt",
+          "to": "t"
+        },
+        {
+          "if": "reportKilled",
+          "then": [
+            {
+              "output": "root@api1:~# pgrep -a -u fin python3"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@api1:~# pgrep -a -u fin python3\n48213 python3 /opt/reports/qclose.py --quarter Q3\n48220 python3 /opt/reports/qclose.py --worker 1\n48221 python3 /opt/reports/qclose.py --worker 2\n... (8 workers, 48220-48227)"
+            }
+          ]
+        },
+        {
+          "finding": "The quarter-close report: one parent (48213) and eight worker processes (48220-48227)."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "psNi": {
+      "label": "ps -o pid,ni,pcpu,cmd -u fin",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@api1:~# ps -o pid,ni,pcpu,cmd -u fin\n  PID  NI %CPU CMD\n48213{parentNiced or not isNull(allNicedAt) ? \" 19\" : \"  0\"}  0.3 python3 /opt/reports/qclose.py --quarter Q3\n48220{isNull(allNicedAt) ? \"  0\" : \" 19\"} 97.0 python3 /opt/reports/qclose.py --worker 1\n  ... 7 more workers at NI{isNull(allNicedAt) ? \"  0\" : \" 19\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reniceParent": {
+      "label": "renice -n 19 -p 48213",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "parentNiced",
+          "to": "true"
+        },
+        {
+          "output": "root@api1:~# renice -n 19 -p 48213\n48213 (process ID) old priority 0, new priority 19"
+        },
+        {
+          "log": "Only the parent changed; the eight workers that are using the CPUs are still at nice 0.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reniceAll": {
+      "label": "renice -n 19 -p $(pgrep -u fin -f qclose)",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "reportKilled",
+          "then": [
+            {
+              "output": "root@api1:~# renice -n 19 -p $(pgrep -u fin -f qclose)\nrenice: failed to set priority: no process ID given"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(allNicedAt)",
+              "then": [
+                {
+                  "set": "allNicedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "All nine report processes are at nice 19: the API's processes now get the CPU first, and the report uses what is left.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "output": "root@api1:~# renice -n 19 -p $(pgrep -u fin -f qclose)\n48213 (process ID) old priority {parentNiced ? 19 : 0}, new priority 19\n48220 (process ID) old priority 0, new priority 19\n... (9 processes)"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "killTerm": {
+      "label": "kill 48213",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "reportKilled",
+          "to": "true"
+        },
+        {
+          "output": "root@api1:~# kill 48213"
+        },
+        {
+          "log": "The report caught TERM, stopped its workers and exited; the quarter-close run must start again from the beginning.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "killDb": {
+      "label": "kill -9 1021",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dbKilled",
+          "to": "true"
+        },
+        {
+          "output": "root@api1:~# kill -9 1021\n10:0x api[2210]: psycopg.OperationalError: connection to server failed"
+        },
+        {
+          "log": "PostgreSQL was killed without a chance to shut down: every API request now fails, and the database will run crash recovery when it starts.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restartApi": {
+      "label": "systemctl restart api",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "apiRestarts",
+          "by": "1"
+        },
+        {
+          "output": "root@api1:~# systemctl restart api"
+        },
+        {
+          "if": "apiFast",
+          "then": [
+            {
+              "log": "The API restarted.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "log": "The API restarted and is just as slow: its workers still wait for CPU.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "time curl -so /dev/null http://localhost/api/health",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@api1:~# time curl -so /dev/null http://localhost/api/health\n{dbKilled ? \"real 0m0.004s (the API answered HTTP 500)\" : apiFast ? \"real 0m0.183s\" : \"real 0m4.912s\"}"
+        },
+        {
+          "if": "apiFast and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@api1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "workers",
+                  "label": "The quarter-close report's eight worker processes ran at nice 0 and filled every CPU"
+                },
+                {
+                  "value": "db",
+                  "label": "PostgreSQL was using too much CPU"
+                },
+                {
+                  "value": "api",
+                  "label": "A fault in the API service"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "renice",
+                  "label": "Reniced the report's parent and workers to 19, so it finishes on spare CPU"
+                },
+                {
+                  "value": "killed",
+                  "label": "Stopped the report"
+                },
+                {
+                  "value": "restarted",
+                  "label": "Restarted the API"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sla",
+      "when": "t >= slaDelay and phase == \"incident\" and not apiFast",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "slaAt",
+          "to": "t"
+        },
+        {
+          "log": "10:32: the API latency agreement is breached.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what slowed the API, how you showed it, and why you chose that fix over the others.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the report's worker processes running at nice 0 on every CPU, with postgres busy as a symptom, not the cause.",
+          "modelAnswer": "qclose.py started eight workers at nice 0; with load at 16 on 8 CPUs, the API's processes waited for CPU and its queries piled up in postgres."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses uptime or top and pgrep (or ps) to find the processes and their nice values before changing anything.",
+          "modelAnswer": "top showed eight python3 processes owned by fin at about 97% each and NI 0; pgrep -a -u fin listed the parent and its workers."
+        },
+        {
+          "label": "Fix and trade-off",
+          "criteria": "Renices the parent and every worker to 19 rather than killing the report (finance needs it by noon) or touching postgres; explains that renicing only the parent changes nothing for the workers; checks the API.",
+          "modelAnswer": "renice -n 19 -p $(pgrep -u fin -f qclose) put all nine processes at 19, about 1.25^19 (roughly 70 times) less favored than the API at 0, so the API is fast again and the report still finishes on spare CPU; curl showed 0.18 s."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Fast with ten minutes to spare before the 10:32 breach; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the database killed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not apiFast",
+      "class": "harm",
+      "rationale": "Closing while the API is still starved leaves orders timing out; it is never a safe outcome.",
+      "source": {
+        "cite": "sched(7) (Linux man-pages, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/sched.7.html",
+        "note": "Relevant text: 'On modern Linux, the range is -20 (high priority) to +19 (low priority)'; under CFS each unit of difference in nice value 'results in a factor of 1.25 in the degree to which the scheduler favors the higher priority process'; 'on Linux, the nice value is a per-thread attribute'. Read through a summarizing fetch 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "dbKilled": {
+      "label": "Database killed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and dbKilled",
+      "narrative": "PostgreSQL was sent SIGKILL: the slow API became a failed one, and the database needs crash recovery."
+    },
+    "stillSlow": {
+      "label": "Closed with the API slow",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not apiFast",
+      "narrative": "The incident was closed while the report's workers still had the CPUs."
+    },
+    "reportLost": {
+      "label": "API back, report lost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and reportKilled",
+      "narrative": "The API is fast again because the report was stopped; it must start over and will miss the noon deadline."
+    },
+    "fixed": {
+      "label": "Reniced and kept both",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and apiFast and not reportKilled and fastAt >= 0 and fastAt <= restoreWindow and faultsAdded <= newFaults and evidenceFirst",
+      "narrative": "Every report process is at nice 19: the API answers in under 200 ms and the report still finishes."
+    },
+    "fixedGaps": {
+      "label": "Fast again, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The API is fast and the report is running, but the fix was late, or came before any evidence."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dbKilled",
+    "stillSlow",
+    "reportLost",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Found the processes before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at the processes."
+          }
+        ]
+      },
+      {
+        "id": "keptReport",
+        "label": "Kept the report running at a lower priority",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reportKilled",
+            "score": "missed",
+            "why": "The report was stopped and must start over."
+          },
+          {
+            "when": "not isNull(allNicedAt)",
+            "score": "met",
+            "why": "All nine processes at nice 19."
+          },
+          {
+            "when": "parentNiced",
+            "score": "partial",
+            "why": "Only the parent was reniced; the workers kept the CPUs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The report's priority was never changed."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "API fast within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "apiFast and fastAt >= 0 and fastAt <= restoreWindow",
+            "score": "met",
+            "why": "Fast {fastAt / 60|0dp} min in."
+          },
+          {
+            "when": "apiFast",
+            "score": "partial",
+            "why": "Fast, but late or only by stopping the report."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The API is not answering normally."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "Left the database alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not dbKilled",
+            "score": "met",
+            "why": "postgres was not touched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "postgres was killed with SIGKILL."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Measured the API afterwards",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "curl showed a normal response time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never measured the API."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"workers\" and fixDoc == \"renice\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"workers\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and trade-off",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minFast",
+        "label": "Minutes until the API was fast",
+        "value": "fastAt >= 0 ? fastAt / 60 : -1",
+        "format": "number",
+        "expert": "5 or less"
+      },
+      {
+        "id": "restartsK",
+        "label": "API restarts",
+        "value": "apiRestarts",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "uptime (load 16 on 8 CPUs) and top: eight python3 processes owned by fin at NI 0; postgres is busy because the API is waiting."
+      },
+      {
+        "at": "2-3 min",
+        "text": "pgrep -a -u fin python3: the quarter-close parent and its eight workers. Finance needs this report by noon, so do not stop it."
+      },
+      {
+        "at": "3-4 min",
+        "text": "renice -n 19 -p $(pgrep -u fin -f qclose): all nine, not just the parent."
+      },
+      {
+        "at": "4-5 min",
+        "text": "curl the health endpoint (0.18 s); record it, and suggest finance runs it under nice or on the reporting host."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: both kept",
+        "body": "You found the workers, lowered all of them, and the API got its CPU back while the report kept going."
+      },
+      "fixedGaps": {
+        "headline": "Fast again, with gaps",
+        "body": "The result is right. The criteria show what it cost: time, or a change made before you looked."
+      },
+      "reportLost": {
+        "headline": "API back, report lost",
+        "body": "Stopping the report fixed the API but cost finance its noon deadline. A nice value of 19 against 0 gives the API about 70 times the report's share of CPU."
+      },
+      "dbKilled": {
+        "headline": "Database killed",
+        "body": "postgres was busy because the API was waiting, not the cause. SIGKILL gives it no chance to shut down cleanly."
+      },
+      "stillSlow": {
+        "headline": "Closed too soon",
+        "body": "Renicing the parent alone does not change its workers: each process has its own nice value. Check NI in ps or top for every worker."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Load 16 on 8 CPUs with eight python3 workers at NI 0: the report is taking the CPUs. Finance needs it, so lower its priority instead of stopping it: renice every process (pgrep gives all the PIDs), since renicing the parent leaves the running workers at 0. Under CFS each nice step is a factor of 1.25, so 19 against 0 lets the API run first. Never kill postgres, which is only a symptom."
+  }
+}

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, selectPart } from "./types";
 import { source } from "../sources";
 
 // REQ-158: Google Cloud Professional Cloud Database Engineer.
@@ -412,6 +412,55 @@ export const GCPDBE_LABS: SeedLabSet = {
               "Evidence for the auditor",
               "Runs and records tests: a manual failover (gcloud sql instances failover) showing automatic recovery with no lost committed rows, a rehearsed replica promotion timed against the RTO, a PITR restore, and screenshots or exports of the alerts firing.",
               "Before go-live, trigger a manual failover and record the time to recover and a checksum showing no committed rows were lost; promote the cross-region replica in a rehearsal and time it against the RTO; restore a PITR copy and verify it; and capture the alert notifications that fired during each test. Those records, with the configuration, are the auditor's evidence."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Deploying Scalable and Highly
+    // Available Databases (20%) gets its second lab. Values are read from the
+    // fictional metrics in the brief; no product limit is quoted.
+    {
+      slug: "read-replica-lag-and-routing",
+      objective: "Deploying and scaling read replicas",
+      kind: "build",
+      title: "Decide which reads can go to a lagging replica",
+      brief:
+        "Brackenridge Tickets (fictional) runs Cloud SQL for PostgreSQL with one primary and two read replicas in the same region. During a concert on-sale, the team captured:\n\nprimary   CPU 92%   writes 1,800/s   connections 480\nreplica-a CPU 41%   replication lag 2 s\nreplica-b CPU 97%   replication lag 95 s\n\nThe app sends all queries to the primary today. Product wants: the seat map (refreshed every few seconds, a little staleness is fine), 'my tickets' right after purchase, the nightly sales report, and checkout itself.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Lag and load figures are the fictional system's, given in the brief; the lab applies replica concepts and quotes no product limit.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the metrics that are a problem, match each query to where it should run, and explain the fix.",
+          parts: [
+            selectPart(
+              "Problem metrics",
+              "Met: exactly the primary's CPU 92% and replica-b's CPU 97% with 95 s lag. One right and none wrong is partly there.",
+              "The primary is near saturation because it serves every read as well as all the writes. replica-b is overloaded and 95 seconds behind, so anything read from it is a minute and a half stale -- it cannot apply changes as fast as they arrive. replica-a, at 41% and 2 seconds, is healthy.",
+              {
+                display: "table",
+                header: "instance  CPU  other",
+                lines: ["primary CPU 92%, writes 1,800/s, connections 480", "replica-a CPU 41%, replication lag 2 s", "replica-b CPU 97%, replication lag 95 s"],
+                correct: [0, 2],
+              }
+            ),
+            matchPart(
+              "Where each query runs",
+              "Met: all four right -- checkout: the primary; 'my tickets' right after purchase: the primary (read-your-writes); seat map: replicas with low lag; nightly report: a replica (or a dedicated one) outside peak. Three right is partly there.",
+              "Writes must go to the primary. A user who just bought tickets must see them, and asynchronous replicas may not have the purchase yet, so that read goes to the primary too. The seat map tolerates seconds of staleness, so it belongs on the replicas -- as long as their lag stays low. The report reads lots of data but has no freshness need, so it runs on a replica at night, away from the primary.",
+              {
+                leftHeading: "Query",
+                rightHeading: "Where it runs",
+                left: ["Checkout (writes the order)", "'My tickets' right after purchase", "Seat map, a few seconds stale is fine", "Nightly sales report"],
+                right: ["The primary", "The primary, for read-your-writes", "Low-lag replicas behind a read endpoint", "A replica, outside peak hours", "Any replica, lag ignored"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "The fix",
+              "Moves tolerant reads (seat map, reports) off the primary to replicas, behind connection pooling; takes replica-b out of the read pool while its lag is high and finds why (undersized compared with the primary -- it must keep up with the primary's write rate -- or long queries on it); sizes replicas at least to keep up with writes and adds replicas for read scale; health-checks lag and routes away from a replica above a lag threshold; keeps read-after-write paths on the primary; notes replicas add read capacity, not write capacity, and in the same region are not a regional DR plan.",
+              "1. Route the seat map and reports to replicas through a pooler or read endpoint, which frees most of the primary's CPU for checkout.\n2. Pull replica-b out of the pool now. A replica must replay every write the primary takes, so if it is smaller than the primary, or running long report queries, it falls behind; resize it to match and keep heavy reports off the replicas serving the seat map.\n3. Add a replica if read load needs it, and route by health: drop any replica whose lag passes a threshold the product owner sets for the seat map.\n4. Keep checkout and 'my tickets' on the primary.\nReplicas scale reads only: if writes outgrow the primary, that needs a bigger primary or a different design, and same-region replicas are not a regional disaster-recovery plan."
             ),
           ],
         },

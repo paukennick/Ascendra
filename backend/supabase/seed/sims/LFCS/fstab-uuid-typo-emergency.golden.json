@@ -1,0 +1,1010 @@
+{
+  "slug": "fstab-uuid-typo-emergency",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Reads the boot journal, compares fstab with blkid, remounts rw, fixes the UUID, reloads, tests with mount -a, continues the boot, checks health",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fstab",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "blkid",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "fixUuid",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 6,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 11,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 7,
+          "seq": 12,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "mountA",
+          "seq": 13,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 8,
+          "seq": 14,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 15,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 10,
+          "seq": 16,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "health",
+          "seq": 17,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 11,
+          "seq": 18,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 19,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "uuid",
+            "fix": "uuid"
+          },
+          "seq": 21,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "tested": "met",
+          "fast": "met",
+          "noBlindBoots": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToBoot": 8,
+          "failedK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "aebe9d0cb06aaf48"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "noReload",
+      "title": "Edits on a read-only root first, fixes the UUID but continues the boot without daemon-reload (it fails again), then reloads and boots, testing the mount only afterward",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fstab",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixUuid",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "blkid",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "fixUuid",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 7,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 13,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 8,
+          "seq": 14,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 15,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 9,
+          "seq": 16,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 17,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 11,
+          "seq": 18,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "mountA",
+          "seq": 19,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 12,
+          "seq": 20,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "health",
+          "seq": 21,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 13,
+          "seq": 22,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 23,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 24,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "uuid",
+            "fix": "uuid"
+          },
+          "seq": 25,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "tested": "partial",
+          "fast": "met",
+          "noBlindBoots": "missed",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToBoot": 9,
+          "failedK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "eb60b1ce432f208c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "commentOut",
+      "title": "Comments the /srv/survey line out to get a login, reloads and boots: uploads land on the root filesystem",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "commentOut",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 7,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "health",
+          "seq": 11,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 8,
+          "seq": 12,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "uuid",
+            "fix": "comment"
+          },
+          "seq": 15,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "rootFilling",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "missed",
+          "tested": "missed",
+          "fast": "missed",
+          "noBlindBoots": "met",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToBoot": -1,
+          "failedK": 0,
+          "faultsK": 1
+        },
+        "stateHash": "f9f0f09277e7cf70"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "repairLog",
+      "title": "Assumes a damaged filesystem and zeroes the healthy disk's XFS log, then finds and fixes the typo",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "xfsRepairL",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "fixUuid",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 9,
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "mountA",
+          "seq": 11,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 12,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 13,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 12,
+          "seq": 14,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "disk",
+            "fix": "repair"
+          },
+          "seq": 17,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "dataLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "evidence": "partial",
+          "rightFix": "missed",
+          "tested": "met",
+          "fast": "met",
+          "noBlindBoots": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToBoot": 10,
+          "failedK": 0,
+          "faultsK": 1
+        },
+        "stateHash": "76a90bae1793e98c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowCrews",
+      "title": "Reboots twice hoping it clears, waits, and fixes the typo after the 08:30 uploads have failed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reboot",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reboot",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 27,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 32,
+          "seq": 12,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 37,
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 42,
+          "seq": 16,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 42,
+          "seq": 17,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 18,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 44,
+          "seq": 19,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "remountRw",
+          "seq": 20,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 45,
+          "seq": 21,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "fixUuid",
+          "seq": 22,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 46,
+          "seq": 23,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "daemonReload",
+          "seq": 24,
+          "tick": 46
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 47,
+          "seq": 25,
+          "tick": 46
+        },
+        {
+          "type": "act",
+          "action": "continueBoot",
+          "seq": 26,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 49,
+          "seq": 27,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "mountA",
+          "seq": 28,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 50,
+          "seq": 29,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 30,
+          "tick": 50
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 31,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "uuid",
+            "fix": "uuid"
+          },
+          "seq": 32,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "crewsFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "tested": "partial",
+          "fast": "partial",
+          "noBlindBoots": "missed",
+          "verified": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToBoot": 47,
+          "failedK": 2,
+          "faultsK": 0
+        },
+        "stateHash": "8c275929749d838d"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "givesUp",
+      "title": "Blames the root filesystem, looks at lsblk and closes with the host still in emergency mode",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lsblk",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "root",
+            "fix": "repair"
+          },
+          "seq": 5,
+          "tick": 1
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "evidence": "missed",
+          "rightFix": "missed",
+          "tested": "missed",
+          "fast": "missed",
+          "noBlindBoots": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToBoot": -1,
+          "failedK": 0,
+          "faultsK": 0
+        },
+        "stateHash": "cbc8a8c46e5594ae"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

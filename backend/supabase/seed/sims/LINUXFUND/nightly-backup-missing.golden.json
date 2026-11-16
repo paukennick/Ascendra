@@ -1,0 +1,825 @@
+{
+  "slug": "nightly-backup-missing",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "journalctl -b -1 -p err (the refused mount at 01:30), fix the credentials, mount, run the backup job, df",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "prevErr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixCred",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "mount",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "startBackup",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 15,
+          "seq": 12,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 20,
+          "seq": 14,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 25,
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 30,
+          "seq": 18,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 19,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 31,
+          "seq": 20,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 21,
+          "tick": 31
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "password",
+            "fix": "mounted"
+          },
+          "seq": 23,
+          "tick": 31
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "safe": "met",
+          "mountFixed": "met",
+          "onTime": "met",
+          "filtered": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minDone": 24,
+          "pagingK": 0
+        },
+        "stateHash": "ba0f22fee8061f6a"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "pagingLate",
+      "title": "Pages the whole journal twice, checks this boot's errors, lists boots, then finds it by unit and fixes it after 08:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "everything",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "everything",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "bootErr",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "listBoots",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 24,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 14,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 34,
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "unitSince",
+          "seq": 17,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 35,
+          "seq": 18,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "fixCred",
+          "seq": 19,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 37,
+          "seq": 20,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "mount",
+          "seq": 21,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 38,
+          "seq": 22,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "startBackup",
+          "seq": 23,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 39,
+          "seq": 24,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 25,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 44,
+          "seq": 26,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 27,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 49,
+          "seq": 28,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 29,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 16,
+          "to": 54,
+          "seq": 30,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 16,
+          "to": 54,
+          "seq": 31,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 32,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 17,
+          "to": 59,
+          "seq": 33,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 34,
+          "tick": 59
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 18,
+          "to": 64,
+          "seq": 35,
+          "tick": 59
+        },
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 36,
+          "tick": 64
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 19,
+          "to": 65,
+          "seq": 37,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 38,
+          "tick": 65
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 39,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "password",
+            "fix": "mounted"
+          },
+          "seq": 40,
+          "tick": 65
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "evidence": "met",
+          "safe": "met",
+          "mountFixed": "met",
+          "onTime": "partial",
+          "filtered": "missed",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minDone": 58,
+          "pagingK": 12
+        },
+        "stateHash": "0f2b04985fa21c73"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "rsyncUnmounted",
+      "title": "Sees no errors in this boot and copies the files with rsync into the unmounted /mnt/backup",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bootErr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rsyncManual",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "reboot",
+            "fix": "local"
+          },
+          "seq": 9,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "rootFilled",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "evidence": "missed",
+          "safe": "missed",
+          "mountFixed": "missed",
+          "onTime": "missed",
+          "filtered": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minDone": -1,
+          "pagingK": 0
+        },
+        "stateHash": "a98b7d4cbd402332"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "rerunOnly",
+      "title": "Blames the reboot, reruns the job (refused: not mounted), and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "startBackup",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "reboot",
+            "fix": "rerun"
+          },
+          "seq": 5,
+          "tick": 1
+        }
+      ],
+      "expect": {
+        "ending": "noBackup",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "evidence": "missed",
+          "safe": "met",
+          "mountFixed": "missed",
+          "onTime": "missed",
+          "filtered": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minDone": -1,
+          "pagingK": 0
+        },
+        "stateHash": "3a131d4cf0bdc3d2"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "guessFirst",
+      "title": "Fixes the credentials on the handover's hint before reading anything, then reads the journal, mounts and copies with rsync",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixCred",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unitSince",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "mount",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "rsyncManual",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 15,
+          "seq": 12,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 20,
+          "seq": 14,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "password",
+            "fix": "local"
+          },
+          "seq": 17,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "evidence": "partial",
+          "safe": "met",
+          "mountFixed": "met",
+          "onTime": "met",
+          "filtered": "met",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minDone": 19,
+          "pagingK": 0
+        },
+        "stateHash": "e7989b0124a7243b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

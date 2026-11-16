@@ -10003,6 +10003,929 @@
       "risk_notes": [
         "Not checked in a browser unless screenshots are taken; screens with their own fixed-position or absolutely positioned overlays could sit outside the column"
       ]
+    },
+    {
+      "id": "REQ-297",
+      "category": "content",
+      "title": "IT sims wave 3: coverage map and more sims for existing non-clinical courses",
+      "description": "Nick (2026-11-14): 'Build more sims, no need to limit number, build what covers the material.' Selection rule (2026-11-10): a sim fits a sub-objective when time matters, there are cues to read, choices have consequences, or priorities compete. Map every existing non-clinical course (AWS, GCP, Azure, CompTIA, Kubernetes/CNCF, data/AI, PMI/Project+, fitness) against the rule and the sims that exist (docs/sims-coverage-it.md), then build learner-paced sims for uncovered fitting objectives on the existing screens (terminal, security console, board), launch and mixed-round courses first, each with golden paths built by npm run sim:golden -- steps (the #153 pattern). Families whose screen does not exist (project dashboard, data and code console, client trainer) are listed as proposals with the sims they would unlock, not built. Engine 1.2 with endingOrder, times in seconds, no engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-wave3.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims-coverage-it.md",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "docs/sims-coverage-it.md maps every existing non-clinical course before and after",
+        "each new scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "times are stored in seconds"
+      ],
+      "validation_required": [
+        "sims lint for the new documents",
+        "storage-order test",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims-coverage-it.md",
+        "docs/sims.md 22.16",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "scenario timings are teaching values",
+        "sources read 2026-11-14 some only through summaries",
+        "new documents enter expert review",
+        "the keyword screen under-counts fitting objectives so the map adds a stated judgement"
+      ]
+    },
+    {
+      "id": "REQ-301",
+      "category": "data",
+      "title": "Mastery decay step 1, shadow mode: store the memory model's predicted recall beside every review",
+      "description": "Nick approved all eight design recommendations on 2026-11-14 (docs/mastery-decay-design.md, Rollout). Shadow mode: stepSchedule (the only review_log writer) stores, in a savepoint that can never fail the review, the memory model's predicted recall at review time and the state it used (stability, difficulty, personal k, fit stage, goal, level, model version, source live or backfill) in nine nullable review_log columns (migration 085). Learners see nothing, scheduling stays fixed_v1, readiness unchanged. DECAY_SHADOW=off stops it. npm run decay:backfill replays history (dry run by default, only fills empty rows); npm run decay:calibration reports predicted vs observed recall by bucket, fit stage, goal, level and course category against the 5-point bar (docs/decay-shadow-calibration.md). Steps 2 (calibrate) and 3 (hybrid scheduling) are not built.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/085_review_shadow_prediction.sql",
+        "backend/lib/decay-shadow.ts",
+        "backend/lib/decay-shadow-backfill.ts",
+        "backend/lib/decay-calibration.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/decay-calibration.ts",
+        "backend/scripts/decay-shadow-backfill.ts",
+        "backend/package.json",
+        "backend/.env.example",
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md",
+        "docs/operations-runbook.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every stepped review stores predicted recall and model state beside its outcome",
+        "A failing prediction never fails or changes the review",
+        "Learners see nothing and scheduling stays fixed_v1",
+        "Migration is additive and replay-safe with a schema probe and grants consistent with review_log",
+        "Backfill is a dry run by default and never overwrites",
+        "Calibration report compares predicted with observed against the 5-point bar"
+      ],
+      "validation_required": [
+        "backend/lib/decay-shadow.test.ts",
+        "backend/lib/decay-calibration.test.ts",
+        "backend/lib/memory-model.test.ts",
+        "backend/lib/decay-shadow.dbtest.ts",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/mastery-decay-design.md",
+        "docs/decay-shadow-calibration.md"
+      ],
+      "risk_notes": [
+        "Unenrolled answers store no prediction",
+        "Backfilled rows use the course's current goal and level",
+        "Two extra reads and one update per review (2 s limit; DECAY_SHADOW=off)"
+      ]
+    },
+    {
+      "id": "REQ-292",
+      "category": "content",
+      "title": "Python and Linux depth courses: Python for Automation and Scripting, Python for Data Analysis, Linux Fundamentals, and Prep for the LFCS; LPIC-1 not built",
+      "description": "Nick (2026-11-14): go deeper in Python and Linux. Four new courses. PYAUTO (Python for Automation and Scripting, 10 units) and PYDATA (Python for Data Analysis, 9 units) follow the PYTHON course on its technology_aligned model (graduate track type, language_reference curriculum, 12-month review), built on the Python 3.15 docs, pytest 9.2, pandas 3.1, NumPy 2.5 and Matplotlib 3.11 read 2026-11-14; key values pin what 3.14/3.15 and pandas 3.0 changed (argparse exit 2 and suggest_on_error, Path.copy/move, re.prefixmatch, PEP 686 UTF-8, Copy-on-Write and chained assignment, str dtype, ME/QE/YE aliases, datetime64[us]). LINUXFUND (Linux Fundamentals, 10 units, no certification, self_defined curriculum on the man-pages 6.19, FHS 3.0 and systemd pages) and LFCS (Prep for the Linux Foundation Certified System Administrator (LFCS) Exam): five domains at 25/25/20/20/10 with the competency lines as outline headings, read on training.linuxfoundation.org 2026-11-14 (page modified 2026-10-30); 17-20 tasks, 2 hours, 67% to pass (docs.linuxfoundation.org Important Instructions: LFCS); distribution-neutral. Red Hat: nothing built (REQ-194 hid EX188/EX280 because Red Hat's guidelines require a training partnership and bar course numbers; RHCSA would hit the same rules). LPIC-1 not built: overlaps Linux+ XK0-006 and LFCS, v5.0 objectives (2019) still carry X11/MTA/printing and LPI lists planned changes; revisit when LPI publishes the next version. Labs at hybrid density: PYAUTO 16, PYDATA 14, LINUXFUND 16, LFCS 11 (57 labs, needs_expert_review). Two LFCS terminal sims (fstab UUID typo to emergency mode; full LVM volume grown online) with golden paths. Study paths python-automation, python-data and linux-admin (LINUXFUND, LFCS, CKA). sourceVerifiedAt 2026-11-14 on all four after the sources were read; levelFlow left off.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/python-depth.ts",
+        "backend/supabase/seed/tracks/linux.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/paths.ts",
+        "backend/supabase/seed/labs/python-automation.ts",
+        "backend/supabase/seed/labs/python-data.ts",
+        "backend/supabase/seed/labs/linux-fundamentals.ts",
+        "backend/supabase/seed/labs/lf-lfcs.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/sims/LFCS",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/lfcs-fstab.steps.ts",
+        "backend/scripts/sim-golden/lfcs-lvm.steps.ts",
+        "backend/lib/depth-courses.test.ts",
+        "backend/lib/sim/lfcs-terminal.test.ts",
+        "docs/labs.md",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Four courses in the catalog once each with dated unit sources and sourceVerifiedAt 2026-11-14",
+        "LFCS domains and weights match the exam page",
+        "Labs follow the hybrid density unit by unit",
+        "Two LFCS terminal sims valid with goldens reaching every ending but time_up",
+        "No Red Hat or LPI course added"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "python3 omni gate",
+        "lib/depth-courses.test.ts",
+        "lib/sim/lfcs-terminal.test.ts"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Two Linux Fundamentals terminal sims added (shared-folder-permission-denied, web-service-fails-after-edit); sim test renamed lib/sim/linux-depth-terminal.test.ts."
+      ]
+    },
+    {
+      "id": "REQ-264",
+      "category": "content",
+      "title": "PCEP and PCAP courses (OpenEDG Python Institute), PCEP-30-03 and PCAP-31-04, with labs",
+      "description": "Nick 2026-11-14. Prep for the Certified Entry-Level Python Programmer (PCEP) Exam and Prep for the Certified Associate Python Programmer (PCAP) Exam under Development > programming-languages, credential basis vendor_exam (provider python-institute). Built on the versions released 2026-10-31 (syllabus blueprint 1.5, revised 2026-11-02, read 2026-11-14 on pythoninstitute.org): PCEP 5 sections at 17/23/26/20/14 (35 questions, 50 minutes, 70%), PCAP 6 sections at 12/12/9.5/28.5/24/14 (42 questions, 65 minutes, 72%); the old versions PCEP-30-02 and PCAP-31-03 sunset 2027-11-30 (versionNote). Every unit carries the section's numbered objective headings as outline statements, our own objectives, a gate, dated Python documentation sources with key values (3.14/3.15 changes flagged). Labs 11 and 12 by the hybrid plan; snippets run on CPython 3.13.18. Verified and reviewed: sourceVerifiedAt 2026-11-14, contentReviewDueAt 2027-11-14.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/python-institute.ts",
+        "backend/supabase/seed/labs/python-pcep.ts",
+        "backend/supabase/seed/labs/python-pcap.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/tech-courses-req264.test.ts",
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "acceptance_criteria": [
+        "PCEP and PCAP units carry the published section weights and all 35 and 42 objective headings",
+        "the credentials state code time passing score and the 2027-11-30 sunset of the old versions",
+        "11 and 12 labs follow the hybrid plan one per objective",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Neither Python Institute page names the Python version the exams use",
+        "Labs need review by a Python educator",
+        "The Python Institute's trademark guidelines were not read; the notice follows the TM marks printed on its pages"
+      ]
+    },
+    {
+      "id": "REQ-265",
+      "category": "content",
+      "title": "SQL Fundamentals course (technology aligned, SQL:2023 on PostgreSQL 18) with labs",
+      "description": "Nick 2026-11-14. SQL Fundamentals Coach under Development > database-design-development, built like PYTHON and JAVASCRIPT (technology_aligned, 12-month review, language_reference curriculum). Eight weekly units: relational model and first queries, NULL and three-valued logic, joins, aggregation, subqueries/CTEs/set operations, window functions, DDL/types/constraints, indexes and transactions. Sources: PostgreSQL 18.7 documentation and versioning page, read 2026-11-14 as raw HTML; that SQL:2023 is the current standard was read in PostgreSQL's SQL Conformance appendix (the ISO text is paid and iso.org blocked a plain fetch). Key values pin PostgreSQL 18 changes (virtual generated columns by default, RETURNING old/new, uuidv7, skip scan) and the NULL, frame and isolation rules. 14 labs by the hybrid plan, every query run on PostgreSQL 16.15.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/dev-languages.ts",
+        "backend/supabase/seed/labs/dev-sql.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/tech-courses-req264.test.ts",
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "acceptance_criteria": [
+        "eight units with dated PostgreSQL sources and key values",
+        "14 labs by the hybrid plan",
+        "verified 2026-11-14 and reviewed 2027-11-14",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "The ISO standard text was not read",
+        "Labs need review by a database educator",
+        "A SQL terminal sim was not built"
+      ]
+    },
+    {
+      "id": "REQ-266",
+      "category": "content",
+      "title": "PL-300 Power BI Data Analyst course with labs",
+      "description": "Nick 2026-11-14. Prep for the Power BI Data Analyst Associate (PL-300) Exam under azure-certifications (Microsoft provider), study guide skills measured as of April 20, 2026 (read 2026-11-14): four domains at 25-30/25-30/25-30/15-20, weights 27.5/27.5/27.5/17.5; 100 minutes; passing 700; no retirement notice. Units carry the guide's subheadings and bullets as outline statements, own-words objectives, gates and key values from Microsoft Learn pages (storage modes, CALCULATE, date tables, RLS, gateways). 10 labs by the hybrid plan; DAX not executed.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/microsoft-2026.ts",
+        "backend/supabase/seed/labs/microsoft-pl300.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/tech-courses-req264.test.ts",
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "acceptance_criteria": [
+        "weights inside the published ranges and totaling 100",
+        "outline statements on every unit",
+        "10 labs by the hybrid plan"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Placed in the Microsoft Azure Certifications category with the other Microsoft courses (decision for Nick)",
+        "DAX formulas were not run"
+      ]
+    },
+    {
+      "id": "REQ-267",
+      "category": "content",
+      "title": "TypeScript and Node.js course (technology aligned, TypeScript 7 and Node.js 26 LTS) with labs",
+      "description": "Nick 2026-11-14. TypeScript & Node.js Programming Coach under programming-languages, the step after JAVASCRIPT, technology_aligned with a 12-month review. Seven weekly units from TypeScript setup and the type system through narrowing, generics, advanced types and classes, modules and project structure (Node.js type stripping), the Node.js runtime and core APIs, to a tested HTTP API. Sources read 2026-11-14: TypeScript handbook and tsconfig reference, the TypeScript 7.0 announcement (7.0.2 latest on npm), Node.js v26.13.1 API docs and the release schedule (26 Active LTS since 2026-10-28). 13 labs by the hybrid plan, checked with tsc 5.5.4 strict and Node.js 22.23.4 type stripping.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/dev-languages.ts",
+        "backend/supabase/seed/labs/dev-tsnode.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/tech-courses-req264.test.ts",
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "acceptance_criteria": [
+        "seven units with dated sources and TypeScript 7 / Node.js 26 key values",
+        "13 labs by the hybrid plan",
+        "verified 2026-11-14"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "TypeScript 7 and Node.js 26 were not run locally (no installs on the shared machine)",
+        "Labs need review by a TypeScript/Node.js practitioner"
+      ]
+    },
+    {
+      "id": "REQ-268",
+      "category": "content",
+      "title": "SC-500 and AI-200 courses, the replacements of the retired AZ-500 and AZ-204, with labs",
+      "description": "Nick 2026-11-14 asked for AZ-500 and AZ-204 after checking their status. Read 2026-11-14: AZ-500 retired 2026-08-31 and AZ-204 retired (2026-07-31 per Microsoft's Skills Hub post 'The AI job boom is here', timeline updated 2026-05-28); the replacements named there are SC-500 (Cloud and AI Security Engineer Associate) and AI-200 (Azure AI Cloud Developer Associate), both live (120 minutes, passing 700, no beta label). Built the replacements: four domains each at 20-25/25-30/20-25/20-25, weights 24/29/24/23; study guides print no skills-measured date (versionNote records publish/update dates). tracks/azure.ts header corrected (FAIL-1800). 10 labs each by the hybrid plan.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/microsoft-2026.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/labs/microsoft-sc500.ts",
+        "backend/supabase/seed/labs/microsoft-ai200.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/tech-courses-req264.test.ts",
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "acceptance_criteria": [
+        "AZ-500 and AZ-204 are not taught",
+        "SC-500 and AI-200 carry their guides' domains inside the published ranges",
+        "10 labs each by the hybrid plan",
+        "azure.ts names the replacements"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "That SC-500 is out of beta is inferred (no page says beta; practice assessment not yet available)",
+        "SC-500 study guide has no change log or skills-measured date so changes must be spotted by re-reading",
+        "A parallel security builder may also plan SC-500"
+      ]
+    },
+    {
+      "id": "REQ-270",
+      "category": "content",
+      "title": "Security certification wave beyond CompTIA: ISC2, ISACA and EC-Council courses",
+      "description": "Nick 2026-11-14: build ISC2 CC, ISC2 CISSP, ISACA CISM and EC-Council CEH courses to the standard of the CompTIA security courses and the NBCC model PR (#154), verifying each current exam outline on the certifying body's site first. Shared decisions: the four courses sit under IT & Software > IT Certifications (migration 007, it_cloud plan), no migration; titles follow the descriptive 'Prep for the ... Exam' pattern (REQ-194) with each body's registered symbol and an independence notice; whether that use is acceptable under ISC2's, ISACA's and EC-Council's trademark statements (read 2026-11-14) is a decision for Nick.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/supabase/seed/tracks/isaca.ts",
+        "backend/supabase/seed/tracks/eccouncil.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "four courses in the catalog once each under it-certifications",
+        "descriptive titles with independence notices",
+        "sourceVerifiedAt only after the outlines were read and compared"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "trademark use of ISC2/ISACA/EC-Council marks needs Nick's decision",
+        "CISSP outline changes 2027-04-15"
+      ]
+    },
+    {
+      "id": "REQ-271",
+      "category": "content",
+      "title": "ISC2 CC and CISSP courses and labs",
+      "description": "Prep for the ISC2 Certified in Cybersecurity (CC) Exam on the outline effective 2026-09-01 (five domains 24/17.3/20/21.3/17.3 as printed, adding to 99.9; CAT 100-125 items, 2 hours, 700/1000) and Prep for the CISSP Exam on the outline effective 2024-04-15 (eight domains 16/10/13/13/13/12/13/10; CAT 100-150 items, 3 hours, 700/1000; 25 pretest items; 95% confidence rule; no item review; retake 30/60/90 days), both read 2026-11-14 on isc2.org with the CAT FAQ. Every unit carries ISC2's numbered headings as outline statements and the format key values; every numbered heading maps to an objective. CISSP is reviewed by 2027-01-15, before ISC2's new outline of 2027-04-15 (read; not yet taught). Labs: CC 11, CISSP 14 by the hybrid plan.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/supabase/seed/labs/isc2-cc.ts",
+        "backend/supabase/seed/labs/isc2-cissp.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CC and CISSP weights as published",
+        "outline headings on every unit",
+        "CISSP review due before 2027-04-15",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-272",
+      "category": "content",
+      "title": "ISACA CISM course and labs",
+      "description": "Prep for the CISM Exam on the content outline ISACA uses from 2026-11-03 (four domains 18/20/33/29, replacing 2022's 17/20/33/30; enterprise architecture and information security architecture new), 150 questions in 4 hours, scaled 200-800 with 450 passing (ISACA 2026 exam candidate guide), read 2026-11-14. Units carry ISACA's A/B subtopic headings and the supporting tasks (assigned to domains by our judgment). 10 labs by the hybrid plan, manager's view.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/isaca.ts",
+        "backend/supabase/seed/labs/isaca-cism.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CISM weights 18/20/33/29",
+        "outline headings on every unit",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-273",
+      "category": "content",
+      "title": "EC-Council CEH course and labs",
+      "description": "Prep for the CEH Exam: 312-50, CEH v13, Exam Blueprint v5.0 (nine domains 6/17/15/24/14/5/10/5/5 as printed, adding to 101; 125 questions; 4 hours; cut score 60-85% by form), read 2026-11-14 on cert.eccouncil.org and eccouncil.org. Units carry the blueprint's sub-domain headings and question counts. Reviewed by 2027-02-14 because EC-Council releases a version every 12-18 months. 15 labs by the hybrid plan, PenTest+ framing: authorized engagements or the learner's own lab, recognition and countermeasures only, no payloads or tool invocations (tested).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/eccouncil.ts",
+        "backend/supabase/seed/labs/eccouncil-ceh.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/security-certs-course.test.ts",
+        "backend/lib/labs-security-certs.test.ts"
+      ],
+      "acceptance_criteria": [
+        "CEH weights as printed with the note",
+        "question counts total 125",
+        "no payloads in labs",
+        "hybrid lab density"
+      ],
+      "validation_required": [
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-274",
+      "category": "content",
+      "title": "Security-console flagship sims for CC, CISSP, CISM and CEH",
+      "description": "Two flagship sims per course on the existing security-console@1 screen (docs/sims.md 22.7, 22.11 pattern: learner-paced turns, outcome profile security, endingOrder, six golden paths). Not built in the REQ-270 wave (time went to four courses and 50 labs); candidates: CC alert triage of a compromised mailbox and a joiner-mover-leaver access cleanup; CISSP ransomware with a DR site decision (RTO vs cost) and a federation/IAM incident; CISM a supplier breach run as the security manager (notification, containment vs business impact) and an exception that turns into an incident; CEH an authorized engagement that finds a real attacker's web shell (stop and report) and a scope-boundary decision on a shared host. Each needs an exact catalog objective that passes isPerformanceObjective.",
+      "priority": "medium",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "doctor",
+        "validate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-277",
+      "category": "content",
+      "title": "PCCN course (AACN progressive care) and its labs",
+      "description": "Prep for the PCCN Exam under nursing-specialty-certifications, mirroring the CCRN (Adult) course: AACN's PCCN Test Plan (exams on and after 2024-02-06; handbook July 2026, read 2026-11-14) as twelve units at the printed weights 20/14/6/3/7/7/4/2/15/3 and 11/9 (101, AACN's rounding note), objectives from the problem list and testable nursing actions in our own words, outline headings and dated clinical key values on every unit (SSC 2026, AHA/ASA 2026 stroke, 2025 BP guideline, KDIGO 2012 AKI, AABB 2023, hyperglycemic crises 2024, BTS oxygen, 42 CFR 482.13), credential facts as read (150 items, 125 scored, 3 hours; eligibility hours). 18 labs by the hybrid plan, each with a value source or reason. Bedside sims attach to two exact objective titles (femoral access bleed; COPD exacerbation on NIV). No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pccn.ts",
+        "backend/supabase/seed/tracks/nursing-specialty.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/pccn.ts",
+        "backend/supabase/seed/labs/nursing-specialty.ts",
+        "backend/supabase/seed/labs/nursing-specialty-sources.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/lib/labs-nursing-specialty.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "twelve units at AACN's printed PCCN weights with outline headings and dated sources",
+        "credential format and eligibility as read 2026-11-14",
+        "18 labs by the hybrid plan with value sources or reasons",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Bedside sims not authored in this branch; the two exact objective titles they would attach to are in place (PCCN_SIM_OBJECTIVES)."
+      ]
+    },
+    {
+      "id": "REQ-276",
+      "category": "content",
+      "title": "CEN course (BCEN emergency nursing) and its labs",
+      "description": "Prep for the Certified Emergency Nurse (CEN) Exam under nursing-specialty-certifications: BCEN's CEN Examination Content Outline effective July 2026 (read 2026-11-14 on bcen.org) as eleven units weighted by the published scored-item counts over 150 (18/17/17/14/10/13/15/11/10/13/12, to two decimals, summing to 100), BCEN's headings as outline statements, dated clinical key values (ESI v5, SSC 2026, AHA/ASA 2026 stroke, anaphylaxis practice parameter 2020, AHA/AAP 2025 neonatal resuscitation, 42 CFR 489.24 EMTALA, ACOG PB 222), credential facts from BCEN's FAQ and eligibility pages (175 items, 150 scored, 180 minutes, 99 of 150 to pass, two years recommended not required). 17 labs by the hybrid plan, each with a value source or reason. Two objectives with exact titles for bedside sims (ESI triage; sepsis at triage). No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/cen.ts",
+        "backend/supabase/seed/tracks/nursing-specialty.ts",
+        "backend/supabase/seed/labs/cen.ts",
+        "backend/supabase/seed/labs/nursing-specialty.ts",
+        "backend/supabase/seed/labs/nursing-specialty-sources.ts",
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/lib/labs-nursing-specialty.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "eleven units weighted by BCEN item counts with outline headings and dated sources",
+        "credential facts as read 2026-11-14",
+        "17 labs by the hybrid plan with value sources or reasons",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-275",
+      "category": "content",
+      "title": "CMSRN course (MSNCB medical-surgical) and its labs",
+      "description": "Prep for the Certified Medical-Surgical Registered Nurse (CMSRN) Exam under nursing-specialty-certifications: MSNCB's 2023 CMSRN Exam Blueprint (as of 2023-05-15) and certification page, read 2026-11-14, as five units at 32/15/17/15/21 (40/19/21/19/26 of 125 scored items) with the subdomain headings as outline statements, objectives in our own words plus med-surg depth objectives, dated key values (2019 NCSBN/ANA delegation, CDC transmission-based precautions, ADA hypoglycemia, AABB 2023, 42 CFR 482.13, ANA Code of Ethics 2025 revision), credential facts as read (150 questions, 125 scored, 3 hours, standard score 95 about 71%, 2,000 hours in 3 years). 11 labs by the hybrid plan, each with a value source or reason. Two exact objective titles for bedside sims (post-op hemorrhage; delegation). No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/cmsrn.ts",
+        "backend/supabase/seed/tracks/nursing-specialty.ts",
+        "backend/supabase/seed/labs/cmsrn.ts",
+        "backend/supabase/seed/labs/nursing-specialty.ts",
+        "backend/supabase/seed/labs/nursing-specialty-sources.ts",
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/lib/labs-nursing-specialty.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "five units at MSNCB's 2023 weights with outline headings and dated sources",
+        "credential facts as read 2026-11-14",
+        "11 labs by the hybrid plan with value sources or reasons",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-278",
+      "category": "content",
+      "title": "Family nurse practitioner: AANPCB FNP and ANCC FNP-BC courses and their labs",
+      "description": "Two courses, one per exam, under advanced-practice-nursing, because the blueprints differ materially and the closest pattern (NBCC NCE/NCMHCE, CCRN Adult/Peds/Neo) is one course per exam. AANPCB: the 2024 FNP Examination Blueprint on its candidate portal and the FNP Candidate Handbook (updated 06/2026), read 2026-11-14 -- Assess/Diagnose/Plan/Evaluate at 32/26.5/26.5/15 (43/36/36/20 of 135), eight age bands, 150 questions with 135 scored, 3 hours; the handbook's appendix rounds to 27/27 and repeats Plan tasks under Evaluate, so the web page's complete lists are used. ANCC: FNP-BC Test Content Outline effective 2026-10-30 (updated 2026-04-06) and the nursingworld FNP page, read 2026-11-14 -- Assessment/Diagnosis/Planning/Implementation/Evaluation at 17/17/19/33/13 (99, ANCC's rounding note), 175 questions with 150 scored, 3.5 hours. Dated key values from USPSTF (colorectal, breast, cervical, statin, diabetes, osteoporosis, hypertension), the 2025 BP guideline, GINA 2026 (through a summary) and ADA hypoglycemia. 10 and 11 labs by the hybrid plan. No migration.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/fnp.ts",
+        "backend/supabase/seed/tracks/nursing-specialty.ts",
+        "backend/supabase/seed/labs/fnp.ts",
+        "backend/supabase/seed/labs/nursing-specialty.ts",
+        "backend/supabase/seed/labs/nursing-specialty-sources.ts",
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/lib/labs-nursing-specialty.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "two courses with their own blueprint weights and outline headings",
+        "credential facts as read 2026-11-14",
+        "10 and 11 labs by the hybrid plan with value sources or reasons",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-280",
+      "category": "content",
+      "title": "Scrum (PSM I, CSM), ITIL 4 Foundation and ASQ Six Sigma Green Belt courses with labs",
+      "description": "Nick 2026-11-14. Four new courses beside the PMI tracks, built the NBCC way (dated unit sources, outline statements, key values, own-words objectives): Prep for the Professional Scrum Master I (PSM I) Assessment and Prep for the Certified ScrumMaster (CSM) Test on the 2020 Scrum Guide, Scrum.org's focus areas and Scrum Alliance's Scrum Foundations and CSM learning objectives (study-emphasis weights: neither body publishes any; the CSM description says the 16-hour course is required); Prep for the ITIL 4 Foundation Exam weighted by syllabus marks 5/6/2/1/2/7/17 of 40 (syllabus v1.4 read only in an accredited training organization's copy, so left unverified; PeopleCert plans to sunset ITIL 4 on 2027-12-31 and already sells ITIL Foundation (Version 5); review due 2027-06-01); Prep for the ASQ Certified Six Sigma Green Belt (CSSGB) Exam on the 2022 BoK at 11/20/20/18/16/15. Migration 084 adds agile-scrum-certifications and quality-six-sigma-certifications under Project Management Certifications (PM plan); ITIL uses it-software/it-certifications (IT and cloud plan). 48 labs by the hybrid plan. No sims: no existing screen fits.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pm-frameworks.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/migrations/084_pm_agile_quality_taxonomy.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/readiness.ts",
+        "backend/supabase/seed/labs/scrum-psmi.ts",
+        "backend/supabase/seed/labs/scrum-csm.ts",
+        "backend/supabase/seed/labs/itil4-foundation.ts",
+        "backend/supabase/seed/labs/asq-cssgb.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/pm-frameworks-course.test.ts",
+        "backend/lib/labs-pm-frameworks.test.ts",
+        "backend/lib/catalog-trademarks.test.ts",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every unit has dated sources with the body's outline statements",
+        "published weights where published and study emphasis otherwise",
+        "ITIL left unverified with the reason recorded",
+        "hybrid lab density per unit",
+        "migration 084 probed in schema-status",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate",
+        "migrations and seed on throwaway Postgres"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-281",
+      "category": "content",
+      "title": "NASM Certified Nutrition Coach course with labs (fitness)",
+      "description": "Nick 2026-11-14. Prep for the NASM Nutrition Coaching Certification (NASM-CNC) Exam beside NASMCPT in fitness.ts: NASM's four course sections (read on its product page 2026-11-14; NASM publishes no exam outline, weights or accreditation for the CNC, so study-emphasis weights 20/35/20/25), the DGA 2025-2030, the National Academies DRI tables, FDA's supplement Q&A and Washington RCW 18.138.020 as dated key values. Stays inside a coach's scope: no medical nutrition therapy; referral to an RDN or physician for diagnosed conditions, suspected eating disorders and medication interactions. Title avoids the word Coach after a mark (REQ-194). 10 labs by the hybrid plan with value sources in value-sources.ts.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/fitness.ts",
+        "backend/supabase/seed/labs/fitness-nasmcnc.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/readiness.ts",
+        "backend/lib/pm-frameworks-course.test.ts",
+        "backend/lib/labs-pm-frameworks.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "coach scope enforced in objectives and labs",
+        "every lab names a value source or why not",
+        "study-emphasis weights",
+        "hybrid density"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-282",
+      "category": "content",
+      "title": "Sim coverage for the Scrum, ITIL, CSSGB and NASM-CNC courses: two CNC coaching sessions built, screens proposed for the rest",
+      "description": "Nick 2026-11-14: sims follow coverage, not a count; build every objective that fits the selection rule on an existing screen and propose screens for families that lack one. Built on the client session screen (session@1, clinical-session profile, engine 1.2): NASMCNC/cnc-crash-diet-request (referral for signs of disordered eating; NIMH 2024, NASM scope) and NASMCNC/cnc-greens-powder-warfarin (supplement on warfarin; NIH ODS vitamin K and WYNTK, FDA Q&A). Coverage table and proposed screens (project dashboard Sprint mode, service operations desk, process and data console, client trainer) in docs/sim-coverage-pm-frameworks-cnc.md. Two further CNC session candidates left unbuilt because their sources were not read (web reading switched off).",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/NASMCNC/",
+        "backend/scripts/sim-golden/cnc-crash-diet.steps.ts",
+        "backend/scripts/sim-golden/cnc-greens-warfarin.steps.ts",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/cnc-session.test.ts",
+        "backend/supabase/seed/tracks/fitness.ts",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each sim registered to an active NASMCNC objective by exact title",
+        "endings in all three classes and an explicit endingOrder",
+        "golden paths reach every ending but time_up and score every criterion met and missed, with Good, Mediocre and Bad runs",
+        "sources dated 2026-11-14",
+        "coverage table for all five courses"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sim-coverage-pm-frameworks-cnc.md"
+      ],
+      "risk_notes": [
+        "Not run in the app's renderer or a browser; the session renderer is unchanged and the engine tests replay the golden paths.",
+        "Client models (rapport, distress, readiness) are teaching simplifications, as in the NBCC sessions."
+      ]
+    },
+    {
+      "id": "REQ-286",
+      "category": "content",
+      "title": "ASWB Clinical and Masters exam prep courses and labs",
+      "description": "Nick 2026-11-10 and 2026-11-14 (mental health wave; Clinical first then Masters; Bachelors later). Prep for the ASWB Clinical Exam (ASWBCLINICAL) and Prep for the ASWB Masters Exam (ASWBMASTERS) under Mental Health > social-work-licensure (migration 077) so the per-course 18+ acknowledgment with date of birth (REQ-259) and the study notice apply through the category with no code change. Units are ASWB's three 2026-blueprint content areas (in use from 2026-08-03; 2024 practice analysis) at the published weights: Clinical 36/32/32 and Masters 35/33/32 (ASWB Examination Guidebook August 2026 read in full 2026-11-14; the Clinical page prints no % beside II and the guidebook text gives 32). Every applied knowledge statement (Clinical 116 and Masters 109) is carried as the units' outline with its competency code; objectives are our own words; format 122 questions in two sections of 61 (110 scored) in four hours with pass/fail scoring and a 90-day retake wait. NASW Code of Ethics 2021 standards 1-3 read in full; amendments go to the Delegate Assembly vote on 2026-11-18 so the NASW source is rechecked by 2026-12-15. Washington WAC 246-809-340 (advanced or clinical exam). Review due 2027-05-14. Nine labs each by the hybrid plan sourced in value-sources.ts. Four sim-ready objective titles; sims not built (candidates in REQ-288). No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aswb.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/aswb-clinical.ts",
+        "backend/supabase/seed/labs/aswb-masters.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/aswb-wajp-course.test.ts",
+        "backend/lib/labs-aswb-wajp.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "both courses in social-work-licensure behind the 18+ gate",
+        "units at 36/32/32 and 35/33/32 with every applied knowledge statement and dated sources",
+        "format and scoring as read in the August 2026 guidebook",
+        "9 labs each by the hybrid plan with a value source or reason on every lab",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "NASW Code amendments voted 2026-11-18: recheck by 2026-12-15",
+        "ASWB guidebook may change quarterly",
+        "WAC 246-809-340 does not name the Masters exam",
+        "DSM-5-TR not read",
+        "labs need review by a licensed clinical social worker",
+        "sims not built"
+      ]
+    },
+    {
+      "id": "REQ-287",
+      "category": "content",
+      "title": "Washington psychology jurisprudence exam prep course and labs",
+      "description": "Nick 2026-11-10 and 2026-11-14. Prep for the Washington Psychology Jurisprudence Exam (WAPSYCHJP) modeled on the closest course (the EPPP): Mental Health > psychology-licensure (named for it in migration 077) so the per-course 18+ acknowledgment applies; trackType certification; basis regulatory_licensure; credentialType jurisprudence_exam. Since WSR 25-15-068 (effective 2025-08-14) WAC 246-924-230(1)(d) requires passing the exam within the first CE cycle after initial licensure (one CE hour; optional after). DOH publishes no outline/format/passing score: its Jurisprudence Exam RCW and WAC References page is the outline on every unit; weights are study_emphasis (REQ-220) and no format or cut score is invented. Six units built from chapter 18.83 RCW and chapter 246-924 WAC (read in full) and RCW 26.44.030 / 74.34 / 70.02 / 18.130 / 71.05.120(3) and WAC 246-12 / 246-15 / 246-16 (sections read on 2026-11-14) with key values. Review due 2027-05-15 (2027 session; RCW 70.02.230 changes 2027-06-30). Nine labs by the hybrid plan with a legal safety note and numeric answers backed by cited rules.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/wa-psych-jurisprudence.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/wa-psych-jurisprudence.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/aswb-wajp-course.test.ts",
+        "backend/lib/labs-aswb-wajp.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "course in psychology-licensure behind the 18+ gate",
+        "study_emphasis weights and no invented format or passing score",
+        "DOH reference list as outline on every unit with dated Washington sources",
+        "9 labs by the hybrid plan with cited rules",
+        "US spelling"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "WAC 246-924-493(3)(b) cross-references 246-924-070 which no longer mentions the jurisprudence exam",
+        "DOH publishes no exam format or content outline",
+        "not legal advice: labs need review by a Washington psychologist",
+        "Washington law changes each session"
+      ]
+    },
+    {
+      "id": "REQ-288",
+      "category": "content",
+      "title": "Client-session sims for the ASWB Clinical and Masters courses",
+      "description": "Four flagship client-session sims (screen.session; mirror REQ-239 22.12) attached by exact title to the objectives REQ-286 seeded: Clinical - Assess suicide and violence risk in a clinical social work session; Respond to a client's threat against an identifiable person under the NASW Code and state law. Masters - Engage an involuntary client and contract for goals; Make a mandated child abuse report and keep the family engaged. Not built in REQ-286 (time); each needs endingOrder (engine 1.2) and goldens.",
+      "priority": "medium",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/ASWBCLINICAL",
+        "backend/supabase/seed/sims/ASWBMASTERS",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "two sessions per course with endings in all three classes and 3-4 critical criteria and goldens and endingOrder"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md"
+      ],
+      "risk_notes": [
+        "the NCMHCE and EPPP suicide sessions share moves: the duplicate gate does not compare across objectives"
+      ]
+    },
+    {
+      "id": "REQ-295",
+      "category": "content",
+      "title": "Lab density fill for existing courses",
+      "description": "Nick (2026-11-14): build more labs. Measure every visible catalog course against the density rule as he states it (one lab per unit, plus six per course split by exam weight, at most three per unit, never more than the unit has objectives; docs/labs-coverage.md), then fill the gaps in his order: pre-generated and level-aware courses first, then the mixed-round courses, then the rest by category. New labs prefer the rule-graded interactive answer types, keep a written part in clinical judgement labs, and cite their own dated sources. Filled courses get a LAB_PLAN_TOP_UPS entry so the existing density tests follow the rule, and lib/labs-density-fill.test.ts checks each filled course.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/*.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/lib/labs-density-fill.test.ts",
+        "docs/labs-coverage.md",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "docs/labs-coverage.md lists every visible course with labs per unit vs the rule",
+        "every filled course meets the rule unit by unit",
+        "each added lab has at least one rule-graded part and dated sources",
+        "npm test passes"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/labs-coverage.md"
+      ],
+      "risk_notes": [
+        "Labs are needs_expert_review until a reviewer approves them",
+        "The fill uses the rule as Nick stated it",
+        "above the generator's performance-verb plan; the plan is raised per course by LAB_PLAN_TOP_UPS rather than changing the default for all courses"
+      ]
+    },
+    {
+      "id": "REQ-296",
+      "category": "content",
+      "title": "Clinical sims coverage map and more sims for existing clinical courses (launch courses first)",
+      "description": "Nick (2026-11-14): 'Build more sims, no need to limit number, build what covers the material.' Selection rule (Nick, 2026-11-10): a sim fits a sub-objective when time matters, there are cues to read, choices have consequences, or priorities compete. Map every existing clinical course (nursing, EMS, PT, mental health) in docs/sims-coverage-clinical.md: which objectives fit and which existing sims cover them. Then build sims for uncovered fitting objectives, launch courses first (CCRNADULT, DPT, PTPREREQ, CNA, NCLEXRN, NCLEXPN), on the existing bedside, treatment-session and client-session screens, each with golden paths, dated guideline sources and literature-checked values. Engine rules: harm endings only where a guideline names them; at most three boluses at once; written reasoning scored; endingOrder for two or more conditional endings; ACLS per current AHA guidelines without copying AHA materials; client sessions learner-paced; running clinical cases at study pace. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "docs/sims-coverage-clinical.md",
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "coverage map per clinical course with before and after counts",
+        "each new scenario lints with zero errors and replays its goldens",
+        "every outcome class reachable and every criterion both met and missed",
+        "every objective title exists in its course catalog",
+        "golden paths end the same in written reversed and jsonb key order",
+        "running clinical sims paced at study pace by default",
+        "client sessions learner-paced"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims-coverage-clinical.md",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the keyword screen is a shortlist not a judgement",
+        "authored teaching-model numbers flagged in source notes",
+        "sources read only through summaries are marked"
+      ]
+    },
+    {
+      "id": "REQ-269",
+      "category": "content",
+      "title": "Simulations for the tech and data courses (PCEP, PCAP, SQL, TypeScript and Node, PL-300, SC-500, AI-200)",
+      "description": "Nick 2026-11-14: sims for the courses built in REQ-264..268, coverage not a number limit. Registered in backend/lib/sim/documents.ts under REQ-269; tested by lib/sim/tech-courses-sims.test.ts. Checkpoint 2026-11-16 ships what was committed; the builder continues.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden"
+      ],
+      "acceptance_criteria": [
+        "Every registered sim passes the linter and the client-leak check",
+        "Golden paths rated good, mediocre and bad for each sim"
+      ],
+      "validation_required": [
+        "cd backend && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/sims.md"
+      ],
+      "risk_notes": [
+        "Coverage incomplete at the checkpoint; the builder agent stopped at the weekly usage limit"
+      ]
     }
   ]
 }

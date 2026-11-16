@@ -1,0 +1,1289 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rogue-dhcp-soho-office",
+  "title": "Outage: three office PCs drop off the network on and off",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "tech@BIRCHWOOD>",
+      "lines": [
+        {
+          "id": "ticket",
+          "text": "08:30 office manager: the front desk PC and two others say 'No internet' on and off since Monday; the rest are fine. Client uploads close at 09:30.",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "rebootLine",
+          "text": "RTR-OFFICE rebooting: every PC and the phones are offline for about 5 minutes",
+          "when": "not isNull(rebootAt)",
+          "at": "timeAt(rebootAt)",
+          "error": "true"
+        },
+        {
+          "id": "resetLine",
+          "text": "RTR-OFFICE restored to factory defaults: port forwarding, the printer reservation and the Wi-Fi settings are gone",
+          "when": "routerReset",
+          "at": "timeAt(resetAt)",
+          "error": "true"
+        },
+        {
+          "id": "deadlineLine",
+          "text": "09:30 the client upload portal closed; the front desk batch was not sent",
+          "when": "not isNull(deadlineMissedAt)",
+          "at": "timeAt(deadlineMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "FRONT-PC: lease 192.168.1.57 from 192.168.1.1",
+          "when": "not isNull(verifiedAt)",
+          "at": "timeAt(verifiedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "rtr",
+          "label": "RTR-OFFICE",
+          "spokenLabel": "office router RTR-OFFICE",
+          "kind": "SOHO router, DHCP 192.168.1.100-199, gateway 192.168.1.1",
+          "status": "{routerReset ? \"Factory defaults: port forwards and reservations lost\" : \"Up; internet working\"}",
+          "tone": "routerReset ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "sw",
+          "label": "Office switch",
+          "spokenLabel": "the office switch",
+          "kind": "Unmanaged 16-port switch",
+          "status": "Wall jacks for the desks and the conference room",
+          "tone": "\"up\""
+        },
+        {
+          "id": "rogue",
+          "label": "Unknown device (conference room)",
+          "spokenLabel": "the unknown device in the conference room",
+          "kind": "{isNull(foundAt) ? \"Not yet identified\" : \"Travel router plugged in by a visiting consultant, LAN port to the wall jack\"}",
+          "status": "{rogueOn ? \"Answering DHCP with 192.168.8.x and gateway 192.168.8.1\" : \"Unplugged\"}",
+          "tone": "rogueOn ? \"degraded\" : \"out\""
+        },
+        {
+          "id": "front",
+          "label": "FRONT-PC",
+          "spokenLabel": "front desk PC",
+          "kind": "Windows 11, DHCP",
+          "status": "{staticFront ? \"Static 192.168.1.20 typed in\" : rogueLease ? \"192.168.8.23 from the unknown device: no internet, no file share\" : \"192.168.1.57 from RTR-OFFICE\"}",
+          "tone": "(staticFront or (not rogueLease)) ? \"up\" : \"down\""
+        },
+        {
+          "id": "others",
+          "label": "ACCT-PC3 and SCAN-PC",
+          "spokenLabel": "the two other affected PCs",
+          "kind": "Windows 11, DHCP",
+          "status": "{othersRogue ? \"Leases from the unknown device: no internet\" : \"Leases from RTR-OFFICE\"}",
+          "tone": "othersRogue ? \"down\" : \"up\""
+        },
+        {
+          "id": "deadline",
+          "label": "Client uploads close 09:30",
+          "spokenLabel": "the 09:30 upload deadline",
+          "kind": "Business deadline",
+          "status": "{not isNull(deadlineMissedAt) ? \"Missed\" : (staticFront or (not rogueLease)) ? \"On track\" : \"Front desk cannot upload\"}",
+          "tone": "not isNull(deadlineMissedAt) ? \"down\" : (staticFront or (not rogueLease)) ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "wan",
+          "from": "rtr",
+          "to": "sw",
+          "label": "RTR-OFFICE LAN to the switch",
+          "status": "Up",
+          "tone": "\"up\""
+        },
+        {
+          "id": "jack",
+          "from": "rogue",
+          "to": "sw",
+          "label": "Conference room wall jack",
+          "status": "{rogueOn ? \"Device connected\" : \"Nothing connected\"}",
+          "tone": "rogueOn ? \"degraded\" : \"out\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "pcsDown",
+          "label": "PCs with a wrong lease",
+          "value": "{(rogueLease and not staticFront ? 1 : 0) + (othersRogue ? 2 : 0)}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting wired and wireless network problems: intermittent connectivity, slow transfer speeds, and limited connectivity",
+  "secondaryObjectives": [
+    "Interpreting command-line network diagnostics: ipconfig/ifconfig, ping, tracert, and nslookup",
+    "Configuring a SOHO network: static vs. DHCP addressing, NAT, firewall rules, and port forwarding"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+      "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard."
+    },
+    {
+      "cite": "IETF RFC 2131, Dynamic Host Configuration Protocol (1997)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2131",
+      "note": "Relevant text (section 4.4.1): 'The client collects DHCPOFFER messages over a period of time, selects one DHCPOFFER message from the (possibly many) incoming DHCPOFFER messages (e.g., the first DHCPOFFER message or the DHCPOFFER message from the previously used server)'; section 3.1: 'The client may choose to wait for multiple responses.' Read in primary text on 2026-11-14. So a second DHCP server on the LAN wins some clients and not others."
+    },
+    {
+      "cite": "Microsoft Learn, ipconfig (Windows commands), last updated 2023-02-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig",
+      "note": "Relevant text: /all 'Displays the full TCP/IP configuration for all adapters'; /release 'Sends a DHCPRELEASE message to the DHCP server to release the current DHCP configuration'; /renew 'Renews DHCP configuration'. Read through a summarizing fetch on 2026-11-14; the page lists no sample output, so the output layouts in the scenario are authored renderings in the Windows style."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call technician for Birchwood Bookkeeping, a fictional nine-person office. Since Monday the front desk PC and two others lose the internet and the file share on and off; the other six PCs are fine. The front desk must upload today's client batch before the portal closes at 09:30. It is 08:30.",
+    "handover": [
+      "RTR-OFFICE (192.168.1.1) is the router, firewall and only DHCP server: it hands out 192.168.1.100-199. The file share is on 192.168.1.10. An unmanaged switch feeds the desks and the conference room.",
+      "RTR-OFFICE forwards a port for the remote bookkeeper's VPN and holds a reservation for the printer. A consultant has been working in the conference room this week."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes your time: run it, then let it finish, which moves the clock by the minutes it takes. The deadline keeps coming on the same clock.",
+      "The map shows the router, the switch, the PCs and anything you find, each with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the problem fixed, you write the ticket and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineDelay": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The upload portal closes at 09:30, 60 minutes after the first report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "ipAllFrontAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipAllGoodAt": {
+      "type": "time",
+      "init": null
+    },
+    "pingAt": {
+      "type": "time",
+      "init": null
+    },
+    "nslookupAt": {
+      "type": "time",
+      "init": null
+    },
+    "leasesAt": {
+      "type": "time",
+      "init": null
+    },
+    "foundAt": {
+      "type": "time",
+      "init": null
+    },
+    "rogueOn": {
+      "type": "bool",
+      "init": true
+    },
+    "rogueLease": {
+      "type": "bool",
+      "init": true
+    },
+    "othersRogue": {
+      "type": "bool",
+      "init": true
+    },
+    "rogueOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "staticFront": {
+      "type": "bool",
+      "init": false
+    },
+    "staticAt": {
+      "type": "time",
+      "init": null
+    },
+    "routerReset": {
+      "type": "bool",
+      "init": false
+    },
+    "resetAt": {
+      "type": "time",
+      "init": null
+    },
+    "rebootAt": {
+      "type": "time",
+      "init": null
+    },
+    "reboots": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "driverReinstalls": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "othersRenewed": {
+      "type": "bool",
+      "init": false
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "deadlineMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rogue",
+        "isp",
+        "nic",
+        "router"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "frontOk": {
+      "expr": "staticFront or (not rogueLease)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Problem in progress",
+      "clock": "turns",
+      "actions": [
+        "ipAll",
+        "pingShare",
+        "nslookup",
+        "routerLeases",
+        "walk",
+        "fix",
+        "renew",
+        "renewOthers",
+        "rebootRouter",
+        "driver",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Ticket",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "ipAll": {
+      "label": "ipconfig /all",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "pc",
+          "kind": "choice",
+          "label": "Which PC",
+          "options": [
+            {
+              "value": "front",
+              "label": "FRONT-PC (affected)"
+            },
+            {
+              "value": "good",
+              "label": "ACCT-PC2 (working)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "pc == \"front\"",
+              "then": [
+                {
+                  "set": "ipAllFrontAt",
+                  "to": "t"
+                },
+                {
+                  "output": "FRONT-PC> ipconfig /all\nEthernet adapter Ethernet:\n   DHCP Enabled. . . . . . . . . . . : {staticFront ? \"No\" : \"Yes\"}\n   IPv4 Address. . . . . . . . . . . : {staticFront ? \"192.168.1.20\" : rogueLease ? \"192.168.8.23\" : \"192.168.1.57\"}\n   Default Gateway . . . . . . . . . : {staticFront ? \"192.168.1.1\" : rogueLease ? \"192.168.8.1\" : \"192.168.1.1\"}\n   DHCP Server . . . . . . . . . . . : {staticFront ? \"\" : rogueLease ? \"192.168.8.1\" : \"192.168.1.1\"}\n   DNS Servers . . . . . . . . . . . : {staticFront ? \"192.168.1.1\" : rogueLease ? \"192.168.8.1\" : \"192.168.1.1\"}"
+                },
+                {
+                  "if": "rogueLease and not staticFront",
+                  "then": [
+                    {
+                      "finding": "FRONT-PC's lease, gateway and DNS all came from 192.168.8.1, a DHCP server that is not RTR-OFFICE: a second DHCP server is on the LAN."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ipAllGoodAt",
+                  "to": "t"
+                },
+                {
+                  "output": "ACCT-PC2> ipconfig /all\nEthernet adapter Ethernet:\n   DHCP Enabled. . . . . . . . . . . : Yes\n   IPv4 Address. . . . . . . . . . . : 192.168.1.42\n   Default Gateway . . . . . . . . . : 192.168.1.1\n   DHCP Server . . . . . . . . . . . : 192.168.1.1\n   DNS Servers . . . . . . . . . . . : 192.168.1.1"
+                },
+                {
+                  "finding": "A working PC has its lease from RTR-OFFICE (192.168.1.1)."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pingShare": {
+      "label": "FRONT-PC> ping 192.168.1.10",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pingAt)",
+          "then": [
+            {
+              "set": "pingAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "FRONT-PC> ping 192.168.1.10\n{frontOk ? \"Reply from 192.168.1.10: bytes=32 time<1ms TTL=128\" : \"PING: transmit failed. General failure.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nslookup": {
+      "label": "FRONT-PC> nslookup portal.example.com",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(nslookupAt)",
+          "then": [
+            {
+              "set": "nslookupAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "FRONT-PC> nslookup portal.example.com\nServer:  {frontOk ? \"RTR-OFFICE\" : \"Unknown\"}\nAddress:  {frontOk ? \"192.168.1.1\" : \"192.168.8.1\"}\n{frontOk ? \"Name: portal.example.com  Address: 192.0.2.80\" : \"DNS request timed out.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "routerLeases": {
+      "label": "RTR-OFFICE admin page: DHCP client list",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(leasesAt)",
+          "then": [
+            {
+              "set": "leasesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "RTR-OFFICE > Status > DHCP clients\nHost        IP              Lease\nACCT-PC1    192.168.1.41    23h\nACCT-PC2    192.168.1.42    23h\nPRINTER     192.168.1.30    reserved\n... 6 of 9 office PCs listed; FRONT-PC, ACCT-PC3 and SCAN-PC have no lease here"
+        },
+        {
+          "finding": "RTR-OFFICE never leased to the three PCs that fail: they are taking offers from somewhere else."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "walk": {
+      "label": "walk the office and trace what is plugged into the switch",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(foundAt)",
+          "then": [
+            {
+              "set": "foundAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Switch port 12 (conference room jack): a travel router, its LAN port in the wall jack, its own Wi-Fi on, label 192.168.8.1"
+        },
+        {
+          "finding": "A consultant's travel router in the conference room is plugged in by its LAN port: its DHCP server answers office PCs with 192.168.8.x and itself as gateway."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "make a change",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "change",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "unplug",
+              "label": "unplug the travel router from the conference room jack"
+            },
+            {
+              "value": "reset",
+              "label": "restore RTR-OFFICE to factory defaults"
+            },
+            {
+              "value": "static",
+              "label": "give FRONT-PC a static address 192.168.1.20"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "change == \"unplug\"",
+              "then": [
+                {
+                  "set": "rogueOn",
+                  "to": "false"
+                },
+                {
+                  "if": "isNull(rogueOffAt)",
+                  "then": [
+                    {
+                      "set": "rogueOffAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "Travel router unplugged from the conference room jack; consultant asked to use the guest Wi-Fi"
+                },
+                {
+                  "log": "The second DHCP server is off the LAN. PCs keep their wrong leases until they renew.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "change == \"reset\"",
+              "then": [
+                {
+                  "set": "routerReset",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(resetAt)",
+                  "then": [
+                    {
+                      "set": "resetAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "add": "faultsAdded",
+                  "by": "1"
+                },
+                {
+                  "output": "RTR-OFFICE > System > Restore factory defaults ... rebooting"
+                },
+                {
+                  "log": "RTR-OFFICE is back on factory defaults: the remote bookkeeper's VPN port forward and the printer reservation are gone. The three PCs still take the other server's offers.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "staticFront",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(staticAt)",
+                  "then": [
+                    {
+                      "set": "staticAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "FRONT-PC> netsh interface ipv4 set address \"Ethernet\" static 192.168.1.20 255.255.255.0 192.168.1.1"
+                },
+                {
+                  "log": "FRONT-PC works on a typed-in address. The other two PCs still have the wrong leases, and 192.168.1.20 is not excluded from anything.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "isNull(fixedAt) and (not rogueOn)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "renew": {
+      "label": "FRONT-PC> ipconfig /release && ipconfig /renew",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "staticFront",
+          "then": [
+            {
+              "output": "FRONT-PC> ipconfig /renew\nThe operation failed as no adapter is in the state permissible for this operation (DHCP is off on this adapter)."
+            }
+          ],
+          "else": [
+            {
+              "if": "rogueOn",
+              "then": [
+                {
+                  "set": "rogueLease",
+                  "to": "true"
+                },
+                {
+                  "output": "FRONT-PC> ipconfig /renew\n   IPv4 Address. . . : 192.168.8.23\n   Default Gateway . : 192.168.8.1"
+                },
+                {
+                  "log": "The first offer came from the other server again.",
+                  "kind": "bad"
+                }
+              ],
+              "else": [
+                {
+                  "set": "rogueLease",
+                  "to": "false"
+                },
+                {
+                  "if": "isNull(verifiedAt)",
+                  "then": [
+                    {
+                      "set": "verifiedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "FRONT-PC> ipconfig /renew\n   IPv4 Address. . . : 192.168.1.57\n   Default Gateway . : 192.168.1.1"
+                },
+                {
+                  "log": "FRONT-PC has a lease from RTR-OFFICE and its gateway.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "renewOthers": {
+      "label": "ACCT-PC3 and SCAN-PC> ipconfig /release && ipconfig /renew",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "rogueOn",
+          "then": [
+            {
+              "output": "ACCT-PC3> ipconfig /renew\n   IPv4 Address. . . : 192.168.8.31\nSCAN-PC> ipconfig /renew\n   IPv4 Address. . . : 192.168.1.66"
+            },
+            {
+              "log": "One of them took the other server's offer again.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "othersRogue",
+              "to": "false"
+            },
+            {
+              "set": "othersRenewed",
+              "to": "true"
+            },
+            {
+              "output": "ACCT-PC3> ipconfig /renew\n   IPv4 Address. . . : 192.168.1.58\nSCAN-PC> ipconfig /renew\n   IPv4 Address. . . : 192.168.1.66"
+            },
+            {
+              "log": "Both have leases from RTR-OFFICE.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rebootRouter": {
+      "label": "RTR-OFFICE admin page: Reboot",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "reboots",
+          "by": "1"
+        },
+        {
+          "if": "isNull(rebootAt)",
+          "then": [
+            {
+              "set": "rebootAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "output": "RTR-OFFICE > System > Reboot ... rebooting"
+        },
+        {
+          "log": "Every PC and phone dropped while RTR-OFFICE rebooted; the three PCs still have their wrong leases.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "driver": {
+      "label": "FRONT-PC: reinstall the network adapter driver",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "add": "driverReinstalls",
+          "by": "1"
+        },
+        {
+          "output": "FRONT-PC> pnputil /scan-devices\nScanning for device hardware changes... Done. Adapter reinstalled."
+        },
+        {
+          "log": "The adapter came back with the same lease from 192.168.8.1.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "timeout /t 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "tech@BIRCHWOOD> timeout /t 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare it fixed and write the ticket",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the problem and start the ticket.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the ticket",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "rogue",
+                  "label": "A second DHCP server (a travel router on the LAN) leased wrong addresses"
+                },
+                {
+                  "value": "isp",
+                  "label": "The internet provider's line was dropping"
+                },
+                {
+                  "value": "nic",
+                  "label": "The PCs' network adapters or drivers were faulty"
+                },
+                {
+                  "value": "router",
+                  "label": "RTR-OFFICE's DHCP server was failing"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: cause {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineDelay and phase == \"incident\" and not frontOk",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "deadlineMissedAt",
+          "to": "t"
+        },
+        {
+          "log": "09:30: the upload portal closed with the front desk batch unsent.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the ticket: what told you this was not the internet line or the PCs, where the wrong addresses came from and how you proved it, and why your fix covers every PC.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Symptom",
+          "criteria": "Reads the affected PCs' 192.168.8.x address, gateway and DHCP server against a working PC's 192.168.1.x from 192.168.1.1, and says six PCs working rules out the internet line.",
+          "modelAnswer": "ipconfig /all on FRONT-PC showed 192.168.8.23 with gateway, DNS and DHCP server 192.168.8.1; a working PC had 192.168.1.42 from 192.168.1.1. Six PCs worked, so the line and the router were fine; the three PCs were on the wrong network."
+        },
+        {
+          "label": "Source and proof",
+          "criteria": "Identifies a second DHCP server answering on the LAN (the travel router), confirmed by RTR-OFFICE's client list lacking the three PCs and by finding the device.",
+          "modelAnswer": "RTR-OFFICE's DHCP list did not have the three PCs, so another server was answering. A client takes one of the offers it gets, often the first, so some PCs got the wrong one. The consultant's travel router was plugged into the conference room jack by its LAN port."
+        },
+        {
+          "label": "Fix that covers everyone",
+          "criteria": "Removes the second server at its source (not a static address on one PC or a router reset), then renews every affected PC and checks it.",
+          "modelAnswer": "I unplugged the travel router, then released and renewed the three PCs; each got a 192.168.1.x lease and reached the share. A static address would have fixed one PC and left the server answering, and a factory reset would have wiped the VPN forward and the printer reservation without touching the cause."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Fixed with time to spare before the 09:30 upload deadline; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No second fault: an office-wide router reboot or a factory reset."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and rogueOn",
+      "class": "harm",
+      "rationale": "Closing with the second DHCP server still answering leaves PCs on a network with no internet whenever they renew; it is never a safe outcome.",
+      "source": {
+        "cite": "IETF RFC 2131, Dynamic Host Configuration Protocol (1997)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.rfc-editor.org/rfc/rfc2131",
+        "note": "Relevant text (section 4.4.1): 'The client collects DHCPOFFER messages over a period of time, selects one DHCPOFFER message from the (possibly many) incoming DHCPOFFER messages (e.g., the first DHCPOFFER message or the DHCPOFFER message from the previously used server)'; section 3.1: 'The client may choose to wait for multiple responses.' Read in primary text on 2026-11-14. So a second DHCP server on the LAN wins some clients and not others."
+      }
+    }
+  },
+  "endings": {
+    "routerWiped": {
+      "label": "The router was reset to factory defaults",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and routerReset",
+      "narrative": "A factory reset of RTR-OFFICE wiped the remote bookkeeper's VPN port forward and the printer reservation, and did nothing about the device that was leasing the wrong addresses."
+    },
+    "deadlineMissed": {
+      "label": "The upload deadline passed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(deadlineMissedAt)",
+      "narrative": "The front desk was still offline at 09:30 and the client batch missed the portal."
+    },
+    "stillDown": {
+      "label": "Closed with the second DHCP server still on the LAN",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rogueOn",
+      "narrative": "The travel router is still answering DHCP: the two other PCs are still offline, and any PC that renews can join them."
+    },
+    "fixed": {
+      "label": "Fixed at the source",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not rogueOn and not staticFront and timeAt(fixedAt) <= restoreWindow and faultsAdded <= newFaults and not isNull(verifiedAt) and othersRenewed and not isNull(ipAllFrontAt) and timeAt(ipAllFrontAt) <= timeAt(fixedAt)",
+      "narrative": "The travel router is off the LAN, every affected PC has a lease from RTR-OFFICE, and nothing else was disturbed."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The office works, but the fix was late, guessed, left a PC on a typed-in address or a PC unrenewed, or cost everyone a reboot."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no ticket written."
+    }
+  },
+  "endingOrder": [
+    "routerWiped",
+    "deadlineMissed",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidenceFirst",
+        "label": "Compared an affected PC's DHCP server with a working one before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ipAllFrontAt) and (isNull(fixedAt) or timeAt(ipAllFrontAt) <= timeAt(fixedAt)) and (isNull(staticAt) or timeAt(ipAllFrontAt) <= timeAt(staticAt)) and (isNull(resetAt) or timeAt(ipAllFrontAt) <= timeAt(resetAt)) and (isNull(rebootAt) or timeAt(ipAllFrontAt) <= timeAt(rebootAt))",
+            "score": "met",
+            "why": "ipconfig /all showed the foreign DHCP server before the first change."
+          },
+          {
+            "when": "not isNull(ipAllFrontAt)",
+            "score": "partial",
+            "why": "The affected PC's configuration was read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The affected PC's lease and DHCP server were never read."
+          }
+        ]
+      },
+      {
+        "id": "atSource",
+        "label": "Removed the second DHCP server instead of working around it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not rogueOn and not staticFront and not routerReset",
+            "score": "met",
+            "why": "The travel router was unplugged; no workaround left behind."
+          },
+          {
+            "when": "not rogueOn",
+            "score": "partial",
+            "why": "The source was removed, but a workaround or a reset stayed behind."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The travel router is still answering DHCP on the LAN."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Source removed within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not rogueOn and timeAt(fixedAt) <= restoreWindow",
+            "score": "met",
+            "why": "Removed {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not rogueOn",
+            "score": "partial",
+            "why": "Removed, but {timeAt(fixedAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The second DHCP server was never removed."
+          }
+        ]
+      },
+      {
+        "id": "renewedAll",
+        "label": "Renewed and checked every affected PC",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt) and othersRenewed",
+            "score": "met",
+            "why": "All three PCs have leases from RTR-OFFICE."
+          },
+          {
+            "when": "not isNull(verifiedAt) or othersRenewed",
+            "score": "partial",
+            "why": "Only some of the affected PCs were renewed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No affected PC was seen to get a correct lease."
+          }
+        ]
+      },
+      {
+        "id": "noDisruption",
+        "label": "No office-wide reboot or reset",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "faultsAdded == 0",
+            "score": "met",
+            "why": "Nobody else lost their connection."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{routerReset ? \"A factory reset wiped the router's settings.\" : \"A reboot dropped every PC and phone.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"rogue\"",
+            "score": "met",
+            "why": "The ticket matches what happened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The ticket does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written symptom, proof and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until the second DHCP server was removed",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Disruptions the fix caused",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "driverK",
+        "label": "Driver reinstalls",
+        "value": "driverReinstalls",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "ipconfig /all on FRONT-PC and on a working PC: 192.168.8.23 from DHCP server 192.168.8.1 against 192.168.1.42 from 192.168.1.1."
+      },
+      {
+        "at": "4-17 min",
+        "text": "RTR-OFFICE's DHCP list lacks the three PCs; trace the switch ports and find the travel router in the conference room jack."
+      },
+      {
+        "at": "17-24 min",
+        "text": "Unplug it, then release and renew FRONT-PC and the other two; each gets 192.168.1.x and reaches the share."
+      },
+      {
+        "at": "After",
+        "text": "Ticket: second DHCP server; ask visitors to use guest Wi-Fi, and consider a switch that supports DHCP snooping."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed at the source",
+        "body": "You compared the DHCP server in a bad lease with a good one, found the second server and removed it, then renewed every PC it had reached."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The office works. The criteria show what it cost: time, a change before the evidence, a PC left on a typed-in address, a PC not renewed or a reboot."
+      },
+      "routerWiped": {
+        "headline": "The reset made it worse",
+        "body": "The router was not the problem: its DHCP list simply lacked the three PCs. A factory reset wiped the VPN forward and the printer reservation and left the travel router answering."
+      },
+      "deadlineMissed": {
+        "headline": "The deadline passed",
+        "body": "ipconfig /all on the front desk PC named the wrong DHCP server in the first two minutes. Driver reinstalls and waiting did not touch it."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "A static address fixed one PC. The second DHCP server kept answering, so the other two stayed down and any PC that renews can join them."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No ticket was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Three PCs failing on and off while six work points away from the internet line. ipconfig /all on an affected PC shows 192.168.8.23 with gateway, DNS and DHCP server 192.168.8.1, against a working PC's 192.168.1.42 from 192.168.1.1, so a second DHCP server is answering; a client takes one of the offers it gets, often the first. RTR-OFFICE's DHCP list lacks the three PCs, and tracing the switch finds a travel router plugged into the conference room jack by its LAN port. Unplug it, then release and renew each affected PC and check it reaches the share. A static address fixes one PC only, and a factory reset wipes the router's settings without touching the cause."
+  }
+}

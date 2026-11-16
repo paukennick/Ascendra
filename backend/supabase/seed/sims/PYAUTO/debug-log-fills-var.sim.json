@@ -1,0 +1,1094 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "debug-log-fills-var",
+  "title": "Outage: a Python service's log is filling /var",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@etl1:~#",
+      "lines": [
+        {
+          "id": "warn",
+          "text": "14:00 monitoring: etl1 /var 97% full and rising; PostgreSQL's data is on /var",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "full",
+          "text": "14:12 monitoring: etl1 /var 100%; PostgreSQL stopped (could not write to its log: No space left on device)",
+          "when": "not isNull(fullAt)",
+          "at": "timeAt(fullAt)",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "monitoring: etl1 /var back to 61%",
+          "when": "spaceFreed",
+          "at": "freedSec >= 0 ? freedSec : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "var",
+          "label": "/var",
+          "spokenLabel": "the /var filesystem",
+          "kind": "40 GB disk on etl1",
+          "status": "{varPct}% used",
+          "tone": "varPct >= 100 ? \"down\" : varPct >= 90 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "svc",
+          "label": "invsync",
+          "spokenLabel": "the invsync Python service",
+          "kind": "systemd service, one process",
+          "status": "{rotationLive ? \"Rotating at 50 MB, INFO\" : loadedCode == \"zero\" ? \"RotatingFileHandler, backupCount 0: never rolls over\" : \"FileHandler at DEBUG: grows forever\"}",
+          "tone": "rotationLive ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "db",
+          "label": "postgresql",
+          "spokenLabel": "the PostgreSQL database",
+          "kind": "Data on /var",
+          "status": "{isNull(fullAt) ? \"Running\" : \"Stopped: disk full\"}",
+          "tone": "isNull(fullAt) ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "w",
+          "from": "svc",
+          "to": "var",
+          "label": "Writes sync.log",
+          "status": "{rotationLive ? \"Bounded\" : \"About 250 MB a minute\"}",
+          "tone": "rotationLive ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "pct",
+          "label": "/var used",
+          "value": "{varPct}%"
+        }
+      ]
+    }
+  },
+  "objective": "Write logs to a file that rotates by size or time",
+  "secondaryObjectives": [
+    "Configure logging once at startup with basicConfig or dictConfig, and use a named logger per module",
+    "Choose the level for each message, from DEBUG to CRITICAL"
+  ],
+  "sources": [
+    {
+      "cite": "logging.handlers: RotatingFileHandler and WatchedFileHandler, Python 3.15 documentation (docs.python.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.python.org/3/library/logging.handlers.html",
+      "note": "Relevant text: RotatingFileHandler(filename, mode='a', maxBytes=0, backupCount=0, ...); 'Rollover occurs whenever the current log file is nearly maxBytes in length; but if either of maxBytes or backupCount is zero, rollover never occurs, so you generally want to set backupCount to at least 1, and have a non-zero maxBytes.' WatchedFileHandler 'watches the file to see if it has changed since the last emit' for use with logrotate. Read through a summarizing fetch 2026-11-14 (page titled Python 3.15.2 documentation)."
+    },
+    {
+      "cite": "Logging Cookbook, Python 3.15 documentation (docs.python.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.python.org/3/howto/logging-cookbook.html",
+      "note": "Relevant text: 'logging to a single file from multiple processes is not supported, because there is no standard way to serialize access to a single file across multiple processes in Python.' Read through a summarizing fetch 2026-11-14. invsync is one process, so a file handler that rotates is safe here."
+    },
+    {
+      "cite": "unlink(2) (Linux man-pages, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man2/unlink.2.html",
+      "note": "Relevant text: if the name was the last link to a file but a process still has it open, 'the file will remain in existence until the last file descriptor referring to it is closed.' Read through a summarizing fetch 2026-11-14. That truncating the open file frees its blocks while the writer, which appends, carries on at the new end follows from the handler's default mode 'a'."
+    }
+  ],
+  "brief": {
+    "situation": "You support invsync, a Python service that syncs inventory between the warehouse system and the shop, on etl1 for Brightwater Garden Supply (fictional). Thursday's release went out with debug logging switched on. /var is 97% full and rising; PostgreSQL keeps its data on /var too and will stop when the disk is full, in about 12 minutes.",
+    "handover": [
+      "invsync runs as one long-lived process under systemd; its logging is set up in /opt/invsync/invsync/logconf.py.",
+      "Nobody needs the debug lines, but keep at least the recent log if you can."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fullDelay": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. /var reaches 100% at 14:12, 12 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "deletedHeld": {
+      "type": "bool",
+      "init": false
+    },
+    "logLost": {
+      "type": "bool",
+      "init": false
+    },
+    "freedAt": {
+      "type": "time",
+      "init": null
+    },
+    "code": {
+      "type": "enum",
+      "values": [
+        "plain",
+        "rotating",
+        "zero"
+      ],
+      "init": "plain"
+    },
+    "loadedCode": {
+      "type": "enum",
+      "values": [
+        "plain",
+        "rotating",
+        "zero"
+      ],
+      "init": "plain"
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fullAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "debuglog",
+        "database",
+        "disk"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rotate",
+        "deleted",
+        "zero"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "spaceFreed": {
+      "expr": "not isNull(freedAt)"
+    },
+    "freedSec": {
+      "expr": "not isNull(freedAt) ? timeAt(freedAt) : -1"
+    },
+    "rotationLive": {
+      "expr": "loadedCode == \"rotating\""
+    },
+    "varPct": {
+      "expr": "spaceFreed ? 61 : (isNull(fullAt) ? min(100, 97 + floor(t / 240)) : 100)"
+    },
+    "faultsAdded": {
+      "expr": "not isNull(fullAt) ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "df",
+        "du",
+        "lsof",
+        "grepConf",
+        "rmLog",
+        "truncate",
+        "editRot",
+        "editZero",
+        "restart",
+        "lsLogs",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "df": {
+      "label": "df -h /var",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@etl1:~# df -h /var\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/sdb1        40G   {varPct >= 100 ? \"40G     0\" : spaceFreed ? \"24G   16G\" : \"39G  1.2G\"} {varPct}% /var"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "du": {
+      "label": "du -sh /var/log/invsync/*",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@etl1:~# du -sh /var/log/invsync/*\n{logLost ? \"(nothing: the file was deleted)\" : spaceFreed ? \"12K     /var/log/invsync/sync.log\" : \"14G     /var/log/invsync/sync.log\"}"
+        },
+        {
+          "finding": "invsync's own log is 14 GB and growing about 250 MB a minute."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lsof": {
+      "label": "lsof +L1 /var",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@etl1:~# lsof +L1 /var\n{deletedHeld and not spaceFreed ? \"COMMAND   PID USER  FD TYPE SIZE/OFF NLINK NAME\" : \"(no deleted files held open)\"}{deletedHeld and not spaceFreed ? \" python3 2207 invsync 3w REG 15032385536 0 /var/log/invsync/sync.log (deleted)\" : \"\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "grepConf": {
+      "label": "grep -nE 'Handler|level' /opt/invsync/invsync/logconf.py",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@etl1:~# grep -nE 'Handler|level' /opt/invsync/invsync/logconf.py\n{code == \"plain\" ? \"12:    handler = logging.FileHandler(LOG_PATH)\" : code == \"zero\" ? \"12:    handler = RotatingFileHandler(LOG_PATH, maxBytes=50_000_000)\" : \"12:    handler = RotatingFileHandler(LOG_PATH, maxBytes=50_000_000, backupCount=5)\"}\n{code == \"plain\" ? \"14:    root.setLevel(logging.DEBUG)\" : \"14:    root.setLevel(logging.INFO)\"}"
+        },
+        {
+          "finding": "A plain FileHandler at DEBUG: the file only ever grows; Thursday's release turned on per-record debug lines."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rmLog": {
+      "label": "rm /var/log/invsync/sync.log",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "logLost",
+          "to": "true"
+        },
+        {
+          "if": "not spaceFreed",
+          "then": [
+            {
+              "set": "deletedHeld",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "output": "root@etl1:~# rm /var/log/invsync/sync.log"
+        },
+        {
+          "log": "The name is gone, but invsync still has the file open: its 14 GB stay in use, and the log is lost.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "truncate": {
+      "label": "truncate -s 0 /var/log/invsync/sync.log",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "logLost",
+          "then": [
+            {
+              "output": "root@etl1:~# truncate -s 0 /var/log/invsync/sync.log\n(creates a new empty file; the deleted one is still held open)"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@etl1:~# truncate -s 0 /var/log/invsync/sync.log"
+            },
+            {
+              "if": "isNull(freedAt)",
+              "then": [
+                {
+                  "set": "freedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "14 GB back on /var: down to 61%.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "systemctl restart invsync",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "loadedCode",
+          "to": "code"
+        },
+        {
+          "output": "root@etl1:~# systemctl restart invsync"
+        },
+        {
+          "if": "deletedHeld",
+          "then": [
+            {
+              "if": "isNull(freedAt)",
+              "then": [
+                {
+                  "set": "freedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "14 GB back on /var: down to 61%.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "code == \"zero\"",
+          "then": [
+            {
+              "log": "invsync restarted with backupCount=0: with either value zero, rollover never occurs.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "editRot": {
+      "label": "edit /opt/invsync/invsync/logconf.py: RotatingFileHandler(LOG_PATH, maxBytes=50_000_000, backupCount=5), level INFO",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "code",
+          "to": "\"rotating\""
+        },
+        {
+          "output": "root@etl1:~# vi /opt/invsync/invsync/logconf.py"
+        },
+        {
+          "log": "logconf.py: a 50 MB RotatingFileHandler keeping 5 old files, level INFO. It takes effect when invsync restarts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "editZero": {
+      "label": "edit /opt/invsync/invsync/logconf.py: RotatingFileHandler(LOG_PATH, maxBytes=50_000_000), level INFO",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "code",
+          "to": "\"zero\""
+        },
+        {
+          "output": "root@etl1:~# vi /opt/invsync/invsync/logconf.py"
+        },
+        {
+          "log": "logconf.py: a RotatingFileHandler with maxBytes set and backupCount left at its default. It takes effect when invsync restarts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "lsLogs": {
+      "label": "ls -lh /var/log/invsync/   (after a few minutes)",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@etl1:~# ls -lh /var/log/invsync/\n{rotationLive ? \"-rw-r----- 1 invsync invsync  31M sync.log\" : \"-rw-r----- 1 invsync invsync 1.1G sync.log\"}{rotationLive ? \" -rw-r----- 1 invsync invsync 48M sync.log.1 (rolled over at 50 MB)\" : \" (one file, still growing)\"}"
+        },
+        {
+          "if": "rotationLive and spaceFreed and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@etl1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "debuglog",
+                  "label": "invsync logged every record at DEBUG through a FileHandler that never rotates; the log filled /var"
+                },
+                {
+                  "value": "database",
+                  "label": "PostgreSQL's data grew"
+                },
+                {
+                  "value": "disk",
+                  "label": "The /var disk is too small"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "rotate",
+                  "label": "Truncated the open log, switched to a RotatingFileHandler (50 MB, 5 backups) at INFO and restarted"
+                },
+                {
+                  "value": "deleted",
+                  "label": "Deleted the log file"
+                },
+                {
+                  "value": "zero",
+                  "label": "Switched to a RotatingFileHandler with maxBytes only"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "full",
+      "when": "t >= fullDelay and phase == \"incident\" and not spaceFreed",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fullAt",
+          "to": "t"
+        },
+        {
+          "log": "14:12: /var is full and PostgreSQL has stopped.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what filled /var, how you freed space without losing the service, and why the log will not do it again.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names invsync's log: a plain FileHandler (never rotates) at DEBUG since Thursday's release.",
+          "modelAnswer": "du showed sync.log at 14 GB; logconf.py used logging.FileHandler with the root level at DEBUG."
+        },
+        {
+          "label": "Freeing space",
+          "criteria": "Truncates the open file (or restarts after a delete) and explains that deleting a file a process holds open frees nothing until it closes.",
+          "modelAnswer": "truncate -s 0 freed the 14 GB at once while invsync kept appending; rm would have left the space held by the open descriptor until a restart."
+        },
+        {
+          "label": "Lasting fix",
+          "criteria": "RotatingFileHandler (or TimedRotatingFileHandler) with a non-zero maxBytes and backupCount of at least 1, level INFO, restarted, and checked; explains why backupCount=0 never rolls over.",
+          "modelAnswer": "RotatingFileHandler(maxBytes=50 MB, backupCount=5) at INFO, restarted, and ls showed sync.log.1 after rollover. With backupCount at its default 0, rollover never occurs."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 10 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Space back before /var fills at 14:12; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No secondary outage: PostgreSQL stopped by a full /var."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not spaceFreed",
+      "class": "harm",
+      "rationale": "Closing while the log is still filling /var leaves the database to stop; it is never a safe outcome.",
+      "source": {
+        "cite": "unlink(2) (Linux man-pages, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man2/unlink.2.html",
+        "note": "Relevant text: if the name was the last link to a file but a process still has it open, 'the file will remain in existence until the last file descriptor referring to it is closed.' Read through a summarizing fetch 2026-11-14. That truncating the open file frees its blocks while the writer, which appends, carries on at the new end follows from the handler's default mode 'a'."
+      }
+    }
+  },
+  "endings": {
+    "dbStopped": {
+      "label": "The database stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(fullAt)",
+      "narrative": "/var filled before space came back, and PostgreSQL stopped with it."
+    },
+    "stillFilling": {
+      "label": "Closed with /var filling",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not spaceFreed",
+      "narrative": "The incident was closed while the log still held the space."
+    },
+    "fixed": {
+      "label": "Space back, log bounded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and spaceFreed and freedSec <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and rotationLive",
+      "narrative": "The open log was truncated in time, and invsync now rotates at 50 MB with five backups at INFO."
+    },
+    "fixedGaps": {
+      "label": "Space back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "/var has room again, but the log still grows without limit, or the fix came before any evidence."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dbStopped",
+    "stillFilling",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Found what was filling /var before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Space back within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "spaceFreed and freedSec <= restoreWindow",
+            "score": "met",
+            "why": "Freed {freedSec / 60|0dp} min in."
+          },
+          {
+            "when": "spaceFreed",
+            "score": "partial",
+            "why": "Freed, but {freedSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The space was never freed."
+          }
+        ]
+      },
+      {
+        "id": "rotation",
+        "label": "A rotating handler that actually rolls over, loaded",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rotationLive",
+            "score": "met",
+            "why": "RotatingFileHandler with backupCount 5 is running."
+          },
+          {
+            "when": "loadedCode == \"zero\" or code == \"zero\"",
+            "score": "missed",
+            "why": "backupCount 0: rollover never occurs."
+          },
+          {
+            "when": "code == \"rotating\"",
+            "score": "partial",
+            "why": "Edited, but invsync was not restarted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still a plain FileHandler."
+          }
+        ]
+      },
+      {
+        "id": "keptLog",
+        "label": "Kept the log file instead of deleting it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not logLost",
+            "score": "met",
+            "why": "The file was truncated, not deleted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "rm deleted the log and freed nothing until a restart."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the log rolls over",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "sync.log.1 appeared at 50 MB."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the rotation."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"debuglog\" and fixDoc == \"rotate\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"debuglog\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, freeing space and lasting fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minFree",
+        "label": "Minutes until /var had room",
+        "value": "freedSec >= 0 ? freedSec / 60 : -1",
+        "format": "number",
+        "expert": "3 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "df -h /var (97%) and du on /var/log/invsync: sync.log is 14 GB."
+      },
+      {
+        "at": "2-3 min",
+        "text": "truncate -s 0 the open log: the space comes back at once and invsync keeps appending."
+      },
+      {
+        "at": "3-7 min",
+        "text": "grep logconf.py: FileHandler at DEBUG. Switch to RotatingFileHandler(maxBytes=50 MB, backupCount=5) at INFO."
+      },
+      {
+        "at": "7-11 min",
+        "text": "systemctl restart invsync; ls shows sync.log.1 after the first rollover."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: space back, log bounded",
+        "body": "You found the log, freed its space without deleting what the process still held, and bounded it with a handler that really rotates."
+      },
+      "fixedGaps": {
+        "headline": "Space back, with gaps",
+        "body": "/var has room. The criteria show the gap: a plain FileHandler, or backupCount 0, refills the disk in about two hours."
+      },
+      "dbStopped": {
+        "headline": "The database stopped",
+        "body": "Deleting the file did not free the space: invsync still had it open. truncate frees it at once."
+      },
+      "stillFilling": {
+        "headline": "Closed too soon",
+        "body": "Check df after the fix: a deleted file held open still counts as used."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "du names the log. It is open in a long-lived process, so rm frees nothing (unlink keeps it until the last descriptor closes); truncate frees it now. Then fix the code: RotatingFileHandler with maxBytes and backupCount both non-zero (either at zero means no rollover) at INFO, restart to load it, and check that a .1 file appears."
+  }
+}

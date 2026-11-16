@@ -1,0 +1,1271 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cism-payroll-supplier-breach",
+  "title": "A supplier's late breach notice, on payroll day",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "notice",
+          "severity": "high",
+          "title": "Supplier notice (PayCadence): 'a security incident affecting some customers' API credentials', discovered three days ago",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(supplierAt) ? \"Cooperation clause invoked; details received\" : not isNull(contractAt) ? \"Checked against the contract\" : \"New\"}",
+          "open": "isNull(supplierAt)"
+        },
+        {
+          "id": "api",
+          "severity": "medium",
+          "title": "API gateway: PayCadence integration key used from 203.0.113.45, not PayCadence's published range",
+          "when": "true",
+          "at": "0",
+          "status": "{attackerActive ? \"Key still valid\" : not isNull(rotatedAt) ? \"Key rotated and restricted\" : \"Integration off\"}",
+          "open": "attackerActive"
+        },
+        {
+          "id": "dd",
+          "severity": "high",
+          "title": "HR: 12 direct-deposit accounts changed through the integration",
+          "when": "not isNull(changesAt)",
+          "at": "timeAt(changesAt)",
+          "status": "{not isNull(revertedAt) ? \"Reverted after phone checks\" : not isNull(fraudAt) ? \"Paid to the new accounts\" : \"In today's payroll file\"}",
+          "open": "isNull(revertedAt) and isNull(fraudAt)"
+        },
+        {
+          "id": "cut",
+          "severity": "low",
+          "title": "Payroll: bank file cut-off at 10:00",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(missedAt) ? \"Missed: 1,800 employees unpaid today\" : not isNull(cutoffAt) ? \"Sent\" : payrollBlocked ? \"Blocked: integration off\" : \"On schedule\"}",
+          "open": "isNull(cutoffAt)"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "API gateway",
+          "text": "Integration key: 214 calls from 203.0.113.45 since yesterday 16:20, reading employee bank and tax fields",
+          "when": "not isNull(logsAt)",
+          "at": "timeAt(logsAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Contract",
+          "text": "Security schedule: notice within 24 hours of discovery; cooperation and logs on request; subprocessors bound by the same terms; right to audit",
+          "when": "not isNull(contractAt)",
+          "at": "timeAt(contractAt)"
+        },
+        {
+          "id": "e3",
+          "source": "PayCadence security",
+          "text": "Keys were taken from TaxBridge, our tax-filing subprocessor; attacker address 203.0.113.45; we found it Monday",
+          "when": "not isNull(supplierAt)",
+          "at": "timeAt(supplierAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Data map",
+          "text": "The integration carries name, address, tax ID and bank account for 1,800 employees",
+          "when": "not isNull(dataMapAt)",
+          "at": "timeAt(dataMapAt)"
+        },
+        {
+          "id": "e5",
+          "source": "HR system",
+          "text": "Direct-deposit changes for 12 employees, made through the integration from 203.0.113.45",
+          "when": "not isNull(changesAt)",
+          "at": "timeAt(changesAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Mail",
+          "text": "All-staff email: 'your data was stolen' sent before counsel reviewed it",
+          "when": "not isNull(noticeAt)",
+          "at": "timeAt(noticeAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "key",
+          "label": "Integration key",
+          "spokenLabel": "PayCadence integration key",
+          "kind": "API credential",
+          "status": "{not isNull(rotatedAt) ? \"Rotated; allowed from PayCadence's range only\" : not isNull(terminatedAt) ? \"Disabled with the contract\" : not isNull(suspendedAt) and isNull(resumedAt) ? \"Integration suspended; key still valid\" : \"Stolen key valid\"}",
+          "tone": "attackerActive ? \"bad\" : \"held\""
+        },
+        {
+          "id": "sup",
+          "label": "PayCadence",
+          "spokenLabel": "PayCadence, payroll supplier",
+          "kind": "Third party (subprocessor TaxBridge)",
+          "status": "{not isNull(terminatedAt) ? \"Contract terminated\" : not isNull(supplierAt) ? \"Cooperating under the contract\" : \"Notice received\"}",
+          "tone": "\"watch\""
+        },
+        {
+          "id": "pay",
+          "label": "Payroll",
+          "spokenLabel": "Today's payroll",
+          "kind": "1,800 employees",
+          "status": "{not isNull(missedAt) ? \"Not paid today\" : payrollBlocked ? \"Blocked\" : \"Will run\"}",
+          "tone": "not isNull(missedAt) ? \"bad\" : payrollBlocked ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "esc",
+          "label": "Escalation",
+          "value": "{isNull(escalatedAt) ? \"CFO and counsel not briefed\" : \"CFO and counsel briefed\"}"
+        },
+        {
+          "id": "reg",
+          "label": "Risk register",
+          "value": "{isNull(registerAt) ? \"not updated\" : \"supplier risk and treatment recorded\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Manage external services -- suppliers, third parties and nth parties -- through contract requirements and monitoring",
+  "secondaryObjectives": [
+    "Manage incident response communications: reporting, notification and escalation",
+    "Choose a risk treatment -- mitigate, transfer, avoid or accept -- based on risk appetite"
+  ],
+  "sources": [
+    {
+      "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 3 Information Security Program; Domain 4 Incident Management; Domain 2 Information Security Risk Management",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+      "note": "Read as HTML on 2026-11-14 for REQ-272. Domain weights 18 / 20 / 33 / 29. Domain 3 part B names third-party/external services management among program management topics; Domain 4 part B covers incident response communications (reporting, notification, escalation); Domain 2 part B 'Risk Treatment/Risk Response Options'. The course's objective wording is its own."
+    },
+    {
+      "cite": "NIST SP 800-161 Rev. 1, Cybersecurity Supply Chain Risk Management Practices for Systems and Organizations (May 2022, updated November 1, 2024)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/161/r1/upd1/final",
+      "note": "Read 2026-11-14 through a summarizing fetch of the CSRC page: final; the guidance covers 'identifying, assessing, and mitigating cybersecurity risks throughout the supply chain'. Used for the idea that supplier risk is managed through contract terms and monitoring; the contract clauses in the scenario are the author's."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the information security manager at Ardent Foods, a fictional food producer. At 09:00 your payroll provider sends a vague notice of a 'security incident affecting some customers' API credentials', found three days ago. Your HR system sends it every employee's tax ID and bank details through an API key. Today's payroll file goes to the bank at 10:00. Manage the supplier, protect the payroll and the people in it, and write it up.",
+    "handover": [
+      "The contract's security schedule requires notice within 24 hours of discovery, cooperation with your investigation, logs on request, and the same terms for any subprocessor.",
+      "The CFO owns payroll risk; legal counsel decides on notifications to employees and regulators."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. Whoever holds the stolen key works on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "changesDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty minutes until the deposit changes is the author's figure."
+      }
+    },
+    "cutoffDelay": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "The bank file cut-off at 10:00 is the fictional company's schedule."
+      }
+    },
+    "escalateWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Briefing the risk owner and counsel within the first hour is the author's teaching figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "contractAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "rotatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "suspendedAt": {
+      "type": "time",
+      "init": null
+    },
+    "resumedAt": {
+      "type": "time",
+      "init": null
+    },
+    "terminatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "revertedAt": {
+      "type": "time",
+      "init": null
+    },
+    "supplierAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalatedAt": {
+      "type": "time",
+      "init": null
+    },
+    "noticeAt": {
+      "type": "time",
+      "init": null
+    },
+    "dataMapAt": {
+      "type": "time",
+      "init": null
+    },
+    "registerAt": {
+      "type": "time",
+      "init": null
+    },
+    "changesAt": {
+      "type": "time",
+      "init": null
+    },
+    "fraudAt": {
+      "type": "time",
+      "init": null
+    },
+    "missedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cutoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "treatDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "mitigate",
+        "avoid",
+        "accept"
+      ],
+      "init": "unset"
+    },
+    "breachDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "late",
+        "ontime"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owners",
+        "staff",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "attackerActive": {
+      "expr": "isNull(rotatedAt) and isNull(terminatedAt)"
+    },
+    "payrollBlocked": {
+      "expr": "(not isNull(suspendedAt) and isNull(resumedAt)) or not isNull(terminatedAt)"
+    },
+    "spread": {
+      "expr": "isNull(changesAt) ? 0 : 1"
+    },
+    "depositsSafe": {
+      "expr": "isNull(fraudAt) and (isNull(changesAt) or not isNull(revertedAt))"
+    },
+    "escalatedWell": {
+      "expr": "not isNull(escalatedAt) and timeAt(escalatedAt) <= escalateWindow and (isNull(noticeAt) or timeAt(escalatedAt) <= timeAt(noticeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "readContract",
+        "pullLogs",
+        "rotate",
+        "suspend",
+        "resume",
+        "terminate",
+        "revert",
+        "callSupplier",
+        "escalate",
+        "notice",
+        "dataMap",
+        "register",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "readContract": {
+      "label": "Read the notice against the contract's security schedule",
+      "group": "Investigate",
+      "available": "not busy and isNull(contractAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "contractAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the notice beside the contract.",
+          "kind": "act"
+        },
+        {
+          "finding": "Discovery was three days ago; the contract requires notice within 24 hours. The cooperation clause entitles you to their indicators, scope and logs, and binds their subprocessors."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pullLogs": {
+      "label": "Pull the API gateway log for the integration key",
+      "group": "Investigate",
+      "available": "not busy and isNull(logsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logsAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the integration key's calls since last week.",
+          "kind": "act"
+        },
+        {
+          "finding": "Since yesterday 16:20 the key has been used from 203.0.113.45, outside PayCadence's range, reading bank and tax fields."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rotate": {
+      "label": "Rotate the integration key and allow it only from PayCadence's published range",
+      "group": "Contain",
+      "available": "not busy and isNull(rotatedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "rotatedAt",
+          "to": "t"
+        },
+        {
+          "log": "The old key stops working; the new one works only from PayCadence's addresses. Payroll is unaffected.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "suspend": {
+      "label": "Suspend the PayCadence integration entirely",
+      "group": "Contain",
+      "available": "not busy and isNull(suspendedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "suspendedAt",
+          "to": "t"
+        },
+        {
+          "log": "The integration stops: nothing flows either way. The stolen key is still valid, and today's payroll cannot be sent.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "resume": {
+      "label": "Resume the integration with the rotated key",
+      "group": "Contain",
+      "available": "not busy and isNull(resumedAt) and (not isNull(suspendedAt) and not isNull(rotatedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "resumedAt",
+          "to": "t"
+        },
+        {
+          "log": "The integration runs again on the new, restricted key.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "terminate": {
+      "label": "Terminate the PayCadence contract today",
+      "group": "Contain",
+      "available": "not busy and isNull(terminatedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "terminatedAt",
+          "to": "t"
+        },
+        {
+          "log": "The contract is ended and the integration disabled. There is no other payroll provider ready.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "revert": {
+      "label": "Revert the 12 deposit changes after HR phones each employee",
+      "group": "Recover",
+      "available": "not busy and isNull(revertedAt) and (not isNull(changesAt) and isNull(fraudAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "revertedAt",
+          "to": "t"
+        },
+        {
+          "log": "HR reaches the 12 employees by phone; none made the change, and their accounts are put back.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "callSupplier": {
+      "label": "Phone PayCadence's security contact and invoke the cooperation clause",
+      "group": "Communicate",
+      "available": "not busy and isNull(supplierAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "supplierAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask for scope, timeline, indicators and logs under the contract, and whether any subprocessor is involved.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Brief the CFO (risk owner) and legal counsel",
+      "group": "Communicate",
+      "available": "not busy and isNull(escalatedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalatedAt",
+          "to": "t"
+        },
+        {
+          "log": "The CFO and counsel have the facts so far: what data, how many people, what you have done, what is still unknown.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "notice": {
+      "label": "Email all employees now that their data was stolen",
+      "group": "Communicate",
+      "available": "not busy and isNull(noticeAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "noticeAt",
+          "to": "t"
+        },
+        {
+          "log": "The email goes out before the scope is known or counsel has reviewed it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "dataMap": {
+      "label": "Inventory what employee data the integration shares",
+      "group": "Investigate",
+      "available": "not busy and isNull(dataMapAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "dataMapAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the data map for the integration's fields and record counts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "register": {
+      "label": "Record the supplier risk and treatment in the risk register",
+      "group": "Review",
+      "available": "not busy and isNull(registerAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "registerAt",
+          "to": "t"
+        },
+        {
+          "log": "Recorded: contract remedy for the late notice, subprocessor assurance, key restrictions and monitoring, and an alternate payroll option. The CFO accepts the residual risk.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "owners",
+              "label": "The CFO, counsel and the vendor management office, with the contract findings"
+            },
+            {
+              "value": "staff",
+              "label": "All employees, before counsel has decided"
+            },
+            {
+              "value": "nobody",
+              "label": "No one: the supplier will handle it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"owners\" ? \"the CFO, counsel and vendor management\" : who == \"staff\" ? \"all employees\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "treat",
+              "label": "Risk treatment for the supplier",
+              "options": [
+                {
+                  "value": "mitigate",
+                  "label": "Mitigate: contract remedy, subprocessor assurance, key restrictions and monitoring; keep the supplier with an exit plan"
+                },
+                {
+                  "value": "avoid",
+                  "label": "Avoid: end the relationship today"
+                },
+                {
+                  "value": "accept",
+                  "label": "Accept: no change"
+                }
+              ]
+            },
+            {
+              "id": "breach",
+              "label": "Supplier's notice",
+              "options": [
+                {
+                  "value": "late",
+                  "label": "Missed the 24-hour notice clause; recorded for contract remedies"
+                },
+                {
+                  "value": "ontime",
+                  "label": "On time"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "treatDoc",
+          "to": "treat"
+        },
+        {
+          "set": "breachDoc",
+          "to": "breach"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {treat}, {breach}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "changes",
+      "when": "isNull(changesAt) and (t >= changesDelay and attackerActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "changesAt",
+          "to": "t"
+        },
+        {
+          "log": "HR system: 12 direct-deposit accounts were changed through the integration from 203.0.113.45.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "when": "isNull(fraudAt) and (t >= cutoffDelay and not isNull(changesAt) and isNull(revertedAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "fraudAt",
+          "to": "t"
+        },
+        {
+          "log": "Payroll: the bank file went with 12 deposits to the attacker's accounts.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "missed",
+      "when": "isNull(missedAt) and (t >= cutoffDelay and payrollBlocked) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "missedAt",
+          "to": "t"
+        },
+        {
+          "log": "Payroll: the bank file could not be sent. 1,800 employees will not be paid today.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "cutoff",
+      "when": "isNull(cutoffAt) and (t >= cutoffDelay) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "cutoffAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the payroll cut-off has passed. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: how you used the contract, how you contained it without stopping the business, and who you told.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The contract",
+          "criteria": "Reads the notice against the security schedule, records the missed 24-hour clause, invokes cooperation for scope and indicators, and asks about the subprocessor (nth party).",
+          "modelAnswer": "The supplier was two days past the 24-hour clause; I invoked cooperation, got the indicators and learned the keys were taken from their subprocessor TaxBridge."
+        },
+        {
+          "label": "Containment against the business",
+          "criteria": "Rotates and restricts the key, which stops the attacker and keeps payroll running; does not suspend or terminate in a way that leaves 1,800 people unpaid; reverts fraudulent deposit changes after out-of-band checks.",
+          "modelAnswer": "Rotating and restricting the key cut the attacker off without stopping payroll; suspending or terminating would have left everyone unpaid."
+        },
+        {
+          "label": "Communication and treatment",
+          "criteria": "Escalates to the risk owner and counsel early; leaves employee notification to counsel; records a mitigate treatment with monitoring and an exit plan in the register.",
+          "modelAnswer": "The CFO and counsel had the facts in the first half hour; counsel decides on employee notice. The register shows a mitigate treatment with subprocessor assurance and an exit plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No deposit change after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and attackerActive",
+      "class": "harm",
+      "rationale": "Leaving a stolen key valid on payroll day lets the fraud proceed; it is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-161 Rev. 1, Cybersecurity Supply Chain Risk Management Practices for Systems and Organizations (May 2022, updated November 1, 2024)",
+        "checkedAt": "2026-11-14",
+        "url": "https://csrc.nist.gov/pubs/sp/800/161/r1/upd1/final",
+        "note": "Read 2026-11-14 through a summarizing fetch of the CSRC page: final; the guidance covers 'identifying, assessing, and mitigating cybersecurity risks throughout the supply chain'. Used for the idea that supplier risk is managed through contract terms and monitoring; the contract clauses in the scenario are the author's."
+      }
+    }
+  },
+  "endings": {
+    "fraud": {
+      "label": "Payroll fraud",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (not isNull(fraudAt) or (not isNull(changesAt) and isNull(revertedAt)))",
+      "narrative": "Twelve employees' pay is going to the attacker's accounts through the stolen key."
+    },
+    "leftOpen": {
+      "label": "Stolen key still valid",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "The case was closed with the supplier's stolen key still able to read and change employee records."
+    },
+    "handled": {
+      "label": "Contained, payroll ran, supplier managed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and depositsSafe and not payrollBlocked and not isNull(supplierAt) and not isNull(contractAt) and escalatedWell",
+      "narrative": "You cut off the key without stopping payroll, used the contract to get the facts, and put the decisions with the risk owner and counsel."
+    },
+    "handledCostly": {
+      "label": "Contained, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The key is dead, but deposits were changed, payroll was blocked, the contract went unused, or the escalation was late or out of order."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "fraud",
+    "leftOpen",
+    "handled",
+    "handledCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "contained",
+        "label": "Stolen key cut off within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(offAt) and timeAt(offAt) <= containWindow and not attackerActive",
+            "score": "met",
+            "why": "Cut off {timeAt(offAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not attackerActive",
+            "score": "partial",
+            "why": "Cut off, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The key still works."
+          }
+        ]
+      },
+      {
+        "id": "contract",
+        "label": "Used the contract: notice checked, cooperation invoked",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(supplierAt) and not isNull(contractAt)",
+            "score": "met",
+            "why": "Late notice recorded; indicators and the subprocessor found."
+          },
+          {
+            "when": "not isNull(supplierAt) or not isNull(contractAt)",
+            "score": "partial",
+            "why": "Only half of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The contract was never used."
+          }
+        ]
+      },
+      {
+        "id": "escalation",
+        "label": "CFO and counsel briefed in the first hour, before any employee notice",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "escalatedWell",
+            "score": "met",
+            "why": "Decision makers first."
+          },
+          {
+            "when": "not isNull(escalatedAt)",
+            "score": "partial",
+            "why": "Briefed late, or after an all-staff email."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody above you knew."
+          }
+        ]
+      },
+      {
+        "id": "business",
+        "label": "Payroll ran with no fraudulent deposits",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "depositsSafe and not payrollBlocked",
+            "score": "met",
+            "why": "Everyone paid, to their own accounts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{payrollBlocked ? \"Payroll was blocked.\" : \"Deposits went to the attacker.\"}"
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Checked our own logs for the key's use",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(logsAt)",
+            "score": "met",
+            "why": "Our evidence, not only the supplier's word."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Relied on the notice alone."
+          }
+        ]
+      },
+      {
+        "id": "dataMap",
+        "label": "Established what data the integration exposes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dataMapAt)",
+            "score": "met",
+            "why": "Counsel has the data types and counts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Scope of personal data unknown."
+          }
+        ]
+      },
+      {
+        "id": "register",
+        "label": "Recorded the supplier risk and treatment",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(registerAt)",
+            "score": "met",
+            "why": "In the register with an owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded a mitigate treatment and the late notice, and told the owners",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "treatDoc == \"mitigate\" and breachDoc == \"late\" and notified == \"owners\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written contract use, containment and communication",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToCut",
+        "label": "Minutes until the stolen key stopped working",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "deposits",
+        "label": "Deposits changed by the attacker",
+        "value": "isNull(changesAt) ? 0 : 12",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "unpaid",
+        "label": "Employees not paid today",
+        "value": "isNull(missedAt) ? 0 : 1800",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the notice against the contract (two days late); pull your own API log: the key is in use from outside."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Rotate the key and restrict it to the supplier's range; payroll keeps running."
+      },
+      {
+        "at": "15-30 min",
+        "text": "Invoke the cooperation clause (the subprocessor is the source); brief the CFO and counsel; map the data shared."
+      },
+      {
+        "at": "After",
+        "text": "Register a mitigate treatment with subprocessor assurance and an exit plan; notify the owners; counsel decides on employee notice."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: the contract did its job, and so did you",
+        "body": "A third party's incident is yours to manage through the contract and your own controls. You cut the key off without stopping the business."
+      },
+      "handledCostly": {
+        "headline": "Contained, at a cost",
+        "body": "The criteria show what cost you: changed deposits, a blocked payroll, an unused contract, or a late or out-of-order escalation."
+      },
+      "fraud": {
+        "headline": "Pay went to the attacker",
+        "body": "Waiting on the supplier left a stolen key valid on payroll day. Your own logs and a key rotation were in your hands from the start."
+      },
+      "leftOpen": {
+        "headline": "The stolen key still works",
+        "body": "The supplier's incident became yours the moment their key reached your data. Rotate and restrict it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Read the notice against the contract: it is two days late, and the cooperation clause entitles you to scope, indicators and logs, including from subprocessors. Check your own logs: the key is being used from outside. Rotate and restrict the key, which stops the attacker and keeps payroll running; suspending or terminating would leave 1,800 people unpaid. Revert any deposit changes after phone checks. Brief the CFO and counsel early and leave employee notification to counsel. Record a mitigate treatment with subprocessor assurance, monitoring and an exit plan."
+  }
+}

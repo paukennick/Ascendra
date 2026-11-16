@@ -1,4 +1,4 @@
-import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { FITNESS_SAFETY, part, selectPart, orderPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-123 pilot: NASM Certified Personal Trainer (NASM-CPT, 7th edition).
@@ -328,6 +328,108 @@ export const NASMCPT_LABS: SeedLabSet = {
               "Working within the plan",
               "Follows the professional's restrictions, documents them, communicates with the client (and the therapist with consent) and adjusts the program.",
               "File the restrictions in the client's record, remove the listed exercises for six weeks, and, with the client's consent, keep the therapist updated on progress."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Professional development and
+    // responsibility (10%) gets its second lab. Values read 2026-11-14:
+    // 2025 AHA adult BLS guideline (Circulation 2025;152(suppl 2):S448-S478):
+    // a lay rescuer treats an unresponsive adult who is not breathing
+    // normally (only gasping) as cardiac arrest without a pulse check,
+    // activates the emergency response then starts CPR at once, compresses
+    // 100-120/min to at least 2 in (5 cm) but not more than 2.4 in (6 cm),
+    // and continues CPR until an AED is applied. AHA Go Red for Women
+    // warning-signs sheet: chest pain or discomfort; nausea or vomiting; jaw,
+    // neck or back pain; arm or shoulder pain; shortness of breath; feeling
+    // very tired, lightheaded or faint -- "Call 911 right away" for one or
+    // more.
+    {
+      slug: "emergency-on-the-gym-floor",
+      objective: "Legal and risk-management basics: liability, documentation, emergency response",
+      kind: "case",
+      title: "Chest pressure mid-session, then a collapse",
+      brief:
+        "You are a fictional certified personal trainer at Maple Court Fitness (fictional), which has an AED by the front desk and a written emergency plan. Your 9:00 client, Mr. Haddad, a fictional 58-year-old, cleared his health screening in March and has trained with you twice a week since.",
+      safetyNote: FITNESS_SAFETY,
+      sources: [
+        source("https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support", "clinical_guideline", "2026-11-14"),
+        source("https://www.goredforwomen.org/-/media/Files/Health-Topics/Heart-Attack/Heart-Attack-warning-signs-infographic.pdf", "clinical_guideline", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "Ten minutes into a moderate treadmill walk he slows down and says: 'I've got a pressure in my chest, it's going into my left arm, and I feel a bit sick.' He is pale and sweating more than usual. He adds that his knees are fine today and he slept badly.",
+          ask: "Tap what he said or showed that means stop and call 911, then say exactly what you do.",
+          parts: [
+            selectPart(
+              "Signs that mean stop and call 911",
+              "Met: exactly the four warning signs -- chest pressure, pain spreading into the left arm, feeling sick, and pale and sweating. (Right picks minus wrong picks) of at least two is partly there.",
+              "Chest pressure, pain going into the arm, nausea and being pale and sweaty are heart attack warning signs; the AHA says to call 911 right away for one or more of them. His knees being fine and a poor night's sleep are not warning signs and do not change what you do.",
+              {
+                display: "list",
+                lines: ["Pressure in his chest", "It's going into his left arm", "He feels a bit sick", "Pale and sweating more than usual", "His knees are fine today", "He slept badly last night"],
+                correct: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "What you do",
+              "Stops the treadmill safely and has him sit or lie down; calls 911 (or has a named person call) right away and does not drive him or let him drive; sends someone for the AED and to meet EMS; stays with him and watches his breathing and responsiveness; does not diagnose, give medication or advise on it, or let him 'walk it off'. Follows the facility's emergency plan.",
+              "Stop the belt, help him off and have him sit or lie down where he is. Point at a named person: 'You -- call 911, say a 58-year-old man has chest pressure going into his arm, and bring the AED from the front desk.' Do not drive him anywhere and do not let him drive himself. Stay with him, keep him still and calm, and watch his breathing and whether he answers you. Giving medicine or advice about it is not a trainer's role; tell the dispatcher what he says and follow their instructions and the gym's emergency plan."
+            ),
+          ],
+        },
+        {
+          text: "Before EMS arrives he slumps sideways. He does not answer when you tap him and shout his name, and he is making only occasional gasping breaths. The colleague who called 911 is coming back with the AED.",
+          ask: "Put your actions in order, then say how you do the compressions.",
+          parts: [
+            orderPart(
+              "Order of actions",
+              "Met: exactly -- make sure the area is safe; confirm he is unresponsive and not breathing normally; shout for help and make sure 911 knows he has collapsed and the AED is coming; start chest compressions; turn on the AED as soon as it arrives and follow its prompts; keep going until EMS takes over or he starts breathing normally. One item out of place is partly there.",
+              "Safety first (treadmill off, space to work), then recognize arrest: unresponsive and only gasping counts as not breathing normally, and a lay rescuer does not need a pulse check. Activate help, then start CPR at once. The AED goes on as soon as it is there, and CPR continues until it is applied and whenever it says to. Stop only when EMS takes over or he clearly starts breathing normally.",
+              [
+                "Make sure the area is safe (belt stopped, space to work)",
+                "Confirm he is unresponsive and not breathing normally (only gasping)",
+                "Shout for help; make sure 911 knows he has collapsed and the AED is coming",
+                "Start chest compressions",
+                "Turn on the AED as soon as it arrives and follow its prompts",
+                "Continue until EMS takes over or he starts breathing normally",
+              ]
+            ),
+            part(
+              "How you do the compressions",
+              "States: hands in the center of the chest on the lower half of the breastbone, at 100-120 per minute, at least 2 inches (5 cm) deep but not more than 2.4 inches (6 cm), letting the chest fully recoil, minimal pauses; gasping is not normal breathing, so it does not stop CPR; pauses only for the AED's analysis or shock; swaps with another trained person when tiring so compressions stay deep.",
+              "Heel of one hand in the center of the chest on the lower half of the breastbone, other hand on top, arms straight. Push hard and fast: 100 to 120 a minute, at least 2 inches (5 cm) deep but not more than 2.4 inches (6 cm), and let the chest come all the way back up each time. Keep pauses as short as possible -- only when the AED analyzes or shocks. Occasional gasps are not normal breathing, so they do not mean stop. If another trained person is there, swap before you tire, so the compressions stay deep."
+            ),
+          ],
+        },
+        {
+          text: "EMS takes over, shocks once with their monitor and leaves for the hospital with a pulse. Your manager asks for the incident report today. A colleague's draft contains these lines.",
+          ask: "Tap the lines that do not belong in an incident report, then say what the report should contain.",
+          parts: [
+            selectPart(
+              "Lines that do not belong",
+              "Met: exactly the guess at a diagnosis, the line blaming his bad night, and the line saying the trainer did everything perfectly. (Right picks minus wrong picks) of at least two is partly there.",
+              "An incident report records what was seen and done, with times. 'Probably had a heart attack' is a diagnosis a trainer cannot make; 'it was because he slept badly' is a guess about the cause; 'staff did everything perfectly' is a judgment, not a fact, and has no place in a factual record that may be read in a legal review.",
+              {
+                display: "list",
+                lines: [
+                  "09:10 Client reported chest pressure spreading to the left arm and nausea on the treadmill; exercise stopped",
+                  "09:11 911 called by front-desk staff; AED requested",
+                  "Client probably had a heart attack",
+                  "09:14 Client unresponsive with gasping breaths; CPR started",
+                  "It happened because he slept badly",
+                  "09:16 AED applied; prompts followed",
+                  "Staff did everything perfectly",
+                  "09:21 EMS arrived and took over care",
+                ],
+                correct: [2, 4, 6],
+              }
+            ),
+            part(
+              "What the report contains",
+              "Facts only, written promptly: date, times, place, who was present, the client's own words, what was observed, each action taken and by whom (stop, 911, AED, CPR start time, AED use), when EMS arrived and the handover; signed by the writer. No diagnosis, cause or blame; no opinions about fault. Kept per the facility's policy, shared only with those who need it (privacy); the trainer also reports to the manager and follows the emergency plan's review, and does not post or discuss it publicly.",
+              "Write it today, in plain facts: date and place; who was there; what Mr. Haddad said in his own words and what you saw; every action with its time and who did it (exercise stopped 09:10, 911 at 09:11, CPR from 09:14, AED on at 09:16, EMS at 09:21 and the handover). Sign and date it. Leave out diagnoses, guesses about why and any verdict on how staff did. Hand it to the manager under the gym's policy and keep it private -- it holds his health details and is not something for social media. Then take part in the review of how the emergency plan worked, including restocking the AED pads."
             ),
           ],
         },

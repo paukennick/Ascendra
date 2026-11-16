@@ -1,0 +1,1339 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "postpartum-hemorrhage-atony",
+ "title": "Bleeding an hour after birth",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate",
+     "value": "hr",
+     "unit": "/min",
+     "alarm": {
+      "high": 110
+     },
+     "announce": {
+      "bands": [
+       100,
+       110,
+       120
+      ]
+     },
+     "colour": "ecg"
+    },
+    {
+     "id": "bp",
+     "label": "NIBP",
+     "spokenLabel": "Blood pressure, automatic cuff",
+     "value": [
+      "sbp",
+      "dbp"
+     ],
+     "unit": "mmHg",
+     "sub": "shock index {round(hr / sbp * 10) / 10}",
+     "alarm": {
+      "low": 90,
+      "high": 160
+     },
+     "announce": {
+      "bands": [
+       90,
+       100,
+       160
+      ]
+     },
+     "colour": "art"
+    },
+    {
+     "id": "spo2",
+     "label": "SpO2",
+     "spokenLabel": "Oxygen saturation",
+     "value": "spo2",
+     "unit": "%",
+     "alarm": {
+      "low": 94
+     },
+     "announce": {
+      "bands": [
+       94,
+       90
+      ]
+     },
+     "colour": "spo2"
+    },
+    {
+     "id": "qbl",
+     "label": "QBL",
+     "spokenLabel": "Quantified blood loss, last weighed",
+     "value": "qblVal",
+     "unit": "mL",
+     "sub": "weighed at {qblAt|clock}",
+     "announce": {
+      "bands": [
+       500,
+       1000,
+       1500
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(qblAt)"
+    }
+   ],
+   "infusions": "Oxytocin: {oxyUp ? \"increased per protocol\" : \"maintenance rate\"}. Second IV: {secondIv|yesno}. Bladder: {bladderFull ? \"full\" : \"emptied\"}.",
+   "banner": [
+    {
+     "when": "teamHere",
+     "text": "The obstetric hemorrhage team is at the bedside."
+    }
+   ]
+  }
+ },
+ "objective": "Recognize postpartum hemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team",
+ "secondaryObjectives": [
+  "Postpartum care, and assessing for hemorrhage and infection",
+  "Assess the postpartum fundus and bladder: a boggy uterus displaced above the umbilicus and to one side often means a full bladder, so help the client empty it and massage the fundus",
+  "Monitoring for signs of bleeding",
+  "Intervening on circulatory complications: hemorrhage, embolus, shock",
+  "Assessing and responding to changes and trends in vital signs",
+  "Recognizing a trend in the client's condition and intervening on it"
+ ],
+ "sources": [
+  {
+   "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+   "checkedAt": "2026-11-11",
+   "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+   "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: Physiological Adaptation includes managing a medical emergency and recognizing changes in vital signs; Reduction of Risk Potential includes monitoring for signs of bleeding."
+  },
+  {
+   "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles."
+  },
+  {
+   "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638; title, authors and update date not shown in the fetched text)",
+   "checkedAt": "2026-11-14",
+   "url": "https://statpearls.com/point-of-care/27638",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): ACOG redefined PPH as cumulative blood loss over 1000 mL, or blood loss with signs and symptoms of hypovolemia, within 24 hours of birth by any route; uterine atony is the most common cause; rapid assessment, bimanual massage with uterotonics and ample IV access; methylergonovine 'is contraindicated in patients with hypertension'; carboprost may cause bronchospasm in asthma; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs."
+  },
+  {
+   "cite": "University of Iowa Health Care. Post-Partum Hemorrhage Management Plan (Bowdler N; updated 2020-12-16)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.healthcare.uiowa.edu/familymedicine/fpinfo/OB/OB2020/UIHC%20PPH%20Chart%20%20Medications%202021.pdf",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): oxytocin first line (30 units in 500 mL; 10 units IM if no IV); methylergonovine 0.2 mg IM every 2-4 h, contraindicated with hypertension, preeclampsia or heart disease; carboprost 250 mcg IM every 15-90 min, maximum 2 mg, contraindicated with asthma or cardiac, renal or hepatic disease; misoprostol 400 mcg sublingual or 1000 mcg rectal. One hospital's protocol, not a national guideline."
+  },
+  {
+   "cite": "FIGO, ICM and partners. Joint statement of recommendation for the use of tranexamic acid for the treatment of postpartum haemorrhage (2021), restating the WHO 2017 recommendation",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.figo.org/joint-statement-recommendation-tranexamic-acid-treatment-pph",
+   "note": "Read 2026-11-14: tranexamic acid 1 g (100 mg/mL) IV at 1 mL a minute, within 3 hours of birth; a second dose if bleeding continues after 30 minutes or restarts within 24 hours. The WHO 2017 recommendation page itself was opened (title and date) but its PDF was not read."
+  }
+ ],
+ "brief": {
+  "situation": "15:00 on a labor and delivery unit. Ms. Morgan, 31, gave birth vaginally at 14:00 to a 4.2 kg baby after an 18-hour oxytocin induction. Her gestational hypertension ran 140s-150s/90s in labor. The baby is skin to skin. She says she feels 'a gush' and a little dizzy.",
+  "handover": [
+   "Delivery blood loss was weighed at 300 mL; she has soaked pads since. Oxytocin is running at the maintenance rate. She has asthma as a child, none since. One 18-gauge IV.",
+   "The unit's hemorrhage protocol: weigh pads and linen for quantified blood loss (QBL); fundal massage; empty the bladder; the nurse may increase oxytocin per protocol; activate the hemorrhage team at a QBL of 500 mL or more with ongoing bleeding; methylergonovine is in the hemorrhage kit."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "The bleeding goes on while you work. Some steps take a few minutes.",
+   "Partway through you are asked to write what is happening and why. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "15:00",
+  "tick": "1s",
+  "maxDuration": "90min",
+  "calendar": "clock"
+ },
+ "params": {
+  "maxRate": {
+   "value": 40,
+   "unit": "mL/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Bleeding rate with a fully atonic uterus; about 19 mL/min at the starting tone; untreated, the loss passes 1000 mL near 15:20. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "toneDrift": {
+   "value": 0.004,
+   "unit": "/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "An untreated atonic uterus relaxes further. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "massageBoost": {
+   "value": 0.2,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Fundal massage firms the uterus for a while. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "massageDecay": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The massage effect fades over about 5 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "bladderCap": {
+   "value": 0.65,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A full bladder keeps the uterus from contracting fully (the fundus is displaced). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "oxyGain": {
+   "value": 0.2,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Raising the oxytocin infusion per protocol firms the uterus over about 3 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "drugGain": {
+   "value": 0.3,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A second-line uterotonic firms the uterus over about 3-5 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "controlTone": {
+   "value": 0.85,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Firm enough that bleeding stops. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "shockLoss": {
+   "value": 2500,
+   "unit": "mL",
+   "source": {
+    "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638; title, authors and update date not shown in the fetched text)",
+    "checkedAt": "2026-11-14",
+    "url": "https://statpearls.com/point-of-care/27638",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): ACOG redefined PPH as cumulative blood loss over 1000 mL, or blood loss with signs and symptoms of hypovolemia, within 24 hours of birth by any route; uterine atony is the most common cause; rapid assessment, bimanual massage with uterotonics and ample IV access; methylergonovine 'is contraindicated in patients with hypertension'; carboprost may cause bronchospasm in asthma; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs. FLAG: the 2500 mL cut for hemorrhagic shock in this model is authored."
+   }
+  },
+  "pphLoss": {
+   "value": 1000,
+   "unit": "mL",
+   "source": {
+    "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638; title, authors and update date not shown in the fetched text)",
+    "checkedAt": "2026-11-14",
+    "url": "https://statpearls.com/point-of-care/27638",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): ACOG redefined PPH as cumulative blood loss over 1000 mL, or blood loss with signs and symptoms of hypovolemia, within 24 hours of birth by any route; uterine atony is the most common cause; rapid assessment, bimanual massage with uterotonics and ample IV access; methylergonovine 'is contraindicated in patients with hypertension'; carboprost may cause bronchospasm in asthma; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs."
+   }
+  },
+  "teamLoss": {
+   "value": 500,
+   "unit": "mL",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The unit protocol activates the hemorrhage team at a QBL of 500 mL or more with ongoing bleeding (authored for this case; many protocols use this stage)."
+   }
+  },
+  "escalateWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Authored: escalate within 10 min of the loss passing 500 mL."
+   }
+  },
+  "weighTime": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Weighing pads, linen and underpads: about 2 min."
+   }
+  },
+  "cathTime": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A straight catheter per protocol: about 3 min."
+   }
+  },
+  "drugOnset": {
+   "value": 240,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 4 min to effect after an IM uterotonic. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "oxyOnset": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 3 min to effect after the oxytocin increase. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "teamArrive": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The hemorrhage team reaches the room about 3 min after an overhead activation."
+   }
+  },
+  "pageArrive": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A paged provider arrives about 10 min after a clear call."
+   }
+  },
+  "txaWindow": {
+   "value": 10800,
+   "unit": "s",
+   "source": {
+    "cite": "FIGO, ICM and partners. Joint statement of recommendation for the use of tranexamic acid for the treatment of postpartum haemorrhage (2021), restating the WHO 2017 recommendation",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.figo.org/joint-statement-recommendation-tranexamic-acid-treatment-pph",
+    "note": "Read 2026-11-14: tranexamic acid 1 g (100 mg/mL) IV at 1 mL a minute, within 3 hours of birth; a second dose if bleeding continues after 30 minutes or restarts within 24 hours. The WHO 2017 recommendation page itself was opened (title and date) but its PDF was not read."
+   }
+  }
+ },
+ "state": {
+  "baseTone": {
+   "type": "number",
+   "init": 0.45,
+   "min": 0,
+   "max": 1
+  },
+  "boostAt": {
+   "type": "number",
+   "init": -100000,
+   "min": -100000,
+   "max": 100000,
+   "unit": "s"
+  },
+  "loss": {
+   "type": "number",
+   "init": 520,
+   "min": 0,
+   "max": 6000,
+   "unit": "mL"
+  },
+  "bladderFull": {
+   "type": "bool",
+   "init": true
+  },
+  "cathPending": {
+   "type": "bool",
+   "init": false
+  },
+  "oxyUp": {
+   "type": "bool",
+   "init": false
+  },
+  "secondIv": {
+   "type": "bool",
+   "init": false
+  },
+  "fundusAt": {
+   "type": "time",
+   "init": null
+  },
+  "massages": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 100
+  },
+  "qblAt": {
+   "type": "time",
+   "init": null
+  },
+  "qblVal": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 6000,
+   "unit": "mL"
+  },
+  "qblPending": {
+   "type": "bool",
+   "init": false
+  },
+  "visualOnly": {
+   "type": "bool",
+   "init": false
+  },
+  "stage1At": {
+   "type": "time",
+   "init": null
+  },
+  "escalAt": {
+   "type": "time",
+   "init": null
+  },
+  "teamCalled": {
+   "type": "bool",
+   "init": false
+  },
+  "teamHere": {
+   "type": "bool",
+   "init": false
+  },
+  "ordersAt": {
+   "type": "time",
+   "init": null
+  },
+  "carboAt": {
+   "type": "time",
+   "init": null
+  },
+  "txaAt": {
+   "type": "time",
+   "init": null
+  },
+  "metherGiven": {
+   "type": "bool",
+   "init": false
+  },
+  "controlledAt": {
+   "type": "time",
+   "init": null
+  },
+  "vagueCalls": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 10
+  }
+ },
+ "derived": {
+  "boost": {
+   "expr": "massageBoost * exp(-(t - boostAt) / massageDecay)"
+  },
+  "tone": {
+   "expr": "clamp(min(bladderFull ? bladderCap : 1, baseTone + boost), 0, 1)"
+  },
+  "rate": {
+   "expr": "max(0, maxRate * (controlTone - tone) / controlTone)",
+   "unit": "mL/min",
+   "precision": 0
+  },
+  "hr": {
+   "expr": "round(clamp(84 + 0.03 * loss + 2 * sin(t / 29), 60, 170))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "round(clamp(146 - 0.045 * max(0, loss - 800) + (metherGiven ? 34 : 0), 50, 230))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "round(clamp(94 - 0.03 * max(0, loss - 800) + (metherGiven ? 18 : 0), 30, 140))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "spo2": {
+   "expr": "round(clamp(98 - max(0, loss - 1800) / 200, 85, 100))",
+   "unit": "%",
+   "precision": 0
+  }
+ },
+ "processes": [
+  {
+   "id": "atony",
+   "when": "isNull(controlledAt)",
+   "update": {
+    "baseTone": "baseTone - (oxyUp or not isNull(carboAt) ? 0 : toneDrift * dt / 60)",
+    "loss": "loss + rate * dt / 60"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "At the bedside",
+   "clock": "running",
+   "actions": [
+    "fundus",
+    "massage",
+    "weigh",
+    "eyeball",
+    "bladder",
+    "oxytocin",
+    "iv",
+    "escalate",
+    "methergine",
+    "carboprost",
+    "txa"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "fundus": {
+   "label": "Assess the fundus, lochia and bladder",
+   "group": "Assess",
+   "effects": [
+    {
+     "if": "isNull(fundusAt)",
+     "then": [
+      {
+       "set": "fundusAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "tone >= controlTone",
+       "then": [
+        {
+         "log": "Fundus firm, midline at the umbilicus. Lochia moderate, no clots.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "bladderFull",
+       "then": [
+        {
+         "log": "Fundus boggy, 2 cm above the umbilicus and deviated to the right. Bladder distended. Steady dark-red flow with clots; the pad is soaked.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Fundus boggy, midline, above the umbilicus. Brisk bleeding with clots.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "massage": {
+   "label": "Fundal massage, supporting the lower uterus",
+   "group": "Intervene",
+   "effects": [
+    {
+     "set": "boostAt",
+     "to": "t"
+    },
+    {
+     "add": "massages",
+     "by": "1"
+    },
+    {
+     "log": "Firm, steady massage; a clot is expressed. The uterus firms under your hand{bladderFull ? \", but not fully: it is pushed up and to the right\" : \"\"}.",
+     "kind": "act"
+    }
+   ]
+  },
+  "weigh": {
+   "label": "Weigh pads, linen and underpads (quantified blood loss)",
+   "group": "Assess",
+   "available": "not qblPending",
+   "why": "Already weighing.",
+   "effects": [
+    {
+     "set": "qblPending",
+     "to": "true"
+    },
+    {
+     "schedule": "weighT",
+     "after": "weighTime"
+    },
+    {
+     "log": "Weighing everything soaked since birth (about 2 min)."
+    }
+   ]
+  },
+  "eyeball": {
+   "label": "Estimate the blood loss by eye",
+   "group": "Assess",
+   "effects": [
+    {
+     "set": "visualOnly",
+     "to": "true"
+    },
+    {
+     "log": "By eye: about {round(loss * 0.6 / 50) * 50} mL. Visual estimates tend to undercount.",
+     "kind": "find"
+    }
+   ]
+  },
+  "bladder": {
+   "label": "Empty her bladder (straight catheter per protocol)",
+   "group": "Intervene",
+   "available": "bladderFull and not cathPending",
+   "why": "Already emptied or in progress.",
+   "effects": [
+    {
+     "set": "cathPending",
+     "to": "true"
+    },
+    {
+     "schedule": "cathT",
+     "after": "cathTime"
+    },
+    {
+     "log": "Straight catheter (about 3 min)."
+    }
+   ]
+  },
+  "oxytocin": {
+   "label": "Increase the oxytocin infusion per protocol",
+   "group": "Intervene",
+   "available": "not oxyUp",
+   "why": "Already increased.",
+   "effects": [
+    {
+     "set": "oxyUp",
+     "to": "true"
+    },
+    {
+     "schedule": "oxyT",
+     "after": "oxyOnset"
+    },
+    {
+     "log": "Oxytocin infusion increased per protocol."
+    }
+   ]
+  },
+  "iv": {
+   "label": "Start a second large-bore IV",
+   "group": "Intervene",
+   "available": "not secondIv",
+   "why": "Already in.",
+   "effects": [
+    {
+     "set": "secondIv",
+     "to": "true"
+    },
+    {
+     "log": "16-gauge IV in the left forearm; type and crossmatch sent."
+    }
+   ]
+  },
+  "escalate": {
+   "label": "Escalate",
+   "group": "Call",
+   "available": "not teamCalled",
+   "why": "The team is already coming.",
+   "params": [
+    {
+     "id": "esc",
+     "kind": "form",
+     "label": "Escalation",
+     "fields": [
+      {
+       "id": "who",
+       "label": "Who",
+       "options": [
+        {
+         "value": "team",
+         "label": "Activate the obstetric hemorrhage team (overhead page)"
+        },
+        {
+         "value": "page",
+         "label": "Page the provider"
+        },
+        {
+         "value": "charge",
+         "label": "Tell the charge nurse"
+        }
+       ]
+      },
+      {
+       "id": "say",
+       "label": "What you say",
+       "options": [
+        {
+         "value": "numbers",
+         "label": "Postpartum hemorrhage: QBL and its trend, boggy uterus despite massage, HR rising, what I have done"
+        },
+        {
+         "value": "vague",
+         "label": "She's bleeding a bit more than I'd like"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "say == \"vague\"",
+       "then": [
+        {
+         "add": "vagueCalls",
+         "by": "1"
+        },
+        {
+         "log": "\"Keep massaging and let me know if it gets worse.\"",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "isNull(qblAt)",
+       "then": [
+        {
+         "add": "vagueCalls",
+         "by": "1"
+        },
+        {
+         "log": "\"How much has she lost? Weigh it and call me back.\"",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "who == \"team\"",
+       "then": [
+        {
+         "set": "teamCalled",
+         "to": "true"
+        },
+        {
+         "set": "escalAt",
+         "to": "t"
+        },
+        {
+         "schedule": "teamT",
+         "after": "teamArrive"
+        },
+        {
+         "log": "Overhead: obstetric hemorrhage team to Room 6.",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "who == \"page\"",
+       "then": [
+        {
+         "set": "teamCalled",
+         "to": "true"
+        },
+        {
+         "set": "escalAt",
+         "to": "t"
+        },
+        {
+         "schedule": "teamT",
+         "after": "pageArrive"
+        },
+        {
+         "log": "Provider: \"Coming, about 10 minutes.\"",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "add": "vagueCalls",
+         "by": "1"
+        },
+        {
+         "log": "Charge nurse: \"That's a hemorrhage: call the team.\"",
+         "kind": "sys"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "methergine": {
+   "label": "Give methylergonovine 0.2 mg IM from the hemorrhage kit",
+   "group": "Intervene",
+   "available": "not metherGiven",
+   "why": "Already given.",
+   "effects": [
+    {
+     "set": "metherGiven",
+     "to": "true"
+    },
+    {
+     "add": "baseTone",
+     "by": "drugGain"
+    },
+    {
+     "log": "Given. Ten minutes later her BP is climbing and she says she has a pounding headache. Methylergonovine is contraindicated with hypertension.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "carboprost": {
+   "label": "Give carboprost 250 mcg IM (ordered)",
+   "group": "Intervene",
+   "available": "not isNull(ordersAt) and isNull(carboAt)",
+   "why": "Needs the provider's order (or already given).",
+   "effects": [
+    {
+     "set": "carboAt",
+     "to": "t"
+    },
+    {
+     "schedule": "carboT",
+     "after": "drugOnset"
+    },
+    {
+     "log": "Carboprost 250 mcg IM given; watching her breathing (asthma as a child)."
+    }
+   ]
+  },
+  "txa": {
+   "label": "Give tranexamic acid 1 g IV over 10 minutes (ordered)",
+   "group": "Intervene",
+   "available": "not isNull(ordersAt) and isNull(txaAt)",
+   "why": "Needs the provider's order (or already given).",
+   "effects": [
+    {
+     "set": "txaAt",
+     "to": "t"
+    },
+    {
+     "log": "Tranexamic acid 1 g IV running over 10 min, {t + 3600|duration} after birth."
+    }
+   ]
+  }
+ },
+ "timers": {
+  "weighT": {
+   "label": "the weighed loss",
+   "wait": {
+    "skipLabel": "the weighed blood loss (about 2 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min."
+   },
+   "effects": [
+    {
+     "set": "qblPending",
+     "to": "false"
+    },
+    {
+     "set": "qblAt",
+     "to": "t"
+    },
+    {
+     "set": "qblVal",
+     "to": "round(loss / 10) * 10"
+    },
+    {
+     "log": "Quantified blood loss since birth: {round(loss / 10) * 10} mL.",
+     "kind": "find"
+    }
+   ]
+  },
+  "cathT": {
+   "label": "the catheter",
+   "wait": {
+    "skipLabel": "the bladder emptied (about 3 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 3 min."
+   },
+   "effects": [
+    {
+     "set": "cathPending",
+     "to": "false"
+    },
+    {
+     "set": "bladderFull",
+     "to": "false"
+    },
+    {
+     "log": "650 mL of urine drained. The fundus moves to the midline.",
+     "kind": "good"
+    }
+   ]
+  },
+  "oxyT": {
+   "label": "oxytocin effect",
+   "instances": "one",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 3 min. Simplified teaching model written for exam practice; not a validated physiological model."
+   },
+   "effects": [
+    {
+     "add": "baseTone",
+     "by": "oxyGain"
+    }
+   ]
+  },
+  "carboT": {
+   "label": "carboprost effect",
+   "instances": "one",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 4 min. Simplified teaching model written for exam practice; not a validated physiological model."
+   },
+   "effects": [
+    {
+     "add": "baseTone",
+     "by": "drugGain"
+    },
+    {
+     "log": "The uterus is firming.",
+     "kind": "good"
+    }
+   ]
+  },
+  "teamT": {
+   "label": "the hemorrhage team",
+   "wait": {
+    "skipLabel": "the team arriving"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Labor and delivery unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "3 min after an overhead activation; 10 min after a page."
+   },
+   "effects": [
+    {
+     "set": "teamHere",
+     "to": "true"
+    },
+    {
+     "set": "ordersAt",
+     "to": "t"
+    },
+    {
+     "log": "Provider and team at the bedside: bimanual exam, no retained tissue or tear seen. Orders: carboprost 250 mcg IM, tranexamic acid 1 g IV, 2 units red cells on hold.",
+     "kind": "good"
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "stage1",
+   "when": "loss >= teamLoss and isNull(stage1At)",
+   "mode": "once",
+   "effects": [
+    {
+     "set": "stage1At",
+     "to": "t"
+    }
+   ]
+  },
+  {
+   "id": "control",
+   "when": "baseTone >= controlTone and not bladderFull and isNull(controlledAt)",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "controlledAt",
+     "to": "t"
+    },
+    {
+     "log": "Fundus firm and staying firm; the bleeding has slowed to a trickle.",
+     "kind": "good"
+    }
+   ]
+  },
+  {
+   "id": "dizzy",
+   "when": "loss >= 1200",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "She says the room is spinning; she is pale and clammy.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "hrHigh",
+   "when": "hr >= 110",
+   "mode": "edge",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "Alarm: heart rate {hr}.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "why": {
+   "trigger": "not isNull(qblAt) or t >= 600",
+   "question": "What is happening, what makes it a hemorrhage rather than normal lochia, and what do you do first, next and why?",
+   "parts": [
+    {
+     "label": "Recognition",
+     "criteria": "Names postpartum hemorrhage from uterine atony: a boggy fundus displaced up and to the right by a full bladder, heavy bleeding with clots, a weighed (not eyeballed) blood loss rising past 500 mL toward 1000 mL, HR rising while BP still looks normal because postpartum vital signs mask loss; risk factors of a big baby and a long oxytocin induction.",
+     "modelAnswer": "This is a postpartum hemorrhage from uterine atony: the fundus is boggy and pushed up and to the right by a full bladder, she is passing clots, and the weighed loss is past 500 mL and climbing. Her HR is rising while her BP still looks fine, which is how postpartum women hide blood loss. A 4.2 kg baby and an 18-hour oxytocin induction make atony likely."
+    },
+    {
+     "label": "Actions in order",
+     "criteria": "Fundal massage at once; empty the bladder; increase oxytocin per protocol; weigh the loss; second large-bore IV; activate the hemorrhage team with numbers; does not give methylergonovine because of her hypertension; gives the ordered carboprost (watching for bronchospasm) and tranexamic acid within 3 hours of birth.",
+     "modelAnswer": "Massage the fundus now, empty her bladder, increase the oxytocin per protocol and weigh everything. Put in a second large-bore IV. Activate the hemorrhage team with the QBL, the trend and what I've done. Not methylergonovine: she is hypertensive. Give the ordered carboprost, watching her breathing, and tranexamic acid, which works only if given within 3 hours of birth."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "t >= 5399 and isNull(controlledAt)",
+   "class": "harm",
+   "rationale": "A postpartum hemorrhage still uncontrolled 90 minutes later is ongoing bleeding past the point of a 1000 mL hemorrhage, so this case calls it harm.",
+   "source": {
+    "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638; title, authors and update date not shown in the fetched text)",
+    "checkedAt": "2026-11-14",
+    "url": "https://statpearls.com/point-of-care/27638",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): ACOG redefined PPH as cumulative blood loss over 1000 mL, or blood loss with signs and symptoms of hypovolemia, within 24 hours of birth by any route; uterine atony is the most common cause; rapid assessment, bimanual massage with uterotonics and ample IV access; methylergonovine 'is contraindicated in patients with hypertension'; carboprost may cause bronchospasm in asthma; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs."
+   }
+  }
+ },
+ "endings": {
+  "shock": {
+   "label": "Hemorrhagic shock",
+   "class": "harm",
+   "when": "loss >= shockLoss",
+   "terminal": true,
+   "narrative": "Ms. Morgan is gray and confused, HR {hr}, BP {sbp}/{dbp}. She goes to the OR in hemorrhagic shock for a massive transfusion."
+  },
+  "controlled": {
+   "label": "Hemorrhage recognized early and controlled",
+   "class": "target",
+   "when": "not isNull(controlledAt) and loss < 1500 and not metherGiven and not isNull(qblAt) and timeAt(qblAt) <= 600 and not isNull(stage1At) and not isNull(escalAt) and timeAt(escalAt) <= timeAt(stage1At) + escalateWindow and massages >= 1",
+   "terminal": true,
+   "narrative": "{timeAt(controlledAt)|clock}: the fundus is firm and the bleeding is a trickle. QBL {round(loss / 10) * 10} mL. You measured it, treated the atony and got the team there fast."
+  },
+  "controlledLate": {
+   "label": "Controlled, by a slower or riskier route",
+   "class": "recovered",
+   "when": "not isNull(controlledAt)",
+   "terminal": true,
+   "narrative": "{timeAt(controlledAt)|clock}: the bleeding is controlled at a QBL of {round(loss / 10) * 10} mL, but the route cost blood or safety: a late or vague call, an eyeballed loss, or a drug she should not have had."
+  },
+  "time_up": {
+   "label": "16:30 and still bleeding",
+   "class": "harm",
+   "terminal": true,
+   "narrative": "16:30: the uterus is still boggy and she has lost {round(loss / 10) * 10} mL."
+  }
+ },
+ "endingOrder": [
+  "shock",
+  "controlled",
+  "controlledLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "qbl",
+    "label": "Measured the blood loss quantitatively",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(qblAt)",
+      "score": "missed",
+      "why": "{visualOnly ? \"Estimated by eye only\" : \"Never measured\"}."
+     },
+     {
+      "when": "timeAt(qblAt) <= 600",
+      "score": "met",
+      "why": "Weighed by {timeAt(qblAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Weighed, but only at {timeAt(qblAt)|clock}."
+     }
+    ]
+   },
+   {
+    "id": "escalate",
+    "label": "Escalated with numbers within 10 minutes of the loss passing 500 mL",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(escalAt)",
+      "score": "missed",
+      "why": "No one who could act was called with the numbers."
+     },
+     {
+      "when": "not isNull(stage1At) and timeAt(escalAt) <= timeAt(stage1At) + escalateWindow",
+      "score": "met",
+      "why": "Escalated at {timeAt(escalAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Escalated at {timeAt(escalAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "firstLine",
+    "label": "First-line care: massage, bladder emptied, oxytocin increased",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "massages >= 1 and not bladderFull and oxyUp",
+      "score": "met",
+      "why": "All three."
+     },
+     {
+      "when": "massages >= 1",
+      "score": "partial",
+      "why": "Massage, but {bladderFull ? \"the bladder stayed full\" : \"the oxytocin was not increased\"}."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No fundal massage."
+     }
+    ]
+   },
+   {
+    "id": "noMether",
+    "label": "No methylergonovine with hypertension",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "metherGiven",
+      "score": "missed",
+      "why": "Methylergonovine given to a hypertensive client."
+     },
+     {
+      "when": "true",
+      "score": "met",
+      "why": "Not given."
+     }
+    ]
+   },
+   {
+    "id": "access",
+    "label": "Second large-bore IV",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "secondIv",
+      "score": "met",
+      "why": "In place."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Only one IV."
+     }
+    ]
+   },
+   {
+    "id": "ordered",
+    "label": "Gave the ordered carboprost and tranexamic acid",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(carboAt) and not isNull(txaAt) and timeAt(txaAt) + 3600 <= txaWindow",
+      "score": "met",
+      "why": "Both given; tranexamic acid within 3 hours of birth."
+     },
+     {
+      "when": "not isNull(carboAt) or not isNull(txaAt)",
+      "score": "partial",
+      "why": "Only one."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "{isNull(ordersAt) ? \"No orders were obtained\" : \"Ordered drugs not given\"}."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "why",
+    "label": "Written reasoning: recognized PPH from atony and ordered the actions",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toQbl",
+    "label": "15:00 to the first weighed loss",
+    "value": "isNull(qblAt) ? -1 : timeAt(qblAt)",
+    "format": "duration",
+    "expert": "under 5 min"
+   },
+   {
+    "id": "toEscalate",
+    "label": "Loss past 500 mL to escalation",
+    "value": "isNull(escalAt) or isNull(stage1At) ? -1 : max(0, timeAt(escalAt) - timeAt(stage1At))",
+    "format": "duration",
+    "expert": "under 5 min"
+   },
+   {
+    "id": "totalLoss",
+    "label": "Total blood loss",
+    "value": "round(loss / 10) * 10",
+    "format": "number",
+    "expert": "under 1000 mL"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "15:00",
+    "text": "Fundus boggy and pushed to the right, bladder full: massage now, increase the oxytocin per protocol, catheterize."
+   },
+   {
+    "at": "~15:02",
+    "text": "Weigh everything: QBL past 500 mL and rising. Second large-bore IV."
+   },
+   {
+    "at": "~15:05",
+    "text": "Activate the hemorrhage team with the QBL, the trend, the HR and what you have done. Leave methylergonovine in the kit: she is hypertensive."
+   },
+   {
+    "at": "~15:09",
+    "text": "Team orders carboprost and tranexamic acid: give both, watching her breathing. The uterus firms."
+   }
+  ],
+  "debrief": {
+   "shock": {
+    "headline": "Hemorrhagic shock",
+    "body": "Find when the loss was first weighed, when the bladder was emptied, and when the team was called with numbers. A normal BP after birth does not mean the loss is small."
+   },
+   "controlled": {
+    "headline": "Measured, treated, escalated",
+    "body": "You weighed the loss, treated the atony in the right order, kept the contraindicated drug in the kit and brought the team early. That is the expert path."
+   },
+   "controlledLate": {
+    "headline": "Controlled, by a slower or riskier route",
+    "body": "Check how the loss was measured, how long until the call with numbers, whether the bladder was emptied, and whether methylergonovine was given despite her hypertension."
+   },
+   "time_up": {
+    "headline": "Still bleeding",
+    "body": "Atony needs massage, an empty bladder, more uterotonic and the team. When the first steps do not hold, escalate."
+   }
+  },
+  "modelReasoning": "A boggy fundus displaced above the umbilicus and to one side, heavy bleeding with clots and a loss passing 500 mL an hour after a big baby and a long oxytocin induction is a postpartum hemorrhage from uterine atony until proven otherwise. Measure it by weighing (eyeball estimates undercount), and do not be reassured by a normal BP: postpartum women mask loss until late, and a rising HR comes first. Massage the fundus, empty the bladder so the uterus can contract, increase the oxytocin per protocol, add a large-bore IV, and activate the hemorrhage team with numbers. Methylergonovine is contraindicated with hypertension; carboprost needs care with asthma; tranexamic acid helps only within 3 hours of birth."
+ },
+ "chapters": [
+  {
+   "id": "team",
+   "label": "The team is here",
+   "when": "teamHere"
+  }
+ ],
+ "teaching": {
+  "cathQ": {
+   "during": "cathT",
+   "ask": "While the catheter drains: why does a full bladder matter here?",
+   "choices": [
+    {
+     "id": "displace",
+     "label": "It pushes the uterus up and aside and keeps it from contracting"
+    },
+    {
+     "id": "infection",
+     "label": "It raises the infection risk"
+    },
+    {
+     "id": "comfort",
+     "label": "Only for her comfort"
+    }
+   ],
+   "expect": "displace",
+   "explain": "A full bladder displaces the uterus and stops it contracting well, so a boggy, displaced fundus calls for emptying the bladder along with massage.",
+   "source": {
+    "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+    "checkedAt": "2026-11-14",
+    "note": "The objective and secondary objectives are the course's own titles."
+   }
+  },
+  "teamQ": {
+   "during": "teamT",
+   "ask": "While the team comes: her BP is in the 140s and the kit holds methylergonovine. Give it now?",
+   "choices": [
+    {
+     "id": "no",
+     "label": "No: it is contraindicated with hypertension"
+    },
+    {
+     "id": "yes",
+     "label": "Yes: any uterotonic is better than none"
+    },
+    {
+     "id": "half",
+     "label": "Half the dose"
+    }
+   ],
+   "expect": "no",
+   "explain": "Methylergonovine is contraindicated in hypertension and preeclampsia; keep massaging and wait for the ordered alternative.",
+   "source": {
+    "cite": "StatPearls. Postpartum Hemorrhage (point-of-care page 27638; title, authors and update date not shown in the fetched text)",
+    "checkedAt": "2026-11-14",
+    "url": "https://statpearls.com/point-of-care/27638",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): ACOG redefined PPH as cumulative blood loss over 1000 mL, or blood loss with signs and symptoms of hypovolemia, within 24 hours of birth by any route; uterine atony is the most common cause; rapid assessment, bimanual massage with uterotonics and ample IV access; methylergonovine 'is contraindicated in patients with hypertension'; carboprost may cause bronchospasm in asthma; tachycardia and hypotension may be masked in postpartum women, so a large loss can sit behind normal vital signs."
+   }
+  }
+ }
+}
