@@ -222,8 +222,17 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // below). Keep these entries together. ----
   entry("ASWBCLINICAL", "aswbc-suicide-violence-risk"),
   entry("ASWBCLINICAL", "aswbc-threat-identifiable-person"),
+  entry("ASWBCLINICAL", "aswbc-termination-nonpayment"),
   entry("ASWBMASTERS", "aswbm-involuntary-engagement"),
   entry("ASWBMASTERS", "aswbm-child-abuse-report"),
+  entry("ASWBMASTERS", "aswbm-boundaries-small-town"),
+  // REQ-289: the same sessions on the other ASWB course's shared objective
+  // (bands, docs/sims.md 4.7), and the EPPP duty-to-protect session on the
+  // Washington jurisprudence objective.
+  band("ASWBCLINICAL", "aswbc-boundaries-small-town"),
+  band("ASWBMASTERS", "aswbm-termination-nonpayment"),
+  band("ASWBMASTERS", "aswbm-suicide-violence-risk"),
+  band("WAPSYCHJP", "wajp-duty-to-protect-threat"),
   // ---- end REQ-288 ----
   // ---- REQ-296 (clinical coverage): more sims on the existing clinical
   // courses, launch courses first (docs/sims-coverage-clinical.md). Keep
@@ -346,6 +355,18 @@ export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.fi
 export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
   "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+  "aswbc-termination-nonpayment": "End services ethically: planned termination, transfer, nonpayment and avoiding abandonment",
   "aswbm-involuntary-engagement": "Engage an involuntary client and contract for goals",
   "aswbm-child-abuse-report": "Make a mandated child abuse report and keep the family engaged",
+  "aswbm-boundaries-small-town": "Manage boundaries, dual relationships, conflicts of interest and self-disclosure, including power differences and online contact",
+  "aswbc-boundaries-small-town": "Manage boundaries, dual relationships, conflicts of interest and self-disclosure, including power differences and online contact",
+  "aswbm-termination-nonpayment": "End services ethically: planned termination, transfer, nonpayment and avoiding abandonment",
+  "aswbm-suicide-violence-risk": "Assess risk of harm to self and others and act on what you find",
+};
+
+// REQ-289: the Washington psychology jurisprudence session (a band of the EPPP
+// duty-to-protect case) and its objective.
+export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "WAPSYCHJP");
+export const WAJP_OBJECTIVES: Readonly<Record<string, string>> = {
+  "wajp-duty-to-protect-threat": "Apply the duty to warn or protect when a client threatens an identifiable person",
 };

@@ -5387,3 +5387,71 @@ flags were not checked against the az reference.
 builder: a literal brace in a template is written `{{` / `}}` (parser.ts
 `parseTemplate`), and a `|` inside a slot is read as the format separator, so
 a table row with `|` belongs outside a slot (use `cases` with whole outputs).
+
+### 22.19 ASWB and Washington jurisprudence client sessions (REQ-288, REQ-289)
+
+Nick, 2026-11-10 (sims for the mental health wave, mirroring 22.12) and
+2026-11-14 (coverage, not a count). Nine documents on the client `session`
+screen for Prep for the ASWB Clinical Exam, Prep for the ASWB Masters Exam and
+Prep for the Washington Psychology Jurisprudence Exam: five authored sessions
+and four bands. Same profile (`clinical-session`), pacing (learner-paced
+`turns`, no running phase), engine (1.2, an explicit `endingOrder`) and gate
+(the courses sit in Mental Health subcategories, so starting a session needs
+the per-course 18+ acknowledgment, REQ-259); no engine, renderer, schema or
+migration change. `ASWB_SESSION_DOCUMENTS`/`ASWB_OBJECTIVES` and
+`WAJP_SESSION_DOCUMENTS`/`WAJP_OBJECTIVES` (lib/sim/documents.ts) list them;
+`docs/sims-coverage-mental-health-wave.md` maps every objective of the three
+courses against the selection rule and says what is built, what is a
+candidate and what is a lab instead.
+
+| Course | Slug | Objective (abridged) | Core of the case |
+|---|---|---|---|
+| ASWBCLINICAL | `aswbc-suicide-violence-risk` | Assess suicide and violence risk in a clinical social work session | A laid-off 61-year-old: 'everyone'd be better off', a rifle in the closet, a rehearsal with it last spring told only once he trusts you; an angry remark about his wife's partner that, explored, is not a threat; a six-step Stanley-Brown plan with the rifle to his brother, 988, a call tomorrow |
+| ASWBCLINICAL | `aswbc-threat-identifiable-person` | Respond to a client's threat against an identifiable person ... | 'He's going to regret it' becomes a pistol, an address and a day: explore first, tell him, warn the landlord and the police with the threat only (RCW 71.05.120(3); NASW 1.07(c)-(d); Volk; HHS FAQ 520) |
+| ASWBCLINICAL | `aswbc-termination-nonpayment` | End services ethically: ... nonpayment and avoiding abandonment | Three months unpaid after a lost job: the 1.17(c) conditions (agreement, risk screen, consequences discussed), the open work named, closing sessions and a warm handoff with a release (1.17(b)) |
+| ASWBCLINICAL | `aswbc-boundaries-small-town` (band) | Manage boundaries, dual relationships ... | The Masters session on the Clinical objective |
+| ASWBMASTERS | `aswbm-involuntary-engagement` | Engage an involuntary client and contract for goals | A diversion client: the mandate, the release (attendance only) and his right to refuse first (NASW 1.03(d)); reflection, not the righting reflex (TIP 35); his goals partialized and measurable |
+| ASWBMASTERS | `aswbm-child-abuse-report` | Make a mandated child abuse report and keep the family engaged | Looped bruises and 'Darnell used the cord': report on reasonable cause at the first opportunity (RCW 26.44.030), not investigate, not ask permission, not confront; tell her first; tonight at her sister's; keep working with her |
+| ASWBMASTERS | `aswbm-boundaries-small-town` | Manage boundaries, dual relationships ... | A court-supervised family: a friend request (1.06(h)), free brake work (1.06(c), not a 1.13(b) barter) and the only parish in town (managed with her) |
+| ASWBMASTERS | `aswbm-termination-nonpayment` (band) | End services ethically ... | The Clinical session, a licensed (not clinical) social worker in the brief |
+| ASWBMASTERS | `aswbm-suicide-violence-risk` (band) | Assess risk of harm to self and others and act on what you find | The Clinical risk session on the Masters objective |
+| WAPSYCHJP | `wajp-duty-to-protect-threat` (band) | Apply the duty to warn or protect when a client threatens an identifiable person | The EPPP duty-to-protect session (22.5; a Washington psychologist), with DOH's jurisprudence reference list and chapter 70.02 RCW added to its sources |
+
+Each authored session has one written-reasoning moment, endings in all three
+classes, three or four critical criteria, KPIs with expert values, an expert
+path, a debrief per ending, one unscored prediction as a decision card, and
+five to eight golden paths (Good, Mediocre, Bad; every ending but `time_up`,
+every criterion both met and missed), built by `npm run sim:golden -- steps
+aswbc-risk|aswbc-threat|aswbc-termination|aswbm-involuntary|aswbm-report|aswbm-boundaries`;
+the bands reuse their base's paths (`aswbc-boundaries`, `aswbm-termination`,
+`aswbm-risk`, `wajp-duty`; `eppp-duty.steps.ts` and `aswbc-risk.steps.ts` now
+export `paths()`, and their goldens are byte-identical). Checked by
+`lib/sim/aswb-session.test.ts` and, against a seeded database,
+`lib/aswb-sessions.dbtest.ts` (the 18+ gate on start, the seeded sims on their
+objectives, each expert path through the routes to a Good attempt).
+
+**Sources** (on each document, `checkedAt` 2026-11-14): the ASWB Examination
+Guidebook (August 2026; read in full for REQ-286), the NASW Code of Ethics
+(1.01-1.07 page fetched; standards 1-3 as the course records them; amendments
+voted 2026-11-18, recheck by 2026-12-15), RCW 71.05.120(3) (through the page),
+RCW 26.44.020/.030/.060/.080 (through summaries of the statute pages), Volk v.
+DeMeerleer (a summary of the opinion's page), HHS HIPAA FAQs 520 and 3004, the
+C-SSRS screen version (PDF text), SPRC's Stanley-Brown steps and the 2024 form,
+988lifeline.org, SAMHSA TIP 35 chapter 3. All were read before the lead's
+WebFetch stop of 2026-11-14; nothing after it. The DSM-5-TR was not read; no
+criteria are reproduced. RCW 9A.16.100 (physical discipline) could not be
+opened and the report case does not rely on it.
+
+**Findings** (recorded, not worked around):
+
+1. **Schema limits only `sims:lint` checks (FAIL-1884, recurrence of
+   FAIL-1980).** An action label over 200 characters and a source cite over
+   500 built goldens without complaint; `lib/sim/aswb-session.test.ts` now
+   parses every ASWB and jurisprudence document against the schema.
+2. **A prediction card that opens at minute 0** blocks the first command; the
+   steps answer an open card before acting (the involuntary and report cases).
+3. **`time_up`** stays unreached in every case, as in 22.5 and 22.12.
+4. **Bands across professions.** A band can move a session to another course
+   only where the people and the law in it still fit: the EPPP case already
+   is a Washington psychologist, so it fits the jurisprudence objective; an
+   ASWB session could not be reused for it without rewriting the actors.

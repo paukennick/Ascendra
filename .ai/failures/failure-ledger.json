@@ -17892,6 +17892,31 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-1884",
+      "date": "2026-11-14",
+      "title": "ASWB sessions over the schema's length limits built goldens anyway",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims lint: ASWBMASTERS/aswbm-involuntary-engagement actions.explainRole.label over 200 characters; aswbm-boundaries-small-town sources.1.cite and outcome.noProgress.source.cite over 500 characters -- after npm run sim:golden had written their goldens",
+      "how_detected": "lint (the ASWB documents through lib/sim/lint.ts checkDocument)",
+      "root_cause": "sim:golden and validateScenario check semantics, not the zod schema's string limits; only sims:lint parses the schema, and the full linter is slow enough to be skipped while authoring",
+      "requirement": "REQ-288",
+      "affected": [
+        "backend/supabase/seed/sims/ASWBMASTERS/aswbm-involuntary-engagement.sim.json",
+        "backend/supabase/seed/sims/ASWBMASTERS/aswbm-boundaries-small-town.sim.json",
+        "backend/supabase/seed/sims/ASWBCLINICAL/aswbc-boundaries-small-town.band.json"
+      ],
+      "fix_summary": "Label and cite shortened (detail moved to the source note); every ASWB and jurisprudence document, bands compiled, is parsed against scenarioSchema in the unit test",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/aswb-session.test.ts::every ASWB and jurisprudence session, bands compiled, parses against the scenario schema"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Parse new documents against scenarioSchema in their own unit test, as lib/sim/clinical-coverage.test.ts does",
+      "recurrence_of": "FAIL-1980"
+    },
+    {
       "id": "FAIL-1980",
       "date": "2026-11-14",
       "title": "Golden builder accepted a document the schema refuses (teaching choice ids starting with a digit)",
