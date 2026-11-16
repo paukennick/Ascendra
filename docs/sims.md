@@ -5331,3 +5331,59 @@ Coverage per objective for PSM I, CSM, ITIL 4 Foundation, CSSGB and NASM-CNC,
 and the screens proposed for the families no existing screen fits (project
 dashboard in Sprint mode, a service operations desk, a process and data
 console, the client trainer), are in `docs/sim-coverage-pm-frameworks-cnc.md`.
+### 22.19 Sims for the new technology courses: SQL, TSNODE, SC500, AI200 (REQ-269)
+
+Eight authored sims, two per course, on screens that already exist, for the
+courses built in REQ-264..268. Coverage against Nick's selection rule, the
+candidates still to build and the screen proposal are in
+`docs/sims-coverage-tech.md`.
+
+- **Terminal** (`terminal@1`, infrastructure profile, learner-paced like
+  22.10): SQL `sql-slow-login-seq-scan` (EXPLAIN shows a Seq Scan filtering on
+  lower(email); an expression index built CONCURRENTLY; VACUUM FULL and a
+  plain CREATE INDEX are the lock traps) and `sql-flash-sale-oversold` (a
+  read-then-write lost update at Read Committed; a conditional UPDATE or
+  SELECT ... FOR UPDATE; Repeatable Read without retries and a table lock as
+  partial answers; the oversell is a `process`). TSNODE
+  `node-env-file-silent-exit` (`--env-file-if-exists` on a renamed file plus
+  `process.exit()` with no code: exit 0, so `Restart=on-failure` and failed-unit
+  monitoring never fire) and `node-type-stripping-enum-crash`
+  (ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX on an enum that tsc accepts; the guard is
+  `erasableSyntaxOnly`). AI200 `ai200-containerapp-keyvault-revision` (single
+  revision mode keeps v41 serving while v42's Key Vault reference gets a 403;
+  Key Vault Secrets User at the vault scope; a password rotation at 10:45 is
+  the clock) and `ai200-kql-checkout-latency` (percentiles by bin, then
+  AppDependencies by Target and AppVersion; a kill switch beats scaling out).
+- **Security console** (security profile, like 22.7): SC500
+  `sc500-illicit-consent-grant` (disable the app rather than delete it, scope
+  from the app's current permissions because the audit search lags, restrict
+  user consent, warn accounts payable) and `sc500-backup-vault-sabotage`
+  (block the taken-over backup admin, MUA with a Resource Guard in another
+  subscription before soft delete is turned off, undelete only after
+  containment).
+
+Each has one written-reasoning moment, endings in all three classes with
+`endingOrder`, 3-4 critical criteria, KPIs, an expert path, a debrief per
+ending and 5-6 golden paths (`npm run sim:golden -- steps <name>`: sql-slow-login,
+sql-oversold, node-envfile, node-enum, sc500-consent, sc500-backup, ai200-aca,
+ai200-kql) that reach every ending but `time_up`, every rating, and every
+criterion met and missed (`lib/sim/tech-courses-sims.test.ts`). Places and
+names are fictional and use documentation domains and addresses.
+
+**Sources** carry `checkedAt` 2026-11-14. Read that day through summarizing
+fetches: PostgreSQL 18.7 (Using EXPLAIN, Indexes on Expressions, CREATE
+INDEX, Explicit Locking, Transaction Isolation), Node.js v26.13.1 (cli
+--env-file, process), systemd 262 systemd.service, and Microsoft Learn (app
+consent playbook, disabling app sign-in, app permissions, revokeSignInSessions,
+Azure Backup MUA and secure-by-default, Container Apps revisions and secrets,
+the AppRequests and AppDependencies tables, KQL percentiles). The Node.js
+type-stripping, tsconfig and enum facts in `node-type-stripping-enum-crash`
+are the TSNODE course's key values (read 2026-11-14 for REQ-267) and were not
+re-read for the sim; the note on each source says so. Command lines, outputs
+and error texts are authored renderings in each tool's style; the az CLI
+flags were not checked against the az reference.
+
+**Findings**: none against the engine. Two authoring notes for the next
+builder: a literal brace in a template is written `{{` / `}}` (parser.ts
+`parseTemplate`), and a `|` inside a slot is read as the format separator, so
+a table row with `|` belongs outside a slot (use `cases` with whole outputs).
