@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, selectPart, orderPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-147: NPTE-PTA (FSBPT, physical therapist assistant licensure
@@ -742,6 +742,85 @@ export const NPTEPTA_LABS: SeedLabSet = {
             part("Standard administration", "Uses the standard instructions and equipment for each of the 14 items, scores each 0-4 on the lowest criterion met, demonstrates as allowed, and guards closely with a gait belt.", "Give each of the 14 tasks with the standard wording and set-up (stopwatch, ruler, step, chairs), demonstrate as the test allows, score each 0-4 at the lowest level she meets, and guard with a gait belt."),
             part("Total score", "Adds the items correctly to 38 out of 56.", "4+4+4+3+3+3+3+2+3+3+2+2+1+1 = 38 out of 56."),
             part("Report, don't interpret", "Reports the total and item scores (and any safety observations) to the PT without independently declaring a fall-risk category or changing the plan; the PT interprets.", "Report 38/56 with the item scores and that tandem and single-leg stance needed the most help. The PT interprets her fall risk and decides any plan changes."),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Equipment, Devices, and
+    // Technologies gets its second lab. Read 2026-11-14: Merck Manual
+    // Professional, "How To Fit and Walk With Underarm Crutches" (full review
+    // March 2026, updated October 2026): axillary pad 2.5 to 5 cm (1.5 to 2
+    // inches) below the axilla; hand grip set so the elbow is slightly flexed,
+    // about 15 to 30 degrees; tips about 5 cm to the side of and about 15 cm in
+    // front of the shoe; weight on the hands, not the axillae. Stairs: up --
+    // step up with the uninjured foot, then bring the crutches up; down --
+    // crutches down first, then the uninjured foot; only strong, agile
+    // patients with good balance use crutches on stairs without assistance,
+    // a sturdy handrail is ideal, and a patient who can't manage may sit and
+    // move one stair at a time. The objective's "about 2 finger widths" and
+    // "about 30 degrees" sit inside those ranges.
+    {
+      slug: "pta-crutch-fit-check",
+      objective:
+        "Check axillary crutch fit: pad about 2 finger widths (2 inches) under the armpit, grip at about 30 degrees of elbow flexion, and no resting of the armpit on the pad",
+      kind: "case",
+      title: "Crutch fit check before the stairs",
+      brief:
+        "You are a physical therapist assistant in a fictional outpatient clinic. Ms. Abara, a fictional 34-year-old, is non-weight-bearing on her left leg after an ankle fracture. The physical therapist's plan of care: gait training with axillary crutches, non-weight-bearing left, progress to stairs this visit. She arrives on crutches a relative adjusted at home.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [
+        source("https://www.merckmanuals.com/professional/injuries-poisoning/how-to-do-casting-procedures/how-to-fit-and-walk-with-crutches", "reference", "2026-11-14"),
+      ],
+      steps: [
+        {
+          text: "Standing in her shoes, you note what you see while she walks a few steps.",
+          ask: "Tap the findings that mean the fit or the use is wrong, then say what you change and how you recheck.",
+          parts: [
+            selectPart(
+              "Findings that need fixing",
+              "Met: exactly the three problems -- the pad pressed up into the armpit, the elbows locked straight, and leaning her armpits on the pads. (Right picks minus wrong picks) of at least two is partly there.",
+              "A pad touching the armpit and an armpit resting on the pad both put weight through the axilla; the pad belongs about 1.5 to 2 inches (two finger widths) below it and weight goes through the hands. A locked elbow means the grip is too low; it should leave the elbow slightly bent, about 15 to 30 degrees. The other findings are within the fit described.",
+              {
+                display: "list",
+                lines: [
+                  "The axillary pads press up into her armpits when she stands",
+                  "Her elbows are locked straight when she holds the grips",
+                  "Crutch tips sit about 2 inches to the side and about 6 inches in front of her shoes",
+                  "She leans her armpits on the pads to rest between steps",
+                  "Her left foot stays off the floor as she swings through",
+                  "Both crutches are set to the same height",
+                ],
+                correct: [0, 1, 3],
+              }
+            ),
+            part(
+              "What you change and how you recheck",
+              "Adjusts the length so the pad is about two finger widths (1.5 to 2 inches) below the armpit, then the hand grip so the elbow is slightly bent (about 15 to 30 degrees), with her standing in her usual shoes; teaches her to take weight through her hands and squeeze the pads against her side with her arms rather than hang on them; rechecks fit and non-weight-bearing in walking; documents the adjustments; tells the PT if she cannot keep weight off the pads or keep the left foot off the floor or reports new symptoms in her arms.",
+              "Lengthen or shorten the crutches until two fingers fit between the pad and her armpit, then raise the grips until her elbows are slightly bent, with her in the shoes she will wear. Teach her that her hands carry the weight and her arms hold the pads against her ribs -- she never hangs on them. Watch her walk again to confirm the fit and that the left foot stays up. Note the changes in the record, and tell the physical therapist if she can't keep weight off the pads or mentions any new symptoms in her arms or hands."
+            ),
+          ],
+        },
+        {
+          text: "Fit corrected, she walks safely on level ground. Per the plan you move to the clinic stairs, which have a sturdy handrail, to practice going down.",
+          ask: "Put the steps for going down in order, then say when you would not have her do stairs on crutches.",
+          parts: [
+            orderPart(
+              "Going down, non-weight-bearing left",
+              "Met: exactly -- you check the handrail and that she is steady on her right foot; she stands close to the edge of the step on her right foot; she moves the crutches down to the next step; she steps down with her right (uninjured) foot, left foot kept off; she repeats one step at a time. One item out of place is partly there.",
+              "Down, the crutches lead and the uninjured foot follows: crutches first, then the right foot, keeping the left off the step. You stay close to guard her throughout. (Up is the reverse: the uninjured foot steps up first, then the crutches.)",
+              [
+                "You check the handrail and that she is steady on her right foot",
+                "She stands near the edge of the step on her right foot",
+                "She moves the crutches down to the next step",
+                "She steps down with her right foot, keeping the left foot off",
+                "She repeats, one step at a time",
+              ]
+            ),
+            part(
+              "When not to do stairs on crutches",
+              "Names: when she isn't strong and agile enough or her balance isn't good (stairs without help are only for patients who are); when she can't keep the left foot off; if she becomes lightheaded, has pain that stops her, or is unsafe on level ground; then uses an alternative such as sitting and moving one stair at a time, and reports to the PT so the plan can be changed. The PTA doesn't progress beyond the plan of care without the PT.",
+              "If she isn't strong and agile with good balance, can't keep the left foot off the step, or gets lightheaded or shaky, stop. She can go up and down sitting, one stair at a time, instead. Tell the physical therapist what you saw so the plan can be changed; you work within the PT's plan of care and don't push the progression past it."
+            ),
           ],
         },
       ],

@@ -43,6 +43,18 @@ export const FILLED: Readonly<Record<string, readonly string[]>> = {
   MSCS: ["spot-the-broken-heaps", "truth-table-and-equivalences", "choose-a-sort-by-property", "dfs-order-by-hand", "topological-order-of-courses"],
   MSHI: ["choose-the-observational-data-source"],
   CMPCBS: ["derivative-rules-and-a-value", "improper-integrals-converge-or-not", "expected-value-and-variance-of-a-prize", "count-it-four-ways", "calculus-notation-and-the-priority-dispute"],
+  BSNRN: ["bsn-sbar-post-op-call"],
+  NPTEPTA: ["pta-crutch-fit-check"],
+  ABPTSNCS: ["ncs-aphasia-home-program-talk"],
+  ABPTSPCS: ["pcs-iep-ifsp-goal-writing"],
+  ABPTSSCS: ["scs-hop-lsi-baseline-check"],
+  ABPTSONC: ["onc-primary-or-secondary-lymphedema", "onc-isl-stage-and-plan"],
+  ABPTSECS: ["ecs-sensitivity-specificity-cts"],
+  ABPTSWMS: ["wms-healed-is-not-full-strength"],
+  ACECPT: ["ace-business-practices-ethics-audit"],
+  ACSMCPT: ["acsm-smarts-goal-rewrite", "acsm-hypoglycemia-in-session"],
+  NSCACSCS: ["cscs-injured-athlete-referral"],
+  NCCPTCPT: ["nccpt-ree-versus-tdee", "nccpt-agreement-and-cancellation-review"],
 };
 
 export function ruleFor(code: string): number[] {

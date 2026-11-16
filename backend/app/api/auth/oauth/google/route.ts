@@ -5,11 +5,11 @@ import { verifyGoogleIdToken, GoogleTokenError } from "@/lib/auth/oauth";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
-import { sessionResponse } from "@/lib/auth/refreshCookie";
+import { isWebClient, sessionResponse } from "@/lib/auth/refreshCookie";
 import { recordAuthEvent, consumeRateLimit, RateLimitError, GOOGLE_SIGNIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
 import { sendSecurityAlertEmail } from "@/lib/email";
 import { emailFailureHandler } from "@/lib/email-errors";
-import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { getClientIp, getDeviceId, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 import { ageConfirmationRequired, isAgeConfirmed, MINIMUM_AGE } from "@/lib/age-confirmation";
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       return unauthorized("Google account email is not verified.");
     }
     const normalizedEmail = identity.email.toLowerCase().trim();
-    const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent: getUserAgent(req), ip };
+    const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent: getUserAgent(req), ip, deviceId: getDeviceId(req), web: isWebClient(req) };
 
     const linked = await queryOne<UserRow>(
       `select u.id, u.email, u.display_name, u.mfa_enabled, u.totp_secret_enc, u.email_mfa_enabled

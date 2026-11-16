@@ -138,18 +138,18 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    // REQ-261: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-14).
-    assert.equal(TERMS_VERSION, "2026-11-14");
+    // REQ-306: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-16).
+    assert.equal(TERMS_VERSION, "2026-11-16");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy and Cookies are 2026-11-14 (REQ-261)", () => {
+  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy and Cookies are 2026-11-16 (REQ-306)", () => {
     const content = read("src", "content", "legal.ts");
     const expected: Record<string, [string, string]> = {
       TERMS: ["2026-11-13", "November 13, 2026"],
-      PRIVACY: ["2026-11-14", "November 14, 2026"],
-      COOKIES: ["2026-11-14", "November 14, 2026"],
+      PRIVACY: ["2026-11-16", "November 16, 2026"],
+      COOKIES: ["2026-11-16", "November 16, 2026"],
     };
     for (const [n, want] of Object.entries(expected)) {
       const m = content.match(new RegExp(`export const ${n}: LegalDoc = \\{[\\s\\S]*?version: "([^"]+)",\\s*updated: "([^"]+)"`));
@@ -264,7 +264,25 @@ describe("website analytics in the policy (REQ-261)", () => {
 
   test("only the Privacy Policy and Cookies moved; the Terms are unchanged by this", () => {
     assert.equal(TERMS.version, "2026-11-13");
-    assert.equal(PRIVACY.version, "2026-11-14");
-    assert.equal(COOKIES.version, "2026-11-14");
+    // REQ-306 moved both again (2026-11-16); the analytics text above is unchanged.
+    assert.equal(PRIVACY.version, "2026-11-16");
+    assert.equal(COOKIES.version, "2026-11-16");
+  });
+});
+
+// REQ-305 / REQ-306: the Privacy Policy and Cookies 2026-11-16 name the random
+// device id, the session limits and the newest biometric-session token.
+describe("device id, session limits and the biometric token are disclosed (REQ-306)", () => {
+  test("the Privacy Policy names the random device id and both session limits", () => {
+    const all = read("src", "content", "legal.ts");
+    assert.match(all, /a random ID that the app or your browser creates for that device/);
+    assert.match(all, /30 days without use in the app, or 14 days on the web/);
+  });
+  test("the Cookies page lists the device id on the phone and in the browser, and the newest token", () => {
+    const src = read("src", "content", "legal.ts");
+    const all = src.slice(src.indexOf("export const COOKIES"));
+    assert.match(all, /A random ID for this install/);
+    assert.match(all, /in the browser's local storage, a random ID for this browser \(not a sign-in token\)/);
+    assert.match(all, /its newest version is also kept in secure storage, and the app only uses it after that fingerprint, face or passcode check/);
   });
 });

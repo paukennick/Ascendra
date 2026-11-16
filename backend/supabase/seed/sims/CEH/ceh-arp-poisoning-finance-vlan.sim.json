@@ -1,0 +1,1272 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ceh-arp-poisoning-finance-vlan",
+  "title": "Two MAC addresses for one gateway",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "ids",
+          "severity": "high",
+          "title": "IDS: gateway 192.0.2.1 answered ARP from two MAC addresses on the finance VLAN; unsolicited replies from 02:42:ac:11:00:66",
+          "when": "true",
+          "at": "0",
+          "status": "{poisoning ? \"Ongoing\" : \"Stopped\"}",
+          "open": "poisoning"
+        },
+        {
+          "id": "certs",
+          "severity": "medium",
+          "title": "Help desk: five finance users report certificate warnings on the intranet; two clicked through",
+          "when": "true",
+          "at": "0",
+          "status": "{isNull(warnedAt) ? \"Open\" : \"Users told not to click through\"}",
+          "open": "isNull(warnedAt)"
+        },
+        {
+          "id": "hijack",
+          "severity": "critical",
+          "title": "Timesheet app: payroll administrator session reused from 192.0.2.66",
+          "when": "not isNull(hijackAt)",
+          "at": "timeAt(hijackAt)",
+          "status": "{hijackLive ? \"Session active\" : \"Sessions invalidated\"}",
+          "open": "hijackLive"
+        },
+        {
+          "id": "creds",
+          "severity": "high",
+          "title": "IDS: plain-text logins to the timesheet app captured on the finance VLAN by 192.0.2.66",
+          "when": "not isNull(credsStolenAt)",
+          "at": "timeAt(credsStolenAt)",
+          "status": "{credsLive ? \"Passwords still valid\" : \"Passwords reset\"}",
+          "open": "credsLive"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Switch",
+          "text": "ARP table: 192.0.2.1 -> 02:42:ac:11:00:66 on several finance hosts; the real gateway is 02:42:ac:11:00:01",
+          "when": "not isNull(idsAt)",
+          "at": "timeAt(idsAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Switch",
+          "text": "MAC table: 02:42:ac:11:00:66 on port Gi1/0/14 (conference room 3 wall jack); 192.0.2.66 by DHCP",
+          "when": "not isNull(traceAt)",
+          "at": "timeAt(traceAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Packet capture",
+          "text": "Span capture running: gratuitous ARP replies every 2 seconds from Gi1/0/14",
+          "when": "not isNull(captureAt)",
+          "at": "timeAt(captureAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Facilities",
+          "text": "Small computer behind the conference-room printer, photographed, bagged and logged by the security officer",
+          "when": "not isNull(deviceAt)",
+          "at": "timeAt(deviceAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Switch",
+          "text": "DHCP snooping and Dynamic ARP Inspection enabled on the finance VLAN; ARP replies not matching the binding table are dropped",
+          "when": "not isNull(daiAt)",
+          "at": "timeAt(daiAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Timesheet app",
+          "text": "Payroll administrator session from 192.0.2.66 exported the employee pay table",
+          "when": "not isNull(exfilAt)",
+          "at": "timeAt(exfilAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "vlan",
+          "label": "Finance VLAN",
+          "spokenLabel": "Finance VLAN",
+          "kind": "Gateway 192.0.2.1",
+          "status": "{poisoning ? \"ARP cache poisoned: traffic through an unknown device\" : not isNull(daiAt) ? \"Protected by Dynamic ARP Inspection\" : \"Poisoning stopped\"}",
+          "tone": "poisoning ? \"bad\" : not isNull(daiAt) ? \"ok\" : \"held\""
+        },
+        {
+          "id": "rogue",
+          "label": "02:42:ac:11:00:66",
+          "spokenLabel": "Unknown device",
+          "kind": "Port Gi1/0/14",
+          "status": "{not isNull(wipeAt) ? \"Unplugged and reimaged by IT\" : not isNull(deviceAt) ? \"Seized as evidence\" : not isNull(portAt) ? \"Port shut\" : \"Connected\"}",
+          "tone": "not isNull(wipeAt) ? \"watch\" : not isNull(portAt) or not isNull(deviceAt) ? \"held\" : \"bad\""
+        },
+        {
+          "id": "app",
+          "label": "Timesheet app",
+          "spokenLabel": "Timesheet app",
+          "kind": "Plain HTTP, session cookie",
+          "status": "{hijackLive ? \"Admin session hijacked\" : not isNull(tlsAt) ? \"HTTPS and secure cookies change approved\" : \"Plain HTTP\"}",
+          "tone": "hijackLive ? \"bad\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "evid",
+          "label": "Evidence",
+          "value": "{isNull(captureAt) ? \"no capture\" : \"capture running\"}{isNull(deviceAt) ? \"\" : \"; device in custody\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Recognize sniffing attacks -- MAC flooding, DHCP starvation, ARP poisoning, spoofing and DNS poisoning -- and choose detection techniques and countermeasures",
+  "secondaryObjectives": [
+    "Analyze application-level and network-level session hijacking and choose countermeasures"
+  ],
+  "sources": [
+    {
+      "cite": "EC-Council, CEH Exam Blueprint v5.0 (CEH v13), Domain 4: Network and Perimeter Hacking",
+      "checkedAt": "2026-11-14",
+      "url": "https://cert.eccouncil.org/wp-content/uploads/2024/04/CEH-Exam-Blueprint-v5.pdf",
+      "note": "Read in full as text on 2026-11-14 for REQ-273. Sub-domain 'Sniffing': Sniffing Concepts; Sniffing Technique: MAC Attacks; DHCP Attacks; ARP Poisoning; Spoofing Attacks; DNS Poisoning; Sniffing Tools; Sniffing Countermeasures; Sniffing Detection Techniques. Sub-domain 'Session Hijacking': Application-Level and Network-Level Session Hijacking; Session Hijacking Countermeasures. Domain 4 weight 24% (30 of 125 questions)."
+    },
+    {
+      "cite": "MITRE ATT&CK T1557.002, Adversary-in-the-Middle: ARP Cache Poisoning (version 1.1, last modified 24 October 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://attack.mitre.org/techniques/T1557/002/",
+      "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: mitigation M1037 'Consider enabling DHCP Snooping and Dynamic ARP Inspection on switches'; M1035 'Create static ARP entries for networked devices' (may be infeasible for large networks); detection looks for 'multiple IP addresses resolving to a single MAC' and 'unsolicited replies overriding legitimate ARP ownership'."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are a network security analyst at Corbel Engineering, a fictional firm. At 10:00 the IDS reports the finance VLAN's gateway address answering from two MAC addresses, and finance staff say the intranet keeps showing certificate warnings. The timesheet app on that VLAN still uses plain HTTP. Find the cause, stop it, keep the evidence, close what it exposed, and write it up.",
+    "handover": [
+      "You can change switch configuration, end application sessions and force password resets under the network security procedure. Physical evidence goes to the security officer.",
+      "This is your own network: everything here is defensive work on systems you are responsible for."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "hijackDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until a captured session cookie is reused is the author's figure."
+      }
+    },
+    "credsDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Twenty minutes until plain-text passwords are captured is the author's figure."
+      }
+    },
+    "exfilDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Thirty-five minutes until the hijacked session exports the pay table is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "idsAt": {
+      "type": "time",
+      "init": null
+    },
+    "traceAt": {
+      "type": "time",
+      "init": null
+    },
+    "captureAt": {
+      "type": "time",
+      "init": null
+    },
+    "portAt": {
+      "type": "time",
+      "init": null
+    },
+    "daiAt": {
+      "type": "time",
+      "init": null
+    },
+    "wipeAt": {
+      "type": "time",
+      "init": null
+    },
+    "deviceAt": {
+      "type": "time",
+      "init": null
+    },
+    "arpClearAt": {
+      "type": "time",
+      "init": null
+    },
+    "sessionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "credsResetAt": {
+      "type": "time",
+      "init": null
+    },
+    "tlsAt": {
+      "type": "time",
+      "init": null
+    },
+    "warnedAt": {
+      "type": "time",
+      "init": null
+    },
+    "hijackAt": {
+      "type": "time",
+      "init": null
+    },
+    "credsStolenAt": {
+      "type": "time",
+      "init": null
+    },
+    "exfilAt": {
+      "type": "time",
+      "init": null
+    },
+    "poisonOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "attackDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "arp",
+        "dhcp",
+        "flood"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "daiTls",
+        "staticAll",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "security",
+        "all",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "poisoning": {
+      "expr": "isNull(portAt) and isNull(daiAt) and isNull(wipeAt)"
+    },
+    "hijackLive": {
+      "expr": "not isNull(hijackAt) and (isNull(sessionsAt) or timeAt(sessionsAt) < timeAt(hijackAt))"
+    },
+    "credsLive": {
+      "expr": "not isNull(credsStolenAt) and (isNull(credsResetAt) or timeAt(credsResetAt) < timeAt(credsStolenAt))"
+    },
+    "attackerActive": {
+      "expr": "poisoning or hijackLive or credsLive"
+    },
+    "spread": {
+      "expr": "(isNull(hijackAt) ? 0 : 1) + (isNull(credsStolenAt) ? 0 : 1)"
+    },
+    "evidenceKept": {
+      "expr": "isNull(wipeAt) and not isNull(deviceAt) and not isNull(captureAt) and not isNull(poisonOffAt) and timeAt(captureAt) <= timeAt(poisonOffAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "readIds",
+        "trace",
+        "capture",
+        "shutPort",
+        "clearArp",
+        "dai",
+        "seize",
+        "wipe",
+        "revokeSessions",
+        "resetCreds",
+        "tls",
+        "warn",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "readIds": {
+      "label": "Read the IDS alert and the hosts' ARP tables",
+      "group": "Investigate",
+      "available": "not busy and isNull(idsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "idsAt",
+          "to": "t"
+        },
+        {
+          "log": "You compare the IDS alert with ARP tables on three finance PCs.",
+          "kind": "act"
+        },
+        {
+          "finding": "The gateway's address resolves to 02:42:ac:11:00:66 on finance PCs, not to the router: ARP cache poisoning. Traffic, including the timesheet app's plain-HTTP cookies, passes through that device."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "trace": {
+      "label": "Trace the unknown MAC to its switch port",
+      "group": "Investigate",
+      "available": "not busy and isNull(traceAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "traceAt",
+          "to": "t"
+        },
+        {
+          "log": "You look the MAC up in the switch's address table.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "capture": {
+      "label": "Start a packet capture on the finance VLAN's span port",
+      "group": "Evidence",
+      "available": "not busy and isNull(captureAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "captureAt",
+          "to": "t"
+        },
+        {
+          "log": "The span port captures the VLAN's traffic, including the forged ARP replies, with times.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "shutPort": {
+      "label": "Shut down switch port Gi1/0/14",
+      "group": "Contain",
+      "available": "not busy and isNull(portAt) and (not isNull(traceAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "portAt",
+          "to": "t"
+        },
+        {
+          "log": "The port is down. The device is cut off and the finance PCs relearn the real gateway.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "clearArp": {
+      "label": "Clear the ARP caches on the finance PCs",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "arpClearAt",
+          "to": "t"
+        },
+        {
+          "log": "{poisoning ? \"Caches cleared. Within seconds the forged replies poison them again: the device is still sending.\" : \"Caches cleared; the real gateway is learned.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "dai": {
+      "label": "Enable DHCP snooping and Dynamic ARP Inspection on the finance VLAN",
+      "group": "Contain",
+      "available": "not busy and isNull(daiAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "daiAt",
+          "to": "t"
+        },
+        {
+          "log": "Switches now drop ARP replies that do not match the DHCP binding table. Forged gateway replies stop working from any port.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "seize": {
+      "label": "Have the security officer photograph, bag and log the device",
+      "group": "Evidence",
+      "available": "not busy and isNull(deviceAt) and (not isNull(traceAt) and isNull(wipeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "deviceAt",
+          "to": "t"
+        },
+        {
+          "log": "The security officer finds a small computer behind the printer, photographs it in place, bags it and starts the custody log.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "wipe": {
+      "label": "Have IT unplug the device and reimage it for reuse",
+      "group": "Contain",
+      "available": "not busy and isNull(wipeAt) and (not isNull(traceAt) and isNull(deviceAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "wipeAt",
+          "to": "t"
+        },
+        {
+          "log": "IT unplugs the device and reimages it. Poisoning stops, and with it every trace of who set it up and what it collected.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "revokeSessions": {
+      "label": "Invalidate every timesheet app session and force sign-in again",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "sessionsAt",
+          "to": "t"
+        },
+        {
+          "log": "Every timesheet session is ended; users sign in again.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "resetCreds": {
+      "label": "Force password resets for finance users whose logins crossed the VLAN",
+      "group": "Contain",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "credsResetAt",
+          "to": "t"
+        },
+        {
+          "log": "Finance users are made to reset their timesheet passwords.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "tls": {
+      "label": "Raise the change: timesheet app to HTTPS only, with Secure and HttpOnly cookies",
+      "group": "Review",
+      "available": "not busy and isNull(tlsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "tlsAt",
+          "to": "t"
+        },
+        {
+          "log": "The change is approved for tonight: HTTPS only, HSTS, and cookies marked Secure and HttpOnly.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "warn": {
+      "label": "Tell finance staff not to click through certificate warnings, and why",
+      "group": "Communicate",
+      "available": "not busy and isNull(warnedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "warnedAt",
+          "to": "t"
+        },
+        {
+          "log": "Finance staff hear that the warnings were real and to report, not click through.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "security",
+              "label": "The security manager and facilities security, with the custody log"
+            },
+            {
+              "value": "all",
+              "label": "All staff, describing the device's location"
+            },
+            {
+              "value": "nobody",
+              "label": "No one"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"security\" ? \"the security manager and facilities security\" : who == \"all\" ? \"all staff\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "attack",
+              "label": "Attack",
+              "options": [
+                {
+                  "value": "arp",
+                  "label": "ARP cache poisoning (adversary in the middle) from a rogue device, with session hijacking"
+                },
+                {
+                  "value": "dhcp",
+                  "label": "DHCP starvation"
+                },
+                {
+                  "value": "flood",
+                  "label": "MAC flooding"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Countermeasure",
+              "options": [
+                {
+                  "value": "daiTls",
+                  "label": "DHCP snooping with Dynamic ARP Inspection, plus HTTPS and secure cookies for the app"
+                },
+                {
+                  "value": "staticAll",
+                  "label": "Static ARP entries on every PC"
+                },
+                {
+                  "value": "none",
+                  "label": "None needed: the port is shut"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "attackDoc",
+          "to": "attack"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {attack}, {fix}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hijack",
+      "when": "isNull(hijackAt) and (t >= hijackDelay and poisoning) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "hijackAt",
+          "to": "t"
+        },
+        {
+          "log": "Timesheet app: the payroll administrator's session cookie is being used from 192.0.2.66.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "creds",
+      "when": "isNull(credsStolenAt) and (t >= credsDelay and poisoning) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "credsStolenAt",
+          "to": "t"
+        },
+        {
+          "log": "IDS: plain-text timesheet logins on the finance VLAN were read by 192.0.2.66.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "exfil",
+      "when": "isNull(exfilAt) and (t >= exfilDelay and hijackLive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "exfilAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Timesheet app: the hijacked administrator session exported the employee pay table. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "poisonOff",
+      "when": "isNull(poisonOffAt) and not poisoning",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "poisonOffAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what the attack was and how you knew, how you stopped it, and what it exposed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Recognition and detection",
+          "criteria": "Names ARP cache poisoning from the evidence (one IP, two MACs; unsolicited replies; certificate warnings as interception), not MAC flooding or DHCP starvation, and traces the MAC to a port.",
+          "modelAnswer": "The gateway's IP resolved to an unknown MAC with unsolicited replies, and users saw certificate warnings: ARP poisoning for an adversary in the middle, traced to Gi1/0/14."
+        },
+        {
+          "label": "Countermeasure",
+          "criteria": "Stops it at the port (clearing caches alone is undone in seconds), keeps a capture and the device in custody instead of wiping it, and enables DHCP snooping with Dynamic ARP Inspection so it cannot recur from another port.",
+          "modelAnswer": "I captured first, shut the port, had the device bagged with a custody log, and enabled DHCP snooping and DAI on the VLAN."
+        },
+        {
+          "label": "Hijacking",
+          "criteria": "Ends the app's sessions and resets passwords exposed in plain text; fixes the cause with HTTPS and Secure, HttpOnly cookies.",
+          "modelAnswer": "I ended every timesheet session and reset the exposed passwords; the app moves to HTTPS with Secure and HttpOnly cookies so a sniffed cookie is useless."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No session hijacked and no password captured after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and poisoning",
+      "class": "harm",
+      "rationale": "Closing the case while finance traffic still runs through an unknown device is never a safe outcome.",
+      "source": {
+        "cite": "MITRE ATT&CK T1557.002, Adversary-in-the-Middle: ARP Cache Poisoning (version 1.1, last modified 24 October 2025)",
+        "checkedAt": "2026-11-14",
+        "url": "https://attack.mitre.org/techniques/T1557/002/",
+        "note": "Read 2026-11-14 through a summarizing fetch. Relevant text: mitigation M1037 'Consider enabling DHCP Snooping and Dynamic ARP Inspection on switches'; M1035 'Create static ARP entries for networked devices' (may be infeasible for large networks); detection looks for 'multiple IP addresses resolving to a single MAC' and 'unsolicited replies overriding legitimate ARP ownership'."
+      }
+    }
+  },
+  "endings": {
+    "dataTaken": {
+      "label": "Pay table exported",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(exfilAt)",
+      "narrative": "A cookie sniffed in the middle let someone act as the payroll administrator and take the pay table."
+    },
+    "evidenceLost": {
+      "label": "Device wiped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(wipeAt)",
+      "narrative": "The rogue device was reimaged for reuse; who placed it and what it collected went with it."
+    },
+    "leftOpen": {
+      "label": "Closed with access still open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "{poisoning ? \"The VLAN is still poisoned.\" : hijackLive ? \"The hijacked session still works.\" : \"Captured passwords still work.\"}"
+    },
+    "handled": {
+      "label": "Stopped, kept, hardened",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(offAt) and timeAt(offAt) <= containWindow and spread <= containSpread and evidenceKept and not isNull(daiAt) and not isNull(sessionsAt)",
+      "narrative": "You recognized the poisoning, cut it at the port before anything was hijacked, kept the evidence and made the VLAN resist it."
+    },
+    "handledCostly": {
+      "label": "Stopped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The poisoning is stopped, but a session or passwords were taken first, the evidence is incomplete, or the VLAN is not hardened."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "dataTaken",
+    "evidenceLost",
+    "leftOpen",
+    "handled",
+    "handledCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopped",
+        "label": "Poisoning stopped before any session or password was taken",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not poisoning and spread == 0",
+            "score": "met",
+            "why": "Stopped {timeAt(poisonOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not poisoning",
+            "score": "partial",
+            "why": "Stopped, after something was taken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still poisoned."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Capture taken before the stop, device in custody, nothing wiped",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceKept",
+            "score": "met",
+            "why": "Capture and device kept."
+          },
+          {
+            "when": "isNull(wipeAt) and (not isNull(deviceAt) or not isNull(captureAt))",
+            "score": "partial",
+            "why": "Only part of the evidence."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(wipeAt) ? \"The device was wiped.\" : \"No evidence kept.\"}"
+          }
+        ]
+      },
+      {
+        "id": "dai",
+        "label": "DHCP snooping and Dynamic ARP Inspection enabled",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(daiAt)",
+            "score": "met",
+            "why": "Forged replies are dropped from any port."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A device on another port could do it again."
+          }
+        ]
+      },
+      {
+        "id": "sessions",
+        "label": "Sessions ended and exposed passwords reset",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sessionsAt) and not hijackLive and not credsLive",
+            "score": "met",
+            "why": "{spread == 0 ? \"Ended as a precaution; nothing was taken.\" : \"Everything taken is now useless.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{hijackLive ? \"The hijacked session still works.\" : credsLive ? \"Captured passwords still work.\" : \"Sessions never ended.\"}"
+          }
+        ]
+      },
+      {
+        "id": "traced",
+        "label": "Traced the MAC to its port",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(traceAt)",
+            "score": "met",
+            "why": "Gi1/0/14."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never located."
+          }
+        ]
+      },
+      {
+        "id": "tls",
+        "label": "Fixed the app's plain-HTTP sessions",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tlsAt)",
+            "score": "met",
+            "why": "HTTPS and secure cookies approved."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Cookies still cross in the clear."
+          }
+        ]
+      },
+      {
+        "id": "warned",
+        "label": "Told staff the warnings were real",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(warnedAt)",
+            "score": "met",
+            "why": "Staff warned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Staff not told."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded ARP poisoning and the right countermeasure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "attackDoc == \"arp\" and fixDoc == \"daiTls\" and notified == \"security\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written recognition, countermeasure and hijacking",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToStop",
+        "label": "Minutes until the poisoning stopped",
+        "value": "isNull(poisonOffAt) ? -1 : timeAt(poisonOffAt) / 60",
+        "format": "number",
+        "expert": "12 or less"
+      },
+      {
+        "id": "taken",
+        "label": "Things taken in the middle (session, passwords)",
+        "value": "spread",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "minToSafe",
+        "label": "Minutes until every exposure was closed",
+        "value": "isNull(offAt) ? -1 : timeAt(offAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the ARP tables: the gateway's IP on an unknown MAC. Start a capture. Trace the MAC to Gi1/0/14."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Shut the port; end the timesheet sessions as a precaution."
+      },
+      {
+        "at": "15-40 min",
+        "text": "Enable DHCP snooping and Dynamic ARP Inspection; have the device bagged with a custody log."
+      },
+      {
+        "at": "After",
+        "text": "Move the app to HTTPS with Secure, HttpOnly cookies; tell finance the warnings were real; record it."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: recognized, cut, kept, hardened",
+        "body": "One IP on two MACs with certificate warnings is ARP poisoning. The port stopped it, the capture and device kept it, and DAI keeps it from coming back."
+      },
+      "handledCostly": {
+        "headline": "Stopped, with gaps",
+        "body": "The criteria show what cost you: a session or passwords taken first, missing evidence, or a VLAN still open to the same trick."
+      },
+      "dataTaken": {
+        "headline": "The session was used",
+        "body": "Clearing caches is undone in seconds while the device sends. Cut it at the port, and end sessions that crossed in the clear."
+      },
+      "evidenceLost": {
+        "headline": "Evidence reimaged",
+        "body": "A rogue device is evidence: photograph, bag and log it. Wiping it erased who placed it and what it took."
+      },
+      "leftOpen": {
+        "headline": "Something still works for the attacker",
+        "body": "Poisoning, a hijacked session or captured passwords: close all three before you close the case."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "One gateway IP answering from two MACs, unsolicited ARP replies and certificate warnings point to ARP cache poisoning for an adversary in the middle. Start a capture, trace the MAC to its port and shut it (clearing caches is undone in seconds). End the app's sessions and reset any passwords that crossed in plain text. Keep the device as evidence with a custody log rather than wiping it. Enable DHCP snooping and Dynamic ARP Inspection so a forged reply is dropped from any port, and move the app to HTTPS with Secure, HttpOnly cookies."
+  }
+}

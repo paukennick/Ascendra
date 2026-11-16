@@ -9,6 +9,16 @@ import { isPlaceholderSecret } from "../env-check";
 // (see rotateRefreshToken).
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const REFRESH_TOKEN_TTL_DAYS = 30;
+// REQ-306 (Nick 2026-11-16): a web session ends after 14 days unused (a
+// browser is more often shared); the app keeps 30. Each refresh renews it.
+export const WEB_REFRESH_TOKEN_TTL_DAYS = 14;
+export function refreshTtlDays(web: boolean | undefined): number {
+  return web ? WEB_REFRESH_TOKEN_TTL_DAYS : REFRESH_TOKEN_TTL_DAYS;
+}
+const DEVICE_ID_RE = /^[A-Za-z0-9_-]{16,64}$/;
+export function validDeviceId(value: unknown): string | null {
+  return typeof value === "string" && DEVICE_ID_RE.test(value) ? value : null;
+}
 
 function getJwtSecret(): string {
   const secret = process.env.AUTH_JWT_SECRET;
@@ -95,6 +105,10 @@ export interface RefreshTokenMeta {
   deviceLabel?: string | null;
   userAgent?: string | null;
   ip?: string | null;
+  // REQ-306: this install's or browser's random id (X-Ascendra-Device) and
+  // whether the session is the web app's (14 days unused, not 30).
+  deviceId?: string | null;
+  web?: boolean;
 }
 
 export interface IssuedRefreshToken {
@@ -110,12 +124,24 @@ export async function createRefreshToken(
 ): Promise<IssuedRefreshToken> {
   const raw = generateOpaqueToken();
   const familyId = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
-  await query(
-    `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
-    [userId, familyId, hashToken(raw), meta.deviceLabel ?? null, meta.userAgent ?? null, meta.ip ?? null, expiresAt]
-  );
+  const expiresAt = new Date(Date.now() + refreshTtlDays(meta.web) * 24 * 60 * 60 * 1000);
+  const deviceId = validDeviceId(meta.deviceId);
+  await withTransaction(async (tx) => {
+    // REQ-306: one session per device. Signing in again on this device ends
+    // its older session(s) first, so Active sessions doesn't pile up.
+    if (deviceId) {
+      await tx.query(
+        `update refresh_tokens set revoked_at = now()
+          where user_id = $1 and device_id = $2 and revoked_at is null`,
+        [userId, deviceId]
+      );
+    }
+    await tx.query(
+      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at, device_id)
+       values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [userId, familyId, hashToken(raw), meta.deviceLabel ?? null, meta.userAgent ?? null, meta.ip ?? null, expiresAt, deviceId]
+    );
+  });
   return { raw, familyId };
 }
 
@@ -147,7 +173,7 @@ export async function rotateRefreshToken(
 ): Promise<{ userId: string; raw: string; familyId: string }> {
   const tokenHash = hashToken(rawToken);
   const newRaw = generateOpaqueToken();
-  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + refreshTtlDays(meta.web) * 24 * 60 * 60 * 1000);
 
   const rotated = await withTransaction(async (tx) => {
     const consumed = await tx.queryOne<{
@@ -156,17 +182,18 @@ export async function rotateRefreshToken(
       family_id: string;
       device_label: string | null;
       user_agent: string | null;
+      device_id: string | null;
     }>(
       `update refresh_tokens set revoked_at = now()
        where token_hash = $1 and revoked_at is null and expires_at > now()
-       returning id, user_id, family_id, device_label, user_agent`,
+       returning id, user_id, family_id, device_label, user_agent, device_id`,
       [tokenHash]
     );
     if (!consumed) return null;
 
     const inserted = await tx.queryOne<{ id: string }>(
-      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at)
-       values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at, device_id)
+       values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
       [
         consumed.user_id,
         consumed.family_id,
@@ -175,6 +202,8 @@ export async function rotateRefreshToken(
         meta.userAgent ?? consumed.user_agent,
         meta.ip ?? null,
         expiresAt,
+        // REQ-306: the family keeps the device it was signed in on.
+        consumed.device_id ?? validDeviceId(meta.deviceId),
       ]
     );
     await tx.query(`update refresh_tokens set replaced_by_id = $2 where id = $1`, [consumed.id, inserted?.id ?? null]);
@@ -197,8 +226,8 @@ export async function rotateRefreshToken(
     // live, is a cross-tab race. One guarded statement checks all of that and
     // mints the replay's own token, so it can't interleave with a logout.
     const graced = await queryOne<{ user_id: string; family_id: string }>(
-      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at)
-       select o.user_id, o.family_id, $2, coalesce($3::text, o.device_label), coalesce($4::text, o.user_agent), $5, $6
+      `insert into refresh_tokens (user_id, family_id, token_hash, device_label, user_agent, ip, expires_at, device_id)
+       select o.user_id, o.family_id, $2, coalesce($3::text, o.device_label), coalesce($4::text, o.user_agent), $5, $6, o.device_id
          from refresh_tokens o
         where o.token_hash = $1
           and o.replaced_by_id is not null

@@ -1,0 +1,1609 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "hyperkalemia-critical-value",
+ "title": "A critical potassium on a medical unit",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate",
+     "value": "hr",
+     "unit": "/min",
+     "announce": {
+      "bands": [
+       60,
+       50
+      ]
+     },
+     "colour": "ecg",
+     "alarm": {
+      "low": 50
+     },
+     "hiddenUntil": "monitorOn"
+    },
+    {
+     "id": "bp",
+     "label": "BP",
+     "spokenLabel": "Blood pressure",
+     "value": [
+      "sbp",
+      "dbp"
+     ],
+     "unit": "mmHg",
+     "announce": {
+      "bands": [
+       100,
+       90
+      ]
+     },
+     "colour": "art",
+     "alarm": {
+      "low": 90
+     }
+    },
+    {
+     "id": "k",
+     "label": "K+",
+     "spokenLabel": "Potassium, latest result",
+     "value": "lastK",
+     "unit": "mEq/L",
+     "announce": {
+      "bands": [
+       5.1,
+       6.0,
+       6.5
+      ]
+     },
+     "colour": "neutral",
+     "alarm": {
+      "high": 6.4
+     }
+    },
+    {
+     "id": "glu",
+     "label": "Glucose",
+     "spokenLabel": "Blood glucose, latest bedside check",
+     "value": "lastGlu",
+     "unit": "mg/dL",
+     "announce": {
+      "bands": [
+       70,
+       54
+      ]
+     },
+     "colour": "neutral",
+     "alarm": {
+      "low": 70
+     },
+     "hiddenUntil": "gluChecks > 0"
+    }
+   ],
+   "infusions": "KCl 10 mEq/h: {kclOn ? \"running\" : \"stopped\"}. Dextrose 10%: {d10On ? \"50 mL/h\" : \"off\"}. Calcium doses: {calDoses}.",
+   "banner": [
+    {
+     "when": "monitorOn and risk >= wideRisk",
+     "text": "Monitor: wide QRS complexes, rate slowing."
+    },
+    {
+     "when": "monitorOn and risk < wideRisk and kNow >= 6.5",
+     "text": "Monitor: tall, peaked T waves."
+    }
+   ]
+  }
+ },
+ "objective": "Identify hyperkalemia -- serum potassium above 5.1 mEq/L -- by irritability, cramping, diarrhea and peaked T waves, and know it can progress to dysrhythmia and cardiac arrest",
+ "secondaryObjectives": [
+  "Medical emergencies: applying pathophysiology under time pressure",
+  "Testing within the nurse's scope: ECG, point-of-care testing, fetal monitoring",
+  "Evaluating the client's response to a medication over time",
+  "Unexpected adverse response to therapy, and recognizing complications early",
+  "Prevent medication errors through the safety checks in four groups: identify the client correctly, check the order for errors, keep the environment safe, and monitor for adverse reactions"
+ ],
+ "sources": [
+  {
+   "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+   "checkedAt": "2026-11-11",
+   "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+   "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: Physiological Adaptation includes managing a medical emergency and fluid and electrolyte imbalances; Reduction of Risk Potential includes recognizing changes in laboratory values and performing an ECG within scope; Pharmacological Therapies includes evaluating the client's response to medication."
+  },
+  {
+   "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles."
+  },
+  {
+   "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+   "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5)."
+  },
+  {
+   "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+   "checkedAt": "2026-11-11",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+   "note": "Relayed from the REQ-240 LPN hypoglycemia case (read 2026-11-11, primary text), not re-read: level 1 hypoglycemia is glucose below 70 and at or above 54 mg/dL, level 2 below 54 mg/dL, level 3 a severe event with altered mental or physical status needing assistance."
+  }
+ ],
+ "brief": {
+  "situation": "08:40 on a medical unit. You are Mr. Hutchins' RN. The lab phones a critical result: potassium 6.8 mEq/L on the 07:30 draw (no hemolysis noted). Mr. Hutchins, 71, says his legs feel heavy and he has felt sick since breakfast.",
+  "handover": [
+   "Admitted two days ago with cellulitis of the left leg; chronic kidney disease stage 4. About 80 kg.",
+   "Yesterday's potassium was 3.4 after IV furosemide, so potassium chloride 10 mEq/h IV was ordered 'until four runs are done'. The third run is infusing now.",
+   "Home medicines restarted yesterday: lisinopril 20 mg and spironolactone 25 mg, both due at 09:00.",
+   "Not on telemetry. Glucose was 92 mg/dL at 07:30."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "Orders for medicines come from the hospitalist after you call. Results take time to come back.",
+   "Partway through you are asked to write what is happening and why. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "08:40",
+  "tick": "1s",
+  "maxDuration": "2h",
+  "calendar": "clock"
+ },
+ "params": {
+  "riseOn": {
+   "value": 0.75,
+   "unit": "mEq/L/h",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Potassium climbs about 0.75 mEq/L an hour while the KCl runs into failing kidneys, and about 0.25 an hour once it stops (spironolactone, lisinopril, CKD). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "riseOff": {
+   "value": 0.25,
+   "unit": "mEq/L/h",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "See riseOn. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "medBump": {
+   "value": 0.2,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Giving the 09:00 spironolactone and lisinopril adds a further rise over the case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "calProtect": {
+   "value": 0.8,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). FLAG: modeling calcium's membrane protection as an offset of 0.8 mEq/L in the arrhythmia risk is authored; the guideline gives onset within 3 minutes and 30-60 minutes of action."
+   }
+  },
+  "calOnset": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Onset 3 minutes."
+   }
+  },
+  "calDur": {
+   "value": 2700,
+   "unit": "s",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Duration 30-60 minutes; 45 minutes used."
+   }
+  },
+  "insMax": {
+   "value": 0.8,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Peak fall 0.65-1.0 between 30 and 60 minutes; 0.8 used, reached at 45 minutes."
+   }
+  },
+  "insOnset": {
+   "value": 900,
+   "unit": "s",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Starts to fall within 15 minutes."
+   }
+  },
+  "albMax": {
+   "value": 0.6,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Salbutamol (albuterol) 10 mg lowers K by 0.53-0.88 within 30 minutes; 0.6 used."
+   }
+  },
+  "wideRisk": {
+   "value": 7.2,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Wide QRS and a slowing rate once the unprotected potassium reaches 7.2 in this case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "arrestRisk": {
+   "value": 7.6,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Cardiac arrest once the unprotected potassium reaches 7.6 in this case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "g0": {
+   "value": 92,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "Scenario data",
+    "checkedAt": "2026-11-14",
+    "note": "His 07:30 glucose (scenario data)."
+   }
+  },
+  "dexPeak": {
+   "value": 140,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The 25 g dextrose given with the insulin raises glucose by about 140 mg/dL at once, fading over 75 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "insGlu": {
+   "value": 60,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The insulin lowers glucose by up to 60 mg/dL below baseline by 75 minutes; without a glucose infusion he reaches level 2 hypoglycemia about 67 minutes after the insulin. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "d10Rise": {
+   "value": 45,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Dextrose 10% at 50 mL/h for 5 hours when the pre-treatment glucose is below 7.0 mmol/L (126 mg/dL at 18 mg/dL per mmol/L; 92 mg/dL is 5.1 mmol/L). FLAG: its effect size (45 mg/dL over 15 minutes) is authored."
+   }
+  },
+  "rescueRise": {
+   "value": 70,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Dextrose 50% 25 mL under the hypoglycemia protocol raises glucose about 70 mg/dL, fading over 45 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "hypoLevel": {
+   "value": 70,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+    "checkedAt": "2026-11-11",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+    "note": "Relayed from the REQ-240 LPN hypoglycemia case (read 2026-11-11, primary text), not re-read: level 1 hypoglycemia is glucose below 70 and at or above 54 mg/dL, level 2 below 54 mg/dL, level 3 a severe event with altered mental or physical status needing assistance."
+   }
+  },
+  "seizureGlu": {
+   "value": 40,
+   "unit": "mg/dL",
+   "source": {
+    "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+    "checkedAt": "2026-11-11",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+    "note": "Relayed from the REQ-240 LPN hypoglycemia case (read 2026-11-11, primary text), not re-read: level 1 hypoglycemia is glucose below 70 and at or above 54 mg/dL, level 2 below 54 mg/dL, level 3 a severe event with altered mental or physical status needing assistance. FLAG: that he seizes below 40 mg/dL in this case is authored; level 3 is defined by the event, not a number."
+   }
+  },
+  "callWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Authored target: the critical result acted on (KCl stopped, hospitalist called with the potassium and the ECG) within 10 minutes of the call from the lab."
+   }
+  },
+  "calWindow": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Authored target: calcium started within 10 minutes of the orders, because the ECG shows hyperkalemic changes."
+   }
+  },
+  "provCall": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The hospitalist calls back about 2 minutes after a page."
+   }
+  },
+  "ecgTime": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A 12-lead ECG at the bedside takes about 5 minutes."
+   }
+  },
+  "labTime": {
+   "value": 1200,
+   "unit": "s",
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A STAT potassium comes back about 20 minutes after the draw."
+   }
+  },
+  "kSafe": {
+   "value": 6.5,
+   "unit": "mEq/L",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). Out of the severe range (6.5 or more) on the recheck ends the acute phase in this case; the next steps (repeat checks, removing the cause) continue after it."
+   }
+  },
+  "recheckAfter": {
+   "value": 2700,
+   "unit": "s",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5). K is rechecked at least 1 hour after treatment; a draw 45 minutes or more after the insulin counts here."
+   }
+  }
+ },
+ "state": {
+  "k": {
+   "type": "number",
+   "init": 6.8,
+   "min": 3,
+   "max": 9
+  },
+  "lastK": {
+   "type": "number",
+   "init": 6.8,
+   "min": 2,
+   "max": 9
+  },
+  "kclOn": {
+   "type": "bool",
+   "init": true
+  },
+  "kclStopAt": {
+   "type": "time",
+   "init": null
+  },
+  "monitorOn": {
+   "type": "bool",
+   "init": false
+  },
+  "monitorAt": {
+   "type": "time",
+   "init": null
+  },
+  "ecgPending": {
+   "type": "bool",
+   "init": false
+  },
+  "ecgDone": {
+   "type": "bool",
+   "init": false
+  },
+  "provPending": {
+   "type": "bool",
+   "init": false
+  },
+  "fullCallAt": {
+   "type": "time",
+   "init": null
+  },
+  "ordersIn": {
+   "type": "bool",
+   "init": false
+  },
+  "ordersAt": {
+   "type": "time",
+   "init": null
+  },
+  "calDoses": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 3
+  },
+  "calFirstAt": {
+   "type": "time",
+   "init": null
+  },
+  "calLastAt": {
+   "type": "time",
+   "init": null
+  },
+  "insulinAt": {
+   "type": "time",
+   "init": null
+  },
+  "albAt": {
+   "type": "time",
+   "init": null
+  },
+  "d10On": {
+   "type": "bool",
+   "init": false
+  },
+  "d10At": {
+   "type": "time",
+   "init": null
+  },
+  "rescueAt": {
+   "type": "time",
+   "init": null
+  },
+  "gluChecks": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 50
+  },
+  "postChecks": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 50
+  },
+  "preGluAt": {
+   "type": "time",
+   "init": null
+  },
+  "lastGlu": {
+   "type": "number",
+   "init": 92,
+   "min": 0,
+   "max": 600
+  },
+  "minGlu": {
+   "type": "number",
+   "init": 92,
+   "min": 0,
+   "max": 600
+  },
+  "medsGiven": {
+   "type": "bool",
+   "init": false
+  },
+  "medsHeld": {
+   "type": "bool",
+   "init": false
+  },
+  "labPending": {
+   "type": "bool",
+   "init": false
+  },
+  "redrawFirst": {
+   "type": "bool",
+   "init": false
+  },
+  "recheckDone": {
+   "type": "bool",
+   "init": false
+  },
+  "noteAt": {
+   "type": "time",
+   "init": null
+  }
+ },
+ "derived": {
+  "insDrop": {
+   "expr": "isNull(insulinAt) ? 0 : insMax * clamp((since(insulinAt) - insOnset) / 1800, 0, 1)"
+  },
+  "albDrop": {
+   "expr": "isNull(albAt) ? 0 : albMax * clamp(since(albAt) / 1800, 0, 1)"
+  },
+  "kNow": {
+   "expr": "max(3.5, k - insDrop - albDrop)",
+   "unit": "mEq/L",
+   "precision": 1
+  },
+  "calActive": {
+   "expr": "not isNull(calLastAt) and since(calLastAt) >= calOnset and since(calLastAt) < calOnset + calDur"
+  },
+  "risk": {
+   "expr": "kNow - (calActive ? calProtect : 0)",
+   "unit": "mEq/L",
+   "precision": 1
+  },
+  "hr": {
+   "expr": "round(risk >= wideRisk ? 46 - 20 * clamp(risk - wideRisk, 0, 1) : (risk >= 6.8 ? 70 : 82))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "round(risk >= wideRisk ? 96 - 30 * clamp(risk - wideRisk, 0, 1) : 136)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "round(sbp * 0.58)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "glu": {
+   "expr": "round(g0 + (isNull(insulinAt) ? 0 : dexPeak * max(0, 1 - since(insulinAt) / 4500) - insGlu * clamp(since(insulinAt) / 4500, 0, 1)) + (d10On ? d10Rise * clamp(since(d10At) / 900, 0, 1) : 0) + (isNull(rescueAt) ? 0 : rescueRise * max(0, 1 - since(rescueAt) / 2700)))",
+   "unit": "mg/dL",
+   "precision": 0
+  }
+ },
+ "processes": [
+  {
+   "id": "potassium",
+   "update": {
+    "k": "k + (kclOn ? riseOn : riseOff) * dt / 3600"
+   }
+  },
+  {
+   "id": "lowest",
+   "update": {
+    "minGlu": "min(minGlu, glu)"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "At the bedside",
+   "clock": "running",
+   "actions": [
+    "assess",
+    "stopKcl",
+    "monitor",
+    "ecg",
+    "callProv",
+    "redraw",
+    "calcium",
+    "insulin",
+    "d10",
+    "albuterol",
+    "glucose",
+    "rescue",
+    "holdMeds",
+    "giveMeds",
+    "recheckK",
+    "note"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "assess": {
+   "label": "Assess him: muscles, pulse, how he feels",
+   "group": "Assess",
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "risk >= wideRisk",
+       "then": [
+        {
+         "log": "He can barely lift his legs. Pulse slow and irregular, about {hr}. He looks gray.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "kNow >= 6.5",
+       "then": [
+        {
+         "log": "Weak thighs, tingling in his hands, nauseated, two loose stools this morning. Radial pulse {hr}, regular. 'I just feel heavy.'",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Stronger, nausea easing, pulse {hr} and regular.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "stopKcl": {
+   "label": "Stop the potassium chloride infusion now",
+   "group": "Act",
+   "available": "kclOn",
+   "why": "Already stopped.",
+   "effects": [
+    {
+     "set": "kclOn",
+     "to": "false"
+    },
+    {
+     "set": "kclStopAt",
+     "to": "t"
+    },
+    {
+     "log": "KCl stopped at {t|clock}; the line is kept open with saline.",
+     "kind": "good"
+    }
+   ]
+  },
+  "monitor": {
+   "label": "Put him on a cardiac monitor (telemetry box)",
+   "group": "Assess",
+   "available": "not monitorOn",
+   "why": "Already on.",
+   "effects": [
+    {
+     "set": "monitorOn",
+     "to": "true"
+    },
+    {
+     "set": "monitorAt",
+     "to": "t"
+    },
+    {
+     "log": "Monitor on: {risk >= wideRisk ? \"wide QRS complexes, rate slowing\" : \"tall, peaked T waves\"}, rate {hr}.",
+     "kind": "find"
+    }
+   ]
+  },
+  "ecg": {
+   "label": "Do a 12-lead ECG",
+   "group": "Assess",
+   "available": "not ecgPending and not ecgDone",
+   "why": "Already done or in progress.",
+   "effects": [
+    {
+     "set": "ecgPending",
+     "to": "true"
+    },
+    {
+     "schedule": "ecgT",
+     "after": "ecgTime"
+    },
+    {
+     "log": "12-lead started."
+    }
+   ]
+  },
+  "callProv": {
+   "label": "Call the hospitalist (SBAR)",
+   "group": "Call",
+   "available": "not ordersIn and not provPending",
+   "why": "Orders are in, or a callback is pending.",
+   "params": [
+    {
+     "id": "say",
+     "kind": "choice",
+     "label": "What you report",
+     "options": [
+      {
+       "value": "full",
+       "label": "K 6.8 critical; ECG changes; KCl was running (stopped or not); CKD 4 on spironolactone and lisinopril; weak and nauseated"
+      },
+      {
+       "value": "kOnly",
+       "label": "The lab called a K of 6.8; he feels a bit weak"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "provPending",
+     "to": "true"
+    },
+    {
+     "schedule": "provT",
+     "after": "provCall",
+     "with": {
+      "full": "say == \"full\" and (monitorOn or ecgDone)"
+     }
+    },
+    {
+     "log": "Paged the hospitalist.",
+     "kind": "act"
+    }
+   ]
+  },
+  "redraw": {
+   "label": "Redraw the potassium before calling, in case the sample was hemolyzed",
+   "group": "Assess",
+   "available": "not labPending and not ordersIn",
+   "why": "A potassium is already pending, or orders are in.",
+   "effects": [
+    {
+     "set": "labPending",
+     "to": "true"
+    },
+    {
+     "set": "redrawFirst",
+     "to": "true"
+    },
+    {
+     "schedule": "labT",
+     "after": "labTime",
+     "with": {
+      "post": "false"
+     }
+    },
+    {
+     "log": "Potassium redrawn; result in about 20 min.",
+     "kind": "act"
+    }
+   ]
+  },
+  "calcium": {
+   "label": "Calcium gluconate 10%, 30 mL IV over 10 minutes (ordered)",
+   "group": "Medicate",
+   "available": "ordersIn and calDoses < 2 and (isNull(calLastAt) or since(calLastAt) >= 600)",
+   "why": "Needs the order; a second dose only if ECG changes persist after the first.",
+   "effects": [
+    {
+     "add": "calDoses",
+     "by": "1"
+    },
+    {
+     "if": "isNull(calFirstAt)",
+     "then": [
+      {
+       "set": "calFirstAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "set": "calLastAt",
+     "to": "t"
+    },
+    {
+     "log": "Calcium gluconate 30 mL started over 10 min at {t|clock}, on the monitor.",
+     "kind": "act"
+    }
+   ]
+  },
+  "insulin": {
+   "label": "Regular insulin 10 units IV with dextrose 25 g (ordered)",
+   "group": "Medicate",
+   "available": "ordersIn and isNull(insulinAt)",
+   "why": "Needs the order; given once.",
+   "effects": [
+    {
+     "set": "insulinAt",
+     "to": "t"
+    },
+    {
+     "log": "Insulin 10 units IV with dextrose 25 g at {t|clock}.",
+     "kind": "act"
+    }
+   ]
+  },
+  "d10": {
+   "label": "Start dextrose 10% at 50 mL/h (ordered if pre-treatment glucose is under 126 mg/dL)",
+   "group": "Medicate",
+   "available": "ordersIn and not d10On",
+   "why": "Needs the order, or already running.",
+   "effects": [
+    {
+     "set": "d10On",
+     "to": "true"
+    },
+    {
+     "set": "d10At",
+     "to": "t"
+    },
+    {
+     "log": "Dextrose 10% running at 50 mL/h.",
+     "kind": "act"
+    }
+   ]
+  },
+  "albuterol": {
+   "label": "Albuterol 10 mg nebulized, alongside the insulin (ordered)",
+   "group": "Medicate",
+   "available": "ordersIn and isNull(albAt)",
+   "why": "Needs the order; given once.",
+   "effects": [
+    {
+     "set": "albAt",
+     "to": "t"
+    },
+    {
+     "log": "Albuterol 10 mg nebulizer running. {isNull(insulinAt) ? \"Albuterol alone is not enough; it is an add-on to insulin.\" : \"\"}",
+     "kind": "act"
+    }
+   ]
+  },
+  "glucose": {
+   "label": "Check a bedside glucose",
+   "group": "Assess",
+   "effects": [
+    {
+     "add": "gluChecks",
+     "by": "1"
+    },
+    {
+     "set": "lastGlu",
+     "to": "glu"
+    },
+    {
+     "if": "isNull(insulinAt)",
+     "then": [
+      {
+       "if": "isNull(preGluAt)",
+       "then": [
+        {
+         "set": "preGluAt",
+         "to": "t"
+        }
+       ]
+      }
+     ],
+     "else": [
+      {
+       "add": "postChecks",
+       "by": "1"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "glu < hypoLevel",
+       "then": [
+        {
+         "log": "Glucose {glu} mg/dL: low. He is sweaty and slow to answer.",
+         "kind": "alarm"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Glucose {glu} mg/dL.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "rescue": {
+   "label": "Dextrose 50% 25 mL IV for glucose under 70 (hypoglycemia protocol)",
+   "group": "Medicate",
+   "available": "lastGlu < hypoLevel and (isNull(rescueAt) or since(rescueAt) >= 900)",
+   "why": "Only for a checked glucose under 70.",
+   "effects": [
+    {
+     "set": "rescueAt",
+     "to": "t"
+    },
+    {
+     "log": "Dextrose 50% 25 mL given; recheck in 15 minutes.",
+     "kind": "act"
+    }
+   ]
+  },
+  "holdMeds": {
+   "label": "Hold the 09:00 spironolactone and lisinopril and ask the hospitalist",
+   "group": "Medicate",
+   "available": "not medsHeld and not medsGiven",
+   "why": "Already decided.",
+   "effects": [
+    {
+     "set": "medsHeld",
+     "to": "true"
+    },
+    {
+     "log": "Spironolactone and lisinopril held; flagged for the hospitalist.",
+     "kind": "good"
+    }
+   ]
+  },
+  "giveMeds": {
+   "label": "Give the 09:00 spironolactone and lisinopril as scheduled",
+   "group": "Medicate",
+   "available": "not medsHeld and not medsGiven",
+   "why": "Already decided.",
+   "effects": [
+    {
+     "set": "medsGiven",
+     "to": "true"
+    },
+    {
+     "add": "k",
+     "by": "medBump"
+    },
+    {
+     "log": "Spironolactone and lisinopril given. Both raise potassium.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "recheckK": {
+   "label": "Send the ordered potassium recheck",
+   "group": "Assess",
+   "available": "ordersIn and not labPending",
+   "why": "A potassium is already pending, or not ordered yet.",
+   "effects": [
+    {
+     "set": "labPending",
+     "to": "true"
+    },
+    {
+     "schedule": "labT",
+     "after": "labTime",
+     "with": {
+      "post": "not isNull(insulinAt) and since(insulinAt) >= recheckAfter"
+     }
+    },
+    {
+     "log": "Potassium sent; result in about 20 min.",
+     "kind": "act"
+    }
+   ]
+  },
+  "note": {
+   "label": "Document: the critical value, who was told and when, treatments and the response",
+   "group": "Document",
+   "available": "isNull(noteAt)",
+   "why": "Already done.",
+   "effects": [
+    {
+     "set": "noteAt",
+     "to": "t"
+    },
+    {
+     "log": "Documented: critical value read back from the lab at 08:40, hospitalist told, treatments and times, glucose and rhythm.",
+     "kind": "act"
+    }
+   ]
+  }
+ },
+ "timers": {
+  "ecgT": {
+   "label": "12-lead ECG",
+   "wait": {
+    "skipLabel": "the 12-lead (about 5 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 5 min."
+   },
+   "effects": [
+    {
+     "set": "ecgPending",
+     "to": "false"
+    },
+    {
+     "set": "ecgDone",
+     "to": "true"
+    },
+    {
+     "cases": [
+      {
+       "when": "risk >= wideRisk",
+       "then": [
+        {
+         "log": "12-lead: wide QRS, flattened P waves, rate {hr}.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "12-lead: tall peaked T waves, P waves flattening, QRS normal width, rate {hr}.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "provT": {
+   "label": "the hospitalist's callback",
+   "wait": {
+    "skipLabel": "the hospitalist's callback (about 2 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "with": {
+    "full": {
+     "type": "bool"
+    }
+   },
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min."
+   },
+   "effects": [
+    {
+     "set": "provPending",
+     "to": "false"
+    },
+    {
+     "if": "timer.with.full",
+     "then": [
+      {
+       "set": "ordersIn",
+       "to": "true"
+      },
+      {
+       "set": "ordersAt",
+       "to": "t"
+      },
+      {
+       "if": "isNull(fullCallAt)",
+       "then": [
+        {
+         "set": "fullCallAt",
+         "to": "t"
+        }
+       ]
+      },
+      {
+       "log": "Hospitalist: 'Calcium gluconate 10% 30 mL IV over 10 minutes now, repeat if the ECG changes persist. Regular insulin 10 units IV with 25 g dextrose; if his glucose is under 126, dextrose 10% at 50 mL/h for 5 hours; glucose at 0, 30 and 60 minutes, then hourly. Albuterol 10 mg nebulized. Keep him on the monitor. Recheck potassium an hour after the insulin. Hold the spironolactone and lisinopril. I'm coming.'",
+       "kind": "good"
+      }
+     ],
+     "else": [
+      {
+       "log": "Hospitalist: 'Is he on a monitor? What does the ECG show? Get me a rhythm and call me back.'",
+       "kind": "bad"
+      }
+     ]
+    }
+   ]
+  },
+  "labT": {
+   "label": "potassium result",
+   "wait": {
+    "skipLabel": "the potassium result (about 20 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "with": {
+    "post": {
+     "type": "bool"
+    }
+   },
+   "source": {
+    "cite": "Hospital unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 20 min."
+   },
+   "effects": [
+    {
+     "set": "labPending",
+     "to": "false"
+    },
+    {
+     "set": "lastK",
+     "to": "round(kNow * 10) / 10"
+    },
+    {
+     "if": "timer.with.post",
+     "then": [
+      {
+       "set": "recheckDone",
+       "to": "true"
+      }
+     ]
+    },
+    {
+     "log": "Potassium {round(kNow * 10) / 10} mEq/L.",
+     "kind": "find"
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "wide",
+   "when": "risk >= wideRisk",
+   "mode": "edge",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "monitorOn",
+       "then": [
+        {
+         "log": "He says his chest feels odd. Monitor: wide QRS, rate {hr}.",
+         "kind": "alarm"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "He says his chest feels odd. His pulse feels slow and irregular.",
+         "kind": "alarm"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "low",
+   "when": "glu < 54",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "He is sweating heavily and mumbling.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "calLapse",
+   "when": "calDoses > 0 and not calActive and kNow >= 6.5 and since(calLastAt) >= calOnset + calDur",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "Forty-five minutes since the calcium, and the potassium is still high: the peaked T waves are back.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "why": {
+   "trigger": "monitorOn or ecgDone or t >= 300",
+   "question": "What is happening, why, and what comes first? What could go wrong with the treatment itself?",
+   "parts": [
+    {
+     "label": "Recognition",
+     "criteria": "Names severe hyperkalemia (6.8, above 6.5) with ECG changes (peaked T waves), weakness and GI symptoms; links it to the KCl infusion into CKD 4 plus spironolactone and lisinopril; knows it can progress to wide QRS, bradycardia and arrest.",
+     "modelAnswer": "Severe hyperkalemia: 6.8 with peaked T waves, heavy legs, nausea and loose stools. Potassium is running into kidneys that can't clear it, and spironolactone and lisinopril hold it in. Next comes a wide QRS, a slow rhythm and arrest."
+    },
+    {
+     "label": "Priorities and risks",
+     "criteria": "Stop the KCl, monitor and 12-lead, call with the value and ECG; calcium first to protect the heart (lasts 30-60 min, repeat if changes persist), then insulin with dextrose to shift K in, albuterol as an add-on; hold the spironolactone and lisinopril; glucose before insulin and at 30 and 60 min, dextrose infusion because glucose is under 126, because insulin can cause hypoglycemia; recheck K at 1 h.",
+     "modelAnswer": "Stop the KCl, monitor and 12-lead, call the hospitalist with the number and the ECG. Calcium gluconate first: it protects the heart within minutes but wears off in under an hour. Insulin with dextrose moves potassium into cells; albuterol helps alongside. Hold his 09:00 spironolactone and lisinopril. The risk of the treatment is hypoglycemia: check glucose first, run dextrose 10% since he's under 126, and check at 30 and 60 minutes. Recheck potassium an hour after the insulin."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "t >= 7199 and not recheckDone",
+   "class": "harm",
+   "rationale": "Severe hyperkalemia with ECG changes still untreated or unchecked two hours after a critical call leaves him at risk of arrest, so this case calls it harm.",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5)."
+   }
+  }
+ },
+ "endings": {
+  "arrest": {
+   "label": "Cardiac arrest",
+   "class": "harm",
+   "when": "risk >= arrestRisk",
+   "terminal": true,
+   "narrative": "{t|clock}: the monitor shows a sine wave, then nothing. Mr. Hutchins is pulseless; a code is called."
+  },
+  "seizure": {
+   "label": "Severe hypoglycemia",
+   "class": "harm",
+   "when": "glu < seizureGlu",
+   "terminal": true,
+   "narrative": "{t|clock}: he stops answering and starts to seize. His glucose is {glu} mg/dL. The rapid response team is called."
+  },
+  "stable": {
+   "label": "Potassium down, safely",
+   "class": "target",
+   "when": "recheckDone and lastK < kSafe and not isNull(kclStopAt) and timeAt(kclStopAt) <= callWindow and not isNull(fullCallAt) and timeAt(fullCallAt) <= callWindow and not isNull(calFirstAt) and timeAt(calFirstAt) - timeAt(ordersAt) <= calWindow and not isNull(preGluAt) and d10On and postChecks >= 2 and minGlu >= hypoLevel",
+   "terminal": true,
+   "narrative": "{t|clock}: potassium {lastK} on the recheck, narrow QRS, glucose steady. The hospitalist is at the bedside planning the next step."
+  },
+  "stableLate": {
+   "label": "Potassium down, by a slower or riskier route",
+   "class": "recovered",
+   "when": "recheckDone and lastK < kSafe",
+   "terminal": true,
+   "narrative": "{t|clock}: potassium {lastK} on the recheck. He is safer now, but the route cost time or exposed him to a risk."
+  },
+  "time_up": {
+   "label": "Still not treated",
+   "class": "harm",
+   "terminal": true,
+   "narrative": "10:40 and his potassium has not come down on a recheck."
+  }
+ },
+ "endingOrder": [
+  "arrest",
+  "seizure",
+  "stable",
+  "stableLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "stopK",
+    "label": "Stopped the potassium infusion within 10 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(kclStopAt)",
+      "score": "missed",
+      "why": "The KCl was never stopped."
+     },
+     {
+      "when": "timeAt(kclStopAt) <= callWindow",
+      "score": "met",
+      "why": "KCl stopped at {timeAt(kclStopAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "KCl stopped at {timeAt(kclStopAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "escalate",
+    "label": "Called the hospitalist with the value and the ECG within 10 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(fullCallAt)",
+      "score": "missed",
+      "why": "No effective call."
+     },
+     {
+      "when": "timeAt(fullCallAt) <= callWindow and not redrawFirst",
+      "score": "met",
+      "why": "Orders at {timeAt(fullCallAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Orders at {timeAt(fullCallAt)|clock}{redrawFirst ? \", after waiting on a redraw\" : \"\"}."
+     }
+    ]
+   },
+   {
+    "id": "calcium",
+    "label": "Calcium first, within 10 minutes of the orders",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(calFirstAt)",
+      "score": "missed",
+      "why": "No calcium despite ECG changes."
+     },
+     {
+      "when": "not isNull(insulinAt) and timeAt(insulinAt) < timeAt(calFirstAt)",
+      "score": "partial",
+      "why": "Calcium came after the insulin."
+     },
+     {
+      "when": "timeAt(calFirstAt) - timeAt(ordersAt) <= calWindow",
+      "score": "met",
+      "why": "Calcium at {timeAt(calFirstAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Calcium at {timeAt(calFirstAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "shift",
+    "label": "Insulin with dextrose, with albuterol as an add-on",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "isNull(insulinAt)",
+      "score": "missed",
+      "why": "No insulin and dextrose."
+     },
+     {
+      "when": "not isNull(albAt)",
+      "score": "met",
+      "why": "Insulin at {timeAt(insulinAt)|clock}, albuterol too."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Insulin given; no albuterol."
+     }
+    ]
+   },
+   {
+    "id": "glucose",
+    "label": "Glucose checked before and after insulin, dextrose 10% running, no hypoglycemia",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(insulinAt)",
+      "score": "missed",
+      "why": "No insulin given, so nothing to watch."
+     },
+     {
+      "when": "minGlu < hypoLevel",
+      "score": "missed",
+      "why": "His glucose fell to {minGlu} mg/dL."
+     },
+     {
+      "when": "not isNull(preGluAt) and d10On and postChecks >= 2",
+      "score": "met",
+      "why": "Checked before and {postChecks} times after; dextrose 10% running."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "{isNull(preGluAt) ? \"No glucose before the insulin\" : (d10On ? \"Too few checks after the insulin\" : \"No dextrose infusion with a glucose under 126\")}."
+     }
+    ]
+   },
+   {
+    "id": "monitor",
+    "label": "Monitor and 12-lead",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "monitorOn and ecgDone and timeAt(monitorAt) <= callWindow",
+      "score": "met",
+      "why": "Monitor at {timeAt(monitorAt)|clock}; 12-lead done."
+     },
+     {
+      "when": "monitorOn or ecgDone",
+      "score": "partial",
+      "why": "Only part of it, or late."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No rhythm monitoring."
+     }
+    ]
+   },
+   {
+    "id": "meds",
+    "label": "Held the potassium-raising 09:00 medicines",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "medsGiven",
+      "score": "missed",
+      "why": "Spironolactone and lisinopril given."
+     },
+     {
+      "when": "medsHeld",
+      "score": "met",
+      "why": "Held and flagged."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Not addressed."
+     }
+    ]
+   },
+   {
+    "id": "recheck",
+    "label": "Rechecked the potassium after treatment and documented",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "recheckDone and not isNull(noteAt)",
+      "score": "met",
+      "why": "Recheck {lastK}; documented."
+     },
+     {
+      "when": "recheckDone or not isNull(noteAt)",
+      "score": "partial",
+      "why": "Only part of it."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Neither."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "why",
+    "label": "Written reasoning: severe hyperkalemia, calcium first, shift, glucose watch",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toStop",
+    "label": "08:40 to the KCl stopped",
+    "value": "isNull(kclStopAt) ? -1 : timeAt(kclStopAt)",
+    "format": "duration",
+    "expert": "under 2 min"
+   },
+   {
+    "id": "toCal",
+    "label": "08:40 to the first calcium",
+    "value": "isNull(calFirstAt) ? -1 : timeAt(calFirstAt)",
+    "format": "duration",
+    "expert": "under 10 min"
+   },
+   {
+    "id": "lowGlu",
+    "label": "Lowest glucose (mg/dL)",
+    "value": "minGlu",
+    "format": "number",
+    "expert": "70 or more"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "08:40",
+    "text": "Read back the critical value. Stop the KCl. Look at him: weak legs, nausea, loose stools."
+   },
+   {
+    "at": "08:41",
+    "text": "Monitor on: peaked T waves. Start a 12-lead. Check his glucose (92). Call the hospitalist with K 6.8, the ECG, the KCl, CKD 4, spironolactone and lisinopril."
+   },
+   {
+    "at": "~08:44",
+    "text": "Calcium gluconate over 10 minutes; insulin 10 units with 25 g dextrose; dextrose 10% at 50 mL/h because he is under 126; albuterol. Hold the 09:00 spironolactone and lisinopril."
+   },
+   {
+    "at": "~09:15 and ~09:45",
+    "text": "Glucose checks. Potassium recheck an hour after the insulin. Document."
+   }
+  ],
+  "debrief": {
+   "arrest": {
+    "headline": "Cardiac arrest",
+    "body": "Severe hyperkalemia with ECG changes needs the potassium source stopped, calcium to protect the heart, and a shift into cells, within minutes."
+   },
+   "seizure": {
+    "headline": "The treatment caused severe hypoglycemia",
+    "body": "Insulin lowers glucose as well as potassium. With a pre-treatment glucose under 126, run dextrose 10% and check glucose at 30 and 60 minutes."
+   },
+   "stable": {
+    "headline": "Severe hyperkalemia treated safely",
+    "body": "You stopped the source, protected the heart with calcium, shifted potassium with insulin, dextrose and albuterol, held the potassium-raising medicines, and watched his glucose. That is the expert path."
+   },
+   "stableLate": {
+    "headline": "Potassium down, by a slower or riskier route",
+    "body": "Look at when the KCl stopped, when the call landed, when calcium went in, and how his glucose was watched."
+   },
+   "time_up": {
+    "headline": "Not treated in time",
+    "body": "A critical potassium with ECG changes is an emergency: stop the source, call with the number and the rhythm, calcium, then a shift."
+   }
+  },
+  "modelReasoning": "A potassium of 6.8 with peaked T waves, weakness and GI symptoms is severe hyperkalemia; here it comes from potassium chloride running into stage 4 CKD, made worse by spironolactone and lisinopril. Untreated it widens the QRS, slows the rhythm and stops the heart. Stop the KCl, put him on a monitor, do a 12-lead, and call the hospitalist with the value, the ECG and the causes. Calcium gluconate comes first: it protects the heart within about 3 minutes but lasts only 30 to 60 minutes and is repeated if ECG changes persist. Insulin with dextrose moves potassium into cells (falling within 15 minutes, lowest at 30 to 60), and albuterol is an add-on, never alone. The treatment's own risk is hypoglycemia: check glucose first, run dextrose 10% at 50 mL/h when the pre-treatment glucose is under 126 mg/dL, and check at 30 and 60 minutes. Hold the potassium-raising medicines, recheck potassium an hour after treatment, and document."
+ },
+ "chapters": [
+  {
+   "id": "orders",
+   "label": "Orders in",
+   "when": "ordersIn"
+  }
+ ],
+ "teaching": {
+  "calQ": {
+   "during": "provT",
+   "ask": "While the hospitalist calls back: which treatment protects his heart first?",
+   "choices": [
+    {
+     "id": "calcium",
+     "label": "IV calcium gluconate"
+    },
+    {
+     "id": "insulin",
+     "label": "IV insulin with dextrose"
+    },
+    {
+     "id": "bicarb",
+     "label": "IV sodium bicarbonate"
+    }
+   ],
+   "expect": "calcium",
+   "explain": "IV calcium stabilizes the heart within about 3 minutes but does not lower potassium; insulin with dextrose lowers it; bicarbonate is not routine.",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5)."
+   }
+  },
+  "gluQ": {
+   "during": "labT",
+   "ask": "While the potassium result comes back: how long should his glucose be watched after the insulin?",
+   "choices": [
+    {
+     "id": "six",
+     "label": "Up to 6 hours: 0, 30, 60, 90, 120 minutes, then hourly"
+    },
+    {
+     "id": "once",
+     "label": "Once, at 15 minutes"
+    },
+    {
+     "id": "skip",
+     "label": "Not needed; the dextrose covers it"
+    }
+   ],
+   "expect": "six",
+   "explain": "Hypoglycemia follows insulin-glucose in up to about a quarter of patients, so glucose is checked from 0 to 360 minutes.",
+   "source": {
+    "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026; first 2020, updated October 2023)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+    "note": "Read 2026-11-14 in the primary PDF through a summarizing fetch with quotes: severe hyperkalaemia is 6.5 mmol/L or more (mmol/L and mEq/L are equal for potassium); at least continuous 3-lead ECG monitoring at 6.5 or more (14.2); peaked T waves, flattened P waves and wide QRS, then bradycardia, sine wave and VT; step 1 IV calcium, '30ml 10% Calcium Gluconate over 10 minutes', effective 'within 3 minutes', 'duration of action is only 30-60 minutes', repeat if ECG changes persist (16.2); '10 units soluble insulin in 25g glucose' (16.3.1), K 'starts to fall within 15 minutes', 'peak reduction (ranging from 0.65-1.0 mmol/l) occurring between 30-60 minutes', sustained up to 2 hours; hypoglycaemia in 8-28%; if pre-treatment glucose is below 7.0 mmol/L, '10% glucose at a rate of 50ml/hour for 5 hours' (16.3.3); glucose at 0, 30, 60, 90, 120, 180, 240, 300 and 360 minutes (17.2); nebulised salbutamol 10-20 mg as an adjunct, never alone, onset within 30 minutes, 10 mg lowers K by 0.53-0.88 (16.4); bicarbonate not routine (16.5); K at least 1, 2, 4, 6 and 24 h after treatment (17.1.2); remove the cause (step 5)."
+   }
+  }
+ }
+}

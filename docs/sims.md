@@ -4994,12 +4994,12 @@ word for word (the leak test in `lib/sim/documents.test.ts` caught it). `time_up
 slow path ends earlier), so the linter's warning remains, as in the CCRN
 cases.
 
-### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, Security+ bands (REQ-297)
+### 22.16 IT sims wave 3: A+, KCNA and CKA, Google Cloud ACE and Digital Leader, AWS SAA and SOA, Linux+, Security+ (REQ-297)
 
 Nick, 2026-11-14: "Build more sims, no need to limit number, build what covers
 the material." The coverage map for every non-clinical course, before and
-after, is docs/sims-coverage-it.md. Five new documents and three bands on the
-existing terminal, security console and board screens and engine 1.2; no
+after, is docs/sims-coverage-it.md. Eleven new documents and three bands on
+the existing terminal, security console and board screens and engine 1.2; no
 engine, renderer, schema or migration change. Each follows the pattern of
 22.7 and 22.10: learner-paced `turns` phases where every task costs minutes
 through one `work` wait, the problem's next step is an `interruptsSkip`
@@ -5021,6 +5021,12 @@ case).
 | GCPCDL/bigquery-dashboard-bill | board, cloud | A dashboard scans 2 TiB every 15 min ($50 an hour at $6.25 per TiB) on an unpartitioned table: billing reports and job history, the project owner's team fixes it by noon, Sales' review at 14:00 needs the dashboard, guardrails (50 TiB daily query quota, owner budget alerts, required labels, monthly review); disabling billing stops the whole project | gcpcdl-bill |
 | SECPLUS/vuln-prioritization-kev-edge-secplus (band) | as CYSAPLUS | The CySA+ KEV-versus-CVSS case on SY0-701 "Vulnerability management: scanning, CVSS scoring, and remediation prioritization" | secplus-vuln |
 | SECPLUS/alert-triage-lolbin-hunt-secplus (band) | as CYSAPLUS | The CySA+ alert triage case on SY0-701 "Security alerting and monitoring: ... alert response and remediation/validation" | secplus-triage |
+| AWSSAA/waf-login-flood-sqli | board, security | A layer 7 login flood and SQL injection probes an hour before an on-sale: metrics and logs separate them; a web ACL on CloudFront with the managed SQL database rule group, a rate-based rule on /login at 300 per 5 min per IP (10 blocks a university's shared address, 2,000 blocks nothing), then the ALB locked to the CloudFront origin-facing prefix list, or the botnet goes around the web ACL 15 min later. Shield Standard covers network and transport layer only; security groups cannot deny; scaling out feeds the flood; injection reaches the data at 45 min | saa-waf |
+| AWSSOA/rds-update-without-where-pitr | board, cloud | An UPDATE without WHERE cancels 180,000 open orders at 13:52: pause the refund worker (500 refunds every 10 min), take 13:52:10 from the job log (LatestRestorableTime is after it, the 04:00 snapshot ten hours older), restore to 13:51 as a new instance with the production security group (the default one blocks the repair host), copy only the status column back (RPO 5 min), before the 15:30 pickup (RTO), then delete the copy (cost). Switching the app to the copy loses every order since | soa-pitr |
+| GCPACE/cloud-run-bad-revision-rollback | board, cloud | Revision r42 fails 8% of checkouts against a 99.9% day: errors by revision, `update-traffic --to-revisions r41=100` (immediate) rather than a 15-min rebuild or more instances; the fix with `--no-traffic --tag`, a test order on the tag URL catches a second config error (sandbox payments), then 10% for ten minutes and 100% | gcpace-run |
+| LINUXPLUS/systemd-dropin-breaks-export | terminal, infrastructure | exportd fails 45 min before a bank pickup: `journalctl -u` (EXPORT_DIR missing) and `systemctl cat` (yesterday's override.conf); `systemctl edit` fixes and reloads, a hand `rm` needs `daemon-reload`, the vendor unit file is overridden anyway, `mkdir` of the wrong directory writes where the bank never looks, and the unit must be enabled again (enable does not start) | linux-systemd |
+| CKA/apiserver-static-pod-bad-flag | terminal, infrastructure | kubectl refused: `crictl ps` and `crictl logs` on the node show kube-apiserver dialing etcd on 2397 (etcd listens on 2379); back the manifest up outside /etc/kubernetes/manifests (a copy inside becomes a second static pod), fix the flag in place; `kubectl delete`, a kubelet restart and `kubeadm reset` do not help; the 09:15 scale-out needs the API | cka-apiserver |
+| SECPLUS/firewall-change-backout | security console, security | Mid-window, a firewall change opens RDP on the payroll server: the change record against the version control diff, the approved backout plan (its planned service restart), PAY01's logons, stakeholders, an emergency change for the corrected rule, implemented and tested by the vendor before 23:30, diagram and records updated; a live hand edit works but is unapproved; guessing succeeds at 35 min | secplus-change |
 
 **Sources** carry `checkedAt` 2026-11-14 and say how each was read. Primary
 text: the CompTIA A+ 220-1201 (Version 1.2) and 220-1202 (Version 4.0)
@@ -5035,6 +5041,23 @@ access prevention, Cloud Audit Logs, uniform bucket-level access, signed URLs,
 Object Lifecycle Management, BigQuery pricing, budgets, custom query quotas,
 partitioned tables and disabling billing pages. Not re-read: the KCNA
 curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
+
+The six later cases (added after the work resumed, same day) read, through
+summarizing fetches on 2026-11-14: the AWS SAA-C03 exam guide, the SOA-C03
+Domain 2 page, AWS WAF rate-based rule settings and the SQL database managed
+rule group, Shield Standard and Advanced overviews, the VPC security group and
+network ACL comparison, the CloudFront managed prefix list (primary text), the
+RDS point-in-time restore page, Cloud Run rollbacks and traffic migration, the
+systemd.unit, systemctl and systemd.service manuals, the Kubernetes static Pod
+and cluster troubleshooting pages (raw Markdown), the CompTIA Linux+ and
+Security+ pages, and the SY0-701 objectives Version 5.0 (a copy hosted by a
+training provider; CompTIA's own link refused automated reading). Web reading
+was then narrowed to search results (lead, 2026-11-14), so two sources are
+marked "to verify" with the URL search returned: the Google Cloud ACE exam
+guide PDF and the Kubernetes Ports and Protocols page. Database coverage for
+all fourteen is `lib/sims-it-wave3.dbtest.ts` (seeding by title, renderer
+negotiation, pacing refused, the expert and a Bad golden path of each through
+the routes).
 
 **Findings** (recorded, not worked around; none needed a code fix):
 
@@ -5060,11 +5083,20 @@ curriculum (the course seed's wording is used), the SY0-701 objectives PDF.
    ("two per course") and `security-console.test.ts` (three SECPLUS
    scenarios) filtered by course code, so any later sim in CKA or SECPLUS
    broke them. They now check their own requirement's slugs; later waves
-   carry their own test file.
-5. **Bands across certification levels.** The Security+ bands put a CySA+
+   carry their own test file. The same held for `sims-security.dbtest.ts`
+   and `sims-terminal.dbtest.ts`, which the later Security+, Linux+ and CKA
+   cases broke (FAIL-2002; the lead pinned them on master). Wave 3 selects
+   its documents by slug from `lib/sim/it-wave3.ts` in both its unit and DB
+   tests.
+5. **Shield Advanced was not offered.** Its overview describes automatic
+   application layer mitigation, but its price and commitment were not
+   read, so the WAF case teaches the web ACL rules a learner configures
+   and does not offer a subscription.
+6. **Bands across certification levels.** The Security+ bands put a CySA+
    analyst's incident on Security+ objectives, and the CKA band a KCNA
    outage on a CKA objective. The decisions taught match the objectives, but
    the level is the base's; a decision for Nick.
+
 ### 22.17 LFCS and Linux Fundamentals cases on the terminal screen (REQ-292)
 
 Two cases each for the Linux Foundation LFCS course and Linux Fundamentals on
@@ -5103,10 +5135,42 @@ local-fs.target's OnFailure= wiring to emergency.target and systemd's
 page read), and resize2fs's exact error text. Command output layouts are
 authored in each tool's style.
 
-Candidates not built (listed for a later wave): Python for Automation (a cron
-job that works by hand but not from cron: PATH, the venv's interpreter and an
-unescaped `%`; a script that hangs on a subprocess with no timeout) and Python
-for Data Analysis (no screen fits a notebook today).
+**Coverage round (Nick, 2026-11-14: "sims follow coverage, not a count").**
+Seven more cases, one on every objective of the four REQ-292 courses that
+the selection screen passes; the full map, with the judgement candidates
+not built, is `docs/sims-coverage-depth.md`.
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| LFCS/report-workers-starve-api | Diagnose and manage processes ... change priority, and send the right signal | looked first; every report process at nice 19 (the parent alone changes nothing); API fast in 20 min; postgres never killed | lfcs-proc |
+| LFCS/clock-skew-blocks-logins | Configure time synchronization with chrony ... | looked first; source fixed in chrony.conf, not a date -s; clock right in 20 min; Kerberos clockskew left at 300 s | lfcs-chrony |
+| LFCS/sale-traffic-third-backend | Implement a reverse proxy and load balancer with nginx or HAProxy | looked first; app3 listening and in the pool; no restart on an invalid file (slow_start is commercial-only); capacity in 20 min | lfcs-lb |
+| LFCS/service-no-restart-after-update | Create and configure systemd service units, including drop-in overrides | looked first; only the bad file quarantined; Restart= in a loaded /etc drop-in; rendering in 20 min | lfcs-unit |
+| LINUXFUND/nightly-backup-missing | Read service logs with journalctl filtered by unit, boot, priority and time | found in the journal first (-b -1 or -u --since; the run was before a reboot); never wrote into the unmounted directory; NAS mounted; backup done before 08:00 | linuxfund-journal |
+| PYAUTO/debug-log-fills-var | Write logs to a file that rotates by size or time | looked first; space back in 10 min (truncate; rm on an open file frees nothing); RotatingFileHandler with backupCount > 0, loaded | pyauto-log |
+| PYDATA/board-orders-by-region | Interpret group results correctly, including count versus size and missing keys | checked the draft's total; sent a table counting every row (size, dropna=False); asserted against the raw data | pydata-groupby |
+
+The Python data case runs on the terminal screen with a `>>>` prompt and the
+`data` outcome profile (its first use: harm is a wrong table shipped,
+sending nothing is `recovered`); the rest use `infrastructure`. Every case
+has good, mediocre and bad golden paths. Sources carry `checkedAt`
+2026-11-14 and were read through summarizing fetches on man7.org (sched(7),
+renice(1), kill(1), signal(7), systemd.service(5), systemd.unit(5),
+systemctl(1), systemd-system.conf(5), journalctl(1), mount(8), unlink(2)),
+chrony-project.org (chrony.conf(5), chronyc(1), 4.6), web.mit.edu
+(krb5.conf clockskew), nginx.org (upstream, proxy, control),
+docs.python.org (3.15 logging.handlers, Logging Cookbook) and
+pandas.pydata.org (3.1 groupby, size, count). Inferences are marked in the
+source notes: a source added with `chronyc add` is not written to
+chrony.conf; a restart on an invalid nginx file leaves nginx stopped; a
+package update replaces its own unit under /usr/lib. The objective test
+now accepts an objective the selection screen qualifies as well as a
+hands-on one (`isPerformanceObjective`), since "Read service logs ..." is
+not in the labs' performance list.
+
+Candidates still not built are in the coverage doc; the strongest are a
+cron job that overlaps its next run (PYAUTO), a many-to-many merge that
+inflates a total (PYDATA) and a firewall change over SSH (LFCS).
 ### 22.18 Clinical coverage: more sims for the existing clinical courses (REQ-296)
 
 Nick, 2026-11-14: "Build more sims, no need to limit number, build what
@@ -5121,11 +5185,11 @@ shows, per course, which fitting objectives a sim names as its objective
 and after this work. The screen reads titles only, so the counts are a
 shortlist, not a judgement.
 
-Six documents on the existing bedside and treatment-session screens and
+Nine documents (six on 2026-11-14, three on 2026-11-16) on the existing bedside and treatment-session screens and
 engine 1.2; no engine, renderer, schema or migration change. Each declares
 engine minor 2 and `endingOrder`, has endings in all three outcome classes,
 three or four critical criteria inside its `target` condition, KPIs, an
-expert path, a debrief per ending, one reasoning moment, two sourced
+expert path, a debrief per ending, one reasoning moment, one or two sourced
 teaching prompts in jsonb key order (FAIL-1362), a chapter, and five to seven
 golden paths built by `npm run sim:golden -- steps <name>`. All run in one
 `running` phase, so study pace (3x) is the default; none has a focused start.
@@ -5140,6 +5204,9 @@ names the other fitting objectives it exercises as secondary objectives.
 | CCRNADULT/status-epilepticus-after-craniotomy | Treat a seizure lasting 5 minutes or more as status epilepticus ... | lorazepam 4 mg within 10 min of onset, one repeat only; airway without restraint or a bite block; second-line load by 20 min | ccrn-se |
 | DPT/dizziness-central-red-flags | Coordination and gait examination: Romberg ... cerebellar ataxia | central signs screened; 911 within 10 min of the first; no gaze stabilization or Dix-Hallpike | dpt-central |
 | NCLEXPN/first-dose-anaphylaxis | Recognizing an allergic reaction and responding to it | epinephrine IM first, within 5 min; 911 within 5 min; never stood or walked | pn-anaph |
+| NCLEXRN/hyperkalemia-critical-value | Identify hyperkalemia ... peaked T waves ... dysrhythmia and cardiac arrest | KCl stopped within 10 min; the hospitalist called with the value and the ECG within 10 min; calcium first, within 10 min of the orders; glucose checked before and after the insulin with dextrose 10% running and no hypoglycemia | rn-hyperk |
+| NCLEXPN/postpartum-check-boggy-fundus | Monitor the recovery of a stable postpartum client ... fundus, bladder and lochia | fundus massaged within 5 min; bladder emptied in bed within 15 min (never walked); heavy bleeding reported with numbers from the bedside within 10 min | pn-postpartum |
+| DPT/parkinson-freezing-session | Parkinson disease management: aerobic exercise ..., external cueing for freezing ... | gait belt before he is upright; freezing met with an external cue, never a pull; orthostatic hypotension found, sat down within 30 s and reported the same visit | dpt-parkinson |
 
 - **Harm endings** are outcomes (a fall, collapse, shock, hypoxia, refractory
   status) except where a guideline names the action: standing or walking a
@@ -5176,7 +5243,34 @@ names the other fitting objectives it exercises as secondary objectives.
   read, the DPT first set, plus each document's screen, running phase,
   `endingOrder`, teaching key order and golden coverage. FAIL-1500's
   availability warning was worked around in the CNA goldens as 22.13 says.
-- **`time_up`** is reached by no golden path in any of the six (every slow
+- **Wave 2 (2026-11-16)**: the three rows after the anaphylaxis case. The
+  hyperkalemia case makes the treatment's own risk part of the case: insulin
+  with dextrose lowers glucose too, so a run that skips the dextrose 10%
+  infusion for a pre-treatment glucose under 126 mg/dL and the 30- and
+  60-minute checks reaches a seizure (harm). Its values are the UK Kidney
+  Association guideline (updated July 2026), read 2026-11-14 in the primary
+  PDF through a summarizing fetch with quotes (severe at 6.5 or more,
+  calcium gluconate 10% 30 mL over 10 minutes with effect in 3 minutes for
+  30-60 minutes, insulin 10 units with 25 g glucose lowering K by 0.65-1.0 at
+  30-60 minutes, glucose 10% at 50 mL/h for 5 hours below 7.0 mmol/L,
+  albuterol 10-20 mg never alone, bicarbonate not routine). A US guideline
+  was not read; the NCLEX objective's own number (above 5.1) is the course's.
+  The postpartum and Parkinson cases rest on sources relayed from their
+  course seeds (OpenStax Maternal-Newborn Nursing 20.1, 20.3 and 21.2; the
+  2022 APTA Parkinson CPG, Osborne et al.) and the earlier cases (StatPearls
+  PPH, the APTA vital sign guide), because web reading was limited to search
+  results from 2026-11-14 on: their notes say "to verify", with the URL a
+  search returned. No dose number is taken from the Parkinson CPG; the
+  session goals (10 minutes of aerobic work, 5 of gait training) are
+  authored and say so. Every case still has authored teaching-model sizes
+  marked `FLAG`.
+- **Findings while authoring, wave 2** (FAIL-1984): a template slot that
+  holds a quoted string with its own `{slot}` inside (`{x ? "rate {hr}" :
+  ...}`) fails only when the engine renders it ("unterminated string"), so
+  the golden builder found it, not the linter; written as `cases` with one
+  log line each instead. The linter caught one timer scheduled without its
+  declared `with` field.
+- **`time_up`** is reached by no golden path in any of the nine (every slow
   path ends earlier), so the linter's warning remains.
 
 ### 22.19 Nursing specialty and FNP bedside sims: CMSRN, CEN, PCCN, AANPCB FNP and ANCC FNP-BC (REQ-279)
@@ -5253,3 +5347,280 @@ paths built by `npm run sim:golden -- steps <name>`. All run in one
 - **`time_up`** is reached by a golden path in none of the eight (every slow
   path ends earlier), so the linter's warning remains, as in the other
   clinical waves.
+### 22.19 Security wave 3: ISC2 CC, CISSP, ISACA CISM and EC-Council CEH on the security console (REQ-274)
+
+Eight documents, two per course, on the existing `security-console@1`
+screen (22.7) and engine 1.2. No engine, renderer, schema or migration
+change. Each follows the REQ-238 pattern (22.11): learner-paced `turns`
+phases, one `work` wait, the attacker's steps as `interruptsSkip` triggers on
+the same clock, outcome profile `security`, `endingOrder` with harm endings
+first, endings in all three classes, four critical criteria (all inside the
+target ending's condition), three KPIs, an expert path, a debrief per ending,
+one three-part reasoning moment and six golden paths built by
+`npm run sim:golden -- steps <name>` (every ending but `time_up`, every
+criterion met and missed). Every address and domain is from the
+documentation ranges (RFC 5737, RFC 2606); `lib/sim/security-certs-sims.test.ts`
+scans every learner-visible string for that and pins one behavior per case.
+`lib/sims-security-certs.dbtest.ts` seeds them against stand-in courses,
+negotiates the renderer, refuses pacing and plays two golden paths per case
+through the routes (run 2026-11-14 on a throwaway Postgres 16 with every
+migration and the full seed: 19 pass; the real seed resolved all eight to
+their catalog objectives).
+
+| Course / slug | Objective (abridged) | Core of the case | Steps name |
+|---|---|---|---|
+| ISC2CC/cc-triage-phish-correlation | Monitor and log security events, and triage them ... | Four alerts; the "low" new-country sign-in and a user's phishing report are one intrusion; forwarding rule at 15 min, internal phish at 25, a second victim 15 min later unless pulled or warned, supplier bank details changed at 45; firewall drops and an EICAR test are noise | cc-triage |
+| ISC2CC/cc-leaver-account-still-active | Manage the identity life cycle ... | A contractor whose contract ended Friday signs in Monday; disable without revoke, or an address block, leaves access; an API key made at 30 min outlives the account; deleting the account destroys the logs; the mover's privilege creep and a shared account compete for time | cc-leaver |
+| CISSP/cissp-web-tier-data-theft | Manage incidents through detection, response, mitigation, reporting, recovery, remediation and lessons learned | A web shell exporting the member table; isolate (kept powered on) and cut egress, scope the tier (copy on WEB03 at 10 min), image before rebuild, brief the CIO and counsel, patch before restore (an unpatched restore is reinfected in 10 min), powering off the database is disproportionate | cissp-incident |
+| CISSP/cissp-ransomware-recovery-site | Implement recovery strategies: backup storage, hot, warm and cold recovery sites ... | Ransomware with a stolen domain admin; replication carries encryption to the warm site at 20 min, domain-joined backups deleted at 30; only the clean replica meets Claims' 15-minute RPO; failover before krbtgt and privileged resets is reinfected; Payroll (RTO 72 h) competes with Claims (RTO 4 h) | cissp-recovery |
+| CISM/cism-payroll-supplier-breach | Manage external services -- suppliers, third parties and nth parties ... | A payroll supplier's late, vague notice; the stolen key is in use from outside; rotate and restrict (payroll keeps running) versus suspend or terminate (1,800 unpaid); deposit changes at 20 min paid out at the 10:00 cut-off; the contract's cooperation clause names the subprocessor | cism-supplier |
+| CISM/cism-checkout-skimmer-containment | Choose incident containment methods | A card skimmer on checkout on sale day; the continuity plan's hosted-page fallback stops capture and keeps sales; a CSP block is evaded at +10 min, removing the script with the account still active is undone at +10 min, closing the store needs the owner; evidence before removal | cism-contain |
+| CEH/ceh-arp-poisoning-finance-vlan | Recognize sniffing attacks ... and choose detection techniques and countermeasures | One gateway IP on two MACs; clearing caches is undone in seconds; capture, trace, shut the port; a plain-HTTP session hijacked at 15 min and passwords at 20; DHCP snooping with DAI; the device bagged, not reimaged | ceh-arp |
+| CEH/ceh-blind-sqli-search | Recognize SQL injection types ... methodology and evasion techniques | Time-based blind injection in a search; an address block and WAF signatures or a keyword filter are evaded (encoding, rotation) at +10 min; the feature flag stops the code; parameterized query, least-privilege login (the customers table out of reach even while injectable), audit check | ceh-sqli |
+
+**Level and framing.** CC is the entry-level analyst following the plan
+(declare, run the playbook, escalate); CISSP the incident and recovery lead
+(scope, evidence, reporting, BIA-driven strategy); CISM the security manager
+choosing among business-costed options (contract remedies, risk treatment,
+proportionate containment); CEH is defensive work on the learner's own
+network and application, pairing each attack with its detection and
+countermeasure, with no payloads or tool commands (the course's REQ-273 rule).
+
+**Sources** (on each document with `checkedAt` 2026-11-14 and how each was
+read): the four outlines as read for REQ-270 to REQ-273 (ISC2 CC and CISSP
+outline PDFs, the ISACA CISM outline page, the CEH Exam Blueprint v5.0);
+NIST SP 800-61 Rev. 3 (CSRC page through a summarizing fetch; RS outcome text
+relayed from the REQ-238 reading of 2026-11-11); NIST SP 800-34 Rev. 1 and
+SP 800-161 Rev. 1 (CSRC pages, summarizing fetches); the CISA #StopRansomware
+Guide (September 2023, summarizing fetch); NIST SP 800-53 Rev. 5 AC-2 (the
+csf.tools mirror, summarizing fetch, not NIST's own page); MITRE ATT&CK
+T1557.002 (summarizing fetch); the OWASP SQL Injection Prevention Cheat Sheet
+(summarizing fetch); the SEC's 2023-139 release on Form 8-K Item 1.05
+(summarizing fetch; cited only for why counsel needs facts early, no legal
+deadline in the case); RFC 5737 and 2606. Every step time, task duration,
+window and count is the author's teaching figure and says so on its param.
+
+**Findings while authoring** (FAIL-1823; caught by the validator, the
+linter or the golden driver; none in engine code): an asset reused an alert's
+id (`web3`; console ids are unique across alerts, events and assets), two
+cases had no golden path rated Mediocre until a path was retuned, and two
+criteria were "partial" but never "missed" on any path. `time_up` is reached by
+no golden path in any of the eight, so the linter's warning remains, as in
+the earlier security cases.
+
+#### Coverage table (Nick, 2026-11-14: sims follow coverage, not a count)
+
+Selection rule: an objective gets a sim when doing it well depends on time,
+on reading cues, on choices with consequences or on competing priorities,
+and an existing screen can show it. Status: **Built** (primary objective of
+a sim above), **Secondary** (exercised as a secondary objective of a built
+sim), **Fits** (meets the rule on the named existing screen; not built yet,
+next batch), **Screen** (meets the rule but needs a screen that does not
+exist; see the proposals below), **No** (knowledge, design or calculation
+work with nothing unfolding; the labs cover it). Numbers are the catalog
+order within each course (unit.objective).
+
+ISC2 CC (32 objectives): Built 3.1, 5.3. Secondary 2.4, 3.3 (least
+privilege in the leaver case), 3.5, 5.5. Fits (console): 2.2 BC/DR recovery
+objectives during an outage, 4.3 a rogue access point or an IoT camera
+botnet, 4.5 zero trust (a device failing posture mid-session), 5.4 a threat
+advisory turned into a hunt, 5.6 an end-of-life device exploited with an
+emergency change. Fits (terminal and network screen, 22.10): 4.2 firewall
+rules, 4.4 segmentation. Screen: 1.8 an ethics dilemma (a conversation
+screen). No: 1.1-1.7, 2.1, 2.3, 2.5, 3.2, 3.4, 4.1, 4.6, 4.7, 5.1, 5.2, 5.7.
+
+CISSP (59): Built 7.5, 7.8. Secondary 1.7, 7.1, 7.2, 7.9. Fits (console):
+1.8 a hostile termination, 1.12 a compromised software update, 2.6 a DLP
+alert of data leaving, 3.4 a container escape, 3.5 a certificate authority
+key or certificate-expiry incident, 3.6 pass-the-hash or Kerberoasting,
+4.3 a cloud network exposure, 4.4 network access control failing, 5.3 a
+federation incident, 5.5 a service account's privilege escalation, 5.6 an
+OAuth consent phishing grant, 6.4 a critical test finding and its
+disclosure, 7.3 privileged account misuse, 7.6 IDS tuning and a honeypot hit,
+7.7 an emergency patch under change management, 8.2 a poisoned CI/CD
+pipeline, 8.4 a vulnerable acquired component. Fits (terminal and network):
+4.2 segmentation. Screen: 1.1 ethics (conversation), 3.7 and 7.11 a facility
+or physical-security console (fire suppression, duress, tailgating), 7.10 a
+tabletop exercise. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
+4.5, 5.1, 5.2, 5.4, 6.1-6.3, 6.5, 7.4, 8.1, 8.3, 8.5.
+
+ISACA CISM (36): Built 3.11, 4.8. Secondary 2.4, 4.2, 4.7, 4.9. Fits
+(console): 2.5 a risk exception that turns into an incident, 4.6 a SOAR
+playbook that misfires, 4.10 eradication and recovery after a breach.
+Screen: Domain 1 governance, 2.1-2.3, 2.6 and Domain 3's program objectives
+need a governance or stakeholder-board screen (decisions with a budget and
+politics over a quarter, not minutes), 4.5 a tabletop exercise. No: 1.3,
+4.1, 4.3, 4.4, 4.11.
+
+EC-Council CEH (35): Built 4.1, 5.3. Secondary 4.4, 5.2, 5.4. Fits
+(console): 1.3 an engagement's scope boundary (the PenTest+ pattern), 3.1 a
+vulnerability report to triage, 3.2 with 3.3 an intruder's phases seen from
+the logs (privilege escalation, log clearing), 3.4 fileless malware, 4.2 a
+help-desk vishing reset, 4.3 a DDoS, 4.5 IDS and firewall evasion, 5.1 a web
+server attack and patching, 6.2 an evil-twin access point, 7.1 a lost or
+compromised mobile device under MDM, 7.2 an IoT botnet, 7.3 an OT intrusion,
+8.2 a cloud misconfiguration exploited, 9.2 a PKI or disk-encryption key
+incident. Fits (terminal and network): 2.4, 2.5, 2.6 scanning, scan output
+and enumeration in an authorized engagement (needs the REQ-273 no-payload
+rule applied to terminal commands; a decision for Nick). Screen: 3.5 malware
+analysis (a sandbox report screen). No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
+8.1, 9.1, 9.3.
+
+Totals over 162 objectives: 8 built; 46 fit an existing screen and are not
+built yet (40 console, 6 terminal and network); 28 need a screen that does not
+exist (22 of them CISM governance and program objectives); the rest are
+secondary in a built sim or are not sim material.
+
+**Screen proposals** (not built): a *conversation* screen for ethics
+dilemmas (the session renderer's shape without the clinical profile); a
+*facility console* for physical security and personnel safety (doors, alarms,
+fire suppression, people); a *tabletop* screen for exercises (injects on a
+timeline, a facilitator's log, roles); a *governance board* for CISM Domains
+1 to 3 (a quarter's decisions against budget, risk appetite and
+stakeholders); a *sandbox report* screen for static and dynamic malware
+analysis.
+
+### 22.20 NASM-CNC coaching sessions and coverage for Scrum, ITIL and CSSGB (REQ-282)
+
+Two cases on the client `session` screen for the NASM Certified Nutrition
+Coach course (`backend/supabase/seed/tracks/fitness.ts`,
+`NASMCNC_SIM_OBJECTIVES`): `cnc-crash-diet-request` (signs of disordered
+eating behind a crash-diet request; no meal plan, no diagnosis, referral to a
+primary care provider; NIMH 2024 and NASM's scope statement) and
+`cnc-greens-powder-warfarin` (a high-vitamin-K greens powder brought by a
+client on warfarin; the intake cue, the label's disease claim and missing
+seal, the question sent to her prescriber; NIH ODS and FDA). Same profile
+(`clinical-session`), pacing (learner-paced `turns`) and engine (1.2, explicit
+`endingOrder`) as 22.12; no engine or renderer change. Registered in
+`CNC_SESSION_DOCUMENTS` / `CNC_OBJECTIVES` (lib/sim/documents.ts), golden
+paths by `npm run sim:golden -- steps cnc-crash-diet|cnc-greens-warfarin`,
+checked by `lib/sim/cnc-session.test.ts`.
+
+Coverage per objective for PSM I, CSM, ITIL 4 Foundation, CSSGB and NASM-CNC,
+and the screens proposed for the families no existing screen fits (project
+dashboard in Sprint mode, a service operations desk, a process and data
+console, the client trainer), are in `docs/sim-coverage-pm-frameworks-cnc.md`.
+### 22.21 Sims for the new technology courses: SQL, TSNODE, SC500, AI200 (REQ-269)
+
+Eight authored sims, two per course, on screens that already exist, for the
+courses built in REQ-264..268. Coverage against Nick's selection rule, the
+candidates still to build and the screen proposal are in
+`docs/sims-coverage-tech.md`.
+
+- **Terminal** (`terminal@1`, infrastructure profile, learner-paced like
+  22.10): SQL `sql-slow-login-seq-scan` (EXPLAIN shows a Seq Scan filtering on
+  lower(email); an expression index built CONCURRENTLY; VACUUM FULL and a
+  plain CREATE INDEX are the lock traps) and `sql-flash-sale-oversold` (a
+  read-then-write lost update at Read Committed; a conditional UPDATE or
+  SELECT ... FOR UPDATE; Repeatable Read without retries and a table lock as
+  partial answers; the oversell is a `process`). TSNODE
+  `node-env-file-silent-exit` (`--env-file-if-exists` on a renamed file plus
+  `process.exit()` with no code: exit 0, so `Restart=on-failure` and failed-unit
+  monitoring never fire) and `node-type-stripping-enum-crash`
+  (ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX on an enum that tsc accepts; the guard is
+  `erasableSyntaxOnly`). AI200 `ai200-containerapp-keyvault-revision` (single
+  revision mode keeps v41 serving while v42's Key Vault reference gets a 403;
+  Key Vault Secrets User at the vault scope; a password rotation at 10:45 is
+  the clock) and `ai200-kql-checkout-latency` (percentiles by bin, then
+  AppDependencies by Target and AppVersion; a kill switch beats scaling out).
+- **Security console** (security profile, like 22.7): SC500
+  `sc500-illicit-consent-grant` (disable the app rather than delete it, scope
+  from the app's current permissions because the audit search lags, restrict
+  user consent, warn accounts payable) and `sc500-backup-vault-sabotage`
+  (block the taken-over backup admin, MUA with a Resource Guard in another
+  subscription before soft delete is turned off, undelete only after
+  containment).
+
+Each has one written-reasoning moment, endings in all three classes with
+`endingOrder`, 3-4 critical criteria, KPIs, an expert path, a debrief per
+ending and 5-6 golden paths (`npm run sim:golden -- steps <name>`: sql-slow-login,
+sql-oversold, node-envfile, node-enum, sc500-consent, sc500-backup, ai200-aca,
+ai200-kql) that reach every ending but `time_up`, every rating, and every
+criterion met and missed (`lib/sim/tech-courses-sims.test.ts`). Places and
+names are fictional and use documentation domains and addresses.
+
+**Sources** carry `checkedAt` 2026-11-14. Read that day through summarizing
+fetches: PostgreSQL 18.7 (Using EXPLAIN, Indexes on Expressions, CREATE
+INDEX, Explicit Locking, Transaction Isolation), Node.js v26.13.1 (cli
+--env-file, process), systemd 262 systemd.service, and Microsoft Learn (app
+consent playbook, disabling app sign-in, app permissions, revokeSignInSessions,
+Azure Backup MUA and secure-by-default, Container Apps revisions and secrets,
+the AppRequests and AppDependencies tables, KQL percentiles). The Node.js
+type-stripping, tsconfig and enum facts in `node-type-stripping-enum-crash`
+are the TSNODE course's key values (read 2026-11-14 for REQ-267) and were not
+re-read for the sim; the note on each source says so. Command lines, outputs
+and error texts are authored renderings in each tool's style; the az CLI
+flags were not checked against the az reference.
+
+**Findings**: none against the engine. Two authoring notes for the next
+builder: a literal brace in a template is written `{{` / `}}` (parser.ts
+`parseTemplate`), and a `|` inside a slot is read as the format separator, so
+a table row with `|` belongs outside a slot (use `cases` with whole outputs).
+
+### 22.22 ASWB and Washington jurisprudence client sessions (REQ-288, REQ-289)
+
+Nick, 2026-11-10 (sims for the mental health wave, mirroring 22.12) and
+2026-11-14 (coverage, not a count). Nine documents on the client `session`
+screen for Prep for the ASWB Clinical Exam, Prep for the ASWB Masters Exam and
+Prep for the Washington Psychology Jurisprudence Exam: five authored sessions
+and four bands. Same profile (`clinical-session`), pacing (learner-paced
+`turns`, no running phase), engine (1.2, an explicit `endingOrder`) and gate
+(the courses sit in Mental Health subcategories, so starting a session needs
+the per-course 18+ acknowledgment, REQ-259); no engine, renderer, schema or
+migration change. `ASWB_SESSION_DOCUMENTS`/`ASWB_OBJECTIVES` and
+`WAJP_SESSION_DOCUMENTS`/`WAJP_OBJECTIVES` (lib/sim/documents.ts) list them;
+`docs/sims-coverage-mental-health-wave.md` maps every objective of the three
+courses against the selection rule and says what is built, what is a
+candidate and what is a lab instead.
+
+| Course | Slug | Objective (abridged) | Core of the case |
+|---|---|---|---|
+| ASWBCLINICAL | `aswbc-suicide-violence-risk` | Assess suicide and violence risk in a clinical social work session | A laid-off 61-year-old: 'everyone'd be better off', a rifle in the closet, a rehearsal with it last spring told only once he trusts you; an angry remark about his wife's partner that, explored, is not a threat; a six-step Stanley-Brown plan with the rifle to his brother, 988, a call tomorrow |
+| ASWBCLINICAL | `aswbc-threat-identifiable-person` | Respond to a client's threat against an identifiable person ... | 'He's going to regret it' becomes a pistol, an address and a day: explore first, tell him, warn the landlord and the police with the threat only (RCW 71.05.120(3); NASW 1.07(c)-(d); Volk; HHS FAQ 520) |
+| ASWBCLINICAL | `aswbc-termination-nonpayment` | End services ethically: ... nonpayment and avoiding abandonment | Three months unpaid after a lost job: the 1.17(c) conditions (agreement, risk screen, consequences discussed), the open work named, closing sessions and a warm handoff with a release (1.17(b)) |
+| ASWBCLINICAL | `aswbc-boundaries-small-town` (band) | Manage boundaries, dual relationships ... | The Masters session on the Clinical objective |
+| ASWBMASTERS | `aswbm-involuntary-engagement` | Engage an involuntary client and contract for goals | A diversion client: the mandate, the release (attendance only) and his right to refuse first (NASW 1.03(d)); reflection, not the righting reflex (TIP 35); his goals partialized and measurable |
+| ASWBMASTERS | `aswbm-child-abuse-report` | Make a mandated child abuse report and keep the family engaged | Looped bruises and 'Darnell used the cord': report on reasonable cause at the first opportunity (RCW 26.44.030), not investigate, not ask permission, not confront; tell her first; tonight at her sister's; keep working with her |
+| ASWBMASTERS | `aswbm-boundaries-small-town` | Manage boundaries, dual relationships ... | A court-supervised family: a friend request (1.06(h)), free brake work (1.06(c), not a 1.13(b) barter) and the only parish in town (managed with her) |
+| ASWBMASTERS | `aswbm-termination-nonpayment` (band) | End services ethically ... | The Clinical session, a licensed (not clinical) social worker in the brief |
+| ASWBMASTERS | `aswbm-suicide-violence-risk` (band) | Assess risk of harm to self and others and act on what you find | The Clinical risk session on the Masters objective |
+| WAPSYCHJP | `wajp-duty-to-protect-threat` (band) | Apply the duty to warn or protect when a client threatens an identifiable person | The EPPP duty-to-protect session (22.5; a Washington psychologist), with DOH's jurisprudence reference list and chapter 70.02 RCW added to its sources |
+
+Each authored session has one written-reasoning moment, endings in all three
+classes, three or four critical criteria, KPIs with expert values, an expert
+path, a debrief per ending, one unscored prediction as a decision card, and
+five to eight golden paths (Good, Mediocre, Bad; every ending but `time_up`,
+every criterion both met and missed), built by `npm run sim:golden -- steps
+aswbc-risk|aswbc-threat|aswbc-termination|aswbm-involuntary|aswbm-report|aswbm-boundaries`;
+the bands reuse their base's paths (`aswbc-boundaries`, `aswbm-termination`,
+`aswbm-risk`, `wajp-duty`; `eppp-duty.steps.ts` and `aswbc-risk.steps.ts` now
+export `paths()`, and their goldens are byte-identical). Checked by
+`lib/sim/aswb-session.test.ts` and, against a seeded database,
+`lib/aswb-sessions.dbtest.ts` (the 18+ gate on start, the seeded sims on their
+objectives, each expert path through the routes to a Good attempt).
+
+**Sources** (on each document, `checkedAt` 2026-11-14): the ASWB Examination
+Guidebook (August 2026; read in full for REQ-286), the NASW Code of Ethics
+(1.01-1.07 page fetched; standards 1-3 as the course records them; amendments
+voted 2026-11-18, recheck by 2026-12-15), RCW 71.05.120(3) (through the page),
+RCW 26.44.020/.030/.060/.080 (through summaries of the statute pages), Volk v.
+DeMeerleer (a summary of the opinion's page), HHS HIPAA FAQs 520 and 3004, the
+C-SSRS screen version (PDF text), SPRC's Stanley-Brown steps and the 2024 form,
+988lifeline.org, SAMHSA TIP 35 chapter 3. All were read before the lead's
+WebFetch stop of 2026-11-14; nothing after it. The DSM-5-TR was not read; no
+criteria are reproduced. RCW 9A.16.100 (physical discipline) could not be
+opened and the report case does not rely on it.
+
+**Findings** (recorded, not worked around):
+
+1. **Schema limits only `sims:lint` checks (FAIL-1884, recurrence of
+   FAIL-1980).** An action label over 200 characters and a source cite over
+   500 built goldens without complaint; `lib/sim/aswb-session.test.ts` now
+   parses every ASWB and jurisprudence document against the schema.
+2. **A prediction card that opens at minute 0** blocks the first command; the
+   steps answer an open card before acting (the involuntary and report cases).
+3. **`time_up`** stays unreached in every case, as in 22.5 and 22.12.
+4. **Bands across professions.** A band can move a session to another course
+   only where the people and the law in it still fit: the EPPP case already
+   is a Washington psychologist, so it fits the jurisprudence objective; an
+   ASWB session could not be reused for it without rewriting the actors.

@@ -125,6 +125,20 @@ export const LAB_PLAN_TOP_UPS: Readonly<Record<string, readonly number[]>> = {
   MSCS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   MSHI: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1],
   CMPCBS: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  // Clinical, PT and fitness courses, filled 2026-11-14 once their sources
+  // could be read.
+  BSNRN: [2, 2, 2, 2, 2, 2, 1, 1, 1, 1],
+  NPTEPTA: [3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ABPTSNCS: [2, 2, 3, 3],
+  ABPTSPCS: [2, 2, 2, 2, 2, 2],
+  ABPTSSCS: [2, 1, 3, 3, 2],
+  ABPTSONC: [2, 2, 2, 2, 3, 1],
+  ABPTSECS: [2, 2, 2, 3, 2],
+  ABPTSWMS: [2, 1, 2, 2, 2, 2, 2],
+  ACECPT: [2, 3, 3, 2],
+  ACSMCPT: [2, 3, 2, 2],
+  NSCACSCS: [3, 2, 1, 2, 2, 2, 1],
+  NCCPTCPT: [2, 2, 2, 2, 2, 2],
 };
 
 export function unitPlan(track: PlanTrack, policy: DensityPolicy, opts = POLICY_DEFAULTS): number[] {

@@ -1,0 +1,1299 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbm-boundaries-small-town",
+  "title": "Session: a friend request, free brake work and the same church",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Lori Pittman",
+        "presentation": "{distress >= 6 ? \"Hurt, arms crossed\" : distress >= 3 ? \"Bright, a little anxious\" : \"Relaxed, chatty\"}; {rapport >= 6 ? \"she talks easily\" : rapport >= 3 ? \"she watches for your reaction\" : \"she has gone quiet\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "friend",
+          "label": "Friend request",
+          "text": "{friendAccepted ? \"Accepted: you are connected on personal social media.\" : friendRaised ? \"Declined, and you explained why.\" : \"From Lori to your personal account; not answered.\"}",
+          "when": "disclosed >= 1",
+          "alert": "friendAccepted or (not friendRaised and disclosed >= 1)"
+        },
+        {
+          "id": "brakes",
+          "label": "Offer",
+          "text": "{brakes == \"accepted\" ? \"You accepted free brake work from her partner.\" : brakes == \"warm\" ? \"Declined warmly; she understood.\" : brakes == \"cold\" ? \"Declined flatly.\" : \"Ray offered to do your brakes for free.\"}",
+          "when": "disclosed >= 1",
+          "alert": "brakes == \"accepted\""
+        },
+        {
+          "id": "church",
+          "label": "Church",
+          "text": "{churchPlan ? \"Agreed: she decides whether to say hello; no case talk there.\" : leftChurch ? \"You said you would go elsewhere.\" : \"Same parish; she is joining the choir.\"}",
+          "when": "disclosed >= 1"
+        },
+        {
+          "id": "case",
+          "label": "The case",
+          "text": "Family services, court-supervised: two boys at home on condition of school attendance and a parenting class; you write the reports to the court.",
+          "when": "true"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Friend request addressed",
+            "when": "friendRaised"
+          },
+          {
+            "label": "Offer of free work: {brakes}",
+            "when": "brakes != \"none\""
+          },
+          {
+            "label": "Church plan agreed with her",
+            "when": "churchPlan"
+          },
+          {
+            "label": "Documented: {recordDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Manage boundaries, dual relationships, conflicts of interest and self-disclosure, including power differences and online contact",
+  "sources": [
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Masters content outline: I Values and Ethics, 35% (IB 'Professional boundaries in the social worker-client/client system relationship (e.g., power differences, influence, privilege, conflicts of interest, self-disclosure, dual relationships)'); the 2026 blueprint in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Read in full 2026-11-14 for the course outline (REQ-286)."
+    },
+    {
+      "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.06(c) dual relationships and clear boundaries when unavoidable; 1.06(h) clients' requests on social networking sites; 1.13(b) bartering",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Standards 1-3 read in full 2026-11-14 for the course (REQ-286); as the course records them (not quotations): 1.06(c) no dual or multiple relationships where there is a risk of exploitation or potential harm, and when they are unavoidable, clear, culturally sensitive boundaries; 1.06(h) avoid accepting clients' requests on social networking sites; 1.13(b) bartering only in very limited circumstances (accepted locally, essential to services, negotiated without coercion, at the client's initiative, with informed consent). NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed social worker with the county's family services program in a town of about 3,000. Lori Pittman, 34 (a fictional client), has worked with you for six months under a court-supervised plan; her two sons stayed home on condition of school attendance and a parenting class, and you write the progress reports the court reads. She has done well. You have 50 minutes.",
+    "handover": [
+      "Plan: school attendance, parenting class, monthly home visits; next court review in eight weeks."
+    ],
+    "howItWorks": [
+      "Choose what to say from the action groups. Lori answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she discloses change with what you say.",
+      "The hour ends at 50 minutes. After the session you can consult and document; then you write a short formulation."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-14",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "friendRaised": {
+      "type": "bool",
+      "init": false
+    },
+    "friendAt": {
+      "type": "time",
+      "init": null
+    },
+    "friendAccepted": {
+      "type": "bool",
+      "init": false
+    },
+    "brakesExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "brakes": {
+      "type": "enum",
+      "values": [
+        "none",
+        "accepted",
+        "cold",
+        "warm"
+      ],
+      "init": "none"
+    },
+    "churchAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "churchPlan": {
+      "type": "bool",
+      "init": false
+    },
+    "leftChurch": {
+      "type": "bool",
+      "init": false
+    },
+    "overDisclosed": {
+      "type": "bool",
+      "init": false
+    },
+    "goalsDone": {
+      "type": "bool",
+      "init": false
+    },
+    "consulted": {
+      "type": "bool",
+      "init": false
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "raiseFriend",
+        "acceptFriend",
+        "exploreBrakes",
+        "answerBrakes",
+        "exploreChurch",
+        "planChurch",
+        "leaveChurch",
+        "selfDisclose",
+        "goals",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "consult",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'How have things gone since the court review?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have checked in.",
+      "effects": [
+        {
+          "log": "You ask an open question and give her room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Good! The judge said the boys can stay home if I keep this up.\" She grins. \"Did you get my friend request? And Ray says he'd do your brakes for free, you've done so much for us. Oh, and I saw you at St. Brendan's Sunday. I'm joining the choir!\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Lori laughs. \"Yeah. Six months ago I couldn't get out of bed.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "raiseFriend": {
+      "label": "Raise the friend request: you don't connect with clients on social media, and why",
+      "group": "Address",
+      "available": "not talking and (not friendRaised and not friendAccepted)",
+      "why": "Already handled.",
+      "effects": [
+        {
+          "log": "You tell her you saw it, that you don't accept clients' requests on social media, and that it protects her privacy and the work.",
+          "kind": "act"
+        },
+        {
+          "set": "friendRaised",
+          "to": "true"
+        },
+        {
+          "set": "friendAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Oh. Okay, that makes sense. Ray said you probably couldn't.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "She shrugs. \"Fine.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Declined and explained (NASW 1.06(h)).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "acceptFriend": {
+      "label": "Say you accepted it: you're glad to stay in touch",
+      "group": "Address",
+      "available": "not talking and (not friendRaised and not friendAccepted)",
+      "why": "Already handled.",
+      "effects": [
+        {
+          "log": "You tell her you accepted it.",
+          "kind": "act"
+        },
+        {
+          "set": "friendAccepted",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "\"Yay! You'll see the boys' pictures.\""
+        },
+        {
+          "log": "Clients' requests on social networking sites are to be avoided (NASW 1.06(h)); this one is a current client in a court-supervised case.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "exploreBrakes": {
+      "label": "Ask what the offer means to them",
+      "group": "Explore",
+      "available": "not talking and (not brakesExplored)",
+      "why": "Explored.",
+      "effects": [
+        {
+          "log": "You thank her and ask what the offer means to her and Ray.",
+          "kind": "act"
+        },
+        {
+          "set": "brakesExplored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"We just want to give something back. Everybody always gives to us.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "answerBrakes": {
+      "label": "Answer the offer of free brake work",
+      "group": "Address",
+      "available": "not talking and (brakes == \"none\")",
+      "why": "Answered.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "reply == \"accept\"",
+              "then": [
+                {
+                  "set": "brakes",
+                  "to": "\"accepted\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Great, Saturday then.\""
+                },
+                {
+                  "log": "Free work from the family whose case you report to the court: a dual relationship with a risk of exploitation (NASW 1.06(c)); it is not a barter for services either (1.13(b)).",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "reply == \"cold\"",
+              "then": [
+                {
+                  "set": "brakes",
+                  "to": "\"cold\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "-2.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "1.5"
+                },
+                {
+                  "finding": "\"Wow. Okay.\" She looks at the floor."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "brakes",
+                  "to": "\"warm\""
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"I get it. Can I at least bring you cookies at Christmas?\" You smile: the agency's gift policy allows something small like that."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "reply",
+          "kind": "choice",
+          "label": "Your answer",
+          "options": [
+            {
+              "value": "accept",
+              "label": "'That's really kind. Saturday works.'"
+            },
+            {
+              "value": "cold",
+              "label": "'Accepting gifts from clients is unethical.'"
+            },
+            {
+              "value": "warm",
+              "label": "'That means a lot. I can't take work from a family I'm working with; it could cloud the court reports. What you've done with the boys is the thanks.'"
+            }
+          ]
+        }
+      ]
+    },
+    "exploreChurch": {
+      "label": "Ask how she feels about seeing you at church",
+      "group": "Explore",
+      "available": "not talking and (not churchAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You name the overlap and ask how she feels about it.",
+          "kind": "act"
+        },
+        {
+          "set": "churchAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"It's a small town, there's one Catholic church. I don't want to stop going.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "planChurch": {
+      "label": "Agree together how you'll handle meeting at church",
+      "group": "Address",
+      "available": "not talking and (churchAsked and not churchPlan)",
+      "why": "Ask how she feels first (or it is agreed).",
+      "effects": [
+        {
+          "log": "You agree: she decides whether to say hello; you won't talk about her case there; you'll sit in different sections of the choir loft if she joins; anything she tells you there is not part of the case unless she raises it here.",
+          "kind": "act"
+        },
+        {
+          "set": "churchPlan",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Okay. That's less weird than I thought.\""
+        },
+        {
+          "log": "An unavoidable overlap managed with clear, culturally sensitive boundaries (NASW 1.06(c)).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "leaveChurch": {
+      "label": "Tell her you'll go to a different church so you don't overlap",
+      "group": "Address",
+      "available": "not talking and (not leftChurch and not churchPlan)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You tell her you will stop going to St. Brendan's.",
+          "kind": "act"
+        },
+        {
+          "set": "leftChurch",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Because of me? Now I feel terrible.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "selfDisclose": {
+      "label": "Tell her about your own divorce, to show you understand",
+      "group": "Respond",
+      "available": "not talking and (not overDisclosed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You tell her about your own divorce at some length.",
+          "kind": "act"
+        },
+        {
+          "set": "overDisclosed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "She listens, then asks how you are doing now. The rest of the hour drifts toward you."
+        },
+        {
+          "log": "Self-disclosure that serves the worker rather than the client blurs the role (outline IB: self-disclosure).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "goals": {
+      "label": "Return to her goals before the next court review",
+      "group": "Plan",
+      "available": "not talking and (not goalsDone)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You return to her plan: the boys' school attendance, the parenting class, the next review.",
+          "kind": "act"
+        },
+        {
+          "set": "goalsDone",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Attendance is 100% this month. Want to see the printout?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "consult": {
+      "label": "Consult your supervisor about the three boundary questions",
+      "group": "After the session",
+      "available": "not consulted",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "consulted",
+          "to": "true"
+        },
+        {
+          "log": "Your supervisor agrees: no social media, no free work, and a written plan for church, which is unavoidable in a town this size.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the boundary decisions",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "record",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "The friend request and your answer; the offer and why you declined; the church overlap and the plan she agreed; the consultation"
+                },
+                {
+                  "value": "brief",
+                  "label": "'Client friendly; discussed boundaries'"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing; it's not part of the case"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {record}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictPower",
+      "when": "disclosed >= 1 and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "power"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "power": {
+      "title": "Predict (not scored)",
+      "context": "Three offers from Lori: a friend request, free brake work and a shared church. Which one can't be avoided and is managed instead of declined?",
+      "choices": [
+        {
+          "id": "church",
+          "label": "The church: unavoidable in a small town, so set clear boundaries",
+          "effects": [
+            {
+              "log": "Prediction: the church is managed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. NASW 1.06(c) expects clear, culturally sensitive boundaries when a dual relationship is unavoidable. The friend request (1.06(h)) and free work from a family whose court reports you write can be declined."
+        },
+        {
+          "id": "brakes",
+          "label": "The brake work: a barter is fine if she offers",
+          "effects": [
+            {
+              "log": "Prediction: the brakes are fine.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not here. Bartering is allowed only in very limited circumstances (1.13(b)), and this is not payment for services at all: it is a gift of work from a family whose case you report to a court, with the power difference that brings (1.06(c))."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your rationale for how you handled Lori's three boundary questions, naming the NASW standards and the power difference in this case.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Declined versus managed",
+          "criteria": "Declines the social media request (1.06(h)) and the free work (1.06(c), a conflict of interest given the court reports; not a 1.13(b) barter); manages the unavoidable church overlap with a plan she agrees (1.06(c)); explains why leaving church or a cold refusal also harms her.",
+          "modelAnswer": "The friend request is one NASW asks us to avoid (1.06(h)). Free brake work from a family whose progress I report to the court is a dual relationship with a real risk of exploitation and of clouding my reports (1.06(c)), so I declined it warmly. The parish is unavoidable in a town this size: I set clear boundaries with her rather than leaving or pretending it isn't there."
+        },
+        {
+          "label": "Power, self-disclosure and the record",
+          "criteria": "Names the power difference (her custody rests partly on the reports); keeps self-disclosure brief and for her benefit; consults; documents each decision.",
+          "modelAnswer": "Her sons' placement depends partly on what I write, so she may find it hard to say no to me or feel she owes me. I kept the hour on her goals, did not make it about my life, consulted my supervisor, and recorded each request, my answer and the church plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "The friend request is waiting from the first minute; raising it within 20 minutes leaves time for the offer, the church and her goals (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not friendRaised and not friendAccepted and not churchPlan and brakes == \"none\"",
+      "class": "recovered",
+      "rationale": "Nothing was crossed, but every boundary question was left to chance; no immediate risk to the client.",
+      "source": {
+        "cite": "NASW Code of Ethics (approved 1996, revised 2021): 1.06(c) dual relationships and clear boundaries when unavoidable; 1.06(h) clients' requests on social networking sites; 1.13(b) bartering",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+        "note": "Standards 1-3 read in full 2026-11-14 for the course (REQ-286); as the course records them (not quotations): 1.06(c) no dual or multiple relationships where there is a risk of exploitation or potential harm, and when they are unavoidable, clear, culturally sensitive boundaries; 1.06(h) avoid accepting clients' requests on social networking sites; 1.13(b) bartering only in very limited circumstances (accepted locally, essential to services, negotiated without coercion, at the client's initiative, with informed consent). NASW's Delegate Assembly votes on proposed amendments on 2026-11-18; recheck by 2026-12-15."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Lori left feeling rejected, two months before the court review that decides where her sons live."
+    },
+    "crossed": {
+      "label": "A dual relationship",
+      "class": "harm",
+      "when": "documented and not walkedOut and (friendAccepted or brakes == \"accepted\")",
+      "terminal": true,
+      "narrative": "You {friendAccepted ? \"are connected with her on personal social media\" : \"took free work from her family\"} while writing the reports a court uses to decide about her children."
+    },
+    "held": {
+      "label": "Boundaries held, alliance kept",
+      "class": "target",
+      "when": "documented and not walkedOut and not friendAccepted and friendRaised and timeAt(friendAt) <= safetyWindow and brakesExplored and brakes == \"warm\" and churchPlan and not leftChurch and not overDisclosed and goalsDone and consulted and recordDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Lori understood each answer, chose how church will go, and left talking about her sons' attendance."
+    },
+    "gaps": {
+      "label": "Boundaries held, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "Nothing crossed a line, but parts of the work were late, cold, missing or not written down."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "crossed",
+    "held",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "online",
+        "label": "The friend request declined and explained (1.06(h))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "friendAccepted",
+            "score": "missed",
+            "why": "Accepted a client's friend request."
+          },
+          {
+            "when": "friendRaised and timeAt(friendAt) <= safetyWindow",
+            "score": "met",
+            "why": "Raised {timeAt(friendAt) / 60} min in."
+          },
+          {
+            "when": "friendRaised",
+            "score": "partial",
+            "why": "Raised, but only {timeAt(friendAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never raised."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "gift",
+        "label": "The offer declined warmly (1.06(c), 1.13(b))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "brakes == \"warm\" and brakesExplored",
+            "score": "met",
+            "why": "Explored and declined warmly."
+          },
+          {
+            "when": "brakes == \"warm\" or brakes == \"cold\"",
+            "score": "partial",
+            "why": "Declined, but {brakes == \"cold\" ? \"coldly\" : \"without asking what it meant\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{brakes == \"accepted\" ? \"Accepted\" : \"Never answered\"}."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "overlap",
+        "label": "A plan for the church, agreed with her (1.06(c))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "churchPlan",
+            "score": "met",
+            "why": "She chose how it will go."
+          },
+          {
+            "when": "leftChurch or churchAsked",
+            "score": "partial",
+            "why": "{leftChurch ? \"Left the parish instead of planning\" : \"Named, no plan\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never discussed."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "role",
+        "label": "Kept the hour hers: self-disclosure brief, her goals worked on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "goalsDone and not overDisclosed",
+            "score": "met",
+            "why": "Back to her goals; no drift to you."
+          },
+          {
+            "when": "goalsDone or not overDisclosed",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The hour drifted to you and her goals were left."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "Consulted and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "consulted and recordDoc == \"full\"",
+            "score": "met",
+            "why": "Consulted and documented."
+          },
+          {
+            "when": "recordDoc == \"full\" or consulted",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFriend",
+        "label": "Minutes to raising the friend request",
+        "value": "isNull(friendAt) ? -1 : timeAt(friendAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in and celebrate the progress; raise the friend request and decline it with the reason."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Ask what the offer means to them and decline it warmly; ask how she feels about church and agree a plan she chooses."
+      },
+      {
+        "at": "25-50 min",
+        "text": "Back to her goals before the court review; keep any self-disclosure brief."
+      },
+      {
+        "at": "After",
+        "text": "Consult your supervisor and document each request, your answer and the plan."
+      }
+    ],
+    "debrief": {
+      "held": {
+        "headline": "Good: boundaries held, alliance kept",
+        "body": "You declined what can be declined, managed what can't, kept the power difference in mind and the hour on her goals."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "No line was crossed, but the criteria below show what was late, cold or missing."
+      },
+      "crossed": {
+        "headline": "A line crossed",
+        "body": "A current client's family whose case you report to a court cannot also be your friend online or your mechanic: the power difference makes both a risk of exploitation (NASW 1.06(c), 1.06(h))."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "A cold refusal can land as rejection. Explaining the reason and naming what the offer means keep the boundary and the relationship."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Sort the three: a client's friend request is avoided (1.06(h)) and free work from a family whose court reports you write is a conflict of interest with a risk of exploitation (1.06(c)), so both are declined, warmly and with the reason; the shared parish is unavoidable in a small town, so set clear boundaries with her consent. Keep self-disclosure brief, keep the hour on her goals, consult and document."
+  }
+}

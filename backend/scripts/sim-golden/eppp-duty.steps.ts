@@ -1,7 +1,7 @@
 // REQ-225: golden paths for the EPPP client session on the duty to warn and
 // protect (EPPP/duty-to-protect-threat.sim.json). No prototype exists, so the
 // expectations are the engine's own results.
-import type { Ctl, StepsSpec } from "./steps.ts";
+import type { Ctl, StepPath, StepsSpec } from "./steps.ts";
 
 export const ENTRY = { course: "EPPP", slug: "duty-to-protect-threat" };
 
@@ -16,10 +16,9 @@ function after(c: Ctl): void {
   c.answer();
 }
 
-export function spec(): StepsSpec {
-  return {
-    slug: "duty-to-protect-threat",
-    paths: [
+// REQ-289: exported for the Washington jurisprudence band of this session.
+export function paths(): StepPath[] {
+  return [
       {
         id: "expert",
         title: "Explore the remark by minute 7, assess weapon, history and drinking, rifle to his brother, tell him; consult, police and Kyle with the threat only",
@@ -88,6 +87,9 @@ export function spec(): StepsSpec {
           ask(c, "lecture");
         },
       },
-    ],
-  };
+  ];
+}
+
+export function spec(): StepsSpec {
+  return { slug: "duty-to-protect-threat", paths: paths() };
 }

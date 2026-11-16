@@ -17784,7 +17784,9 @@
         "backend/supabase/seed/labs/scrum-psmi.ts"
       ],
       "fix_summary": "Both strings now say 'canceled'.",
-      "fix_commits": [],
+      "fix_commits": [
+        "7f7f0bb1"
+      ],
       "regression_tests": [
         "backend/lib/us-spelling.test.ts"
       ],
@@ -17888,6 +17890,31 @@
       "prevention_rules": [],
       "prevention_notes": "The existing equality test caught it; a new study-emphasis course must add its code to lib/readiness.ts (now noted in the REQ-287 entry)",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1884",
+      "date": "2026-11-14",
+      "title": "ASWB sessions over the schema's length limits built goldens anyway",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims lint: ASWBMASTERS/aswbm-involuntary-engagement actions.explainRole.label over 200 characters; aswbm-boundaries-small-town sources.1.cite and outcome.noProgress.source.cite over 500 characters -- after npm run sim:golden had written their goldens",
+      "how_detected": "lint (the ASWB documents through lib/sim/lint.ts checkDocument)",
+      "root_cause": "sim:golden and validateScenario check semantics, not the zod schema's string limits; only sims:lint parses the schema, and the full linter is slow enough to be skipped while authoring",
+      "requirement": "REQ-288",
+      "affected": [
+        "backend/supabase/seed/sims/ASWBMASTERS/aswbm-involuntary-engagement.sim.json",
+        "backend/supabase/seed/sims/ASWBMASTERS/aswbm-boundaries-small-town.sim.json",
+        "backend/supabase/seed/sims/ASWBCLINICAL/aswbc-boundaries-small-town.band.json"
+      ],
+      "fix_summary": "Label and cite shortened (detail moved to the source note); every ASWB and jurisprudence document, bands compiled, is parsed against scenarioSchema in the unit test",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/aswb-session.test.ts::every ASWB and jurisprudence session, bands compiled, parses against the scenario schema"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Parse new documents against scenarioSchema in their own unit test, as lib/sim/clinical-coverage.test.ts does",
+      "recurrence_of": "FAIL-1980"
     },
     {
       "id": "FAIL-1980",
@@ -18010,6 +18037,87 @@
       "prevention_rules": [],
       "prevention_notes": "A token the server has rotated must be on durable storage before anything can restart the app.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1823",
+      "date": "2026-11-14",
+      "title": "REQ-274 sim authoring slips: a console asset reused an alert id, and golden sets lacked a Mediocre path or a missed criterion",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "validateScenario: 'screen.console.assets[1]: duplicate id web3' (CISSP web-tier case); sims lint: 'no golden path is rated mediocre (9.2)' (CISSP web-tier), 'endings.pointsDestroyed: reached by no golden path' (CISSP recovery), 'scoring.criteria.contract/escalation: missed by no golden path' (CISM supplier).",
+      "how_detected": "validator and sims linter while authoring, before commit",
+      "root_cause": "Console ids are unique across alerts, events and assets, and the asset was named after the host the alert also used; golden paths were drafted before checking the 9.2 coverage rules (every ending, every criterion met and missed, one Good, Mediocre and Bad path).",
+      "requirement": "REQ-274",
+      "affected": [
+        "backend/supabase/seed/sims/CISSP/cissp-web-tier-data-theft.sim.json",
+        "backend/scripts/sim-golden/cissp-incident.steps.ts",
+        "backend/scripts/sim-golden/cissp-recovery.steps.ts",
+        "backend/scripts/sim-golden/cism-supplier.steps.ts"
+      ],
+      "fix_summary": "Asset ids renamed (web2host, web3host); the golden paths were retuned so each case has Good, Mediocre and Bad paths, reaches every ending but time_up, and meets and misses every criterion.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts::at least two per course, each valid, ...",
+        "backend/lib/sim/security-certs-sims.test.ts::every golden KPI is a whole number and every golden path has the six-path spread",
+        "npm run sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the one-document lint (checkDocument) right after building the goldens; name console assets differently from alert ids.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1984",
+      "date": "2026-11-16",
+      "title": "Nested quoted slot in a sim template passes schema and lint, fails at render",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden for NCLEXRN/hyperkalemia-critical-value stopped with 'engine error: unterminated string (at 19)'",
+      "how_detected": "golden builder while authoring",
+      "root_cause": "A template slot held a ternary whose quoted branch contained its own {hr} slot; the template parser splits slots on braces before the expression parser sees quotes, and templates are only parsed when rendered, so the schema and linter never reject it",
+      "requirement": "REQ-296",
+      "affected": [
+        "backend/supabase/seed/sims/NCLEXRN/hyperkalemia-critical-value.sim.json"
+      ],
+      "fix_summary": "Rewrote the two log lines as cases with one plain template each; added a scan to the REQ-296 coverage test",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/clinical-coverage.test.ts FAIL-1984: no template slot nests a quoted {slot}"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Branch with cases, not a quoted ternary that contains a slot. A validator rule that parses every template would catch it for all documents (engine-folder change, not made here).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2002",
+      "date": "2026-11-14",
+      "title": "Sim DB tests counted every sim of their course (FAIL-2000 again, in the dbtests)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After the six later wave 3 sims, lib/sims-security.dbtest.ts and lib/sims-terminal.dbtest.ts failed in CI on the checkpoint merge (#193): their seeding and listing counts expected only their own requirement's SECPLUS, LINUXPLUS and CKA sims.",
+      "how_detected": "CI on the checkpoint merge; the lead pinned both suites on master (e7650405)",
+      "root_cause": "FAIL-2000 fixed the two unit suites that selected documents by course code but did not look for the same pattern in the DB suites, which were never run on the branch before the checkpoint.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/lib/sims-security.dbtest.ts",
+        "backend/lib/sims-terminal.dbtest.ts"
+      ],
+      "fix_summary": "The lead pinned both DB suites to their original slugs (e7650405). Wave 3 now has its own DB suite, lib/sims-it-wave3.dbtest.ts, selecting by slug from lib/sim/it-wave3.ts, shared with the unit suite.",
+      "fix_commits": [
+        "e7650405"
+      ],
+      "regression_tests": [
+        "backend/lib/sims-it-wave3.dbtest.ts",
+        "backend/lib/sims-security.dbtest.ts",
+        "backend/lib/sims-terminal.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist, sim documents item: a sim test, unit or DB, selects its documents by slug from its own requirement's list; run test:db before reporting a sim wave done.",
+      "recurrence_of": "FAIL-2000"
     }
   ]
 }

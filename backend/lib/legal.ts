@@ -20,9 +20,13 @@ import { isLegacyClient } from "@/lib/client-version";
 // REQ-093, the newer one is the single string (CURRENT_TERMS_VERSION), and an
 // account that accepted the Terms at 2026-11-13 is asked for the Privacy Policy
 // only (`pending` is ["privacy"]).
+//
+// REQ-306: 2026-11-16 bumps the Privacy Policy alone again (a random device
+// id for one session per device, the 14-day web session limit, and the
+// newest biometric-session token kept in secure storage, REQ-305).
 export const LEGAL_VERSIONS = {
   terms: "2026-11-13",
-  privacy: "2026-11-14",
+  privacy: "2026-11-16",
 } as const;
 
 // REQ-175 / REQ-205: the generations of the text that installed builds still
@@ -40,7 +44,7 @@ export const LEGAL_VERSIONS = {
 //     REQ-175; "legacy clients"). Frozen: never change it.
 export const PREVIOUS_LEGAL_VERSIONS = {
   terms: "2026-11-13",
-  privacy: "2026-11-13",
+  privacy: "2026-11-14",
 } as const;
 export const UNDECLARED_LEGAL_VERSIONS = {
   terms: "2026-11-09",
@@ -54,7 +58,9 @@ export const LEGACY_LEGAL_VERSIONS = {
 // REQ-219 (FAIL-1108): generations older than PREVIOUS_LEGAL_VERSIONS that
 // installed builds still declare, newest first. REQ-261: the 2026-11-10 pair,
 // which PREVIOUS_LEGAL_VERSIONS held until the 2026-11-14 Privacy Policy.
+// REQ-306: the 2026-11-13 pair, which it held until the 2026-11-16 one.
 export const EARLIER_LEGAL_VERSIONS: readonly { terms: string; privacy: string }[] = [
+  { terms: "2026-11-13", privacy: "2026-11-13" },
   { terms: "2026-11-10", privacy: "2026-11-10" },
 ];
 

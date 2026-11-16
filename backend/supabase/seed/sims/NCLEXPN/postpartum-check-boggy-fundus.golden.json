@@ -1,0 +1,420 @@
+{
+  "slug": "postpartum-check-boggy-fundus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: fundus, massage, pad, a clear call from the bedside, bedpan, vital signs, weighed pads; recheck with the RN and document",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fundus",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "massage",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "lochia",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "params": {
+            "say": "numbers"
+          },
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "rnQ",
+          "choice": "recheck",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "void",
+          "params": {
+            "how": "bedpan"
+          },
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "voidQ",
+          "choice": "pph",
+          "seq": 9,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 10,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "weigh",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "rn",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "fundus",
+          "seq": 13,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 14,
+          "tick": 125
+        }
+      ],
+      "expect": {
+        "ending": "controlled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fundus": "met",
+          "bladder": "met",
+          "report": "met",
+          "measure": "met",
+          "vitals": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toMassage": 5,
+          "toReport": 5,
+          "loss": 483
+        },
+        "stateHash": "d7789e8e99eb2342"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "slow",
+      "title": "Fundus at 3 min, massage at 6, a vague call, a fever call for 100.0 F, the catheter at 8 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 1,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "fundus",
+          "seq": 2,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "feverCall",
+          "seq": 4,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "massage",
+          "seq": 5,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "params": {
+            "say": "vague"
+          },
+          "seq": 6,
+          "tick": 420
+        },
+        {
+          "type": "teach",
+          "prompt": "rnQ",
+          "choice": "recheck",
+          "seq": 7,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "void",
+          "params": {
+            "how": "cath"
+          },
+          "seq": 8,
+          "tick": 480
+        },
+        {
+          "type": "teach",
+          "prompt": "voidQ",
+          "choice": "pph",
+          "seq": 9,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "weigh",
+          "seq": 10,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "seq": 11,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "controlledLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "fundus": "partial",
+          "bladder": "met",
+          "report": "partial",
+          "measure": "met",
+          "vitals": "partial",
+          "note": "met"
+        },
+        "kpis": {
+          "toMassage": 360,
+          "toReport": -1,
+          "loss": 683
+        },
+        "stateHash": "b30b4f887def4f27"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "leftAlone",
+      "title": "Massages, then leaves the room to find the RN; bedpan after she returns; nothing weighed or written",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fundus",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "massage",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "goFind",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "void",
+          "params": {
+            "how": "bedpan"
+          },
+          "seq": 5,
+          "tick": 190
+        },
+        {
+          "type": "teach",
+          "prompt": "rnQ",
+          "choice": "recheck",
+          "seq": 6,
+          "tick": 190
+        },
+        {
+          "type": "teach",
+          "prompt": "voidQ",
+          "choice": "pph",
+          "seq": 7,
+          "tick": 190
+        }
+      ],
+      "expect": {
+        "ending": "controlledLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "fundus": "met",
+          "bladder": "met",
+          "report": "partial",
+          "measure": "missed",
+          "vitals": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toMassage": 10,
+          "toReport": -1,
+          "loss": 511
+        },
+        "stateHash": "462448adb268799a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "walked",
+      "title": "Failure: checks at 25 minutes and walks her to the bathroom",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 1,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "fundus",
+          "seq": 2,
+          "tick": 1500
+        },
+        {
+          "type": "act",
+          "action": "void",
+          "params": {
+            "how": "walk"
+          },
+          "seq": 3,
+          "tick": 1500
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fundus": "missed",
+          "bladder": "missed",
+          "report": "missed",
+          "measure": "missed",
+          "vitals": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toMassage": -1,
+          "toReport": -1,
+          "loss": 912
+        },
+        "stateHash": "8556f427ac741ea1"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "shock",
+      "title": "Failure: looks at the pad and takes vital signs, one late massage, no report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lochia",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "massage",
+          "seq": 4,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "fundus": "partial",
+          "bladder": "missed",
+          "report": "missed",
+          "measure": "missed",
+          "vitals": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toMassage": 600,
+          "toReport": -1,
+          "loss": 1800
+        },
+        "stateHash": "2217e36cb3d655c5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 // REQ-175: first, so the API client knows this build before any request.
 import "@/updates/appIdentity";
+import "@/updates/deviceIdentity";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AppState, Platform, Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";

@@ -1,4 +1,4 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, orderPart, numericPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-152: ABPTS Wound Management Clinical Specialist (ABPTSWMS), authored
@@ -485,6 +485,61 @@ export const ABPTSWMS_LABS: SeedLabSet = {
               "Wound C",
               "Chooses no debridement -- a clean granulating bed has nothing to remove and debridement would harm it -- and a dressing matched to low exudate and infrequent changes by a caregiver (for example a silicone foam or hydrocolloid that can stay in place for days, moist but not macerated), with offloading of the trochanter.",
               "Nothing to debride: this bed is clean red granulation and any debridement would set it back. It needs a dressing that keeps it moist without maceration and tolerates a three-day change by a family member -- a silicone foam or a thin hydrocolloid -- and the trochanter kept off the mattress with positioning so it can finish healing."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Foundation sciences gets its
+    // second lab. Read 2026-11-14: StatPearls "Physiology, Wound Healing"
+    // (statpearls.com article 31402; the page as fetched showed no title
+    // block or date, so the 2025-04-04 update date is the one the track
+    // recorded): three overlapping phases -- inflammation (clotting forms a
+    // temporary fibrin plug; neutrophils recruited within the first 24 hours;
+    // macrophages arrive about 3 days after injury), proliferation
+    // (granulation tissue, restored vascular network through angiogenesis
+    // and vasculogenesis, epithelialization), remodeling (collagen type III
+    // replaced by stronger type I), which "begins from day 21 and continues
+    // up to 1 year"; at three months and beyond wound strength is only about
+    // 80% of normal skin. Texts that count hemostasis as its own phase give
+    // four phases; the order of events is the same.
+    {
+      slug: "wms-healed-is-not-full-strength",
+      objective:
+        "Know that remodeling starts around week 3 and can run up to 12 months, and a healed scar regains only about 80% of the skin's original tensile strength",
+      kind: "build",
+      title: "Closed is not the same as strong",
+      brief:
+        "You are a fictional wound management clinical specialist. Mr. Delgado, a fictional 49-year-old roofer, had a deep laceration over his right lateral thigh repaired; it later partly opened and has healed by secondary intention over 7 weeks under your care. The wound is now closed. He wants to know why you still call it 'healing'. You sketch the healing timeline for him. He asks: 'So can I go back to kneeling on roofs and dragging shingles across that leg on Monday?'",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [source("https://statpearls.com/sp/al/9/31402/", "clinical_guideline", "2026-11-14")],
+      steps: [
+        {
+          text: "",
+          ask: "Put the events of healing in order, then answer the strength question. Then: write what you tell him.",
+          parts: [
+            orderPart(
+              "Order of events",
+              "Met: exactly -- a fibrin clot plugs the injury; neutrophils arrive within the first day; macrophages arrive around day 3; granulation tissue and new blood vessels fill the wound as the surface re-epithelializes; type III collagen is replaced by stronger type I as the scar remodels. One item out of place is partly there.",
+              "Clotting first lays down a temporary fibrin plug. Neutrophils are recruited within the first 24 hours, and macrophages arrive about 3 days after the injury. Proliferation follows: granulation tissue, new vessels and epithelialization. Remodeling, from about day 21 and for up to a year, replaces type III collagen with stronger type I.",
+              [
+                "A fibrin clot plugs the injury",
+                "Neutrophils arrive within the first day",
+                "Macrophages arrive around day 3",
+                "Granulation tissue and new blood vessels fill the wound as the surface re-epithelializes",
+                "Type III collagen is replaced by stronger type I as the scar remodels",
+              ]
+            ),
+            numericPart(
+              "Strength of the scar at 3 months and beyond, as a share of normal skin (%)",
+              "Met: 80 within 5. Partly there within 15.",
+              "About 80%: from three months on, a healed wound's strength is only about 80% of the original skin, however well it has closed.",
+              { answer: 80, tolerance: 5, partialTolerance: 15, unit: "%" }
+            ),
+            part(
+              "What you tell him",
+              "Explains that the wound is closed but still remodeling (from about week 3 for up to a year) and will only reach about 80% of normal skin strength, so the scar is more vulnerable to friction, shear and pressure; gives practical protection (padding or protective clothing over the scar, avoiding direct shear and friction, moisturizing and checking the scar daily, stopping and seeking review if it opens, blisters or looks infected); ties return-to-work decisions to the referring physician and his work demands rather than promising a date; documents the education and plans follow-up.",
+              "\"The skin has closed, but underneath it is still being rebuilt -- that started around week 3 and can go on for up to a year -- and even when it's done, scar is only about 80% as strong as your normal skin. Friction and dragging pressure are what break it down. So protect it: padding or heavy work trousers over that spot, no kneeling or dragging directly across it, moisturize it and look at it every day. If it opens, blisters or gets red and sore, stop and come in. I'll send your physician a note so the two of you can decide on the return-to-work date with your job in mind.\""
             ),
           ],
         },

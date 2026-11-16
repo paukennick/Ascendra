@@ -15,7 +15,7 @@ import { join, relative } from "node:path";
 import { query, queryOne, closePool } from "./db";
 import { signAccessToken, createRefreshToken } from "./auth/tokens";
 import { __setTermsEnforcementForTest, TERMS_REQUIRED_CODE } from "./auth/requireUser";
-import { LEGAL_VERSIONS, PREVIOUS_LEGAL_VERSIONS, UNDECLARED_LEGAL_VERSIONS, LEGACY_LEGAL_VERSIONS, CURRENT_TERMS_VERSION } from "./legal";
+import { LEGAL_VERSIONS, PREVIOUS_LEGAL_VERSIONS, UNDECLARED_LEGAL_VERSIONS, LEGACY_LEGAL_VERSIONS, CURRENT_TERMS_VERSION, PREVIOUS_TERMS_VERSION } from "./legal";
 import { GET as onboardingGet } from "../app/api/onboarding/route";
 import { POST as onboardingTerms } from "../app/api/onboarding/terms/route";
 import { POST as legalAccept } from "../app/api/legal/accept/route";
@@ -52,7 +52,7 @@ async function mkUser(accepted: { terms: string; privacy: string } | null) {
 }
 
 const CURRENT = { "x-ascendra-app": "2.0.0+u.abc", "x-ascendra-platform": "android", "x-ascendra-legal": CURRENT_TERMS_VERSION };
-const PREVIOUS_BUILD = { "x-ascendra-app": "2.0.0+u.old", "x-ascendra-platform": "android", "x-ascendra-legal": PREVIOUS_LEGAL_VERSIONS.terms };
+const PREVIOUS_BUILD = { "x-ascendra-app": "2.0.0+u.old", "x-ascendra-platform": "android", "x-ascendra-legal": PREVIOUS_TERMS_VERSION };
 const UNDECLARED_BUILD = { "x-ascendra-app": "1.9.0+u.old", "x-ascendra-platform": "android" };
 const LEGACY_BUILD = {};
 
@@ -114,7 +114,7 @@ describe("FAIL-1109: the server refuses an account that has not agreed", () => {
   test("a build can accept its own text through the prompt and then pass (no loop)", async () => {
     const u = await mkUser(null);
     assert.equal((await call(sessionsGet, u.token, PREVIOUS_BUILD)).status, 403);
-    const done = await call(onboardingTerms, u.token, PREVIOUS_BUILD, "POST", { version: PREVIOUS_LEGAL_VERSIONS.terms });
+    const done = await call(onboardingTerms, u.token, PREVIOUS_BUILD, "POST", { version: PREVIOUS_TERMS_VERSION });
     assert.equal(done.status, 200);
     assert.equal((await call(sessionsGet, u.token, PREVIOUS_BUILD)).status, 200);
   });

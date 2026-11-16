@@ -1,4 +1,5 @@
-import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { CLINICAL_SAFETY, part, selectPart, matchPart, type SeedLabSet } from "./types";
+import { source } from "../sources";
 import { AACN_ESSENTIALS, AHRQ_TEAMSTEPPS, CDC_HAND_HYGIENE, ISMP_HIGH_ALERT, NCSBN_RN_2026 } from "./nursing-sources";
 
 // REQ-148: BSN Nursing course, organised by the ten domains of the AACN
@@ -638,6 +639,84 @@ export const BSNRN_LABS: SeedLabSet = {
               "Action plan",
               "Writes a specific plan: a better response next time (acknowledge feelings, give information or find someone who can, follow up), a way to practice it, and a way to get further feedback.",
               "Next time: 'I can see how worrying another delay is. Let me find out what's happening and come back to you in 15 minutes' -- and then do it. I'll practice with my preceptor and ask her to watch my next difficult conversation and tell me how it went."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Teamwork and Interprofessional
+    // Collaboration gets its second lab. Read 2026-11-14: AHRQ TeamSTEPPS
+    // "Tool: SBAR" (page last reviewed November 2019): Situation = what is
+    // currently happening with the patient; Background = clinical background
+    // such as history related to the current situation; Assessment = what the
+    // person communicating thinks the problem is; Recommendation or Request =
+    // an initial recommendation, what is needed and when, with repeat-back.
+    // The patient's numbers are his own readings; the lab teaches no
+    // threshold or dose.
+    {
+      slug: "bsn-sbar-post-op-call",
+      objective: "Use SBAR to give concise, structured information at handoffs and transfers",
+      kind: "case",
+      title: "Calling the surgeon about a falling blood pressure",
+      brief:
+        "You are the nurse for Mr. Ortiz, a fictional 67-year-old on a fictional orthopedic unit, day 1 after a right total hip replacement. At 06:00 his blood pressure was 128/76 and heart rate 84. At 10:00 he is 92/54 with a heart rate of 116, he says he feels lightheaded sitting up, and his hip dressing is saturated. The morning hemoglobin, just resulted, is 8.1 g/dL; it was 11.2 g/dL before surgery. He takes apixaban at home, held before surgery, and is on the unit's post-op anticoagulation order. You are about to page the on-call surgical resident.",
+      safetyNote: CLINICAL_SAFETY,
+      sources: [source("https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/sbar.html", "reference", "2026-11-14")],
+      steps: [
+        {
+          text: "You jot four sentences before you call.",
+          ask: "Match each sentence to its part of SBAR, then say the request you will make, with its time frame.",
+          parts: [
+            matchPart(
+              "Which part of SBAR",
+              "Met: every sentence matched to its part. Partly there: three of four.",
+              "Situation is what is happening now (the drop in pressure and the fast pulse); Background is the history that bears on it (the surgery, the anticoagulant, the pre-op hemoglobin); Assessment is what you think the problem is (bleeding); Recommendation or Request says what you need and when.",
+              {
+                left: [
+                  "Mr. Ortiz in 412 has a BP of 92/54, down from 128/76 at 06:00, heart rate 116, and he is lightheaded sitting up.",
+                  "He is day 1 after a right total hip replacement, takes apixaban at home and is on post-op anticoagulation; hemoglobin was 11.2 before surgery.",
+                  "His dressing is saturated and his hemoglobin is now 8.1, so I think he is bleeding and may be getting worse.",
+                  "I need you to come and see him within 15 minutes; can I give a fluid bolus and send a type and screen now?",
+                ],
+                right: ["Situation", "Background", "Assessment", "Recommendation or request"],
+                pairs: [0, 1, 2, 3],
+                leftHeading: "Sentence",
+                rightHeading: "SBAR part",
+              }
+            ),
+            part(
+              "The request, with a time frame",
+              "States a specific request (come to the bedside, and which orders are wanted -- for example fluids, labs, holding the next anticoagulant dose -- framed as questions for the resident to decide), a time frame (minutes, not 'when you can'), and closes the loop: the nurse reads back any orders given and confirms the resident's plan and when to call again.",
+              "\"I'd like you to see him within 15 minutes. Do you want a fluid bolus, a type and screen and a repeat hemoglobin now, and should I hold his next anticoagulant dose?\" Then read back every order the resident gives, confirm when they will arrive, and agree what change would make you call again before then (for example a further fall in pressure)."
+            ),
+          ],
+        },
+        {
+          text: "A newer nurse asks to hear your call first. Her draft has these lines in it.",
+          ask: "Tap the lines that do not belong in a concise SBAR call, then say what makes a handoff like this one safe.",
+          parts: [
+            selectPart(
+              "Lines that do not belong",
+              "Met: exactly the three lines that are off-topic or vague (the family's parking complaint, the apology for bothering, and 'he just doesn't look great, I'm not sure'). (Right picks minus wrong picks) of at least two is partly there.",
+              "SBAR keeps a call short and on the problem. A parking complaint is not part of this problem; apologizing for the call wastes the resident's time and weakens the message; 'doesn't look great, I'm not sure' is an assessment with no content -- say what you think is happening (bleeding) and why.",
+              {
+                display: "list",
+                lines: [
+                  "This is the nurse on 4 West caring for Mr. Ortiz in 412.",
+                  "Sorry to bother you, I know you're busy.",
+                  "BP 92/54, heart rate 116, lightheaded sitting up.",
+                  "His family is upset about the parking at the front entrance.",
+                  "Hemoglobin 8.1, was 11.2 before surgery; dressing saturated.",
+                  "He just doesn't look great, I'm not sure.",
+                  "Please come within 15 minutes.",
+                ],
+                correct: [1, 3, 5],
+              }
+            ),
+            part(
+              "What makes this handoff safe",
+              "Names: identify yourself, the unit and the patient first; have the chart, vital-sign trend, labs, medications and allergies at hand before calling; give the facts in SBAR order; state your own assessment plainly; make a specific request with a time; read back orders; document the call (time, who, what was reported, orders, plan); escalate up the chain if the response doesn't match the risk.",
+              "Before you call, have the trend, the labs, the medication list and allergies in front of you. Open with who you are, where, and who the patient is. Give the facts, then your read of them -- 'I think he is bleeding' -- and a request with a time. Read back every order, and chart the call: time, who you spoke to, what you reported, the orders and the plan. If the answer doesn't fit how sick he is, say so and go up the chain of command."
             ),
           ],
         },

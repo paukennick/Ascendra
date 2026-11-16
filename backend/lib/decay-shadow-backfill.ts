@@ -11,7 +11,7 @@
 // model_source = 'backfill' and reported apart:
 //   - the goal and level are the course's CURRENT ones (nothing stores what
 //     they were then; a learner who changed them since gets the new prior);
-//   - enrolment is review_schedule.enrolled_at as it stands now.
+//   - enrollment is review_schedule.enrolled_at as it stands now.
 // Replay-safe: only rows with no prediction yet (model_version is null) are
 // written, so a re-run, a resumed run, or a run after live rows exist never
 // changes a stored prediction, whichever model version made it. A course
@@ -42,7 +42,7 @@ export interface BackfillSummary {
   pairs: number; // learner-course pairs with at least one unpredicted review
   rowsConsidered: number;
   rowsPredicted: number; // computed (dry run) or written (apply)
-  rowsWithoutPrediction: number; // no enrolment, or the history was too long
+  rowsWithoutPrediction: number; // no enrollment, or the history was too long
   pairsSkippedTooLong: number;
   byStage: Record<string, number>;
   // Over the unaided rows predicted: what the report would show, so a dry run

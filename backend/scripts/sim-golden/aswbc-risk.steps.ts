@@ -1,7 +1,7 @@
 // REQ-288: golden paths for the ASWB Clinical client session on suicide and
 // violence risk (ASWBCLINICAL/aswbc-suicide-violence-risk.sim.json). No
 // prototype exists, so the expectations are the engine's own results.
-import type { Ctl, StepsSpec } from "./steps.ts";
+import type { Ctl, StepPath, StepsSpec } from "./steps.ts";
 
 export const ENTRY = { course: "ASWBCLINICAL", slug: "aswbc-suicide-violence-risk" };
 
@@ -20,10 +20,9 @@ function close(c: Ctl, note: { risk: string; violence: string; disposition: stri
   c.act("document", note);
 }
 
-export function spec(): StepsSpec {
-  return {
-    slug: "aswbc-suicide-violence-risk",
-    paths: [
+// REQ-289: exported for the ASWB Masters band of this session.
+export function paths(): StepPath[] {
+  return [
       {
         id: "expert",
         title: "Asked directly at minute 5, the full screen, the remark about Gary explored, a six-step plan with the rifle to his brother, a call tomorrow, outpatient",
@@ -124,6 +123,9 @@ export function spec(): StepsSpec {
           ask(c, "askHarm");
         },
       },
-    ],
-  };
+  ];
+}
+
+export function spec(): StepsSpec {
+  return { slug: "aswbc-suicide-violence-risk", paths: paths() };
 }
