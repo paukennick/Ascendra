@@ -5272,6 +5272,81 @@ names the other fitting objectives it exercises as secondary objectives.
   declared `with` field.
 - **`time_up`** is reached by no golden path in any of the nine (every slow
   path ends earlier), so the linter's warning remains.
+
+### 22.23 Nursing specialty and FNP bedside sims: CMSRN, CEN, PCCN, AANPCB FNP and ANCC FNP-BC (REQ-279)
+
+Nick, 2026-11-14: sims for the new nursing courses (REQ-275 to REQ-278)
+follow coverage, not a count. `docs/sims-coverage-nursing-specialty.md` maps
+every fitting objective of the five courses (131 by the keyword screen, 12.2)
+against the sims; eight are built, 123 are not yet (the map lists the next
+candidates and a decision for Nick about objectives an existing sim on
+another course already covers).
+
+Eight documents on the existing bedside renderer and engine 1.2; no engine,
+renderer, schema or migration change. Each declares engine minor 2 and
+`endingOrder`, has endings in all three outcome classes, three or four
+critical criteria inside its `target` condition, KPIs, an expert path, a
+debrief per ending, one reasoning moment, one to three sourced teaching
+prompts in jsonb key order (FAIL-1362), a chapter, and five to seven golden
+paths built by `npm run sim:golden -- steps <name>`. All run in one
+`running` phase (study pace by default); none has a focused start.
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| PCCN/femoral-access-retroperitoneal-bleed | Recognize retroperitoneal bleeding after femoral catheterization ... before the hemoglobin result | the bleed named in an SBAR within 15 min and before any hemoglobin; pressure above the puncture and flat within 10 min; a bolus within 15 min; blood within 15 min of arrival | pccn-access |
+| PCCN/copd-exacerbation-niv | Manage a COPD exacerbation with titrated oxygen and noninvasive ventilation, and recognize when it is failing | SpO2 into 88-92% within 10 min and never turned up; NIV asked for within 15 min; IPAP to 20 within 30 min and the leak fixed; a gas after an hour on NIV | pccn-copd |
+| CMSRN/postop-hemorrhage-early-signs | Recognize early postoperative hemorrhage ... before the blood pressure falls, and escalate | bleeding named within 15 min; urine output checked within 10 min; a bolus within 15 min; blood on arrival | cmsrn-bleed |
+| CMSRN/delegation-morning-assignment | Delegate tasks to assistive personnel and LPNs using the five rights ... | assessment and teaching kept with the RN; specific directions with report-back limits; the report evaluated by the RN within 10 min; an SBAR | cmsrn-delegate |
+| CEN/triage-sepsis-first-hour | Recognize sepsis at triage and start cultures, antimicrobials and fluid within the first hour | ESI 2 within 5 min; cultures then antimicrobials within the hour; 30 mL/kg started within 30 min; reassessed after fluid | cen-sepsis |
+| CEN/waiting-room-esi-retriage | Assign ESI levels to a waiting room of patients and re-triage when vital signs or symptoms change | the two high-risk patients ESI 2; resources counted for the stable two; a waiting-room recheck within 30 min; re-triage within 10 min of the danger-zone heart rate | cen-triage |
+| FNPAANP/clinic-severe-bp-stroke-signs | Recognize red flags that need emergency referral ... | a neurological check within 10 min; 911 within 10 min of the deficit; last known well and glucose; no clonidine or aspirin in the office | fnp-stroke |
+| FNPANCC/clinic-sulfonylurea-hypoglycemia | Recognize hypoglycemia from diabetes treatment and adjust the regimen to prevent it | 15 g glucose within 5 min; a recheck at about 15 min; the doubled glipizide found and stopped | fnp-hypo |
+
+- **Harm endings** are outcomes (an arrest from blood loss, emergency
+  intubation, refractory shock, a collapse in the waiting room or on the
+  unit, a dense stroke in the office, severe hypoglycemia, leaving while
+  hypoglycemic, or going home with a stroke in progress). None ends the run
+  on an action alone. **Boluses** stay within the engine's cap: the bleeding
+  cases queue at most three 500 mL boluses, the sepsis case at most three
+  1 L boluses running or waiting.
+- **Scope.** The PCCN, CMSRN and CEN nurses act on standing orders and
+  protocols named in the brief and escalate for the rest; the FNP cases are
+  the nurse practitioner's own decisions (refer, treat, change the regimen).
+- **Sources** are on each document and say how they were read. Read
+  2026-11-14 through summarizing fetches (before web fetching was withdrawn
+  on 2026-11-14): the BTS/ICS 2016 hypercapnic respiratory failure guideline
+  (Thorax), Kiernan 2008 and Kern 2013 on femoral access complications and
+  compression, Sui 2020 on retroperitoneal hematoma. Relayed from the course
+  seeds with their dates (the AACN, MSNCB, BCEN, AANPCB and ANCC outlines,
+  Surviving Sepsis 2026, ESI version 5, the 2025 blood pressure guideline,
+  the AHA/ASA 2026 stroke guideline page, AABB 2023, the NCSBN/ANA 2019
+  delegation guidelines, ADA hypoglycemia 2025); relayed from earlier sims
+  (ADA Standards 2026 section 6 from the LPN/VN case, ATLS 10th edition
+  classes and the crystalloid rule of thumb from the CCRN Adult bleeding case,
+  the BTS oxygen guideline from the lab value sources). To verify: the
+  European trauma bleeding guideline (2023), cited for one teaching point and
+  not re-read; ADA section 6's wording on sulfonylureas and de-intensifying
+  (the hypoglycemia case's regimen choice is not attributed to it); a timed
+  source for the blood gas after an hour on NIV. Authored teaching-model
+  numbers say so, and those standing in for a number no source gives carry
+  `FLAG` (bleed rates, NIV clearance, the sepsis course, the stroke's
+  progression, the glucose fall, every local wait).
+- **Findings while authoring** (FAIL-1842): `sim:golden` drove a document
+  with no `time_up` ending and the engine crashed with a TypeError; the
+  builder now checks the schema and `validateScenario` first (a recurrence of
+  FAIL-1980). A teaching prompt whose wait had already fired at the next
+  command boundary was refused by the linter (never offered at a boundary);
+  the expert paths answer it after a boundary with its wait pending.
+  FAIL-1500's availability warning was worked around in the COPD goldens as
+  22.13 says. `lib/sim/nursing-specialty-sims.test.ts` pins each document:
+  the schema, a fitting catalog objective that is one of the seed's
+  `*_SIM_OBJECTIVES`, the running phase, `endingOrder`, teaching key order,
+  source notes that start with how they were read, golden coverage (Good,
+  Mediocre and Bad; every criterion met and missed; every ending but
+  `time_up`), and no claim of a review by clinicians or experts.
+- **`time_up`** is reached by a golden path in none of the eight (every slow
+  path ends earlier), so the linter's warning remains, as in the other
+  clinical waves.
 ### 22.19 Security wave 3: ISC2 CC, CISSP, ISACA CISM and EC-Council CEH on the security console (REQ-274)
 
 Eight documents, two per course, on the existing `security-console@1`

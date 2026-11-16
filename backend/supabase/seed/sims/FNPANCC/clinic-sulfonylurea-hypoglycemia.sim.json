@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "clinic-sulfonylurea-hypoglycemia",
+  "title": "Sweaty and muddled in the waiting room",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last fingerstick glucose",
+          "value": "gluShown",
+          "unit": "mg/dL",
+          "alarm": {
+            "low": 70
+          },
+          "announce": {
+            "bands": [
+              70,
+              54
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(checkAt)"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              90,
+              100
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [],
+      "infusions": "Glucose doses: {treatN|0dp}. Eaten: {fed|yesno}.",
+      "banner": [
+        {
+          "when": "mental <= 1",
+          "text": "She is confused and slow to answer."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize hypoglycemia from diabetes treatment and adjust the regimen to prevent it",
+  "secondaryObjectives": [
+    "Monitor drug therapy for adverse effects and interactions, and deprescribe when harm outweighs benefit"
+  ],
+  "sources": [
+    {
+      "cite": "ANCC, Family Nurse Practitioner (FNP-BC) test content outline (effective 2026-10-30): Evaluation",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.nursingworld.org/globalassets/study-aids/family-nurse-practitioner-tco_04062026.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fnp.ts), which read the outline 2026-11-14. Evaluation is 13% of the exam and covers monitoring treatment response and adverse effects."
+    },
+    {
+      "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+      "checkedAt": "2026-11-11",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+      "note": "Relayed from the LPN/VN hypoglycemia case (LPNVN/ltc-insulin-hypoglycemia), which read the primary text 2026-11-11; not re-read. Level 1 glucose <70 and >=54 mg/dL, level 2 <54, level 3 a severe event needing assistance; glucose preferred for the conscious person below 70, 15 g for most, recheck 15 minutes after and repeat if still low; glucagon for those unable to take carbohydrate by mouth. To verify: the section's wording on secretagogues (sulfonylureas) and on de-intensifying treatment after hypoglycemia; this case's regimen choice is not attributed to it."
+    },
+    {
+      "cite": "American Diabetes Association, hypoglycemia (professional resource, 2025)",
+      "checkedAt": "2026-11-07",
+      "url": "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
+      "note": "Relayed from the course seed (read 2026-11-07). Level 1 below 70 mg/dL, level 2 below 54; 15 g fast-acting carbohydrate and recheck in 15 minutes; glucagon if the person cannot take carbohydrate by mouth."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in a family practice. Mrs. Abara, 78, here for a routine diabetes visit, is sweaty, trembling and muddled in the waiting room. Her daughter says she skipped breakfast.",
+    "handover": [
+      "Type 2 diabetes, last A1C 6.4%; chronic kidney disease. She can swallow and follow simple directions.",
+      "The office has glucose tablets, glucagon, a glucometer and a staff kitchen."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Treat what is in front of you, check that it worked, and find out why it happened.",
+      "Partway through you are asked to write your reasoning. The visit ends an hour in, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "1s",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fallRate": {
+      "value": 0.35,
+      "unit": "mg/dL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. While her long-acting sulfonylurea is still working and she has not eaten, her glucose falls about 0.35 mg/dL a minute. FLAG: to verify against a pharmacology source. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rise15": {
+      "value": 45,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. 15 g of glucose by mouth raises her glucose about 45 mg/dL over the next 15 minutes (spread evenly). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "riseMins": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed: recheck 15 minutes after treatment."
+      }
+    },
+    "level3": {
+      "value": 40,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Below 40 mg/dL she becomes unresponsive in the model; the harm outcome. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "recheckWindow": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed: recheck at 15 minutes. FLAG: the case allows up to 20 minutes."
+      }
+    },
+    "treatWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed: treat level 1 or 2 hypoglycemia at once with glucose. FLAG: the 5-minute window is this case's."
+      }
+    },
+    "reviewAt": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The visit ends an hour in."
+      }
+    },
+    "reasonAt": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 10 minutes in."
+      }
+    }
+  },
+  "state": {
+    "glu": {
+      "type": "number",
+      "init": 52,
+      "min": 20,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "riseLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mg/dL"
+    },
+    "fed": {
+      "type": "bool",
+      "init": false
+    },
+    "mealAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "treatAt": {
+      "type": "time",
+      "init": null
+    },
+    "treatN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "lastTreatAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckOk": {
+      "type": "bool",
+      "init": false
+    },
+    "glucagonAt": {
+      "type": "time",
+      "init": null
+    },
+    "fatSnack": {
+      "type": "bool",
+      "init": false
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "stop",
+        "same",
+        "insulin"
+      ],
+      "init": "none"
+    },
+    "sentHomeLow": {
+      "type": "bool",
+      "init": false
+    },
+    "seenGlu": {
+      "type": "number",
+      "init": 52,
+      "min": 0,
+      "max": 300,
+      "unit": "mg/dL"
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "mental": {
+      "expr": "glu < 40 ? 0 : (glu < 54 ? 1 : (glu < 70 ? 2 : 3))"
+    },
+    "hr": {
+      "expr": "round(clamp(72 + (glu < 70 ? (70 - glu) * 0.8 : 0) + 1.5 * sin(t / 29), 55, 140))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(142 + 2 * sin(t / 41))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "gluShown": {
+      "expr": "round(seenGlu)",
+      "unit": "mg/dL",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "glucose",
+      "update": {
+        "glu": "glu + dt / 60 * ((fed ? 0 : -fallRate) + (riseLeft > 0 ? rise15 / (riseMins / 60) : 0))",
+        "riseLeft": "max(0, riseLeft - dt / 60 * rise15 / (riseMins / 60))"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Exam room 2",
+      "clock": "running",
+      "actions": [
+        "check",
+        "glucose",
+        "chocolate",
+        "glucagon",
+        "meal",
+        "history",
+        "plan",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "check": {
+      "label": "Check a fingerstick glucose",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(checkAt)",
+          "then": [
+            {
+              "set": "checkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "checkN",
+          "by": "1"
+        },
+        {
+          "set": "seenGlu",
+          "to": "glu"
+        },
+        {
+          "if": "not isNull(lastTreatAt) and t - timeAt(lastTreatAt) >= 840 and t - timeAt(lastTreatAt) <= recheckWindow",
+          "then": [
+            {
+              "set": "recheckOk",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "log": "Glucose {round(glu)|0dp} mg/dL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Give 15 g of glucose tablets by mouth",
+      "group": "Treat",
+      "available": "mental >= 1 and treatN < 3",
+      "why": "She cannot swallow safely, or three doses have been given.",
+      "effects": [
+        {
+          "add": "riseLeft",
+          "by": "rise15"
+        },
+        {
+          "add": "treatN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(treatAt)",
+          "then": [
+            {
+              "set": "treatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastTreatAt",
+          "to": "t"
+        },
+        {
+          "log": "Four 4 g glucose tablets chewed (16 g)."
+        }
+      ]
+    },
+    "chocolate": {
+      "label": "Give her the chocolate bar from her bag",
+      "group": "Treat",
+      "available": "not fatSnack and mental >= 1",
+      "why": "Already given, or she cannot swallow safely.",
+      "effects": [
+        {
+          "set": "fatSnack",
+          "to": "true"
+        },
+        {
+          "add": "riseLeft",
+          "by": "rise15 * 0.5"
+        },
+        {
+          "log": "She eats the chocolate. The fat slows the sugar's absorption.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "glucagon": {
+      "label": "Give glucagon (office supply)",
+      "group": "Treat",
+      "available": "isNull(glucagonAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "if": "isNull(glucagonAt)",
+          "then": [
+            {
+              "set": "glucagonAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "riseLeft",
+          "by": "rise15 * 2"
+        },
+        {
+          "log": "Glucagon given."
+        }
+      ]
+    },
+    "meal": {
+      "label": "Once the glucose is above 70, give her a sandwich and juice from the staff kitchen",
+      "group": "Treat",
+      "available": "glu >= 70 and not fed",
+      "why": "Treat the low first, or she has eaten.",
+      "effects": [
+        {
+          "set": "fed",
+          "to": "true"
+        },
+        {
+          "if": "isNull(mealAt)",
+          "then": [
+            {
+              "set": "mealAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She eats a sandwich: starch and protein to hold the glucose up."
+        }
+      ]
+    },
+    "history": {
+      "label": "Review what she takes and what changed",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Glipizide 10 mg twice daily (raised from 5 mg at her last visit by an urgent care clinic), no breakfast today, a recent eGFR of 38. Two 'shaky spells' last week she did not mention.",
+          "kind": "find"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Adjust the diabetes regimen",
+      "group": "Plan",
+      "available": "isNull(planAt)",
+      "why": "Already planned.",
+      "params": [
+        {
+          "id": "choice",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "stop",
+              "label": "Stop the glipizide; review her targets and choose an agent with low hypoglycemia risk; glucose meter teaching; call in 2 days"
+            },
+            {
+              "value": "same",
+              "label": "Same dose; remind her not to skip breakfast"
+            },
+            {
+              "value": "insulin",
+              "label": "Switch to basal insulin tonight"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "choice == \"stop\"",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "\"stop\""
+                }
+              ]
+            },
+            {
+              "when": "choice == \"same\"",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "\"same\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "plan",
+                  "to": "\"insulin\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "glu < 70",
+          "then": [
+            {
+              "set": "sentHomeLow",
+              "to": "true"
+            },
+            {
+              "log": "She heads out with her daughter while her glucose is still low.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Plan agreed with her and her daughter."
+            }
+          ]
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Glucose values with times, each treatment, mental status, the cause found and the regimen change"
+            },
+            {
+              "value": "opinion",
+              "label": "'Low sugar, treated, fine'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: timed values, treatments, cause and plan."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Low sugar, treated, fine.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "endT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "an hour in",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The visit ends an hour in."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "drowsy",
+      "when": "glu < 45",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "She is barely answering now.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "What happened to Mrs. Abara, and what has to change so it does not happen again?",
+      "parts": [
+        {
+          "label": "Recognize and treat",
+          "criteria": "Names level 2 hypoglycemia (52 mg/dL) with symptoms; treats with 15 g glucose by mouth while she can swallow, rechecks in 15 minutes and repeats if still below 70, then gives a meal; glucagon only if she cannot swallow.",
+          "modelAnswer": "A glucose of 52 with sweating and confusion is level 2 hypoglycemia. She can swallow, so 15 g of glucose now, recheck in 15 minutes and repeat if still under 70, then a meal with starch and protein once she is above 70. Glucagon is for someone who cannot take sugar by mouth."
+        },
+        {
+          "label": "Why and what changes",
+          "criteria": "Links it to the doubled sulfonylurea with reduced kidney function, a skipped meal and an A1C below her likely target; stops or replaces the sulfonylurea with a lower-risk choice and follows up soon; does not send her home while low.",
+          "modelAnswer": "Her glipizide was doubled, her kidney function is reduced, she skipped breakfast, and her A1C of 6.4% is tighter than a frail 78-year-old needs; she has had other spells. Stop the glipizide, relax her target, choose an agent with a low hypoglycemia risk, teach meter use and call in two days. She does not leave until her glucose is above 70 and she has eaten."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and glu < 70",
+      "class": "harm",
+      "rationale": "Still hypoglycemic after an hour in the clinic is harm here.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed from the LPN/VN hypoglycemia case (LPNVN/ltc-insulin-hypoglycemia), which read the primary text 2026-11-11; not re-read. Level 1 glucose <70 and >=54 mg/dL, level 2 <54, level 3 a severe event needing assistance; glucose preferred for the conscious person below 70, 15 g for most, recheck 15 minutes after and repeat if still low; glucagon for those unable to take carbohydrate by mouth. To verify: the section's wording on secretagogues (sulfonylureas) and on de-intensifying treatment after hypoglycemia; this case's regimen choice is not attributed to it."
+      }
+    }
+  },
+  "endings": {
+    "severe": {
+      "label": "Severe hypoglycemia in the office",
+      "class": "harm",
+      "terminal": true,
+      "when": "glu < level3",
+      "narrative": "{t|clock}: she slumps in the chair and does not answer; glucose {round(glu)|0dp}. 911 is called."
+    },
+    "wentLow": {
+      "label": "Left while still low",
+      "class": "harm",
+      "terminal": true,
+      "when": "sentHomeLow",
+      "narrative": "She leaves with a glucose of {round(glu)|0dp} and a sulfonylurea still working."
+    },
+    "fixedTarget": {
+      "label": "Treated, confirmed, and the cause removed",
+      "class": "target",
+      "terminal": true,
+      "when": "t >= reviewAt and glu >= 70 and not isNull(treatAt) and timeAt(treatAt) <= treatWindow and recheckOk and fed and plan == \"stop\" and not fatSnack and isNull(glucagonAt)",
+      "narrative": "{t|clock}: glucose {round(glu)|0dp}, she is eating and joking with her daughter. The low was treated by the rule, rechecked, followed by a meal, and its cause stopped."
+    },
+    "fixedLate": {
+      "label": "Safe today, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "t >= reviewAt and glu >= 70",
+      "narrative": "{t|clock}: glucose {round(glu)|0dp}. She is safe now, but check the treatment, the recheck, the meal, and whether the regimen that caused it changed."
+    },
+    "time_up": {
+      "label": "Still low",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Her glucose is still below 70."
+    }
+  },
+  "endingOrder": [
+    "severe",
+    "wentLow",
+    "fixedTarget",
+    "fixedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "treat",
+        "label": "15 g glucose within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(treatAt) and isNull(glucagonAt)",
+            "score": "missed",
+            "why": "The low was never treated with glucose."
+          },
+          {
+            "when": "not isNull(treatAt) and timeAt(treatAt) <= treatWindow",
+            "score": "met",
+            "why": "Glucose at {timeAt(treatAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Treated late, or with glucagon while she could swallow."
+          }
+        ]
+      },
+      {
+        "id": "recheck",
+        "label": "Rechecked about 15 minutes after treatment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "recheckOk",
+            "score": "met",
+            "why": "Rechecked 15 minutes after a dose."
+          },
+          {
+            "when": "checkN >= 2",
+            "score": "partial",
+            "why": "Rechecked, but not at about 15 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No recheck."
+          }
+        ]
+      },
+      {
+        "id": "cause",
+        "label": "Found the cause and stopped the sulfonylurea",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"stop\" and not isNull(historyAt)",
+            "score": "met",
+            "why": "The doubled glipizide with reduced kidney function was found and stopped."
+          },
+          {
+            "when": "plan == \"stop\"",
+            "score": "partial",
+            "why": "Stopped without reviewing why."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The drug that caused it was left in place or replaced by a riskier one."
+          }
+        ]
+      },
+      {
+        "id": "meal",
+        "label": "A meal after the glucose recovered, not a fatty snack to treat it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "fatSnack",
+            "score": "missed",
+            "why": "Chocolate treats a low slowly; glucose works faster."
+          },
+          {
+            "when": "fed",
+            "score": "met",
+            "why": "Fed once above 70."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "No meal after recovery."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Values, treatments and plan documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of values."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: treatment-related hypoglycemia and the regimen",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toTreat",
+        "label": "11:00 to the first glucose dose",
+        "value": "isNull(treatAt) ? -1 : timeAt(treatAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "glu",
+        "label": "Glucose at the end (mg/dL)",
+        "value": "round(glu)",
+        "format": "number",
+        "expert": "above 100"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Fingerstick: 52 mg/dL. 15 g glucose tablets."
+      },
+      {
+        "at": "11:15",
+        "text": "Recheck: above 70; a sandwich and juice."
+      },
+      {
+        "at": "11:20",
+        "text": "Review: glipizide doubled, eGFR 38, earlier spells. Stop glipizide, relax the target, follow up in 2 days. Document."
+      }
+    ],
+    "debrief": {
+      "severe": {
+        "headline": "Severe hypoglycemia",
+        "body": "Find when the glucose was checked and when glucose went in."
+      },
+      "wentLow": {
+        "headline": "She left while low",
+        "body": "A plan is not treatment. She needed a glucose above 70 and a meal before leaving."
+      },
+      "fixedTarget": {
+        "headline": "Treated, confirmed and prevented",
+        "body": "15 g, a recheck at 15 minutes, a meal, and the sulfonylurea stopped. That is the expert path."
+      },
+      "fixedLate": {
+        "headline": "Safe today, by a slower route",
+        "body": "Check the treatment choice and timing, the recheck, the meal and whether the cause was removed."
+      },
+      "time_up": {
+        "headline": "Still low",
+        "body": "Treat with glucose and recheck."
+      }
+    },
+    "modelReasoning": "A glucose of 52 mg/dL with sweating and confusion is level 2 hypoglycemia. While she can swallow, give 15 g of glucose, recheck in 15 minutes and repeat if still below 70; once above 70, give a meal with starch and protein. Glucagon is for someone who cannot take carbohydrate by mouth; chocolate's fat slows absorption. Then find the cause: a doubled glipizide dose with reduced kidney function, a skipped meal and an A1C tighter than a frail older adult needs. Stop the sulfonylurea, relax the target, choose a lower-risk agent and follow up soon. She does not leave while low."
+  },
+  "chapters": [
+    {
+      "id": "treated",
+      "label": "First dose in",
+      "when": "not isNull(treatAt)"
+    }
+  ],
+  "teaching": {
+    "gQ": {
+      "during": "endT",
+      "when": "not isNull(treatAt) and isNull(planAt)",
+      "ask": "Her glucose is coming up. Is the problem solved?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes, the glucose tablets fixed it"
+        },
+        {
+          "id": "no",
+          "label": "No: the drug that caused it is still working; feed her and change the regimen"
+        }
+      ],
+      "expect": "no",
+      "explain": "Glucose tablets treat the episode; a meal holds the glucose up; and the cause (here a doubled glipizide dose with reduced kidney function) has to change or it will recur.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-11",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed from the LPN/VN hypoglycemia case (LPNVN/ltc-insulin-hypoglycemia), which read the primary text 2026-11-11; not re-read. Level 1 glucose <70 and >=54 mg/dL, level 2 <54, level 3 a severe event needing assistance; glucose preferred for the conscious person below 70, 15 g for most, recheck 15 minutes after and repeat if still low; glucagon for those unable to take carbohydrate by mouth. To verify: the section's wording on secretagogues (sulfonylureas) and on de-intensifying treatment after hypoglycemia; this case's regimen choice is not attributed to it."
+      }
+    }
+  }
+}

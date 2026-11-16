@@ -1,0 +1,1675 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "copd-exacerbation-niv",
+  "title": "Drowsy on 4 liters at 02:10",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 85,
+            "high": 96
+          },
+          "announce": {
+            "bands": [
+              88,
+              92,
+              96
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30
+          },
+          "announce": {
+            "bands": [
+              23,
+              30,
+              35
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "gcsTile",
+          "label": "GCS",
+          "spokenLabel": "Glasgow Coma Scale",
+          "value": "gcs",
+          "unit": "",
+          "announce": {
+            "bands": [
+              14,
+              12,
+              9
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "ipapTile",
+          "label": "IPAP",
+          "spokenLabel": "Inspiratory pressure",
+          "value": "ipap",
+          "unit": "cmH2O",
+          "announce": {
+            "bands": [
+              15,
+              20
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "niv"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Oxygen: FiO2 about {fio2|0dp}%. NIV: {niv|yesno}. Mask off: {maskOff|yesno}.",
+      "banner": [
+        {
+          "when": "outreachHere",
+          "text": "Critical care outreach is in the room."
+        },
+        {
+          "when": "gcs <= 11",
+          "text": "She is hard to rouse."
+        }
+      ]
+    }
+  },
+  "objective": "Manage a COPD exacerbation with titrated oxygen and noninvasive ventilation, and recognize when it is failing",
+  "secondaryObjectives": [
+    "Target SpO2 88-92% when a patient is at risk of hypercapnic respiratory failure and 94-98% for most others",
+    "Interpret a blood gas step by step -- pH, PaCO2, bicarbonate -- and say whether compensation is present"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation, PCCN Exam Handbook - Direct Care (July 2026 edition): PCCN Test Plan (exams on and after 2024-02-06), Respiratory",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Read 2026-11-14 for the course seed (backend/supabase/seed/tracks/pccn.ts). Respiratory is 14% of the exam; the plan lists acute respiratory failure and chronic conditions such as COPD, and the testable nursing actions include noninvasive ventilation."
+    },
+    {
+      "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+      "checkedAt": "2026-11-14",
+      "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+      "note": "Read 2026-11-14 through a summarizing fetch (approved for publication November 2015; no newer BTS/ICS version was found). Controlled oxygen to SpO2 88-92% in AECOPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa (about 49 mm Hg) persist or develop despite optimal medical therapy (Grade A), in practice after about 60 minutes with RR >23; start IPAP about 15 and raise it to 20-30 cm H2O within 10-30 minutes, EPAP at least 3; ABG before and after starting NIV; worsening pH and respiratory rate mean the strategy must change, and invasive ventilation should be considered for persistent or worsening acidosis despite optimized NIV (Grade A); pH <7.25 with RR >35 that persists makes NIV failure likely; care plans should include escalation arrangements from the start."
+    },
+    {
+      "cite": "BTS guideline for oxygen use in healthcare and emergency settings",
+      "checkedAt": "2026-11-08",
+      "url": "https://www.brit-thoracic.org.uk/clinical-resources/guidelines/emergency-oxygen/",
+      "note": "Relayed from backend/supabase/seed/labs/value-sources.ts (read 2026-11-08); not re-read. Target SpO2 88-92% for known COPD or other risk of hypercapnic respiratory failure."
+    }
+  ],
+  "brief": {
+    "situation": "02:10 on a progressive care unit. Mrs. Lindqvist in Room 14, 71, admitted from the emergency department at 22:00 with a COPD exacerbation, is hard to keep awake. Her daughter says she \"is not herself\".",
+    "handover": [
+      "COPD with home SpO2 88-91% on room air. Three nebulizers, prednisone and doxycycline in the emergency department; ipratropium and salbutamol every 4 hours.",
+      "Oxygen 4 L by nasal cannula, turned up in the emergency department; SpO2 96%.",
+      "02:00 arterial gas (on 4 L): pH 7.29, PaCO2 68 mm Hg, PaO2 82, bicarbonate 32. The night resident has not seen it yet."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Recognize what this is, act and escalate. The therapist, the NIV machine and every gas take time.",
+      "Partway through you are asked to write what you think is happening. The case ends by 04:40, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:10",
+    "tick": "1s",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "co2Base": {
+      "value": 0.15,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Untreated, her fatigue lets the PaCO2 climb about 9 mm Hg an hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "o2Excess": {
+      "value": 0.2,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Each minute with SpO2 above 92% on extra oxygen adds about 0.2 mm Hg of PaCO2 (loss of hypoxic drive and worse ventilation-perfusion matching), a teaching simplification of why the BTS asks for 88-92%. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nebFall": {
+      "value": 0.05,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. A nebulized bronchodilator eases the work of breathing a little. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "niv15": {
+      "value": 0.2,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. NIV at IPAP 15 with a good seal clears about 0.2 mm Hg of PaCO2 a minute: barely ahead of her fatigue. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "niv20": {
+      "value": 0.45,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. NIV titrated to IPAP 20 or more clears about 0.45 mm Hg a minute; enough to correct her pH within about an hour, as the BTS expects of a responder. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "leakFit": {
+      "value": 0.4,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. An unchecked mask leak delivers about 40% of the set support. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "phHarm": {
+      "value": 7.15,
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Worsening acidosis despite NIV means invasive ventilation should be considered (Grade A). FLAG: the model calls emergency intubation at pH 7.15; the number is this case's."
+      }
+    },
+    "phOk": {
+      "value": 7.35,
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "NIV is indicated below pH 7.35; a pH back to 7.35 or more is this case's 'responding'."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The night medical resident calls back in about 3 minutes."
+      }
+    },
+    "rtArrive": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The respiratory therapist arrives with the NIV machine about 15 minutes after the order. FLAG."
+      }
+    },
+    "abgTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "An arterial blood gas drawn and resulted in about 15 minutes. FLAG."
+      }
+    },
+    "icuArrive": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The critical care outreach team is at the bedside in about 10 minutes."
+      }
+    },
+    "reviewAt": {
+      "value": 9000,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 04:40, two and a half hours in."
+      }
+    },
+    "o2Window": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "BTS guideline for oxygen use in healthcare and emergency settings",
+        "checkedAt": "2026-11-08",
+        "url": "https://www.brit-thoracic.org.uk/clinical-resources/guidelines/emergency-oxygen/",
+        "note": "Oxygen titrated into 88-92% within 10 minutes. FLAG: the window is this case's."
+      }
+    },
+    "callWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Acidotic hypercapnic failure that has persisted after medical treatment in the emergency department meets the NIV indication now, so the provider is called within 15 minutes. FLAG: the window is this case's."
+      }
+    },
+    "titrateWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "IPAP raised to 20 or more within 10-30 minutes of starting NIV."
+      }
+    },
+    "recheckAfter": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "An ABG after starting NIV is required; the guideline gives no single time. FLAG: this case rechecks at 60 minutes, a common unit practice (to verify against a timed source)."
+      }
+    },
+    "reasonAt": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 15 minutes in."
+      }
+    }
+  },
+  "state": {
+    "co2": {
+      "type": "number",
+      "init": 68,
+      "min": 30,
+      "max": 140,
+      "unit": "mmHg"
+    },
+    "fio2": {
+      "type": "number",
+      "init": 36,
+      "min": 21,
+      "max": 100,
+      "unit": "%"
+    },
+    "o2Set": {
+      "type": "enum",
+      "values": [
+        "nc4",
+        "v24",
+        "v28",
+        "nc2",
+        "nrb"
+      ],
+      "init": "nc4"
+    },
+    "o2RightAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2Raised": {
+      "type": "bool",
+      "init": false
+    },
+    "nebAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "abg1At": {
+      "type": "time",
+      "init": null
+    },
+    "abg1Seen": {
+      "type": "bool",
+      "init": false
+    },
+    "abgPending": {
+      "type": "bool",
+      "init": false
+    },
+    "abgDrawnAt": {
+      "type": "time",
+      "init": null
+    },
+    "abgPh": {
+      "type": "number",
+      "init": 7.3,
+      "min": 6.8,
+      "max": 7.6
+    },
+    "abgCo2": {
+      "type": "number",
+      "init": 68,
+      "min": 20,
+      "max": 140,
+      "unit": "mmHg"
+    },
+    "abgAfterAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "rtHere": {
+      "type": "bool",
+      "init": false
+    },
+    "niv": {
+      "type": "bool",
+      "init": false
+    },
+    "nivAt": {
+      "type": "time",
+      "init": null
+    },
+    "ipap": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 30,
+      "unit": "cmH2O"
+    },
+    "ipap20At": {
+      "type": "time",
+      "init": null
+    },
+    "fit": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 1
+    },
+    "fitAt": {
+      "type": "time",
+      "init": null
+    },
+    "maskOff": {
+      "type": "bool",
+      "init": false
+    },
+    "maskOffEver": {
+      "type": "bool",
+      "init": false
+    },
+    "outreachAt": {
+      "type": "time",
+      "init": null
+    },
+    "outreachHere": {
+      "type": "bool",
+      "init": false
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "improved": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "ph": {
+      "expr": "clamp(7.296 - 0.0057 * (co2 - 68), 6.9, 7.5)",
+      "precision": 2
+    },
+    "spo2": {
+      "expr": "round(clamp(66 + 0.85 * fio2 - 0.08 * max(0, co2 - 60) + (niv ? 2 : 0), 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(14 + 0.35 * (co2 - 45) - (niv ? 4 : 0), 10, 45))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(84 + 0.6 * (co2 - 60) + 1.5 * sin(t / 31), 60, 150))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "gcs": {
+      "expr": "round(clamp(15 - (co2 - 62) / 6, 6, 15))",
+      "precision": 0
+    },
+    "support": {
+      "expr": "niv and not maskOff ? fit * (ipap >= 20 ? niv20 : (ipap >= 15 ? niv15 : niv15 / 2)) : 0",
+      "unit": "mmHg/min"
+    },
+    "excess": {
+      "expr": "spo2 > 92 ? o2Excess : 0",
+      "unit": "mmHg/min"
+    }
+  },
+  "processes": [
+    {
+      "id": "ventilation",
+      "update": {
+        "co2": "co2 + dt / 60 * (co2Base + excess - (isNull(nebAt) ? 0 : nebFall) - support)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Room 14",
+      "clock": "running",
+      "actions": [
+        "look",
+        "oxygen",
+        "neb",
+        "abg",
+        "call",
+        "plan",
+        "startNiv",
+        "titrate",
+        "fitCheck",
+        "maskOff",
+        "maskOn",
+        "outreach",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Assess her: responsiveness, breathing pattern, accessory muscles, hands, chest",
+      "group": "Recognize",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "gcs <= 11",
+              "then": [
+                {
+                  "log": "Rousable only to a firm voice, mumbling. Shallow fast breathing, flapping tremor of both hands, warm flushed skin, bounding pulse. Quiet chest with a prolonged expiration.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "co2 > 60",
+              "then": [
+                {
+                  "log": "Drowsy, opens her eyes to her name and drifts off mid-sentence. Pursed lips, sternocleidomastoids working, a flapping tremor of both hands, warm peripheries. Wheeze throughout, prolonged expiration.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Awake and talking in sentences. Less accessory muscle use; tremor gone.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Change the oxygen",
+      "group": "Act",
+      "params": [
+        {
+          "id": "dev",
+          "kind": "choice",
+          "label": "Device",
+          "options": [
+            {
+              "value": "v24",
+              "label": "Venturi mask 24%"
+            },
+            {
+              "value": "v28",
+              "label": "Venturi mask 28%"
+            },
+            {
+              "value": "nc2",
+              "label": "Nasal cannula 2 L"
+            },
+            {
+              "value": "nrb",
+              "label": "Non-rebreather 15 L"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "o2Set",
+          "to": "dev"
+        },
+        {
+          "cases": [
+            {
+              "when": "dev == \"v24\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "24"
+                }
+              ]
+            },
+            {
+              "when": "dev == \"v28\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "28"
+                }
+              ]
+            },
+            {
+              "when": "dev == \"nc2\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "28"
+                }
+              ]
+            },
+            {
+              "when": "dev == \"nrb\"",
+              "then": [
+                {
+                  "set": "fio2",
+                  "to": "80"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "dev == \"nrb\"",
+          "then": [
+            {
+              "set": "o2Raised",
+              "to": "true"
+            },
+            {
+              "log": "Non-rebreather on; SpO2 {spo2}%. More oxygen than her target needs.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(o2RightAt) and spo2 >= 88 and spo2 <= 92",
+              "then": [
+                {
+                  "set": "o2RightAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Oxygen changed; SpO2 {spo2}%."
+            }
+          ]
+        }
+      ]
+    },
+    "neb": {
+      "label": "Give the ordered nebulized salbutamol and ipratropium (air-driven)",
+      "group": "Act",
+      "available": "isNull(nebAt)",
+      "why": "Already given; the next is due in 4 hours.",
+      "effects": [
+        {
+          "if": "isNull(nebAt)",
+          "then": [
+            {
+              "set": "nebAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Nebulizer given, driven by air with oxygen by nasal cannula alongside so the target holds."
+        }
+      ]
+    },
+    "abg": {
+      "label": "Draw an arterial blood gas",
+      "group": "Assess",
+      "available": "not abgPending",
+      "why": "A gas is already on its way.",
+      "effects": [
+        {
+          "set": "abgPending",
+          "to": "true"
+        },
+        {
+          "set": "abgDrawnAt",
+          "to": "t"
+        },
+        {
+          "set": "abgPh",
+          "to": "ph"
+        },
+        {
+          "set": "abgCo2",
+          "to": "co2"
+        },
+        {
+          "if": "niv and not isNull(nivAt) and t - timeAt(nivAt) >= recheckAfter",
+          "then": [
+            {
+              "if": "isNull(abgAfterAt)",
+              "then": [
+                {
+                  "set": "abgAfterAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schedule": "abgT",
+          "after": "abgTime"
+        },
+        {
+          "log": "Gas drawn; about 15 minutes."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the night medical resident (SBAR)",
+      "group": "Escalate",
+      "available": "isNull(callEffAt)",
+      "why": "The resident has the picture.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "hcrf",
+                  "label": "Mrs. Lindqvist in 14 is drowsier, RR 26, SpO2 96% on 4 L; her 02:00 gas is pH 7.29, PaCO2 68"
+                },
+                {
+                  "value": "sleepy",
+                  "label": "Mrs. Lindqvist in 14 is sleepy but her sats are fine"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "COPD exacerbation since yesterday, nebulizers, steroids and antibiotics; usual SpO2 88-91%; oxygen turned up to 4 L in the emergency department and still on it"
+                },
+                {
+                  "value": "min",
+                  "label": "Admitted with COPD"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "hcrf",
+                  "label": "Acute hypercapnic respiratory failure, made worse by too much oxygen; I've titrated it to 88-92%"
+                },
+                {
+                  "value": "tired",
+                  "label": "She is tired after a long day"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "niv",
+                  "label": "Please come and assess her for NIV now, and let's agree her escalation plan"
+                },
+                {
+                  "value": "watch",
+                  "label": "Let her sleep and repeat the gas in the morning"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "sit == \"hcrf\" and asmt == \"hcrf\" and rec == \"niv\"",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            },
+            {
+              "schedule": "callbackT",
+              "after": "callback"
+            },
+            {
+              "log": "Resident: \"Agreed, she needs NIV. Keep her at 88 to 92. I'm calling respiratory therapy and coming up.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Resident: \"Keep an eye on her and repeat the gas in the morning.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "plan": {
+      "label": "Agree and record her escalation plan with the resident and her before NIV starts",
+      "group": "Escalate",
+      "available": "not isNull(ordersAt) and isNull(planAt)",
+      "why": "Needs the resident's orders first, or already recorded.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Plan recorded: NIV on the unit; if she is not improving on the next gas, critical care review for intubation, which she wants offered. Full resuscitation."
+        }
+      ]
+    },
+    "startNiv": {
+      "label": "Start NIV with the respiratory therapist",
+      "group": "Act",
+      "available": "rtHere and not niv",
+      "why": "The NIV order and the therapist are not here yet, or NIV is running.",
+      "params": [
+        {
+          "id": "ip",
+          "kind": "choice",
+          "label": "Starting pressures",
+          "options": [
+            {
+              "value": "15",
+              "label": "IPAP 15, EPAP 4 cm H2O"
+            },
+            {
+              "value": "10",
+              "label": "IPAP 10, EPAP 4 cm H2O"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "niv",
+          "to": "true"
+        },
+        {
+          "if": "isNull(nivAt)",
+          "then": [
+            {
+              "set": "nivAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "ip == \"15\"",
+              "then": [
+                {
+                  "set": "ipap",
+                  "to": "15"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ipap",
+                  "to": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Full face mask on, NIV running at IPAP {ipap}, EPAP 4, oxygen entrained."
+        }
+      ]
+    },
+    "titrate": {
+      "label": "Raise IPAP to 20 cm H2O with the therapist",
+      "group": "Act",
+      "available": "niv and ipap < 20",
+      "why": "NIV is not running, or IPAP is already 20 or more.",
+      "effects": [
+        {
+          "set": "ipap",
+          "to": "20"
+        },
+        {
+          "if": "isNull(ipap20At)",
+          "then": [
+            {
+              "set": "ipap20At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "IPAP 20, EPAP 4. Her chest moves more with each breath."
+        }
+      ]
+    },
+    "fitCheck": {
+      "label": "Check the mask fit and leak, refit it",
+      "group": "Act",
+      "available": "niv and isNull(fitAt)",
+      "why": "No mask on, or already refitted.",
+      "effects": [
+        {
+          "set": "fit",
+          "to": "1"
+        },
+        {
+          "if": "isNull(fitAt)",
+          "then": [
+            {
+              "set": "fitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Leak was large at the bridge of her nose; mask resized and refitted, leak now small, skin padded."
+        }
+      ]
+    },
+    "maskOff": {
+      "label": "Take the mask off so she can sleep",
+      "group": "Act",
+      "available": "niv and not maskOff",
+      "why": "No mask on.",
+      "effects": [
+        {
+          "set": "maskOff",
+          "to": "true"
+        },
+        {
+          "set": "maskOffEver",
+          "to": "true"
+        },
+        {
+          "log": "Mask off; she settles. No support now.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "maskOn": {
+      "label": "Put the NIV mask back on",
+      "group": "Act",
+      "available": "maskOff",
+      "why": "The mask is on.",
+      "effects": [
+        {
+          "set": "maskOff",
+          "to": "false"
+        },
+        {
+          "log": "Mask back on."
+        }
+      ]
+    },
+    "outreach": {
+      "label": "Call the critical care outreach team",
+      "group": "Escalate",
+      "available": "isNull(outreachAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "if": "isNull(outreachAt)",
+          "then": [
+            {
+              "set": "outreachAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "outreachT",
+          "after": "icuArrive"
+        },
+        {
+          "log": "Critical care outreach paged."
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Times, oxygen device and SpO2, gases, NIV settings and leak, the escalation plan and who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Sleepy overnight, settled'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: oxygen titrated to 88-92%, gases, NIV start and settings, leak, escalation plan, resident informed."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Sleepy overnight, settled.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "callbackT": {
+      "label": "the resident's orders",
+      "wait": {
+        "skipLabel": "the resident's orders (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The night medical resident calls back in about 3 minutes."
+      },
+      "effects": [
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Orders: NIV, start IPAP 15 and EPAP 4 and titrate; oxygen to keep SpO2 88-92%; ABG after an hour on NIV; respiratory therapy coming. Agree her escalation plan.",
+          "kind": "good"
+        },
+        {
+          "schedule": "rtT",
+          "after": "rtArrive"
+        }
+      ]
+    },
+    "rtT": {
+      "label": "the respiratory therapist",
+      "wait": {
+        "skipLabel": "the respiratory therapist with the NIV machine (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The respiratory therapist arrives with the NIV machine about 15 minutes after the order. FLAG."
+      },
+      "effects": [
+        {
+          "set": "rtHere",
+          "to": "true"
+        },
+        {
+          "log": "The respiratory therapist is here with the NIV machine.",
+          "kind": "good"
+        }
+      ]
+    },
+    "abgT": {
+      "label": "the blood gas",
+      "wait": {
+        "skipLabel": "the blood gas result (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "An arterial blood gas drawn and resulted in about 15 minutes. FLAG."
+      },
+      "effects": [
+        {
+          "set": "abgPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(abg1At)",
+          "then": [
+            {
+              "set": "abg1At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Gas drawn at {timeAt(abgDrawnAt)|clock}: pH {abgPh|2dp}, PaCO2 {abgCo2|0dp} mm Hg.",
+          "kind": "find"
+        },
+        {
+          "if": "not isNull(abgAfterAt) and abgPh >= phOk",
+          "then": [
+            {
+              "set": "improved",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "outreachT": {
+      "label": "the outreach team",
+      "wait": {
+        "skipLabel": "the critical care outreach team (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The critical care outreach team is at the bedside in about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "outreachHere",
+          "to": "true"
+        },
+        {
+          "log": "Critical care outreach is at the bedside.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "04:40",
+      "wait": {
+        "skipLabel": "04:40, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 04:40, two and a half hours in."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "drowsy",
+      "when": "gcs <= 11",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "She no longer opens her eyes to her name.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "What is happening to Mrs. Lindqvist, why is her SpO2 of 96% not reassuring, and what does she need?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Reads the gas as acute-on-chronic respiratory acidosis (pH 7.29, PaCO2 68, bicarbonate 32 partly compensating) causing drowsiness; links it to fatigue in an exacerbation and to oxygen above her 88-92% target.",
+          "modelAnswer": "pH 7.29 with PaCO2 68 is a respiratory acidosis; a bicarbonate of 32 shows chronic retention with partial compensation, so this is acute-on-chronic hypercapnic failure. The drowsiness and flapping tremor are CO2 narcosis. 96% on 4 L is above her 88-92% target, and too much oxygen can raise the CO2 further."
+        },
+        {
+          "label": "What to do",
+          "criteria": "Titrates oxygen to 88-92%; escalates with an SBAR asking for NIV (pH below 7.35 and PaCO2 above 49 after medical therapy); agrees an escalation plan before starting; starts IPAP around 15, raises to 20-30 within 30 minutes and fixes leaks; repeats the gas after NIV; recognizes failure (worsening pH and RR) and escalates.",
+          "modelAnswer": "Bring the oxygen down to a 28% Venturi for 88-92%, call the resident for NIV now, agree her ceiling of care, start IPAP 15 and EPAP 4, raise IPAP to 20 or more within half an hour, refit the mask for leaks, and repeat the gas after an hour. If the pH and breathing rate get worse despite well-run NIV, escalate to critical care for intubation as her plan says."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and not improved",
+      "class": "harm",
+      "rationale": "Two and a half hours of untreated or uncorrected hypercapnic acidosis: the guideline says worsening pH and respiratory rate must change the strategy, so no progress is harm here.",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Read 2026-11-14 through a summarizing fetch (approved for publication November 2015; no newer BTS/ICS version was found). Controlled oxygen to SpO2 88-92% in AECOPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa (about 49 mm Hg) persist or develop despite optimal medical therapy (Grade A), in practice after about 60 minutes with RR >23; start IPAP about 15 and raise it to 20-30 cm H2O within 10-30 minutes, EPAP at least 3; ABG before and after starting NIV; worsening pH and respiratory rate mean the strategy must change, and invasive ventilation should be considered for persistent or worsening acidosis despite optimized NIV (Grade A); pH <7.25 with RR >35 that persists makes NIV failure likely; care plans should include escalation arrangements from the start."
+      }
+    }
+  },
+  "endings": {
+    "intubated": {
+      "label": "Worsening acidosis: emergency intubation",
+      "class": "harm",
+      "when": "ph < phHarm",
+      "terminal": true,
+      "narrative": "pH about {ph|2dp}, GCS {gcs}. She can no longer protect her airway and is intubated as an emergency and moved to the ICU."
+    },
+    "nivTarget": {
+      "label": "Responding to well-run NIV",
+      "class": "target",
+      "terminal": true,
+      "when": "improved and not isNull(o2RightAt) and timeAt(o2RightAt) <= o2Window and not o2Raised and not isNull(callEffAt) and timeAt(callEffAt) <= callWindow and not isNull(planAt) and timeAt(planAt) <= timeAt(nivAt) and not isNull(ipap20At) and timeAt(ipap20At) - timeAt(nivAt) <= titrateWindow and not isNull(fitAt) and not maskOffEver",
+      "narrative": "{t|clock}: the gas after an hour on NIV is pH {abgPh|2dp}, PaCO2 {abgCo2|0dp}. She is awake and talking, SpO2 {spo2}% in her target."
+    },
+    "nivLate": {
+      "label": "Improving, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "improved",
+      "narrative": "{t|clock}: pH {abgPh|2dp} on the repeat gas. She is improving, but the route cost time or safety: oxygen above target, a late call, NIV left at low pressure or leaking, or no plan agreed before it started."
+    },
+    "outreachTook": {
+      "label": "Handed to critical care before NIV worked",
+      "class": "recovered",
+      "terminal": true,
+      "when": "outreachHere and not improved",
+      "narrative": "{t|clock}: pH about {ph|2dp}. Critical care outreach takes over and plans ICU review. Calling them was right; the earlier steps would have made it less likely to be needed."
+    },
+    "time_up": {
+      "label": "04:40 and still acidotic",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "04:40: pH about {ph|2dp}, GCS {gcs}, RR {rr}. Two and a half hours on, nothing has brought her CO2 down."
+    }
+  },
+  "endingOrder": [
+    "intubated",
+    "nivTarget",
+    "nivLate",
+    "outreachTook"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "oxygen",
+        "label": "Oxygen titrated to 88-92% within 10 minutes and never turned up",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "o2Raised",
+            "score": "missed",
+            "why": "Oxygen was turned up to a non-rebreather."
+          },
+          {
+            "when": "isNull(o2RightAt)",
+            "score": "missed",
+            "why": "She stayed above 92% on 4 L."
+          },
+          {
+            "when": "timeAt(o2RightAt) <= o2Window",
+            "score": "met",
+            "why": "In range at {timeAt(o2RightAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Titrated, but after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "SBAR naming hypercapnic failure and asking for NIV within 15 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "Nobody was asked for NIV."
+          },
+          {
+            "when": "timeAt(callEffAt) <= callWindow",
+            "score": "met",
+            "why": "Resident called at {timeAt(callEffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "NIV asked for after 15 minutes."
+          }
+        ]
+      },
+      {
+        "id": "nivRun",
+        "label": "NIV run well: IPAP to 20 within 30 minutes and the leak fixed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(nivAt)",
+            "score": "missed",
+            "why": "NIV never started."
+          },
+          {
+            "when": "not isNull(ipap20At) and timeAt(ipap20At) - timeAt(nivAt) <= titrateWindow and not isNull(fitAt)",
+            "score": "met",
+            "why": "IPAP 20 at {timeAt(ipap20At)|clock}; mask refitted."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "NIV ran, but the pressure stayed low, rose late, or the leak was never checked."
+          }
+        ]
+      },
+      {
+        "id": "gases",
+        "label": "Gas before and after an hour on NIV",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(abg1At)",
+            "score": "missed",
+            "why": "No gas was checked."
+          },
+          {
+            "when": "not isNull(abgAfterAt)",
+            "score": "met",
+            "why": "Gas repeated an hour or more into NIV."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "A gas, but none after an hour of NIV."
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "label": "Escalation plan agreed before NIV",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(planAt)",
+            "score": "missed",
+            "why": "No escalation plan."
+          },
+          {
+            "when": "not isNull(nivAt) and timeAt(planAt) <= timeAt(nivAt)",
+            "score": "met",
+            "why": "Agreed before the mask went on."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Agreed after NIV started."
+          }
+        ]
+      },
+      {
+        "id": "support",
+        "label": "Kept the support on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "maskOffEver",
+            "score": "missed",
+            "why": "The mask came off so she could sleep."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "NIV kept on."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Objective documentation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Gases, settings, oxygen and the plan documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave an opinion instead of findings."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: hypercapnic failure, the oxygen target and NIV",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toO2",
+        "label": "02:10 to SpO2 in 88-92%",
+        "value": "isNull(o2RightAt) ? -1 : timeAt(o2RightAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toNiv",
+        "label": "02:10 to NIV",
+        "value": "isNull(nivAt) ? -1 : timeAt(nivAt)",
+        "format": "duration",
+        "expert": "under 25 min"
+      },
+      {
+        "id": "co2",
+        "label": "PaCO2 now (model)",
+        "value": "round(co2)",
+        "format": "number",
+        "expert": "under 58 mm Hg at the end"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:10",
+        "text": "Assess: drowsy, flapping tremor, accessory muscles. Oxygen down to a 28% Venturi: SpO2 into 88-92%."
+      },
+      {
+        "at": "02:11",
+        "text": "SBAR: acute hypercapnic respiratory failure, oxygen too high, now titrated; NIV please, and her escalation plan."
+      },
+      {
+        "at": "02:14",
+        "text": "Orders in. Nebulizer. Escalation plan agreed with the resident and with her."
+      },
+      {
+        "at": "~02:29",
+        "text": "NIV at IPAP 15, EPAP 4; mask refitted for a leak; IPAP 20 within ten minutes."
+      },
+      {
+        "at": "~03:30",
+        "text": "Gas after an hour on NIV: pH back above 7.35."
+      }
+    ],
+    "debrief": {
+      "intubated": {
+        "headline": "Worsening acidosis",
+        "body": "Find when the oxygen came down, when NIV was asked for, the pressures it ran at, and whether the mask leaked or came off."
+      },
+      "nivTarget": {
+        "headline": "Titrated, ventilated and checked",
+        "body": "Oxygen into 88-92%, NIV asked for at once with a plan agreed, pressure raised to 20, the leak fixed and the gas repeated after an hour. That is the expert path."
+      },
+      "nivLate": {
+        "headline": "Improving, by a slower route",
+        "body": "She responded, but check the oxygen target, how fast NIV was asked for, whether IPAP reached 20, the leak, and whether her plan was agreed first."
+      },
+      "outreachTook": {
+        "headline": "Critical care took over",
+        "body": "Escalating a failing patient is right. Check whether well-titrated NIV with a good seal would have made it unnecessary."
+      },
+      "time_up": {
+        "headline": "04:40, still acidotic",
+        "body": "Without NIV running at an effective pressure, her CO2 stayed high. Worsening pH and breathing rate mean the plan must change."
+      }
+    },
+    "modelReasoning": "Drowsiness, a flapping tremor and a gas of pH 7.29, PaCO2 68 and bicarbonate 32 on 4 L is acute-on-chronic hypercapnic respiratory failure in a COPD exacerbation, made worse by oxygen above her target. Bring the oxygen down so SpO2 sits at 88-92%. Medical treatment has already run for hours and the pH is still below 7.35 with PaCO2 above about 49, so call for NIV now and agree her escalation plan before the mask goes on. Start IPAP around 15 with EPAP 4, raise IPAP to 20-30 within 10-30 minutes, fix leaks, and repeat the gas after NIV. If the pH and respiratory rate worsen despite well-run NIV, escalate for invasive ventilation as her plan allows; pH below 7.25 with RR above 35 that persists makes failure likely. Taking the mask off to let her sleep removes the treatment."
+  },
+  "chapters": [
+    {
+      "id": "onNiv",
+      "label": "NIV running",
+      "when": "niv"
+    }
+  ],
+  "teaching": {
+    "failQ": {
+      "during": "abgT",
+      "when": "niv",
+      "ask": "If the gas after NIV showed pH 7.23 with RR 36, what would it mean?",
+      "choices": [
+        {
+          "id": "wait",
+          "label": "Give it more time on the same settings"
+        },
+        {
+          "id": "fail",
+          "label": "NIV is likely failing: optimize it and escalate for invasive ventilation per her plan"
+        }
+      ],
+      "expect": "fail",
+      "explain": "Worsening pH and respiratory rate mean the strategy must change; persistent or worsening acidosis despite optimized NIV calls for invasive ventilation to be considered, and pH below 7.25 with RR above 35 that persists makes failure likely.",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Read 2026-11-14 through a summarizing fetch (approved for publication November 2015; no newer BTS/ICS version was found). Controlled oxygen to SpO2 88-92% in AECOPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa (about 49 mm Hg) persist or develop despite optimal medical therapy (Grade A), in practice after about 60 minutes with RR >23; start IPAP about 15 and raise it to 20-30 cm H2O within 10-30 minutes, EPAP at least 3; ABG before and after starting NIV; worsening pH and respiratory rate mean the strategy must change, and invasive ventilation should be considered for persistent or worsening acidosis despite optimized NIV (Grade A); pH <7.25 with RR >35 that persists makes NIV failure likely; care plans should include escalation arrangements from the start."
+      }
+    },
+    "pressQ": {
+      "during": "rtT",
+      "ask": "NIV is on its way. Where should the inspiratory pressure end up?",
+      "choices": [
+        {
+          "id": "low",
+          "label": "Keep IPAP at 10 so she tolerates it"
+        },
+        {
+          "id": "up",
+          "label": "Start around 15 and raise to 20-30 within 10-30 minutes"
+        }
+      ],
+      "expect": "up",
+      "explain": "The BTS/ICS guideline starts IPAP around 15 and raises it to 20-30 cm H2O within 10-30 minutes as tolerated; low pressures rarely clear the CO2.",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-14",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Read 2026-11-14 through a summarizing fetch (approved for publication November 2015; no newer BTS/ICS version was found). Controlled oxygen to SpO2 88-92% in AECOPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa (about 49 mm Hg) persist or develop despite optimal medical therapy (Grade A), in practice after about 60 minutes with RR >23; start IPAP about 15 and raise it to 20-30 cm H2O within 10-30 minutes, EPAP at least 3; ABG before and after starting NIV; worsening pH and respiratory rate mean the strategy must change, and invasive ventilation should be considered for persistent or worsening acidosis despite optimized NIV (Grade A); pH <7.25 with RR >35 that persists makes NIV failure likely; care plans should include escalation arrangements from the start."
+      }
+    },
+    "targetQ": {
+      "during": "callbackT",
+      "ask": "While the resident calls back: what SpO2 are you aiming for?",
+      "choices": [
+        {
+          "id": "high",
+          "label": "94-98%"
+        },
+        {
+          "id": "copd",
+          "label": "88-92%"
+        },
+        {
+          "id": "max",
+          "label": "As high as possible"
+        }
+      ],
+      "expect": "copd",
+      "explain": "In a COPD exacerbation with hypercapnia the target is 88-92%; more oxygen than that can push the CO2 higher.",
+      "source": {
+        "cite": "BTS guideline for oxygen use in healthcare and emergency settings",
+        "checkedAt": "2026-11-08",
+        "url": "https://www.brit-thoracic.org.uk/clinical-resources/guidelines/emergency-oxygen/",
+        "note": "Relayed from backend/supabase/seed/labs/value-sources.ts (read 2026-11-08); not re-read. Target SpO2 88-92% for known COPD or other risk of hypercapnic respiratory failure."
+      }
+    }
+  }
+}

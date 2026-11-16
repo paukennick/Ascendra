@@ -1,0 +1,1231 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "waiting-room-esi-retriage",
+  "title": "Four at the triage desk",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hrB",
+          "label": "Brooks HR",
+          "spokenLabel": "Mr. Brooks, heart rate at the last check",
+          "value": "seenHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bpB",
+          "label": "Brooks SBP",
+          "spokenLabel": "Mr. Brooks, systolic pressure at the last check",
+          "value": "seenSbp",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2C",
+          "label": "Diaz SpO2",
+          "spokenLabel": "Ms. Diaz, oxygen saturation",
+          "value": "spo2Cd",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              90,
+              88
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [],
+      "infusions": "Triaged: Chen {lvA|0dp}, Ortiz {lvB|0dp}, Diaz {lvC|0dp}, Brooks {lvD|0dp} (0 = not yet). In a bed: Ortiz {roomedB|yesno}, Diaz {roomedC|yesno}, Brooks {roomedD|yesno}.",
+      "banner": [
+        {
+          "when": "danger and not roomedD",
+          "text": "Mr. Brooks's last heart rate was over 100."
+        }
+      ]
+    }
+  },
+  "objective": "Assign ESI levels to a waiting room of patients and re-triage when vital signs or symptoms change",
+  "sources": [
+    {
+      "cite": "BCEN, CEN Exam Content Outline (effective July 2026): Professional Issues (triage)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14. Professional Issues lists triage."
+    },
+    {
+      "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+      "checkedAt": "2026-11-14",
+      "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+      "note": "Relayed from the course seed, which read it 2026-11-14. Decision point A: needs an immediate life-saving intervention (level 1). B: a high-risk situation, new confusion, lethargy or disorientation, or severe pain or distress (level 2). C: how many different resources (none level 5, one level 4, two or more level 3). D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt considering level 2."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 at the triage desk of a busy emergency department. Four people arrived in the last few minutes; every bed is full, but the charge nurse will open a hallway bed for anyone you call level 1 or 2.",
+    "handover": [
+      "Ms. Chen, 34: twisted her right ankle stepping off a curb; walks with a limp, swelling over the outer ankle; HR 82, RR 16, BP 126/78, SpO2 99%, pain 5/10.",
+      "Mr. Ortiz, 67: 'indigestion' since breakfast that goes to his jaw, sweaty and gray; diabetes, smoker; HR 96, RR 20, BP 152/88, SpO2 96%.",
+      "Ms. Diaz, 22: asthma, wheezing for two days, inhaler not helping; speaking in short phrases; HR 118, RR 28, SpO2 91%.",
+      "Mr. Brooks, 52: upper abdominal pain and nausea since last night, 'some dark stools'; takes ibuprofen for his back; HR 94, RR 18, BP 128/80, SpO2 98%."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Triage each person with the ESI decision points, then keep watching the waiting room: people change while they wait.",
+      "Partway through you are asked to write your reasoning. The case ends at 11:10, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1s",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "bleedRate": {
+      "value": 23,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Mr. Brooks's upper GI bleed: untreated, his heart rate passes 100 about 15 minutes in and he faints in the waiting room at about 55 minutes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "tbv": {
+      "value": 5600,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. 80 kg x 70 mL/kg (the ATLS rule of thumb as relayed in the CCRN Adult bleeding case, 2026-11-10). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseF": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. He faints and goes into shock in the waiting room at a 30% volume deficit (class III in the classic table). Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "acsCollapse": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Mr. Ortiz's ischemia: left in the waiting room, he goes into ventricular fibrillation about 30 minutes in. A teaching consequence, not a prediction. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "asthmaFall": {
+      "value": 0.08,
+      "unit": "%/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Ms. Diaz's SpO2 falls about 0.08% a minute untreated. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "asthmaHarm": {
+      "value": 86,
+      "unit": "%",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. SpO2 at which the model calls respiratory failure in the waiting room. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "triageWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed. FLAG: the case expects all four triaged within 10 minutes; the handbook gives no such number."
+      }
+    },
+    "recheckEvery": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "Department policy in this case: waiting-room vital signs at least every 30 minutes for ESI 3. FLAG: local policy, not from the handbook."
+      }
+    },
+    "retriageWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed: danger-zone vital signs prompt considering level 2 (decision point D). FLAG: the 10-minute re-triage window is this case's."
+      }
+    },
+    "roomTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A level 2 patient is in a bed about 2 minutes after the decision (the charge nurse opens a hallway bed)."
+      }
+    },
+    "reviewAt": {
+      "value": 4200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 11:10, 70 minutes in."
+      }
+    },
+    "reasonAt": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 15 minutes in."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": 400,
+      "min": 0,
+      "max": 6000,
+      "unit": "mL"
+    },
+    "lvA": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "firstD": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "lvB": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "lvC": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "lvD": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "atA": {
+      "type": "time",
+      "init": null
+    },
+    "atB": {
+      "type": "time",
+      "init": null
+    },
+    "atC": {
+      "type": "time",
+      "init": null
+    },
+    "atD": {
+      "type": "time",
+      "init": null
+    },
+    "roomedB": {
+      "type": "bool",
+      "init": false
+    },
+    "roomedC": {
+      "type": "bool",
+      "init": false
+    },
+    "roomedD": {
+      "type": "bool",
+      "init": false
+    },
+    "spo2C": {
+      "type": "number",
+      "init": 91,
+      "min": 70,
+      "max": 100,
+      "unit": "%"
+    },
+    "recheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "seenHr": {
+      "type": "number",
+      "init": 94,
+      "min": 0,
+      "max": 200,
+      "unit": "/min"
+    },
+    "seenSbp": {
+      "type": "number",
+      "init": 128,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "dangerSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "retriagedAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "f": {
+      "expr": "clamp(lost / tbv, 0, 1)",
+      "precision": 2
+    },
+    "hrD": {
+      "expr": "round(clamp(86 + 107 * min(f, 0.15) + 133 * clamp(f - 0.15, 0, 0.15), 60, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbpD": {
+      "expr": "round(130 - 107 * clamp(f - 0.15, 0, 0.15) - 270 * clamp(f - 0.3, 0, 0.1))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "danger": {
+      "expr": "seenHr > 100"
+    },
+    "spo2Cd": {
+      "expr": "round(spo2C)",
+      "unit": "%",
+      "precision": 0
+    },
+    "allDone": {
+      "expr": "lvA > 0 and lvB > 0 and lvC > 0 and lvD > 0"
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "not roomedD",
+      "update": {
+        "lost": "lost + bleedRate * dt / 60"
+      }
+    },
+    {
+      "id": "asthma",
+      "when": "not roomedC",
+      "update": {
+        "spo2C": "max(70, spo2C - asthmaFall * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "Triage",
+      "clock": "running",
+      "actions": [
+        "triA",
+        "triB",
+        "triC",
+        "triD",
+        "recheck",
+        "retriage",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "triA": {
+      "label": "Triage Ms. Chen, 34: twisted her right ankle stepping off a curb; walks with a limp, swelling over the outer ankle; HR 82, RR 16, BP 126/78, SpO2 99%, pain 5/10",
+      "group": "Triage",
+      "available": "lvA == 0",
+      "why": "Already triaged.",
+      "params": [
+        {
+          "id": "lvl",
+          "kind": "choice",
+          "label": "ESI level",
+          "options": [
+            {
+              "value": "1",
+              "label": "ESI 1"
+            },
+            {
+              "value": "2",
+              "label": "ESI 2"
+            },
+            {
+              "value": "3",
+              "label": "ESI 3"
+            },
+            {
+              "value": "4",
+              "label": "ESI 4"
+            },
+            {
+              "value": "5",
+              "label": "ESI 5"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lvA",
+          "to": "lvl == \"1\" ? 1 : (lvl == \"2\" ? 2 : (lvl == \"3\" ? 3 : (lvl == \"4\" ? 4 : 5)))"
+        },
+        {
+          "if": "isNull(atA)",
+          "then": [
+            {
+              "set": "atA",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Ms. Chen: ESI {lvA|0dp}."
+        }
+      ]
+    },
+    "triB": {
+      "label": "Triage Mr. Ortiz, 67: 'indigestion' since breakfast that goes to his jaw, sweaty and gray; diabetes, smoker; HR 96, RR 20, BP 152/88, SpO2 96%",
+      "group": "Triage",
+      "available": "lvB == 0",
+      "why": "Already triaged.",
+      "params": [
+        {
+          "id": "lvl",
+          "kind": "choice",
+          "label": "ESI level",
+          "options": [
+            {
+              "value": "1",
+              "label": "ESI 1"
+            },
+            {
+              "value": "2",
+              "label": "ESI 2"
+            },
+            {
+              "value": "3",
+              "label": "ESI 3"
+            },
+            {
+              "value": "4",
+              "label": "ESI 4"
+            },
+            {
+              "value": "5",
+              "label": "ESI 5"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lvB",
+          "to": "lvl == \"1\" ? 1 : (lvl == \"2\" ? 2 : (lvl == \"3\" ? 3 : (lvl == \"4\" ? 4 : 5)))"
+        },
+        {
+          "if": "isNull(atB)",
+          "then": [
+            {
+              "set": "atB",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "lvl == \"1\" or lvl == \"2\"",
+          "then": [
+            {
+              "schedule": "roomBT",
+              "after": "roomTime"
+            }
+          ]
+        },
+        {
+          "log": "Mr. Ortiz: ESI {lvB|0dp}."
+        }
+      ]
+    },
+    "triC": {
+      "label": "Triage Ms. Diaz, 22: asthma, wheezing for two days, inhaler not helping; speaking in short phrases; HR 118, RR 28, SpO2 91%",
+      "group": "Triage",
+      "available": "lvC == 0",
+      "why": "Already triaged.",
+      "params": [
+        {
+          "id": "lvl",
+          "kind": "choice",
+          "label": "ESI level",
+          "options": [
+            {
+              "value": "1",
+              "label": "ESI 1"
+            },
+            {
+              "value": "2",
+              "label": "ESI 2"
+            },
+            {
+              "value": "3",
+              "label": "ESI 3"
+            },
+            {
+              "value": "4",
+              "label": "ESI 4"
+            },
+            {
+              "value": "5",
+              "label": "ESI 5"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lvC",
+          "to": "lvl == \"1\" ? 1 : (lvl == \"2\" ? 2 : (lvl == \"3\" ? 3 : (lvl == \"4\" ? 4 : 5)))"
+        },
+        {
+          "if": "isNull(atC)",
+          "then": [
+            {
+              "set": "atC",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "lvl == \"1\" or lvl == \"2\"",
+          "then": [
+            {
+              "schedule": "roomCT",
+              "after": "roomTime"
+            }
+          ]
+        },
+        {
+          "log": "Ms. Diaz: ESI {lvC|0dp}."
+        }
+      ]
+    },
+    "triD": {
+      "label": "Triage Mr. Brooks, 52: upper abdominal pain and nausea since last night, 'some dark stools'; takes ibuprofen for his back; HR 94, RR 18, BP 128/80, SpO2 98%",
+      "group": "Triage",
+      "available": "lvD == 0",
+      "why": "Already triaged.",
+      "params": [
+        {
+          "id": "lvl",
+          "kind": "choice",
+          "label": "ESI level",
+          "options": [
+            {
+              "value": "1",
+              "label": "ESI 1"
+            },
+            {
+              "value": "2",
+              "label": "ESI 2"
+            },
+            {
+              "value": "3",
+              "label": "ESI 3"
+            },
+            {
+              "value": "4",
+              "label": "ESI 4"
+            },
+            {
+              "value": "5",
+              "label": "ESI 5"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lvD",
+          "to": "lvl == \"1\" ? 1 : (lvl == \"2\" ? 2 : (lvl == \"3\" ? 3 : (lvl == \"4\" ? 4 : 5)))"
+        },
+        {
+          "if": "isNull(atD)",
+          "then": [
+            {
+              "set": "atD",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "firstD",
+          "to": "lvD"
+        },
+        {
+          "if": "lvl == \"1\" or lvl == \"2\"",
+          "then": [
+            {
+              "schedule": "roomDT",
+              "after": "roomTime"
+            }
+          ]
+        },
+        {
+          "log": "Mr. Brooks: ESI {lvD|0dp}."
+        }
+      ]
+    },
+    "recheck": {
+      "label": "Recheck vital signs in the waiting room",
+      "group": "Reassess",
+      "available": "lvD >= 3 and not roomedD",
+      "why": "No one waiting needs a recheck.",
+      "effects": [
+        {
+          "if": "isNull(recheckAt)",
+          "then": [
+            {
+              "set": "recheckAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "recheckN",
+          "by": "1"
+        },
+        {
+          "set": "seenHr",
+          "to": "hrD"
+        },
+        {
+          "set": "seenSbp",
+          "to": "sbpD"
+        },
+        {
+          "if": "hrD > 100 and isNull(dangerSeenAt)",
+          "then": [
+            {
+              "set": "dangerSeenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "hrD > 100",
+              "then": [
+                {
+                  "log": "Mr. Brooks: HR {hrD}, BP {sbpD}/{round(sbpD * 0.6)|0dp}, pale and lightheaded when he stands; he vomited something that looked like coffee grounds.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Mr. Brooks: HR {hrD}, BP {sbpD}/{round(sbpD * 0.6)|0dp}; same pain.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "retriage": {
+      "label": "Re-triage Mr. Brooks to ESI 2 and bring him back now",
+      "group": "Reassess",
+      "available": "lvD >= 3 and not roomedD",
+      "why": "He is not in the waiting room.",
+      "effects": [
+        {
+          "if": "isNull(retriagedAt)",
+          "then": [
+            {
+              "set": "retriagedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lvD",
+          "to": "2"
+        },
+        {
+          "schedule": "roomDT",
+          "after": "roomTime"
+        },
+        {
+          "log": "Mr. Brooks re-triaged ESI 2; the charge nurse opens a bed and the physician is told."
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Each triage level with the decision point behind it, recheck times and vital signs, the re-triage and who was told"
+            },
+            {
+              "value": "opinion",
+              "label": "'Busy waiting room, all triaged'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note: levels with reasons, recheck and re-triage documented."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'Busy waiting room, all triaged.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "roomBT": {
+      "label": "a bed for Mr. Ortiz",
+      "wait": {
+        "skipLabel": "a bed for Mr. Ortiz (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A level 2 patient is in a bed about 2 minutes after the decision (the charge nurse opens a hallway bed)."
+      },
+      "effects": [
+        {
+          "set": "roomedB",
+          "to": "true"
+        },
+        {
+          "log": "Mr. Ortiz is in a bed with a 12-lead ECG and the physician.",
+          "kind": "good"
+        }
+      ]
+    },
+    "roomCT": {
+      "label": "a bed for Ms. Diaz",
+      "wait": {
+        "skipLabel": "a bed for Ms. Diaz (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A level 2 patient is in a bed about 2 minutes after the decision (the charge nurse opens a hallway bed)."
+      },
+      "effects": [
+        {
+          "set": "roomedC",
+          "to": "true"
+        },
+        {
+          "log": "Ms. Diaz is in a bed with a nebulizer running.",
+          "kind": "good"
+        }
+      ]
+    },
+    "roomDT": {
+      "label": "a bed for Mr. Brooks",
+      "wait": {
+        "skipLabel": "a bed for Mr. Brooks (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "A level 2 patient is in a bed about 2 minutes after the decision (the charge nurse opens a hallway bed)."
+      },
+      "effects": [
+        {
+          "set": "roomedD",
+          "to": "true"
+        },
+        {
+          "log": "Mr. Brooks is in a bed: two IVs, blood sent, the physician at the bedside.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "11:10",
+      "wait": {
+        "skipLabel": "11:10, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 11:10, 70 minutes in."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    },
+    {
+      "id": "lightheaded",
+      "when": "not roomedD and lvD >= 3 and hrD > 108",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Mr. Brooks's wife comes to the desk: he nearly fainted getting up to use the bathroom.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "Which level did you give each patient and why, and what will make you change one?",
+      "parts": [
+        {
+          "label": "Levels and reasons",
+          "criteria": "Ms. Chen ESI 4 (one resource); Mr. Ortiz ESI 2 (high-risk situation: possible ACS); Ms. Diaz ESI 2 (danger-zone heart rate, respiratory rate and SpO2 in asthma); Mr. Brooks ESI 3 at arrival (two or more resources, vital signs acceptable).",
+          "modelAnswer": "Chen: stable ankle injury needing one resource (an x-ray), ESI 4. Ortiz: jaw-radiating 'indigestion' with sweating, diabetes and smoking is possible ACS, a high-risk situation: ESI 2. Diaz: heart rate 118, respiratory rate 28 and SpO2 91% in an asthma attack are danger-zone vital signs: ESI 2. Brooks: stable vital signs, will need labs and imaging: ESI 3 for now."
+        },
+        {
+          "label": "When to re-triage",
+          "criteria": "Rechecks the waiting room by policy; re-triages Mr. Brooks to level 2 when his heart rate passes 100 or he becomes lightheaded or vomits blood, because dark stools on ibuprofen suggest an upper GI bleed.",
+          "modelAnswer": "Mr. Brooks's dark stools on ibuprofen could be an upper GI bleed. I recheck him within 30 minutes; a heart rate over 100, a falling pressure, lightheadedness or coffee-ground vomit makes him high risk, so I re-triage him to level 2 and get him a bed at once."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and (lvA == 0 or lvB == 0 or lvC == 0 or lvD == 0)",
+      "class": "harm",
+      "rationale": "A patient never triaged after an hour has had no assessment of risk; this case calls that harm.",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed from the course seed, which read it 2026-11-14. Decision point A: needs an immediate life-saving intervention (level 1). B: a high-risk situation, new confusion, lethargy or disorientation, or severe pain or distress (level 2). C: how many different resources (none level 5, one level 4, two or more level 3). D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt considering level 2."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "A patient collapses in the waiting room",
+      "class": "harm",
+      "terminal": true,
+      "when": "(not roomedB and t >= acsCollapse) or (not roomedC and spo2C <= asthmaHarm) or (not roomedD and f >= collapseF)",
+      "narrative": "{t|clock}: a call from the waiting room: a patient you triaged is on the floor. The resuscitation team runs out."
+    },
+    "safeTarget": {
+      "label": "The right level for everyone, and the change caught",
+      "class": "target",
+      "terminal": true,
+      "when": "t >= reviewAt and lvA == 4 and lvB == 2 and lvC == 2 and firstD == 3 and timeAt(atA) <= triageWindow and timeAt(atB) <= triageWindow and timeAt(atC) <= triageWindow and timeAt(atD) <= triageWindow and not isNull(retriagedAt) and not isNull(dangerSeenAt) and timeAt(retriagedAt) - timeAt(dangerSeenAt) <= retriageWindow and timeAt(recheckAt) <= recheckEvery",
+      "narrative": "11:10: Mr. Ortiz's ECG is being read, Ms. Diaz is breathing easier, Ms. Chen is waiting for her x-ray, and Mr. Brooks is in a bed with blood sent. You used the decision points and rechecked the waiting room."
+    },
+    "safeLate": {
+      "label": "Everyone safe, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "t >= reviewAt",
+      "narrative": "11:10: no one collapsed, but the route cost time or beds: a level off, a slow triage, a late recheck, or a change seen and not acted on at once."
+    },
+    "time_up": {
+      "label": "11:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:20."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "safeTarget",
+    "safeLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "highRisk",
+        "label": "Mr. Ortiz and Ms. Diaz to ESI 2",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lvB == 2 and lvC == 2",
+            "score": "met",
+            "why": "Both high risk: possible ACS, and a danger-zone heart rate, respiratory rate and SpO2."
+          },
+          {
+            "when": "lvB == 2 or lvC == 2",
+            "score": "partial",
+            "why": "One of the two high-risk patients was under-triaged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither high-risk patient got level 2."
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "label": "Resource counting for the stable patients (Ms. Chen ESI 4, Mr. Brooks ESI 3 at arrival)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lvA == 4 and firstD == 3",
+            "score": "met",
+            "why": "One resource (x-ray) for Ms. Chen; two or more (labs, imaging) for Mr. Brooks."
+          },
+          {
+            "when": "lvA == 4 or firstD == 3",
+            "score": "partial",
+            "why": "One of the two counted wrong."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Resources miscounted for both."
+          }
+        ]
+      },
+      {
+        "id": "recheck",
+        "label": "Rechecked the waiting room within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lvD < 3 and isNull(retriagedAt)",
+            "score": "met",
+            "why": "Mr. Brooks was never left waiting."
+          },
+          {
+            "when": "isNull(recheckAt)",
+            "score": "missed",
+            "why": "No one rechecked the waiting room."
+          },
+          {
+            "when": "timeAt(recheckAt) <= recheckEvery",
+            "score": "met",
+            "why": "First recheck at {timeAt(recheckAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "First recheck after 30 minutes."
+          }
+        ]
+      },
+      {
+        "id": "retriage",
+        "label": "Re-triaged within 10 minutes of the danger-zone heart rate",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lvD < 3 and isNull(retriagedAt)",
+            "score": "partial",
+            "why": "Mr. Brooks was over-triaged at arrival, so there was nothing to re-triage."
+          },
+          {
+            "when": "isNull(retriagedAt)",
+            "score": "missed",
+            "why": "Mr. Brooks was never re-triaged."
+          },
+          {
+            "when": "isNull(dangerSeenAt)",
+            "score": "partial",
+            "why": "Re-triaged without a recheck that showed why."
+          },
+          {
+            "when": "timeAt(retriagedAt) - timeAt(dangerSeenAt) <= retriageWindow",
+            "score": "met",
+            "why": "Re-triaged at {timeAt(retriagedAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Re-triaged more than 10 minutes after the change was seen."
+          }
+        ]
+      },
+      {
+        "id": "speed",
+        "label": "All four triaged within 10 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not allDone",
+            "score": "missed",
+            "why": "Someone was never triaged."
+          },
+          {
+            "when": "timeAt(atA) <= triageWindow and timeAt(atB) <= triageWindow and timeAt(atC) <= triageWindow and timeAt(atD) <= triageWindow",
+            "score": "met",
+            "why": "All four within 10 minutes."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Triage took more than 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Documented levels with reasons",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteObjective",
+            "score": "met",
+            "why": "Levels, reasons and rechecks documented."
+          },
+          {
+            "when": "isNull(noteAt)",
+            "score": "missed",
+            "why": "Not documented."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "The note gave no reasons."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: ESI decision points and re-triage",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toRetriage",
+        "label": "10:00 to Mr. Brooks's re-triage",
+        "value": "isNull(retriagedAt) ? -1 : timeAt(retriagedAt)",
+        "format": "duration",
+        "expert": "under 25 min"
+      },
+      {
+        "id": "lost",
+        "label": "Mr. Brooks's blood loss (model)",
+        "value": "round(lost)",
+        "format": "number",
+        "expert": "under 1,200 mL"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Ortiz ESI 2 (high risk) and Diaz ESI 2 (danger-zone vital signs) to beds; Chen ESI 4; Brooks ESI 3."
+      },
+      {
+        "at": "~10:15",
+        "text": "Recheck the waiting room: Brooks's heart rate is over 100."
+      },
+      {
+        "at": "~10:16",
+        "text": "Re-triage Brooks to ESI 2 and get him a bed; document levels and reasons."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "A collapse in the waiting room",
+        "body": "Find who was under-triaged or not rechecked: a high-risk situation, danger-zone vital signs, or a change while waiting."
+      },
+      "safeTarget": {
+        "headline": "Decision points used, and the change caught",
+        "body": "High risk before resources, resources counted right, the waiting room rechecked, and the patient who changed re-triaged at once. That is the expert path."
+      },
+      "safeLate": {
+        "headline": "Everyone safe, by a slower route",
+        "body": "Check each level against the decision points, how fast triage went, when the waiting room was rechecked and how long the re-triage took."
+      },
+      "time_up": {
+        "headline": "11:20",
+        "body": "Triage and re-triage are continuous."
+      }
+    },
+    "modelReasoning": "Use the ESI decision points in order. Mr. Ortiz's jaw-radiating 'indigestion' with sweating, diabetes and smoking is possible ACS, a high-risk situation: ESI 2 whatever his resource count. Ms. Diaz's heart rate of 118, respiratory rate of 28 and SpO2 of 91% in an asthma attack are danger-zone vital signs: ESI 2. Ms. Chen's ankle needs one resource (an x-ray): ESI 4. Mr. Brooks is stable at arrival and needs two or more resources: ESI 3, but his dark stools on ibuprofen make him one to watch. Recheck the waiting room; when his heart rate passes 100 and he vomits coffee grounds, re-triage him to ESI 2 and get him a bed at once."
+  },
+  "chapters": [
+    {
+      "id": "triaged",
+      "label": "Everyone triaged",
+      "when": "allDone"
+    }
+  ],
+  "teaching": {
+    "dpQ": {
+      "during": "roomBT",
+      "ask": "Mr. Ortiz's vital signs are nearly normal. Why is he still level 2?",
+      "choices": [
+        {
+          "id": "vitals",
+          "label": "He is not; normal vital signs make him level 3"
+        },
+        {
+          "id": "risk",
+          "label": "A high-risk situation (decision point B) is level 2 whatever the resource count"
+        }
+      ],
+      "expect": "risk",
+      "explain": "ESI asks about high risk before it counts resources. Jaw-radiating 'indigestion' with sweating in a 67-year-old diabetic smoker is a high-risk situation, so he is level 2 even with acceptable vital signs.",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed from the course seed, which read it 2026-11-14. Decision point A: needs an immediate life-saving intervention (level 1). B: a high-risk situation, new confusion, lethargy or disorientation, or severe pain or distress (level 2). C: how many different resources (none level 5, one level 4, two or more level 3). D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt considering level 2."
+      }
+    },
+    "rtQ": {
+      "during": "roomDT",
+      "ask": "Mr. Brooks was correctly ESI 3 at arrival. What changed his level?",
+      "choices": [
+        {
+          "id": "none",
+          "label": "Nothing: a level is fixed at triage"
+        },
+        {
+          "id": "vitals",
+          "label": "New danger-zone vital signs and a high-risk finding: re-triage"
+        }
+      ],
+      "expect": "vitals",
+      "explain": "Triage is repeated when vital signs or symptoms change. A heart rate over 100 (decision point D) with coffee-ground vomit and lightheadedness makes him high risk now.",
+      "source": {
+        "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+        "checkedAt": "2026-11-14",
+        "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+        "note": "Relayed from the course seed, which read it 2026-11-14. Decision point A: needs an immediate life-saving intervention (level 1). B: a high-risk situation, new confusion, lethargy or disorientation, or severe pain or distress (level 2). C: how many different resources (none level 5, one level 4, two or more level 3). D: adult heart rate >100, respiratory rate >20 or SpO2 <92% prompt considering level 2."
+      }
+    }
+  }
+}

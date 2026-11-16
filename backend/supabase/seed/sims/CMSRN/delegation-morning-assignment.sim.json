@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "delegation-morning-assignment",
+  "title": "Five patients, an LPN and an assistant",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "14 HR",
+          "spokenLabel": "Room 14, Mr. Lane, heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "14 BP",
+          "spokenLabel": "Room 14, Mr. Lane, blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [],
+      "infusions": "Plan made: {assigned|yesno}. Mr. Lane reported: {not isNull(reportAt)|yesno}. Provider called: {not isNull(callAt)|yesno}.",
+      "banner": [
+        {
+          "when": "not isNull(reportAt) and isNull(rnEvalAt)",
+          "text": "Jo reported a low pressure in 14."
+        }
+      ]
+    }
+  },
+  "objective": "Delegate tasks to assistive personnel and LPNs using the five rights, keeping assessment and evaluation with the RN",
+  "secondaryObjectives": [
+    "Prioritize a patient assignment and recognize which patient to see first"
+  ],
+  "sources": [
+    {
+      "cite": "MSNCB, 2023 CMSRN Exam Blueprint: Nursing Teamwork and Collaboration (21%)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/cmsrn.ts), which read the blueprint 2026-11-14. The domain covers delegation and supervision of assistive personnel and LPNs."
+    },
+    {
+      "cite": "NCSBN and ANA, National Guidelines for Nursing Delegation (2019)",
+      "checkedAt": "2026-11-07",
+      "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+      "note": "Relayed from the course seed (read 2026-11-07). The five rights of delegation: right task, circumstance, person, directions and communication, and supervision and evaluation; the delegating nurse remains accountable, and nursing judgment (assessment, evaluation) is not delegated."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 on a medical-surgical unit. You have five patients, with Sam (LPN) and Jo (nursing assistant).",
+    "handover": [
+      "Room 12: an admission arriving now from the emergency department (pneumonia).",
+      "Room 14, Mr. Lane, 70: admitted yesterday for back pain; takes ibuprofen at home; 06:00 vital signs normal.",
+      "Room 15, Ms. Ruiz: discharge at 11:00 on a new insulin pen. Rooms 16 and 17: stable, scheduled oral medicines."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Plan who does what, give directions, then supervise: reports come back to you as the round goes on.",
+      "Partway through you are asked to write your reasoning. The case ends at 10:30, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1s",
+    "maxDuration": "105min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sevRise": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. Mr. Lane's bleeding ulcer worsens about 0.01 a minute (0 = stable, 1 = collapse) until a nurse evaluates him and the provider acts. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapse": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "FLAG: authored. He faints on the way to the bathroom: the harm outcome. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "uapRound": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The assistant's 09:00 vital signs round reaches Mr. Lane about 15 minutes in."
+      }
+    },
+    "uapLate": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "With vague directions the assistant finishes the round and mentions the low reading at the 09:45 huddle. FLAG."
+      }
+    },
+    "provCall": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The provider calls back about 5 minutes after an SBAR and gives orders."
+      }
+    },
+    "evalWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "NCSBN and ANA, National Guidelines for Nursing Delegation (2019)",
+        "checkedAt": "2026-11-07",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Relayed: evaluation stays with the RN. FLAG: the 10-minute window from the assistant's report to the RN's own assessment is this case's."
+      }
+    },
+    "reviewAt": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 10:30."
+      }
+    },
+    "reasonAt": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The reasoning question opens 5 minutes in."
+      }
+    }
+  },
+  "state": {
+    "sev": {
+      "type": "number",
+      "init": 0.15,
+      "min": 0,
+      "max": 2
+    },
+    "assigned": {
+      "type": "bool",
+      "init": false
+    },
+    "admitTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rn",
+        "lpn",
+        "uap"
+      ],
+      "init": "none"
+    },
+    "teachTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rn",
+        "lpn",
+        "uap"
+      ],
+      "init": "none"
+    },
+    "medsTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rn",
+        "lpn",
+        "uap"
+      ],
+      "init": "none"
+    },
+    "vsHow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "clear",
+        "vague"
+      ],
+      "init": "none"
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "rnEvalAt": {
+      "type": "time",
+      "init": null
+    },
+    "lpnRecheck": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "ordersAt": {
+      "type": "time",
+      "init": null
+    },
+    "followAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "noteObjective": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(clamp(84 + 40 * sev + 1.5 * sin(t / 31), 60, 160))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(124 - 40 * sev, 60, 160))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "isNull(ordersAt)",
+      "update": {
+        "sev": "sev + dt / 60 * sevRise"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "The unit",
+      "clock": "running",
+      "actions": [
+        "assign",
+        "seeLane",
+        "lpnRecheck",
+        "call",
+        "follow",
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "assign": {
+      "label": "Plan the morning: who does what",
+      "group": "Delegate",
+      "available": "not assigned",
+      "why": "Already planned.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "form",
+          "label": "Assignments",
+          "fields": [
+            {
+              "id": "admit",
+              "label": "Admission assessment for the new patient in 12",
+              "options": [
+                {
+                  "value": "rn",
+                  "label": "Me (RN)"
+                },
+                {
+                  "value": "lpn",
+                  "label": "Sam (LPN)"
+                },
+                {
+                  "value": "uap",
+                  "label": "Jo (nursing assistant)"
+                }
+              ]
+            },
+            {
+              "id": "teach",
+              "label": "Insulin pen teaching for Ms. Ruiz's discharge",
+              "options": [
+                {
+                  "value": "rn",
+                  "label": "Me (RN)"
+                },
+                {
+                  "value": "lpn",
+                  "label": "Sam (LPN)"
+                },
+                {
+                  "value": "uap",
+                  "label": "Jo (nursing assistant)"
+                }
+              ]
+            },
+            {
+              "id": "meds",
+              "label": "Scheduled oral medicines for the four stable patients",
+              "options": [
+                {
+                  "value": "rn",
+                  "label": "Me (RN)"
+                },
+                {
+                  "value": "lpn",
+                  "label": "Sam (LPN)"
+                },
+                {
+                  "value": "uap",
+                  "label": "Jo (nursing assistant)"
+                }
+              ]
+            },
+            {
+              "id": "vs",
+              "label": "Directions for Jo's 09:00 vital signs round",
+              "options": [
+                {
+                  "value": "clear",
+                  "label": "Vital signs on all five by 09:30; tell me at once if any SBP is under 100, heart rate over 110, or anyone is dizzy, and do not get Mr. Lane up alone"
+                },
+                {
+                  "value": "vague",
+                  "label": "Do the vital signs and let me know if anything's off"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "assigned",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "admit == \"rn\"",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"rn\""
+                }
+              ]
+            },
+            {
+              "when": "admit == \"lpn\"",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"lpn\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "admitTo",
+                  "to": "\"uap\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "teach == \"rn\"",
+              "then": [
+                {
+                  "set": "teachTo",
+                  "to": "\"rn\""
+                }
+              ]
+            },
+            {
+              "when": "teach == \"lpn\"",
+              "then": [
+                {
+                  "set": "teachTo",
+                  "to": "\"lpn\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "teachTo",
+                  "to": "\"uap\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "meds == \"rn\"",
+              "then": [
+                {
+                  "set": "medsTo",
+                  "to": "\"rn\""
+                }
+              ]
+            },
+            {
+              "when": "meds == \"lpn\"",
+              "then": [
+                {
+                  "set": "medsTo",
+                  "to": "\"lpn\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsTo",
+                  "to": "\"uap\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "vs == \"clear\"",
+          "then": [
+            {
+              "set": "vsHow",
+              "to": "\"clear\""
+            },
+            {
+              "schedule": "reportT",
+              "after": "uapRound"
+            }
+          ],
+          "else": [
+            {
+              "set": "vsHow",
+              "to": "\"vague\""
+            },
+            {
+              "schedule": "reportT",
+              "after": "uapLate"
+            }
+          ]
+        },
+        {
+          "log": "Plan made and shared with Sam and Jo."
+        }
+      ]
+    },
+    "seeLane": {
+      "label": "Go and assess Mr. Lane yourself",
+      "group": "Evaluate",
+      "available": "isNull(rnEvalAt)",
+      "why": "You have assessed him.",
+      "effects": [
+        {
+          "if": "isNull(rnEvalAt)",
+          "then": [
+            {
+              "set": "rnEvalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Mr. Lane: pale and clammy, lightheaded sitting up, HR {hr}, BP {sbp}/{dbp}; he had a large black stool at 08:30 and didn't mention it. Epigastric tenderness.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "lpnRecheck": {
+      "label": "Ask Sam (LPN) to recheck Mr. Lane's pressure and let you know",
+      "group": "Delegate",
+      "available": "not lpnRecheck and not isNull(reportAt)",
+      "why": "No report yet, or already asked.",
+      "effects": [
+        {
+          "set": "lpnRecheck",
+          "to": "true"
+        },
+        {
+          "log": "Sam rechecks: {sbp}/{dbp}. 'Still low.'",
+          "kind": "sys"
+        }
+      ]
+    },
+    "call": {
+      "label": "SBAR to the provider: possible upper GI bleed with low pressure",
+      "group": "Escalate",
+      "available": "isNull(callAt) and not isNull(rnEvalAt)",
+      "why": "Assess him yourself first, or the call is made.",
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "ordersT",
+          "after": "provCall"
+        },
+        {
+          "log": "SBAR given: black stool, lightheaded, HR {hr}, BP {sbp}/{dbp}, on ibuprofen at home."
+        }
+      ]
+    },
+    "follow": {
+      "label": "Check back with Jo and Sam: what's done, anything off",
+      "group": "Supervise",
+      "available": "assigned and isNull(followAt)",
+      "why": "No plan yet, or you have checked in.",
+      "effects": [
+        {
+          "if": "isNull(followAt)",
+          "then": [
+            {
+              "set": "followAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Jo: all vital signs done. Sam: meds given; Ms. Ruiz asked about her insulin."
+        }
+      ]
+    },
+    "note": {
+      "label": "Document",
+      "group": "Evaluate",
+      "available": "isNull(noteAt)",
+      "why": "Already documented.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "Report time, your own findings, the SBAR and the orders"
+            },
+            {
+              "value": "opinion",
+              "label": "'BP low per aide, LPN rechecked'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "kind == \"obj\"",
+              "then": [
+                {
+                  "set": "noteObjective",
+                  "to": "true"
+                },
+                {
+                  "log": "Note documented with times and findings."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Note: 'BP low per aide, LPN rechecked.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "reportT": {
+      "label": "Jo's report on Mr. Lane",
+      "wait": {
+        "skipLabel": "Jo's vital signs round"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The assistant's 09:00 vital signs round reaches Mr. Lane about 15 minutes in."
+      },
+      "effects": [
+        {
+          "if": "isNull(reportAt)",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Jo: 'Mr. Lane in 14 is {sbp}/{dbp}, pulse {hr}. He said he felt woozy.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "ordersT": {
+      "label": "the provider's orders",
+      "wait": {
+        "skipLabel": "the provider's orders (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The provider calls back about 5 minutes after an SBAR and gives orders."
+      },
+      "effects": [
+        {
+          "if": "isNull(ordersAt)",
+          "then": [
+            {
+              "set": "ordersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Orders: two large-bore IVs, fluid bolus, stat hemoglobin and type and crossmatch, nothing by mouth, pantoprazole IV; GI consult.",
+          "kind": "good"
+        }
+      ]
+    },
+    "endT": {
+      "label": "10:30",
+      "wait": {
+        "skipLabel": "10:30, the end of the case",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-14",
+        "note": "The case ends at 10:30."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "reviewAt"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "cues": {
+      "trigger": "t >= reasonAt",
+      "question": "Which tasks did you keep, which did you delegate and to whom, and what makes a delegation safe?",
+      "parts": [
+        {
+          "label": "Who does what",
+          "criteria": "Keeps the admission assessment and the insulin teaching (assessment, teaching and evaluation are nursing judgment); gives the stable patients' scheduled oral medicines to the LPN; gives vital signs to the assistant.",
+          "modelAnswer": "I keep the admission assessment and Ms. Ruiz's insulin teaching. Sam gives the scheduled oral medicines to the stable patients. Jo does the vital signs round."
+        },
+        {
+          "label": "Making it safe",
+          "criteria": "Names the five rights; gives specific directions with report-back limits; evaluates any abnormal report personally and escalates; follows up with the team because accountability stays with the RN.",
+          "modelAnswer": "The five rights: right task, circumstance, person, directions and supervision. Jo gets specific limits to report at once (SBP under 100, heart rate over 110, dizziness). If she reports one, I assess the patient myself, not hand it to Sam, and I escalate; and I check back with both, because I remain accountable."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= reviewAt and isNull(callAt)",
+      "class": "harm",
+      "rationale": "A low pressure reported and never evaluated or escalated by 10:30 is harm here.",
+      "source": {
+        "cite": "NCSBN and ANA, National Guidelines for Nursing Delegation (2019)",
+        "checkedAt": "2026-11-07",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Relayed from the course seed (read 2026-11-07). The five rights of delegation: right task, circumstance, person, directions and communication, and supervision and evaluation; the delegating nurse remains accountable, and nursing judgment (assessment, evaluation) is not delegated."
+      }
+    }
+  },
+  "endings": {
+    "faint": {
+      "label": "Mr. Lane collapses",
+      "class": "harm",
+      "terminal": true,
+      "when": "sev >= collapse",
+      "narrative": "{t|clock}: Mr. Lane faints walking to the bathroom; HR {hr}, BP {sbp}/{dbp}. The rapid response team is called."
+    },
+    "teamTarget": {
+      "label": "The right person for each task, and the change caught",
+      "class": "target",
+      "terminal": true,
+      "when": "t >= reviewAt and admitTo == \"rn\" and teachTo == \"rn\" and medsTo == \"lpn\" and vsHow == \"clear\" and not isNull(rnEvalAt) and timeAt(rnEvalAt) - timeAt(reportAt) <= evalWindow and not isNull(callAt) and not isNull(followAt) and not lpnRecheck",
+      "narrative": "10:30: Mr. Lane is on fluids and waiting for endoscopy, the admission is assessed, Ms. Ruiz can use her pen, and your team knows what is expected."
+    },
+    "teamLate": {
+      "label": "Through the morning, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "t >= reviewAt",
+      "narrative": "10:30: everyone is safe, but the route cost time or safety: a task outside someone's scope, vague directions, a report handed back to someone else to evaluate, or no follow-up."
+    },
+    "time_up": {
+      "label": "10:45",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:45."
+    }
+  },
+  "endingOrder": [
+    "faint",
+    "teamTarget",
+    "teamLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rnTasks",
+        "label": "Assessment and teaching kept with the RN",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "admitTo == \"rn\" and teachTo == \"rn\"",
+            "score": "met",
+            "why": "The admission assessment and the discharge teaching stayed with you."
+          },
+          {
+            "when": "admitTo == \"rn\" or teachTo == \"rn\"",
+            "score": "partial",
+            "why": "One RN-only task was delegated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nursing judgment was delegated."
+          }
+        ]
+      },
+      {
+        "id": "directions",
+        "label": "Specific directions with report-back limits",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "vsHow == \"clear\"",
+            "score": "met",
+            "why": "Jo knew what to report and when."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "'Let me know if anything's off' left the judgment with the assistant."
+          }
+        ]
+      },
+      {
+        "id": "evaluate",
+        "label": "Evaluated the report yourself within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(rnEvalAt)",
+            "score": "missed",
+            "why": "No RN assessment of a low blood pressure."
+          },
+          {
+            "when": "lpnRecheck",
+            "score": "partial",
+            "why": "The report went to the LPN to recheck before you assessed him."
+          },
+          {
+            "when": "not isNull(reportAt) and timeAt(rnEvalAt) - timeAt(reportAt) <= evalWindow",
+            "score": "met",
+            "why": "Assessed at {timeAt(rnEvalAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Assessed after 10 minutes."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Escalated with an SBAR",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(callAt)",
+            "score": "met",
+            "why": "Provider called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The provider was not told."
+          }
+        ]
+      },
+      {
+        "id": "meds",
+        "label": "Oral medicines to the LPN, not the assistant",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "medsTo == \"lpn\" or medsTo == \"rn\"",
+            "score": "met",
+            "why": "Medicines with a licensed nurse."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Medication administration given to the nursing assistant."
+          }
+        ]
+      },
+      {
+        "id": "supervise",
+        "label": "Followed up with the team",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(followAt)",
+            "score": "met",
+            "why": "Checked back: supervision and evaluation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No follow-up on delegated work."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "cues",
+        "label": "Written reasoning: the five rights and what stays with the RN",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toEval",
+        "label": "Report to your own assessment",
+        "value": "isNull(rnEvalAt) or isNull(reportAt) ? -1 : timeAt(rnEvalAt) - timeAt(reportAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Keep the admission and the teaching; LPN gives the oral medicines; the assistant does vital signs with specific report-back limits."
+      },
+      {
+        "at": "~09:15",
+        "text": "Jo reports 14's low pressure: go yourself. Black stool, lightheaded: SBAR for a possible upper GI bleed."
+      },
+      {
+        "at": "~09:30",
+        "text": "Check back with Jo and Sam."
+      }
+    ],
+    "debrief": {
+      "faint": {
+        "headline": "A collapse that was reported",
+        "body": "Find when the low pressure reached you, who evaluated it, and when the provider heard."
+      },
+      "teamTarget": {
+        "headline": "Delegated safely, evaluated yourself",
+        "body": "Nursing judgment kept, scope matched, specific directions, the report evaluated by you, an SBAR and a follow-up. That is the expert path."
+      },
+      "teamLate": {
+        "headline": "Through the morning, by a slower route",
+        "body": "Check each task against scope, the directions Jo had, who evaluated the report, and whether you followed up."
+      },
+      "time_up": {
+        "headline": "10:45",
+        "body": "Delegation keeps accountability with the RN."
+      }
+    },
+    "modelReasoning": "Keep what needs nursing judgment: the admission assessment and the insulin teaching. Give the stable patients' scheduled oral medicines to the LPN and the vital signs round to the assistant, with specific directions: by when, and exactly what to report at once (SBP under 100, heart rate over 110, dizziness). When the assistant reports Mr. Lane's low pressure and wooziness, assess him yourself: black stool on ibuprofen with a low pressure is a possible upper GI bleed, so give the provider an SBAR. Then check back with the team: supervision and evaluation are the fifth right, and the RN remains accountable."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Report received",
+      "when": "not isNull(reportAt)"
+    }
+  ],
+  "teaching": {
+    "dQ": {
+      "during": "reportT",
+      "ask": "While Jo does the round: which of the five rights is 'tell me at once if the systolic is under 100'?",
+      "choices": [
+        {
+          "id": "task",
+          "label": "Right task"
+        },
+        {
+          "id": "dir",
+          "label": "Right directions and communication"
+        },
+        {
+          "id": "sup",
+          "label": "Right supervision"
+        }
+      ],
+      "expect": "dir",
+      "explain": "Clear directions say what to do, by when, and exactly what to report. The RN still evaluates what comes back: assessment and evaluation are not delegated.",
+      "source": {
+        "cite": "NCSBN and ANA, National Guidelines for Nursing Delegation (2019)",
+        "checkedAt": "2026-11-07",
+        "url": "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf",
+        "note": "Relayed from the course seed (read 2026-11-07). The five rights of delegation: right task, circumstance, person, directions and communication, and supervision and evaluation; the delegating nurse remains accountable, and nursing judgment (assessment, evaluation) is not delegated."
+      }
+    }
+  }
+}
