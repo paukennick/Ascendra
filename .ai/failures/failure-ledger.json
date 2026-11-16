@@ -17961,6 +17961,29 @@
       "prevention_rules": [],
       "prevention_notes": "Fixed test sets are named by slug, never by course.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1984",
+      "date": "2026-11-16",
+      "title": "Nested quoted slot in a sim template passes schema and lint, fails at render",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden for NCLEXRN/hyperkalemia-critical-value stopped with 'engine error: unterminated string (at 19)'",
+      "how_detected": "golden builder while authoring",
+      "root_cause": "A template slot held a ternary whose quoted branch contained its own {hr} slot; the template parser splits slots on braces before the expression parser sees quotes, and templates are only parsed when rendered, so the schema and linter never reject it",
+      "requirement": "REQ-296",
+      "affected": [
+        "backend/supabase/seed/sims/NCLEXRN/hyperkalemia-critical-value.sim.json"
+      ],
+      "fix_summary": "Rewrote the two log lines as cases with one plain template each; added a scan to the REQ-296 coverage test",
+      "fix_commits": [],
+      "regression_tests": [
+        "lib/sim/clinical-coverage.test.ts FAIL-1984: no template slot nests a quoted {slot}"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Branch with cases, not a quoted ternary that contains a slot. A validator rule that parses every template would catch it for all documents (engine-folder change, not made here).",
+      "recurrence_of": ""
     }
   ]
 }

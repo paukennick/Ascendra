@@ -24,6 +24,7 @@ export const REQ296: readonly { course: string; slug: string; screen: string }[]
   // Wave 2 (resumed 2026-11-14).
   { course: "NCLEXRN", slug: "hyperkalemia-critical-value", screen: "bedside" },
   { course: "NCLEXPN", slug: "postpartum-check-boggy-fundus", screen: "bedside" },
+  { course: "DPT", slug: "parkinson-freezing-session", screen: "treatment-session" },
 ];
 
 interface GoldenPath { id: string; expect: { ending: string; rating: string; criteria: Record<string, string> } }
@@ -76,4 +77,35 @@ for (const r of REQ296) {
 test("DPT: the REQ-232 first set stays three documents when later DPT sims are added (FAIL-1983)", () => {
   assert.equal(DPT_TREATMENT_DOCUMENTS.length, 3);
   assert.ok(ALL_DOCUMENTS.filter((e) => e.course === "DPT").length > 3);
+});
+
+// FAIL-1984: a quoted string inside a template slot that holds its own
+// {slot} parses only at render time ("unterminated string"), so neither the
+// schema nor the linter sees it. No REQ-296 document may nest one.
+function nestedSlot(text: string): boolean {
+  let depth = 0;
+  let quoted = false;
+  for (const ch of text) {
+    if (depth > 0 && ch === '"') quoted = !quoted;
+    else if (ch === "{") {
+      if (depth > 0 && quoted) return true;
+      depth++;
+    } else if (ch === "}" && depth > 0 && !quoted) depth--;
+  }
+  return false;
+}
+function strings(v: unknown, out: string[] = []): string[] {
+  if (typeof v === "string") out.push(v);
+  else if (Array.isArray(v)) for (const x of v) strings(x, out);
+  else if (v && typeof v === "object") for (const x of Object.values(v)) strings(x, out);
+  return out;
+}
+test("FAIL-1984: no template slot nests a quoted {slot}", () => {
+  assert.equal(nestedSlot('{a ? "rate {hr}" : "x"}'), true);
+  assert.equal(nestedSlot('{a ? "x" : "y"} and {hr}'), false);
+  for (const r of REQ296) {
+    const entry = ALL_DOCUMENTS.find((e) => e.course === r.course && e.slug === r.slug)!;
+    const bad = strings(JSON.parse(readFileSync(entry.file, "utf8"))).filter(nestedSlot);
+    assert.deepEqual(bad, [], `${r.slug}`);
+  }
 });
