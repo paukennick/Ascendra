@@ -95,3 +95,11 @@ test("every nursing specialty sim declares the course seed's sim objective title
     assert.ok(titles.has(loadDocument(e).objective), `${r.slug}: objective is one of the seed's *_SIM_OBJECTIVES`);
   }
 });
+
+test("the golden builder refuses a document without a time_up ending before driving it (FAIL-1842)", async () => {
+  const { buildSteps } = await import("../../scripts/sim-golden/steps.ts");
+  const e = ALL_DOCUMENTS.find((x) => x.slug === "clinic-sulfonylurea-hypoglycemia")!;
+  const doc = structuredClone(loadDocument(e));
+  delete (doc.endings as Record<string, unknown>).time_up;
+  assert.throws(() => buildSteps(doc, "/nonexistent/never-written.golden.json", { slug: doc.slug, paths: [{ id: "p", title: "p", reasoning: "met", drive: () => {} }] }), /^Error: (schema|invalid document):.*time_up/);
+});

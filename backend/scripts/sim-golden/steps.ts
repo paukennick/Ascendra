@@ -14,8 +14,9 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { Command, CommandParams, CriterionRowScore, CriterionScore, ScenarioDoc } from "../../lib/sim/engine/v1/types.ts";
 import { advance, applyCommand, clockMode, createRun, readValue, stateHash, waits } from "../../lib/sim/engine/v1/engine.ts";
 import type { Run } from "../../lib/sim/engine/v1/engine.ts";
-import { replayGoldenPath } from "../../lib/sim/engine/v1/validate.ts";
+import { replayGoldenPath, validateScenario } from "../../lib/sim/engine/v1/validate.ts";
 import type { GoldenFile, GoldenPath } from "../../lib/sim/engine/v1/validate.ts";
+import { scenarioSchema } from "../../lib/sim/schema.ts";
 
 export interface Ctl {
   run: Run;
@@ -123,6 +124,13 @@ function expectFor(doc: ScenarioDoc, p: GoldenPath): GoldenPath {
 }
 
 export function buildSteps(doc: ScenarioDoc, goldenFile: string, spec: StepsSpec): void {
+  // FAIL-1980, FAIL-1842: refuse a document the schema refuses before driving
+  // it, and one the validator refuses (a missing time_up ending crashed the
+  // engine with a TypeError).
+  const parsed = scenarioSchema.safeParse(doc);
+  if (!parsed.success) throw new Error(`schema: ${parsed.error.issues.slice(0, 3).map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+  const invalid = validateScenario(doc);
+  if (invalid.length) throw new Error(`invalid document: ${invalid.slice(0, 3).join("; ")}`);
   const old: GoldenFile | null = existsSync(goldenFile) ? (JSON.parse(readFileSync(goldenFile, "utf8")) as GoldenFile) : null;
   const paths: GoldenPath[] = [];
   for (const id of spec.keep ?? []) {

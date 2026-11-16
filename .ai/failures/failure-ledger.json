@@ -17961,6 +17961,29 @@
       "prevention_rules": [],
       "prevention_notes": "Fixed test sets are named by slug, never by course.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1842",
+      "date": "2026-11-16",
+      "title": "Golden builder drove a document with no time_up ending and crashed with a TypeError",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run sim:golden -- steps pccn-copd: 'slowStart: engine error: Cannot read properties of undefined (reading \\'terminal\\')' instead of saying the document lacked its time_up ending.",
+      "how_detected": "sim:golden while authoring PCCN/copd-exacerbation-niv",
+      "root_cause": "buildSteps (scripts/sim-golden/steps.ts) replayed paths without validating the document; the validator's 'every scenario needs the engine-defined time_up ending' error only ran in sims:lint, and the engine assumes time_up exists when the clock runs out. FAIL-1980's fix covered the schema in the tests, not in the builder.",
+      "requirement": "REQ-279",
+      "affected": [
+        "backend/scripts/sim-golden/steps.ts"
+      ],
+      "fix_summary": "buildSteps checks the zod schema and validateScenario before driving any path and names the first problems.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/nursing-specialty-sims.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tools that run a scenario document validate it first; the engine is not a validator.",
+      "recurrence_of": "FAIL-1980"
     }
   ]
 }
