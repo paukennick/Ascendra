@@ -28,10 +28,9 @@ export function spec(): StepsSpec {
       },
       {
         id: "twoStep",
-        title: "Tries lvextend before reading anything (no space), then vgextend, lvextend without -r, resize2fs on XFS, then xfs_growfs; never checks df",
+        title: "Reads vgs and lsblk, then vgextend, lvextend without -r, resize2fs on XFS (fails), then xfs_growfs; never checks df",
         reasoning: "partial",
         drive: (c) => {
-          run(c, "lvextend");
           run(c, "vgs");
           run(c, "lsblk");
           run(c, "vgextend");
@@ -39,7 +38,7 @@ export function spec(): StepsSpec {
           run(c, "resize2fs");
           run(c, "xfsGrowfs");
           close(c);
-          c.act("document", { cause: "full", fix: "lvonly" });
+          c.act("document", { cause: "full", fix: "grow" });
         },
       },
       {

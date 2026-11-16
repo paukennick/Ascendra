@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, selectPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, selectPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA Data+ (DA0-002, V2).
@@ -411,6 +411,78 @@ export const DATAPLUS_LABS: SeedLabSet = {
               "Encryption and auditing",
               "Encryption at rest for the warehouse and any exports (platform-managed or customer-managed keys), TLS for all connections and transfers, no unencrypted CSV exports or email attachments; audit logging of who queried what and when, retained and reviewed; a retention period for the masked copy.",
               "At rest: the warehouse storage and any extracts are encrypted with managed keys; exports are allowed only to an encrypted, access-controlled location, never as e-mailed spreadsheets. In transit: every connection to the warehouse and every transfer uses TLS. Auditing: query logs record who accessed the masked schema and which columns, kept for the compliance period and reviewed monthly for unusual access; the masked copy itself has a retention date after which it is deleted or refreshed."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 2 / 2 / 3 / 2 / 2. Values are
+    // worked from the fictional data in each brief.
+    {
+      slug: "data-source-for-each-question",
+      objective: "Data sources: databases, APIs, website data, files, logs, and repositories",
+      kind: "build",
+      title: "Find where each answer's data lives",
+      brief:
+        "A new analyst at Pellow Garden Centers (fictional) gets five questions in her first week:\n\nA. How many loyalty members bought compost last month? (Sales sit in the point-of-sale system's database.)\nB. What is tomorrow's forecast for each store's town? (A weather provider offers a JSON service with a key.)\nC. What do competitors charge for the same compost? (Their public product pages.)\nD. When did the online shop slow down yesterday? (The web servers write one line per request.)\nE. What did last year's supplier contracts say about price increases? (PDFs in the shared document library, versioned.)",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies data sources from the fictional brief; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each question to its source, then say what to check before using C and D.",
+          parts: [
+            matchPart(
+              "Source for each question",
+              "Met: all five right -- A database (query the point-of-sale tables); B API; C website data (scraping public pages); D logs; E a document repository. Four right is partly there.",
+              "A is structured transactional data, reached with a SQL query. B is served by an application programming interface that returns JSON on request. C lives only on web pages, so it is collected from the site. D is in machine-written log files, one line per request. E is files kept in a versioned repository. A data warehouse could hold A later, but it does not exist here.",
+              {
+                leftHeading: "Question",
+                rightHeading: "Data source",
+                left: ["A: loyalty members who bought compost", "B: tomorrow's forecast per town", "C: competitors' compost prices", "D: when the online shop slowed down", "E: price clauses in last year's contracts"],
+                right: ["Database", "API", "Website data", "Logs", "Repository of files", "Data warehouse"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Checks before using C and D",
+              "C: the site's terms of use and robots rules allow collection, the rate is polite, only public non-personal data is taken, and prices are compared like for like (size, date, currency). D: time zone and clock alignment across servers, the log format and which field is response time, sampling or rotation gaps, and that IP addresses or user IDs in logs are personal data handled under policy.",
+              "C, website data: check the competitor's terms of use and robots.txt before collecting, keep the request rate low, take only public prices (no personal data), and record the date and pack size so prices are compared fairly. D, logs: confirm every server logs in the same time zone and its clocks agree, find which field is the response time, look for gaps where logs rotated or were sampled, and remember that IP addresses and user IDs in the lines are personal data, so work on an extract with only what the question needs."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "cleanse-and-standardize-customer-list",
+      objective: "Transformation: cleansing, merging, parsing, and formatting data",
+      kind: "build",
+      title: "Standardize a customer extract before merging",
+      brief:
+        "Pellow Garden Centers (fictional) wants to merge two customer lists. Six rows from the shop list:\n\nid | name          | joined     | postcode\n1  | Ana Ruiz      | 2026-03-04 | TR1 2AB\n2  | ana ruiz      | 04/03/2026 | tr12ab\n3  | Ben Okoro     | 2026-05-19 | TR3 6PQ\n4  | Cass Lee      | 19/05/2026 | TR4 8ZX\n5  |               | 2026-06-01 | TR2 5LM\n6  | Ben Okoro     | 2026-05-19 | TR3 6PQ\n\nRows 1 and 2 are the same person typed twice; row 6 repeats row 3 exactly.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Counts are worked from the six fictional rows in the brief; no outside value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the rows that need fixing or removing, give the count of distinct customers with a name, and write the transformation steps.",
+          parts: [
+            selectPart(
+              "Rows that need fixing or removing",
+              "Met: exactly rows 2 (same person, different case, date and postcode format), 4 (day-first date), 5 (missing name) and 6 (exact duplicate). (Right picks minus wrong picks) of at least two is partly there.",
+              "Row 2 is row 1 in another format: lower case, a day-first date and an unspaced postcode. Row 4's date is day-first while the standard is ISO (year-month-day). Row 5 has no name, so it cannot be matched to anyone and needs a decision. Row 6 is an exact copy of row 3. Rows 1 and 3 are already in the standard form.",
+              {
+                display: "table",
+                header: "id | name | joined | postcode",
+                lines: ["1 | Ana Ruiz | 2026-03-04 | TR1 2AB", "2 | ana ruiz | 04/03/2026 | tr12ab", "3 | Ben Okoro | 2026-05-19 | TR3 6PQ", "4 | Cass Lee | 19/05/2026 | TR4 8ZX", "5 | (blank) | 2026-06-01 | TR2 5LM", "6 | Ben Okoro | 2026-05-19 | TR3 6PQ"],
+                correct: [1, 3, 4, 5],
+              }
+            ),
+            numericPart("Distinct named customers", "Met: 3 exactly.", "Ana Ruiz (rows 1 and 2), Ben Okoro (rows 3 and 6) and Cass Lee (row 4): three named customers. Row 5 has no name and is held for review, not counted.", { answer: 3, tolerance: 0, unit: "customers" }),
+            part(
+              "Transformation steps",
+              "In order: parse dates into one type and ISO format (stating the source was day-first, so 04/03/2026 is 4 March); standardize names (trim, consistent case) and postcodes (upper case, one space before the last three characters); remove exact duplicates; match near-duplicates on the standardized fields; route rows with a missing name to review instead of guessing; keep the original IDs and log each change (lineage) before merging with the online list on the cleaned keys.",
+              "1. Parse joined as a date, reading the slash format as day/month/year (the shop's locale), and write every date as ISO 2026-03-04.\n2. Standardize text: trim spaces, title-case names, upper-case postcodes with a single space before the last three characters (tr12ab -> TR1 2AB).\n3. Drop exact duplicates (row 6).\n4. Match near-duplicates on the cleaned name, postcode and date, which now pairs rows 1 and 2; keep one and record the other ID as merged into it.\n5. Send row 5 to review instead of inventing a name.\n6. Log every change and keep source IDs, so the merge with the online list can be traced and undone."
             ),
           ],
         },

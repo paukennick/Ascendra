@@ -156,12 +156,12 @@
     },
     {
       "id": "twoStep",
-      "title": "Tries lvextend before reading anything (no space), then vgextend, lvextend without -r, resize2fs on XFS, then xfs_growfs; never checks df",
+      "title": "Reads vgs and lsblk, then vgextend, lvextend without -r, resize2fs on XFS (fails), then xfs_growfs; never checks df",
       "seed": 1,
       "commands": [
         {
           "type": "act",
-          "action": "lvextend",
+          "action": "vgs",
           "seq": 1,
           "tick": 0
         },
@@ -175,7 +175,7 @@
         },
         {
           "type": "act",
-          "action": "vgs",
+          "action": "lsblk",
           "seq": 3,
           "tick": 1
         },
@@ -189,7 +189,7 @@
         },
         {
           "type": "act",
-          "action": "lsblk",
+          "action": "vgextend",
           "seq": 5,
           "tick": 2
         },
@@ -203,7 +203,7 @@
         },
         {
           "type": "act",
-          "action": "vgextend",
+          "action": "lvextend",
           "seq": 7,
           "tick": 3
         },
@@ -217,7 +217,7 @@
         },
         {
           "type": "act",
-          "action": "lvextend",
+          "action": "resize2fs",
           "seq": 9,
           "tick": 4
         },
@@ -231,7 +231,7 @@
         },
         {
           "type": "act",
-          "action": "resize2fs",
+          "action": "xfsGrowfs",
           "seq": 11,
           "tick": 5
         },
@@ -245,62 +245,48 @@
         },
         {
           "type": "act",
-          "action": "xfsGrowfs",
+          "action": "closeOutage",
           "seq": 13,
           "tick": 6
-        },
-        {
-          "type": "skip",
-          "timer": "work",
-          "instance": 7,
-          "to": 7,
-          "seq": 14,
-          "tick": 6
-        },
-        {
-          "type": "act",
-          "action": "closeOutage",
-          "seq": 15,
-          "tick": 7
         },
         {
           "type": "reason",
           "moment": "writeup",
           "answered": true,
-          "seq": 16,
-          "tick": 7
+          "seq": 14,
+          "tick": 6
         },
         {
           "type": "act",
           "action": "document",
           "params": {
             "cause": "full",
-            "fix": "lvonly"
+            "fix": "grow"
           },
-          "seq": 17,
-          "tick": 7
+          "seq": 15,
+          "tick": 6
         }
       ],
       "expect": {
         "ending": "fixedGaps",
         "class": "recovered",
-        "rating": "bad",
-        "score": 50,
+        "rating": "mediocre",
+        "score": 63,
         "criteria": {
-          "evidence": "partial",
+          "evidence": "met",
           "safeDisk": "met",
           "fast": "met",
           "fsToo": "partial",
           "rightTool": "missed",
           "verified": "missed",
-          "record": "partial"
+          "record": "met"
         },
         "kpis": {
-          "minToRoom": 6,
+          "minToRoom": 5,
           "faultsK": 0,
           "wrongK": 1
         },
-        "stateHash": "f7980e240cc4ad6a"
+        "stateHash": "4db80b773e94feb0"
       },
       "reasoning": {
         "writeup": "partial"

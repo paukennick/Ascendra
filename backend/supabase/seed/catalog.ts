@@ -36,6 +36,17 @@ import { EPPP_TRACKS } from "./tracks/eppp";
 import { NBCC_TRACKS } from "./tracks/nbcc";
 import { PYTHON_DEPTH_TRACKS } from "./tracks/python-depth";
 import { LINUX_DEPTH_TRACKS } from "./tracks/linux";
+import { PYTHON_INSTITUTE_TRACKS } from "./tracks/python-institute";
+import { DEV_LANGUAGE_TRACKS } from "./tracks/dev-languages";
+import { MICROSOFT_2026_TRACKS } from "./tracks/microsoft-2026";
+import { ISC2_TRACKS } from "./tracks/isc2";
+import { ISACA_TRACKS } from "./tracks/isaca";
+import { ECCOUNCIL_TRACKS } from "./tracks/eccouncil";
+// REQ-275..278: nursing specialty and advanced practice certifications.
+import { NURSING_SPECIALTY_TRACKS } from "./tracks/nursing-specialty";
+import { PM_FRAMEWORK_TRACKS } from "./tracks/pm-frameworks";
+import { ASWB_TRACKS } from "./tracks/aswb";
+import { WA_JP_TRACKS } from "./tracks/wa-psych-jurisprudence";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -81,6 +92,26 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...PYTHON_DEPTH_TRACKS,
   // REQ-292: Linux Fundamentals and the Linux Foundation LFCS.
   ...LINUX_DEPTH_TRACKS,
+  // REQ-264..268 (2026-11-14): PCEP and PCAP, SQL and TypeScript & Node.js,
+  // PL-300, and SC-500 / AI-200 (the replacements of the retired AZ-500 and
+  // AZ-204).
+  ...PYTHON_INSTITUTE_TRACKS,
+  ...DEV_LANGUAGE_TRACKS,
+  ...MICROSOFT_2026_TRACKS,
+  // REQ-270..274: ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH)
+  // security certifications, under IT & Software > IT Certifications.
+  ...ISC2_TRACKS,
+  ...ISACA_TRACKS,
+  ...ECCOUNCIL_TRACKS,
+  // REQ-275..278: CMSRN, CEN, PCCN and the two FNP exams (AANPCB, ANCC).
+  ...NURSING_SPECIALTY_TRACKS,
+  // REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation and ASQ Six Sigma Green
+  // Belt (migration 084 subcategories; ITIL under IT Certifications).
+  ...PM_FRAMEWORK_TRACKS,
+  // REQ-286: ASWB social work licensing exams, Clinical and Masters (same category).
+  ...ASWB_TRACKS,
+  // REQ-287: Washington psychology jurisprudence exam (psychology licensure).
+  ...WA_JP_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

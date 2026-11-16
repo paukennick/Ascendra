@@ -1,0 +1,1266 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cnc-crash-diet-request",
+  "title": "Session: a crash-diet request and what is underneath it",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Maya Torres",
+        "presentation": "{distress >= 6 ? \"Arms folded, eyes on the floor\" : distress >= 3 ? \"Upbeat, talking fast\" : \"Calmer, sitting back\"}; {rapport >= 6 ? \"she is talking openly\" : rapport >= 3 ? \"she keeps it light and checks your reaction\" : \"she has gone short and polite\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "intake",
+          "label": "Intake form",
+          "text": "Goal: 'lose 10 lb in 6 weeks for my sister's wedding.' Asks for 'a strict 1,000-calorie meal plan.' No diagnosed conditions or medications listed. Runs most days.",
+          "when": "true"
+        },
+        {
+          "id": "pattern",
+          "label": "What she has told you",
+          "text": "{dayAsked ? \"Skips breakfast and lunch most days; a large dinner.\" : \"\"} {exerciseAsked ? (rapport >= 5 ? \"Runs again at night 'to cancel out' a big dinner.\" : \"Runs 'a lot'.\") : \"\"} {cuesFound ? \"Some nights eats a whole box of cereal alone in her car, then feels disgusted and fasts the next day.\" : \"\"}",
+          "when": "dayAsked or exerciseAsked"
+        },
+        {
+          "id": "signs",
+          "label": "Signs to act on",
+          "text": "Fasting, exercise to make up for eating, secret eating with guilt: in combination these may be signs of an eating disorder (NIMH). A health care provider evaluates; a coach does not diagnose.",
+          "when": "cuesFound",
+          "alert": "cuesFound and not referred"
+        },
+        {
+          "id": "planNote",
+          "label": "Plan",
+          "text": "{planGiven ? \"You gave her a 1,000-calorie meal plan.\" : referred ? (agreed ? \"She agreed to see her primary care provider; coaching on non-restrictive habits continues alongside, with her provider's OK.\" : \"You recommended her primary care provider; she has not agreed yet.\") : \"Nothing agreed yet.\"}",
+          "when": "true"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Eating, exercise and feelings about eating explored",
+            "when": "cuesFound"
+          },
+          {
+            "label": "Concern shared without a label; referral to her primary care provider",
+            "when": "referred"
+          },
+          {
+            "label": "Check-in agreed after her appointment; weight-loss goal paused",
+            "when": "followUp"
+          },
+          {
+            "label": "Documented: {noteDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+  "sources": [
+    {
+      "cite": "NASM, Certified Nutrition Coach course page and FAQ (nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K): a nutrition coach works 'within a coaching scope of practice' and refers to a registered dietitian nutritionist (RDN) for medical nutrition assessment or treatment",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K",
+      "note": "Read on NASM's own page 2026-11-14. Medical nutrition therapy is the RDN's; the coach gives general, evidence-based guidance and habit coaching."
+    },
+    {
+      "cite": "NIMH, Eating Disorders: What You Need to Know (NIH Publication No. 24-MH-4901, revised 2024)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.nimh.nih.gov/health/publications/eating-disorders",
+      "note": "Signs listed for bulimia nervosa: those of binge eating plus throwing up, taking laxatives, exercising excessively and fasting; binge-eating signs include eating alone or in secret and feeling distressed, ashamed or guilty about eating. People with any combination of these symptoms 'may have an eating disorder and should talk to a health care provider'; a primary care provider can refer to a qualified mental health professional. 'Early detection and treatment are important for a full recovery' (NIMH topic page, last reviewed December 2024)."
+    }
+  ],
+  "brief": {
+    "situation": "You are a nutrition coach at a gym, NASM-CNC certified. Maya Torres, 26 (a fictional client), a bank teller, booked a first session. Her intake form asks for 'a strict 1,000-calorie meal plan' to lose 10 lb in six weeks before her sister's wedding. No diagnosed conditions or medications are listed. You have 50 minutes.",
+    "handover": [
+      "First session. Intake form only; no prior contact."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Maya answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she is telling you change with what you say, and are shown in words.",
+      "The session ends at 50 minutes. Afterward you write the session note and a short rationale."
+    ]
+  },
+  "clock": {
+    "start": "17:30",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing: a 50-minute first coaching session",
+        "checkedAt": "2026-11-14",
+        "note": "The session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport, distress and readiness move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-14",
+        "note": "How rapport, distress and readiness move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "dayAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "exerciseAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "cuesFound": {
+      "type": "bool",
+      "init": false
+    },
+    "cueAt": {
+      "type": "time",
+      "init": null
+    },
+    "planGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "diagnosed": {
+      "type": "bool",
+      "init": false
+    },
+    "lectured": {
+      "type": "bool",
+      "init": false
+    },
+    "referred": {
+      "type": "bool",
+      "init": false
+    },
+    "referAt": {
+      "type": "time",
+      "init": null
+    },
+    "agreed": {
+      "type": "bool",
+      "init": false
+    },
+    "followUp": {
+      "type": "bool",
+      "init": false
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "openQuestion",
+        "reflect",
+        "askDay",
+        "askExercise",
+        "askFeelings",
+        "givePlan",
+        "lecture",
+        "labelIt",
+        "refer",
+        "followUpPlan",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "openQuestion": {
+      "label": "Open question: 'What makes now the right time for this goal?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and leave room for her answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"My sister's wedding. I'm a bridesmaid and the dress is... unforgiving. I just need to be stricter with myself.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what she said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "She exhales. \"Yeah. It's a lot of pressure. Everyone will be taking pictures.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askDay": {
+      "label": "Ask her to walk you through yesterday's eating, start to finish",
+      "group": "Ask",
+      "available": "not talking and (not dayAsked)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You ask for a 24-hour recall: what, when and how much, without commenting.",
+          "kind": "act"
+        },
+        {
+          "set": "dayAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1.5"
+        },
+        {
+          "finding": "\"Coffee. Nothing till about eight, then a big dinner. I'm usually starving by then.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askExercise": {
+      "label": "Ask about her running: how often, and what decides how much",
+      "group": "Ask",
+      "available": "not talking and (not exerciseAsked)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You ask how much she runs and what decides it.",
+          "kind": "act"
+        },
+        {
+          "set": "exerciseAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "finding": "\"Mornings, five miles. And if dinner was big I go again at night, to cancel it out.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"A lot. It's fine, I like running.\" She changes the subject."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askFeelings": {
+      "label": "Ask gently how she feels during and after eating",
+      "group": "Ask",
+      "available": "not talking and (not cuesFound)",
+      "why": "She has told you.",
+      "effects": [
+        {
+          "log": "You ask how she feels during and after meals.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5 and dayAsked",
+              "then": [
+                {
+                  "set": "cuesFound",
+                  "to": "true"
+                },
+                {
+                  "set": "cueAt",
+                  "to": "t"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "add": "distress",
+                  "by": "1.5"
+                },
+                {
+                  "finding": "A long pause. \"Some nights I eat a whole box of cereal in my car so nobody sees. Then I feel disgusting and I don't eat the next day.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "finding": "\"Fine, I guess? Why?\" She laughs it off."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "givePlan": {
+      "label": "Write her the strict 1,000-calorie meal plan she asked for",
+      "group": "Plan",
+      "available": "not talking and (not planGiven)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "log": "You write out a 1,000-calorie day of meals for her to follow.",
+          "kind": "act"
+        },
+        {
+          "set": "planGiven",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "\"Perfect. That's exactly what I needed.\""
+        },
+        {
+          "log": "A restrictive meal plan is not general guidance, and with these signs it feeds the pattern; it is outside a coach's scope (NASM).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Tell her skipping meals is unhealthy and she has to stop",
+      "group": "Respond",
+      "available": "not talking and (not lectured)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her flatly that skipping meals is unhealthy and she needs to stop.",
+          "kind": "act"
+        },
+        {
+          "set": "lectured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"I know that. That's why I'm paying you.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "labelIt": {
+      "label": "Tell her this sounds like bulimia",
+      "group": "Respond",
+      "available": "not talking and (not diagnosed)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her what she describes sounds like bulimia.",
+          "kind": "act"
+        },
+        {
+          "set": "diagnosed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "She goes pale. \"I'm not... I'm not sick. I just need some discipline.\""
+        },
+        {
+          "log": "Diagnosing is not a coach's job; naming what you noticed and referring is.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "refer": {
+      "label": "Share what you noticed, without a label, and recommend she see her primary care provider",
+      "group": "Address",
+      "available": "not talking and (not referred)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "log": "You tell her what you noticed in her own words, that it matters, and that her primary care provider can look at it properly and connect her with the right help.",
+          "kind": "act"
+        },
+        {
+          "set": "referred",
+          "to": "true"
+        },
+        {
+          "set": "referAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "cuesFound and rapport >= 5",
+              "then": [
+                {
+                  "set": "agreed",
+                  "to": "true"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "-1"
+                },
+                {
+                  "finding": "Quietly: \"I've kind of known. Okay. I'll call my doctor.\""
+                },
+                {
+                  "log": "Concern shared without a diagnosis; referred to a health care provider (NIMH; NASM scope).",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "cuesFound",
+              "then": [
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Maybe. I don't know. Let's just do the plan.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-1"
+                },
+                {
+                  "finding": "\"See my doctor about what? I came here for a meal plan.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "followUpPlan": {
+      "label": "Pause the weight-loss goal; agree a check-in after her appointment and non-restrictive goals in the meantime",
+      "group": "Plan",
+      "available": "not talking and (agreed and not followUp)",
+      "why": "Agree the referral first (or it is done).",
+      "effects": [
+        {
+          "log": "You agree to pause the weight goal, check in after her appointment, and coach regular meals and rest days in the meantime, within what her provider advises.",
+          "kind": "act"
+        },
+        {
+          "set": "followUp",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Okay. That's less scary than I thought.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the session note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "What she said in her words (fasting, running to 'cancel out' dinner, secret eating and guilt), that you shared concern without a diagnosis, the referral to her primary care provider and her answer, and the agreed check-in"
+                },
+                {
+                  "value": "brief",
+                  "label": "A line: 'Discussed eating habits'"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing; it was just a first chat"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "what"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {what}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute first coaching session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute session is up. It ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Maya picks up her bag, says this was a mistake, and leaves before the session is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictScope",
+      "when": "cuesFound and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "whoseJob"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "whoseJob": {
+      "title": "Predict (not scored)",
+      "context": "Maya has described fasting, running to make up for dinner, and eating in secret with guilt. What is the coach's part?",
+      "choices": [
+        {
+          "id": "refer",
+          "label": "Name what I noticed and refer her to a health care provider",
+          "effects": [
+            {
+              "log": "Prediction: name it and refer.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. NIMH says someone with any combination of these signs should talk to a health care provider; NASM puts medical nutrition assessment and treatment outside a coach's scope."
+        },
+        {
+          "id": "diagnose",
+          "label": "Work out whether it is bulimia, then adjust her plan",
+          "effects": [
+            {
+              "log": "Prediction: work out the diagnosis.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not a coach's job. Diagnosis belongs to a health care provider; the coach notices, shares the concern and refers."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your rationale: what Maya told you that changed the session, why you did or did not give her the meal plan, and what you did about it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The signs",
+          "criteria": "Names the combination: fasting or skipped meals, exercise to make up for eating, and eating in secret with guilt, and that NIMH lists these as possible signs of an eating disorder that a health care provider should see.",
+          "modelAnswer": "She skips meals all day, runs a second time to 'cancel out' dinner, eats a box of cereal alone in her car and then fasts. In combination these are signs NIMH lists for an eating disorder; that is a question for a health care provider."
+        },
+        {
+          "label": "Scope and action",
+          "criteria": "Explains that a restrictive meal plan and a diagnosis are both outside a coach's scope, and that the coach's job is to share the concern without a label, refer to her primary care provider, and keep supporting her within what the provider advises.",
+          "modelAnswer": "A 1,000-calorie plan would feed the pattern and is not general guidance, and naming a disorder is a diagnosis; both are outside my scope. I told her what I noticed in her words, recommended her primary care provider, paused the weight goal and agreed to check in after her appointment."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "The referral made within 20 minutes of her disclosure (author's scenario timing within the profile's default)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not cuesFound and not planGiven and not referred",
+      "class": "recovered",
+      "rationale": "No harmful plan was given, but the pattern was never uncovered, so nothing was done about it either; recovered, not harm, because the coach did nothing to feed it.",
+      "source": {
+        "cite": "NIMH, Eating Disorders: What You Need to Know (NIH Publication No. 24-MH-4901, revised 2024)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.nimh.nih.gov/health/publications/eating-disorders",
+        "note": "Signs listed for bulimia nervosa: those of binge eating plus throwing up, taking laxatives, exercising excessively and fasting; binge-eating signs include eating alone or in secret and feeling distressed, ashamed or guilty about eating. People with any combination of these symptoms 'may have an eating disorder and should talk to a health care provider'; a primary care provider can refer to a qualified mental health professional. 'Early detection and treatment are important for a full recovery' (NIMH topic page, last reviewed December 2024)."
+      }
+    }
+  },
+  "endings": {
+    "restrictPlan": {
+      "label": "A restrictive plan handed over",
+      "class": "harm",
+      "when": "documented and planGiven",
+      "terminal": true,
+      "narrative": "Maya leaves with a 1,000-calorie plan that fits the pattern she is caught in: fasting, then eating in secret, then running it off."
+    },
+    "walkout": {
+      "label": "She walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Maya left feeling judged. The signs are still there, and she is less likely now to tell the next person."
+    },
+    "missedSigns": {
+      "label": "Signs heard, no referral",
+      "class": "harm",
+      "when": "documented and cuesFound and not referred",
+      "terminal": true,
+      "narrative": "She told you the hardest part, and the session ended without anyone suggesting she see a health care provider."
+    },
+    "labeled": {
+      "label": "Referred, with a label",
+      "class": "recovered",
+      "when": "documented and referred and diagnosed",
+      "terminal": true,
+      "narrative": "She heard the referral, but she also heard a diagnosis from someone who cannot make one, and it cost trust."
+    },
+    "referredWell": {
+      "label": "Concern shared, referral agreed",
+      "class": "target",
+      "when": "documented and referred and agreed and not diagnosed and not planGiven and timeAt(referAt) - timeAt(cueAt) <= safetyWindow and followUp and noteDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Maya is calling her doctor this week, the weight goal is paused, and she knows you will check in after the appointment."
+    },
+    "referredGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "when": "documented and referred",
+      "terminal": true,
+      "narrative": "The referral was made, but parts of the work were late, unagreed or not written down."
+    },
+    "surface": {
+      "label": "The surface only",
+      "class": "recovered",
+      "when": "documented",
+      "terminal": true,
+      "narrative": "Nothing harmful happened, but the session stayed on the surface and the pattern went unseen."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "restrictPlan",
+    "walkout",
+    "missedSigns",
+    "labeled",
+    "referredWell",
+    "referredGaps",
+    "surface"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "explore",
+        "label": "Explored eating, exercise and feelings about eating",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cuesFound",
+            "score": "met",
+            "why": "Asked enough, with enough trust, to hear the pattern."
+          },
+          {
+            "when": "dayAsked or exerciseAsked",
+            "score": "partial",
+            "why": "Asked about part of it, but not enough to hear the pattern."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Took the goal at face value."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "Stayed in scope: no restrictive plan, no diagnosis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "planGiven",
+            "score": "missed",
+            "why": "Gave a 1,000-calorie meal plan."
+          },
+          {
+            "when": "diagnosed",
+            "score": "partial",
+            "why": "No plan, but named a disorder."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No restrictive plan and no diagnosis."
+          }
+        ]
+      },
+      {
+        "id": "referCrit",
+        "label": "Referred to a health care provider promptly, and she agreed (NIMH)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "referred and cuesFound and agreed and timeAt(referAt) - timeAt(cueAt) <= safetyWindow",
+            "score": "met",
+            "why": "Referred {(timeAt(referAt) - timeAt(cueAt)) / 60} min after she told you, and she agreed."
+          },
+          {
+            "when": "referred",
+            "score": "partial",
+            "why": "Referred, but late, before the pattern was clear, or without her agreement."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No referral."
+          }
+        ]
+      },
+      {
+        "id": "docCrit",
+        "label": "Documented what she said and the referral",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "noteDoc == \"full\"",
+            "score": "met",
+            "why": "Her words, the concern, the referral and the follow-up written down."
+          },
+          {
+            "when": "noteDoc == \"brief\"",
+            "score": "partial",
+            "why": "A line, not a record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      },
+      {
+        "id": "followCrit",
+        "label": "Weight goal paused and a check-in agreed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "followUp",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No follow-up agreed."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written rationale",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRefer",
+        "label": "Minutes from her disclosure to the referral",
+        "value": "isNull(referAt) or isNull(cueAt) ? -1 : (timeAt(referAt) - timeAt(cueAt)) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Open question and reflection; then a 24-hour recall of yesterday's eating, without comment."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Ask about running and, once she trusts you, how she feels during and after eating."
+      },
+      {
+        "at": "20-30 min",
+        "text": "Share what you noticed in her words, without a label; recommend her primary care provider; do not write the meal plan."
+      },
+      {
+        "at": "30-40 min",
+        "text": "Pause the weight goal, agree a check-in after her appointment; then document."
+      }
+    ],
+    "debrief": {
+      "referredWell": {
+        "headline": "Good: concern shared, referral agreed",
+        "body": "You uncovered the pattern, stayed out of diagnosis and meal plans, and got her to a health care provider with the relationship intact."
+      },
+      "referredGaps": {
+        "headline": "Referred, with gaps",
+        "body": "The referral was made; the criteria below show what was late, missing or not written down."
+      },
+      "labeled": {
+        "headline": "Right direction, wrong words",
+        "body": "Referral was the right move, but a coach does not diagnose. Describe what you noticed in her words and let the provider evaluate."
+      },
+      "surface": {
+        "headline": "The pattern went unseen",
+        "body": "A goal like 'lose 10 lb in 6 weeks on 1,000 calories' is a cue to ask more: a 24-hour recall, exercise and how eating feels."
+      },
+      "missedSigns": {
+        "headline": "Signs heard, nothing done",
+        "body": "Fasting, compensatory exercise and secret eating with guilt are, in combination, signs NIMH says should be seen by a health care provider. Hearing them obliges a referral."
+      },
+      "restrictPlan": {
+        "headline": "Outside scope, and harmful",
+        "body": "A restrictive meal plan is not general guidance, and for someone with these signs it can deepen the pattern. NASM puts medical nutrition assessment and treatment with the RDN."
+      },
+      "walkout": {
+        "headline": "The relationship broke",
+        "body": "Lecturing and labeling feel like judgment. Curiosity, reflection and concern in her own words keep the door open."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A crash-diet request is a cue to explore, not to comply. A 24-hour recall, her exercise and how eating feels showed fasting, running to make up for dinner and secret eating with guilt: in combination, signs NIMH lists for an eating disorder. A coach neither diagnoses nor writes a restrictive plan; she shares the concern in the client's words, refers to a primary care provider, pauses the weight goal and follows up."
+  }
+}

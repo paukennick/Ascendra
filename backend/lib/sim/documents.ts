@@ -156,6 +156,24 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NREMTPARAMEDIC", "inferior-stemi-cath-alert"),
   entry("NREMTPARAMEDIC", "infant-respiratory-failure"),
   // ---- end REQ-241 ----
+  // ---- REQ-297 (IT sims, wave 3): more learner-paced sims for the existing
+  // non-clinical courses on the existing terminal, security console and
+  // board screens (docs/sims-coverage-it.md). Keep these entries together. ----
+  entry("APLUS_CORE1", "rogue-dhcp-soho-office"),
+  entry("APLUS_CORE2", "home-office-laptop-malware"),
+  entry("KCNA", "service-selector-no-endpoints"),
+  band("CKA", "service-selector-no-endpoints-cka"),
+  entry("GCPACE", "public-bucket-customer-exports"),
+  entry("GCPCDL", "bigquery-dashboard-bill"),
+  band("SECPLUS", "vuln-prioritization-kev-edge-secplus"),
+  band("SECPLUS", "alert-triage-lolbin-hunt-secplus"),
+  entry("AWSSAA", "waf-login-flood-sqli"),
+  entry("AWSSOA", "rds-update-without-where-pitr"),
+  entry("GCPACE", "cloud-run-bad-revision-rollback"),
+  entry("LINUXPLUS", "systemd-dropin-breaks-export"),
+  entry("CKA", "apiserver-static-pod-bad-flag"),
+  entry("SECPLUS", "firewall-change-backout"),
+  // ---- end REQ-297 ----
   // ---- REQ-292: LFCS and Linux Fundamentals cases on the terminal screen.
   // Keep these entries together. ----
   entry("LFCS", "fstab-uuid-typo-emergency"),
@@ -170,6 +188,51 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PYAUTO", "debug-log-fills-var"),
   entry("PYDATA", "board-orders-by-region"),
   // ---- end REQ-292 ----
+  // ---- REQ-269: sims for the new technology courses (SQL and TSNODE on the
+  // terminal screen, SC500 on the security console, AI200 on the terminal).
+  // Keep these entries together. ----
+  entry("SQL", "sql-slow-login-seq-scan"),
+  entry("SQL", "sql-flash-sale-oversold"),
+  entry("TSNODE", "node-env-file-silent-exit"),
+  entry("TSNODE", "node-type-stripping-enum-crash"),
+  entry("SC500", "sc500-illicit-consent-grant"),
+  entry("SC500", "sc500-backup-vault-sabotage"),
+  entry("AI200", "ai200-containerapp-keyvault-revision"),
+  entry("AI200", "ai200-kql-checkout-latency"),
+  // ---- end REQ-269 ----
+  // ---- REQ-274: security-console incidents for the non-CompTIA security
+  // courses (ISC2 CC, CISSP, ISACA CISM, EC-Council CEH; coverage table in
+  // docs/sims.md 22.16). Keep these entries together. ----
+  entry("ISC2CC", "cc-triage-phish-correlation"),
+  entry("ISC2CC", "cc-leaver-account-still-active"),
+  entry("CISSP", "cissp-web-tier-data-theft"),
+  entry("CISSP", "cissp-ransomware-recovery-site"),
+  entry("CISM", "cism-payroll-supplier-breach"),
+  entry("CISM", "cism-checkout-skimmer-containment"),
+  // ---- end REQ-274 ----
+  // ---- REQ-282: NASM Certified Nutrition Coach client sessions (session
+  // renderer, clinical-session profile; CNC_SESSION_DOCUMENTS below) ----
+  entry("NASMCNC", "cnc-crash-diet-request"),
+  entry("NASMCNC", "cnc-greens-powder-warfarin"),
+  // ---- end REQ-282 ----
+  // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
+  // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
+  // below). Keep these entries together. ----
+  entry("ASWBCLINICAL", "aswbc-suicide-violence-risk"),
+  entry("ASWBCLINICAL", "aswbc-threat-identifiable-person"),
+  entry("ASWBMASTERS", "aswbm-involuntary-engagement"),
+  entry("ASWBMASTERS", "aswbm-child-abuse-report"),
+  // ---- end REQ-288 ----
+  // ---- REQ-296 (clinical coverage): more sims on the existing clinical
+  // courses, launch courses first (docs/sims-coverage-clinical.md). Keep
+  // these entries together. ----
+  entry("CNA", "evening-vitals-out-of-range"),
+  entry("PTPREREQ", "cycle-test-falling-pressure"),
+  entry("NCLEXRN", "postpartum-hemorrhage-atony"),
+  entry("CCRNADULT", "status-epilepticus-after-craniotomy"),
+  entry("DPT", "dizziness-central-red-flags"),
+  entry("NCLEXPN", "first-dose-anaphylaxis"),
+  // ---- end REQ-296 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -183,7 +246,10 @@ export const EPPP_OBJECTIVES = [
 
 // REQ-232: the DPT treatment-session documents (the PT renderer) and the
 // objective titles they are registered to (active objectives of course DPT).
-export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT");
+// REQ-296: later DPT sims (docs/sims-coverage-clinical.md) are not part of
+// this first set, so the set is named by slug.
+const DPT_FIRST_SET = ["icu-early-mobility", "tka-gait-dvt-red-flag", "stroke-balance-fall-risk"];
+export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT" && DPT_FIRST_SET.includes(e.slug));
 export const DPT_OBJECTIVES = [
   "Selecting and performing interventions for cardiovascular and pulmonary conditions to achieve patient goals",
   "Total knee arthroplasty rehabilitation per the 2026 APTA guideline: range-of-motion work instead of continuous passive motion, progressive strengthening, motor function training, and early daily quadriceps NMES",
@@ -261,3 +327,23 @@ export function loadDocument(e: DocumentEntry): ScenarioDoc {
 }
 
 export { entry as documentEntry, band as bandEntry };
+
+// REQ-282: the NASM-CNC coaching-session documents and the objective titles
+// they are registered to (active objectives of course NASMCNC; the course
+// seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC");
+export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
+  "cnc-crash-diet-request":
+    "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+  "cnc-greens-powder-warfarin": "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+};
+// REQ-288: the ASWB client-session documents and the objective titles they are
+// registered to (active objectives of their course; seed/tracks/aswb.ts exports
+// the same titles as ASWB_CLINICAL_SIM_OBJECTIVES and ASWB_MASTERS_SIM_OBJECTIVES).
+export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS");
+export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
+  "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
+  "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
+  "aswbm-involuntary-engagement": "Engage an involuntary client and contract for goals",
+  "aswbm-child-abuse-report": "Make a mandated child abuse report and keep the family engaged",
+};
