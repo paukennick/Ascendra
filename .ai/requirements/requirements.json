@@ -10468,7 +10468,7 @@
         "changelog"
       ],
       "risk_notes": [
-        "Bedside sims not authored in this branch; the two exact objective titles they would attach to are in place (PCCN_SIM_OBJECTIVES)."
+        "Bedside sims are REQ-279 (two PCCN cases on PCCN_SIM_OBJECTIVES)."
       ]
     },
     {
@@ -10566,6 +10566,44 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-279",
+      "category": "content",
+      "title": "Bedside sims for the nursing specialty and FNP courses, with a coverage map",
+      "description": "Nick 2026-11-14: sims for the new nursing courses follow coverage, not a count. docs/sims-coverage-nursing-specialty.md maps the 131 objectives of CMSRN, CEN, PCCN, FNPAANP and FNPANCC that pass the selection screen against sims. Eight bedside documents on engine 1.2 (two each for PCCN, CMSRN and CEN; one each for the two FNP courses): femoral access retroperitoneal bleed, COPD exacerbation on NIV, early postoperative hemorrhage, delegation with the five rights, sepsis at triage, ESI re-triage in a waiting room, severe blood pressure with stroke signs in clinic, sulfonylurea hypoglycemia in clinic. Each with endingOrder, harm endings as outcomes only, boluses within the cap of three, dated sources, teaching prompts, golden paths covering Good/Mediocre/Bad and every criterion met and missed. 123 fitting objectives remain without a sim (listed). FAIL-1842: the golden builder validates a document before driving it.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "docs/sims-coverage-clinical.md",
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each of the eight documents passes sims:lint with no error and lib/sim/nursing-specialty-sims.test.ts",
+        "each objective is an active catalog objective of its course that passes the selection screen and is one of the seed's *_SIM_OBJECTIVES",
+        "the coverage map lists every fitting objective and its sim, if any",
+        "no sim text claims a review by clinicians or experts"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sims.md 22.19",
+        "docs/sims-coverage-nursing-specialty.md"
+      ],
+      "risk_notes": [
+        "123 of 131 fitting objectives have no sim yet; building all of them needs a decision on scale from Nick",
+        "the keyword screen is a shortlist not a judgement",
+        "authored teaching-model numbers flagged in source notes; three sources marked to verify"
+      ]
     },
     {
       "id": "REQ-280",
