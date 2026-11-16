@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, selectPart, commandPart, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA Linux+ (XK0-006, V8).
@@ -467,6 +467,58 @@ export const LINUXPLUS_LABS: SeedLabSet = {
               "Verifying the schedules",
               "crontab -l to read back the entries; systemctl list-timers --all showing archive-logs.timer with NEXT and LAST columns; systemd-analyze calendar 'Mon..Fri 02:30' to check the expression and see the next elapse; atq for the one-off; journalctl -u archive-logs.service after the first run; and a manual systemctl start archive-logs.service to test the service without waiting.",
               "crontab -l shows the two cron lines. systemd-analyze calendar 'Mon..Fri 02:30' prints the normalized form and 'Next elapse', proving the expression means what you think. systemctl list-timers --all shows archive-logs.timer with its NEXT time and, after the first run, LAST and the service it activates. sudo systemctl start archive-logs.service runs the job now as a test, and journalctl -u archive-logs.service shows its 'archived N file(s)' line. atq confirms the key-rotation job is queued for two hours out."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Security (18%) gets its second lab.
+    // The firewall-cmd forms below were run through the lab's own command
+    // rule (lib/lab-interactive.ts) to confirm what is met and partly there;
+    // the --list-all output is authored in firewalld's format.
+    {
+      slug: "firewalld-open-https-permanently",
+      objective: "Firewall basics: iptables/nftables or firewalld concepts",
+      kind: "build",
+      title: "Open HTTPS in firewalld so it survives a reboot",
+      brief:
+        "web01 at Quillfeather Press (fictional) runs nginx on port 443. From the server itself curl https://localhost works, but from the office nobody can reach the site. Last week a colleague 'opened the port' and it worked until the server was patched and rebooted. Today:\n\n$ sudo firewall-cmd --get-active-zones\npublic\n  interfaces: ens192\n$ sudo firewall-cmd --zone=public --list-all\npublic (active)\n  target: default\n  interfaces: ens192\n  services: dhcpv6-client ssh\n  ports: 8443/tcp\n  protocols:\n  masquerade: no\n  forward-ports:\n  rich rules:",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Port 443 for HTTPS and the firewall-cmd options are standard tool usage; the zone listing is given in the brief, and no threshold or vendor value is quoted.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the two lines that need changing, type the command that opens HTTPS permanently and the one that applies it, and explain what went wrong last week.",
+          parts: [
+            selectPart(
+              "Lines that need changing",
+              "Met: exactly the services line (https is missing) and the ports line (8443/tcp is open for nothing). One right and none wrong is partly there.",
+              "The services line has no https, so 443 is closed to the network -- that is the outage. The ports line opens 8443/tcp, which nginx does not listen on: an open port nobody needs is attack surface and should go. The interface and target lines are fine: ens192 is in the public zone, which is the zone being changed.",
+              {
+                display: "config",
+                lines: ["target: default", "interfaces: ens192", "services: dhcpv6-client ssh", "ports: 8443/tcp", "masquerade: no"],
+                correct: [2, 3],
+              }
+            ),
+            commandPart(
+              "Open HTTPS permanently",
+              "Met: firewall-cmd --permanent --add-service=https (sudo, an explicit --zone=public and option order are all fine). Without --permanent, or opening 443/tcp as a port, is partly there.",
+              "firewall-cmd --permanent --add-service=https writes the https service (443/tcp) into the saved configuration of the default zone, public. --permanent changes what loads at boot; it does not change the running firewall by itself. Using the named service rather than --add-port=443/tcp keeps the rule readable.",
+              {
+                accepted: ["firewall-cmd --permanent --add-service=https", "firewall-cmd --permanent --zone=public --add-service=https", "sudo firewall-cmd --permanent --add-service=https", "sudo firewall-cmd --permanent --zone=public --add-service=https"],
+                prompt: "$",
+              }
+            ),
+            commandPart(
+              "Apply it now",
+              "Met: firewall-cmd --reload (with or without sudo).",
+              "firewall-cmd --reload loads the permanent configuration into the running firewall without dropping established connections, so https is open now and after the next reboot.",
+              { accepted: ["firewall-cmd --reload", "sudo firewall-cmd --reload"], prompt: "$" }
+            ),
+            part(
+              "What went wrong last week, and the cleanup",
+              "Explains runtime vs permanent: last week's change was made without --permanent (runtime only), so it vanished at the reboot; and it opened a port number, apparently 8443, rather than the https service. Fix: remove 8443 (firewall-cmd --permanent --remove-port=8443/tcp, then reload) and verify with --list-all and a test from another machine. May note firewalld is a front end that writes nftables rules (iptables on older systems), so editing rules underneath it by hand gets overwritten.",
+              "firewalld keeps two configurations: runtime (what is enforced now) and permanent (what loads at boot and on --reload). A change without --permanent works immediately and is lost at the next restart -- exactly what happened after patching. Clean up the leftover: firewall-cmd --permanent --remove-port=8443/tcp, then firewall-cmd --reload. Verify with firewall-cmd --zone=public --list-all (services: dhcpv6-client https ssh, ports: empty) and curl from an office PC. firewalld is a manager on top of nftables (iptables on older releases), so make changes through firewall-cmd rather than hand-editing the rules beneath it."
             ),
           ],
         },

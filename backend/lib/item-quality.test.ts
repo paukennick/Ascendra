@@ -250,7 +250,7 @@ describe("seed and framing fixes (Audit 3 M1, M5-M8, L1, L3, L4)", () => {
 
   test("M7: fitness tracks are disclaimer-gated and get the safety framing", () => {
     const fitness = CATALOG_TRACKS.filter((t) => t.subcategorySlug === "fitness");
-    assert.equal(fitness.length, 6);
+    assert.equal(fitness.length, 7); // REQ-281 added NASMCNC
     for (const t of fitness) {
       assert.equal(t.requiresAcknowledgement, true, t.code);
       assert.equal(t.disclaimerKey, "fitness-content");

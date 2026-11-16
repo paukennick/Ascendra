@@ -251,6 +251,12 @@ next deployment only.
   `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
 - `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
   items publish. Off lets them publish unchecked.
+- `DECAY_SHADOW` (on unless `off`): mastery decay shadow mode (REQ-301). On:
+  each review also stores the memory model's predicted recall and state in
+  `review_log` (migration 085), in a savepoint that can never fail the review.
+  Off: nothing is read or stored for it. Learners see nothing either way;
+  `npm run decay:calibration` reads it, `npm run decay:backfill` fills past
+  reviews (docs/decay-shadow-calibration.md).
 - `TEACH_ORDER_TEST` (on unless `off`): the Explain first / Example first
   test (REQ-262, docs/teach-order-test.md). On: a learner who has not chosen is
   randomly given one lesson order, stored once. Off: they see Explain first and

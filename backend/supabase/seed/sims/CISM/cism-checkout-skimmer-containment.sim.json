@@ -1,0 +1,1288 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cism-checkout-skimmer-containment",
+  "title": "Sale day: a card skimmer on the checkout page",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "fim",
+          "severity": "critical",
+          "title": "Page integrity: new script on /checkout posts card fields to cdn-metrics.example.net",
+          "when": "true",
+          "at": "0",
+          "status": "{skimActive ? \"Capturing cards\" : skimmerLive ? \"Script still on the page; not reaching shoppers\" : \"Removed\"}",
+          "open": "skimmerLive"
+        },
+        {
+          "id": "b1",
+          "severity": "high",
+          "title": "Outbound: about 120 card numbers posted to the skimmer's address",
+          "when": "not isNull(b1At)",
+          "at": "timeAt(b1At)",
+          "status": "Captured",
+          "open": "false"
+        },
+        {
+          "id": "sw",
+          "severity": "high",
+          "title": "Page integrity: the script now posts to stats-cdn.example.org",
+          "when": "not isNull(switchAt)",
+          "at": "timeAt(switchAt)",
+          "status": "{skimActive ? \"Capturing\" : \"Stopped\"}",
+          "open": "skimActive"
+        },
+        {
+          "id": "re",
+          "severity": "critical",
+          "title": "Page integrity: the skimmer was put back into the checkout template by web-ed",
+          "when": "not isNull(reinsertAt)",
+          "at": "timeAt(reinsertAt)",
+          "status": "{isNull(removed2At) ? \"Live\" : \"Removed again\"}",
+          "open": "isNull(removed2At)"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Page integrity",
+          "text": "Diff of /checkout: one script tag added at 11:40, reading the card number, expiry and security code fields",
+          "when": "not isNull(diffAt)",
+          "at": "timeAt(diffAt)"
+        },
+        {
+          "id": "e2",
+          "source": "CMS audit",
+          "text": "11:40 web-ed (agency contractor) edited the checkout template from 198.51.100.77; web-ed last signed in from the agency's office in September",
+          "when": "not isNull(auditAt)",
+          "at": "timeAt(auditAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Case file",
+          "text": "Checkout page source, the injected script and the CMS audit log saved and hashed",
+          "when": "not isNull(preservedAt)",
+          "at": "timeAt(preservedAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Payments",
+          "text": "Checkout now uses the provider's hosted payment page; card numbers never touch our page",
+          "when": "not isNull(hostedAt)",
+          "at": "timeAt(hostedAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Store",
+          "text": "Store offline: sale traffic sees a maintenance page",
+          "when": "not isNull(offlineAt)",
+          "at": "timeAt(offlineAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Outbound",
+          "text": "Card data posted continuously for an hour: several thousand cards",
+          "when": "not isNull(massAt)",
+          "at": "timeAt(massAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "checkout",
+          "label": "/checkout",
+          "spokenLabel": "Checkout page",
+          "kind": "Critical (RTO 1 hour)",
+          "status": "{not isNull(offlineAt) ? \"Offline with the store\" : not isNull(hostedAt) ? \"Hosted payment page in use\" : skimActive ? \"Skimmer capturing cards\" : \"Local page in use\"}",
+          "tone": "skimActive ? \"bad\" : not isNull(offlineAt) ? \"held\" : \"ok\""
+        },
+        {
+          "id": "admin",
+          "label": "web-ed",
+          "spokenLabel": "CMS account web-ed",
+          "kind": "Agency contractor's CMS administrator",
+          "status": "{isNull(adminOffAt) ? \"Active\" : \"Disabled; sessions revoked\"}",
+          "tone": "isNull(adminOffAt) ? \"bad\" : \"held\""
+        },
+        {
+          "id": "sales",
+          "label": "Store",
+          "spokenLabel": "Online store",
+          "kind": "Sale day",
+          "status": "{isNull(offlineAt) ? \"Open\" : \"Offline\"}",
+          "tone": "isNull(offlineAt) ? \"ok\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "cards",
+          "label": "Cards captured after the alert",
+          "value": "{not isNull(massAt) ? \"several thousand\" : not isNull(b2At) ? \"about 300\" : not isNull(b1At) ? \"about 120\" : \"none\"}"
+        },
+        {
+          "id": "comm",
+          "label": "Notices",
+          "value": "{isNull(acquirerAt) ? \"acquirer not told\" : \"acquirer notified\"}{isNull(ownerAt) ? \"; owner not briefed\" : \"; owner briefed\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Choose incident containment methods",
+  "secondaryObjectives": [
+    "Use a business impact analysis to prioritize recovery and set recovery time and recovery point objectives",
+    "Investigate and evaluate incidents, documenting them in line with legal and regulatory requirements"
+  ],
+  "sources": [
+    {
+      "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 4 Incident Management",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+      "note": "Read as HTML on 2026-11-14 for REQ-272. Domain 4 (29%): part A Incident Management Readiness (including business impact analysis and business continuity) and part B Incident Management Operations (including incident investigation and evaluation, incident containment methods, incident response communications, and incident eradication and recovery). The course's objective wording is its own."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "Every address in the scenario is reserved for documentation."
+    },
+    {
+      "cite": "IETF RFC 2606 (reserved top-level and second-level DNS names: example.com, example.net, example.org, .test, .example)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.rfc-editor.org/rfc/rfc2606",
+      "note": "Every domain in the scenario is reserved for documentation."
+    }
+  ],
+  "brief": {
+    "situation": "You are the information security manager at Harbor & Pine, a fictional online retailer, on the biggest sale day of the year. At 12:00 the page-integrity monitor reports a new script on the checkout page sending typed card numbers to an outside address. Choose how to contain it, keep what the investigation and the merchant agreement need, and write it up.",
+    "handover": [
+      "The BIA rates checkout critical (RTO 1 hour); the continuity plan pre-approves switching checkout to the payment provider's hosted page, which keeps sales running. Taking the whole store offline needs the VP of e-commerce's approval (sale-day revenue about 40,000 dollars an hour).",
+      "The merchant agreement requires notice to the acquiring bank when card data may be compromised."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "New alerts and log lines appear in the console as they happen.",
+      "When you close the incident you notify, record it and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "b1Delay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Fifteen minutes until about 120 cards are captured is the author's figure."
+      }
+    },
+    "b2Delay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Thirty minutes until about 300 are captured is the author's figure."
+      }
+    },
+    "massDelay": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "An hour of skimming on sale day is the author's figure for several thousand cards."
+      }
+    },
+    "switchDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Ten minutes for the attacker to move to a new domain after a block is the author's figure."
+      }
+    },
+    "reinsertDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "Ten minutes for the attacker to put the script back with a still-active account is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "auditAt": {
+      "type": "time",
+      "init": null
+    },
+    "preservedAt": {
+      "type": "time",
+      "init": null
+    },
+    "hostedAt": {
+      "type": "time",
+      "init": null
+    },
+    "offlineAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerAt": {
+      "type": "time",
+      "init": null
+    },
+    "cspAt": {
+      "type": "time",
+      "init": null
+    },
+    "removedAt": {
+      "type": "time",
+      "init": null
+    },
+    "removed2At": {
+      "type": "time",
+      "init": null
+    },
+    "adminOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "acquirerAt": {
+      "type": "time",
+      "init": null
+    },
+    "b1At": {
+      "type": "time",
+      "init": null
+    },
+    "b2At": {
+      "type": "time",
+      "init": null
+    },
+    "massAt": {
+      "type": "time",
+      "init": null
+    },
+    "switchAt": {
+      "type": "time",
+      "init": null
+    },
+    "reinsertAt": {
+      "type": "time",
+      "init": null
+    },
+    "skimOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "methodDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hosted",
+        "offline",
+        "blockOnly"
+      ],
+      "init": "unset"
+    },
+    "dutyDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "acquirer",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owners",
+        "shoppers",
+        "nobody"
+      ],
+      "init": "unset"
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "skimmerLive": {
+      "expr": "isNull(removedAt) or (not isNull(reinsertAt) and isNull(removed2At))"
+    },
+    "skimActive": {
+      "expr": "skimmerLive and isNull(hostedAt) and isNull(offlineAt) and (isNull(cspAt) or not isNull(switchAt))"
+    },
+    "attackerActive": {
+      "expr": "isNull(adminOffAt) or skimActive"
+    },
+    "spread": {
+      "expr": "isNull(b1At) ? 0 : 1"
+    },
+    "evidenceKept": {
+      "expr": "not isNull(preservedAt) and (isNull(removedAt) or timeAt(preservedAt) <= timeAt(removedAt))"
+    },
+    "proportionate": {
+      "expr": "isNull(offlineAt)"
+    },
+    "rootClosed": {
+      "expr": "not isNull(adminOffAt) and not skimmerLive"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "readDiff",
+        "auditCms",
+        "preserve",
+        "hosted",
+        "offline",
+        "consultOwner",
+        "cspBlock",
+        "remove",
+        "disableAdmin",
+        "acquirer",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "notify",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "readDiff": {
+      "label": "Read the integrity monitor's diff of the checkout page",
+      "group": "Investigate",
+      "available": "not busy and isNull(diffAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "diffAt",
+          "to": "t"
+        },
+        {
+          "log": "You open the page diff.",
+          "kind": "act"
+        },
+        {
+          "finding": "One script added at 11:40 reads the card fields as shoppers type and posts them out. Every card entered on the local checkout page now is exposed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "auditCms": {
+      "label": "Pull the CMS audit log for the checkout template",
+      "group": "Investigate",
+      "available": "not busy and isNull(auditAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "auditAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the template's change history.",
+          "kind": "act"
+        },
+        {
+          "finding": "The agency contractor account web-ed made the change from an unfamiliar address; it can still edit the template."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Save the live page, the injected script and the CMS audit log, hashed",
+      "group": "Evidence",
+      "available": "not busy and isNull(preservedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "preservedAt",
+          "to": "t"
+        },
+        {
+          "log": "The page source, script and audit log are saved and hashed for the investigation and the card brands' forensic investigator.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "hosted": {
+      "label": "Switch checkout to the payment provider's hosted page (the plan's pre-approved fallback)",
+      "group": "Contain",
+      "available": "not busy and isNull(hostedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "hostedAt",
+          "to": "t"
+        },
+        {
+          "log": "Checkout now hands card entry to the provider's hosted page. Shoppers keep buying; the skimmer sees no card numbers.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "offline": {
+      "label": "Take the whole store offline",
+      "group": "Contain",
+      "available": "not busy and isNull(offlineAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "offlineAt",
+          "to": "t"
+        },
+        {
+          "log": "The store goes to a maintenance page. Skimming stops, and so do sale-day sales. {isNull(ownerAt) ? \"The VP of e-commerce did not approve it.\" : \"The VP of e-commerce agreed to it.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "consultOwner": {
+      "label": "Brief the VP of e-commerce on the containment options and their cost",
+      "group": "Communicate",
+      "available": "not busy and isNull(ownerAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ownerAt",
+          "to": "t"
+        },
+        {
+          "log": "The VP hears the options: the hosted fallback keeps sales running; taking the store down costs about 40,000 dollars an hour.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "cspBlock": {
+      "label": "Block the skimmer's domain with a Content Security Policy rule",
+      "group": "Contain",
+      "available": "not busy and isNull(cspAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "cspAt",
+          "to": "t"
+        },
+        {
+          "log": "Browsers stop sending to cdn-metrics.example.net. The script is still on the page and the account that put it there still works.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "remove": {
+      "label": "Remove the injected script from the checkout template",
+      "group": "Contain",
+      "available": "not busy and skimmerLive",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(removedAt)",
+          "then": [
+            {
+              "set": "removedAt",
+              "to": "t"
+            }
+          ],
+          "else": [
+            {
+              "set": "removed2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The script tag is removed. {isNull(preservedAt) ? \"Nothing was saved first: the investigation has no copy of it.\" : \"A copy is already in the case.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "disableAdmin": {
+      "label": "Disable the CMS account web-ed and revoke its sessions",
+      "group": "Contain",
+      "available": "not busy and isNull(adminOffAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "adminOffAt",
+          "to": "t"
+        },
+        {
+          "log": "web-ed is disabled and signed out; the agency is asked for its staff list.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "acquirer": {
+      "label": "Notify the acquiring bank as the merchant agreement requires",
+      "group": "Communicate",
+      "available": "not busy and isNull(acquirerAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acquirerAt",
+          "to": "t"
+        },
+        {
+          "log": "The acquirer is told: dates, the page affected, and that the investigation is under way.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching the console (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You watch the queue and the logs for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify stakeholders",
+      "group": "Report",
+      "available": "notified == \"unset\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Who you notify",
+          "options": [
+            {
+              "value": "owners",
+              "label": "The VP of e-commerce, counsel and the payments team, with the acquirer's case number"
+            },
+            {
+              "value": "shoppers",
+              "label": "Every customer, by email, today"
+            },
+            {
+              "value": "nobody",
+              "label": "No one: it is contained"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "notified",
+          "to": "who"
+        },
+        {
+          "log": "Notified: {who == \"owners\" ? \"the VP of e-commerce, counsel and payments\" : who == \"shoppers\" ? \"every customer\" : \"no one\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "method",
+              "label": "Containment method",
+              "options": [
+                {
+                  "value": "hosted",
+                  "label": "Hosted fallback for checkout, then the script removed and the account closed"
+                },
+                {
+                  "value": "offline",
+                  "label": "The store taken offline"
+                },
+                {
+                  "value": "blockOnly",
+                  "label": "The skimmer's domain blocked"
+                }
+              ]
+            },
+            {
+              "id": "duty",
+              "label": "External obligations",
+              "options": [
+                {
+                  "value": "acquirer",
+                  "label": "Acquirer notified under the merchant agreement; evidence kept for the forensic investigator"
+                },
+                {
+                  "value": "none",
+                  "label": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "methodDoc",
+          "to": "method"
+        },
+        {
+          "set": "dutyDoc",
+          "to": "duty"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {method}, {duty}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-274)",
+        "checkedAt": "2026-11-14",
+        "note": "How many sim minutes each task takes and when the fictional attacker (or other party) takes each step are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "b1",
+      "when": "isNull(b1At) and (t >= b1Delay and skimActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "b1At",
+          "to": "t"
+        },
+        {
+          "log": "Outbound: about 120 card numbers have been posted to the skimmer's address.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "switch",
+      "when": "isNull(switchAt) and (not isNull(cspAt) and t >= timeAt(cspAt) + switchDelay and isNull(adminOffAt) and skimmerLive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "switchAt",
+          "to": "t"
+        },
+        {
+          "log": "Page integrity: web-ed edited the script to post to stats-cdn.example.org, which the policy does not block.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "reinsert",
+      "when": "isNull(reinsertAt) and (not isNull(removedAt) and t >= timeAt(removedAt) + reinsertDelay and isNull(adminOffAt)) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "reinsertAt",
+          "to": "t"
+        },
+        {
+          "log": "Page integrity: web-ed put the skimmer back into the checkout template.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "when": "isNull(b2At) and (t >= b2Delay and skimActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "b2At",
+          "to": "t"
+        },
+        {
+          "log": "Outbound: about 300 card numbers captured so far.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "mass",
+      "when": "isNull(massAt) and (t >= massDelay and skimActive) and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "massAt",
+          "to": "t"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "Outbound: an hour of sale-day checkouts has gone to the skimmer: several thousand cards. Stop and write up what happened.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "skimOff",
+      "when": "isNull(skimOffAt) and not skimActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "skimOffAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "allOff",
+      "when": "isNull(offAt) and not attackerActive",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "offAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: which containment method you chose and why, what you kept, and who had to know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Method",
+          "criteria": "Chooses the containment that stops the card capture fastest at the least business cost (the pre-approved hosted fallback), then removes the script and disables the account that placed it; rejects a domain block (evaded) and a whole-store shutdown without the owner (disproportionate).",
+          "modelAnswer": "The hosted page stopped the capture in minutes and kept the sale running; then I disabled web-ed and removed the script. A domain block only moves the attacker, and closing the store needed the VP and cost far more."
+        },
+        {
+          "label": "Evidence and obligations",
+          "criteria": "Saves and hashes the page, the script and the audit log before removing anything; notifies the acquirer as the merchant agreement requires.",
+          "modelAnswer": "I saved the page, script and audit log with hashes first and notified the acquirer under the merchant agreement."
+        },
+        {
+          "label": "BIA",
+          "criteria": "Uses the BIA's rating of checkout (critical, RTO 1 hour) and the continuity plan's pre-approved fallback to justify keeping the store open.",
+          "modelAnswer": "Checkout is critical with a one-hour RTO, and the continuity plan already approved the hosted fallback for exactly this."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Author's figure, as for the REQ-231 and REQ-238 cases."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No batch of cards captured after the first alert."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and skimActive",
+      "class": "harm",
+      "rationale": "Closing the case while the skimmer still captures cards is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+        "checkedAt": "2026-11-14",
+        "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "note": "Final, April 3, 2025; supersedes Rev. 2 (2012). The CSRC page was read 2026-11-14 through a summarizing fetch (title, date, status, abstract). The RS.MA, RS.MI, RS.AN and RS.CO outcome text used here was read in the PDF on 2026-11-11 for REQ-238 (docs/sims.md 22.11) and not re-read."
+      }
+    }
+  },
+  "endings": {
+    "massTheft": {
+      "label": "Thousands of cards taken",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(massAt)",
+      "narrative": "The skimmer ran through an hour of sale-day checkouts."
+    },
+    "evidenceLost": {
+      "label": "Script removed before it was saved",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(removedAt) and not evidenceKept",
+      "narrative": "The script was deleted before anyone saved it; the forensic investigator gets no copy of what ran."
+    },
+    "leftOpen": {
+      "label": "The attacker can edit checkout again",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and attackerActive",
+      "narrative": "{skimActive ? \"The skimmer is still capturing cards.\" : \"web-ed can still edit the checkout template.\"}"
+    },
+    "handled": {
+      "label": "Contained proportionately",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not attackerActive and not isNull(skimOffAt) and timeAt(skimOffAt) <= containWindow and spread <= containSpread and evidenceKept and proportionate and rootClosed",
+      "narrative": "The capture stopped within minutes and the sale kept running; then the script and the account that placed it were dealt with, evidence first."
+    },
+    "handledCostly": {
+      "label": "Contained, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Card capture stopped, but late, after cards were taken, or at the cost of the whole store."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "massTheft",
+    "evidenceLost",
+    "leftOpen",
+    "handled",
+    "handledCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopped",
+        "label": "Card capture stopped before the first batch",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(skimOffAt) and isNull(b1At) and not skimActive",
+            "score": "met",
+            "why": "Stopped {timeAt(skimOffAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not skimActive",
+            "score": "partial",
+            "why": "Stopped, after cards were taken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still capturing."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Page, script and audit log saved before removal",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceKept",
+            "score": "met",
+            "why": "Saved and hashed first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(preservedAt) ? \"Nothing saved.\" : \"Saved after the script was gone.\"}"
+          }
+        ]
+      },
+      {
+        "id": "proportionate",
+        "label": "Contained without closing the store",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proportionate",
+            "score": "met",
+            "why": "The sale kept running."
+          },
+          {
+            "when": "not isNull(ownerAt) and timeAt(ownerAt) <= timeAt(offlineAt)",
+            "score": "partial",
+            "why": "Closed with the owner's agreement; a cheaper method existed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Closed the store without the owner."
+          }
+        ]
+      },
+      {
+        "id": "root",
+        "label": "Script removed and the account that placed it disabled",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rootClosed",
+            "score": "met",
+            "why": "Nothing left to put it back."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(adminOffAt) ? \"web-ed can still edit checkout.\" : \"The script is still on the page.\"}"
+          }
+        ]
+      },
+      {
+        "id": "acquirer",
+        "label": "Notified the acquirer as the merchant agreement requires",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(acquirerAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not notified."
+          }
+        ]
+      },
+      {
+        "id": "owner",
+        "label": "Briefed the business owner",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ownerAt)",
+            "score": "met",
+            "why": "The VP knew the options and costs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The owner was not consulted."
+          }
+        ]
+      },
+      {
+        "id": "audit",
+        "label": "Found how the script got there",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(auditAt)",
+            "score": "met",
+            "why": "The CMS log names web-ed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the method and the obligation, and told the owners",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "methodDoc == \"hosted\" and dutyDoc == \"acquirer\" and notified == \"owners\"",
+            "score": "met",
+            "why": "Accurate record, right people told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record or the notification does not fit what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written method, evidence and BIA",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToStop",
+        "label": "Minutes until card capture stopped",
+        "value": "isNull(skimOffAt) ? -1 : timeAt(skimOffAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "cards",
+        "label": "Cards captured after the alert (approximate)",
+        "value": "not isNull(massAt) ? 3000 : not isNull(b2At) ? 300 : not isNull(b1At) ? 120 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "offlineMin",
+        "label": "Minutes the store was offline",
+        "value": "isNull(offlineAt) ? 0 : t / 60 - timeAt(offlineAt) / 60",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Read the diff: a skimmer on checkout. Save the page, script and audit log with hashes."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Switch checkout to the hosted fallback: capture stops, the sale goes on."
+      },
+      {
+        "at": "15-25 min",
+        "text": "Disable web-ed, remove the script, check the CMS log for how it got in."
+      },
+      {
+        "at": "After",
+        "text": "Brief the VP, notify the acquirer, record the method and the obligation."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: the right containment for the business",
+        "body": "The pre-approved fallback stopped the capture without closing the store; evidence and the account came next."
+      },
+      "handledCostly": {
+        "headline": "Contained, at a cost",
+        "body": "The criteria show what cost you: cards taken first, or a whole-store shutdown where a fallback would do."
+      },
+      "massTheft": {
+        "headline": "An hour of cards taken",
+        "body": "A domain block or watching did not stop the script. Containment has to cut the capture itself."
+      },
+      "evidenceLost": {
+        "headline": "Script deleted unsaved",
+        "body": "Save the page, the script and the log before you remove anything; the card brands' investigator will ask for them."
+      },
+      "leftOpen": {
+        "headline": "The door is still open",
+        "body": "The account that placed the script can put it back. Disable it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No incident record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Choose the containment that stops the harm fastest at the least business cost. Save the page, script and audit log first (minutes), then switch checkout to the continuity plan's pre-approved hosted page: capture stops and the critical sale keeps running. Then disable the account that placed the script and remove it. A domain block only moves the attacker; closing the store is disproportionate and needs the owner. Brief the VP and notify the acquirer as the merchant agreement requires."
+  }
+}

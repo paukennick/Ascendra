@@ -1,0 +1,1254 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sql-slow-login-seq-scan",
+  "title": "Sale morning: customer sign-in has slowed to a crawl",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "orders=#",
+      "lines": [
+        {
+          "id": "slowLog",
+          "text": "11:00 postgres[3021]: LOG:  duration: 1812.442 ms  statement: SELECT id, email, name FROM customers WHERE lower(email) = $1",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "poolWarn",
+          "text": "11:00 shopd[2214]: WARN database pool 38/40 connections busy; sign-in p95 2.9 s",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "blocked",
+          "text": "shopd[2214]: ERROR order insert waited on a lock for more than 30 s; checkout answered 503",
+          "when": "not isNull(writesBlockedAt)",
+          "at": "timeAt(writesBlockedAt)",
+          "error": "true"
+        },
+        {
+          "id": "readBlocked",
+          "text": "shopd[2214]: ERROR every query on customers is waiting on a lock; the site answers 503",
+          "when": "not isNull(vacuumAt)",
+          "at": "timeAt(vacuumAt)",
+          "error": "true"
+        },
+        {
+          "id": "poolOut",
+          "text": "shopd[2214]: ERROR database pool exhausted (40/40); sign-in and checkout answer 503",
+          "when": "not isNull(poolOutAt)",
+          "at": "timeAt(poolOutAt)",
+          "error": "true"
+        },
+        {
+          "id": "fast",
+          "text": "postgres[3021]: sign-in lookups now finish in about 0.1 ms; pool 4/40 busy",
+          "when": "fixed",
+          "at": "timeAt(indexAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "shopd",
+          "label": "shopd",
+          "spokenLabel": "shopd, the shop application",
+          "kind": "Application service",
+          "status": "{not isNull(poolOutAt) and not fixed ? \"Pool exhausted; answering 503\" : fixed ? \"Serving sign-in and checkout\" : \"Sign-in slow; pool nearly full\"}",
+          "tone": "fixed ? \"up\" : not isNull(poolOutAt) ? \"down\" : \"degraded\""
+        },
+        {
+          "id": "pg",
+          "label": "postgresql",
+          "spokenLabel": "PostgreSQL, the orders database",
+          "kind": "Database (PostgreSQL 18)",
+          "status": "{lockHeld ? \"Table customers locked by your command\" : fixed ? \"Healthy\" : \"Busy with the same sign-in lookup\"}",
+          "tone": "lockHeld ? \"down\" : fixed ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "cust",
+          "label": "customers (2.4M rows)",
+          "spokenLabel": "the customers table",
+          "kind": "Table",
+          "status": "{fixed ? \"Indexed on lower(email)\" : building ? \"Index build in progress\" : \"Index on email only\"}",
+          "tone": "fixed ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "mail",
+          "label": "sale email",
+          "spokenLabel": "the sale email campaign",
+          "kind": "Marketing send (11:35)",
+          "status": "{not isNull(mailAt) ? \"Sent: sign-in traffic tripled\" : \"Scheduled for 11:35\"}",
+          "tone": "not isNull(poolOutAt) and not fixed ? \"down\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "pool",
+          "from": "shopd",
+          "to": "pg",
+          "label": "Connection pool (40)",
+          "status": "{not isNull(poolOutAt) and not fixed ? \"Exhausted\" : fixed ? \"4 busy\" : \"38 busy\"}",
+          "tone": "fixed ? \"up\" : not isNull(poolOutAt) ? \"down\" : \"degraded\""
+        },
+        {
+          "id": "tbl",
+          "from": "pg",
+          "to": "cust",
+          "label": "Sign-in lookup",
+          "status": "{fixed ? \"Index scan\" : \"Sequential scan of every row\"}",
+          "tone": "fixed ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "lat",
+          "label": "Sign-in lookup time",
+          "value": "{fixed ? \"0.1 ms\" : \"1,812 ms\"}"
+        },
+        {
+          "id": "act",
+          "label": "Queries running",
+          "value": "{activeQueries|0dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Read EXPLAIN output to tell a sequential scan from an index scan, and recognize filters that cannot use an index",
+  "secondaryObjectives": [
+    "Explain how a B-tree index speeds lookups and range scans and what it costs on writes and storage"
+  ],
+  "sources": [
+    {
+      "cite": "PostgreSQL 18 Documentation, 14.1 Using EXPLAIN",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/using-explain.html",
+      "note": "Relevant text: scan nodes 'return raw rows from a table'; a sequential scan with a WHERE clause 'checks the condition for each row it scans, and outputs only the ones that pass'; an Index Scan shows 'Index Cond'; with ANALYZE, 'EXPLAIN actually executes the query' and 'Rows Removed by Filter' counts rows a filter rejected. Read through a summarizing fetch of the PostgreSQL 18.7 page on 2026-11-14. The plan lines in the scenario are authored renderings in EXPLAIN's style; the costs and times are invented for the case."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, 11.7 Indexes on Expressions",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/indexes-expressional.html",
+      "note": "Relevant text: 'a common way to do case-insensitive comparisons is to use the lower function: SELECT * FROM test1 WHERE lower(col1) = 'value'; This query can use an index if one has been defined on the result of the lower(col1) function'; index expressions 'are relatively expensive to maintain' on insert and update. Read through a summarizing fetch on 2026-11-14. Why the existing index on email cannot serve a filter on lower(email)."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, CREATE INDEX (Building Indexes Concurrently)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/sql-createindex.html",
+      "note": "Relevant text: 'Normally PostgreSQL locks the table to be indexed against writes ... Other transactions can still read the table, but if they try to insert, update, or delete rows in the table they will block until the index build is finished.' With CONCURRENTLY PostgreSQL 'will build the index without taking any locks that prevent concurrent inserts, updates, or deletes', at the cost of two table scans; it 'cannot' run inside a transaction block, and a failed build leaves an 'invalid' index to drop and rebuild. Read through a summarizing fetch of the PostgreSQL 18.7 page on 2026-11-14."
+    },
+    {
+      "cite": "PostgreSQL 18 Documentation, 13.3 Explicit Locking",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "note": "Relevant text: SHARE lock, 'Acquired by CREATE INDEX (without CONCURRENTLY)', 'protects a table against concurrent data changes'; ACCESS EXCLUSIVE (taken by VACUUM FULL among others) conflicts with every lock mode, so even plain SELECTs wait. Read through a summarizing fetch on 2026-11-14 (the ACCESS EXCLUSIVE list was read on the same page)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database engineer on call at Fernhill Books, a fictional online bookshop. It is 11:00 on the first morning of the autumn sale. Since last night's release, sign-in has slowed from instant to about two seconds, and the application's database pool is nearly full. The sale email goes to 400,000 customers at 11:35, and sign-in traffic roughly triples when it lands. Find out why the lookup is slow, fix it without stopping orders, and show that it is fixed.",
+    "handover": [
+      "Last night's release changed sign-in to match email addresses case-insensitively.",
+      "The customers table has 2.4 million rows, a primary key on id and a B-tree index on email. Orders insert and update customers rows (loyalty points) all day."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows each host, service or job and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "mailDelay": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The sale email lands at 11:35, 35 minutes after the first report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "activityAt": {
+      "type": "time",
+      "init": null
+    },
+    "describeAt": {
+      "type": "time",
+      "init": null
+    },
+    "explainAt": {
+      "type": "time",
+      "init": null
+    },
+    "analyzeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pending": {
+      "type": "enum",
+      "values": [
+        "none",
+        "conc",
+        "plain",
+        "vacuum"
+      ],
+      "init": "none"
+    },
+    "indexAt": {
+      "type": "time",
+      "init": null
+    },
+    "writesBlockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vacuumAt": {
+      "type": "time",
+      "init": null
+    },
+    "analyzeStatsAt": {
+      "type": "time",
+      "init": null
+    },
+    "seqOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "mailAt": {
+      "type": "time",
+      "init": null
+    },
+    "poolOutAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "expression",
+        "bloat",
+        "stats"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "explainReview",
+        "biggerPool",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "not isNull(indexAt)"
+    },
+    "building": {
+      "expr": "pending == \"conc\" or pending == \"plain\""
+    },
+    "lockHeld": {
+      "expr": "pending == \"plain\" or pending == \"vacuum\""
+    },
+    "activeQueries": {
+      "expr": "fixed ? 4 : not isNull(poolOutAt) ? 40 : 38"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "activity",
+        "describe",
+        "explain",
+        "explainAnalyze",
+        "analyzeStats",
+        "seqOff",
+        "vacuumFull",
+        "createPlain",
+        "createConc",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "activity": {
+      "label": "SELECT state, count(*) FROM pg_stat_activity WHERE datname = 'orders' GROUP BY state;",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(activityAt)",
+          "then": [
+            {
+              "set": "activityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SELECT state, count(*) FROM pg_stat_activity WHERE datname = 'orders' GROUP BY state;\n state  | count\n--------+-------\n active | {activeQueries|0dp}\n idle   | {40 - activeQueries|0dp}\n(2 rows)"
+        },
+        {
+          "if": "not fixed",
+          "then": [
+            {
+              "finding": "Almost every pool connection is running the same sign-in lookup; the database is busy, not down."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describe": {
+      "label": "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'customers';",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(describeAt)",
+          "then": [
+            {
+              "set": "describeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "fixed",
+              "then": [
+                {
+                  "output": "orders=# SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'customers';\n         indexname         |                         indexdef\n---------------------------+-----------------------------------------------------------\n customers_pkey            | CREATE UNIQUE INDEX customers_pkey ON customers USING btree (id)\n customers_email_idx       | CREATE INDEX customers_email_idx ON customers USING btree (email)\n customers_lower_email_idx | CREATE INDEX customers_lower_email_idx ON customers USING btree (lower(email))\n(3 rows)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "orders=# SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'customers';\n      indexname      |                         indexdef\n---------------------+-----------------------------------------------------------\n customers_pkey      | CREATE UNIQUE INDEX customers_pkey ON customers USING btree (id)\n customers_email_idx | CREATE INDEX customers_email_idx ON customers USING btree (email)\n(2 rows)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "explain": {
+      "label": "EXPLAIN SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "fixed",
+              "then": [
+                {
+                  "output": "orders=# EXPLAIN SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';\n                                    QUERY PLAN\n----------------------------------------------------------------------------------\n Index Scan using customers_lower_email_idx on customers  (cost=0.43..8.45 rows=1 width=41)\n   Index Cond: (lower(email) = 'reader@example.com'::text)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "orders=# EXPLAIN SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';\n                              QUERY PLAN\n----------------------------------------------------------------------\n Seq Scan on customers  (cost=0.00..58840.00 rows=12000 width=41)\n   Filter: (lower(email) = 'reader@example.com'::text)"
+                },
+                {
+                  "finding": "The plan is a Seq Scan with a Filter on lower(email): every row is read and tested. The index on email is not used, because it holds email, not lower(email)."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "explainAnalyze": {
+      "label": "EXPLAIN ANALYZE SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(analyzeAt)",
+          "then": [
+            {
+              "set": "analyzeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "fixed",
+              "then": [
+                {
+                  "output": "orders=# EXPLAIN ANALYZE SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';\n Index Scan using customers_lower_email_idx on customers  (cost=0.43..8.45 rows=1 width=41) (actual time=0.041..0.043 rows=1.00 loops=1)\n   Index Cond: (lower(email) = 'reader@example.com'::text)\n Execution Time: 0.071 ms"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "orders=# EXPLAIN ANALYZE SELECT id, email, name FROM customers WHERE lower(email) = 'reader@example.com';\n Seq Scan on customers  (cost=0.00..58840.00 rows=12000 width=41) (actual time=903.118..1811.902 rows=1.00 loops=1)\n   Filter: (lower(email) = 'reader@example.com'::text)\n   Rows Removed by Filter: 2399999\n Execution Time: 1812.007 ms"
+                },
+                {
+                  "finding": "EXPLAIN ANALYZE: a sequential scan read 2.4 million rows and removed all but one with the filter, taking 1.8 s. The estimate (12,000 rows) is a guess for an expression it has no statistics on."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "analyzeStats": {
+      "label": "ANALYZE customers;",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(analyzeStatsAt)",
+          "then": [
+            {
+              "set": "analyzeStatsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# ANALYZE customers;\nANALYZE"
+        },
+        {
+          "log": "Statistics refreshed. The plan for lower(email) is still a sequential scan: no index holds lower(email).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "seqOff": {
+      "label": "SET enable_seqscan = off;",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(seqOffAt)",
+          "then": [
+            {
+              "set": "seqOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "orders=# SET enable_seqscan = off;\nSET"
+        },
+        {
+          "log": "This changes only your own psql session. The application's connections still plan a sequential scan, and with no usable index there is nothing else to choose.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "vacuumFull": {
+      "label": "VACUUM FULL customers;",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(vacuumAt)",
+          "then": [
+            {
+              "set": "vacuumAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pending",
+          "to": "\"vacuum\""
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "VACUUM FULL rewrites the whole table under an ACCESS EXCLUSIVE lock: every query on customers, reads included, now waits until it finishes.",
+          "kind": "alarm"
+        },
+        {
+          "output": "orders=# VACUUM FULL customers;\nVACUUM"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "7min"
+        }
+      ]
+    },
+    "createPlain": {
+      "label": "CREATE INDEX customers_lower_email_idx ON customers (lower(email));",
+      "group": "Fix",
+      "available": "not busy and isNull(indexAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "pending",
+          "to": "\"plain\""
+        },
+        {
+          "if": "isNull(writesBlockedAt)",
+          "then": [
+            {
+              "set": "writesBlockedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "A plain CREATE INDEX takes a SHARE lock: reads go on, but every order that updates a customer row waits until the build ends.",
+          "kind": "bad"
+        },
+        {
+          "output": "orders=# CREATE INDEX customers_lower_email_idx ON customers (lower(email));\nCREATE INDEX"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "createConc": {
+      "label": "CREATE INDEX CONCURRENTLY customers_lower_email_idx ON customers (lower(email));",
+      "group": "Fix",
+      "available": "not busy and isNull(indexAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "pending",
+          "to": "\"conc\""
+        },
+        {
+          "log": "Building the expression index concurrently: two passes over the table, no lock that stops orders.",
+          "kind": "act"
+        },
+        {
+          "output": "orders=# CREATE INDEX CONCURRENTLY customers_lower_email_idx ON customers (lower(email));\nCREATE INDEX"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "9min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "SELECT calls, round(mean_exec_time::numeric, 2) AS mean_ms FROM pg_stat_statements WHERE query LIKE '%lower(email)%';",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "fixed",
+              "then": [
+                {
+                  "output": "orders=# SELECT calls, round(mean_exec_time::numeric, 2) AS mean_ms FROM pg_stat_statements WHERE query LIKE '%lower(email)%';\n calls  | mean_ms\n--------+---------\n    912 |    0.11\n(1 row)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "orders=# SELECT calls, round(mean_exec_time::numeric, 2) AS mean_ms FROM pg_stat_statements WHERE query LIKE '%lower(email)%';\n calls  | mean_ms\n--------+---------\n  18304 | 1809.77\n(1 row)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "fixed and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "SELECT pg_sleep(600);",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "orders=# SELECT pg_sleep(600);"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "expression",
+                  "label": "The new filter on lower(email) cannot use the index on email, so every lookup scans the table"
+                },
+                {
+                  "value": "bloat",
+                  "label": "The customers table is bloated and needs VACUUM FULL"
+                },
+                {
+                  "value": "stats",
+                  "label": "Out-of-date planner statistics"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "explainReview",
+                  "label": "Keep the expression index; check EXPLAIN for changed queries before release, and build indexes CONCURRENTLY"
+                },
+                {
+                  "value": "biggerPool",
+                  "label": "Raise the connection pool to 100"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pending == \"conc\"",
+              "then": [
+                {
+                  "set": "indexAt",
+                  "to": "t"
+                },
+                {
+                  "log": "CREATE INDEX CONCURRENTLY finished; the index on lower(email) is valid.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "pending == \"plain\"",
+              "then": [
+                {
+                  "set": "indexAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The index is built and the write lock is released; orders that waited go through, some after timing out.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "pending == \"vacuum\"",
+              "then": [
+                {
+                  "log": "VACUUM FULL finished. The table is compacted, and sign-in still scans every row.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pending",
+          "to": "\"none\""
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "mail",
+      "when": "t >= mailDelay and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "mailAt",
+          "to": "t"
+        },
+        {
+          "if": "not fixed",
+          "then": [
+            {
+              "set": "poolOutAt",
+              "to": "t"
+            },
+            {
+              "log": "11:35: the sale email lands, sign-in traffic triples, and the database pool is exhausted. Sign-in and checkout answer 503.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what the plan showed, why the existing index did not help, how you fixed it without stopping orders, and how you know it worked.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Reading the plan",
+          "criteria": "Says EXPLAIN showed a Seq Scan with a Filter on lower(email) (and, with ANALYZE, millions of rows removed by the filter), and that a B-tree on email cannot answer a condition on lower(email).",
+          "modelAnswer": "EXPLAIN showed Seq Scan on customers with Filter: lower(email) = ...; EXPLAIN ANALYZE removed 2.4 million rows to return one in 1.8 s. The index stores email, not lower(email), so the planner cannot use it for that filter."
+        },
+        {
+          "label": "The fix and its locks",
+          "criteria": "Builds an index on the expression lower(email), CONCURRENTLY so writes keep flowing; explains that a plain CREATE INDEX blocks writes and VACUUM FULL blocks everything, and neither ANALYZE nor enable_seqscan makes an index exist.",
+          "modelAnswer": "I built customers_lower_email_idx on (lower(email)) with CREATE INDEX CONCURRENTLY, which does not block inserts and updates. A plain CREATE INDEX would have stopped orders for the build; VACUUM FULL would have locked out reads too."
+        },
+        {
+          "label": "Verification",
+          "criteria": "Re-runs EXPLAIN to see an Index Scan with Index Cond on the new index and checks query time or pool use came down.",
+          "modelAnswer": "EXPLAIN now shows Index Scan using customers_lower_email_idx with Index Cond, mean time in pg_stat_statements fell to about 0.1 ms and the pool dropped to 4 busy."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Fixed with time to spare before the 11:35 sale email; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself (blocked writes or locked reads)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed",
+      "class": "harm",
+      "rationale": "Closing with sign-in still scanning 2.4 million rows per lookup leaves the shop one traffic spike from an outage; it is never a safe outcome.",
+      "source": {
+        "cite": "PostgreSQL 18 Documentation, 11.7 Indexes on Expressions",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.postgresql.org/docs/current/indexes-expressional.html",
+        "note": "Relevant text: 'a common way to do case-insensitive comparisons is to use the lower function: SELECT * FROM test1 WHERE lower(col1) = 'value'; This query can use an index if one has been defined on the result of the lower(col1) function'; index expressions 'are relatively expensive to maintain' on insert and update. Read through a summarizing fetch on 2026-11-14. Why the existing index on email cannot serve a filter on lower(email)."
+      }
+    }
+  },
+  "endings": {
+    "readsLocked": {
+      "label": "The whole table was locked",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(vacuumAt)",
+      "narrative": "VACUUM FULL took an ACCESS EXCLUSIVE lock on customers during the sale: sign-in, checkout and order updates all stopped while it rewrote a table that was never the problem."
+    },
+    "poolExhausted": {
+      "label": "The sale email took the site down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(poolOutAt)",
+      "narrative": "The lookup was still a sequential scan when the 11:35 email landed; the pool ran out and the shop answered 503 at the busiest moment of the sale."
+    },
+    "stillSlow": {
+      "label": "Closed with sign-in still slow",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not fixed",
+      "narrative": "The incident was closed while every sign-in still scanned the whole customers table."
+    },
+    "fixed": {
+      "label": "Fixed without stopping orders",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and timeAt(indexAt) <= restoreWindow and faultsAdded <= newFaults and not isNull(explainAt) and timeAt(explainAt) <= timeAt(indexAt) and not isNull(verifiedAt)",
+      "narrative": "You read the plan, built the expression index without blocking writes, and proved the lookup now uses it, well before the sale email."
+    },
+    "fixedGaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Sign-in is fast again, but the fix was a guess, blocked orders while it built, came late, or was never checked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "readsLocked",
+    "poolExhausted",
+    "stillSlow",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "readPlan",
+        "label": "Read the query plan before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(explainAt) and (isNull(indexAt) or timeAt(explainAt) <= timeAt(indexAt)) and isNull(vacuumAt) and isNull(analyzeStatsAt) and isNull(seqOffAt)",
+            "score": "met",
+            "why": "EXPLAIN showed the Seq Scan and the Filter on lower(email) first."
+          },
+          {
+            "when": "not isNull(explainAt)",
+            "score": "partial",
+            "why": "The plan was read, but only after trying a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "EXPLAIN was never run; the fix was a guess."
+          }
+        ]
+      },
+      {
+        "id": "noBlocking",
+        "label": "Fixed without blocking orders or reads",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vacuumAt)",
+            "score": "missed",
+            "why": "VACUUM FULL locked the table against every query."
+          },
+          {
+            "when": "not isNull(writesBlockedAt)",
+            "score": "partial",
+            "why": "A plain CREATE INDEX blocked order writes for the build."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing blocked the shop's traffic."
+          }
+        ]
+      },
+      {
+        "id": "fixedFast",
+        "label": "Sign-in fixed within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and timeAt(indexAt) <= restoreWindow",
+            "score": "met",
+            "why": "The index was ready {timeAt(indexAt) / 60|0dp} min after the report."
+          },
+          {
+            "when": "fixed",
+            "score": "partial",
+            "why": "Fixed, but {timeAt(indexAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lookup was never fixed."
+          }
+        ]
+      },
+      {
+        "id": "lookedFirst",
+        "label": "Checked what the database was doing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(activityAt) or not isNull(describeAt)",
+            "score": "met",
+            "why": "pg_stat_activity or the table definition was checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the running queries nor the table's indexes were looked at."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified the fix with the plan or query statistics",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt) or (fixed and not isNull(explainAt) and timeAt(explainAt) >= timeAt(indexAt))",
+            "score": "met",
+            "why": "The fix was checked after the index existed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked that the lookup now uses the index."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"expression\" and preventDoc == \"explainReview\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"expression\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written plan reading, fix and verification",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToFix",
+        "label": "Minutes until sign-in was fast",
+        "value": "fixed ? timeAt(indexAt) / 60 : -1",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "queriesK",
+        "label": "Queries running at the end",
+        "value": "activeQueries",
+        "format": "number",
+        "expert": "4"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "pg_stat_activity: the pool is full of the same sign-in lookup. pg_indexes: the only index besides the key is on email."
+      },
+      {
+        "at": "3-5 min",
+        "text": "EXPLAIN (or EXPLAIN ANALYZE, a read): Seq Scan with Filter on lower(email), 2.4 million rows removed. The email index cannot serve lower(email)."
+      },
+      {
+        "at": "5-15 min",
+        "text": "CREATE INDEX CONCURRENTLY on (lower(email)); orders keep writing while it builds."
+      },
+      {
+        "at": "15-17 min",
+        "text": "EXPLAIN shows Index Scan with Index Cond; pg_stat_statements mean time falls to about 0.1 ms. Close before 11:35."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed without stopping orders",
+        "body": "The plan named the problem: a sequential scan filtering on an expression no index held. An expression index built concurrently fixed it with no lock on writes."
+      },
+      "fixedGaps": {
+        "headline": "Fixed, with gaps",
+        "body": "Sign-in works. The criteria show what it cost: a guess instead of EXPLAIN, orders blocked by a plain CREATE INDEX, time, or no check afterward."
+      },
+      "readsLocked": {
+        "headline": "Locked out the whole shop",
+        "body": "VACUUM FULL takes the strongest lock there is and does not create an index. Read the plan first: it said Seq Scan with a Filter on lower(email)."
+      },
+      "poolExhausted": {
+        "headline": "The sale email arrived first",
+        "body": "With 35 minutes of warning, EXPLAIN and a concurrent expression index take about 15. Read the plan early; it names the fix."
+      },
+      "stillSlow": {
+        "headline": "Closed too soon",
+        "body": "Every sign-in still scanned the table. Statistics and session settings do not make an index exist."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Last night's release changed the filter to lower(email). The only index holds email, so EXPLAIN shows Seq Scan with Filter: lower(email) = ..., and EXPLAIN ANALYZE removes 2.4 million rows per lookup. An index on the expression lower(email) lets the planner use an Index Scan. Build it CONCURRENTLY so inserts and updates keep flowing (a plain CREATE INDEX blocks writes; VACUUM FULL blocks everything and fixes nothing here). Verify with EXPLAIN and query statistics before the 11:35 email."
+  }
+}

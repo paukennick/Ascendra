@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-161: Computer Science Degree Foundations (CMPCBS). REQ-195 reframed
@@ -775,6 +775,178 @@ export const CMPCBS_LABS: SeedLabSet = {
               "Roles and compliance checking",
               "Roles: practice owner accountable; practice manager as policy owner; IT provider operates controls; HR triggers joiner/leaver; every user responsible for their account. Checks: quarterly access recertification with evidence; monthly log review; annual policy review; metrics (orphan accounts found, time-to-deprovision, MFA coverage, admin account count); exceptions documented with expiry; sanctions for violations; training at hire and annually. Notes a policy nobody can follow (IT 'too slow') fails -- so define service levels for access requests.",
               "Accountable: the practice owner. Policy owner: the practice manager, who keeps it current and reports on it. Operator: the IT provider, which implements and evidences the controls. Trigger: HR, for every start, move and departure. Every user is responsible for their own account and for reporting misuse. Compliance is checked, not assumed: quarterly recertification of all accounts with the signed-off list kept as evidence; monthly review of record-access logs; counts reported to the owner -- orphan accounts found, hours from departure to deprovisioning, MFA coverage, number of admin accounts; exceptions written down with a reason and an expiry date; sanctions applied through HR; training at hire and yearly. And because 'IT is slow' is why the manager became an admin, the policy sets a service level -- routine access requests fulfilled within one business day -- so following the rule is not harder than breaking it."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, course units 2-6 take the
+    // remaining extra labs (no weights, so the six extras go to the earliest
+    // course units). Every value below was computed in Python on 2026-11-14
+    // (closed forms checked by numerical differentiation or integration).
+    {
+      slug: "derivative-rules-and-a-value",
+      objective: "The derivative: formal definition and differentiation rules",
+      kind: "build",
+      title: "Differentiate four functions and evaluate one",
+      brief:
+        "A study group at a fictional college is checking each other's derivative work before an exam. Four functions are on the board: x^2 ln x, sin(3x^2), e^x / x, and 5x^4 - 2x. One member also wants to confirm the first derivative from the limit definition at a point.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Derivatives follow the standard rules; the value 3e was checked by numerical differentiation in Python on 2026-11-14.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each function to its derivative, give the derivative of x^2 ln x at x = e, and show the limit definition for 5x^4 - 2x at x = 1.",
+          parts: [
+            matchPart(
+              "Derivative of each function",
+              "Met: all four right -- x^2 ln x -> 2x ln x + x (product rule); sin(3x^2) -> 6x cos(3x^2) (chain rule); e^x / x -> e^x (x - 1) / x^2 (quotient rule); 5x^4 - 2x -> 20x^3 - 2 (power rule). Three right is partly there.",
+              "Product rule: (x^2)' ln x + x^2 (1/x) = 2x ln x + x. Chain rule: cos(3x^2) times the inner derivative 6x. Quotient rule: (e^x x - e^x) / x^2 = e^x (x - 1) / x^2. Power rule term by term: 20x^3 - 2. The distractor 6x sin(3x^2) has the wrong outer derivative.",
+              {
+                leftHeading: "Function",
+                rightHeading: "Derivative",
+                left: ["x^2 ln x", "sin(3x^2)", "e^x / x", "5x^4 - 2x"],
+                right: ["2x ln x + x", "6x cos(3x^2)", "e^x (x - 1) / x^2", "20x^3 - 2", "6x sin(3x^2)"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            numericPart("Derivative of x^2 ln x at x = e", "Met within 0.01 of 8.155 (that is, 3e). Within 0.1 is partly there.", "2e ln e + e = 2e + e = 3e, about 8.155, since ln e = 1. A central-difference check in Python gives the same value.", { answer: 8.155, tolerance: 0.01, partialTolerance: 0.1 }),
+            part(
+              "Limit definition at x = 1",
+              "Writes f'(1) = lim h->0 [f(1 + h) - f(1)] / h for f(x) = 5x^4 - 2x, expands (1 + h)^4 = 1 + 4h + 6h^2 + 4h^3 + h^4, simplifies the quotient to 20 + 30h + 20h^2 + 5h^3 - 2, and takes the limit 18, matching 20(1)^3 - 2.",
+              "f(1) = 5 - 2 = 3. f(1 + h) = 5(1 + 4h + 6h^2 + 4h^3 + h^4) - 2 - 2h = 3 + 18h + 30h^2 + 20h^3 + 5h^4.\n[f(1 + h) - f(1)] / h = 18 + 30h + 20h^2 + 5h^3, which tends to 18 as h -> 0. The power rule gives 20(1)^3 - 2 = 18, the same."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "improper-integrals-converge-or-not",
+      objective: "Improper integrals",
+      kind: "build",
+      title: "Decide which improper integrals converge",
+      brief:
+        "In a fictional probability course, a student needs to know which of four improper integrals are finite before using them as normalizing constants: the integral from 1 to infinity of 1/x^2, the integral from 1 to infinity of 1/x, the integral from 0 to 1 of 1/sqrt(x), and the integral from 0 to infinity of e^(-2x).",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Values follow from the antiderivatives and were checked by numerical integration in Python on 2026-11-14.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each integral to its value, give the integral of 1/sqrt(x) from 0 to 1, and explain the p-test behind the first two.",
+          parts: [
+            matchPart(
+              "Value of each integral",
+              "Met: all four right -- 1/x^2 on [1, inf): 1; 1/x on [1, inf): diverges; 1/sqrt(x) on (0, 1]: 2; e^(-2x) on [0, inf): 1/2. Three right is partly there.",
+              "Each is a limit of a proper integral. -1/x from 1 to b tends to 1. ln b grows without bound, so 1/x diverges. 2 sqrt(x) from a to 1 tends to 2 as a -> 0. -e^(-2x)/2 from 0 to b tends to 1/2.",
+              {
+                leftHeading: "Integral",
+                rightHeading: "Value",
+                left: ["1/x^2 from 1 to infinity", "1/x from 1 to infinity", "1/sqrt(x) from 0 to 1", "e^(-2x) from 0 to infinity"],
+                right: ["1", "Diverges", "2", "1/2", "0"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            numericPart("Integral of 1/sqrt(x) from 0 to 1", "Met within 0.01 of 2.", "lim a->0+ of [2 sqrt(x)] from a to 1 = 2 - 0 = 2. A midpoint-rule check in Python gave 1.999, approaching 2 as the grid refines.", { answer: 2, tolerance: 0.01 }),
+            part(
+              "The p-test",
+              "States the integral from 1 to infinity of 1/x^p converges exactly when p > 1 (to 1/(p - 1)) and diverges for p <= 1, shown from the antiderivative x^(1-p)/(1-p) (and ln x at p = 1); notes the opposite holds on (0, 1] (converges when p < 1, which is why 1/sqrt(x) is finite there); uses it to explain the first two.",
+              "For p != 1 the antiderivative of x^(-p) is x^(1-p) / (1 - p). On [1, b], as b -> infinity, x^(1-p) tends to 0 when p > 1, giving 1/(p - 1); when p < 1 it grows without bound. At p = 1 the antiderivative is ln b, which also grows without bound. So 1/x^2 (p = 2) gives 1/(2 - 1) = 1, and 1/x (p = 1) diverges. Near 0 it flips: the integral of 1/x^p on (0, 1] converges exactly when p < 1, which is why 1/sqrt(x) (p = 1/2) gives the finite value 2."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "expected-value-and-variance-of-a-prize",
+      objective: "Expected value and variance",
+      kind: "build",
+      title: "Price a prize draw with expected value and variance",
+      brief:
+        "A fictional student club runs a scratch-card draw. A card pays $10 with probability 0.2, $2 with probability 0.5 and nothing with probability 0.3. The club wants to know the average payout per card, how spread out payouts are, and what the average would be if every prize were doubled and a $1 handling fee were added to each card's payout.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Values are computed from the fictional distribution in the brief (Python, 2026-11-14).",
+      steps: [
+        {
+          text: "",
+          ask: "Give the expected payout and the variance, then explain the doubled-prize question.",
+          parts: [
+            numericPart("Expected payout", "Met within 0.01 of 3.", "E[X] = 10(0.2) + 2(0.5) + 0(0.3) = 2 + 1 + 0 = $3.", { answer: 3, tolerance: 0.01, unit: "$" }),
+            numericPart("Variance of the payout", "Met within 0.05 of 13. Within 0.5 is partly there.", "E[X^2] = 100(0.2) + 4(0.5) + 0 = 22, so Var(X) = E[X^2] - (E[X])^2 = 22 - 9 = 13 (dollars squared); the standard deviation is about $3.61.", { answer: 13, tolerance: 0.05, partialTolerance: 0.5 }),
+            part(
+              "Doubled prizes plus $1",
+              "Uses linearity: Y = 2X + 1 has E[Y] = 2E[X] + 1 = 7 and Var(Y) = 4 Var(X) = 52 (adding a constant does not change spread; scaling by 2 multiplies variance by 4, standard deviation by 2, about 7.21). Notes the club should price a card above the expected payout to break even.",
+              "Write the new payout as Y = 2X + 1. Expectation is linear: E[Y] = 2(3) + 1 = $7. Variance ignores the added constant and scales with the square of the multiplier: Var(Y) = 2^2 x 13 = 52, so the standard deviation doubles to about $7.21. If the club wants to cover its payouts on average, each card must sell for more than $7 under the new prizes (more than $3 under the old ones)."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "count-it-four-ways",
+      objective: "Mathematical induction and combinatorics",
+      kind: "build",
+      title: "Count committees, rankings and subsets",
+      brief:
+        "A fictional math club of 10 members needs to: choose a 3-person committee; choose a president, treasurer and secretary; and decide, for a newsletter, which members (any number, including none) get a profile. A member claims the number of subsets of an n-member club is always 2^n and wants it proved.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Counts computed with math.comb and math.perm in Python on 2026-11-14.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each task to its count, give the number of committees, and prove the subset claim by induction.",
+          parts: [
+            matchPart(
+              "Count for each task",
+              "Met: all three right -- 3-person committee: C(10, 3) = 120; president, treasurer and secretary: P(10, 3) = 720; any set of profiled members: 2^10 = 1,024. Two right is partly there.",
+              "A committee has no order, so it is a combination: 10! / (3! 7!) = 120. Distinct offices make order matter, so it is a permutation: 10 x 9 x 8 = 720 (each committee can be assigned to offices 3! = 6 ways, and 120 x 6 = 720). Each member is in or out of the newsletter, so 2^10 = 1,024 subsets.",
+              {
+                leftHeading: "Task",
+                rightHeading: "Count",
+                left: ["Choose a 3-person committee", "Choose president, treasurer and secretary", "Choose any set of members to profile"],
+                right: ["C(10, 3) = 120", "P(10, 3) = 720", "2^10 = 1,024", "10^3 = 1,000"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            numericPart("Number of 3-person committees", "Met: 120 exactly.", "C(10, 3) = (10 x 9 x 8) / (3 x 2 x 1) = 720 / 6 = 120.", { answer: 120, tolerance: 0 }),
+            part(
+              "Induction proof that an n-set has 2^n subsets",
+              "Base case n = 0: the empty set has one subset, 2^0 = 1. Inductive step: assume every k-element set has 2^k subsets; for a (k + 1)-element set, fix one element x; subsets without x are the subsets of the remaining k elements (2^k), and subsets with x are those same subsets with x added (2^k); total 2^(k+1). Concludes for all n >= 0.",
+              "Claim: a set with n elements has 2^n subsets, for every n >= 0.\nBase case, n = 0: the empty set has exactly one subset, itself, and 2^0 = 1.\nInductive step: assume every set with k elements has 2^k subsets. Take a set S with k + 1 elements and pick one element x. Every subset of S either leaves x out -- then it is a subset of S minus x, which has k elements, so there are 2^k of them -- or contains x -- then removing x gives a subset of S minus x, one to one, so again 2^k. Total 2^k + 2^k = 2^(k+1).\nBy induction the claim holds for every n >= 0; for the club, n = 10 gives 1,024."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "calculus-notation-and-the-priority-dispute",
+      objective: "The invention of calculus: Newton and Leibniz",
+      kind: "build",
+      title: "Whose notation is it, and why did Leibniz's win?",
+      brief:
+        "A fictional history-of-mathematics seminar asks students to sort the symbols a modern calculus textbook uses by who introduced them, and to explain why the notation of one of the two inventors of calculus came to dominate.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Notation attributions as commonly given in histories of mathematics; no dates or figures are asked for. Flagged for the expert reviewer to confirm against a history source.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each notation to who introduced it, then explain why Leibniz's notation spread.",
+          parts: [
+            matchPart(
+              "Who introduced each notation",
+              "Met: all three right -- dy/dx and the integral sign: Leibniz; a dot over a variable for its rate of change (fluxion): Newton; f'(x) with a prime: Lagrange. Two right is partly there.",
+              "Leibniz wrote derivatives as quotients of differentials, dy/dx, and the integral as an elongated S for 'sum'. Newton wrote a fluxion, a rate of change in time, with a dot over the letter, still used in physics for time derivatives. The prime notation came later, from Lagrange. Euler is known for other notation, such as f(x) and e, not these three.",
+              {
+                leftHeading: "Notation",
+                rightHeading: "Introduced by",
+                left: ["dy/dx and the integral sign", "A dot over a variable for its rate of change", "f'(x) with a prime"],
+                right: ["Leibniz", "Newton", "Lagrange", "Euler"],
+                pairs: [0, 1, 2],
+              }
+            ),
+            part(
+              "Why Leibniz's notation spread",
+              "Explains that Newton and Leibniz developed calculus independently; Leibniz's notation carries the reasoning (dy/dx behaves like a fraction in the chain rule and substitution, the integral sign reads as a sum, the differential dx tracks the variable), so it is easy to calculate with; Leibniz published and was taken up by continental mathematicians (the Bernoullis, Euler) who built on it; the bitter priority dispute led British mathematicians to keep Newton's dot notation, which slowed their adoption of continental advances; credit today goes to both as independent inventors.",
+              "Newton and Leibniz each developed calculus independently, and a long, bitter dispute followed over who came first. Leibniz's notation won on usefulness: dy/dx behaves like a fraction in the chain rule and in substitution, and the integral sign shows an integral as a sum of y dx pieces, so the symbols do part of the reasoning. Leibniz also published his methods, and continental mathematicians such as the Bernoulli brothers and Euler adopted and extended them. In Britain, loyalty to Newton during the dispute kept his dot notation in use, which is often said to have slowed British mathematics for generations. Today both men are credited as independent inventors, and Newton's dot survives mainly for time derivatives in physics."
             ),
           ],
         },

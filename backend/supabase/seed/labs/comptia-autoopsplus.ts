@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, selectPart, numericPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA AutoOps+ (AT0-001, V1).
@@ -407,6 +407,77 @@ export const AUTOOPSPLUS_LABS: SeedLabSet = {
               "Knowing a release is bad",
               "Defines health signals before deploying: error rate and latency against the SLO (99.9% success), key business transactions (payments completing), log error counts, synthetic checks; automates the abort/rollback where a threshold is crossed; and treats deployment as finished only after a soak period, with the pipeline recording version, time and metrics for the feedback loop.",
               "Decide the signals in advance: HTTP 5xx rate, p95 latency, payment-completion rate, exceptions in logs and a synthetic check per service, each with a threshold tied to the SLO (for the mobile backend, canary success below 99.9% is an automatic abort). The pipeline watches them during and for a soak period after each step and rolls back on breach without waiting for a human. Record which version went out when, with the metrics, so MTTR and change-failure rate can be tracked and fed back into the process."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 3 / 3 / 2 / 2. The error budget
+    // was computed on 2026-11-14 (30 x 24 x 60 x 0.001 = 43.2 minutes).
+    {
+      slug: "make-the-script-idempotent",
+      objective: "Infrastructure-as-code principles: reusability, immutability, idempotency, and declarative vs. imperative approaches",
+      kind: "build",
+      title: "Find the steps that break on the second run",
+      brief:
+        "Galloway Couriers (fictional) sets up each new Linux build agent with a shell script. It works on a fresh server, but running it again (as the pipeline does after every change) fails or leaves duplicates:\n\n#!/bin/bash\nset -e\nuseradd builder\necho \"builder ALL=(ALL) NOPASSWD: /usr/bin/systemctl\" >> /etc/sudoers.d/builder\nmkdir -p /opt/agent\ncurl -fsSL https://artifacts.galloway.example/agent-2.4.tgz | tar -xz -C /opt/agent\necho \"export AGENT_HOME=/opt/agent\" >> /home/builder/.bashrc\nsystemctl enable --now agent",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Reads the fictional script in the brief; applies IaC principles and quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the lines that are not idempotent, then rewrite the setup declaratively and say why that is better.",
+          parts: [
+            selectPart(
+              "Lines that are not idempotent",
+              "Met: exactly useradd (fails when the user exists, and set -e stops the script) and the two >> appends (each run adds another copy of the line). (Right picks minus wrong picks) of at least two is partly there.",
+              "useradd exits with an error if builder already exists, which stops the whole script under set -e. Each >> appends the same line again, so the sudoers file and .bashrc grow with every run. mkdir -p, re-extracting the same archive and systemctl enable --now all give the same end state however often they run.",
+              {
+                display: "config",
+                lines: ["set -e", "useradd builder", "echo \"builder ALL=(ALL) NOPASSWD: /usr/bin/systemctl\" >> /etc/sudoers.d/builder", "mkdir -p /opt/agent", "curl -fsSL https://artifacts.galloway.example/agent-2.4.tgz | tar -xz -C /opt/agent", "echo \"export AGENT_HOME=/opt/agent\" >> /home/builder/.bashrc", "systemctl enable --now agent"],
+                correct: [1, 2, 5],
+              }
+            ),
+            part(
+              "Declarative rewrite and why",
+              "Expresses desired state with a configuration tool (e.g. Ansible user, copy/template, lineinfile, unarchive with creates, systemd modules), or guards each imperative step (id builder || useradd builder; write whole files instead of appending; check before extracting). Explains idempotency: the same run any number of times converges to the same state and reports changes only when something differed; declarative descriptions say what the end state is and the tool works out the steps, which also makes drift detectable and the config reusable across agents; better still, bake the agent into an immutable image.",
+              "Declarative, e.g. Ansible:\n- user: name=builder state=present\n- copy: dest=/etc/sudoers.d/builder content=\"builder ALL=(ALL) NOPASSWD: /usr/bin/systemctl\\n\" mode=0440 validate=\"visudo -cf %s\"\n- unarchive: src=https://artifacts.galloway.example/agent-2.4.tgz dest=/opt/agent remote_src=yes creates=/opt/agent/bin\n- lineinfile: path=/home/builder/.bashrc line=\"export AGENT_HOME=/opt/agent\"\n- systemd: name=agent enabled=yes state=started\n\nEach task states the end state; the tool checks first and changes only what differs, so the tenth run is as safe as the first and reports 'no change'. The same playbook sets up every agent (reusable), and a run that does report changes reveals drift. An even stronger version bakes all of this into an image and replaces agents rather than modifying them (immutable)."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "slo-error-budget-release-call",
+      objective: "Application service-level concepts: SLOs, SLAs, uptime, MTTR, and feedback loops",
+      kind: "build",
+      title: "Use the error budget to decide on Friday's release",
+      brief:
+        "Galloway Couriers (fictional) has a tracking API with an internal SLO of 99.9% of minutes available over a rolling 30 days; the customer contract (SLA) promises 99.5%. In the last 30 days the API was down for 31 minutes across two incidents, with a mean time to restore of 15.5 minutes. A large release is planned for Friday.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "SLO, SLA and downtime are the fictional company's, given in the brief; the budget is computed from them.",
+      steps: [
+        {
+          text: "",
+          ask: "Work out the monthly error budget, match the terms, and make the release call.",
+          parts: [
+            numericPart("Error budget in minutes", "Met within 0.1 of 43.2. Within 1 minute is partly there.", "30 days x 24 h x 60 min = 43,200 minutes; 0.1% of that is 43.2 minutes of allowed downtime. 31 minutes are used, leaving about 12.2.", { answer: 43.2, tolerance: 0.1, partialTolerance: 1, unit: "minutes" }),
+            matchPart(
+              "Term for each statement",
+              "Met: all four right -- the internal 99.9% target: SLO; the contractual 99.5% promise with consequences: SLA; average time from failure to service restored: MTTR; downtime the SLO still allows: error budget. Three right is partly there.",
+              "An SLO is the team's own reliability target, set tighter than the SLA so there is warning before the contract is at risk. The SLA is the external promise with penalties. MTTR is the mean time to restore after a failure. The error budget is 100% minus the SLO, spent by incidents and risky changes.",
+              {
+                leftHeading: "Statement",
+                rightHeading: "Term",
+                left: ["Internal target of 99.9% available minutes", "Contract promise of 99.5%, with service credits", "Average time from failure to service restored", "Downtime the target still allows this period"],
+                right: ["SLO", "SLA", "MTTR", "Error budget", "MTBF"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Release call",
+              "About 12 minutes of budget remain and a typical incident costs about 15.5 minutes, so one bad release would breach the SLO (not yet the SLA): recommends releasing only with risk reduced -- canary or progressive rollout with automated rollback, off-peak, small batch -- or freezing risky changes until the window recovers, prioritizing reliability work from the two incidents; explains the feedback loop (budget spent shifts effort to reliability).",
+              "The budget is 43.2 minutes and 31 are spent, so about 12 remain -- less than one average incident (15.5 minutes). A Friday big-bang release that goes wrong would breach the SLO; the 99.5% SLA allows 216 minutes, so customers are not yet at risk. Call: no big-bang release. Either ship it as a canary to a small share of traffic with automated rollback and off-peak timing, which caps the damage well under 12 minutes, or hold it until the rolling window recovers. Put the fixes from the two incidents first. That is the error-budget feedback loop: when the budget runs low, effort moves from features to reliability."
             ),
           ],
         },

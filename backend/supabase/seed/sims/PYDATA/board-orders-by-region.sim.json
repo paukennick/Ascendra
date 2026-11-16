@@ -1,0 +1,958 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "board-orders-by-region",
+  "title": "Board figures: orders by region that do not add up",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": ">>>",
+      "lines": [
+        {
+          "id": "ask",
+          "text": "15:15 finance: the board pack closes at 16:00; can you check the orders-by-region table before it goes in?",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "locked",
+          "text": "16:00 finance: the board pack is closed",
+          "when": "not isNull(lockedAt)",
+          "at": "timeAt(lockedAt)",
+          "error": "true"
+        },
+        {
+          "id": "sentLine",
+          "text": "finance: table received",
+          "when": "sent",
+          "at": "sentSec >= 0 ? sentSec : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "data",
+          "label": "raw, df",
+          "spokenLabel": "the quarter's orders",
+          "kind": "DataFrame, 48,210 rows (raw is the untouched copy)",
+          "status": "{droppedRows ? \"df cut to 19,804 rows by dropna()\" : \"df has all 48,210 rows\"}",
+          "tone": "droppedRows ? \"down\" : \"up\""
+        },
+        {
+          "id": "tbl",
+          "label": "orders",
+          "spokenLabel": "the orders table",
+          "kind": "Series to send",
+          "status": "Adds up to {tableTotal} orders",
+          "tone": "table == \"full\" ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "pack",
+          "label": "Board pack",
+          "spokenLabel": "the board pack",
+          "kind": "Closes 16:00",
+          "status": "{sent ? \"Table sent\" : not isNull(lockedAt) ? \"Closed without the table\" : \"Waiting for the table\"}",
+          "tone": "sentRight ? \"up\" : sent ? \"down\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "flow",
+          "from": "tbl",
+          "to": "pack",
+          "label": "Goes into",
+          "status": "{sent ? \"Sent\" : \"Not sent\"}",
+          "tone": "sent ? \"up\" : \"out\""
+        }
+      ],
+      "meters": []
+    }
+  },
+  "objective": "Interpret group results correctly, including count versus size and missing keys",
+  "secondaryObjectives": [
+    "Group rows with groupby and compute sum, mean, count and size per group",
+    "Find and handle missing values with isna, dropna and fillna, and decide which to use",
+    "Check cleaned data with assertions on row counts, ranges and uniqueness"
+  ],
+  "sources": [
+    {
+      "cite": "pandas.DataFrame.groupby, pandas 3.1 documentation (pandas.pydata.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.groupby.html",
+      "note": "Relevant text: dropna, 'bool, default True. If True, and if group keys contain NA values, NA values together with row/column will be dropped. If False, NA values will also be treated as the key in groups.' Read through a summarizing fetch 2026-11-14 (page titled pandas 3.1.1)."
+    },
+    {
+      "cite": "DataFrameGroupBy.size and DataFrameGroupBy.count, pandas 3.1 documentation (pandas.pydata.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://pandas.pydata.org/docs/reference/api/pandas.api.typing.DataFrameGroupBy.size.html",
+      "note": "Relevant text: size, 'Compute group sizes', returning the 'Number of rows in each group'; count (pandas.api.typing.DataFrameGroupBy.count.html), 'Compute count of group, excluding missing values', returning the 'Count of values within each group'. Read through summarizing fetches 2026-11-14 (pages titled pandas 3.1.1 and 3.1.0)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst at Riverbend Food Co-op (fictional). A colleague drafted the board's 'orders by region' table for last quarter as df.groupby(\"region\")[\"discount\"].count() before leaving for the day. The board pack closes at 16:00. The data, raw, is already loaded, and df is a working copy of it.",
+    "handover": [
+      "The web shop opened in August; it does not record a region.",
+      "discount is empty for orders that had no discount."
+    ],
+    "howItWorks": [
+      "Run Python statements in the session: type one, or pick it from the suggestions or the action list. Only this lab's statements run; there is no free interpreter, and each statement is fixed.",
+      "Each statement takes analyst time, and the clock moves by the minutes it takes. The board pack closes on the same clock.",
+      "The panel shows the dataset, the table you would send and the board pack, with a status in words. Output appears in the session as it happens.",
+      "Sending the table is final for this case. Afterwards you write a short note on what the numbers mean."
+    ]
+  },
+  "clock": {
+    "start": "15:15",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "lockDelay": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many analyst minutes each step takes, and when the board pack closes, are teaching simplifications, not measured values. The order counts are an invented dataset. The board pack closes at 16:00, 45 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "table": {
+      "type": "enum",
+      "values": [
+        "draft",
+        "sizedrop",
+        "full",
+        "dropped"
+      ],
+      "init": "draft"
+    },
+    "droppedRows": {
+      "type": "bool",
+      "init": false
+    },
+    "assertedAt": {
+      "type": "time",
+      "init": null
+    },
+    "failedAsserts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "draft",
+        "sizedrop",
+        "full",
+        "dropped"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "meaningDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "orders",
+        "discounted",
+        "regional"
+      ],
+      "init": "unset"
+    },
+    "gapDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "web",
+        "nothing",
+        "dropped"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentRight": {
+      "expr": "sentAs == \"full\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "tableTotal": {
+      "expr": "table == \"draft\" ? 19804 : table == \"sizedrop\" ? 44298 : table == \"full\" ? 48210 : 19804"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Checking the table",
+      "clock": "turns",
+      "actions": [
+        "shape",
+        "draftSum",
+        "naRegion",
+        "naDiscount",
+        "sizeDrop",
+        "sizeAll",
+        "dropna",
+        "check",
+        "send",
+        "watch",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Note",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "shape": {
+      "label": "df.shape",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": ">>> df.shape\n(48210, 9)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "draftSum": {
+      "label": "orders.sum()   (the draft table)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": ">>> orders = df.groupby(\"region\")[\"discount\"].count()\n>>> orders.sum()\nnp.int64(19804)"
+        },
+        {
+          "finding": "The draft table adds up to 19,804, not the 48,210 orders in the data."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "naRegion": {
+      "label": "df[\"region\"].isna().sum()",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": ">>> df[\"region\"].isna().sum()\nnp.int64(3912)"
+        },
+        {
+          "finding": "3,912 orders have no region: the new web shop does not set one."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "naDiscount": {
+      "label": "df[\"discount\"].isna().sum()",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": ">>> df[\"discount\"].isna().sum()\nnp.int64(27196)"
+        },
+        {
+          "finding": "27,196 orders have no discount, so count() on the discount column skips them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sizeDrop": {
+      "label": "orders = df.groupby(\"region\").size()",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "table",
+          "to": "\"sizedrop\""
+        },
+        {
+          "output": ">>> orders = df.groupby(\"region\").size()\n>>> orders\nregion\nCoast     13690\nNorth     12051\nValley    18557\ndtype: int64"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sizeAll": {
+      "label": "orders = df.groupby(\"region\", dropna=False).size()",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "droppedRows",
+          "then": [
+            {
+              "set": "table",
+              "to": "\"dropped\""
+            },
+            {
+              "output": ">>> orders = df.groupby(\"region\", dropna=False).size()\n>>> orders.sum()\nnp.int64(19804)"
+            }
+          ],
+          "else": [
+            {
+              "set": "table",
+              "to": "\"full\""
+            },
+            {
+              "output": ">>> orders = df.groupby(\"region\", dropna=False).size()\n>>> orders\nregion\nCoast     13690\nNorth     12051\nValley    18557\nNaN        3912\ndtype: int64"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dropna": {
+      "label": "df = df.dropna()",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "droppedRows",
+          "to": "true"
+        },
+        {
+          "set": "table",
+          "to": "\"dropped\""
+        },
+        {
+          "output": ">>> df = df.dropna()\n>>> orders = df.groupby(\"region\").size()\n>>> orders.sum()\nnp.int64(19804)"
+        },
+        {
+          "log": "dropna() removed every row with any missing value: the web orders and every order without a discount.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "check": {
+      "label": "assert orders.sum() == len(raw), orders.sum()",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "table == \"full\"",
+          "then": [
+            {
+              "if": "isNull(assertedAt)",
+              "then": [
+                {
+                  "set": "assertedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": ">>> assert orders.sum() == len(raw), orders.sum()"
+            }
+          ],
+          "else": [
+            {
+              "add": "failedAsserts",
+              "by": "1"
+            },
+            {
+              "output": ">>> assert orders.sum() == len(raw), orders.sum()\nAssertionError: {tableTotal}"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "send": {
+      "label": "Send the current orders table to the board pack",
+      "group": "Send",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "table"
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "(table sent to the board pack)"
+        },
+        {
+          "log": "The table is in the board pack.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Wait 5 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You wait 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: write the note on what the numbers mean",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You write the note for the board.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the note for the board",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Note",
+          "fields": [
+            {
+              "id": "meaning",
+              "label": "What each number counts",
+              "options": [
+                {
+                  "value": "orders",
+                  "label": "Every order in the quarter, by region"
+                },
+                {
+                  "value": "discounted",
+                  "label": "Orders that had a discount, by region"
+                },
+                {
+                  "value": "regional",
+                  "label": "Orders with a region, by region"
+                }
+              ]
+            },
+            {
+              "id": "gap",
+              "label": "What the table leaves out",
+              "options": [
+                {
+                  "value": "web",
+                  "label": "Nothing: web-shop orders with no region are their own row (3,912)"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing at all; the totals are complete without any extra row"
+                },
+                {
+                  "value": "dropped",
+                  "label": "Orders with any missing field"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "meaningDoc",
+          "to": "meaning"
+        },
+        {
+          "set": "gapDoc",
+          "to": "gap"
+        },
+        {
+          "log": "Noted: {meaning}, {gap}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Running",
+      "wait": {
+        "skipLabel": "Let it finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many analyst minutes each step takes, and when the board pack closes, are teaching simplifications, not measured values. The order counts are an invented dataset."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= lockDelay and phase == \"incident\" and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the board pack closed without the table.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the board: what the draft table counted, what yours counts, and how you know it is complete.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What the draft counted",
+          "criteria": "Explains that count() on the discount column counts only orders with a discount, and that groupby drops rows whose region is missing by default.",
+          "modelAnswer": "count() excludes missing values, so it counted discounted orders only (19,804); and groupby's dropna=True dropped the 3,912 web orders with no region."
+        },
+        {
+          "label": "What yours counts",
+          "criteria": "Uses size() (rows per group) with dropna=False, or labels the missing region, so every order is counted once.",
+          "modelAnswer": "df.groupby(\"region\", dropna=False).size(): every order, with the web shop's 3,912 as their own row."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Checks the total against the row count of the untouched data (an assertion), and does not drop rows to make the table tidy.",
+          "modelAnswer": "assert orders.sum() == len(raw) passed: 48,210."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {},
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing ships no wrong figure, but the board meets without the table it asked for; safe, with no progress.",
+      "source": {
+        "cite": "pandas.DataFrame.groupby, pandas 3.1 documentation (pandas.pydata.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.groupby.html",
+        "note": "Relevant text: dropna, 'bool, default True. If True, and if group keys contain NA values, NA values together with row/column will be dropped. If False, NA values will also be treated as the key in groups.' Read through a summarizing fetch 2026-11-14 (page titled pandas 3.1.1)."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "A wrong table went to the board",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sent and not sentRight",
+      "narrative": "The board pack carries a table that leaves out orders, so the board will discuss figures that are too low."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure went out, but the board pack closed without the table."
+    },
+    "right": {
+      "label": "Complete table, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentRight and sentSec <= lockDelay and not isNull(assertedAt)",
+      "narrative": "Every order is counted once, the web shop's orders are visible, the total was checked, and it made the board pack."
+    },
+    "rightGaps": {
+      "label": "Complete table, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The table is right, but unchecked or after the pack closed."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The session reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "rightGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Checked the draft's total against the data before changing it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "met",
+            "why": "Compared totals or looked for missing values."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked what the draft counted."
+          }
+        ]
+      },
+      {
+        "id": "rightTable",
+        "label": "Sent a table that counts every order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentRight",
+            "score": "met",
+            "why": "size() with dropna=False: 48,210."
+          },
+          {
+            "when": "sent",
+            "score": "missed",
+            "why": "The table sent adds up to {tableTotal}, not 48,210."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing was sent."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Asserted the total against the untouched data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(assertedAt)",
+            "score": "met",
+            "why": "The assertion passed."
+          },
+          {
+            "when": "failedAsserts > 0",
+            "score": "partial",
+            "why": "Ran the check; it failed and was not fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the total."
+          }
+        ]
+      },
+      {
+        "id": "onTime",
+        "label": "In the board pack by 16:00",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sent and sentSec <= lockDelay",
+            "score": "met",
+            "why": "Sent {sentSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not in the pack by 16:00."
+          }
+        ]
+      },
+      {
+        "id": "keptRows",
+        "label": "Kept every row (no dropna to tidy the table)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not droppedRows",
+            "score": "met",
+            "why": "df still has all 48,210 rows."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "dropna() cut df to 19,804 rows."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The note says what the numbers count",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "meaningDoc == \"orders\" and gapDoc == \"web\"",
+            "score": "met",
+            "why": "Every order, with the web shop's row explained."
+          },
+          {
+            "when": "meaningDoc == \"orders\" or gapDoc == \"web\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The note does not match the table."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation for the board",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "total",
+        "label": "Orders the sent table adds up to",
+        "value": "sent ? tableTotal : 0",
+        "format": "number",
+        "expert": "48210"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "df.shape and the draft's sum: 48,210 rows against 19,804."
+      },
+      {
+        "at": "2-4 min",
+        "text": "isna on region (3,912 web orders) and on discount (27,196): count() skipped the undiscounted orders and groupby dropped the missing region."
+      },
+      {
+        "at": "4-6 min",
+        "text": "groupby(\"region\", dropna=False).size(), then assert orders.sum() == len(raw)."
+      },
+      {
+        "at": "6-7 min",
+        "text": "Send it, with a note that the NaN row is the web shop."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: complete and checked",
+        "body": "You read what count() and groupby's defaults leave out, counted rows with size(), kept the missing region as its own row, and proved the total."
+      },
+      "rightGaps": {
+        "headline": "Right table, with gaps",
+        "body": "The table is complete. The criteria show the gap: no assertion against the data, or it missed the pack."
+      },
+      "wrongSent": {
+        "headline": "A wrong table went out",
+        "body": "count() counts non-missing values in one column; size() counts rows. groupby drops missing keys unless dropna=False. A one-line total check catches both."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the board asked for this. The fix is two lines and a check."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the session's limit."
+      }
+    },
+    "modelReasoning": "A per-group table should add up to the rows it describes. The draft's 19,804 against 48,210 says it does not: count() excludes missing values in the column it counts, and groupby drops missing keys by default. size() with dropna=False counts every row and shows the web orders as their own group; an assert against len(raw) proves it. dropna() on the frame would make the table tidy and wrong."
+  }
+}

@@ -1,5 +1,10 @@
 // REQ-123: every authored lab set, in seed order (after all tracks).
 import type { SeedLabSet } from "./types";
+// REQ-292: the Python and Linux depth courses.
+import { PYAUTO_LABS } from "./python-automation";
+import { PYDATA_LABS } from "./python-data";
+import { LINUXFUND_LABS } from "./linux-fundamentals";
+import { LFCS_LABS } from "./lf-lfcs";
 import { AWSSAA_LABS } from "./awssaa";
 import { PMP_LABS } from "./pmp";
 import { NCLEXRN_LABS } from "./nclexrn";
@@ -81,6 +86,14 @@ import { ABPTSSCS_LABS } from "./pt-abpts-sports";
 import { ABPTSWMS_LABS } from "./pt-abpts-wound";
 import { PYTHON_LABS } from "./dev-python";
 import { JAVASCRIPT_LABS } from "./dev-javascript";
+// REQ-264..268 (2026-11-14): new tech courses.
+import { PCEP_LABS } from "./python-pcep";
+import { PCAP_LABS } from "./python-pcap";
+import { SQL_LABS } from "./dev-sql";
+import { TSNODE_LABS } from "./dev-tsnode";
+import { PL300_LABS } from "./microsoft-pl300";
+import { SC500_LABS } from "./microsoft-sc500";
+import { AI200_LABS } from "./microsoft-ai200";
 import { MSHI_LABS } from "./informatics-mshi";
 import { MSCS_LABS } from "./academic-mscs";
 import { CMPCBS_LABS } from "./academic-cmpcbs";
@@ -123,16 +136,28 @@ import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
 import { NREMTAEMT_LABS } from "./ems-aemt";
 // REQ-234: CompTIA A+ Core 1 and Core 2, and the EPPP.
 // REQ-239: the NCE and the NCMHCE.
+// REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation, ASQ CSSGB; REQ-281: NASM CNC.
 import { APLUS_CORE1_LABS } from "./comptia-aplus-core1";
 import { APLUS_CORE2_LABS } from "./comptia-aplus-core2";
 import { EPPP_LABS } from "./eppp";
 import { NCE_LABS } from "./nbcc-nce";
 import { NCMHCE_LABS } from "./nbcc-ncmhce";
+import { ISC2CC_LABS } from "./isc2-cc";
+import { CISSP_LABS } from "./isc2-cissp";
+import { CISM_LABS } from "./isaca-cism";
+import { CEH_LABS } from "./eccouncil-ceh";
+// REQ-275..278: nursing specialty and advanced practice courses.
+import { NURSING_SPECIALTY_LAB_SETS } from "./nursing-specialty";
 // REQ-286: ASWB Clinical and Masters. REQ-287: Washington psychology jurisprudence.
 import { ASWB_CLINICAL_LABS } from "./aswb-clinical";
 import { ASWB_MASTERS_LABS } from "./aswb-masters";
 import { WAPSYCHJP_LABS } from "./wa-psych-jurisprudence";
 import { withValueSources } from "./value-sources";
+import { PSMI_LABS } from "./scrum-psmi";
+import { CSM_LABS } from "./scrum-csm";
+import { ITIL4FND_LABS } from "./itil4-foundation";
+import { CSSGB_LABS } from "./asq-cssgb";
+import { NASMCNC_LABS } from "./fitness-nasmcnc";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
 // here (value-sources.ts), apart from the lab content.
@@ -259,6 +284,31 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   // REQ-239: NBCC counseling exams.
   NCE_LABS,
   NCMHCE_LABS,
+  // REQ-292: the Python and Linux depth courses.
+  PYAUTO_LABS,
+  PYDATA_LABS,
+  LINUXFUND_LABS,
+  LFCS_LABS,
+  // REQ-264..268: PCEP, PCAP, SQL, TSNODE, PL300, SC500, AI200.
+  PCEP_LABS,
+  PCAP_LABS,
+  SQL_LABS,
+  TSNODE_LABS,
+  PL300_LABS,
+  SC500_LABS,
+  AI200_LABS,
+  // REQ-271..273: ISC2, ISACA and EC-Council security courses.
+  ISC2CC_LABS,
+  CISSP_LABS,
+  CISM_LABS,
+  CEH_LABS,
+  ...NURSING_SPECIALTY_LAB_SETS,
+  // REQ-280 / REQ-281.
+  PSMI_LABS,
+  CSM_LABS,
+  ITIL4FND_LABS,
+  CSSGB_LABS,
+  NASMCNC_LABS,
   // REQ-286, REQ-287.
   ASWB_CLINICAL_LABS,
   ASWB_MASTERS_LABS,

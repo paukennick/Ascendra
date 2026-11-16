@@ -1,0 +1,1564 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "cycle-test-falling-pressure",
+ "title": "A cycle test in the physiology lab, with a falling pressure",
+ "objective": "Calculate pulse pressure and mean arterial pressure from a blood pressure reading, and interpret a narrow pulse pressure as a sign of low stroke volume",
+ "secondaryObjectives": [
+  "Explain the cardiovascular response to exercise: higher heart rate and stroke volume, and blood redirected to working muscle",
+  "Explain how the baroreceptor reflex keeps blood pressure up on standing, and how the skeletal muscle pump and venous valves return blood to the heart",
+  "Calculate cardiac output from heart rate and stroke volume, and explain how preload, contractility and afterload change stroke volume"
+ ],
+ "sources": [
+  {
+   "cite": "APTA. PT admissions process (common prerequisites); ACAPT common core prerequisites",
+   "checkedAt": "2026-11-11",
+   "url": "https://www.apta.org/your-career/careers-in-physical-therapy/pt-admissions-process",
+   "note": "Relayed from the PTPREREQ course seed (re-read there 2026-11-11), not re-read for this case: anatomy and physiology is a common prerequisite."
+  },
+  {
+   "cite": "Ascendra PTPREREQ course catalog (backend/supabase/seed/tracks/pt-prereq.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles (Cardiovascular system unit, OpenStax A&P 2e 19.4, 20.2, 20.4)."
+  },
+  {
+   "cite": "OpenStax. Anatomy and Physiology 2e, 20.2 Blood Flow, Blood Pressure, and Resistance",
+   "checkedAt": "2026-11-14",
+   "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/20-2-blood-flow-blood-pressure-and-resistance",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): pulse pressure is systolic minus diastolic; 'a pulse pressure should be at least 25 percent of the systolic pressure', below that it is low or narrow, as with reduced stroke volume (heart failure, aortic stenosis, major blood loss); MAP is about diastolic plus one third of the pulse pressure; after strenuous exercise a healthy pulse pressure may rise temporarily as stroke volume increases."
+  },
+  {
+   "cite": "American Society of Nuclear Cardiology. ASNC Practice Points: Exercise Stress Testing (Weinberg R, Bullock-Palmer R; undated PDF, posted 2024-05)",
+   "checkedAt": "2026-11-14",
+   "url": "https://asnc.org/wp-content/uploads/2024/05/ASNC-Practice-Point-Exercise-Stress-Testing.pdf",
+   "note": "Read 2026-11-14 (summarizing fetch with quotes): indications for early termination include 'Ataxia, dizziness or near-syncope', 'Signs of poor perfusion such as cyanosis or pallor', the subject's request, and a systolic fall of more than 10 mmHg from baseline despite more workload (with other evidence of ischemia); HR and BP are recorded at least 4 minutes into recovery. The document gives no cool-down protocol."
+  },
+  {
+   "cite": "Luttrell MJ, Halliwill JR. Recovery from exercise: vulnerable state, window of opportunity, or crystal ball? Front Physiol. 2015;6:204. doi:10.3389/fphys.2015.00204",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2015.00204/pdf",
+   "note": "Read 2026-11-14 (summarizing fetch): 50-80% of healthy adults develop pre-syncopal signs on head-up tilt after exercise; post-exercise syncope is multifactorial with loss of the muscle pump; countermeasures that engage the skeletal muscle pump augment venous return. It does not test an active cool-down; that an unloaded cool-down protects him is a teaching inference (FLAG)."
+  },
+  {
+   "cite": "Vitalant. Donating blood and exercise: what to know before and after giving blood (published 2023-10-02, updated 2026-05-22)",
+   "checkedAt": "2026-11-14",
+   "url": "https://vitalant.org/blog/blood-donation-basics/donating-blood-and-exercise-what-to-know-before-and-after-giving-blood",
+   "note": "Read 2026-11-14: wait 24-48 hours before intense workouts; plasma is typically restored within 24 hours, red cells take four to six weeks; a rapid heart rate during low-intensity exercise can occur in the first days."
+  },
+  {
+   "cite": "Mayo Clinic. Fainting: First aid (updated 2025-01-22)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.mayoclinic.org/first-aid/first-aid-fainting/basics/art-20056606",
+   "note": "Read 2026-11-14: if you feel faint, lie down or sit down and do not get up too quickly; someone who faints is placed on the back with the legs raised."
+  },
+  {
+   "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021",
+   "checkedAt": "2026-11-11",
+   "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+   "note": "Relayed from the REQ-232 DPT cases (read 2026-11-11 through a text extraction of the PDF), not re-read: heart rate rises about 10 beats/min and systolic BP about 10 mmHg per MET; diastolic stays about the same."
+  }
+ ],
+ "brief": {
+  "situation": "Exercise physiology lab, 10:00. You are running a submaximal cycle test on a classmate, Daniel Ortiz, 24, while your instructor supervises the next station. Your lab sheet asks for heart rate, blood pressure, pulse pressure and mean arterial pressure at every stage.",
+  "handover": [
+   "Protocol: 2 min warm-up at 25 W, then 3-minute stages at 50, 75, 100, 125 and 150 W. A chest strap shows his heart rate live; you take each blood pressure by hand while he pedals.",
+   "Lab rules: screen before the test, resting BP seated, stop for dizziness, pallor or a systolic fall of more than 10 mmHg as the load rises, and record HR and BP for at least 4 minutes of recovery.",
+   "Tell the instructor about anything in the screening that could change the plan."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "A blood pressure takes about a minute. Calculate and interpret each reading as you go.",
+   "Partway through you are asked to write what the numbers mean. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "10:00",
+  "tick": "5s",
+  "maxDuration": "40min",
+  "calendar": "clock"
+ },
+ "params": {
+  "warmup": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A 2-minute unloaded-to-light warm-up, then 3-minute stages; the lab's protocol, authored."
+   }
+  },
+  "stageLen": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "3-minute stages; the lab's protocol, authored."
+   }
+  },
+  "sbpPerW": {
+   "value": 0.24,
+   "unit": "mmHg/W",
+   "source": {
+    "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021",
+    "checkedAt": "2026-11-11",
+    "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+    "note": "Relayed from the REQ-232 DPT cases (read 2026-11-11 through a text extraction of the PDF), not re-read: heart rate rises about 10 beats/min and systolic BP about 10 mmHg per MET; diastolic stays about the same. On a cycle about 25 W is roughly one MET for a 70 kg adult in this model (authored), giving about 10 mmHg per 40 W step-equivalent. FLAG."
+   }
+  },
+  "defStart": {
+   "value": 360,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "His stroke volume stops keeping up from 1 min into the 75 W stage (the day after a blood donation). Vitalant: intense exercise 24-48 h after donating is discouraged. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "defRate": {
+   "value": 6,
+   "unit": "mmHg/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Systolic falls 6 mmHg a minute once stroke volume lags under load. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "sxLevel": {
+   "value": 28,
+   "unit": "mmHg",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "At this deficit he is pale and light-headed (about 10:11). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "faintLevel": {
+   "value": 40,
+   "unit": "mmHg",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "At this he faints (about 10:12:40 if he keeps pedaling under load). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "coolRate": {
+   "value": 8,
+   "unit": "mmHg/min",
+   "source": {
+    "cite": "Luttrell MJ, Halliwill JR. Recovery from exercise: vulnerable state, window of opportunity, or crystal ball? Front Physiol. 2015;6:204. doi:10.3389/fphys.2015.00204",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2015.00204/pdf",
+    "note": "Read 2026-11-14 (summarizing fetch): 50-80% of healthy adults develop pre-syncopal signs on head-up tilt after exercise; post-exercise syncope is multifactorial with loss of the muscle pump; countermeasures that engage the skeletal muscle pump augment venous return. It does not test an active cool-down; that an unloaded cool-down protects him is a teaching inference (FLAG). Authored recovery rate with an unloaded cool-down or lying with legs raised."
+   }
+  },
+  "stillRate": {
+   "value": 4,
+   "unit": "mmHg/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Slower recovery sitting still on the bike. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "stillPenalty": {
+   "value": 10,
+   "unit": "mmHg",
+   "source": {
+    "cite": "Luttrell MJ, Halliwill JR. Recovery from exercise: vulnerable state, window of opportunity, or crystal ball? Front Physiol. 2015;6:204. doi:10.3389/fphys.2015.00204",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2015.00204/pdf",
+    "note": "Read 2026-11-14 (summarizing fetch): 50-80% of healthy adults develop pre-syncopal signs on head-up tilt after exercise; post-exercise syncope is multifactorial with loss of the muscle pump; countermeasures that engage the skeletal muscle pump augment venous return. It does not test an active cool-down; that an unloaded cool-down protects him is a teaching inference (FLAG). Authored size of the extra fall when the muscle pump stops at once."
+   }
+  },
+  "standPenalty": {
+   "value": 20,
+   "unit": "mmHg",
+   "source": {
+    "cite": "Luttrell MJ, Halliwill JR. Recovery from exercise: vulnerable state, window of opportunity, or crystal ball? Front Physiol. 2015;6:204. doi:10.3389/fphys.2015.00204",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2015.00204/pdf",
+    "note": "Read 2026-11-14 (summarizing fetch): 50-80% of healthy adults develop pre-syncopal signs on head-up tilt after exercise; post-exercise syncope is multifactorial with loss of the muscle pump; countermeasures that engage the skeletal muscle pump augment venous return. It does not test an active cool-down; that an unloaded cool-down protects him is a teaching inference (FLAG). Authored size of the extra fall when he stops and stands at once."
+   }
+  },
+  "bpTime": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A manual BP during cycling: about 1 min."
+   }
+  },
+  "coolTime": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "A 3-minute unloaded cool-down, authored."
+   }
+  },
+  "recoveryMin": {
+   "value": 240,
+   "unit": "s",
+   "source": {
+    "cite": "American Society of Nuclear Cardiology. ASNC Practice Points: Exercise Stress Testing (Weinberg R, Bullock-Palmer R; undated PDF, posted 2024-05)",
+    "checkedAt": "2026-11-14",
+    "url": "https://asnc.org/wp-content/uploads/2024/05/ASNC-Practice-Point-Exercise-Stress-Testing.pdf",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): indications for early termination include 'Ataxia, dizziness or near-syncope', 'Signs of poor perfusion such as cyanosis or pallor', the subject's request, and a systolic fall of more than 10 mmHg from baseline despite more workload (with other evidence of ischemia); HR and BP are recorded at least 4 minutes into recovery. The document gives no cool-down protocol."
+   }
+  }
+ },
+ "state": {
+  "testing": {
+   "type": "bool",
+   "init": false
+  },
+  "testStart": {
+   "type": "time",
+   "init": null
+  },
+  "def": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 80,
+   "unit": "mmHg"
+  },
+  "stopAt": {
+   "type": "time",
+   "init": null
+  },
+  "stopMode": {
+   "type": "enum",
+   "values": [
+    "unset",
+    "cool",
+    "still",
+    "stand"
+   ],
+   "init": "unset"
+  },
+  "lying": {
+   "type": "bool",
+   "init": false
+  },
+  "fainted": {
+   "type": "bool",
+   "init": false
+  },
+  "screenedAt": {
+   "type": "time",
+   "init": null
+  },
+  "restBpAt": {
+   "type": "time",
+   "init": null
+  },
+  "toldBefore": {
+   "type": "bool",
+   "init": false
+  },
+  "toldAfter": {
+   "type": "bool",
+   "init": false
+  },
+  "bpPending": {
+   "type": "bool",
+   "init": false
+  },
+  "bpAt": {
+   "type": "time",
+   "init": null
+  },
+  "bpS": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 260,
+   "unit": "mmHg"
+  },
+  "bpD": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 160,
+   "unit": "mmHg"
+  },
+  "bpW": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 200,
+   "unit": "W"
+  },
+  "peakS": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 260,
+   "unit": "mmHg"
+  },
+  "bpDuring": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 50
+  },
+  "bpAfter": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 50
+  },
+  "dropSeenAt": {
+   "type": "time",
+   "init": null
+  },
+  "sxAt": {
+   "type": "time",
+   "init": null
+  },
+  "calcRight": {
+   "type": "bool",
+   "init": false
+  },
+  "calcWrong": {
+   "type": "bool",
+   "init": false
+  },
+  "interpRight": {
+   "type": "bool",
+   "init": false
+  },
+  "interpWrong": {
+   "type": "bool",
+   "init": false
+  },
+  "rpeAt": {
+   "type": "time",
+   "init": null
+  },
+  "coolDone": {
+   "type": "bool",
+   "init": false
+  }
+ },
+ "derived": {
+  "tRel": {
+   "expr": "testing ? t - timeAt(testStart) : 0",
+   "unit": "s",
+   "precision": 0
+  },
+  "stage": {
+   "expr": "testing and isNull(stopAt) ? (tRel < warmup ? 0 : min(5, floor((tRel - warmup) / stageLen) + 1)) : 0"
+  },
+  "watts": {
+   "expr": "not testing or not isNull(stopAt) ? 0 : (stage == 0 ? 25 : 25 + 25 * stage)",
+   "unit": "W",
+   "precision": 0
+  },
+  "penalty": {
+   "expr": "lying ? -30 : (stopMode == \"stand\" ? standPenalty : (stopMode == \"still\" ? stillPenalty : 0))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "risk": {
+   "expr": "def + penalty",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "round(clamp(118 + sbpPerW * watts - def - max(0, penalty), 60, 240))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "round(clamp(76 - 0.02 * watts + 0.7 * def, 40, 120))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "hr": {
+   "expr": "round(clamp(70 + 0.6 * watts + 0.8 * def + 2 * sin(t / 17), 50, 200))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "pale": {
+   "expr": "risk >= sxLevel"
+  },
+  "ppM": {
+   "expr": "bpS - bpD",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "mapM": {
+   "expr": "round(bpD + (bpS - bpD) / 3)",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "narrowM": {
+   "expr": "bpS > 0 and bpS - bpD < 0.25 * bpS"
+  },
+  "recovered": {
+   "expr": "not isNull(stopAt) and def <= 4 and risk < sxLevel"
+  }
+ },
+ "screen": {
+  "type": "treatment-session",
+  "level": 1,
+  "treatment": {
+   "patient": {
+    "name": "Daniel Ortiz, 24",
+    "presentation": "Classmate, healthy, plays recreational soccer. {isNull(screenedAt) ? \"Not screened yet.\" : \"Gave blood yesterday afternoon; skipped breakfast.\"}"
+   },
+   "vitals": [
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate, chest strap",
+     "value": "hr",
+     "unit": "/min",
+     "alarm": {
+      "high": 170
+     },
+     "announce": {
+      "bands": [
+       120,
+       150,
+       170
+      ]
+     },
+     "colour": "ecg"
+    },
+    {
+     "id": "bp",
+     "label": "BP",
+     "spokenLabel": "Blood pressure you measured",
+     "value": [
+      "bpS",
+      "bpD"
+     ],
+     "unit": "mmHg",
+     "sub": "at {bpW} W, {isNull(bpAt) ? 0 : t - timeAt(bpAt)|duration} ago",
+     "alarm": {
+      "low": 100
+     },
+     "announce": {
+      "bands": [
+       110,
+       100
+      ]
+     },
+     "colour": "art",
+     "hiddenUntil": "not isNull(bpAt)"
+    },
+    {
+     "id": "pp",
+     "label": "PP",
+     "spokenLabel": "Pulse pressure from your last reading",
+     "value": "ppM",
+     "unit": "mmHg",
+     "sub": "{narrowM ? \"under 25% of systolic\" : \"\"}",
+     "announce": {
+      "bands": [
+       30,
+       40
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(bpAt) and calcRight"
+    },
+    {
+     "id": "map",
+     "label": "MAP",
+     "spokenLabel": "Mean arterial pressure from your last reading",
+     "value": "mapM",
+     "unit": "mmHg",
+     "announce": {
+      "bands": [
+       70,
+       90
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "not isNull(bpAt) and calcRight"
+    }
+   ],
+   "activity": "{fainted ? \"On the floor beside the bike, coming round.\" : (lying ? \"Lying on the mat, legs raised.\" : (isNull(stopAt) ? (testing ? (stage == 0 ? \"Warming up at 25 W.\" : (pale ? \"Pedaling, pale and sweaty, says he feels light-headed.\" : \"Pedaling steadily.\")) : \"Sitting on the bike, ready.\") : (stopMode == \"cool\" and not coolDone ? \"Pedaling slowly with no load (cool-down).\" : (stopMode == \"stand\" ? \"Standing beside the bike.\" : (pale ? \"Sitting on the bike, gray, light-headed.\" : \"Sitting on the bike, recovering.\")))))}",
+   "measures": [
+    {
+     "id": "screen",
+     "label": "Screening",
+     "result": "No heart or lung problems, no medicines. Gave a unit of whole blood yesterday at 15:00. Skipped breakfast; had water.",
+     "when": "not isNull(screenedAt)",
+     "flag": "not isNull(screenedAt) and not toldBefore and not testing"
+    },
+    {
+     "id": "rest",
+     "label": "Resting BP, seated",
+     "result": "118/76",
+     "when": "not isNull(restBpAt)"
+    },
+    {
+     "id": "stageNow",
+     "label": "Stage",
+     "result": "{stage == 0 ? \"Warm-up\" : \"Stage\"} {stage}, {watts} W",
+     "when": "testing and isNull(stopAt)"
+    },
+    {
+     "id": "drop",
+     "label": "Systolic fall under load",
+     "result": "Peak {peakS} mmHg; last {bpS} mmHg at {bpW} W",
+     "when": "not isNull(dropSeenAt)",
+     "flag": "not isNull(dropSeenAt) and isNull(stopAt)"
+    },
+    {
+     "id": "symptoms",
+     "label": "Symptoms",
+     "result": "Pale, sweaty, light-headed",
+     "when": "not isNull(sxAt)",
+     "flag": "pale"
+    }
+   ],
+   "dosage": {
+    "label": "Test",
+    "items": [
+     {
+      "label": "Cycle test started at {timeAt(testStart)|clock}",
+      "when": "testing"
+     },
+     {
+      "label": "Stopped at {timeAt(stopAt)|clock}: {stopMode == \"cool\" ? \"unloaded cool-down\" : (stopMode == \"still\" ? \"stopped pedaling, seated\" : \"off the bike and standing\")}",
+      "when": "not isNull(stopAt)"
+     },
+     {
+      "label": "Lying down, legs raised",
+      "when": "lying"
+     }
+    ]
+   },
+   "rules": [
+    {
+     "id": "ruleSx",
+     "label": "Dizziness, near-syncope or pallor",
+     "text": "Stop the test.",
+     "met": "pale and isNull(stopAt)"
+    },
+    {
+     "id": "ruleDrop",
+     "label": "Systolic falls more than 10 mmHg as the load rises",
+     "text": "Stop the test and watch him closely.",
+     "met": "not isNull(dropSeenAt) and isNull(stopAt)"
+    },
+    {
+     "id": "ruleRec",
+     "label": "Recovery",
+     "text": "Record HR and BP for at least 4 minutes after stopping.",
+     "met": "false"
+    }
+   ]
+  }
+ },
+ "actions": {
+  "screen": {
+   "label": "Screen him: health, medicines, food, sleep, anything unusual today",
+   "group": "Before the test",
+   "available": "isNull(screenedAt)",
+   "why": "Already screened.",
+   "effects": [
+    {
+     "set": "screenedAt",
+     "to": "t"
+    },
+    {
+     "log": "He says he feels fine. No heart or lung problems, no medicines. He gave a unit of blood yesterday at 15:00 and skipped breakfast.",
+     "kind": "find"
+    }
+   ]
+  },
+  "restBp": {
+   "label": "Resting blood pressure, seated",
+   "group": "Before the test",
+   "available": "isNull(restBpAt) and not testing",
+   "why": "Already taken, or the test has started.",
+   "effects": [
+    {
+     "set": "restBpAt",
+     "to": "t"
+    },
+    {
+     "set": "bpAt",
+     "to": "t"
+    },
+    {
+     "set": "bpS",
+     "to": "118"
+    },
+    {
+     "set": "bpD",
+     "to": "76"
+    },
+    {
+     "set": "bpW",
+     "to": "0"
+    },
+    {
+     "log": "Resting BP 118/76, HR {hr}.",
+     "kind": "find"
+    }
+   ]
+  },
+  "tellInstructor": {
+   "label": "Tell the instructor",
+   "group": "Instructor",
+   "params": [
+    {
+     "id": "what",
+     "kind": "choice",
+     "label": "What you say",
+     "options": [
+      {
+       "value": "donation",
+       "label": "He gave blood yesterday afternoon and skipped breakfast; should we go ahead?"
+      },
+      {
+       "value": "event",
+       "label": "He got pale and light-headed and his systolic fell as the load rose; I stopped the test"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "what == \"donation\" and isNull(screenedAt)",
+       "then": [
+        {
+         "log": "Instructor: \"Screen him first, then tell me what you found.\"",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "what == \"donation\" and not testing",
+       "then": [
+        {
+         "set": "toldBefore",
+         "to": "true"
+        },
+        {
+         "log": "Instructor: \"Plasma is mostly back after a day, but he may not keep up at higher loads. Eat something, BP every stage, and stop at the first warning sign.\" He eats a granola bar.",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "what == \"donation\"",
+       "then": [
+        {
+         "log": "Instructor: \"You should have told me before you started. Watch his BP every stage.\"",
+         "kind": "sys"
+        }
+       ]
+      },
+      {
+       "when": "not isNull(stopAt) or fainted",
+       "then": [
+        {
+         "set": "toldAfter",
+         "to": "true"
+        },
+        {
+         "log": "The instructor comes over, checks him and stays until he has recovered.",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Instructor: \"Has anything happened? Then keep going and keep measuring.\"",
+         "kind": "sys"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "start": {
+   "label": "Start the cycle test",
+   "group": "Test",
+   "available": "not testing",
+   "why": "Already started.",
+   "effects": [
+    {
+     "set": "testing",
+     "to": "true"
+    },
+    {
+     "set": "testStart",
+     "to": "t"
+    },
+    {
+     "log": "Warm-up at 25 W."
+    }
+   ]
+  },
+  "bp": {
+   "label": "Take his blood pressure",
+   "group": "Measure",
+   "available": "not bpPending and testing",
+   "why": "Already measuring, or the test has not started (use the resting BP).",
+   "effects": [
+    {
+     "set": "bpPending",
+     "to": "true"
+    },
+    {
+     "schedule": "bpT",
+     "after": "bpTime"
+    },
+    {
+     "log": "Cuff up; listening (about 1 min)."
+    }
+   ]
+  },
+  "calc": {
+   "label": "Calculate pulse pressure and MAP from the last reading",
+   "group": "Measure",
+   "available": "not isNull(bpAt)",
+   "why": "No reading yet.",
+   "params": [
+    {
+     "id": "f",
+     "kind": "choice",
+     "label": "Formula",
+     "options": [
+      {
+       "value": "third",
+       "label": "PP = systolic minus diastolic; MAP = diastolic + PP / 3"
+      },
+      {
+       "value": "half",
+       "label": "PP = systolic minus diastolic; MAP = (systolic + diastolic) / 2"
+      },
+      {
+       "value": "sum",
+       "label": "PP = systolic plus diastolic; MAP = PP / 2"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "f == \"third\"",
+       "then": [
+        {
+         "set": "calcRight",
+         "to": "true"
+        },
+        {
+         "log": "PP {ppM} mmHg, MAP {mapM} mmHg (from {bpS}/{bpD}).",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "f == \"half\"",
+       "then": [
+        {
+         "set": "calcWrong",
+         "to": "true"
+        },
+        {
+         "log": "You write MAP {round((bpS + bpD) / 2)}. That averages the two numbers, but the heart spends longer in diastole, so it overstates MAP.",
+         "kind": "bad"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "set": "calcWrong",
+         "to": "true"
+        },
+        {
+         "log": "You write PP {bpS + bpD}. Pulse pressure is the difference, not the sum.",
+         "kind": "bad"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "interpret": {
+   "label": "Interpret the latest reading",
+   "group": "Measure",
+   "available": "not isNull(bpAt) and bpW > 0",
+   "why": "Take a reading under load first.",
+   "params": [
+    {
+     "id": "i",
+     "kind": "choice",
+     "label": "Reading",
+     "options": [
+      {
+       "value": "normal",
+       "label": "A normal response: systolic rising with the load, diastolic about the same"
+      },
+      {
+       "value": "narrow",
+       "label": "Systolic falling and pulse pressure narrowing as the load rises: stroke volume is not keeping up"
+      },
+      {
+       "value": "high",
+       "label": "A hypertensive response"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "cases": [
+      {
+       "when": "(i == \"narrow\" and (narrowM or bpS <= peakS - 10)) or (i == \"normal\" and not narrowM and bpS > peakS - 10)",
+       "then": [
+        {
+         "set": "interpRight",
+         "to": "true"
+        },
+        {
+         "log": "Your reading of {bpS}/{bpD} at {bpW} W fits.",
+         "kind": "good"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "set": "interpWrong",
+         "to": "true"
+        },
+        {
+         "log": "That does not fit {bpS}/{bpD} at {bpW} W (peak systolic {peakS}).",
+         "kind": "bad"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "rpe": {
+   "label": "Ask how he feels and his effort (RPE)",
+   "group": "Measure",
+   "available": "testing",
+   "why": "Not started.",
+   "effects": [
+    {
+     "set": "rpeAt",
+     "to": "t"
+    },
+    {
+     "cases": [
+      {
+       "when": "pale",
+       "then": [
+        {
+         "log": "\"Light-headed. Things are going gray.\" He looks pale and sweaty. RPE 16.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "def > 10",
+       "then": [
+        {
+         "log": "\"Harder than it should be. A bit woozy.\" RPE 14.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "\"Fine.\" RPE {stage <= 1 ? 9 : 12}.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "stop": {
+   "label": "Stop the test",
+   "group": "Test",
+   "available": "testing and isNull(stopAt) and not fainted",
+   "why": "Not running.",
+   "params": [
+    {
+     "id": "how",
+     "kind": "choice",
+     "label": "How",
+     "options": [
+      {
+       "value": "cool",
+       "label": "Drop the load to zero and keep him pedaling slowly (cool-down), watching him"
+      },
+      {
+       "value": "still",
+       "label": "He stops pedaling and sits on the bike"
+      },
+      {
+       "value": "stand",
+       "label": "He gets off the bike and stands to stretch"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "stopAt",
+     "to": "t"
+    },
+    {
+     "cases": [
+      {
+       "when": "how == \"cool\"",
+       "then": [
+        {
+         "set": "stopMode",
+         "to": "\"cool\""
+        }
+       ]
+      },
+      {
+       "when": "how == \"still\"",
+       "then": [
+        {
+         "set": "stopMode",
+         "to": "\"still\""
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "set": "stopMode",
+         "to": "\"stand\""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "if": "how == \"cool\"",
+     "then": [
+      {
+       "schedule": "coolT",
+       "after": "coolTime"
+      }
+     ]
+    },
+    {
+     "log": "Test stopped at {watts} W.",
+     "kind": "act"
+    }
+   ]
+  },
+  "lieDown": {
+   "label": "Help him lie down and raise his legs",
+   "group": "Test",
+   "available": "not lying and not fainted and not isNull(stopAt)",
+   "why": "Stop the test first (or he is already lying down).",
+   "effects": [
+    {
+     "set": "lying",
+     "to": "true"
+    },
+    {
+     "log": "On the mat, legs on the step. Color starts to come back.",
+     "kind": "good"
+    }
+   ]
+  }
+ },
+ "phases": {
+  "lab": {
+   "label": "In the lab",
+   "clock": "running",
+   "actions": [
+    "screen",
+    "restBp",
+    "tellInstructor",
+    "start",
+    "bp",
+    "calc",
+    "interpret",
+    "rpe",
+    "stop",
+    "lieDown"
+   ]
+  }
+ },
+ "initialPhase": "lab",
+ "processes": [
+  {
+   "id": "lag",
+   "when": "testing and isNull(stopAt) and tRel >= defStart and not fainted",
+   "update": {
+    "def": "def + defRate * dt / 60"
+   }
+  },
+  {
+   "id": "recover",
+   "when": "not isNull(stopAt) and not fainted",
+   "update": {
+    "def": "max(0, def - (lying or stopMode == \"cool\" ? coolRate : stillRate) * dt / 60)"
+   }
+  }
+ ],
+ "timers": {
+  "bpT": {
+   "label": "blood pressure",
+   "wait": {
+    "skipLabel": "the blood pressure (about 1 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1 min."
+   },
+   "effects": [
+    {
+     "set": "bpPending",
+     "to": "false"
+    },
+    {
+     "set": "bpAt",
+     "to": "t"
+    },
+    {
+     "set": "bpS",
+     "to": "sbp"
+    },
+    {
+     "set": "bpD",
+     "to": "dbp"
+    },
+    {
+     "set": "bpW",
+     "to": "watts"
+    },
+    {
+     "if": "isNull(stopAt)",
+     "then": [
+      {
+       "add": "bpDuring",
+       "by": "1"
+      }
+     ],
+     "else": [
+      {
+       "add": "bpAfter",
+       "by": "1"
+      }
+     ]
+    },
+    {
+     "log": "BP {sbp}/{dbp} at {watts} W, HR {hr}.",
+     "kind": "find"
+    },
+    {
+     "if": "watts > 0 and peakS > 0 and sbp <= peakS - 10 and isNull(dropSeenAt) and isNull(stopAt)",
+     "then": [
+      {
+       "set": "dropSeenAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "if": "watts > 0 and sbp > peakS",
+     "then": [
+      {
+       "set": "peakS",
+       "to": "sbp"
+      }
+     ]
+    }
+   ]
+  },
+  "coolT": {
+   "label": "cool-down",
+   "wait": {
+    "skipLabel": "the end of the cool-down (3 min)"
+   },
+   "instances": "one",
+   "source": {
+    "cite": "Exercise physiology teaching lab practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "3 min."
+   },
+   "effects": [
+    {
+     "set": "coolDone",
+     "to": "true"
+    },
+    {
+     "log": "Cool-down done; he sits on the bike."
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "sx",
+   "when": "pale and isNull(sxAt)",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "sxAt",
+     "to": "t"
+    },
+    {
+     "log": "He goes pale and sweaty and says he feels light-headed.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "faint",
+   "when": "risk >= faintLevel and not lying and not fainted",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "set": "fainted",
+     "to": "true"
+    },
+    {
+     "log": "His eyes roll up and he slumps; he slides off the bike to the floor.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "read": {
+   "trigger": "not isNull(dropSeenAt) or not isNull(sxAt) or tRel >= 660",
+   "question": "What do his pulse pressure and MAP tell you about his stroke volume as the load rises, why might that be today, and what do you do now and after you stop?",
+   "parts": [
+    {
+     "label": "Pulse pressure, MAP and stroke volume",
+     "criteria": "Calculates PP as systolic minus diastolic and MAP as diastolic plus a third of PP; reads a systolic that falls as the load rises and a PP under about 25% of systolic as a narrowing pulse pressure, a sign that stroke volume is not keeping up (normally systolic rises and PP widens with exercise); links it to less blood volume the day after donating.",
+     "modelAnswer": "PP is systolic minus diastolic and MAP is diastolic plus a third of PP. With exercise systolic should rise and PP widen as stroke volume goes up; his systolic is falling as the load rises and his PP is narrowing toward a quarter of systolic, so his stroke volume is not keeping up. Giving blood yesterday lowered his blood volume, so preload and stroke volume fall short."
+    },
+    {
+     "label": "What to do",
+     "criteria": "Stops the test at the fall or the first dizziness or pallor; keeps him pedaling with no load (or lies him down, legs raised) instead of stopping dead or standing him up, because the muscle pump keeps venous return up; keeps measuring for at least 4 minutes of recovery; tells the instructor.",
+     "modelAnswer": "Stop now. Drop the load to zero and keep him pedaling slowly so the leg muscles keep pumping blood back to the heart; if he still feels faint, lie him down with his legs raised. Don't let him stop dead or stand. Keep taking HR and BP for at least 4 minutes, and tell the instructor."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "physical-therapy",
+  "thresholds": {
+   "stopWindow": {
+    "value": 60,
+    "source": {
+     "cite": "American Society of Nuclear Cardiology. ASNC Practice Points: Exercise Stress Testing (Weinberg R, Bullock-Palmer R; undated PDF, posted 2024-05)",
+     "checkedAt": "2026-11-14",
+     "url": "https://asnc.org/wp-content/uploads/2024/05/ASNC-Practice-Point-Exercise-Stress-Testing.pdf",
+     "note": "Read 2026-11-14 (summarizing fetch with quotes): indications for early termination include 'Ataxia, dizziness or near-syncope', 'Signs of poor perfusion such as cyanosis or pallor', the subject's request, and a systolic fall of more than 10 mmHg from baseline despite more workload (with other evidence of ischemia); HR and BP are recorded at least 4 minutes into recovery. The document gives no cool-down protocol. FLAG: stopping within 1 minute of the first dizziness or pallor is authored, tighter than the profile's 2 minutes."
+    }
+   },
+   "spo2Floor": {
+    "value": 88,
+    "source": {
+     "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021",
+     "checkedAt": "2026-11-11",
+     "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+     "note": "Profile default; SpO2 is not measured in this lab."
+    }
+   },
+   "escalateWindow": {
+    "value": 900,
+    "source": {
+     "cite": "Exercise physiology teaching lab practice (authored estimate)",
+     "checkedAt": "2026-11-14",
+     "note": "Profile default: the instructor told within 15 minutes of the event."
+    }
+   }
+  },
+  "noProgress": {
+   "when": "recovered and bpDuring == 0",
+   "class": "recovered",
+   "rationale": "He was kept safe, but no blood pressure was taken under load, so the lab's purpose (reading the pressure response) was not met: a gap, not harm.",
+   "source": {
+    "cite": "OpenStax. Anatomy and Physiology 2e, 20.2 Blood Flow, Blood Pressure, and Resistance",
+    "checkedAt": "2026-11-14",
+    "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/20-2-blood-flow-blood-pressure-and-resistance",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): pulse pressure is systolic minus diastolic; 'a pulse pressure should be at least 25 percent of the systolic pressure', below that it is low or narrow, as with reduced stroke volume (heart failure, aortic stenosis, major blood loss); MAP is about diastolic plus one third of the pulse pressure; after strenuous exercise a healthy pulse pressure may rise temporarily as stroke volume increases."
+   }
+  }
+ },
+ "endings": {
+  "fainted": {
+   "label": "He fainted",
+   "class": "harm",
+   "when": "fainted",
+   "terminal": true,
+   "narrative": "Daniel faints and goes down beside the bike. He comes round in seconds with his legs raised, but he has a bruised elbow and the instructor files an incident report."
+  },
+  "stoppedSafe": {
+   "label": "Stopped on the cue, recovered safely",
+   "class": "target",
+   "when": "recovered and since(stopAt) >= recoveryMin and bpAfter >= 1 and not isNull(screenedAt) and not isNull(restBpAt) and toldBefore and not isNull(stopAt) and stopMode == \"cool\" and bpDuring >= 1 and (isNull(sxAt) or timeAt(stopAt) <= timeAt(sxAt) + stopWindow)",
+   "terminal": true,
+   "narrative": "{t|clock}: Daniel is pink again, BP back near his resting value. You read the falling systolic and the narrowing pulse pressure, stopped, kept his legs moving and measured through recovery."
+  },
+  "stoppedLate": {
+   "label": "Recovered, by a slower or riskier route",
+   "class": "recovered",
+   "when": "recovered and since(stopAt) >= recoveryMin",
+   "terminal": true,
+   "narrative": "{t|clock}: Daniel has recovered, but the route cost safety or data: a late stop, a stop without a cool-down, a skipped screen or resting BP, or no recovery reading."
+  },
+  "time_up": {
+   "label": "The lab period ends",
+   "class": "recovered",
+   "terminal": true,
+   "narrative": "The lab period is over before the test is finished and written up."
+  }
+ },
+ "endingOrder": [
+  "fainted",
+  "stoppedSafe",
+  "stoppedLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "screenFirst",
+    "label": "Screened him and took a resting BP before the load, and told the instructor about the donation",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(screenedAt) or isNull(restBpAt)",
+      "score": "missed",
+      "why": "{isNull(screenedAt) ? \"No screening\" : \"No resting BP\"} before the test."
+     },
+     {
+      "when": "toldBefore",
+      "score": "met",
+      "why": "Screened, resting BP 118/76, instructor told about yesterday's donation."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Screened, but the donation was not passed to the instructor before the test."
+     }
+    ]
+   },
+   {
+    "id": "stopTimely",
+    "label": "Stopped at the systolic fall or the first dizziness or pallor",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(stopAt)",
+      "score": "missed",
+      "why": "The test was never stopped."
+     },
+     {
+      "when": "not isNull(dropSeenAt) and (isNull(sxAt) or timeAt(stopAt) <= timeAt(sxAt))",
+      "score": "met",
+      "why": "Stopped at {timeAt(stopAt)|clock} on the measured fall, before or as symptoms began."
+     },
+     {
+      "when": "isNull(sxAt) or timeAt(stopAt) <= timeAt(sxAt) + stopWindow",
+      "score": "met",
+      "why": "Stopped at {timeAt(stopAt)|clock}, within a minute of the first symptoms."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Stopped at {timeAt(stopAt)|clock}, {timeAt(stopAt) - timeAt(sxAt)|duration} after he went pale and light-headed."
+     }
+    ]
+   },
+   {
+    "id": "safeStop",
+    "label": "Kept his legs moving or laid him down after stopping",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(stopAt)",
+      "score": "missed",
+      "why": "Not stopped."
+     },
+     {
+      "when": "stopMode == \"stand\"",
+      "score": "missed",
+      "why": "Stood him up straight off the bike."
+     },
+     {
+      "when": "stopMode == \"cool\"",
+      "score": "met",
+      "why": "Unloaded cool-down."
+     },
+     {
+      "when": "lying",
+      "score": "partial",
+      "why": "Stopped dead, then laid him down when he felt faint."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Stopped dead on the bike with no cool-down."
+     }
+    ]
+   },
+   {
+    "id": "bpUnderLoad",
+    "label": "Blood pressure measured under load at each stage",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "bpDuring >= 3",
+      "score": "met",
+      "why": "{bpDuring} readings during the test."
+     },
+     {
+      "when": "bpDuring >= 1",
+      "score": "partial",
+      "why": "Only {bpDuring} reading(s) during the test."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No BP during the test."
+     }
+    ]
+   },
+   {
+    "id": "calc",
+    "label": "Calculated pulse pressure and MAP correctly",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "calcRight and not calcWrong",
+      "score": "met",
+      "why": "PP as the difference, MAP as diastolic plus a third of PP."
+     },
+     {
+      "when": "calcRight",
+      "score": "partial",
+      "why": "Right in the end, after a wrong formula."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "{calcWrong ? \"Wrong formula\" : \"Never calculated\"}."
+     }
+    ]
+   },
+   {
+    "id": "interp",
+    "label": "Read the narrowing pulse pressure as falling stroke volume",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "interpRight and not interpWrong",
+      "score": "met",
+      "why": "Each reading interpreted correctly."
+     },
+     {
+      "when": "interpRight",
+      "score": "partial",
+      "why": "Some readings misread."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "{interpWrong ? \"Misread the readings\" : \"No reading interpreted\"}."
+     }
+    ]
+   },
+   {
+    "id": "recovery",
+    "label": "Measured through recovery and told the instructor",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "bpAfter >= 1 and toldAfter",
+      "score": "met",
+      "why": "Recovery BP taken; instructor told."
+     },
+     {
+      "when": "bpAfter >= 1 or toldAfter",
+      "score": "partial",
+      "why": "{bpAfter >= 1 ? \"Instructor not told about the event\" : \"No recovery BP\"}."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No recovery BP and the instructor was not told."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "read",
+    "label": "Written reasoning: pulse pressure, MAP and stroke volume; stopping safely",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "bpCount",
+    "label": "Blood pressures under load",
+    "value": "bpDuring",
+    "format": "number",
+    "expert": "3 or more"
+   },
+   {
+    "id": "stopAfterSx",
+    "label": "First symptoms to the stop",
+    "value": "isNull(sxAt) or isNull(stopAt) ? -1 : max(0, timeAt(stopAt) - timeAt(sxAt))",
+    "format": "duration",
+    "expert": "stopped before symptoms"
+   },
+   {
+    "id": "testMin",
+    "label": "Time under load",
+    "value": "isNull(testStart) or isNull(stopAt) ? -1 : timeAt(stopAt) - timeAt(testStart)",
+    "format": "duration",
+    "expert": "about 9 min"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "10:00",
+    "text": "Screen him: he gave blood yesterday and skipped breakfast. Resting BP 118/76. Tell the instructor before starting; he eats something."
+   },
+   {
+    "at": "~10:03",
+    "text": "Warm-up, then BP every stage. Calculate PP and MAP each time: diastolic plus a third of PP."
+   },
+   {
+    "at": "~10:08",
+    "text": "At 75 W his systolic is lower than at 50 W and PP is narrowing: stroke volume is not keeping up. Measure again early in the 100 W stage."
+   },
+   {
+    "at": "~10:10",
+    "text": "Systolic more than 10 below its peak as the load rises: stop, zero load, keep him pedaling slowly. BP in recovery for at least 4 minutes; tell the instructor."
+   }
+  ],
+  "debrief": {
+   "fainted": {
+    "headline": "He fainted",
+    "body": "Find the readings where systolic stopped rising and pulse pressure narrowed, and when he first went pale. After stopping, legs that keep moving (or lying with legs raised) keep blood coming back to the heart."
+   },
+   "stoppedSafe": {
+    "headline": "Read the pressure, stopped, recovered",
+    "body": "You calculated PP and MAP correctly, read a falling systolic and narrowing pulse pressure as low stroke volume, stopped on it and used an unloaded cool-down. That is the expert path."
+   },
+   "stoppedLate": {
+    "headline": "Recovered, by a slower or riskier route",
+    "body": "Check when you stopped against the first fall and the first symptoms, how you stopped, and whether the screen, the resting BP and the recovery readings were done."
+   },
+   "time_up": {
+    "headline": "Out of time",
+    "body": "The test needs a screen, a resting BP, readings each stage and a recovery."
+   }
+  },
+  "modelReasoning": "Pulse pressure is systolic minus diastolic; MAP is about diastolic plus a third of the pulse pressure, because the heart spends longer in diastole. During graded exercise systolic should rise with each stage (about 10 mmHg per MET) while diastolic stays about the same, so pulse pressure widens as stroke volume rises. A systolic that falls as the load rises, with a pulse pressure narrowing toward a quarter of systolic, says stroke volume is not keeping up: here the day after a blood donation, with a smaller blood volume and less preload. Dizziness, pallor and a systolic fall of more than 10 mmHg under rising load are reasons to stop. Stop with an unloaded cool-down (or lie him down with legs raised) so the skeletal muscle pump keeps venous return up; stopping dead or standing invites a faint. Record HR and BP for at least 4 minutes of recovery and tell the instructor."
+ },
+ "chapters": [
+  {
+   "id": "stopped",
+   "label": "Test stopped",
+   "when": "not isNull(stopAt)"
+  }
+ ],
+ "teaching": {
+  "ppQ": {
+   "during": "bpT",
+   "ask": "While you listen: what should happen to his systolic pressure and pulse pressure as the load rises?",
+   "choices": [
+    {
+     "id": "up",
+     "label": "Systolic rises and pulse pressure widens"
+    },
+    {
+     "id": "same",
+     "label": "Both stay the same"
+    },
+    {
+     "id": "down",
+     "label": "Systolic falls and pulse pressure narrows"
+    }
+   ],
+   "expect": "up",
+   "explain": "With exercise stroke volume rises, so systolic rises and pulse pressure widens while diastolic stays about the same. A narrowing pulse pressure points to low stroke volume.",
+   "source": {
+    "cite": "OpenStax. Anatomy and Physiology 2e, 20.2 Blood Flow, Blood Pressure, and Resistance",
+    "checkedAt": "2026-11-14",
+    "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/20-2-blood-flow-blood-pressure-and-resistance",
+    "note": "Read 2026-11-14 (summarizing fetch with quotes): pulse pressure is systolic minus diastolic; 'a pulse pressure should be at least 25 percent of the systolic pressure', below that it is low or narrow, as with reduced stroke volume (heart failure, aortic stenosis, major blood loss); MAP is about diastolic plus one third of the pulse pressure; after strenuous exercise a healthy pulse pressure may rise temporarily as stroke volume increases."
+   }
+  },
+  "coolQ": {
+   "during": "coolT",
+   "ask": "Why keep him pedaling with no load instead of stopping dead?",
+   "choices": [
+    {
+     "id": "pump",
+     "label": "The leg muscles keep pumping blood back to the heart"
+    },
+    {
+     "id": "lactate",
+     "label": "It clears lactate so he won't be sore"
+    },
+    {
+     "id": "hr",
+     "label": "It keeps his heart rate up for the recording"
+    }
+   ],
+   "expect": "pump",
+   "explain": "After exercise, losing the skeletal muscle pump lets venous return fall and many healthy people feel faint; moving the legs keeps blood returning to the heart.",
+   "source": {
+    "cite": "Luttrell MJ, Halliwill JR. Recovery from exercise: vulnerable state, window of opportunity, or crystal ball? Front Physiol. 2015;6:204. doi:10.3389/fphys.2015.00204",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2015.00204/pdf",
+    "note": "Read 2026-11-14 (summarizing fetch): 50-80% of healthy adults develop pre-syncopal signs on head-up tilt after exercise; post-exercise syncope is multifactorial with loss of the muscle pump; countermeasures that engage the skeletal muscle pump augment venous return. It does not test an active cool-down; that an unloaded cool-down protects him is a teaching inference (FLAG)."
+   }
+  }
+ }
+}

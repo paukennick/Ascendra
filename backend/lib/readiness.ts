@@ -116,7 +116,7 @@ const pct = (x: number) => Math.round(x * 100);
 // this list equal to the seed's). Read from subject_tracks only, so every
 // database role that reads a course (the app, the re-check job) can use it.
 // REQ-287 (FAIL-1883): the Washington psychology jurisprudence exam has no published blueprint.
-export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN", "WAPSYCHJP"] as const;
+export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN", "PSMI", "CSM", "NASMCNC", "WAPSYCHJP"] as const;
 // `st` is subject_tracks.
 export const STUDY_EMPHASIS_WEIGHTS_SQL = `(st.user_id is null and st.code in (${STUDY_EMPHASIS_TRACK_CODES.map((c) => `'${c}'`).join(", ")}))`;
 
