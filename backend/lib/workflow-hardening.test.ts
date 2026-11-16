@@ -97,7 +97,13 @@ describe("FAIL-951: workflow permissions, pins, tokens", () => {
 describe("FAIL-944: the production migration job", () => {
   const m = wf("migrate-production.yml");
   test("has a job timeout, and 'status before' no longer swallows failures", () => {
-    assert.match(m, /timeout-minutes: 30/);
+    // REQ-307 (FAIL-2101): 90 for the job (the seed outgrew 30), and each
+    // migration step still has its own 30-minute bound.
+    assert.match(m, /^    timeout-minutes: 90$/m);
+    for (const step of ["Status before", "Apply pending migrations", "Status after"]) {
+      assert.match(m, new RegExp(`- name: ${step}\\n        timeout-minutes: 30\\n`), step);
+    }
+    assert.match(m, /- name: Seed the catalog\n[^\n]*\n        timeout-minutes: 75\n/);
     const before = m.slice(m.indexOf("- name: Status before"), m.indexOf("- name: Apply pending migrations"));
     assert.doesNotMatch(before, /\|\|\s*true/);
     assert.match(before, /-ne 2/, "exit 2 (objects missing) is the only tolerated code");

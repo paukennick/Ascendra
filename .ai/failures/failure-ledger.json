@@ -18093,6 +18093,29 @@
       ],
       "prevention_notes": "Pre-completion checklist, sim documents item: a sim test, unit or DB, selects its documents by slug from its own requirement's list; run test:db before reporting a sim wave done.",
       "recurrence_of": "FAIL-2000"
+    },
+    {
+      "id": "FAIL-2101",
+      "date": "2026-11-16",
+      "title": "Production seed cancelled by the 30-minute job timeout",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The post-deploy run for #199 was cancelled after 30 minutes during `npm run seed`, at subject track 148 of 150, so the new sims and labs were not seeded.",
+      "how_detected": "lead's deploy script timed out waiting for the migrate check; the job log shows ##[error]The operation was canceled",
+      "root_cause": "The REQ-207 job timeout (30 minutes) was sized for migrations; the seed grew with 150 courses and their sims and labs.",
+      "requirement": "REQ-307",
+      "affected": [
+        ".github/workflows/migrate-production.yml"
+      ],
+      "fix_summary": "Job timeout 90; migration steps 30 each; seed step 75.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts has a job timeout, and 'status before' no longer swallows failures"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Watch the seed's duration in the post-deploy log; make it faster before it nears 75 minutes.",
+      "recurrence_of": ""
     }
   ]
 }

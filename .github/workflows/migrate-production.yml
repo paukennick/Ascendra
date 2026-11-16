@@ -20,7 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     # REQ-207 (FAIL-944): a hung migration held the production connection and
     # the concurrency group until GitHub's 6-hour default.
-    timeout-minutes: 30
+    # REQ-307 (FAIL-2101): the seed of 150 courses and their sims and labs no
+    # longer fits in 30 minutes (cancelled 2026-11-16 at track 148 of 150). The
+    # job gets 90; each migration step keeps a 30-minute bound of its own.
+    timeout-minutes: 90
     environment: production-database
     defaults:
       run:
@@ -41,6 +44,7 @@ jobs:
       # Exit 2 means "schema is missing objects" (the normal state before
       # applying); anything else is a real failure and stops the job.
       - name: Status before
+        timeout-minutes: 30
         run: |
           set +e
           npm run migrate -- --status
@@ -50,13 +54,16 @@ jobs:
             exit "$rc"
           fi
       - name: Apply pending migrations
+        timeout-minutes: 30
         run: npm run migrate -- --all
       - name: Status after
+        timeout-minutes: 30
         run: npm run migrate -- --status
       # Post-deploy (docs/deploy-runbook-integration.md steps 5-6). Only on
       # pushes to ops/post-deploy-production, after the backend is live.
       - name: Seed the catalog
         if: github.ref == 'refs/heads/ops/post-deploy-production'
+        timeout-minutes: 75
         run: npm run seed
       - name: Recompute mastery
         if: github.ref == 'refs/heads/ops/post-deploy-production'

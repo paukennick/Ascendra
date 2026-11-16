@@ -11075,6 +11075,33 @@
       "risk_notes": [
         "Not reproduced or verified on an Android device; needs a by-hand check: turn on biometric, wait 15+ minutes, apply an over-the-air update, unlock"
       ]
+    },
+    {
+      "id": "REQ-307",
+      "category": "infrastructure",
+      "title": "Production seed job fits the larger catalog",
+      "description": "The post-deploy seed of 150 courses with their sims and labs ran past the 30-minute job timeout on 2026-11-16 and was cancelled at track 148 of 150, before sims and labs. The job now has 90 minutes; the migration steps keep 30 each and the seed step has 75.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".github/workflows/migrate-production.yml",
+        "backend/lib/workflow-hardening.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Job timeout 90 minutes",
+        "Status before, Apply pending migrations and Status after keep a 30-minute step timeout",
+        "Seed step has a 75-minute timeout"
+      ],
+      "validation_required": [
+        "cd backend && npx tsx --test lib/workflow-hardening.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "A seed that grows past 75 minutes needs to be made faster (batching), not given more time"
+      ]
     }
   ]
 }
