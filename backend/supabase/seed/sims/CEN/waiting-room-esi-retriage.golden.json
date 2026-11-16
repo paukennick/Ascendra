@@ -1,0 +1,675 @@
+{
+  "slug": "waiting-room-esi-retriage",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: Ortiz and Diaz ESI 2, Chen 4, Brooks 3; waiting room rechecked at 15 and 20 minutes; Brooks re-triaged on the danger-zone heart rate; note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "4"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "dpQ",
+          "choice": "risk",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "triaged",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "recheck",
+          "seq": 9,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "recheck",
+          "seq": 10,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "retriage",
+          "seq": 11,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 12,
+          "tick": 1200
+        },
+        {
+          "type": "teach",
+          "prompt": "rtQ",
+          "choice": "vitals",
+          "seq": 13,
+          "tick": 1200
+        }
+      ],
+      "expect": {
+        "ending": "safeTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "highRisk": "met",
+          "resources": "met",
+          "recheck": "met",
+          "retriage": "met",
+          "speed": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toRetriage": 1200,
+          "lost": 906
+        },
+        "stateHash": "b2b88a51cbaf8f95"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "lateRecheck",
+      "title": "Right levels, but the first recheck at 35 minutes and the re-triage after it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "4"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "dpQ",
+          "choice": "risk",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "triaged",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "recheck",
+          "seq": 8,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "retriage",
+          "seq": 9,
+          "tick": 2100
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 10,
+          "tick": 2100
+        },
+        {
+          "type": "teach",
+          "prompt": "rtQ",
+          "choice": "vitals",
+          "seq": 11,
+          "tick": 2100
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "highRisk": "met",
+          "resources": "met",
+          "recheck": "partial",
+          "retriage": "met",
+          "speed": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toRetriage": 2100,
+          "lost": 1251
+        },
+        "stateHash": "fb915217b4d5e680"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "overTriage",
+      "title": "Everyone ESI 2 'to be safe': no one waits, but beds go to a sprained ankle",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "dpQ",
+          "choice": "risk",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "rtQ",
+          "choice": "vitals",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 8,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "highRisk": "met",
+          "resources": "missed",
+          "recheck": "met",
+          "retriage": "partial",
+          "speed": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toRetriage": -1,
+          "lost": 469
+        },
+        "stateHash": "a2cc082f5db8968c"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "sawItWaited",
+      "title": "Right levels and an early recheck that shows the change, but the re-triage waits 20 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "4"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "dpQ",
+          "choice": "risk",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "chapter",
+          "chapter": "triaged",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "recheck",
+          "seq": 8,
+          "tick": 1200
+        },
+        {
+          "type": "act",
+          "action": "recheck",
+          "seq": 9,
+          "tick": 1800
+        },
+        {
+          "type": "act",
+          "action": "retriage",
+          "seq": 10,
+          "tick": 2400
+        },
+        {
+          "type": "teach",
+          "prompt": "rtQ",
+          "choice": "vitals",
+          "seq": 11,
+          "tick": 2400
+        }
+      ],
+      "expect": {
+        "ending": "safeLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "highRisk": "met",
+          "resources": "met",
+          "recheck": "met",
+          "retriage": "partial",
+          "speed": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toRetriage": 2400,
+          "lost": 1366
+        },
+        "stateHash": "4bc0624bc8115365"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "resources",
+      "title": "Failure: levels by resource count alone (Ortiz ESI 3), no recheck",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "4"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "highRisk": "partial",
+          "resources": "met",
+          "recheck": "missed",
+          "retriage": "missed",
+          "speed": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toRetriage": -1,
+          "lost": 1090
+        },
+        "stateHash": "1fc9d3cba9a5e035"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "slowDesk",
+      "title": "Ortiz and Diaz ESI 2 at 12 minutes, Chen 5 and Brooks 4, never rechecked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 1,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "2"
+          },
+          "seq": 2,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "triA",
+          "params": {
+            "lvl": "5"
+          },
+          "seq": 3,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "4"
+          },
+          "seq": 4,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 5,
+          "tick": 720
+        },
+        {
+          "type": "teach",
+          "prompt": "dpQ",
+          "choice": "risk",
+          "seq": 6,
+          "tick": 720
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "highRisk": "met",
+          "resources": "missed",
+          "recheck": "missed",
+          "retriage": "missed",
+          "speed": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "toRetriage": -1,
+          "lost": 1680
+        },
+        "stateHash": "78552dcaa50d9323"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "bothLow",
+      "title": "Failure: Ortiz and Diaz both sent to wait as ESI 3, Ms. Chen never triaged",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triB",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triC",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "triD",
+          "params": {
+            "lvl": "3"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "highRisk": "missed",
+          "resources": "partial",
+          "recheck": "missed",
+          "retriage": "missed",
+          "speed": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toRetriage": -1,
+          "lost": 1090
+        },
+        "stateHash": "593bc1f8460ab7cc"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

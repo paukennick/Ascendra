@@ -239,6 +239,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PCCN", "copd-exacerbation-niv"),
   entry("CMSRN", "postop-hemorrhage-early-signs"),
   entry("CEN", "triage-sepsis-first-hour"),
+  entry("CEN", "waiting-room-esi-retriage"),
   // ---- end REQ-275 to REQ-278 ----
 ];
 
