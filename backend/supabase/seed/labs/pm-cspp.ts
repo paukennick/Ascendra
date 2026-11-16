@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-171: CSPP (PMI & GPM Certified Sustainable Project Professional).
@@ -365,6 +365,44 @@ export const CSPP_LABS: SeedLabSet = {
               "Communication types",
               "Lists appropriate types (regular internal progress reports, stakeholder updates, a project sustainability report feeding the organization's ESG disclosures, public statements backed by evidence) with purposes and a rule that claims are specific and verifiable.",
               "Monthly internal sustainability dashboard (steer the project); quarterly updates to community and staff (trust); a project sustainability report at closure that feeds the trust's annual ESG disclosures (transparency). Public claims must be specific, measured and backed by evidence."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, ESG & Sustainability Reporting,
+    // Governance and Project Communications gets its second lab. Concepts
+    // from the CSPP outline the set cites; no outside value is quoted.
+    {
+      slug: "cspp-governance-framework-fit",
+      objective: "Determining an appropriate governance framework for a given scenario: characteristics of good governance",
+      kind: "build",
+      title: "Fix the governance of a solar-farm project",
+      brief:
+        "Brightwater Energy Co-op (fictional) is building a community solar farm funded partly by local members. In the first three months: the project manager also approves his own change requests and budget transfers; the community has heard nothing since the launch event; decisions are made in calls with no notes; a contractor's labor-practice complaint sat unanswered for six weeks; and nobody can say who decides whether to buy panels from a cheaper supplier with an unclear supply chain.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies governance characteristics to the fictional project in the brief; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each problem to the governance characteristic it breaks, then propose the governance framework.",
+          parts: [
+            matchPart(
+              "Characteristic each problem breaks",
+              "Met: all five right -- PM approves his own changes and transfers: accountability with separation of duties; community hears nothing: transparency; no notes of decisions: documented decision-making (traceability); complaint unanswered for six weeks: responsiveness to stakeholders; nobody knows who decides on the supplier: clear roles and decision rights. Four right is partly there.",
+              "Approving your own requests removes the check another person provides. Silence toward the members who fund the farm fails transparency. Undocumented decisions cannot be traced or reviewed. A six-week silence on a labor complaint fails responsiveness. And an unowned decision with ethical and supply-chain stakes shows that decision rights were never assigned.",
+              {
+                leftHeading: "Problem",
+                rightHeading: "Characteristic broken",
+                left: ["PM approves his own changes and budget transfers", "Community hears nothing after launch", "Decisions made in calls with no notes", "Labor complaint unanswered for six weeks", "No one knows who decides on the cheaper supplier"],
+                right: ["Accountability and separation of duties", "Transparency", "Documented, traceable decisions", "Responsiveness to stakeholders", "Clear roles and decision rights", "Speed of delivery"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Proposed framework",
+              "A sponsor and a steering group (including a member or community representative) with written terms of reference and decision rights (e.g. a delegation-of-authority table: what the PM, sponsor and steering group each approve, with thresholds); changes and budget transfers approved by someone other than the requester; a decision and action log; a stakeholder communication plan with regular public updates on progress and sustainability impacts; a grievance mechanism with response times and escalation; sustainable-procurement criteria (supply-chain due diligence, labor and human rights) decided by the steering group; periodic review or audit.",
+              "Set up a small steering group under the sponsor, with a community member on it, and give it written terms of reference. Write a decision-rights table: what the PM may approve alone (within tolerances), what needs the sponsor, and what goes to the steering group -- including any supplier choice with supply-chain or labor questions, judged against agreed sustainable-procurement criteria. No one approves their own change request or budget transfer. Every decision goes into a decision log with who decided and why. Publish a monthly update to members on progress, spend and sustainability impacts. Open a grievance channel for workers and neighbors with a response time and an escalation route, and report on it. Review the framework at each phase gate."
             ),
           ],
         },

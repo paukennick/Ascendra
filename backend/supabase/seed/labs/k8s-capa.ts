@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, orderPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Certified Argo Project Associate (CAPA).
@@ -399,6 +399,55 @@ export const CAPA_LABS: SeedLabSet = {
               "Filtering and fan-in logic",
               "Sensor-level filters (data filters on the payload, e.g. key size or prefix; time filters; expression filters) refine beyond the source filter; conditions on triggers (e.g. \"tile && config-ready\") combine dependencies so a trigger fires only when several events have arrived; explains at-least-once delivery and idempotent workflows.",
               "Beyond the suffix filter at the source, the Sensor can filter on the payload -- filters: {data: [{path: notification.0.s3.object.size, type: number, comparator: \">\", value: [\"0\"]}]} skips empty objects; exprs allow expressions; time filters restrict hours. A trigger's conditions field combines dependencies, e.g. conditions: \"tile && manifest\" fires only after both a tile and its manifest event arrived. Delivery is at-least-once over JetStream, so the ingest WorkflowTemplate should be idempotent per object key (memoize on the key, or check-before-write)."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill, Argo Events (12%) gets its second
+    // lab. Component roles as the CAPA outline the set cites describes them.
+    {
+      slug: "argo-events-flow-order",
+      objective: "Argo Events fundamentals: event-driven automation for Kubernetes and how it connects external systems to Workflows and other resources",
+      kind: "case",
+      title: "Replace a polling cron job with Argo Events",
+      brief:
+        "At Larchmont Imaging (fictional), when a partner uploads a scan batch to an S3-compatible bucket, a processing Workflow should start with the object key as a parameter. Today a cron job polls the bucket every 15 minutes and sometimes starts the same batch twice. The team wants to use Argo Events instead.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies Argo Events component roles to the fictional pipeline; quotes no outside value.",
+      steps: [
+        {
+          text: "The duplicates show up in the Workflow list:\n\n$ argo list -n imaging\nNAME                 STATUS      AGE   DURATION\nscan-batch-7f2kq     Running     3m    3m\nscan-batch-x9d4w     Running     18m   18m\n\nBoth were started for the same batch, partner-17/2026-11-14/, by two overlapping polls.",
+          ask: "Put the path of one upload event under Argo Events in order, and match each component to its job.",
+          parts: [
+            orderPart(
+              "Path of one upload event",
+              "Met: exactly -- the object is uploaded to the bucket; the EventSource receives the bucket notification; the event is published to the EventBus; the Sensor's dependency matches it and its filters pass; the Sensor's trigger creates the Workflow with the object key as a parameter. One item out of place is partly there.",
+              "The EventSource is the adapter to the outside system and turns its notification into a CloudEvent. It publishes to the EventBus (NATS or JetStream), which decouples sources from consumers. A Sensor subscribes through its dependencies, applies filters, and when its conditions are met fires a trigger, here creating a Workflow and passing data from the event into a parameter.",
+              ["A partner uploads an object to the bucket", "The EventSource receives the bucket notification", "The event is published to the EventBus", "The Sensor's dependency matches and its filters pass", "The Sensor's trigger creates the Workflow with the object key as a parameter"]
+            ),
+            matchPart(
+              "Job of each component",
+              "Met: all three right -- EventSource: connects to the external system and emits events; EventBus: carries events between sources and sensors; Sensor: decides from dependencies and filters what to trigger. Two right is partly there.",
+              "Each component has one job, so a new event type needs a new EventSource but no change to the Sensors that do not care about it, and a Sensor can combine dependencies from several sources. The Workflow controller runs the Workflow afterwards; it is not part of Argo Events.",
+              {
+                leftHeading: "Component",
+                rightHeading: "Job",
+                left: ["EventSource", "EventBus", "Sensor"],
+                right: ["Connects to the external system and emits events", "Carries events between sources and sensors", "Matches dependencies and filters, then fires triggers", "Runs each step of the Workflow as a Pod"],
+                pairs: [0, 1, 2],
+              }
+            ),
+          ],
+        },
+        {
+          text: "The team deploys an EventSource for the bucket and a Sensor that triggers the Workflow. The next morning a partner uploads one batch of 40 files:\n\n$ kubectl get eventsources,sensors -n argo-events\nNAME                                   AGE\neventsource.argoproj.io/scan-bucket    14h\nNAME                                   AGE\nsensor.argoproj.io/scan-batch          14h\n$ argo list -n imaging | grep -c scan-batch\n40",
+          ask: "Explain what improved over the cron job, why 40 Workflows started, and what to change.",
+          parts: [
+            part(
+              "What improved, the 40 Workflows, and the fix",
+              "Says the 40 Workflows come from the bucket sending one notification per uploaded object while the Sensor has no filter, so every file triggered; fix with a filter on the object key (e.g. only the batch's final manifest file). Event-driven instead of polling: the Workflow starts when the upload happens instead of up to 15 minutes later, and only once per notification, removing the double starts caused by overlapping polls; parameters come from the event (key), so no listing logic. Watch: filters (prefix or suffix, e.g. only the manifest file marking a complete batch) so partial uploads do not trigger; a Workflow that is safe to run twice (idempotent, e.g. keyed by object key) because notifications can be delivered more than once; the trigger's ServiceAccount has only the RBAC to create Workflows; EventBus durability (JetStream) so events survive restarts.",
+              "The bucket sends one notification per object, and the Sensor has no filter, so each of the 40 files started its own Workflow. Add a filter on the object key so only the batch's final manifest file (for example a key ending in /_MANIFEST) triggers, and pass the batch prefix as the parameter. Compared with the cron job, the Workflow now starts when the upload happens, not up to 15 minutes later, and each notification triggers once, so the overlapping-poll duplicates go away; the object key arrives in the event, so no bucket-listing code is needed. Watch three things. Filter on the right object -- for a multi-file batch, trigger on a final manifest file, not on every file. Make the Workflow safe to run twice for the same key, because notifications can be delivered more than once. And give the Sensor's trigger a ServiceAccount allowed only to create Workflows in its namespace, with a durable EventBus (JetStream) so events are not lost while a component restarts."
             ),
           ],
         },

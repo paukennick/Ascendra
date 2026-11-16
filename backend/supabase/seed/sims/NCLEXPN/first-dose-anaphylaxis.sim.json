@@ -1,0 +1,1193 @@
+{
+ "schemaVersion": 1,
+ "engine": {
+  "major": 1,
+  "minor": 2
+ },
+ "slug": "first-dose-anaphylaxis",
+ "title": "Hives and a hoarse voice after a first dose",
+ "screen": {
+  "type": "bedside",
+  "level": 3,
+  "bedside": {
+   "tiles": [
+    {
+     "id": "hr",
+     "label": "HR",
+     "spokenLabel": "Heart rate",
+     "value": "hr",
+     "unit": "/min",
+     "alarm": {
+      "high": 110
+     },
+     "announce": {
+      "bands": [
+       100,
+       120
+      ]
+     },
+     "colour": "ecg",
+     "hiddenUntil": "monitorOn"
+    },
+    {
+     "id": "bp",
+     "label": "BP",
+     "spokenLabel": "Blood pressure, machine cycling every minute",
+     "value": [
+      "sbp",
+      "dbp"
+     ],
+     "unit": "mmHg",
+     "alarm": {
+      "low": 90
+     },
+     "announce": {
+      "bands": [
+       100,
+       90,
+       80
+      ]
+     },
+     "colour": "art",
+     "hiddenUntil": "monitorOn"
+    },
+    {
+     "id": "spo2",
+     "label": "SpO2",
+     "spokenLabel": "Oxygen saturation",
+     "value": "spo2",
+     "unit": "%",
+     "alarm": {
+      "low": 92
+     },
+     "announce": {
+      "bands": [
+       94,
+       92,
+       88
+      ]
+     },
+     "colour": "spo2",
+     "hiddenUntil": "monitorOn"
+    },
+    {
+     "id": "rr",
+     "label": "RR",
+     "spokenLabel": "Respiratory rate you counted",
+     "value": "rr",
+     "unit": "/min",
+     "alarm": {
+      "high": 24
+     },
+     "announce": {
+      "bands": [
+       24,
+       28
+      ]
+     },
+     "colour": "neutral",
+     "hiddenUntil": "monitorOn"
+    }
+   ],
+   "infusions": "Epinephrine doses: {epiDoses}. Oxygen: {o2On ? \"on\" : \"off\"}. Position: {posture == \"flat\" ? \"lying, legs raised\" : (posture == \"semi\" ? \"semi-sitting\" : (posture == \"up\" ? \"standing\" : \"sitting in the chair\"))}.",
+   "banner": [
+    {
+     "when": "emsHere",
+     "text": "Paramedics are at the bedside."
+    }
+   ]
+  }
+ },
+ "objective": "Recognizing an allergic reaction and responding to it",
+ "secondaryObjectives": [
+  "Know that epinephrine is the first drug in anaphylaxis, and ask an alert client to report any change in breathing afterwards",
+  "Unexpected response to therapy, and recognizing complications early",
+  "Organize and prioritize care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first",
+  "Client allergies: collecting the data and acting on it",
+  "Reporting adverse effects to the registered nurse or provider"
+ ],
+ "sources": [
+  {
+   "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+   "checkedAt": "2026-11-11",
+   "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+   "note": "Relayed from the REQ-233 NCLEX-PN cases (read 2026-11-11, primary PDF), not re-read: Pharmacological Therapies includes recognizing and reporting adverse effects; Coordinated Care includes care within the legal scope of practice."
+  },
+  {
+   "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+   "checkedAt": "2026-11-14",
+   "note": "The objective and secondary objectives are the course's own titles."
+  },
+  {
+   "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+   "checkedAt": "2026-11-14",
+   "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+   "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'."
+  },
+  {
+   "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+   "checkedAt": "2026-11-11",
+   "url": "https://nasemso.org/?p=223",
+   "note": "Relayed from the REQ-241 EMT anaphylaxis case (read 2026-11-11 in full text, the Iowa HHS copy), not re-read: anaphylaxis is two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms and hypotension or its symptoms, soon after a likely allergen; epinephrine 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, repeated every 5 minutes as needed."
+  }
+ ],
+ "brief": {
+  "situation": "10:12 on a subacute rehabilitation unit. You are the LPN. At 10:00 you gave Mrs. Brewer, 72, the first dose of oral amoxicillin newly ordered for a urinary infection. Her call light is on; she is sitting in her chair and says her skin is itchy and her throat feels 'tight'.",
+  "handover": [
+   "She is 9 days after a hip replacement, walks with a walker and a standby assist, about 70 kg.",
+   "Unit anaphylaxis standing order: epinephrine auto-injector 0.3 mg IM to the outer thigh for suspected anaphylaxis, repeat once after 5 minutes if not improving; call 911; oxygen; notify the RN supervisor and the provider.",
+   "The electronic record lists 'no known allergies'."
+  ],
+  "howItWorks": [
+   "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+   "She is changing minute by minute. Some steps take a minute or more.",
+   "Partway through you are asked to write what is happening and why. A debrief scores what you did."
+  ]
+ },
+ "clock": {
+  "start": "10:12",
+  "tick": "1s",
+  "maxDuration": "45min",
+  "calendar": "clock"
+ },
+ "params": {
+  "sevRise": {
+   "value": 0.05,
+   "unit": "/min",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Untreated, she reaches shock and airway obstruction in about 12 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "epiDrop": {
+   "value": 0.35,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "One IM dose of epinephrine reverses much of the reaction within a few minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "epiOnset": {
+   "value": 120,
+   "unit": "s",
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min to effect after an IM dose in the thigh. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "standSev": {
+   "value": 0.45,
+   "source": {
+    "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+    "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'. FLAG: that standing at this severity makes her collapse in this case is authored; the guideline names the hazard (avoid sudden changes in posture)."
+   }
+  },
+  "collapseSev": {
+   "value": 1.0,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "Shock with a closing airway. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+   }
+  },
+  "epiWindow": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "NASEMSO National Model EMS Clinical Guidelines, Version 3.0 (rev. March 2022): Anaphylaxis and Allergic Reaction",
+    "checkedAt": "2026-11-11",
+    "url": "https://nasemso.org/?p=223",
+    "note": "Relayed from the REQ-241 EMT anaphylaxis case (read 2026-11-11 in full text, the Iowa HHS copy), not re-read: anaphylaxis is two or more of skin or mucosal involvement, respiratory compromise, persistent GI symptoms and hypotension or its symptoms, soon after a likely allergen; epinephrine 1 mg/mL IM in the anterolateral thigh, 0.3 mg at 25 kg or more, repeated every 5 minutes as needed. Authored target: the first dose within 5 minutes of 10:12."
+   }
+  },
+  "repeatAfter": {
+   "value": 300,
+   "unit": "s",
+   "source": {
+    "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+    "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'."
+   }
+  },
+  "emsArrive": {
+   "value": 600,
+   "unit": "s",
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "911 reaches the unit about 10 min after the call."
+   }
+  },
+  "rnWalk": {
+   "value": 180,
+   "unit": "s",
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The RN supervisor reaches the room about 3 min after an urgent call."
+   }
+  },
+  "vitalsTime": {
+   "value": 60,
+   "unit": "s",
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "The vital signs machine's first cycle: about 1 min."
+   }
+  }
+ },
+ "state": {
+  "sev": {
+   "type": "number",
+   "init": 0.4,
+   "min": 0,
+   "max": 2
+  },
+  "epiDoses": {
+   "type": "number",
+   "init": 0,
+   "min": 0,
+   "max": 5
+  },
+  "epiFirstAt": {
+   "type": "time",
+   "init": null
+  },
+  "epiLastAt": {
+   "type": "time",
+   "init": null
+  },
+  "monitorOn": {
+   "type": "bool",
+   "init": false
+  },
+  "monitorPending": {
+   "type": "bool",
+   "init": false
+  },
+  "lookAt": {
+   "type": "time",
+   "init": null
+  },
+  "allergyAt": {
+   "type": "time",
+   "init": null
+  },
+  "o2On": {
+   "type": "bool",
+   "init": false
+  },
+  "posture": {
+   "type": "enum",
+   "values": [
+    "chair",
+    "flat",
+    "semi",
+    "up"
+   ],
+   "init": "chair"
+  },
+  "postureAt": {
+   "type": "time",
+   "init": null
+  },
+  "stood": {
+   "type": "bool",
+   "init": false
+  },
+  "antihistFirst": {
+   "type": "bool",
+   "init": false
+  },
+  "antihistGiven": {
+   "type": "bool",
+   "init": false
+  },
+  "call911At": {
+   "type": "time",
+   "init": null
+  },
+  "rnCalledAt": {
+   "type": "time",
+   "init": null
+  },
+  "rnHere": {
+   "type": "bool",
+   "init": false
+  },
+  "emsHere": {
+   "type": "bool",
+   "init": false
+  },
+  "noteAt": {
+   "type": "time",
+   "init": null
+  },
+  "allergyRecorded": {
+   "type": "bool",
+   "init": false
+  }
+ },
+ "derived": {
+  "hr": {
+   "expr": "round(clamp(88 + 50 * sev + 8 * (epiDoses > 0 and since(epiLastAt) < 600 ? 1 : 0), 50, 170))",
+   "unit": "/min",
+   "precision": 0
+  },
+  "sbp": {
+   "expr": "round(clamp(138 - 70 * sev - (posture == \"up\" ? 15 : 0), 50, 200))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "dbp": {
+   "expr": "round(clamp(sbp * 0.6, 30, 120))",
+   "unit": "mmHg",
+   "precision": 0
+  },
+  "spo2": {
+   "expr": "round(clamp((o2On ? 99 : 97) - 14 * sev, 70, 100))",
+   "unit": "%",
+   "precision": 0
+  },
+  "rr": {
+   "expr": "round(16 + 14 * sev)",
+   "unit": "/min",
+   "precision": 0
+  },
+  "recovering": {
+   "expr": "sev < 0.25"
+  }
+ },
+ "processes": [
+  {
+   "id": "reaction",
+   "when": "not emsHere",
+   "update": {
+    "sev": "max(0.05, sev + (epiDoses > 0 and since(epiLastAt) < 900 ? -0.01 : sevRise) * dt / 60)"
+   }
+  }
+ ],
+ "phases": {
+  "live": {
+   "label": "At the bedside",
+   "clock": "running",
+   "actions": [
+    "look",
+    "monitor",
+    "allergy",
+    "epi",
+    "call911",
+    "callRn",
+    "position",
+    "oxygen",
+    "antihist",
+    "bathroom",
+    "note"
+   ]
+  }
+ },
+ "initialPhase": "live",
+ "actions": {
+  "look": {
+   "label": "Look and listen: skin, lips, tongue, voice, breathing",
+   "group": "Collect data",
+   "effects": [
+    {
+     "if": "isNull(lookAt)",
+     "then": [
+      {
+       "set": "lookAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "cases": [
+      {
+       "when": "sev >= 0.7",
+       "then": [
+        {
+         "log": "Hives everywhere, lips and tongue swollen, voice hoarse, audible wheeze; she is pale and says she feels faint.",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "sev >= 0.3",
+       "then": [
+        {
+         "log": "Raised hives on her chest and arms, flushed, lips puffy, hoarse voice, a faint wheeze. 'My throat feels tight.'",
+         "kind": "find"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "log": "Hives fading, voice clearer, breathing easier.",
+         "kind": "find"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "monitor": {
+   "label": "Put her on the vital signs machine (BP cycling every minute) and pulse oximeter",
+   "group": "Collect data",
+   "available": "not monitorOn and not monitorPending",
+   "why": "Already on.",
+   "effects": [
+    {
+     "set": "monitorPending",
+     "to": "true"
+    },
+    {
+     "schedule": "monT",
+     "after": "vitalsTime"
+    },
+    {
+     "log": "Cuff and oximeter on (first reading in about 1 min)."
+    }
+   ]
+  },
+  "allergy": {
+   "label": "Check her allergy history with her and the admission paperwork",
+   "group": "Collect data",
+   "effects": [
+    {
+     "if": "isNull(allergyAt)",
+     "then": [
+      {
+       "set": "allergyAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "log": "She says: \"Penicillin gave me a rash as a girl, I told them when I came in.\" The scanned admission form lists 'penicillin (rash)'; the electronic record does not. Amoxicillin is a penicillin.",
+     "kind": "find"
+    }
+   ]
+  },
+  "epi": {
+   "label": "Epinephrine auto-injector 0.3 mg IM to the outer thigh (standing order)",
+   "group": "Treat",
+   "available": "epiDoses < 2 and not emsHere",
+   "why": "The standing order allows two doses; paramedics manage further doses.",
+   "effects": [
+    {
+     "add": "epiDoses",
+     "by": "1"
+    },
+    {
+     "if": "isNull(epiFirstAt)",
+     "then": [
+      {
+       "set": "epiFirstAt",
+       "to": "t"
+      }
+     ]
+    },
+    {
+     "set": "epiLastAt",
+     "to": "t"
+    },
+    {
+     "schedule": "epiT",
+     "after": "epiOnset"
+    },
+    {
+     "log": "Epinephrine 0.3 mg IM, outer thigh, at {t|clock}. You ask her to tell you at once if her breathing changes.",
+     "kind": "act"
+    }
+   ]
+  },
+  "call911": {
+   "label": "Call 911 (standing order)",
+   "group": "Call",
+   "available": "isNull(call911At)",
+   "why": "Already called.",
+   "effects": [
+    {
+     "set": "call911At",
+     "to": "t"
+    },
+    {
+     "schedule": "emsT",
+     "after": "emsArrive"
+    },
+    {
+     "log": "911 called: suspected anaphylaxis after a first antibiotic dose.",
+     "kind": "good"
+    }
+   ]
+  },
+  "callRn": {
+   "label": "Call the RN supervisor to the room now (SBAR)",
+   "group": "Call",
+   "available": "isNull(rnCalledAt)",
+   "why": "Already called.",
+   "effects": [
+    {
+     "set": "rnCalledAt",
+     "to": "t"
+    },
+    {
+     "schedule": "rnT",
+     "after": "rnWalk"
+    },
+    {
+     "log": "RN supervisor: \"Coming. Give the epinephrine if you haven't.\"",
+     "kind": "good"
+    }
+   ]
+  },
+  "position": {
+   "label": "Position her",
+   "group": "Treat",
+   "params": [
+    {
+     "id": "pos",
+     "kind": "choice",
+     "label": "Position",
+     "options": [
+      {
+       "value": "flat",
+       "label": "Help her lie down from the chair, legs raised"
+      },
+      {
+       "value": "semi",
+       "label": "Keep her semi-sitting because breathing is easier, legs up on the footrest"
+      },
+      {
+       "value": "up",
+       "label": "Stand her up to move her to the bed"
+      }
+     ]
+    }
+   ],
+   "effects": [
+    {
+     "set": "postureAt",
+     "to": "t"
+    },
+    {
+     "cases": [
+      {
+       "when": "pos == \"flat\"",
+       "then": [
+        {
+         "set": "posture",
+         "to": "\"flat\""
+        },
+        {
+         "log": "Lowered gently to the floor mat and bed with help, legs raised.",
+         "kind": "act"
+        }
+       ]
+      },
+      {
+       "when": "pos == \"semi\"",
+       "then": [
+        {
+         "set": "posture",
+         "to": "\"semi\""
+        },
+        {
+         "log": "Reclined in the chair, legs up; breathing easier.",
+         "kind": "act"
+        }
+       ]
+      },
+      {
+       "when": "true",
+       "then": [
+        {
+         "set": "posture",
+         "to": "\"up\""
+        },
+        {
+         "set": "stood",
+         "to": "true"
+        },
+        {
+         "log": "You stand her up to walk her to the bed.",
+         "kind": "bad"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "oxygen": {
+   "label": "Oxygen by mask (standing order)",
+   "group": "Treat",
+   "available": "not o2On",
+   "why": "Already on.",
+   "effects": [
+    {
+     "set": "o2On",
+     "to": "true"
+    },
+    {
+     "log": "Oxygen on.",
+     "kind": "act"
+    }
+   ]
+  },
+  "antihist": {
+   "label": "Give diphenhydramine 25 mg by mouth (PRN order for itching) and recheck in 30 minutes",
+   "group": "Treat",
+   "available": "not antihistGiven",
+   "why": "Already given.",
+   "effects": [
+    {
+     "set": "antihistGiven",
+     "to": "true"
+    },
+    {
+     "if": "epiDoses == 0",
+     "then": [
+      {
+       "set": "antihistFirst",
+       "to": "true"
+      }
+     ]
+    },
+    {
+     "log": "She struggles to swallow the tablet. An antihistamine does not treat airway, breathing or circulation problems.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "bathroom": {
+   "label": "She asks to use the bathroom: walk her there",
+   "group": "Treat",
+   "available": "not stood",
+   "why": "Already up once.",
+   "effects": [
+    {
+     "set": "stood",
+     "to": "true"
+    },
+    {
+     "set": "posture",
+     "to": "\"up\""
+    },
+    {
+     "log": "You help her up to walk to the bathroom.",
+     "kind": "bad"
+    }
+   ]
+  },
+  "note": {
+   "label": "Report and record the reaction and her penicillin allergy",
+   "group": "Report",
+   "available": "isNull(noteAt)",
+   "why": "Already done.",
+   "effects": [
+    {
+     "set": "noteAt",
+     "to": "t"
+    },
+    {
+     "if": "not isNull(allergyAt)",
+     "then": [
+      {
+       "set": "allergyRecorded",
+       "to": "true"
+      }
+     ]
+    },
+    {
+     "log": "Recorded: times, signs, vital signs, doses given, who was told{isNull(allergyAt) ? \"\" : \"; penicillin allergy added to the record and an incident report started for the missed allergy\"}.",
+     "kind": "act"
+    }
+   ]
+  }
+ },
+ "timers": {
+  "monT": {
+   "label": "vital signs",
+   "wait": {
+    "skipLabel": "the first vital signs (about 1 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 1 min."
+   },
+   "effects": [
+    {
+     "set": "monitorPending",
+     "to": "false"
+    },
+    {
+     "set": "monitorOn",
+     "to": "true"
+    },
+    {
+     "log": "BP {sbp}/{dbp}, HR {hr}, SpO2 {spo2}%, RR {rr}.",
+     "kind": "find"
+    }
+   ]
+  },
+  "epiT": {
+   "label": "epinephrine effect",
+   "wait": {
+    "skipLabel": "the epinephrine taking effect (about 2 min)"
+   },
+   "instances": "many",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Ascendra teaching model (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 2 min. Simplified teaching model written for exam practice; not a validated physiological model."
+   },
+   "effects": [
+    {
+     "set": "sev",
+     "to": "max(0.05, sev - epiDrop)"
+    },
+    {
+     "log": "Her voice is clearer and the wheeze is softer.",
+     "kind": "good"
+    }
+   ]
+  },
+  "rnT": {
+   "label": "the RN supervisor",
+   "wait": {
+    "skipLabel": "the RN arriving (about 3 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 3 min."
+   },
+   "effects": [
+    {
+     "set": "rnHere",
+     "to": "true"
+    },
+    {
+     "log": "The RN supervisor is in the room and calls the provider.",
+     "kind": "good"
+    }
+   ]
+  },
+  "emsT": {
+   "label": "paramedics",
+   "wait": {
+    "skipLabel": "the paramedics (about 10 min)"
+   },
+   "instances": "one",
+   "interruptsSkip": true,
+   "source": {
+    "cite": "Rehabilitation unit practice (authored estimate)",
+    "checkedAt": "2026-11-14",
+    "note": "About 10 min."
+   },
+   "effects": [
+    {
+     "set": "emsHere",
+     "to": "true"
+    },
+    {
+     "log": "Paramedics take over: monitor, IV access, further epinephrine as needed, transport.",
+     "kind": "good"
+    }
+   ]
+  }
+ },
+ "triggers": [
+  {
+   "id": "worse",
+   "when": "sev >= 0.7",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "Her voice is a whisper and she is wheezing; she is pale and clammy.",
+     "kind": "alarm"
+    }
+   ]
+  },
+  {
+   "id": "standCollapse",
+   "when": "stood and sev >= standSev",
+   "mode": "once",
+   "interruptsSkip": true,
+   "effects": [
+    {
+     "log": "As she stands her legs give way; she is gray and pulseless at the wrist.",
+     "kind": "alarm"
+    }
+   ]
+  }
+ ],
+ "reasoning": {
+  "why": {
+   "trigger": "not isNull(lookAt) or t >= 120",
+   "question": "What is happening, why, and what do you do in what order? What must you not do?",
+   "parts": [
+    {
+     "label": "Recognition",
+     "criteria": "Names anaphylaxis: skin (hives, lip swelling) with airway or breathing signs (tight throat, hoarse voice, wheeze) and falling BP minutes after a first dose of a penicillin; finds the penicillin allergy missing from the electronic record.",
+     "modelAnswer": "Anaphylaxis: hives and lip swelling plus a tight throat, hoarse voice and wheeze, with her BP dropping, 12 minutes after her first amoxicillin. Her old penicillin allergy is on the paper admission form but not in the electronic record."
+    },
+    {
+     "label": "Priorities",
+     "criteria": "Epinephrine 0.3 mg IM to the thigh first under the standing order; call 911 and the RN; keep her lying with legs raised, or semi-sitting if breathing is easier, and never stand or walk her; oxygen; a second dose after 5 minutes if not improving; antihistamine is not the first drug; record the reaction and the allergy, and report the missed allergy.",
+     "modelAnswer": "Epinephrine 0.3 mg IM to the outer thigh now, then 911 and the RN supervisor. Keep her down: lying with legs raised, or semi-sitting if that helps her breathe; no standing, no walk to the bathroom. Oxygen. If she isn't better in 5 minutes, the second dose. The diphenhydramine can wait; it does nothing for her airway or blood pressure. Then record it all, add the allergy to her record and report how it was missed."
+    }
+   ],
+   "pausesClock": true
+  }
+ },
+ "outcome": {
+  "profile": "clinical",
+  "thresholds": {},
+  "noProgress": {
+   "when": "t >= 2699 and not emsHere",
+   "class": "harm",
+   "rationale": "Anaphylaxis still unhandled to emergency care 45 minutes in has gone without the escalation the standing order requires, so this case calls it harm.",
+   "source": {
+    "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+    "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'."
+   }
+  }
+ },
+ "endings": {
+  "collapse": {
+   "label": "She collapsed",
+   "class": "harm",
+   "when": "sev >= collapseSev or (stood and sev >= standSev)",
+   "terminal": true,
+   "narrative": "Mrs. Brewer collapses, gray, with a BP of {sbp}/{dbp}. A code is called; paramedics take her in anaphylactic shock."
+  },
+  "handedOver": {
+   "label": "Treated and handed over",
+   "class": "target",
+   "when": "emsHere and not isNull(epiFirstAt) and timeAt(epiFirstAt) <= epiWindow and not stood and posture != \"chair\" and not antihistFirst and not isNull(call911At) and timeAt(call911At) <= epiWindow",
+   "terminal": true,
+   "narrative": "{t|clock}: paramedics take over a breathing, talking Mrs. Brewer. Epinephrine came first, she stayed down, and help was on its way within minutes."
+  },
+  "handedOverLate": {
+   "label": "Handed over, by a slower or riskier route",
+   "class": "recovered",
+   "when": "emsHere",
+   "terminal": true,
+   "narrative": "{t|clock}: paramedics take over, but the route cost time or safety: a late or missing epinephrine dose, an antihistamine first, a late call, or her posture."
+  },
+  "time_up": {
+   "label": "No emergency care yet",
+   "class": "harm",
+   "terminal": true,
+   "narrative": "10:57 and no one has called for emergency care."
+  }
+ },
+ "endingOrder": [
+  "collapse",
+  "handedOver",
+  "handedOverLate"
+ ],
+ "scoring": {
+  "criteria": [
+   {
+    "id": "epiFirst",
+    "label": "Epinephrine IM first, within 5 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(epiFirstAt)",
+      "score": "missed",
+      "why": "No epinephrine."
+     },
+     {
+      "when": "antihistFirst",
+      "score": "partial",
+      "why": "Epinephrine came after an antihistamine."
+     },
+     {
+      "when": "timeAt(epiFirstAt) <= epiWindow",
+      "score": "met",
+      "why": "Epinephrine at {timeAt(epiFirstAt)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Epinephrine at {timeAt(epiFirstAt)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "help",
+    "label": "911 called within 5 minutes",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "isNull(call911At)",
+      "score": "missed",
+      "why": "911 was not called."
+     },
+     {
+      "when": "timeAt(call911At) <= epiWindow",
+      "score": "met",
+      "why": "911 at {timeAt(call911At)|clock}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "911 at {timeAt(call911At)|clock}, late."
+     }
+    ]
+   },
+   {
+    "id": "posture",
+    "label": "Kept her down: no standing or walking",
+    "weight": 1,
+    "critical": true,
+    "rows": [
+     {
+      "when": "stood",
+      "score": "missed",
+      "why": "Stood her up during anaphylaxis."
+     },
+     {
+      "when": "posture != \"chair\"",
+      "score": "met",
+      "why": "{posture == \"flat\" ? \"Lying, legs raised\" : \"Semi-sitting, legs up\"}."
+     },
+     {
+      "when": "true",
+      "score": "partial",
+      "why": "Left sitting upright in the chair."
+     }
+    ]
+   },
+   {
+    "id": "repeat",
+    "label": "Second dose when she was not improving after 5 minutes",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "epiDoses >= 2 and timeAt(epiLastAt) - timeAt(epiFirstAt) >= repeatAfter",
+      "score": "met",
+      "why": "Repeated at {timeAt(epiLastAt)|clock}."
+     },
+     {
+      "when": "epiDoses >= 2",
+      "score": "partial",
+      "why": "Repeated sooner than 5 minutes."
+     },
+     {
+      "when": "epiDoses == 1 and since(epiFirstAt) >= repeatAfter + 60 and not emsHere",
+      "score": "missed",
+      "why": "Not repeated."
+     },
+     {
+      "when": "epiDoses == 1",
+      "score": "met",
+      "why": "One dose was enough before the paramedics took over."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "No epinephrine."
+     }
+    ]
+   },
+   {
+    "id": "data",
+    "label": "Collected the data: vital signs and the allergy history",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "monitorOn and not isNull(allergyAt)",
+      "score": "met",
+      "why": "Vital signs running; penicillin allergy found."
+     },
+     {
+      "when": "monitorOn or not isNull(allergyAt)",
+      "score": "partial",
+      "why": "{monitorOn ? \"The allergy history was not checked\" : \"No vital signs\"}."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Neither."
+     }
+    ]
+   },
+   {
+    "id": "report",
+    "label": "RN told; reaction and allergy recorded",
+    "weight": 1,
+    "rows": [
+     {
+      "when": "not isNull(rnCalledAt) and allergyRecorded",
+      "score": "met",
+      "why": "RN told; allergy recorded and the gap reported."
+     },
+     {
+      "when": "not isNull(rnCalledAt) or not isNull(noteAt)",
+      "score": "partial",
+      "why": "Only part of it."
+     },
+     {
+      "when": "true",
+      "score": "missed",
+      "why": "Not reported or recorded."
+     }
+    ]
+   }
+  ],
+  "reasoningCriteria": [
+   {
+    "moment": "why",
+    "label": "Written reasoning: anaphylaxis, epinephrine first, posture, escalation",
+    "weight": 1
+   }
+  ],
+  "kpis": [
+   {
+    "id": "toEpi",
+    "label": "10:12 to the first epinephrine",
+    "value": "isNull(epiFirstAt) ? -1 : timeAt(epiFirstAt)",
+    "format": "duration",
+    "expert": "under 2 min"
+   },
+   {
+    "id": "to911",
+    "label": "10:12 to the 911 call",
+    "value": "isNull(call911At) ? -1 : timeAt(call911At)",
+    "format": "duration",
+    "expert": "under 2 min"
+   },
+   {
+    "id": "doses",
+    "label": "Epinephrine doses",
+    "value": "epiDoses",
+    "format": "number",
+    "expert": "1-2"
+   }
+  ],
+  "expertPath": [
+   {
+    "at": "10:12",
+    "text": "Look and listen: hives, puffy lips, hoarse voice, wheeze, 12 minutes after a first penicillin. Anaphylaxis."
+   },
+   {
+    "at": "10:13",
+    "text": "Epinephrine 0.3 mg IM to the outer thigh. 911. RN supervisor to the room. Recline her with legs up; oxygen; vital signs machine on."
+   },
+   {
+    "at": "~10:18",
+    "text": "Not improving: second dose. Ask about allergies: penicillin rash, on paper, not in the record."
+   },
+   {
+    "at": "~10:23",
+    "text": "Paramedics take over. Record the reaction, add the allergy, report the missed allergy."
+   }
+  ],
+  "debrief": {
+   "collapse": {
+    "headline": "She collapsed",
+    "body": "Epinephrine first and keep her down. Standing someone in anaphylaxis can drop the blood pressure past the point of no pulse."
+   },
+   "handedOver": {
+    "headline": "Anaphylaxis treated and handed over",
+    "body": "You recognized anaphylaxis, gave epinephrine first under the standing order, called 911, kept her down and found the missed allergy. That is the expert path."
+   },
+   "handedOverLate": {
+    "headline": "Handed over, by a slower or riskier route",
+    "body": "Check when the first epinephrine went in, whether an antihistamine came first, when 911 was called, and how she was positioned."
+   },
+   "time_up": {
+    "headline": "No emergency care",
+    "body": "Anaphylaxis is an emergency: epinephrine, 911, keep the person down."
+   }
+  },
+  "modelReasoning": "Hives and lip swelling with a tight throat, hoarse voice and wheeze minutes after a first dose of a penicillin is anaphylaxis. Epinephrine IM to the outer thigh is the first drug, given at once under the standing order and repeated after 5 minutes if she is not improving; 911 and the RN supervisor are called at the same time. Keep her lying with legs raised, or semi-sitting if that eases her breathing, and avoid sudden changes in posture: standing or walking can make her collapse. Oxygen helps; antihistamines do not treat the airway or blood pressure and never come first. Afterwards record the reaction, add the penicillin allergy that was on her paper admission form but missing from the electronic record, and report the gap."
+ },
+ "chapters": [
+  {
+   "id": "epi",
+   "label": "First epinephrine given",
+   "when": "epiDoses >= 1"
+  }
+ ],
+ "teaching": {
+  "emsQ": {
+   "during": "emsT",
+   "ask": "While the paramedics come, she asks to use the bathroom. What do you do?",
+   "choices": [
+    {
+     "id": "bedpan",
+     "label": "Bedpan where she is; she stays down"
+    },
+    {
+     "id": "walk",
+     "label": "Walk her there with the walker"
+    },
+    {
+     "id": "wait",
+     "label": "Stand her briefly to check her legs"
+    }
+   ],
+   "expect": "bedpan",
+   "explain": "Avoid sudden changes in posture in anaphylaxis: keep her lying or semi-sitting until she is stable and handed over.",
+   "source": {
+    "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+    "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'."
+   }
+  },
+  "epiQ": {
+   "during": "epiT",
+   "ask": "While the epinephrine takes effect: when would you give the second dose?",
+   "choices": [
+    {
+     "id": "five",
+     "label": "After 5 minutes if airway, breathing or circulation problems persist"
+    },
+    {
+     "id": "thirty",
+     "label": "After 30 minutes"
+    },
+    {
+     "id": "never",
+     "label": "Never; one dose only"
+    }
+   ],
+   "expect": "five",
+   "explain": "Repeat IM epinephrine after 5 minutes if airway, breathing or circulation problems persist.",
+   "source": {
+    "cite": "Resuscitation Council UK. Emergency treatment of anaphylaxis: Guidelines for healthcare providers (May 2021)",
+    "checkedAt": "2026-11-14",
+    "url": "https://www.cem.scot.nhs.uk/adult/anphyl.pdf",
+    "note": "Read 2026-11-14 in a copy of the 2021 guideline hosted by CEM Scotland (summarizing fetch with quotes); the resus.org.uk page gave only the title and date: IM adrenaline in the anterolateral thigh, repeated after 5 minutes if airway, breathing or circulation problems persist; keep the patient supine, or semi-recumbent if that makes breathing easier, and avoid sudden changes in posture; antihistamines 'should not be used to treat Airway/Breathing/Circulation problems during initial emergency treatment'."
+   }
+  }
+ }
+}

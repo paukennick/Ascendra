@@ -1,0 +1,1111 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "web-service-fails-after-edit",
+  "title": "Outage: the shop's web server will not start after an edit",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@shop1:~#",
+      "lines": [
+        {
+          "id": "down",
+          "text": "09:05 monitoring: https://shop.sumnerflorist.example is down (connection refused)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "sales",
+          "text": "09:45 orders: the morning delivery cutoff passed with the shop offline",
+          "when": "not isNull(salesLostAt)",
+          "at": "timeAt(salesLostAt)",
+          "error": "true"
+        },
+        {
+          "id": "upLine",
+          "text": "monitoring: shop reachable again",
+          "when": "shopUp",
+          "at": "timeAt(upAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nginx",
+          "label": "nginx",
+          "spokenLabel": "the nginx web server",
+          "kind": "Service on shop1",
+          "status": "{running ? \"Running\" : \"Failed to start\"}{enabled ? \"; enabled at boot\" : \"; not enabled at boot\"}",
+          "tone": "running ? (enabled ? \"up\" : \"degraded\") : \"down\""
+        },
+        {
+          "id": "site",
+          "label": "sites-enabled/shop",
+          "spokenLabel": "the shop site file",
+          "kind": "nginx site configuration",
+          "status": "{removedSite ? \"Removed\" : isNull(fixedAt) ? \"Syntax error near line 31\" : \"Valid\"}",
+          "tone": "removedSite ? \"out\" : isNull(fixedAt) ? \"down\" : \"up\""
+        },
+        {
+          "id": "shop",
+          "label": "Online shop",
+          "spokenLabel": "the online shop",
+          "kind": "Customer website",
+          "status": "{shopUp ? \"Taking orders\" : running ? \"Shows the nginx default page\" : \"Unreachable\"}",
+          "tone": "shopUp ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "serve",
+          "from": "nginx",
+          "to": "shop",
+          "label": "nginx serves the shop",
+          "status": "{shopUp ? \"Serving\" : \"Not serving\"}",
+          "tone": "shopUp ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "restarts",
+          "label": "Restarts without a passing nginx -t",
+          "value": "{blindRestarts}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot a service that fails to start from its status and journal",
+  "secondaryObjectives": [
+    "Start, stop, restart, enable and disable services with systemctl",
+    "Read service logs with journalctl filtered by unit, boot, priority and time"
+  ],
+  "sources": [
+    {
+      "cite": "systemctl(1) and journalctl(1) (systemd, man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/systemctl.1.html",
+      "note": "Relevant text: systemctl status shows a unit's state and its most recent journal lines; enable creates the symlinks that start a unit at boot and --now also starts it; is-enabled reports it. journalctl -u selects a unit's messages. Read in full 2026-11-14."
+    },
+    {
+      "cite": "nginx Beginner's Guide (configuration file structure) and Command-line parameters (nginx.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://nginx.org/en/docs/beginners_guide.html",
+      "note": "Relevant text: Beginner's Guide, 'A simple directive consists of the name and parameters separated by spaces and ends with a semicolon'; Command-line parameters (nginx.org/en/docs/switches.html), '-t — test the configuration file: nginx checks the configuration for correct syntax'. Both read 2026-11-14. The [emerg] message layout, with file and line, is authored in nginx's style."
+    },
+    {
+      "cite": "dpkg conffile handling (dpkg(1), man7.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man1/dpkg.1.html",
+      "note": "Relevant text: dpkg keeps a locally modified configuration file (a conffile) on reinstall or upgrade unless told otherwise, so reinstalling the package does not replace an edited site file. Read in full 2026-11-14 (the --force-conf* options section)."
+    }
+  ],
+  "brief": {
+    "situation": "You look after shop1, the web server for Sumner Florist (fictional). At 08:55 a colleague edited the shop's nginx site file to add caching for images and ran systemctl restart nginx; it failed, and the shop has been offline since. Morning delivery orders close at 09:45. The server is also patched and rebooted tonight at 23:00. Get the shop back, and make sure it stays up after the reboot.",
+    "handover": [
+      "The site file is /etc/nginx/sites-enabled/shop; nothing else changed this morning.",
+      "This is a Debian server; nginx came from the distribution's package."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cutoffDelay": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. Delivery orders close at 09:45, 40 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "removedSite": {
+      "type": "bool",
+      "init": false
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "enabled": {
+      "type": "bool",
+      "init": false
+    },
+    "blindRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "testedBeforeRestart": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "salesLostAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "syntax",
+        "port",
+        "package"
+      ],
+      "init": "none"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "semicolon",
+        "removed",
+        "reinstall"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "configOk": {
+      "expr": "not isNull(fixedAt) or removedSite"
+    },
+    "running": {
+      "expr": "not isNull(upAt)"
+    },
+    "shopUp": {
+      "expr": "not isNull(upAt) and not isNull(fixedAt) and not removedSite"
+    },
+    "faultsAdded": {
+      "expr": "removedSite ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "journal",
+        "nginxT",
+        "showLine",
+        "fixLine",
+        "removeSite",
+        "reinstall",
+        "restart",
+        "enable",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "systemctl status nginx",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "output": "root@shop1:~# systemctl status nginx\n● nginx.service - A high performance web server and a reverse proxy server\n     Loaded: loaded (/usr/lib/systemd/system/nginx.service; {enabled ? \"enabled\" : \"disabled\"}; preset: enabled)\n     Active: {running ? \"active (running)\" : \"failed (Result: exit-code)\"}\n{running ? \"\" : \"nginx: [emerg] unexpected \"}\" in /etc/nginx/sites-enabled/shop:31\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "journal": {
+      "label": "journalctl -u nginx -n 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "journalAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@shop1:~# journalctl -u nginx -n 20\nnginx[2214]: nginx: [emerg] unexpected \"}\" in /etc/nginx/sites-enabled/shop:31\nnginx[2214]: nginx: configuration file /etc/nginx/nginx.conf test failed\nsystemd[1]: nginx.service: Control process exited, code=exited, status=1/FAILURE\nsystemd[1]: nginx.service: Failed with result 'exit-code'."
+        },
+        {
+          "finding": "nginx refuses to start: the shop site file has a syntax error at line 31."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nginxT": {
+      "label": "nginx -t",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "configOk",
+          "then": [
+            {
+              "set": "testedBeforeRestart",
+              "to": "true"
+            },
+            {
+              "output": "root@shop1:~# nginx -t\nnginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful"
+            }
+          ],
+          "else": [
+            {
+              "output": "root@shop1:~# nginx -t\nnginx: [emerg] unexpected \"}\" in /etc/nginx/sites-enabled/shop:31\nnginx: configuration file /etc/nginx/nginx.conf test failed"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showLine": {
+      "label": "sed -n '28,29p' /etc/nginx/sites-enabled/shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@shop1:~# sed -n '28,29p' /etc/nginx/sites-enabled/shop\n        root /srv/shop\n        expires 7d;"
+        },
+        {
+          "finding": "Line 28, root /srv/shop, has no closing semicolon, so nginx reads on until the closing brace at line 31."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixLine": {
+      "label": "sed -i '28s|root /srv/shop$|root /srv/shop;|' /etc/nginx/sites-enabled/shop",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            },
+            {
+              "set": "testedBeforeRestart",
+              "to": "false"
+            },
+            {
+              "log": "The missing semicolon is back on line 28.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "output": "root@shop1:~# sed -i '28s|root /srv/shop$|root /srv/shop;|' /etc/nginx/sites-enabled/shop"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "removeSite": {
+      "label": "rm /etc/nginx/sites-enabled/shop",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "removedSite",
+          "to": "true"
+        },
+        {
+          "set": "testedBeforeRestart",
+          "to": "false"
+        },
+        {
+          "output": "root@shop1:~# rm /etc/nginx/sites-enabled/shop"
+        },
+        {
+          "log": "The shop site is no longer enabled: nginx will start, serving only its default page.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reinstall": {
+      "label": "apt-get install --reinstall nginx",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@shop1:~# apt-get install --reinstall nginx\n... Setting up nginx ...\nJob for nginx.service failed because the control process exited with error code."
+        },
+        {
+          "log": "Reinstalling replaced the program files; the edited site file was kept as it was.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "systemctl restart nginx",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "configOk",
+          "then": [
+            {
+              "if": "isNull(upAt)",
+              "then": [
+                {
+                  "set": "upAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "output": "root@shop1:~# systemctl restart nginx"
+            },
+            {
+              "if": "not testedBeforeRestart",
+              "then": [
+                {
+                  "add": "blindRestarts",
+                  "by": "1"
+                }
+              ]
+            },
+            {
+              "log": "nginx is running.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "add": "blindRestarts",
+              "by": "1"
+            },
+            {
+              "output": "root@shop1:~# systemctl restart nginx\nJob for nginx.service failed because the control process exited with error code.\nSee \"systemctl status nginx.service\" and \"journalctl -xeu nginx.service\" for details."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "enable": {
+      "label": "systemctl enable nginx",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "enabled",
+          "to": "true"
+        },
+        {
+          "output": "root@shop1:~# systemctl enable nginx\nCreated symlink /etc/systemd/system/multi-user.target.wants/nginx.service -> /usr/lib/systemd/system/nginx.service."
+        },
+        {
+          "log": "nginx will start at boot, including after tonight's 23:00 patch reboot.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "curl -sI http://localhost/",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@shop1:~# curl -sI http://localhost/\n{shopUp ? \"HTTP/1.1 200 OK (Sumner Florist shop)\" : running ? \"HTTP/1.1 200 OK (Welcome to nginx! default page)\" : \"curl: (7) Failed to connect to localhost port 80: Connection refused\"}"
+        },
+        {
+          "if": "shopUp and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@shop1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "syntax",
+                  "label": "A missing semicolon on line 28 of the shop site file after this morning's edit"
+                },
+                {
+                  "value": "port",
+                  "label": "Another program held port 80"
+                },
+                {
+                  "value": "package",
+                  "label": "A broken nginx package"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "semicolon",
+                  "label": "Restored the semicolon, tested with nginx -t, restarted, enabled at boot"
+                },
+                {
+                  "value": "removed",
+                  "label": "Disabled the shop site so nginx starts"
+                },
+                {
+                  "value": "reinstall",
+                  "label": "Reinstalled nginx"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cutoff",
+      "when": "t >= cutoffDelay and phase == \"incident\" and not shopUp",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "salesLostAt",
+          "to": "t"
+        },
+        {
+          "log": "09:45: the delivery cutoff passed while the shop was offline.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the outage record: why nginx would not start, how you found it, and what you did so it also survives tonight's reboot.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names the missing semicolon on line 28 of the shop site file: nginx failed its configuration test at start, so systemd marked the unit failed.",
+          "modelAnswer": "The image-caching edit left root /srv/shop without its semicolon; nginx read on to the closing brace, reported unexpected \"}\" at line 31 and refused to start."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses systemctl status or journalctl -u nginx, and nginx -t, before changing anything; does not blame the package or the port.",
+          "modelAnswer": "journalctl -u nginx showed the [emerg] line with the file and line; nginx -t repeated it; the lines above 31 showed the missing semicolon."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Restores the semicolon, runs nginx -t until it passes, then restarts, enables nginx at boot and checks the shop answers; never removes the site or relies on a reinstall.",
+          "modelAnswer": "Fixed line 28, nginx -t passed, systemctl restart nginx, systemctl enable nginx (it was disabled, so tonight's reboot would have taken the shop down again), and curl returned the shop's 200."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Back with time to spare before the 09:45 cutoff; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No damage left behind: the shop's site removed from nginx."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not shopUp",
+      "class": "harm",
+      "rationale": "Closing while the shop is not served leaves customers unable to order; it is never a safe outcome.",
+      "source": {
+        "cite": "systemctl(1) and journalctl(1) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man1/systemctl.1.html",
+        "note": "Relevant text: systemctl status shows a unit's state and its most recent journal lines; enable creates the symlinks that start a unit at boot and --now also starts it; is-enabled reports it. journalctl -u selects a unit's messages. Read in full 2026-11-14."
+      }
+    }
+  },
+  "endings": {
+    "siteRemoved": {
+      "label": "nginx up, shop gone",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and removedSite",
+      "narrative": "nginx starts, but only because the shop's site is no longer enabled: customers see the nginx default page."
+    },
+    "cutoffMissed": {
+      "label": "The delivery cutoff passed offline",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(salesLostAt)",
+      "narrative": "The shop was still offline at 09:45 and the morning's delivery orders were lost."
+    },
+    "stillDown": {
+      "label": "Closed with the shop down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not shopUp",
+      "narrative": "The outage was closed while the shop was not being served."
+    },
+    "fixed": {
+      "label": "Fixed and enabled",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and shopUp and enabled and timeAt(upAt) <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and not isNull(verifiedAt)",
+      "narrative": "The semicolon is back, nginx -t passed before the restart, nginx is enabled for tonight's reboot and the shop answers."
+    },
+    "fixedGaps": {
+      "label": "Back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The shop is back, but nginx is not enabled for the reboot, or the fix was late, guessed or unverified."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no outage record."
+    }
+  },
+  "endingOrder": [
+    "siteRemoved",
+    "cutoffMissed",
+    "stillDown",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the journal or nginx -t before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "The error was read first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Read only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never read why nginx failed."
+          }
+        ]
+      },
+      {
+        "id": "rightFix",
+        "label": "Fixed the line, without removing the site",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "removedSite",
+            "score": "missed",
+            "why": "The shop's site was removed."
+          },
+          {
+            "when": "not isNull(fixedAt)",
+            "score": "met",
+            "why": "The semicolon was restored."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The site file still has the error."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Shop back within 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "shopUp and timeAt(upAt) <= restoreWindow",
+            "score": "met",
+            "why": "Back {timeAt(upAt) / 60|0dp} min in."
+          },
+          {
+            "when": "shopUp",
+            "score": "partial",
+            "why": "Back, but {timeAt(upAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The shop is not being served."
+          }
+        ]
+      },
+      {
+        "id": "boot",
+        "label": "Enabled nginx so it starts after the reboot",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "enabled",
+            "score": "met",
+            "why": "nginx is enabled at boot."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "nginx is still disabled: tonight's reboot takes the shop down."
+          }
+        ]
+      },
+      {
+        "id": "noBlind",
+        "label": "No restarts before a passing nginx -t",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "blindRestarts == 0",
+            "score": "met",
+            "why": "Every restart followed a passing test."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{blindRestarts} restart(s) without a passing nginx -t."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the shop answers",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "curl returned the shop."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the shop itself."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the fix accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"syntax\" and fixDoc == \"semicolon\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"syntax\"",
+            "score": "partial",
+            "why": "The cause is right; the fix recorded is not the one that should stand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and fix",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minUp",
+        "label": "Minutes until the shop was back",
+        "value": "shopUp ? timeAt(upAt) / 60 : -1",
+        "format": "number",
+        "expert": "8 or less"
+      },
+      {
+        "id": "blindK",
+        "label": "Restarts without a passing test",
+        "value": "blindRestarts",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "systemctl status nginx and journalctl -u nginx: [emerg] unexpected \"}\" at line 31; the unit is also disabled."
+      },
+      {
+        "at": "2-4 min",
+        "text": "Look at the lines above 31: root /srv/shop has no semicolon."
+      },
+      {
+        "at": "4-7 min",
+        "text": "Fix line 28, nginx -t passes, systemctl restart nginx, systemctl enable nginx."
+      },
+      {
+        "at": "7-8 min",
+        "text": "curl the shop for a 200; record the cause and suggest nginx -t before every reload."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: fixed and enabled",
+        "body": "You read nginx's own error, fixed the line, tested before restarting, and noticed the unit was disabled before tonight's reboot."
+      },
+      "fixedGaps": {
+        "headline": "Back, with gaps",
+        "body": "The shop is back. The criteria show what it cost: time, restarts that could not work, no check, or a reboot tonight that would take it down again."
+      },
+      "siteRemoved": {
+        "headline": "nginx up, shop gone",
+        "body": "Removing the site makes nginx start by serving nothing useful. The error names the file and line; fix that line."
+      },
+      "cutoffMissed": {
+        "headline": "The cutoff passed",
+        "body": "The journal points at the file and line in the first minute; the fix takes a few more."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Check the shop itself with curl before closing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A service that fails right after a config edit: read systemctl status and journalctl -u nginx, which name the file and line; nginx -t confirms. Restore the missing semicolon, run nginx -t until it passes, restart, enable the unit (it was disabled, so tonight's reboot would take the shop down), and curl the shop."
+  }
+}

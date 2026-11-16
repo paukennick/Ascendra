@@ -1,9 +1,13 @@
-# Mastery decay and predicted recall (REQ-291, design)
+# Mastery decay and predicted recall (REQ-291 design, REQ-301 shadow mode)
 
-Status: design plus persona simulation, 2026-11-14. Nothing in production
-changes: `schedulerFor()` still returns `fixed_v1` for every row, and the new
-code (`backend/lib/memory-model.ts`, `backend/lib/decay-sim.ts`) is imported
-only by its tests and `npm run sim:decay`.
+Status, 2026-11-14: Nick approved all eight recommendations below. Step 1
+(shadow mode, REQ-301) is built; steps 2 and 3 are not. The model's
+prediction is stored beside every review in `review_log` (migration 085) and
+nothing decides from it: `schedulerFor()` still returns `fixed_v1` for every
+row, readiness is unchanged and no learner sees a number. The model code
+(`backend/lib/memory-model.ts`) is imported by `backend/lib/decay-shadow.ts`
+(the live write and the backfill), `backend/lib/decay-sim.ts` and their tests.
+See "Rollout" below and `docs/decay-shadow-calibration.md`.
 
 Nick's decisions this builds on (2026-11-10): per-learner predicted recall,
 FSRS-style and fitted from each learner's own review history; a "needs a
@@ -210,6 +214,84 @@ prediction. The proposed figure was closer for every persona.
 - **Rollback.** Set the scheduler back to `fixed_v1`. The step and due date
   columns stay maintained throughout, so nothing is lost.
 
+## Rollout
+
+Nick's decisions (2026-11-14, relayed by the lead session): all eight open
+decisions below are approved as recommended. Shadow mode first, then
+calibrate, then the hybrid (never longer than `fixed_v1`); the goal starting
+values as written; review load only through the target recall; "needs a
+refresh" at 70%; personal `k` per course with a fallback to the learner's
+other courses while a course is "starting"; the exam-day band only with an
+exam date and only as a band, never on a clinical course before "fitted";
+clinical courses a target of at least 90%.
+
+### Step 1: shadow mode (built, REQ-301, migration 085)
+
+What it does. After every review, `stepSchedule` (`backend/lib/review-step.ts`,
+the only writer of `review_log`; it serves Today's review and spaced exam
+answers) stores the model's predicted recall for that review and the state it
+used, in the same row as the real outcome (`verdict`, `assisted`):
+
+| Column | Holds |
+| --- | --- |
+| `predicted_recall` | probability of recall at review time, 0 to 1 |
+| `model_stability`, `model_difficulty` | the objective's state just before the review |
+| `model_k` | the course's memory clock: the posterior median over every earlier unaided review in the course |
+| `model_fit_stage` | `starting`, `learning` or `fitted` (what `model_k` rests on) |
+| `model_goal`, `model_level` | the prior used (`none` = the goal was not answered) |
+| `model_version` | the parameter set (`MEMORY_MODEL_VERSION`; a test pins it to the model's constants) |
+| `model_source` | `live`, or `backfill` (see below) |
+
+The scheduler that ran is still `review_log.scheduler` (`fixed_v1`). No exam
+date or clinical flag enters: they change the schedule's target, not the
+recall the model predicts. Each prediction uses earlier reviews only, so it is
+a prediction made before its outcome. A review that was never scheduled (the
+objective never reached Guided) stores no prediction.
+
+Safety. The write is a separate statement inside a savepoint with a 2 second
+statement limit. Any failure (the migration not applied yet, a timeout, a bad
+row, a bug in the model) rolls the savepoint back, logs one masked line
+(`[decay-shadow] prediction skipped`) and the review commits as before. It
+adds two reads and one update (and the savepoint bookkeeping) to a review that
+was already writing three rows. `DECAY_SHADOW=off` stops all of it (`.env.example`, runbook). A course
+history over 5,000 reviews is skipped, not truncated.
+
+Backfill. `npm run decay:backfill` replays existing `review_log` history to
+compute what the model would have predicted at each past review. It is a dry
+run unless `--apply` is given, only fills rows with no prediction, never
+overwrites one, and commits one learner-course at a time, so it can be
+stopped and resumed. Backfilled rows are marked `model_source = 'backfill'`
+because the goal and level are the course's current ones, not what they were
+then; the report shows live and backfilled rows apart.
+
+Calibration. `npm run decay:calibration` prints predicted against observed
+recall by predicted bucket, fit stage, goal, level and course category, with
+the gap in points against the 5-point bar. How to read it, and the order to
+run things in, is in `docs/decay-shadow-calibration.md`.
+
+Compatibility. Additive migration (nine nullable columns, one `NOT VALID`
+check). Either deploy order is safe. The account export (`select *`) now
+includes the columns, so a learner's export shows their own predicted recall;
+the data inventory says so. Rolling back is `DECAY_SHADOW=off`, or the
+rollback block at the top of 085.
+
+### Step 2: calibrate (not built)
+
+Run the report weekly. Fit Ascendra's population defaults offline with the
+open-source FSRS optimizer on `review_log` (hold out whole learners, not rows),
+bump `MEMORY_MODEL_VERSION` with the new parameters, and compare. Ship only
+when predicted is within about 5 points of observed on held-out reviews, in
+every slice that matters (clinical courses and every fit stage included), and
+reviews per week by goal have been checked. Needs enough unaided reviews per
+slice (the report refuses to judge a slice under 200).
+
+### Step 3: hybrid scheduling (not built)
+
+As described in "Migration from fixed_v1" above, plus the decisions Nick
+approved: the `learner_memory_scale` table (k per course, fallback to the
+learner's other courses while "starting"), the "needs a refresh" flag at 70%,
+and the exam-day band. Not started until step 2's bar is met.
+
 ## Data needed
 
 Most of it is already stored.
@@ -222,7 +304,7 @@ Most of it is already stored.
 | Goal, level | `learner_course_profiles` (078) | have it |
 | Exam date | `study_plans.exam_date` | have it |
 | Blueprint weights | `course_units.weight` | have it |
-| Predicted recall at review time (calibration) | nothing yet | add `review_log.predicted_recall numeric` (step 1) |
+| Predicted recall at review time (calibration) | `review_log.predicted_recall` and eight `model_*` columns (085) | built (step 1); the column list is in the Rollout section |
 | Fitted `k`, band, n | nothing yet | add `learner_memory_scale (user_id, track_id, k, k_low, k_high, n, fitted_at)` (step 3); also listed in the data inventory and account export |
 
 Exam answers that step a due schedule (`advanceDueSchedule`) are already in
@@ -267,6 +349,8 @@ an offline batch job using the open-source optimizer, with no runtime cost.
   data, only step 2's population fit fixes that.
 
 ## Open decisions for Nick
+
+All eight were approved as recommended on 2026-11-14 (see "Rollout").
 
 1. **Ship order: shadow mode, then calibrate, then hybrid?** Recommend yes.
    Without real calibration, the simulation shows readiness could read about

@@ -1,0 +1,1275 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cnc-greens-powder-warfarin",
+  "title": "Session: a greens powder, a blood thinner and a label",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Denise Okafor",
+        "presentation": "{readiness >= 7 ? \"Leaning in, making notes on her phone\" : readiness >= 4 ? \"Interested, a little skeptical\" : \"Arms crossed, glancing at the clock\"}; {rapport >= 6 ? \"she is relaxed with you\" : rapport >= 3 ? \"she is polite and businesslike\" : \"she is curt\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "readiness",
+          "label": "Readiness to change",
+          "spokenLabel": "Readiness to change",
+          "value": "readiness",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "not ready",
+            "considering",
+            "ready"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "intake",
+          "label": "Intake form",
+          "text": "Age 58, office manager. Goal: 'more energy, eat more vegetables, lose a little weight.' Medications: 'a blood thinner' (name not given). Brought a tub of greens powder she plans to start tomorrow.",
+          "when": "true",
+          "alert": "not medsAsked"
+        },
+        {
+          "id": "meds",
+          "label": "Medication",
+          "text": "Warfarin since a blood clot in her leg three months ago; INR checks at an anticoagulation clinic.",
+          "when": "medsAsked"
+        },
+        {
+          "id": "label",
+          "label": "Supplement Facts label",
+          "text": "One scoop: Vitamin K (as K1) 300 mcg, 250% Daily Value; 'proprietary greens blend' 5 g. Claims: 'Reverses fatty liver disease' and 'supports healthy detoxification*'. {sealAsked ? \"No USP, NSF or ConsumerLab seal on the tub.\" : \"\"}",
+          "when": "labelRead"
+        },
+        {
+          "id": "goalNote",
+          "label": "Goal",
+          "text": "{goal == \"smart\" ? \"Pack lunch from home Monday, Wednesday and Friday for the next four weeks instead of the drive-through.\" : goal == \"vague\" ? \"'Eat healthier.'\" : goal == \"outcome\" ? \"'Lose 8 lb by March.'\" : \"None set yet.\"}",
+          "when": "true"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Medication confirmed: warfarin",
+            "when": "medsAsked"
+          },
+          {
+            "label": "Label read with her; disease claim pointed out",
+            "when": "claimSpotted"
+          },
+          {
+            "label": "Asked to check with her prescriber or anticoagulation clinic before starting the powder or changing her greens",
+            "when": "referred"
+          },
+          {
+            "label": "Goal: {goal}",
+            "when": "goal != \"none\""
+          },
+          {
+            "label": "Documented: {noteDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician",
+  "sources": [
+    {
+      "cite": "NASM, Certified Nutrition Coach course page and FAQ (nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K): a nutrition coach works 'within a coaching scope of practice' and refers to a registered dietitian nutritionist (RDN) for medical nutrition assessment or treatment",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K",
+      "note": "Read on NASM's own page 2026-11-14. Medical nutrition therapy is the RDN's; the coach gives general, evidence-based guidance and habit coaching."
+    },
+    {
+      "cite": "NIH Office of Dietary Supplements, Vitamin K fact sheet for health professionals (updated 2026-10-22)",
+      "checkedAt": "2026-11-14",
+      "url": "https://ods.od.nih.gov/factsheets/VitaminK-HealthProfessional/",
+      "note": "People taking warfarin need a consistent intake of vitamin K from food and supplements; sudden changes can raise or lower warfarin's effect; they should discuss vitamin K with their health care providers. DV 120 mcg; AI 120 mcg men, 90 mcg women. Raw kale 113 mcg per cup."
+    },
+    {
+      "cite": "NIH Office of Dietary Supplements, Dietary Supplements: What You Need to Know (updated 2023-01-04)",
+      "checkedAt": "2026-11-14",
+      "url": "https://ods.od.nih.gov/factsheets/WYNTK-Consumer/",
+      "note": "A USP, NSF or ConsumerLab seal means the product was properly made, contains what the label lists and no harmful levels of contaminants; it does not guarantee that a product is safe or effective. Vitamin K can reduce warfarin's effect. Tell health care providers, including pharmacists and dietitians, about supplements and check before combining them with medicines."
+    },
+    {
+      "cite": "FDA, Questions and Answers on Dietary Supplements (updated 2026-08-27)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.fda.gov/food/information-consumers-using-dietary-supplements/questions-and-answers-dietary-supplements",
+      "note": "FDA does not approve supplements before they are marketed; a structure/function claim needs the disclaimer that FDA has not evaluated it and the product is not intended to diagnose, treat, cure or prevent any disease; a product promoted to treat or cure a disease is regulated as a drug. (Read for REQ-281 on 2026-11-14.)"
+    }
+  ],
+  "brief": {
+    "situation": "You are a nutrition coach, NASM-CNC certified, working from a community wellness center. Denise Okafor, 58 (a fictional client), an office manager, booked a first session for 'more energy, more vegetables, a little weight loss'. Her intake form lists 'a blood thinner'. She has brought a tub of greens powder a friend recommended and plans to start it tomorrow. You have 50 minutes.",
+    "handover": [
+      "First session. Intake form only; no prior contact."
+    ],
+    "howItWorks": [
+      "Choose what to ask, explain and advise from the action groups. Denise answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, readiness to change and how much she is telling you are shown in words.",
+      "The session ends at 50 minutes. Afterward you write the session note and a short rationale."
+    ]
+  },
+  "clock": {
+    "start": "17:30",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing: a 50-minute first coaching session",
+        "checkedAt": "2026-11-14",
+        "note": "The session can be ended earlier."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "readiness": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "medsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "labelRead": {
+      "type": "bool",
+      "init": false
+    },
+    "claimSpotted": {
+      "type": "bool",
+      "init": false
+    },
+    "sealAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "endorsed": {
+      "type": "bool",
+      "init": false
+    },
+    "cutGreens": {
+      "type": "bool",
+      "init": false
+    },
+    "dismissed": {
+      "type": "bool",
+      "init": false
+    },
+    "referred": {
+      "type": "bool",
+      "init": false
+    },
+    "referAt": {
+      "type": "time",
+      "init": null
+    },
+    "scaled": {
+      "type": "bool",
+      "init": false
+    },
+    "goal": {
+      "type": "enum",
+      "values": [
+        "none",
+        "smart",
+        "vague",
+        "outcome"
+      ],
+      "init": "none"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "brief",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "openQuestion",
+        "reflect",
+        "askScale",
+        "askMeds",
+        "readLabel",
+        "pointClaim",
+        "askSeal",
+        "endorse",
+        "cutGreens",
+        "dismiss",
+        "refer",
+        "setGoal",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "openQuestion": {
+      "label": "Open question: 'What would more energy let you do?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and give her room.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "readiness",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Keep up with my grandkids. Since the clot I've felt like an old woman. My friend swears by this powder.\" She pats the tub."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect what matters to her, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "\"Exactly. I want to feel like myself again.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askScale": {
+      "label": "Importance ruler: 'From 0 to 10, how important is this change, and why not lower?'",
+      "group": "Ask",
+      "available": "not talking and (not scaled)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You ask her to rate importance and why she didn't pick a lower number.",
+          "kind": "act"
+        },
+        {
+          "set": "scaled",
+          "to": "true"
+        },
+        {
+          "add": "readiness",
+          "by": "2"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"An eight. Not lower because I'm scared of another clot, honestly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askMeds": {
+      "label": "Ask which blood thinner she takes and who manages it",
+      "group": "Ask",
+      "available": "not talking and (not medsAsked)",
+      "why": "You have asked.",
+      "effects": [
+        {
+          "log": "You ask which blood thinner she takes and who looks after it.",
+          "kind": "act"
+        },
+        {
+          "set": "medsAsked",
+          "to": "true"
+        },
+        {
+          "set": "medsAt",
+          "to": "t"
+        },
+        {
+          "add": "disclosed",
+          "by": "1.5"
+        },
+        {
+          "finding": "\"Warfarin. The clinic checks my blood every couple of weeks. They're fussy about it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "readLabel": {
+      "label": "Read the Supplement Facts label on the tub with her",
+      "group": "Assess",
+      "available": "not talking and (not labelRead)",
+      "why": "You have read it.",
+      "effects": [
+        {
+          "log": "You read the Supplement Facts panel together.",
+          "kind": "act"
+        },
+        {
+          "set": "labelRead",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "0.5"
+        },
+        {
+          "finding": "Vitamin K (as K1) 300 mcg per scoop, 250% of the Daily Value. The front says 'Reverses fatty liver disease'."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "pointClaim": {
+      "label": "Point out that 'reverses fatty liver disease' is a disease claim a supplement may not make",
+      "group": "Explain",
+      "available": "not talking and (labelRead and not claimSpotted)",
+      "why": "Read the label first (or done).",
+      "effects": [
+        {
+          "log": "You explain that FDA does not approve supplements before sale, that a claim to treat a disease makes a product a drug, and that the claim is a red flag about the seller.",
+          "kind": "act"
+        },
+        {
+          "set": "claimSpotted",
+          "to": "true"
+        },
+        {
+          "add": "readiness",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Huh. I assumed somebody checked that.\""
+        },
+        {
+          "log": "Disease claim identified (FDA).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSeal": {
+      "label": "Ask whether it has a third-party testing seal, and explain what a seal does and does not mean",
+      "group": "Explain",
+      "available": "not talking and (labelRead and not sealAsked)",
+      "why": "Read the label first (or done).",
+      "effects": [
+        {
+          "log": "You look for a USP, NSF or ConsumerLab seal and explain that a seal means it was made properly and contains what it says, not that it is safe or effective for her.",
+          "kind": "act"
+        },
+        {
+          "set": "sealAsked",
+          "to": "true"
+        },
+        {
+          "finding": "No seal on the tub."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endorse": {
+      "label": "Tell her to go ahead: greens are healthy, and add a big kale smoothie every morning too",
+      "group": "Advise",
+      "available": "not talking and (not endorsed)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You encourage her to start the powder tomorrow and add a daily kale smoothie.",
+          "kind": "act"
+        },
+        {
+          "set": "endorsed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "readiness",
+          "by": "1"
+        },
+        {
+          "finding": "\"Great, I'll start both tomorrow.\""
+        },
+        {
+          "log": "A sudden jump in vitamin K can lower warfarin's effect (NIH ODS); this was a question for her prescriber.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "cutGreens": {
+      "label": "Tell her to stop eating leafy greens because of the warfarin",
+      "group": "Advise",
+      "available": "not talking and (not cutGreens)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her to cut out leafy greens because of her blood thinner.",
+          "kind": "act"
+        },
+        {
+          "set": "cutGreens",
+          "to": "true"
+        },
+        {
+          "add": "readiness",
+          "by": "-1.5"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"But my goal was to eat MORE vegetables. Now I'm confused.\""
+        },
+        {
+          "log": "A sudden drop in vitamin K changes warfarin's effect too, and diet changes for a medication are her prescriber's or an RDN's call, not a coach's (NIH ODS; NASM scope).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "dismiss": {
+      "label": "Tell her greens powders are a scam and she is wasting her money",
+      "group": "Advise",
+      "available": "not talking and (not dismissed)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You tell her flatly that powders like this are a scam.",
+          "kind": "act"
+        },
+        {
+          "set": "dismissed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2.5"
+        },
+        {
+          "add": "readiness",
+          "by": "-1"
+        },
+        {
+          "finding": "Her face closes. \"My friend isn't stupid, you know.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "refer": {
+      "label": "Ask her to check with her prescriber or anticoagulation clinic before starting the powder or changing her greens; offer an RDN referral",
+      "group": "Address",
+      "available": "not talking and (not referred)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "log": "You explain that vitamin K affects warfarin, that keeping it steady matters, and that her clinic or an RDN should decide about the powder and any change to her greens before she starts.",
+          "kind": "act"
+        },
+        {
+          "set": "referred",
+          "to": "true"
+        },
+        {
+          "set": "referAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "medsAsked",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Oh. They did say something about salads being 'consistent'. I'll call them before I open this.\""
+                },
+                {
+                  "log": "Medication and supplement question sent to her prescriber (NIH ODS).",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"Which doctor? I don't see why a powder needs a doctor.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "setGoal": {
+      "label": "Set a first goal with her",
+      "group": "Plan",
+      "available": "not talking and (goal == \"none\")",
+      "why": "A goal is set.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "pick == \"smart\"",
+              "then": [
+                {
+                  "set": "goal",
+                  "to": "\"smart\""
+                },
+                {
+                  "add": "readiness",
+                  "by": "1"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Three days a week, I can do that. Monday, Wednesday, Friday.\""
+                }
+              ]
+            },
+            {
+              "when": "pick == \"vague\"",
+              "then": [
+                {
+                  "set": "goal",
+                  "to": "\"vague\""
+                },
+                {
+                  "finding": "\"Sure. Eat healthier.\" She shrugs."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "goal",
+                  "to": "\"outcome\""
+                },
+                {
+                  "finding": "\"Eight pounds by March. Okay.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ],
+      "params": [
+        {
+          "id": "pick",
+          "kind": "choice",
+          "label": "Goal",
+          "options": [
+            {
+              "value": "smart",
+              "label": "Pack lunch from home on Monday, Wednesday and Friday for four weeks, instead of the drive-through"
+            },
+            {
+              "value": "vague",
+              "label": "Eat healthier"
+            },
+            {
+              "value": "outcome",
+              "label": "Lose 8 lb by March"
+            }
+          ]
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the session note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "Warfarin confirmed; the powder's vitamin K (300 mcg, 250% DV) and its disease claim; no seal; advised her to ask her prescriber or clinic before starting it or changing her greens, RDN offered; her goal"
+                },
+                {
+                  "value": "brief",
+                  "label": "A line: 'Discussed supplements'"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing; supplements aren't my area"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "what"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: {what}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-14",
+        "note": "A 50-minute first coaching session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute session is up. It ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictK",
+      "when": "labelRead and medsAsked and phase == \"session\"",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "kAndWarfarin"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "kAndWarfarin": {
+      "title": "Predict (not scored)",
+      "context": "Denise takes warfarin. One scoop of the powder has 300 mcg of vitamin K. What matters most for someone on warfarin, according to NIH's Office of Dietary Supplements?",
+      "choices": [
+        {
+          "id": "steady",
+          "label": "Keeping vitamin K intake consistent, and asking the prescriber before a change",
+          "effects": [
+            {
+              "log": "Prediction: consistency.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. Sudden changes in either direction can change warfarin's effect; the prescriber or clinic decides."
+        },
+        {
+          "id": "avoid",
+          "label": "Avoiding vitamin K altogether",
+          "effects": [
+            {
+              "log": "Prediction: avoid it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not quite. ODS says people on warfarin need a consistent intake, not none; cutting greens suddenly changes the drug's effect too."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your rationale: what you found on the label and in her medications, what you told her about the powder, and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The interaction and the referral",
+          "criteria": "Names warfarin and the powder's vitamin K, that a sudden change in vitamin K either way can change warfarin's effect (NIH ODS), and that whether to start it is her prescriber's or clinic's decision, with an RDN for diet changes.",
+          "modelAnswer": "She takes warfarin, and one scoop has 300 mcg of vitamin K, 250% of the DV. ODS says people on warfarin need a steady vitamin K intake because sudden changes alter its effect, so I asked her to check with her anticoagulation clinic before starting it or changing her greens, and offered an RDN."
+        },
+        {
+          "label": "Regulation and testing",
+          "criteria": "Explains that FDA does not approve supplements before sale, that 'reverses fatty liver disease' is a disease claim a supplement may not make, and what a third-party seal does and does not mean.",
+          "modelAnswer": "FDA does not approve supplements before they are sold; a claim to reverse a disease makes it a drug claim, which is a red flag. It has no USP, NSF or ConsumerLab seal, and even a seal would only mean it contains what it says, not that it is safe or effective for her."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-14",
+          "note": "The prescriber question raised within 20 minutes of learning she takes warfarin (author's scenario timing within the profile's default)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and referred and not endorsed and not cutGreens and goal == \"none\"",
+      "class": "recovered",
+      "rationale": "The safety question went to her prescriber, but no coaching goal was set; safe, little progress.",
+      "source": {
+        "cite": "NIH Office of Dietary Supplements, Vitamin K fact sheet for health professionals (updated 2026-10-22)",
+        "checkedAt": "2026-11-14",
+        "url": "https://ods.od.nih.gov/factsheets/VitaminK-HealthProfessional/",
+        "note": "People taking warfarin need a consistent intake of vitamin K from food and supplements; sudden changes can raise or lower warfarin's effect; they should discuss vitamin K with their health care providers. DV 120 mcg; AI 120 mcg men, 90 mcg women. Raw kale 113 mcg per cup."
+      }
+    }
+  },
+  "endings": {
+    "endorsedHarm": {
+      "label": "Started without a check",
+      "class": "harm",
+      "when": "documented and endorsed",
+      "terminal": true,
+      "narrative": "Denise starts a high-vitamin-K powder and a daily kale smoothie tomorrow, on warfarin, without telling her clinic."
+    },
+    "cutHarm": {
+      "label": "Greens cut on a coach's say-so",
+      "class": "harm",
+      "when": "documented and cutGreens",
+      "terminal": true,
+      "narrative": "Denise stops eating greens because a coach told her to, a sudden change her clinic did not plan for."
+    },
+    "unchecked": {
+      "label": "The question never asked",
+      "class": "harm",
+      "when": "documented and not referred",
+      "terminal": true,
+      "narrative": "The intake form said 'blood thinner' and the tub was on the table; she goes home planning to start it tomorrow."
+    },
+    "checked": {
+      "label": "Checked first, goal set",
+      "class": "target",
+      "when": "documented and referred and medsAsked and timeAt(referAt) >= timeAt(medsAt) and timeAt(referAt) - timeAt(medsAt) <= safetyWindow and claimSpotted and goal == \"smart\" and noteDoc == \"full\" and rapport >= allianceTarget",
+      "terminal": true,
+      "narrative": "Denise is calling her clinic before she opens the tub, knows what the label's claim means, and has a lunch goal she chose."
+    },
+    "checkedGaps": {
+      "label": "Checked first, with gaps",
+      "class": "recovered",
+      "when": "documented and referred",
+      "terminal": true,
+      "narrative": "The question went to her prescriber, but parts of the work were late, missing or not written down."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "endorsedHarm",
+    "cutHarm",
+    "unchecked",
+    "checked",
+    "checkedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "medsCrit",
+        "label": "Read the cue: asked about the blood thinner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "medsAsked",
+            "score": "met",
+            "why": "Confirmed warfarin {timeAt(medsAt) / 60} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked about the medication on the intake form."
+          }
+        ]
+      },
+      {
+        "id": "referCrit",
+        "label": "Sent the supplement question to her prescriber, promptly (NIH ODS)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "endorsed or cutGreens",
+            "score": "missed",
+            "why": "Advised a vitamin K change yourself."
+          },
+          {
+            "when": "referred and medsAsked and timeAt(referAt) >= timeAt(medsAt) and timeAt(referAt) - timeAt(medsAt) <= safetyWindow",
+            "score": "met",
+            "why": "Raised {(timeAt(referAt) - timeAt(medsAt)) / 60} min after learning about warfarin."
+          },
+          {
+            "when": "referred",
+            "score": "partial",
+            "why": "Raised, but late or without knowing why it mattered."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not raised."
+          }
+        ]
+      },
+      {
+        "id": "labelCrit",
+        "label": "Read the label: the disease claim and the missing seal (FDA; ODS)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "claimSpotted and sealAsked",
+            "score": "met",
+            "why": "Claim and seal both covered."
+          },
+          {
+            "when": "labelRead",
+            "score": "partial",
+            "why": "Read the label but missed part of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at the label."
+          }
+        ]
+      },
+      {
+        "id": "docCrit",
+        "label": "Documented the medication, the label and the advice",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "noteDoc == \"full\"",
+            "score": "met",
+            "why": "Written down."
+          },
+          {
+            "when": "noteDoc == \"brief\"",
+            "score": "partial",
+            "why": "A line, not a record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      },
+      {
+        "id": "goalCrit",
+        "label": "A SMART behavior goal, not an outcome or a wish",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "goal == \"smart\"",
+            "score": "met",
+            "why": "Specific, measurable, time-bound behavior."
+          },
+          {
+            "when": "goal != \"none\"",
+            "score": "partial",
+            "why": "A goal, but {goal}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No goal set."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written rationale",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRefer",
+        "label": "Minutes from learning about warfarin to the prescriber question",
+        "value": "isNull(referAt) or isNull(medsAt) ? -1 : (timeAt(referAt) - timeAt(medsAt)) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Open question, then ask which blood thinner she takes: the intake form flags it."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Read the label together: 300 mcg vitamin K, a disease claim, no seal. Send the powder question to her clinic before she starts; offer an RDN."
+      },
+      {
+        "at": "20-35 min",
+        "text": "Importance ruler, reflection, then a SMART behavior goal that does not touch vitamin K."
+      },
+      {
+        "at": "After",
+        "text": "Document the medication, the label findings, the advice and the goal."
+      }
+    ],
+    "debrief": {
+      "checked": {
+        "headline": "Good: checked first, goal set",
+        "body": "You read the cue on the intake form, read the label, sent the vitamin K question to the people who manage her warfarin, and still moved her forward."
+      },
+      "checkedGaps": {
+        "headline": "Checked, with gaps",
+        "body": "The safety question went to her prescriber; the criteria below show what was late, missing or not written down."
+      },
+      "endorsedHarm": {
+        "headline": "A medication question answered by a coach",
+        "body": "Vegetables are healthy, but on warfarin a sudden jump in vitamin K can lower the drug's effect. That decision belongs to her prescriber or clinic."
+      },
+      "cutHarm": {
+        "headline": "Right worry, wrong fix",
+        "body": "ODS says people on warfarin need a consistent vitamin K intake, not none. Cutting greens suddenly changes the drug's effect too, and the change is her clinic's call."
+      },
+      "unchecked": {
+        "headline": "The cue was on the form",
+        "body": "'Blood thinner' on an intake form next to a supplement she starts tomorrow is a question for her prescriber before anything else."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Read the intake form: 'blood thinner' plus a new supplement is a medication question. She takes warfarin and one scoop has 300 mcg of vitamin K; NIH ODS says intake should stay consistent and changes go through her providers, so the coach neither endorses nor bans greens but sends the question to her clinic and offers an RDN. On the label, 'reverses fatty liver disease' is a disease claim a supplement may not make, and a missing seal means no independent check of what is in it. Then coach a behavior goal that leaves vitamin K alone."
+  }
+}

@@ -1,0 +1,1164 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "firewall-change-backout",
+  "title": "Change: a firewall change opens the payroll server to the internet mid-window",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "scan",
+          "severity": "high",
+          "title": "IDS: internet hosts scanning PAY01 on TCP 3389 (RDP) since 22:12",
+          "detail": "PAY01 is the payroll server; it has never been reachable from the internet.",
+          "when": "true",
+          "at": "0",
+          "status": "{exposed ? \"Ongoing\" : \"Stopped: no longer reachable\"}",
+          "open": "exposed"
+        },
+        {
+          "id": "brute",
+          "severity": "critical",
+          "title": "PAY01: 400 failed RDP logons a minute for 'administrator' from 198.51.100.0/24",
+          "when": "not isNull(bruteAt)",
+          "at": "timeAt(bruteAt)",
+          "status": "{exposed ? \"Ongoing\" : \"Stopped\"}",
+          "open": "exposed"
+        },
+        {
+          "id": "owned",
+          "severity": "critical",
+          "title": "PAY01: successful RDP logon as 'administrator' from 198.51.100.23",
+          "when": "not isNull(compromisedAt)",
+          "at": "timeAt(compromisedAt)",
+          "status": "Attacker on the payroll server",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Change calendar",
+          "text": "CHG-1182 in progress: maintenance window 22:00-23:30; implementer: network engineer; owner: payroll application owner",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "e2",
+          "source": "Change record",
+          "text": "CHG-1182 approved scope: allow OUTBOUND TCP 443 from PAY01 to the payroll vendor 203.0.113.0/24. Test: vendor test transfer in the window. Backout plan: restore firewall configuration version 41 (pushing a version restarts the inspection service; remote VPN sessions drop for about a minute).",
+          "when": "not isNull(readAt)",
+          "at": "timeAt(readAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Version control",
+          "text": "Firewall config v41 to v42 (22:10): added INBOUND allow any to PAY01 TCP 443, 3389. Nothing outbound was added.",
+          "when": "not isNull(diffAt)",
+          "at": "timeAt(diffAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Firewall",
+          "text": "{backedOut ? \"Version 41 restored per the backout plan; inspection service restarted\" : hotfixed ? \"Rule edited live by hand; running config differs from version control\" : \"New inbound rule deleted by hand; running config differs from version control\"}",
+          "when": "backedOut or hotfixed or ruleDeleted",
+          "at": "timeAt(closedExposureAt)"
+        },
+        {
+          "id": "e5",
+          "source": "PAY01 security log",
+          "text": "{isNull(compromisedAt) or timeAt(logonsAt) < timeAt(compromisedAt) ? \"No successful logons from outside the company network\" : \"Successful logon as administrator from 198.51.100.23\"}",
+          "when": "not isNull(logonsAt)",
+          "at": "timeAt(logonsAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Change manager",
+          "text": "{isNull(approvedAt) ? \"Emergency change requested for the corrected rule\" : \"Emergency change CHG-1183 approved: outbound TCP 443 PAY01 to 203.0.113.0/24, peer-reviewed\"}",
+          "when": "not isNull(emergencyAt)",
+          "at": "isNull(approvedAt) ? timeAt(emergencyAt) : timeAt(approvedAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Vendor",
+          "text": "Test transfer from PAY01 succeeded",
+          "when": "not isNull(testedAt)",
+          "at": "timeAt(testedAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "pay",
+          "label": "PAY01",
+          "spokenLabel": "the payroll server",
+          "kind": "Payroll server, internal only",
+          "status": "{not isNull(compromisedAt) ? \"Compromised\" : exposed ? \"Exposed to the internet on RDP\" : \"Internal only\"}",
+          "tone": "not isNull(compromisedAt) ? \"bad\" : exposed ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "fw",
+          "label": "Edge firewall",
+          "spokenLabel": "the edge firewall",
+          "kind": "Configuration in version control",
+          "status": "{backedOut ? (correctRule ? \"v43: approved outbound rule\" : \"v41 restored\") : hotfixed or ruleDeleted ? \"Running config differs from version control\" : \"v42: wrong inbound rule\"}",
+          "tone": "exposed ? \"bad\" : (hotfixed or ruleDeleted) ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "vendorA",
+          "label": "Payroll vendor integration",
+          "spokenLabel": "the vendor integration",
+          "kind": "Must be tested before Monday's payroll",
+          "status": "{not isNull(testedAt) ? \"Tested\" : not isNull(windowMissedAt) ? \"Not tested: next window Tuesday\" : \"Waiting\"}",
+          "tone": "not isNull(testedAt) ? \"ok\" : not isNull(windowMissedAt) ? \"bad\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "left",
+          "label": "Minutes left in the maintenance window",
+          "value": "{max(0, round((windowEnd - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "Change management and its security impact: approval process, ownership, stakeholders, impact analysis, test results, backout plan, maintenance window, standard operating procedure; technical implications (allow lists/deny lists, restricted activities, downtime, service restart, application restart, legacy applications, dependencies); documentation (updating diagrams, updating policies/procedures) and version control",
+  "secondaryObjectives": [
+    "Change management and configuration management processes"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Security+ SY0-701 Exam Objectives, Version 5.0, objective 1.3 'Explain the importance of change management processes and the impact to security'",
+      "checkedAt": "2026-11-14",
+      "url": "https://laurelridgeworkforce.com/wp-content/uploads/2025/01/CompTIA-Security-SY0-701-Exam-Objectives-1.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-14 of a copy of CompTIA's objectives PDF hosted by a training provider (CompTIA's own partner link refused automated reading). Objective 1.3 lists business processes impacting security operations (approval process, ownership, stakeholders, impact analysis, test results, backout plan, maintenance window, standard operating procedure), technical implications (allow lists/deny lists, restricted activities, downtime, service restart, application restart, legacy applications, dependencies), documentation (updating diagrams, updating policies/procedures) and version control."
+    },
+    {
+      "cite": "CompTIA Security+ certification page",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/security/",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: Security+ V7 is available now, and V8 is expected on or around November 17, 2026. The page lists no objectives or domain weights."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security analyst on call and a member of the change advisory board at Marlow Freight, a fictional logistics company. Change CHG-1182 is being implemented in tonight's maintenance window (22:00-23:30) so the payroll server PAY01 can send files to a new payroll vendor before Monday's payroll. At 22:20 the IDS alerts on scans of PAY01 from the internet.",
+    "handover": [
+      "The firewall configuration lives in version control; every change is a numbered version.",
+      "The network engineer who made the change has gone off shift."
+    ],
+    "howItWorks": [
+      "The console shows alerts, the change and firewall events as they arrive, and the assets at stake.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. The attacker keeps working on the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "22:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "bruteAfter": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Password guessing starts 15 minutes in (22:35)."
+      }
+    },
+    "ownAfter": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The guessing finds the administrator password 35 minutes in (22:55) if RDP is still reachable."
+      }
+    },
+    "approveDur": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. An emergency change is reviewed and approved 15 minutes after it is requested."
+      }
+    },
+    "windowEnd": {
+      "value": 4200,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-14",
+        "note": "The maintenance window ends at 23:30, 70 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "readAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstActAt": {
+      "type": "time",
+      "init": null
+    },
+    "backedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "hotfixed": {
+      "type": "bool",
+      "init": false
+    },
+    "ruleDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "closedExposureAt": {
+      "type": "time",
+      "init": null
+    },
+    "bruteAt": {
+      "type": "time",
+      "init": null
+    },
+    "compromisedAt": {
+      "type": "time",
+      "init": null
+    },
+    "logonsAt": {
+      "type": "time",
+      "init": null
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "emergencyAt": {
+      "type": "time",
+      "init": null
+    },
+    "approvedAt": {
+      "type": "time",
+      "init": null
+    },
+    "correctRule": {
+      "type": "bool",
+      "init": false
+    },
+    "correctUnapproved": {
+      "type": "bool",
+      "init": false
+    },
+    "testedAt": {
+      "type": "time",
+      "init": null
+    },
+    "windowMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "docsUpdated": {
+      "type": "bool",
+      "init": false
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "review",
+        "firewall",
+        "vendor"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "exposed": {
+      "expr": "not backedOut and not hotfixed and not ruleDeleted"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "readChange",
+        "diff",
+        "backout",
+        "hotfix",
+        "deleteRule",
+        "logons",
+        "notify",
+        "emergency",
+        "implement",
+        "vendorTest",
+        "docs",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "readChange": {
+      "label": "Open the change record CHG-1182",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(readAt)",
+          "then": [
+            {
+              "set": "readAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Approved: outbound TCP 443 from PAY01 to the vendor. Backout plan: restore configuration version 41.",
+          "kind": "act"
+        },
+        {
+          "finding": "What was approved is outbound to one vendor range. The backout plan is ready and approved with the change."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "diff": {
+      "label": "Diff the firewall configuration in version control (v41 to v42)",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(diffAt)",
+          "then": [
+            {
+              "set": "diffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "v42 adds an INBOUND allow from any address to PAY01 on 443 and 3389: the wrong direction and an extra port.",
+          "kind": "act"
+        },
+        {
+          "finding": "The implemented change is not the approved change: it opened RDP on the payroll server to the internet."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "backout": {
+      "label": "Execute the backout plan: restore configuration version 41",
+      "group": "Contain",
+      "available": "not busy and (exposed)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "backedOut",
+          "to": "true"
+        },
+        {
+          "if": "isNull(closedExposureAt)",
+          "then": [
+            {
+              "set": "closedExposureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Version 41 restored. The inspection service restarts and remote VPN sessions drop for about a minute, as the plan said; PAY01 is internal only again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "hotfix": {
+      "label": "Edit the rule live into the approved outbound rule, without a new change",
+      "group": "Contain",
+      "available": "not busy and (exposed)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hotfixed",
+          "to": "true"
+        },
+        {
+          "set": "correctUnapproved",
+          "to": "true"
+        },
+        {
+          "if": "isNull(closedExposureAt)",
+          "then": [
+            {
+              "set": "closedExposureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The rule is fixed in the running config by hand. Nobody reviewed or approved this version, and version control no longer matches the firewall.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "deleteRule": {
+      "label": "Delete the new inbound rule by hand",
+      "group": "Contain",
+      "available": "not busy and (exposed)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ruleDeleted",
+          "to": "true"
+        },
+        {
+          "if": "isNull(closedExposureAt)",
+          "then": [
+            {
+              "set": "closedExposureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The inbound rule is gone from the running config; the backout plan and version control were bypassed.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "logons": {
+      "label": "Review PAY01's security log for successful logons from outside",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "logonsAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(compromisedAt)",
+          "then": [
+            {
+              "log": "No successful logons from outside the company network.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Successful logon as administrator from 198.51.100.23.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Tell the change manager, the payroll owner and the vendor what happened",
+      "group": "Communicate",
+      "available": "not busy and (not notified)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Stakeholders know: the change was backed out, and why; the vendor stands by for a test.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "emergency": {
+      "label": "Request an emergency change for the corrected outbound rule",
+      "group": "Change",
+      "available": "not busy and (isNull(emergencyAt) and not exposed)",
+      "why": "Contain the exposure first, or it is requested.",
+      "effects": [
+        {
+          "set": "emergencyAt",
+          "to": "t"
+        },
+        {
+          "log": "Emergency change CHG-1183 submitted with the corrected rule, a peer review and the same backout plan.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "implement": {
+      "label": "Implement the approved corrected rule as version 43 and commit it",
+      "group": "Change",
+      "available": "not busy and (not isNull(approvedAt) and not correctRule and backedOut)",
+      "why": "Needs the approved emergency change, after the backout.",
+      "effects": [
+        {
+          "set": "correctRule",
+          "to": "true"
+        },
+        {
+          "log": "v43: outbound TCP 443 from PAY01 to 203.0.113.0/24, matching CHG-1183, committed to version control.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "vendorTest": {
+      "label": "Run the vendor test transfer",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "(correctRule or correctUnapproved) and isNull(windowMissedAt)",
+          "then": [
+            {
+              "if": "isNull(testedAt)",
+              "then": [
+                {
+                  "set": "testedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "The vendor's test transfer from PAY01 succeeds.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "{isNull(windowMissedAt) ? \"The transfer fails: no outbound rule.\" : \"The window is over; the test waits for Tuesday's window.\"}",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "docs": {
+      "label": "Update the network diagram and both change records",
+      "group": "Communicate",
+      "available": "not busy and (not docsUpdated)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "docsUpdated",
+          "to": "true"
+        },
+        {
+          "log": "Diagram, CHG-1182 (backed out) and CHG-1183 (implemented) are up to date.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "lesson",
+              "label": "What went wrong, and what changes",
+              "options": [
+                {
+                  "value": "review",
+                  "label": "The implemented rule did not match the approved change; add a peer review of the diff against the record before it goes live, and use the backout plan when they differ"
+                },
+                {
+                  "value": "firewall",
+                  "label": "The firewall applied the rule wrongly; replace the firewall"
+                },
+                {
+                  "value": "vendor",
+                  "label": "The vendor asked for inbound access; deny vendor changes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "brute",
+      "when": "t >= bruteAfter and exposed and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "bruteAt",
+          "to": "t"
+        },
+        {
+          "log": "22:35: password guessing against PAY01's administrator account begins.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "owned",
+      "when": "t >= ownAfter and exposed and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "compromisedAt",
+          "to": "t"
+        },
+        {
+          "log": "22:55: the guessing succeeds; someone outside is logged on to the payroll server.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "approve",
+      "when": "not isNull(emergencyAt) and isNull(approvedAt) and t >= timeAt(emergencyAt) + approveDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "approvedAt",
+          "to": "t"
+        },
+        {
+          "log": "The change manager approves CHG-1183.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "window",
+      "when": "t >= windowEnd and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(testedAt)",
+          "then": [
+            {
+              "set": "windowMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "23:30: the maintenance window closes with the vendor integration untested.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you knew the change was wrong, why you backed it out the way you did, and how the business still got its change.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Wrong change",
+          "criteria": "Compares the implemented configuration (version control diff) with the approved change record before acting.",
+          "modelAnswer": "The record approved outbound 443 to the vendor; the v41-to-v42 diff showed inbound 443 and 3389 from anywhere to PAY01. The IDS scans matched."
+        },
+        {
+          "label": "Backout",
+          "criteria": "Uses the approved backout plan inside the window (accepting its planned service restart), not an unapproved live edit; checks PAY01's logons for a compromise.",
+          "modelAnswer": "I restored version 41 per the backout plan; the inspection service restart and the dropped VPN sessions were in the plan and inside the window. A live hand edit would have been an unapproved change and left version control wrong. PAY01's log showed no outside logons."
+        },
+        {
+          "label": "Still delivered",
+          "criteria": "Raises an emergency change for the corrected rule, implements and tests it in the window, informs stakeholders and updates the diagram and records.",
+          "modelAnswer": "CHG-1183 corrected the rule with a peer review; it was implemented as v43 and the vendor test passed before 23:30. The owner, change manager and vendor were told, and the diagram and both records were updated."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 2100,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 35 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "The password guessing succeeds 35 minutes in; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No logon to PAY01 from outside."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and exposed",
+      "class": "harm",
+      "rationale": "Closing with the payroll server reachable on RDP from the internet is never a safe outcome.",
+      "source": {
+        "cite": "CompTIA Security+ SY0-701 Exam Objectives, Version 5.0, objective 1.3 'Explain the importance of change management processes and the impact to security'",
+        "checkedAt": "2026-11-14",
+        "url": "https://laurelridgeworkforce.com/wp-content/uploads/2025/01/CompTIA-Security-SY0-701-Exam-Objectives-1.pdf",
+        "note": "Read through a summarizing fetch on 2026-11-14 of a copy of CompTIA's objectives PDF hosted by a training provider (CompTIA's own partner link refused automated reading). Objective 1.3 lists business processes impacting security operations (approval process, ownership, stakeholders, impact analysis, test results, backout plan, maintenance window, standard operating procedure), technical implications (allow lists/deny lists, restricted activities, downtime, service restart, application restart, legacy applications, dependencies), documentation (updating diagrams, updating policies/procedures) and version control."
+      }
+    }
+  },
+  "endings": {
+    "compromised": {
+      "label": "The payroll server was compromised",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(compromisedAt)",
+      "narrative": "The wrong rule stayed open long enough for the guessing to succeed."
+    },
+    "stillExposed": {
+      "label": "Closed with RDP open to the internet",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and exposed",
+      "narrative": "The payroll server is still reachable on RDP from anywhere."
+    },
+    "governed": {
+      "label": "Backed out by the plan, delivered by the process",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and backedOut and timeAt(closedExposureAt) <= containWindow and isNull(compromisedAt) and not hotfixed and not ruleDeleted and not isNull(diffAt) and timeAt(diffAt) <= timeAt(firstActAt) and not isNull(logonsAt) and notified and correctRule and not isNull(testedAt) and docsUpdated and lessonDoc == \"review\"",
+      "narrative": "The wrong change was proved against its record, backed out by its own plan, and replaced through an approved emergency change that was tested inside the window."
+    },
+    "governedGaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The exposure is closed, but outside the plan, without the business's change, or without the records."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "compromised",
+    "stillExposed",
+    "governed",
+    "governedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Compared the change record and the configuration diff before acting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(diffAt) and not isNull(readAt) and timeAt(diffAt) <= timeAt(firstActAt) and timeAt(readAt) <= timeAt(firstActAt)",
+            "score": "met",
+            "why": "Record and diff first."
+          },
+          {
+            "when": "not isNull(diffAt) or not isNull(readAt)",
+            "score": "partial",
+            "why": "Some evidence, or only after acting."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody checked what was approved against what was done."
+          }
+        ]
+      },
+      {
+        "id": "contained",
+        "label": "RDP closed before the guessing succeeded",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not exposed and isNull(compromisedAt) and timeAt(closedExposureAt) <= containWindow",
+            "score": "met",
+            "why": "Closed {timeAt(closedExposureAt) / 60|0dp} min in."
+          },
+          {
+            "when": "not exposed",
+            "score": "partial",
+            "why": "Closed, but after the attacker got in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never closed."
+          }
+        ]
+      },
+      {
+        "id": "process",
+        "label": "Backout plan used; the corrected rule only through an approved change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "backedOut and not hotfixed and not ruleDeleted and (correctRule or isNull(approvedAt))",
+            "score": "met",
+            "why": "Every change was approved and in version control."
+          },
+          {
+            "when": "backedOut",
+            "score": "partial",
+            "why": "Backed out, but something else bypassed the process."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{hotfixed ? \"An unapproved live edit.\" : ruleDeleted ? \"A hand deletion outside the plan.\" : \"Nothing was backed out.\"}"
+          }
+        ]
+      },
+      {
+        "id": "delivered",
+        "label": "Stakeholders told, records updated, the vendor test passed in the window",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified and docsUpdated and not isNull(testedAt) and correctRule",
+            "score": "met",
+            "why": "The business got its change, properly."
+          },
+          {
+            "when": "notified or docsUpdated or not isNull(testedAt)",
+            "score": "partial",
+            "why": "Some of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody was told, nothing was recorded, and the integration waits."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Lesson names the missing review against the approved change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lessonDoc == \"review\"",
+            "score": "met",
+            "why": "Lesson right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lesson blames the wrong thing."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written evidence, backout and delivery",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minClose",
+        "label": "Minutes until RDP was closed",
+        "value": "isNull(closedExposureAt) ? -1 : timeAt(closedExposureAt) / 60",
+        "format": "number",
+        "expert": "about 10"
+      },
+      {
+        "id": "minTest",
+        "label": "Minutes until the vendor test passed",
+        "value": "isNull(testedAt) ? -1 : timeAt(testedAt) / 60",
+        "format": "number",
+        "expert": "under 70"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "22:20-22:30",
+        "text": "Change record: outbound 443 to the vendor, backout to v41. Diff: inbound 443 and 3389 from anywhere."
+      },
+      {
+        "at": "22:30-22:55",
+        "text": "Restore v41 per the backout plan (planned restart); request an emergency change for the corrected rule; check PAY01's logons; tell the stakeholders."
+      },
+      {
+        "at": "22:55-23:20",
+        "text": "CHG-1183 approved: implement v43, run the vendor test, update the diagram and both records."
+      }
+    ],
+    "debrief": {
+      "governed": {
+        "headline": "Good: the process did its job",
+        "body": "You compared what was done with what was approved, used the backout plan written for exactly this, and still delivered the business's change through an approved, reviewed emergency change inside the window."
+      },
+      "governedGaps": {
+        "headline": "Contained, with gaps",
+        "body": "RDP is closed. The criteria show where the process was bypassed or the business's change and records were left."
+      },
+      "compromised": {
+        "headline": "The attacker got in",
+        "body": "The diff showed RDP open to the internet from the first minutes, and the backout plan was approved and ready. Every minute of looking elsewhere was a minute of guessing."
+      },
+      "stillExposed": {
+        "headline": "Left open",
+        "body": "The payroll server is still reachable from the internet. The backout plan restores the last approved version."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The change record approved outbound TCP 443 from PAY01 to the vendor's range; the version control diff shows v42 added an inbound allow from anywhere to PAY01 on 443 and 3389, which the IDS scans confirm. Execute the approved backout plan (restore v41) inside the window, accepting the planned inspection service restart; a live hand edit or deletion would be an unapproved change and leave version control wrong. Check PAY01's logons for an outside success. Tell the change manager, the owner and the vendor, request an emergency change for the corrected rule with a peer review, implement it as v43 when approved, run the vendor test before 23:30, and update the diagram and both records. The lesson: review the diff against the approved change before it goes live."
+  }
+}

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart, selectPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: CompTIA Project+ (PK0-005, V5). Still the live exam when checked
@@ -277,6 +277,106 @@ export const PROJECTPLUS_LABS: SeedLabSet = {
               "Post-deployment",
               "Plans post-deployment checks and support (smoke tests, monitoring, hypercare or warranty period with the vendor, user communications).",
               "Smoke test immediately; monitor errors and performance; staff a support line on Monday morning; agree a two-week warranty period with the vendor for defect fixes."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 3 / 3 / 2 / 2. Concepts from
+    // the Project+ objectives the set cites; values are the fictional
+    // project's own.
+    {
+      slug: "projectplus-charter-review",
+      objective: "Project initiation",
+      kind: "build",
+      title: "Review a draft project charter",
+      brief:
+        "Ashdown Veterinary Group (fictional) is starting a project to move its six clinics to a new appointment-booking system. The draft charter says:\n\n1. Purpose: replace the paper diary and phone-only booking with online booking.\n2. Sponsor: the operations director, who funds the project and approves the charter.\n3. Scope: everything needed for a better client experience.\n4. Success: clients like it.\n5. High-level milestones: vendor chosen by February, pilot clinic live in April, all clinics by July.\n6. Budget: to be decided later by whoever is free.\n7. Project manager: named, with authority to assign the project team's work.\n8. Key risk: clinics' internet connections may be unreliable.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Reviews the fictional draft charter in the brief; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Tap the charter lines that need rewriting, then rewrite them.",
+          parts: [
+            selectPart(
+              "Lines that need rewriting",
+              "Met: exactly 3 (scope with no boundary), 4 (success that cannot be measured) and 6 (no budget and no owner). (Right picks minus wrong picks) of at least two is partly there.",
+              "A charter authorizes the project, so it must bound it. 'Everything needed for a better client experience' sets no limit and invites scope creep. 'Clients like it' cannot be measured, so nobody can say the project succeeded. A budget 'decided later by whoever is free' gives no funding authority and no owner. The purpose, sponsor, milestones, PM authority and the first risk are what a charter should say.",
+              {
+                display: "list",
+                lines: ["1. Purpose: replace the paper diary and phone-only booking with online booking", "2. Sponsor: the operations director, who funds and approves", "3. Scope: everything needed for a better client experience", "4. Success: clients like it", "5. Milestones: vendor by February, pilot in April, all clinics by July", "6. Budget: to be decided later by whoever is free", "7. Project manager: named, with authority to assign team work", "8. Key risk: clinics' internet may be unreliable"],
+                correct: [2, 3, 5],
+              }
+            ),
+            part(
+              "Rewritten lines",
+              "Scope: in-scope and out-of-scope items (e.g. in: online booking, staff diary, reminders, data migration for six clinics; out: billing, medical records, telephone system). Success: measurable criteria with targets and dates (e.g. a share of bookings made online within three months of go-live, phone booking time reduced, no lost appointments in migration). Budget: a high-level amount or range approved by the sponsor, with who controls it and the change process for exceeding it.",
+              "3. Scope: In -- online booking for the six clinics, the staff appointment diary, automatic reminders, moving future appointments from the paper diaries, staff training. Out -- billing, clinical records, replacing the phone system.\n4. Success: by three months after the last clinic goes live, at least 40% of appointments booked online; average time on booking calls down by a quarter; zero appointments lost in the migration; within the approved budget. (Targets agreed with the sponsor -- these are examples.)\n6. Budget: a summary budget or range approved by the operations director, held by the project manager, with any overrun beyond an agreed tolerance going to the sponsor through change control."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "projectplus-closing-sequence",
+      objective: "Project closing",
+      kind: "build",
+      title: "Close the booking-system project properly",
+      brief:
+        "Ashdown Veterinary Group's (fictional) booking system is live in all six clinics. The vendor's last invoice is still open, two contractors are booked until month end, the shared project folder is a mess, and the sponsor wants to 'just call it done' so the team can start the next project.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies project-closing practice to the fictional project; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Put the closing activities in order, then explain what is lost if the sponsor skips closing.",
+          parts: [
+            orderPart(
+              "Closing order",
+              "Met: exactly -- confirm deliverables are accepted (sign-off); hand over to operations support; close the vendor contract and settle the final invoice; release contractors and team members; hold the lessons-learned session; archive the project records; issue the closing report. Up to two single moves from that is partly there.",
+              "Acceptance comes first, because everything else assumes the work is done. Operations must own the system before the project team leaves. Contracts are closed once deliverables are accepted (the final invoice is paid against acceptance). People are released after handover. Lessons are gathered while people are still available, then records are archived, and the closing report summarizes it all for the sponsor.",
+              ["Confirm deliverables are accepted, with sign-off", "Hand over to operations support", "Close the vendor contract and settle the final invoice", "Release contractors and team members", "Hold the lessons-learned session", "Archive the project records", "Issue the closing report to the sponsor"]
+            ),
+            part(
+              "What skipping closing loses",
+              "Without formal acceptance, disputes over 'done' and open defects; without handover, nobody owns support; the open contract can be paid wrongly or left exposed (warranty, final deliverables, contractors billing unneeded days); no lessons learned for the next project; lost records needed for audits and the next phase; resources not formally released and benefits not tracked. Closing is short when planned.",
+              "Skip it and: nobody has formally accepted the system, so open defects become arguments; support has no clear owner when a clinic calls; the vendor invoice is paid without checking every deliverable and the warranty terms, and the two contractors bill days nobody needs; the lessons from six roll-outs are lost just before the next project; the documents an auditor or the next phase will need are scattered; and the benefits (online bookings, call time) are never measured against the charter. Closing a project like this takes days, not weeks, and the next project starts with fewer surprises."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "projectplus-quality-charts",
+      objective: "Quality and performance charts",
+      kind: "build",
+      title: "Choose the chart for each quality question",
+      brief:
+        "Ashdown Veterinary Group's (fictional) project team logged 120 booking-system support tickets in the first month. The steering group asks five questions:\n\nA. Which few ticket categories cause most of the tickets?\nB. Is the daily ticket count stable, or is something out of control?\nC. How are ticket resolution times spread out -- mostly quick, or a long tail?\nD. Does the number of tickets rise with the number of new staff trained that day?\nE. What possible causes sit behind 'double-booked appointments'?",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies quality charts for the fictional ticket data; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each question to its chart, then explain how to read the Pareto chart for A.",
+          parts: [
+            matchPart(
+              "Chart for each question",
+              "Met: all five right -- A Pareto chart; B control chart; C histogram; D scatter diagram; E cause-and-effect (fishbone) diagram. Four right is partly there.",
+              "A Pareto chart sorts categories by count with a cumulative line, showing the vital few. A control chart plots a measure over time against control limits to separate normal variation from special causes. A histogram shows the shape of a distribution. A scatter diagram shows whether two variables move together. A fishbone diagram organizes possible causes of one effect. A Gantt chart is a schedule tool, not a quality chart.",
+              {
+                leftHeading: "Question",
+                rightHeading: "Chart",
+                left: ["A: the few categories causing most tickets", "B: is the daily count stable", "C: the spread of resolution times", "D: tickets vs staff trained that day", "E: possible causes of double bookings"],
+                right: ["Pareto chart", "Control chart", "Histogram", "Scatter diagram", "Cause-and-effect (fishbone) diagram", "Gantt chart"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Reading the Pareto chart",
+              "Bars sorted from most to fewest tickets per category with a cumulative-percentage line; read across from about 80% on the line to find the few categories that account for most tickets and target those first (the 80/20 idea is a heuristic, not a law); categories should be meaningful and 'other' kept small; recheck after fixes to see whether the order changes.",
+              "The categories are sorted left to right from most to fewest tickets, and a line climbs to 100% showing the running total. Read where the line passes roughly 80%: the bars to the left of that point are the few categories driving most of the 120 tickets, so fixes there pay off most. The 80/20 split is a rule of thumb, not a law -- the chart may show 3 categories making 60%, and that is still the answer. Keep the categories specific (a big 'other' bar hides the cause), and redraw the chart after the fixes to see what rises to the top next."
             ),
           ],
         },

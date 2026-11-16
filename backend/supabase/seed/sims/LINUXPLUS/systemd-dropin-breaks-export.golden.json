@@ -1,0 +1,899 @@
+{
+  "slug": "systemd-dropin-breaks-export",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "status, journal and cat; systemctl edit the drop-in, start, enable, check the file",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "cat",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "systemctlEdit"
+          },
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "enable",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 15,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "ls",
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 17,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 18,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "dropin"
+          },
+          "seq": 20,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "restored",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "survives": "met",
+          "noSideEffects": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minFix": 9,
+          "faultK": 0
+        },
+        "stateHash": "74444e8009875565"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "rmNoEnable",
+      "title": "Removes the drop-in by hand, needs a daemon-reload, and leaves the unit disabled",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "cat",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "rmDropin"
+          },
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 12,
+          "seq": 17,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "ls",
+          "seq": 18,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 13,
+          "seq": 19,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 20,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "dropin"
+          },
+          "seq": 22,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "restoredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "evidence": "met",
+          "rightFix": "met",
+          "survives": "missed",
+          "noSideEffects": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minFix": 11,
+          "faultK": 0
+        },
+        "stateHash": "9282e052d5d4aff6"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "vendorFirst",
+      "title": "Edits the vendor unit file first, then finds the drop-in and fixes it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "editVendor"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "cat",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "systemctlEdit"
+          },
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "enable",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 9,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 14,
+          "seq": 20,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 14,
+          "seq": 21,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "ls",
+          "seq": 22,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 15,
+          "seq": 23,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 24,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "dropin"
+          },
+          "seq": 26,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "restoredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "evidence": "partial",
+          "rightFix": "met",
+          "survives": "met",
+          "noSideEffects": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minFix": 12,
+          "faultK": 1
+        },
+        "stateHash": "83e85c52e2aa405d"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "mkdirOld",
+      "title": "Creates /srv/export-old so the service starts; the file goes where the bank never looks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "journal",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "mkdirOld"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 13,
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 18,
+          "seq": 13,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 14,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 23,
+          "seq": 15,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 16,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 28,
+          "seq": 17,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 18,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 33,
+          "seq": 19,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 38,
+          "seq": 21,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 22,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 43,
+          "seq": 23,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 24,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 48,
+          "seq": 25,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 48,
+          "seq": 26,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 27,
+          "tick": 48
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 28,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "disk"
+          },
+          "seq": 29,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "pickupMissed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 8,
+        "criteria": {
+          "evidence": "partial",
+          "rightFix": "missed",
+          "survives": "missed",
+          "noSideEffects": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minFix": -1,
+          "faultK": 1
+        },
+        "stateHash": "e7f32e128345587c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "reboot",
+      "title": "Reboots the server and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "status",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reboot",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "binary"
+          },
+          "seq": 7,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "rightFix": "missed",
+          "survives": "missed",
+          "noSideEffects": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minFix": -1,
+          "faultK": 1
+        },
+        "stateHash": "021d83b331c4e44f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

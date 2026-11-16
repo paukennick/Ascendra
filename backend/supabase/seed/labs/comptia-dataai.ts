@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA DataAI (DY0-001, V1; the exam formerly branded DataX).
@@ -358,6 +358,110 @@ export const DATAAI_LABS: SeedLabSet = {
               "An alternative strategy",
               "Compares with Thompson sampling (sample each arm's click-through from its posterior Beta distribution and show the arm with the highest draw) or UCB (pick the arm with the highest upper confidence bound), which explore in proportion to uncertainty and automatically reduce exploration as evidence accumulates, usually beating a fixed epsilon; notes the bandit's assumptions (stationary click-through, immediate feedback) and when a classic A/B test is still preferred (need for a clean causal estimate, delayed outcomes).",
               "Thompson sampling keeps a Beta(clicks + 1, non-clicks + 1) posterior per headline, draws one sample from each and shows the highest draw: uncertain arms get sampled more early on and starve naturally as their posteriors sharpen, so exploration shrinks over time instead of staying fixed at 10% forever. UCB does the same deterministically by picking the arm with the highest mean plus a confidence bonus that shrinks with visits. Both typically achieve lower regret than epsilon-greedy. Bandits assume click-through is stationary and feedback is immediate; if the business needs a precise causal estimate of each headline's effect, or the outcome arrives days later (deliveries completed), a fixed-horizon A/B test is still the cleaner instrument."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 2 / 3 / 2 / 2 / 2. The binomial
+    // value was computed on 2026-11-14 (0.9 ** 10 = 0.34868).
+    {
+      slug: "distribution-for-each-process",
+      objective:
+        "Probability and synthetic modeling concepts: normal/uniform/Poisson/binomial distributions, skewness and kurtosis, heteroskedasticity, Monte Carlo simulation, bootstrapping, and Bayes' rule",
+      kind: "build",
+      title: "Choose the distribution, then simulate",
+      brief:
+        "The analytics team at Fernvale Water (fictional) is building a simulation of field-crew workload. They must model four quantities:\n\nA. The number of leak reports arriving per hour, at a steady average rate, independent of each other.\nB. Out of 10 meters inspected, how many have a fault, when each has the same 10% fault chance independently.\nC. Measurement error of a calibrated flow meter, symmetric around zero.\nD. The minute within an hour a scheduled job starts, any minute equally likely.\n\nA manager also asks for the chance that none of the 10 inspected meters is faulty, and how the team will estimate the uncertainty of the mean repair time from only 40 past jobs.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "The rates and probabilities are the fictional utility's, given in the brief; the probability is computed from them.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each quantity to its distribution, give the probability of no faulty meters, and explain how Monte Carlo and bootstrapping fit.",
+          parts: [
+            matchPart(
+              "Distribution for each quantity",
+              "Met: all four right -- A Poisson; B binomial; C normal; D uniform. Three right is partly there.",
+              "Counts of independent events in a fixed interval at a steady rate are Poisson. The number of successes in a fixed number of independent yes/no trials with the same probability is binomial. Symmetric measurement error around zero is usually modeled as normal. Every value in a range equally likely is uniform. The exponential describes the time between Poisson events, which none of the four asks for.",
+              {
+                leftHeading: "Quantity",
+                rightHeading: "Distribution",
+                left: ["A: leak reports per hour", "B: faulty meters out of 10", "C: calibrated meter error", "D: start minute of a scheduled job"],
+                right: ["Poisson", "Binomial", "Normal", "Uniform", "Exponential"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            numericPart("P(no faulty meter in 10)", "Met within 0.005 of 0.349. Within 0.02 is partly there.", "Each meter is fault-free with probability 0.9, independently, so P(0 faults) = 0.9^10 = 0.3487 -- about a 35% chance, so about a 65% chance of at least one fault.", { answer: 0.3487, tolerance: 0.005, partialTolerance: 0.02 }),
+            part(
+              "Monte Carlo and bootstrapping",
+              "Monte Carlo: draw thousands of random scenarios from the chosen distributions (arrivals, faults, repair times), run each through the workload model and read the distribution of outcomes (e.g. the chance crews are overloaded), rather than a single average. Bootstrapping: resample the 40 repair times with replacement many times, compute the mean each time, and use the spread of those means (e.g. the 2.5th to 97.5th percentiles) as a confidence interval, without assuming a distribution; notes 40 points limits what tails can be estimated, and synthetic data must be validated against real data before decisions.",
+              "Monte Carlo: sample each hour's leak reports from the Poisson, inspection faults from the binomial and repair times from the observed data, run the crew model on each sampled day, and repeat ten thousand times. The result is a distribution -- for example, the share of simulated days on which crews run out of hours -- instead of one average that hides the bad days.\nBootstrapping: from the 40 past repair times, draw 40 with replacement, take the mean, and repeat a few thousand times; the middle 95% of those means is a confidence interval for the true mean, with no normality assumption. With only 40 jobs the rare long repairs are poorly represented, so treat the tails with care and compare the simulation's output with real weeks before relying on it."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "unsupervised-method-for-each-task",
+      objective:
+        "Unsupervised machine-learning concepts: k-means clustering, hierarchical and density-based (DBSCAN) clustering, dimensionality reduction (PCA, t-SNE, UMAP), and k-nearest neighbors",
+      kind: "build",
+      title: "Pick the unsupervised method for four tasks",
+      brief:
+        "Fernvale Water (fictional) has no labels for most of its meter data. The team lists four tasks:\n\nA. Split 50,000 households into about five usage segments for tariff marketing; features are scaled and segments are expected to be roughly round blobs.\nB. Find unusual clusters of leak reports on a city map, where clusters have irregular shapes and isolated reports should be marked as noise.\nC. Compress 120 correlated sensor features into a few components that keep most of the variance, before training another model.\nD. Show the board a two-dimensional picture of how meter-behavior groups relate, for exploration only.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies unsupervised methods for the fictional tasks; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each task to its method, then explain two pitfalls in using them.",
+          parts: [
+            matchPart(
+              "Method for each task",
+              "Met: all four right -- A k-means; B DBSCAN; C PCA; D t-SNE or UMAP for visualization. Three right is partly there.",
+              "k-means partitions into a chosen number of compact, roughly spherical clusters on scaled features (A). DBSCAN finds dense regions of any shape and labels sparse points as noise (B). PCA builds linear components ordered by explained variance, suitable as model inputs (C). t-SNE and UMAP make non-linear two-dimensional maps for looking at structure (D). k-nearest neighbors is a supervised method needing labels.",
+              {
+                leftHeading: "Task",
+                rightHeading: "Method",
+                left: ["A: about five round usage segments", "B: irregular map clusters with noise", "C: compress 120 correlated features for modeling", "D: 2D picture of group structure for exploration"],
+                right: ["k-means", "DBSCAN", "PCA", "t-SNE or UMAP", "k-nearest neighbors"],
+                pairs: [0, 1, 2, 3],
+              }
+            ),
+            part(
+              "Two pitfalls",
+              "Any two, explained: k-means needs k chosen (elbow or silhouette) and scaled features, and is sensitive to initialization and outliers; DBSCAN's eps and min-samples settings drive the result and one setting struggles with clusters of different densities; PCA is linear and needs standardized features, and components are harder to explain; t-SNE/UMAP distances between clusters and cluster sizes are not meaningful and the layout changes with settings and seeds, so they should not feed decisions or downstream models; clusters need validation with domain experts before a tariff decision.",
+              "1. k-means always returns k clusters, whether or not they exist: choose k with silhouette scores or an elbow plot, scale features first, run several initializations, and check that the segments make sense to the tariff team.\n2. t-SNE and UMAP pictures mislead if read literally: the gaps between groups and the sizes of groups are not measurements, and the picture changes with perplexity, neighbors and the random seed. Use them to look, not to decide, and never as features for another model.\n(Also: DBSCAN's eps and min-samples settings decide what counts as a cluster, and one setting handles clusters of very different density badly; PCA components are linear mixes of the original features, so standardize first and expect them to be harder to explain.)"
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "crisp-dm-project-walkthrough",
+      objective: "The data science life cycle and workflow models: CRISP-DM, version control, and clean-code practices",
+      kind: "build",
+      title: "Put a churn project through CRISP-DM",
+      brief:
+        "Fernvale Water (fictional) asks for a model to predict which business customers will switch supplier. A junior analyst has already trained three models in one notebook named final_v3_REAL.ipynb on a data extract nobody can find again, and wants to present accuracy figures to the board next week.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies the CRISP-DM life cycle to the fictional project; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Put the CRISP-DM phases in order, then say what the analyst should fix before the board meeting.",
+          parts: [
+            orderPart(
+              "CRISP-DM phases",
+              "Met: exactly business understanding, data understanding, data preparation, modeling, evaluation, deployment. One item out of place is partly there.",
+              "CRISP-DM starts from the business question, then explores the data, prepares it, models, and evaluates the model against the business objective (not only a metric) before deployment. It is iterative: evaluation often sends the team back to business or data understanding.",
+              ["Business understanding", "Data understanding", "Data preparation", "Modeling", "Evaluation", "Deployment"]
+            ),
+            part(
+              "What to fix first",
+              "Goes back to business understanding (what decision the predictions drive, the cost of a missed churner vs a false alarm, the success measure, which may not be accuracy on imbalanced churn data); makes the work reproducible -- data extract versioned or its query saved with a date, code in version control with meaningful commits instead of renamed notebooks, functions instead of copied cells, fixed random seeds, documented environment; evaluates on a held-out set against a simple baseline with metrics fitting the business cost (precision/recall); presents with uncertainty, not a single accuracy figure.",
+              "Start where CRISP-DM starts: agree the business question with the account team -- what they will do with a 'likely to switch' flag, and what a missed churner costs compared with a wasted retention call. That decides the measure; with few churners, accuracy can look high while catching nobody, so precision and recall at a chosen threshold matter more. Then make the work reproducible: save the extract's query and date (or version the data), move the code into a git repository with clear commits rather than final_v3_REAL, turn copied cells into functions, fix random seeds and record package versions. Evaluate all three models on the same held-out data against a simple baseline, and present the ranges, not one number. Deployment is a later step, after the evaluation shows it meets the business goal."
             ),
           ],
         },

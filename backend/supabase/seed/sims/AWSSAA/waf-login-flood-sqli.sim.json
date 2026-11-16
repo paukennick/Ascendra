@@ -1,0 +1,1151 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "waf-login-flood-sqli",
+  "title": "Attack: a login flood and SQL injection probes an hour before a concert on-sale",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "edge",
+          "label": "Amazon CloudFront distribution tickets.example.com",
+          "spokenLabel": "the CloudFront distribution",
+          "items": [
+            {
+              "label": "AWS Shield Standard: on (automatic, network and transport layer)",
+              "when": "true"
+            },
+            {
+              "label": "Web ACL associated (AWS WAF)",
+              "when": "aclOn"
+            },
+            {
+              "label": "Rule: AWS managed SQL database rule group, Block",
+              "when": "sqliOn"
+            },
+            {
+              "label": "Rule: rate-based on /login, {rateLimit == \"low\" ? \"10\" : rateLimit == \"right\" ? \"300\" : \"2,000\"} requests per 5 minutes per IP, Block",
+              "when": "rateLimit != \"none\""
+            },
+            {
+              "label": "Maintenance page: the whole site is offline",
+              "when": "siteOffline"
+            }
+          ]
+        },
+        {
+          "id": "origin",
+          "label": "Application Load Balancer and Auto Scaling group",
+          "spokenLabel": "the load balancer and its instances",
+          "items": [
+            {
+              "label": "ALB security group: {originLocked ? \"HTTPS from the CloudFront origin-facing prefix list only\" : \"HTTPS from 0.0.0.0/0\"}",
+              "when": "true"
+            },
+            {
+              "label": "Instances: {scaled ? \"30 (maximum raised from 6)\" : \"6\"}; login checks hit the orders database",
+              "when": "true"
+            },
+            {
+              "label": "Flood status: {floodAtOrigin ? (isNull(bypassAt) ? \"login flood reaching the instances\" : \"botnet hitting the ALB's own DNS name, around CloudFront\") : \"flood stopped before the instances\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "data",
+          "label": "Orders database (Amazon RDS)",
+          "spokenLabel": "the orders database",
+          "items": [
+            {
+              "label": "{isNull(dataOutAt) ? \"Customer table intact\" : \"Customer table copied out through /search\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "biz",
+          "label": "Business",
+          "spokenLabel": "the business",
+          "items": [
+            {
+              "label": "Concert on-sale at 11:00 (60 minutes from now)",
+              "when": "isNull(onsaleOkAt) and isNull(onsaleFailedAt)"
+            },
+            {
+              "label": "On-sale ran: {isNull(onsaleOkAt) ? \"site down, fans could not buy\" : \"tickets selling\"}",
+              "when": "not isNull(onsaleOkAt) or not isNull(onsaleFailedAt)"
+            },
+            {
+              "label": "Real customers blocked by the rate rule (shared addresses)",
+              "when": "not isNull(campusBlockedAt)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "loginErr",
+          "label": "Login errors",
+          "value": "{siteOffline ? \"site offline\" : floodAtOrigin ? \"62% timing out\" : \"under 1%\"}"
+        },
+        {
+          "id": "originRpm",
+          "label": "Login requests per minute reaching the instances",
+          "value": "{siteOffline ? 0 : floodAtOrigin ? 240000 : 6000}"
+        }
+      ]
+    }
+  },
+  "objective": "Protecting applications from external threats: AWS WAF and AWS Shield against DDoS and injection",
+  "sources": [
+    {
+      "cite": "AWS Certified Solutions Architect - Associate (SAA-C03) Exam Guide: Design Secure Architectures 30%, Design Resilient Architectures 26%, Design High-Performing Architectures 24%, Design Cost-Optimized Architectures 20%",
+      "checkedAt": "2026-11-14",
+      "url": "https://d1.awsstatic.com/training-and-certification/docs-sa-assoc/AWS-Certified-Solutions-Architect-Associate_Exam-Guide.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-14. Task Statement 1.2 'Design secure workloads and applications': knowledge 'Threat vectors external to AWS (for example, DDoS, SQL injection)'; skills name 'AWS Shield, AWS WAF' among the services for securing applications."
+    },
+    {
+      "cite": "AWS Shield Developer Guide: AWS Shield Standard overview",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-standard-summary.html",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Shield Standard defends against the most common, frequently occurring network and transport layer DDoS attacks'; 'All AWS customers benefit from the automatic protection of Shield Standard, at no additional charge.' The page does not say it handles application-layer (layer 7) floods; the Shield Advanced overview (same day) describes 'automatic application layer DDoS mitigation' as a Shield Advanced feature that adds a rule group to the web ACL. Shield Advanced prices and commitment were not read, so the scenario does not offer a subscription."
+    },
+    {
+      "cite": "AWS WAF Developer Guide: Rate-based rule high-level settings",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html",
+      "note": "Read through a summarizing fetch on 2026-11-14 (no last-updated date shown). Relevant text: evaluation window 'Valid settings are 60 (1 minute), 120 (2 minutes), 300 (5 minutes), and 600 (10 minutes), and 300 (5 minutes) is the default'; 'The lowest limit setting allowed is 10'; 'You can use any rule action except Allow'; 'AWS WAF applies rate limiting near the limit that you set, but does not guarantee an exact limit match.'"
+    },
+    {
+      "cite": "AWS WAF Developer Guide: Use-case specific rule groups, SQL database managed rule group (AWSManagedRulesSQLiRuleSet)",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-use-case.html",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'The SQL database rule group contains rules to block request patterns associated with exploitation of SQL databases, like SQL injection attacks. This can help prevent remote injection of unauthorized queries.' WCU 200; its rules inspect query arguments, body, headers, URI path and cookies."
+    },
+    {
+      "cite": "Amazon VPC User Guide: Infrastructure security, Compare security groups and network ACLs",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html",
+      "note": "Read through a summarizing fetch on 2026-11-14. Relevant text (table): security group rule type 'Allow rules only'; network ACL 'Allow and deny rules'."
+    },
+    {
+      "cite": "Amazon CloudFront Developer Guide: Locations and IP address ranges of CloudFront edge servers, the CloudFront managed prefix list",
+      "checkedAt": "2026-11-14",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html",
+      "note": "Read in primary text on 2026-11-14. Relevant text: 'The prefix list allows inbound traffic to your origin only from CloudFront origin-facing servers, which prevents non-CloudFront traffic from reaching your origin'; 'If you remove all other inbound rules from the security group, you prevent any non-CloudFront traffic from reaching the instance.' Prefix list com.amazonaws.global.cloudfront.origin-facing."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call solutions architect for Tidewater Tickets, a fictional ticket seller. At 10:00 login errors spike and the site slows. A major concert goes on sale at 11:00. The site runs CloudFront in front of an Application Load Balancer, an Auto Scaling group of 6 instances and an RDS orders database.",
+    "handover": [
+      "No AWS WAF web ACL is set up yet. AWS Shield Standard is on, as it is for every AWS account.",
+      "The ALB's security group allows HTTPS from anywhere."
+    ],
+    "howItWorks": [
+      "The board shows the distribution, the origin, the database and the business, with what is set up in each.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. The attackers keep working on the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "dumpAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The attacker's injection probes find a vulnerable parameter 45 minutes in, unless blocked."
+      }
+    },
+    "bypassDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. Fifteen minutes after the flood is blocked at CloudFront, the botnet tries the load balancer's own DNS name."
+      }
+    },
+    "onsaleAt": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The on-sale opens at 11:00, an hour after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "aclOn": {
+      "type": "bool",
+      "init": false
+    },
+    "aclAt": {
+      "type": "time",
+      "init": null
+    },
+    "sqliOn": {
+      "type": "bool",
+      "init": false
+    },
+    "sqliAt": {
+      "type": "time",
+      "init": null
+    },
+    "rateLimit": {
+      "type": "enum",
+      "values": [
+        "none",
+        "low",
+        "right",
+        "high"
+      ],
+      "init": "none"
+    },
+    "rateAt": {
+      "type": "time",
+      "init": null
+    },
+    "sgDenyTried": {
+      "type": "bool",
+      "init": false
+    },
+    "originLocked": {
+      "type": "bool",
+      "init": false
+    },
+    "lockAt": {
+      "type": "time",
+      "init": null
+    },
+    "scaled": {
+      "type": "bool",
+      "init": false
+    },
+    "siteOffline": {
+      "type": "bool",
+      "init": false
+    },
+    "bypassAt": {
+      "type": "time",
+      "init": null
+    },
+    "dataOutAt": {
+      "type": "time",
+      "init": null
+    },
+    "campusBlockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "onsaleOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "onsaleFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "layerDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "l7waf",
+        "shieldStd",
+        "sg"
+      ],
+      "init": "unset"
+    },
+    "followDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "param",
+        "wafEnough"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "rateStops": {
+      "expr": "aclOn and (rateLimit == \"right\" or rateLimit == \"low\")"
+    },
+    "floodAtOrigin": {
+      "expr": "not siteOffline and (not rateStops or (not isNull(bypassAt) and not originLocked))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "logs",
+        "createAcl",
+        "sqliRule",
+        "rateRule",
+        "sgDeny",
+        "originLock",
+        "scaleOut",
+        "offline",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "metrics": {
+      "label": "Open CloudFront and ALB metrics: requests and errors by path and source",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Metrics: /login requests are 40 times normal, from about 2,000 addresses; packets per second and connection counts at the edge are normal.",
+          "kind": "act"
+        },
+        {
+          "finding": "An application-layer (layer 7) HTTP flood on /login. Shield Standard is already on and covers network and transport layer attacks, which are normal here."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "Read the ALB access logs for /login and /search",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Logs: each flood address sends about 600 login requests in 5 minutes; customers send under 20, and the state university's shared address about 80. Three other addresses send /search?q= values containing UNION SELECT and ' OR 1=1--.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two attacks at once: a login flood, and SQL injection probing the search box."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "createAcl": {
+      "label": "Create an AWS WAF web ACL and associate it with the CloudFront distribution",
+      "group": "Protect",
+      "available": "not busy and (not aclOn)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "aclOn",
+          "to": "true"
+        },
+        {
+          "set": "aclAt",
+          "to": "t"
+        },
+        {
+          "log": "Web ACL associated with the distribution. It has no rules yet.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "sqliRule": {
+      "label": "Add the AWS managed SQL database rule group (AWSManagedRulesSQLiRuleSet), action Block",
+      "group": "Protect",
+      "available": "not busy and (aclOn and not sqliOn)",
+      "why": "Associate a web ACL first, or it is done.",
+      "effects": [
+        {
+          "set": "sqliOn",
+          "to": "true"
+        },
+        {
+          "set": "sqliAt",
+          "to": "t"
+        },
+        {
+          "log": "Requests with SQL injection patterns in the query string, body, headers or cookies are now blocked at the edge.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rateRule": {
+      "label": "Add or change a rate-based rule on /login, action Block",
+      "group": "Protect",
+      "available": "not busy and (aclOn)",
+      "why": "Associate a web ACL first.",
+      "params": [
+        {
+          "id": "limit",
+          "kind": "choice",
+          "label": "Limit per IP per 5 minutes",
+          "options": [
+            {
+              "value": "low",
+              "label": "10 (the lowest AWS WAF allows)"
+            },
+            {
+              "value": "right",
+              "label": "300"
+            },
+            {
+              "value": "high",
+              "label": "2,000"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "rateAt",
+          "to": "t"
+        },
+        {
+          "set": "rateLimit",
+          "to": "limit"
+        },
+        {
+          "cases": [
+            {
+              "when": "limit == \"high\"",
+              "then": [
+                {
+                  "log": "Rule set at 2,000 per 5 minutes per IP: each flood address sends about 600, so nothing is blocked.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "limit == \"low\"",
+              "then": [
+                {
+                  "log": "Rule set at 10 per 5 minutes per IP: the flood stops at the edge.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Rule set at 300 per 5 minutes per IP: the flood stops at the edge; customers and the university's shared address stay under it.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "sgDeny": {
+      "label": "Add deny rules for the top attacking addresses to the ALB's security group",
+      "group": "Protect",
+      "available": "not busy and (not sgDenyTried)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "sgDenyTried",
+          "to": "true"
+        },
+        {
+          "log": "Security groups have allow rules only: there is no deny rule to add, and nothing is blocked. (Network ACLs have deny rules, but 2,000 addresses would not fit, and they change hourly.)",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "originLock": {
+      "label": "Allow HTTPS to the ALB only from the CloudFront origin-facing prefix list",
+      "group": "Protect",
+      "available": "not busy and (not originLocked)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "originLocked",
+          "to": "true"
+        },
+        {
+          "set": "lockAt",
+          "to": "t"
+        },
+        {
+          "log": "The ALB security group now admits only CloudFront's origin-facing servers: every request has to pass the web ACL.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "scaleOut": {
+      "label": "Raise the Auto Scaling group's maximum from 6 to 30 instances",
+      "group": "Capacity",
+      "available": "not busy and (not scaled)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "scaled",
+          "to": "true"
+        },
+        {
+          "log": "24 more instances launch and fill at once: the flood grows with your capacity and your bill, and every login still checks the database.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "offline": {
+      "label": "Put the whole site into maintenance mode until the attack stops",
+      "group": "Capacity",
+      "available": "not busy and (not siteOffline)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "siteOffline",
+          "to": "true"
+        },
+        {
+          "log": "The site is offline for everyone, fans included.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (15 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "layer",
+              "label": "Which control stopped the login flood, and why",
+              "options": [
+                {
+                  "value": "l7waf",
+                  "label": "AWS WAF: it is a layer 7 flood, which Shield Standard's network and transport layer protection does not cover; a rate-based rule blocks it, and the origin admits only CloudFront"
+                },
+                {
+                  "value": "shieldStd",
+                  "label": "AWS Shield Standard stopped it, since it is a DDoS attack"
+                },
+                {
+                  "value": "sg",
+                  "label": "The security group, by denying the attacking addresses"
+                }
+              ]
+            },
+            {
+              "id": "follow",
+              "label": "Follow-up for the injection",
+              "options": [
+                {
+                  "value": "param",
+                  "label": "Fix the search query with parameterized statements; the WAF rule is a layer of defense, not the fix"
+                },
+                {
+                  "value": "wafEnough",
+                  "label": "Nothing more: the WAF rule group blocks it"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "layerDoc",
+          "to": "layer"
+        },
+        {
+          "set": "followDoc",
+          "to": "follow"
+        },
+        {
+          "log": "Recorded: {layer}, {follow}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "dump",
+      "when": "t >= dumpAt and not sqliOn and not siteOffline and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "dataOutAt",
+          "to": "t"
+        },
+        {
+          "log": "10:45: the injection on /search?q= returns the customer table; 41,000 emails and password hashes are copied out.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "bypass",
+      "when": "rateStops and not isNull(rateAt) and t >= timeAt(rateAt) + bypassDelay and not originLocked and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "bypassAt",
+          "to": "t"
+        },
+        {
+          "log": "Blocked at CloudFront, the botnet switches to the load balancer's own DNS name: the flood reaches the instances again, around the web ACL.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "campus",
+      "when": "rateLimit == \"low\" and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "campusBlockedAt",
+          "to": "t"
+        },
+        {
+          "log": "Support calls: real customers get 403 at login. A family refreshing the page, and the university's thousands of students behind one address, pass 10 requests in 5 minutes.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "onsale",
+      "when": "t >= onsaleAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "not floodAtOrigin and not siteOffline",
+          "then": [
+            {
+              "set": "onsaleOkAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the on-sale opens and tickets sell.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "onsaleFailedAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the on-sale opens and fans cannot log in.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what the two attacks were, which AWS controls stopped each and why those, and what still has to change.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Two attacks",
+          "criteria": "Separates the layer 7 login flood (many addresses, each far above a customer's rate) from the SQL injection probes on /search, from metrics and logs.",
+          "modelAnswer": "Metrics showed a login flood from about 2,000 addresses at layer 7, with network-layer traffic normal; the logs showed each address at about 600 requests per 5 minutes against under 20 for customers, and three addresses sending UNION SELECT probes to /search."
+        },
+        {
+          "label": "Controls",
+          "criteria": "AWS WAF on CloudFront: the managed SQL database rule group, a rate-based rule set between customer and attacker rates, and the ALB admitting only the CloudFront prefix list; explains why Shield Standard and security groups do not stop this.",
+          "modelAnswer": "Shield Standard covers network and transport layer attacks, not an HTTP flood that looks like logins, and security groups have no deny rules. A web ACL on the distribution with the SQL database rule group blocked the probes, a 300-per-5-minutes rule on /login stopped the flood without blocking the university's shared address, and restricting the ALB to the CloudFront origin-facing prefix list stopped the botnet going around the web ACL."
+        },
+        {
+          "label": "Still to do",
+          "criteria": "The injectable query must be fixed in code (parameterized statements); WAF is defense in depth. Mentions logging or tuning the rules.",
+          "modelAnswer": "The search query is still injectable; the WAF rule only filters known patterns. The developers parameterize it this week, and we keep WAF logging on to tune the rate limit before the next on-sale."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "The injection probes find a vulnerable parameter 45 minutes in; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-14",
+          "note": "No data copied out and no real customers blocked."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and floodAtOrigin and not sqliOn",
+      "class": "harm",
+      "rationale": "Closing with the flood reaching the instances and the injection unblocked leaves both attacks running; it is never a safe outcome.",
+      "source": {
+        "cite": "AWS Shield Developer Guide: AWS Shield Standard overview",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-standard-summary.html",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Shield Standard defends against the most common, frequently occurring network and transport layer DDoS attacks'; 'All AWS customers benefit from the automatic protection of Shield Standard, at no additional charge.' The page does not say it handles application-layer (layer 7) floods; the Shield Advanced overview (same day) describes 'automatic application layer DDoS mitigation' as a Shield Advanced feature that adds a rule group to the web ACL. Shield Advanced prices and commitment were not read, so the scenario does not offer a subscription."
+      }
+    }
+  },
+  "endings": {
+    "dataStolen": {
+      "label": "Customer data was copied out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(dataOutAt)",
+      "narrative": "The injection reached the database before anything blocked it: 41,000 customers' emails and password hashes are out."
+    },
+    "takenDown": {
+      "label": "The site was taken offline",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and siteOffline",
+      "narrative": "Maintenance mode stopped the attack by stopping the business: the on-sale could not run."
+    },
+    "onsaleDown": {
+      "label": "The on-sale failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(onsaleFailedAt)",
+      "narrative": "The flood was still reaching the instances when the on-sale opened, and fans could not log in."
+    },
+    "stillOpen": {
+      "label": "Closed with an attack still open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (not sqliOn or floodAtOrigin)",
+      "narrative": "One of the two attacks still has a way in."
+    },
+    "protected": {
+      "label": "Both attacks stopped at the edge",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sqliOn and timeAt(sqliAt) <= containWindow and rateLimit == \"right\" and originLocked and isNull(bypassAt) and isNull(campusBlockedAt) and not isNull(logsAt) and timeAt(logsAt) <= timeAt(aclAt) and layerDoc == \"l7waf\" and followDoc == \"param\"",
+      "narrative": "The probes were blocked before they found a way in, the flood stopped at a limit customers never reach, and nothing can go around CloudFront."
+    },
+    "protectedGaps": {
+      "label": "Stopped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Both attacks are stopped, but customers were blocked, the botnet got around the web ACL for a while, or the record is wrong."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "dataStolen",
+    "takenDown",
+    "onsaleDown",
+    "stillOpen",
+    "protected",
+    "protectedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the logs before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsAt) and timeAt(logsAt) <= timeAt(aclAt) and not sgDenyTried and not siteOffline and not scaled",
+            "score": "met",
+            "why": "The logs separated the flood from the injection first."
+          },
+          {
+            "when": "not isNull(logsAt)",
+            "score": "partial",
+            "why": "The logs were read only after acting."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody read the logs: the injection was never seen."
+          }
+        ]
+      },
+      {
+        "id": "injection",
+        "label": "SQL injection blocked before the attacker found a way in",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sqliOn and timeAt(sqliAt) <= containWindow and isNull(dataOutAt)",
+            "score": "met",
+            "why": "Blocked {timeAt(sqliAt) / 60|0dp} min in."
+          },
+          {
+            "when": "sqliOn",
+            "score": "partial",
+            "why": "Blocked, but only after the data was out."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The injection was never blocked."
+          }
+        ]
+      },
+      {
+        "id": "flood",
+        "label": "Login flood stopped for good at the right limit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rateLimit == \"right\" and originLocked and isNull(bypassAt) and isNull(onsaleFailedAt) and not siteOffline",
+            "score": "met",
+            "why": "A 300 limit, and the origin admits only CloudFront."
+          },
+          {
+            "when": "rateStops and not floodAtOrigin and not siteOffline and isNull(onsaleFailedAt)",
+            "score": "partial",
+            "why": "{isNull(campusBlockedAt) ? \"Stopped, but the botnet got around CloudFront first.\" : \"Stopped, but real customers were blocked too.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{siteOffline ? \"The site was taken offline instead.\" : \"The flood still reached the instances.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noWaste",
+        "label": "No moves that cannot work: security group deny rules, scaling into the flood",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not sgDenyTried and not scaled",
+            "score": "met",
+            "why": "Every change was one that stops this attack."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{scaled ? \"Scaling out fed the flood and the bill.\" : \"Security groups have no deny rules.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the layer and the code fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "layerDoc == \"l7waf\" and followDoc == \"param\"",
+            "score": "met",
+            "why": "Layer 7, WAF, and the query still needs fixing."
+          },
+          {
+            "when": "layerDoc == \"l7waf\" or followDoc == \"param\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record credits the wrong control and leaves the query injectable."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written attacks, controls and follow-up",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minSqli",
+        "label": "Minutes until the injection was blocked",
+        "value": "isNull(sqliAt) ? -1 : timeAt(sqliAt) / 60",
+        "format": "number",
+        "expert": "about 35"
+      },
+      {
+        "id": "minLock",
+        "label": "Minutes until the origin admitted only CloudFront",
+        "value": "isNull(lockAt) ? -1 : timeAt(lockAt) / 60",
+        "format": "number",
+        "expert": "under 55"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00-10:25",
+        "text": "Metrics: a layer 7 flood on /login. Logs: flood addresses at about 600 requests per 5 minutes, customers under 20, and SQL injection probes on /search."
+      },
+      {
+        "at": "10:25-10:40",
+        "text": "A web ACL on the CloudFront distribution; the managed SQL database rule group, Block; a rate-based rule on /login at 300 per 5 minutes per IP."
+      },
+      {
+        "at": "10:40-10:55",
+        "text": "The ALB security group admits only the CloudFront origin-facing prefix list, so nothing goes around the web ACL. Record: fix the query in code."
+      }
+    ],
+    "debrief": {
+      "protected": {
+        "headline": "Good: both attacks stopped at the edge",
+        "body": "You read the evidence, matched each attack to the AWS WAF control that stops it, set the rate limit between the attacker's rate and your customers', and closed the path around CloudFront."
+      },
+      "protectedGaps": {
+        "headline": "Stopped, with gaps",
+        "body": "Both attacks are stopped. The criteria show where customers were blocked, the web ACL was bypassed, or the record went wrong."
+      },
+      "dataStolen": {
+        "headline": "The data got out",
+        "body": "The probes were in the logs from the start. A managed SQL database rule group on a web ACL takes minutes; the flood was louder but the injection was the bigger risk."
+      },
+      "takenDown": {
+        "headline": "Too blunt",
+        "body": "Taking the site offline does what the attacker wanted. AWS WAF can block both attacks while customers keep buying."
+      },
+      "onsaleDown": {
+        "headline": "The flood came back",
+        "body": "A web ACL only filters what passes through CloudFront. With the load balancer open to the internet, the botnet went around it; the CloudFront prefix list closes that path."
+      },
+      "stillOpen": {
+        "headline": "Left open",
+        "body": "One attack still had a way in when the case closed. Shield Standard covers network and transport layer floods only, and security groups cannot deny."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Metrics show a layer 7 flood on /login from about 2,000 addresses, with network and transport layer traffic normal, so Shield Standard (already on) is not what stops it. The logs show each flood address at about 600 requests per 5 minutes, customers under 20 and a university's shared address about 80, plus SQL injection probes on /search. Associate a web ACL with the CloudFront distribution, add the AWS managed SQL database rule group with Block, and a rate-based rule on /login at 300 per 5 minutes per IP (10 would block real customers, 2,000 blocks nothing). Restrict the ALB's security group to the CloudFront origin-facing prefix list so the botnet cannot go around the web ACL. Security groups have no deny rules, and scaling out only feeds the flood. The query itself must still be parameterized."
+  }
+}
