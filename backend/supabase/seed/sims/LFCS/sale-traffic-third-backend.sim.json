@@ -1,0 +1,1321 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sale-traffic-third-backend",
+  "title": "Outage: checkout times out in a sale, and the third backend is not taking traffic",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@lb1:~#",
+      "lines": [
+        {
+          "id": "slow",
+          "text": "11:30 monitoring: 9% of checkout requests return 504 Gateway Time-out",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "peak",
+          "text": "12:00 marketing: the sale email has gone out; traffic doubling",
+          "when": "not isNull(peakAt)",
+          "at": "timeAt(peakAt)",
+          "error": "true"
+        },
+        {
+          "id": "down",
+          "text": "monitoring: shop.example unreachable",
+          "when": "nginxStopped",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "okLine",
+          "text": "monitoring: checkout errors back under 0.1%",
+          "when": "shopOk",
+          "at": "okSec >= 0 ? okSec : 0"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "lb",
+          "label": "nginx on lb1",
+          "spokenLabel": "the nginx load balancer",
+          "kind": "Reverse proxy",
+          "status": "{nginxStopped ? \"Stopped: configuration invalid\" : activeHasApp3 ? \"Running: 3 servers in the pool\" : \"Running: 2 servers in the pool\"}",
+          "tone": "nginxStopped ? \"down\" : capacityOk ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "app12",
+          "label": "app1, app2",
+          "spokenLabel": "backends app1 and app2",
+          "kind": "Shop backends",
+          "status": "{capacityOk ? \"Busy, answering\" : \"Overloaded: timeouts\"}",
+          "tone": "capacityOk ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "app3",
+          "label": "app3",
+          "spokenLabel": "backend app3",
+          "kind": "New shop backend",
+          "status": "{app3Listening ? \"Listening on 10.0.0.13:8080\" : \"Listening on 127.0.0.1 only\"}",
+          "tone": "app3Listening ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l12",
+          "from": "lb",
+          "to": "app12",
+          "label": "Proxied requests",
+          "status": "{nginxStopped ? \"None\" : \"Round-robin\"}",
+          "tone": "nginxStopped ? \"down\" : \"up\""
+        },
+        {
+          "id": "l3",
+          "from": "lb",
+          "to": "app3",
+          "label": "Proxied requests",
+          "status": "{capacityOk ? \"Serving\" : activeHasApp3 ? \"Connection refused: skipped\" : \"Not in the pool\"}",
+          "tone": "capacityOk ? \"up\" : activeHasApp3 ? \"down\" : \"out\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "untested",
+          "label": "Changes applied without a passing nginx -t",
+          "value": "{untestedApplies}"
+        }
+      ]
+    }
+  },
+  "objective": "Implement a reverse proxy and load balancer with nginx or HAProxy",
+  "secondaryObjectives": [
+    "Troubleshoot networking with ip, ss, ping, tracepath, dig and the journal",
+    "Determine an application's constraints: open files, listening ports, resource limits and the users and paths it needs"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation Certified System Administrator (LFCS): Domains & Competencies, Networking 25%",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/",
+      "note": "Relevant text: Networking, 'Implement reverse proxies and load balancers'. Read as the page's HTML on 2026-11-14 (page last modified 2026-10-30)."
+    },
+    {
+      "cite": "Module ngx_http_upstream_module (nginx.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html",
+      "note": "Relevant text: 'By default, requests are distributed between the servers using a weighted round-robin balancing method'; max_fails 'By default, the number of unsuccessful attempts is set to 1'; fail_timeout 'By default, the parameter is set to 10 seconds'; slow_start is listed under 'the following parameters are available as part of our commercial subscription'. Read through summarizing fetches 2026-11-14. The [emerg] message open-source nginx prints for slow_start is authored in nginx's style."
+    },
+    {
+      "cite": "Controlling nginx (nginx.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://nginx.org/en/docs/control.html",
+      "note": "Relevant text: on HUP 'The master process first checks the syntax validity, then tries to apply new configuration ... If this fails, it rolls back changes and continues to work with old configuration. If this succeeds, it starts new worker processes, and sends messages to old worker processes requesting them to shut down gracefully.' Read through a summarizing fetch 2026-11-14. That a restart with an invalid configuration leaves nginx stopped follows from the stop happening before the failed start."
+    },
+    {
+      "cite": "Module ngx_http_proxy_module, proxy_next_upstream (nginx.org)",
+      "checkedAt": "2026-11-14",
+      "url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+      "note": "Relevant text: default 'proxy_next_upstream error timeout;'; error, 'an error occurred while establishing a connection with the server, passing a request to it, or reading the response header'. Read through a summarizing fetch 2026-11-14. So a pool member that refuses connections is skipped, not shown to customers: it adds no capacity, and only the error log says so."
+    }
+  ],
+  "brief": {
+    "situation": "You run lb1, the nginx load balancer for Fernhill Outdoor's online shop (fictional). A sale starts at 11:30; two backends, app1 and app2, are timing out on checkout. Yesterday the platform team built a third backend, app3 (10.0.0.13), and left a change ticket: add 'server 10.0.0.13:8080 slow_start=30s;' to the shop upstream. The sale email goes out at 12:00 and will double the traffic.",
+    "handover": [
+      "The upstream is in /etc/nginx/conf.d/shop.conf. lb1 runs the open-source nginx package.",
+      "The shop service on app3 reads its listen address from /etc/shopapp/app.env."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments are fixed.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The outage keeps developing on the same clock.",
+      "The map shows each host, disk or service and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "peakDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values. The sale email goes out at 12:00, 30 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "app3Listening": {
+      "type": "bool",
+      "init": false
+    },
+    "fileHasApp3": {
+      "type": "bool",
+      "init": false
+    },
+    "slowLine": {
+      "type": "bool",
+      "init": false
+    },
+    "activeHasApp3": {
+      "type": "bool",
+      "init": false
+    },
+    "brokeRestart": {
+      "type": "bool",
+      "init": false
+    },
+    "nginxStopped": {
+      "type": "bool",
+      "init": false
+    },
+    "testedOk": {
+      "type": "bool",
+      "init": false
+    },
+    "applies": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "untestedApplies": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "capacity",
+        "nginx",
+        "network"
+      ],
+      "init": "unset"
+    },
+    "fixDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "added",
+        "restart",
+        "removed"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "confValid": {
+      "expr": "not slowLine"
+    },
+    "capacityOk": {
+      "expr": "activeHasApp3 and app3Listening"
+    },
+    "shopOk": {
+      "expr": "capacityOk and not nginxStopped"
+    },
+    "okSec": {
+      "expr": "not isNull(okAt) ? timeAt(okAt) : -1"
+    },
+    "faultsAdded": {
+      "expr": "brokeRestart ? 1 : 0"
+    },
+    "evidenceFirst": {
+      "expr": "not isNull(evidenceAt) and (isNull(firstChangeAt) or timeAt(evidenceAt) <= timeAt(firstChangeAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "errLog",
+        "showConf",
+        "ssApp3",
+        "curlApp3",
+        "fixBind",
+        "addTicket",
+        "addPlain",
+        "dropSlow",
+        "nginxT",
+        "reload",
+        "restart",
+        "curlShop",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "errLog": {
+      "label": "tail -4 /var/log/nginx/error.log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "nginxStopped",
+          "then": [
+            {
+              "output": "root@lb1:~# tail -4 /var/log/nginx/error.log\nnginx: [emerg] invalid parameter \"slow_start=30s\" in /etc/nginx/conf.d/shop.conf:5"
+            }
+          ],
+          "else": [
+            {
+              "if": "activeHasApp3 and not app3Listening",
+              "then": [
+                {
+                  "output": "root@lb1:~# tail -4 /var/log/nginx/error.log\n[error] connect() failed (111: Connection refused) while connecting to upstream, upstream: \"http://10.0.0.13:8080/cart\"\n[warn] upstream server temporarily disabled while connecting to upstream, upstream: \"http://10.0.0.13:8080/cart\"\n[error] upstream timed out (110: Connection timed out) while reading response header from upstream, upstream: \"http://10.0.0.11:8080/checkout\""
+                }
+              ],
+              "else": [
+                {
+                  "output": "root@lb1:~# tail -4 /var/log/nginx/error.log\n{capacityOk ? \"(no new errors)\" : \"[error] upstream timed out (110: Connection timed out) while reading response header from upstream, upstream: http://10.0.0.11:8080/checkout\"}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "finding": "app1 and app2 are timing out under load; the error log names each upstream address."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "showConf": {
+      "label": "sed -n '1,8p' /etc/nginx/conf.d/shop.conf",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@lb1:~# sed -n '1,8p' /etc/nginx/conf.d/shop.conf\nupstream shop\n    server 10.0.0.11:8080;\n    server 10.0.0.12:8080;{fileHasApp3 ? (slowLine ? \" server 10.0.0.13:8080 slow_start=30s;\" : \" server 10.0.0.13:8080;\") : \"\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ssApp3": {
+      "label": "ssh app3 ss -tlnp",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@lb1:~# ssh app3 ss -tlnp\nState  Recv-Q Send-Q Local Address:Port  Peer Address:Port Process\nLISTEN 0      128   {app3Listening ? \"      0.0.0.0:8080\" : \"    127.0.0.1:8080\"}       0.0.0.0:*     users:((\"gunicorn\",pid=914))"
+        },
+        {
+          "finding": "app3's shop service listens on 127.0.0.1 only, so lb1 cannot reach it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "curlApp3": {
+      "label": "curl -sI http://10.0.0.13:8080/health",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@lb1:~# curl -sI http://10.0.0.13:8080/health\n{app3Listening ? \"HTTP/1.1 200 OK\" : \"curl: (7) Failed to connect to 10.0.0.13 port 8080: Connection refused\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixBind": {
+      "label": "ssh app3 \"sed -i 's/^BIND=127.0.0.1/BIND=0.0.0.0/' /etc/shopapp/app.env && systemctl restart shopapp\"",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "app3Listening",
+          "to": "true"
+        },
+        {
+          "output": "root@lb1:~# ssh app3 \"sed -i 's/^BIND=127.0.0.1/BIND=0.0.0.0/' /etc/shopapp/app.env && systemctl restart shopapp\""
+        },
+        {
+          "if": "capacityOk and not nginxStopped and isNull(okAt)",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "app3 is taking a third of the requests: upstream timeouts stop.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addTicket": {
+      "label": "sed -i '/10.0.0.12:8080;/a server 10.0.0.13:8080 slow_start=30s;' /etc/nginx/conf.d/shop.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fileHasApp3",
+          "to": "true"
+        },
+        {
+          "set": "slowLine",
+          "to": "true"
+        },
+        {
+          "set": "testedOk",
+          "to": "false"
+        },
+        {
+          "output": "root@lb1:~# sed -i '/10.0.0.12:8080;/a server 10.0.0.13:8080 slow_start=30s;' /etc/nginx/conf.d/shop.conf"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addPlain": {
+      "label": "sed -i '/10.0.0.12:8080;/a server 10.0.0.13:8080;' /etc/nginx/conf.d/shop.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fileHasApp3",
+          "to": "true"
+        },
+        {
+          "set": "testedOk",
+          "to": "false"
+        },
+        {
+          "output": "root@lb1:~# sed -i '/10.0.0.12:8080;/a server 10.0.0.13:8080;' /etc/nginx/conf.d/shop.conf"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dropSlow": {
+      "label": "sed -i 's/ slow_start=30s//' /etc/nginx/conf.d/shop.conf",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "slowLine",
+          "to": "false"
+        },
+        {
+          "set": "testedOk",
+          "to": "false"
+        },
+        {
+          "output": "root@lb1:~# sed -i 's/ slow_start=30s//' /etc/nginx/conf.d/shop.conf"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nginxT": {
+      "label": "nginx -t",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(evidenceAt)",
+          "then": [
+            {
+              "set": "evidenceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "confValid",
+          "then": [
+            {
+              "set": "testedOk",
+              "to": "true"
+            },
+            {
+              "output": "root@lb1:~# nginx -t\nnginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful"
+            }
+          ],
+          "else": [
+            {
+              "set": "testedOk",
+              "to": "false"
+            },
+            {
+              "output": "root@lb1:~# nginx -t\nnginx: [emerg] invalid parameter \"slow_start=30s\" in /etc/nginx/conf.d/shop.conf:5\nnginx: configuration file /etc/nginx/nginx.conf test failed"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reload": {
+      "label": "systemctl reload nginx",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "applies",
+          "by": "1"
+        },
+        {
+          "if": "not testedOk",
+          "then": [
+            {
+              "add": "untestedApplies",
+              "by": "1"
+            }
+          ]
+        },
+        {
+          "if": "nginxStopped",
+          "then": [
+            {
+              "output": "root@lb1:~# systemctl reload nginx\nnginx.service is not active, cannot reload."
+            }
+          ],
+          "else": [
+            {
+              "if": "confValid",
+              "then": [
+                {
+                  "set": "activeHasApp3",
+                  "to": "fileHasApp3"
+                },
+                {
+                  "output": "root@lb1:~# systemctl reload nginx"
+                },
+                {
+                  "log": "New workers run the new configuration; the old ones finish their requests and exit.",
+                  "kind": "act"
+                }
+              ],
+              "else": [
+                {
+                  "output": "root@lb1:~# systemctl reload nginx\nnginx: [emerg] invalid parameter \"slow_start=30s\" in /etc/nginx/conf.d/shop.conf:5\nJob for nginx.service failed."
+                },
+                {
+                  "log": "The reload was refused: nginx keeps serving with its old configuration.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "capacityOk and not nginxStopped and isNull(okAt)",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "app3 is taking a third of the requests: upstream timeouts stop.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "systemctl restart nginx",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstChangeAt)",
+          "then": [
+            {
+              "set": "firstChangeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "applies",
+          "by": "1"
+        },
+        {
+          "if": "not testedOk",
+          "then": [
+            {
+              "add": "untestedApplies",
+              "by": "1"
+            }
+          ]
+        },
+        {
+          "if": "confValid",
+          "then": [
+            {
+              "set": "nginxStopped",
+              "to": "false"
+            },
+            {
+              "set": "activeHasApp3",
+              "to": "fileHasApp3"
+            },
+            {
+              "output": "root@lb1:~# systemctl restart nginx"
+            }
+          ],
+          "else": [
+            {
+              "set": "nginxStopped",
+              "to": "true"
+            },
+            {
+              "set": "brokeRestart",
+              "to": "true"
+            },
+            {
+              "set": "activeHasApp3",
+              "to": "false"
+            },
+            {
+              "output": "root@lb1:~# systemctl restart nginx\nJob for nginx.service failed because the control process exited with error code."
+            },
+            {
+              "log": "nginx stopped and could not start again: the whole shop is down.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "capacityOk and not nginxStopped and isNull(okAt)",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "app3 is taking a third of the requests: upstream timeouts stop.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "curlShop": {
+      "label": "curl -sI https://shop.example/checkout | head -1",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@lb1:~# curl -sI https://shop.example/checkout | head -1\n{nginxStopped ? \"curl: (7) Failed to connect to shop.example port 443: Connection refused\" : capacityOk ? \"HTTP/1.1 200 OK\" : \"HTTP/1.1 504 Gateway Time-out\"}"
+        },
+        {
+          "if": "shopOk and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 300",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "root@lb1:~# sleep 300"
+        },
+        {
+          "log": "You wait 5 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "capacity",
+                  "label": "Two backends could not carry the sale traffic; the third was listening on 127.0.0.1 only"
+                },
+                {
+                  "value": "nginx",
+                  "label": "A fault in nginx on lb1"
+                },
+                {
+                  "value": "network",
+                  "label": "A network fault between lb1 and the backends"
+                }
+              ]
+            },
+            {
+              "id": "fix",
+              "label": "Fix",
+              "options": [
+                {
+                  "value": "added",
+                  "label": "Made app3 listen on its address, added it to the upstream without slow_start, tested and reloaded"
+                },
+                {
+                  "value": "restart",
+                  "label": "Restarted nginx"
+                },
+                {
+                  "value": "removed",
+                  "label": "Removed the slow backends"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "fixDoc",
+          "to": "fix"
+        },
+        {
+          "log": "Recorded: cause {cause}, fix {fix}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-292)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command takes, and when the fictional outage spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "peak",
+      "when": "t >= peakDelay and phase == \"incident\" and not shopOk",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "peakAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the sale email is out and checkout errors climb.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why checkout timed out, why app3 took no traffic, and how you changed a live load balancer safely.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Cause",
+          "criteria": "Names app1 and app2 overloaded, app3 listening on 127.0.0.1 only, and the ticket's slow_start parameter, which open-source nginx rejects.",
+          "modelAnswer": "Two backends could not carry the sale; app3 was built but bound to localhost, and the ticket's slow_start is a commercial-only parameter that makes the configuration invalid."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "Uses the error log, ss on app3 or a direct curl, and nginx -t before applying anything.",
+          "modelAnswer": "error.log showed upstream timeouts on app1 and app2; ss on app3 showed 127.0.0.1:8080; nginx -t rejected slow_start."
+        },
+        {
+          "label": "Change",
+          "criteria": "Fixes app3's listen address, adds it without slow_start, passes nginx -t, then reloads (not restarts) and checks checkout; explains that a refused reload keeps the old configuration, while a refused restart stops nginx.",
+          "modelAnswer": "BIND=0.0.0.0 on app3, added 'server 10.0.0.13:8080;', nginx -t passed, systemctl reload nginx; the 504s stopped. A restart with the ticket's line would have stopped nginx and taken the whole shop down."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Capacity in place before the 12:00 sale email; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No new fault: nginx stopped by a restart on an invalid configuration."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not shopOk",
+      "class": "harm",
+      "rationale": "Closing while checkout still times out, or the load balancer is stopped, loses the sale; it is never a safe outcome.",
+      "source": {
+        "cite": "Controlling nginx (nginx.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://nginx.org/en/docs/control.html",
+        "note": "Relevant text: on HUP 'The master process first checks the syntax validity, then tries to apply new configuration ... If this fails, it rolls back changes and continues to work with old configuration. If this succeeds, it starts new worker processes, and sends messages to old worker processes requesting them to shut down gracefully.' Read through a summarizing fetch 2026-11-14. That a restart with an invalid configuration leaves nginx stopped follows from the stop happening before the failed start."
+      }
+    }
+  },
+  "endings": {
+    "lbStopped": {
+      "label": "The whole shop went down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and brokeRestart",
+      "narrative": "A restart on a configuration nginx rejects stopped the load balancer: every customer, not 9%, got an error."
+    },
+    "stillFailing": {
+      "label": "Closed with checkout failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not shopOk",
+      "narrative": "The incident was closed while app3 was still not taking traffic."
+    },
+    "fixed": {
+      "label": "Third backend serving",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and shopOk and okSec >= 0 and okSec <= restoreWindow and faultsAdded <= newFaults and evidenceFirst and untestedApplies == 0",
+      "narrative": "app3 listens on its address and is in the pool through a tested reload; checkout is fast before the sale email."
+    },
+    "fixedGaps": {
+      "label": "Serving, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "app3 is serving, but late, untested, or changed before looking."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "lbStopped",
+    "stillFailing",
+    "fixed",
+    "fixedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the error log or app3's sockets before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidenceFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(evidenceAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked."
+          }
+        ]
+      },
+      {
+        "id": "app3Serving",
+        "label": "app3 reachable and in the running pool",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "capacityOk",
+            "score": "met",
+            "why": "app3 is serving."
+          },
+          {
+            "when": "activeHasApp3 or app3Listening",
+            "score": "partial",
+            "why": "Half done: in the pool but not listening, or listening but not in the pool."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "app3 takes no traffic."
+          }
+        ]
+      },
+      {
+        "id": "noStop",
+        "label": "Never stopped the load balancer",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not brokeRestart",
+            "score": "met",
+            "why": "nginx kept serving throughout."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A restart on an invalid configuration stopped nginx."
+          }
+        ]
+      },
+      {
+        "id": "fast",
+        "label": "Capacity in place within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "okSec >= 0 and okSec <= restoreWindow",
+            "score": "met",
+            "why": "Serving {okSec / 60|0dp} min in."
+          },
+          {
+            "when": "okSec >= 0",
+            "score": "partial",
+            "why": "Serving, but {okSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "app3 never took traffic."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Every change applied after a passing nginx -t",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "applies > 0 and untestedApplies == 0",
+            "score": "met",
+            "why": "Tested before applying."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{untestedApplies} reload or restart(s) before a passing test, or none at all."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked checkout through the load balancer",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "curl returned 200."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the shop itself."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the change accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"capacity\" and fixDoc == \"added\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"capacity\"",
+            "score": "partial",
+            "why": "The cause is right; the change recorded is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, evidence and change",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minOk",
+        "label": "Minutes until app3 took traffic",
+        "value": "okSec >= 0 ? okSec / 60 : -1",
+        "format": "number",
+        "expert": "9 or less"
+      },
+      {
+        "id": "untestedK",
+        "label": "Changes applied without a passing nginx -t",
+        "value": "untestedApplies",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "error.log: upstream timeouts on app1 and app2. Before adding app3, check it: ss on app3 shows 127.0.0.1:8080."
+      },
+      {
+        "at": "2-4 min",
+        "text": "Set BIND=0.0.0.0 on app3 and restart its service; curl app3's health check from lb1."
+      },
+      {
+        "at": "4-7 min",
+        "text": "Add the server line; nginx -t rejects slow_start (commercial only), so drop it; nginx -t passes."
+      },
+      {
+        "at": "7-9 min",
+        "text": "systemctl reload nginx, curl checkout for a 200, and tell the platform team the ticket's line needs editing."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: third backend serving",
+        "body": "You checked app3 before trusting it, caught the commercial-only parameter with nginx -t, and reloaded so nothing in flight was lost."
+      },
+      "fixedGaps": {
+        "headline": "Serving, with gaps",
+        "body": "app3 is in. The criteria show what it cost: time, a change applied untested, or no look first."
+      },
+      "lbStopped": {
+        "headline": "The whole shop went down",
+        "body": "A reload on an invalid configuration is refused and nginx keeps running the old one; a restart stops nginx first and then fails to start it. Test with nginx -t, then reload."
+      },
+      "stillFailing": {
+        "headline": "Closed too soon",
+        "body": "A pool member that refuses connections is skipped quietly: customers never see app3's errors, only the error log does."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Timeouts on app1 and app2 mean too little capacity, and app3 exists. Check it before adding it: ss shows it bound to 127.0.0.1, so fix the bind. The ticket's slow_start is a commercial-subscription parameter; nginx -t rejects it. With the plain line and a passing test, reload: workers swap gracefully, and a refused reload would have kept the old configuration, whereas a restart on a bad file stops nginx."
+  }
+}

@@ -1,0 +1,1158 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "apiserver-static-pod-bad-flag",
+  "title": "Outage: the API server will not start after last night's manifest edit",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@cp1:~#",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:30 alert: kubectl and the CI pipeline get 'connection refused' from https://10.0.0.10:6443; the web Deployment must scale out for the 09:15 traffic peak",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "chg",
+          "text": "Change log, last night: 'tuned kube-apiserver flags in the static pod manifest' (no review)",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "wipe",
+          "text": "kubeadm reset: /etc/kubernetes/manifests and the etcd data directory removed; the control plane is gone",
+          "when": "wiped",
+          "at": "timeAt(wipedAt)",
+          "error": "true"
+        },
+        {
+          "id": "dup",
+          "text": "kubelet: a second static pod from kube-apiserver-backup.yaml tries to bind port 6443",
+          "when": "dupManifest",
+          "at": "timeAt(dupAt)",
+          "error": "true"
+        },
+        {
+          "id": "peak",
+          "text": "09:15 traffic peak: the HPA cannot scale web without the API; web is saturated and timing out",
+          "when": "not isNull(peakMissedAt)",
+          "at": "timeAt(peakMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "up",
+          "text": "kube-apiserver is serving on 6443 again",
+          "when": "not isNull(apiUpAt)",
+          "at": "timeAt(apiUpAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "api",
+          "label": "kube-apiserver (static pod)",
+          "spokenLabel": "the API server",
+          "kind": "/etc/kubernetes/manifests/kube-apiserver.yaml",
+          "status": "{apiUp ? \"Running\" : wiped ? \"Gone\" : \"Exited, restarting with back-off\"}",
+          "tone": "apiUp ? \"up\" : \"down\""
+        },
+        {
+          "id": "etcd",
+          "label": "etcd (static pod)",
+          "spokenLabel": "etcd",
+          "kind": "Listens for clients on 127.0.0.1:2379",
+          "status": "{wiped ? \"Data removed\" : \"Running\"}",
+          "tone": "wiped ? \"down\" : \"up\""
+        },
+        {
+          "id": "kubelet",
+          "label": "kubelet on cp1",
+          "spokenLabel": "the kubelet",
+          "kind": "Runs the static pods in /etc/kubernetes/manifests",
+          "status": "Active",
+          "tone": "\"up\""
+        },
+        {
+          "id": "web",
+          "label": "Deployment web (4 pods)",
+          "spokenLabel": "the web Deployment",
+          "kind": "Existing pods keep serving without the API",
+          "status": "{not isNull(peakMissedAt) ? \"Saturated: cannot scale\" : apiUp ? \"Can scale for the peak\" : \"Serving; cannot scale or change\"}",
+          "tone": "not isNull(peakMissedAt) ? \"down\" : apiUp ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "api",
+          "to": "etcd",
+          "label": "--etcd-servers",
+          "status": "{flagOk ? \"https://127.0.0.1:2379\" : \"https://127.0.0.1:2397\"}",
+          "tone": "flagOk ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "kubelet",
+          "to": "api",
+          "label": "Static pod",
+          "status": "Reads the manifest",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "left",
+          "label": "Minutes to the 09:15 peak",
+          "value": "{max(0, round((peakAt - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshoot cluster components: static pod manifests for the API server, controller manager, scheduler and etcd, their flags and certificates, and reading their logs when kubectl itself fails",
+  "secondaryObjectives": [
+    "Read a static pod manifest in /etc/kubernetes/manifests and relate the API server, controller manager, scheduler and etcd flags to the cluster's behavior"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKA Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Troubleshooting 30%, Cluster Architecture, Installation and Configuration 25%, Services and Networking 20%, Workloads and Scheduling 15%, Storage 10%",
+      "checkedAt": "2026-11-14",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
+      "note": "Read in primary text (the PDF) on 2026-11-14 on this branch (for the CKA band). Relevant text under Troubleshooting (30%): 'Troubleshoot cluster components'. The longer objective wording is the CKA course seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Create static Pods",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/static-pod/",
+      "note": "Read in primary text from the kubernetes/website main branch (raw Markdown source of kubernetes.io) through a summarizing fetch on 2026-11-14. Relevant text: the kubelet 'periodically scans the directory and creates/deletes static Pods as YAML/JSON files appear/disappear there'; deleting the mirror Pod with kubectl does not stop it ('the kubelet doesn't remove the static Pod'); if a container is stopped manually the kubelet 'will notice and will restart the Pod'."
+    },
+    {
+      "cite": "Kubernetes documentation, Troubleshooting Clusters",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/",
+      "note": "Read in primary text from the kubernetes/website main branch (raw Markdown) through a summarizing fetch on 2026-11-14. Relevant text: with the API server down you are 'unable to stop, update, or start new pods, services, replication controller'; 'existing pods and services should continue to work normally unless they depend on the Kubernetes API'; 'On systemd-based systems, you may need to use journalctl instead of examining log files.' crictl appears under 'What's next' for debugging nodes. The crictl and kubelet output lines in the scenario are authored renderings."
+    },
+    {
+      "cite": "Kubernetes documentation, Ports and Protocols (to verify)",
+      "checkedAt": "2026-11-14",
+      "url": "https://kubernetes.io/docs/reference/networking/ports-and-protocols/",
+      "note": "To verify: found by a web search on 2026-11-14 but not opened (web reading was limited to search results that day). The scenario uses etcd's client port 2379 and the API server's 6443 as on a kubeadm control plane."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Kubernetes administrator for Brightwater Media, a fictional publisher. At 08:30 kubectl and the CI pipeline get 'connection refused' from the API server of cluster prod-1 (one kubeadm control plane node, cp1, and two workers). The web Deployment's pods are still serving, but the 09:15 traffic peak needs the autoscaler to add pods.",
+    "handover": [
+      "Last night someone tuned kube-apiserver flags in its static pod manifest.",
+      "You have root on cp1, with crictl and journalctl."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the control plane, the kubelet and the web Deployment.",
+      "Each command takes a minute; the clock moves only when you act or wait.",
+      "When you close the outage, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "peakAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. The 09:15 traffic peak is 45 minutes after the 08:30 alert."
+      }
+    },
+    "upDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. After the manifest is fixed, the kubelet picks it up and the API server is serving within about 2 minutes."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "getNodesAt": {
+      "type": "time",
+      "init": null
+    },
+    "psAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "grepAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "flagOk": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "apiUp": {
+      "type": "bool",
+      "init": false
+    },
+    "apiUpAt": {
+      "type": "time",
+      "init": null
+    },
+    "backedUp": {
+      "type": "bool",
+      "init": false
+    },
+    "backupAt": {
+      "type": "time",
+      "init": null
+    },
+    "dupManifest": {
+      "type": "bool",
+      "init": false
+    },
+    "dupAt": {
+      "type": "time",
+      "init": null
+    },
+    "wiped": {
+      "type": "bool",
+      "init": false
+    },
+    "wipedAt": {
+      "type": "time",
+      "init": null
+    },
+    "kubeletRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "flag",
+        "etcd",
+        "cert"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "healthy": {
+      "expr": "apiUp and not wiped and not dupManifest"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "getNodes",
+        "crictlPs",
+        "crictlLogs",
+        "kubeletLog",
+        "grepFlags",
+        "backup",
+        "fix",
+        "removeDup",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "getNodes": {
+      "label": "kubectl get nodes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(getNodesAt)",
+          "then": [
+            {
+              "set": "getNodesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# kubectl get nodes\n{healthy ? \"NAME   STATUS   ROLES           AGE\ncp1    Ready    control-plane   211d\nw1     Ready    <none>          211d\nw2     Ready    <none>          211d\" : \"The connection to the server 10.0.0.10:6443 was refused - did you specify the right host or port?\"}"
+        },
+        {
+          "if": "healthy",
+          "then": [
+            {
+              "if": "isNull(verifiedAt)",
+              "then": [
+                {
+                  "set": "verifiedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "crictlPs": {
+      "label": "crictl ps -a --name 'kube-apiserver|etcd'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(psAt)",
+          "then": [
+            {
+              "set": "psAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# crictl ps -a --name 'kube-apiserver|etcd'\nCONTAINER     STATE     NAME             ATTEMPT\n{apiUp ? \"5c1e0a9b2f41  Running   kube-apiserver   15\" : \"9b7f3d2a1c08  Exited    kube-apiserver   14\"}\n{wiped ? \"\" : \"a41d77e0be3c  Running   etcd             0\"}"
+        },
+        {
+          "finding": "etcd is running; the API server container keeps exiting and the kubelet keeps restarting it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "crictlLogs": {
+      "label": "crictl logs 9b7f3d2a1c08 (the exited API server)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# crictl logs 9b7f3d2a1c08 | tail -2\nW1114 08:29:51 logging.go:59] [core] grpc: addrConn.createTransport failed to connect to 127.0.0.1:2397: dial tcp 127.0.0.1:2397: connect: connection refused\nF1114 08:29:58 instance.go:226] Error creating leases: error creating storage factory: context deadline exceeded"
+        },
+        {
+          "finding": "The API server cannot reach etcd at 127.0.0.1:2397. etcd listens on 2379."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "kubeletLog": {
+      "label": "journalctl -u kubelet -n 3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(journalAt)",
+          "then": [
+            {
+              "set": "journalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# journalctl -u kubelet -n 3\nkubelet[911]: \"Back-off restarting failed container\" containerName=\"kube-apiserver\" pod=\"kube-system/kube-apiserver-cp1\"\nkubelet[911]: \"Error syncing pod, skipping\" pod=\"kube-system/kube-apiserver-cp1\""
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "grepFlags": {
+      "label": "grep -E 'etcd-servers|listen-client' /etc/kubernetes/manifests/*.yaml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(grepAt)",
+          "then": [
+            {
+              "set": "grepAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# grep -E 'etcd-servers|listen-client' /etc/kubernetes/manifests/*.yaml\netcd.yaml:    - --listen-client-urls=https://127.0.0.1:2379,https://10.0.0.10:2379\nkube-apiserver.yaml:    - --etcd-servers=https://127.0.0.1:{flagOk ? \"2379\" : \"2397\"}"
+        },
+        {
+          "if": "not flagOk",
+          "then": [
+            {
+              "finding": "Last night's edit transposed the port: 2397 instead of 2379."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "backup": {
+      "label": "cp /etc/kubernetes/manifests/kube-apiserver.yaml /root/kube-apiserver.yaml.2026-11-14",
+      "group": "Fix",
+      "available": "not busy and (not backedUp)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "backedUp",
+          "to": "true"
+        },
+        {
+          "set": "backupAt",
+          "to": "t"
+        },
+        {
+          "output": "root@cp1:~# cp /etc/kubernetes/manifests/kube-apiserver.yaml /root/kube-apiserver.yaml.2026-11-14"
+        },
+        {
+          "log": "A copy of the manifest is kept outside the directory the kubelet reads.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "change something",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "change == \"editFlag\"",
+              "then": [
+                {
+                  "set": "flagOk",
+                  "to": "true"
+                },
+                {
+                  "set": "fixAt",
+                  "to": "t"
+                },
+                {
+                  "output": "root@cp1:~# vi /etc/kubernetes/manifests/kube-apiserver.yaml\n(--etcd-servers=https://127.0.0.1:2379; saved)"
+                },
+                {
+                  "log": "Manifest saved. The kubelet will see the change and recreate the static pod.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "change == \"deleteMirror\"",
+              "then": [
+                {
+                  "output": "root@cp1:~# kubectl -n kube-system delete pod kube-apiserver-cp1\nThe connection to the server 10.0.0.10:6443 was refused - did you specify the right host or port?"
+                },
+                {
+                  "log": "kubectl needs the API server it is trying to restart; and deleting a static pod's mirror would not stop it anyway.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "change == \"restartKubelet\"",
+              "then": [
+                {
+                  "add": "kubeletRestarts",
+                  "by": "1"
+                },
+                {
+                  "output": "root@cp1:~# systemctl restart kubelet"
+                },
+                {
+                  "log": "The kubelet restarts and starts the same manifest, with the same flag.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "change == \"backupInDir\"",
+              "then": [
+                {
+                  "set": "dupManifest",
+                  "to": "true"
+                },
+                {
+                  "set": "dupAt",
+                  "to": "t"
+                },
+                {
+                  "output": "root@cp1:~# cp /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/manifests/kube-apiserver-backup.yaml"
+                },
+                {
+                  "log": "The kubelet reads every manifest in that directory: the 'backup' is now a second API server static pod.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "wiped",
+                  "to": "true"
+                },
+                {
+                  "set": "wipedAt",
+                  "to": "t"
+                },
+                {
+                  "set": "apiUp",
+                  "to": "false"
+                },
+                {
+                  "output": "root@cp1:~# kubeadm reset -f\n[reset] Deleted contents of the etcd data directory: /var/lib/etcd\n[reset] Deleting contents of directories: [/etc/kubernetes/manifests /etc/kubernetes/pki]"
+                },
+                {
+                  "log": "The control plane is gone: etcd's data, every manifest and the certificates.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "change",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "editFlag",
+              "label": "Edit kube-apiserver.yaml: --etcd-servers=https://127.0.0.1:2379"
+            },
+            {
+              "value": "deleteMirror",
+              "label": "kubectl delete pod kube-apiserver-cp1 -n kube-system"
+            },
+            {
+              "value": "restartKubelet",
+              "label": "systemctl restart kubelet"
+            },
+            {
+              "value": "backupInDir",
+              "label": "Copy the manifest to kube-apiserver-backup.yaml in /etc/kubernetes/manifests"
+            },
+            {
+              "value": "reset",
+              "label": "kubeadm reset -f and start over"
+            }
+          ]
+        }
+      ]
+    },
+    "removeDup": {
+      "label": "rm /etc/kubernetes/manifests/kube-apiserver-backup.yaml",
+      "group": "Fix",
+      "available": "not busy and (dupManifest)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "dupManifest",
+          "to": "false"
+        },
+        {
+          "output": "root@cp1:~# rm /etc/kubernetes/manifests/kube-apiserver-backup.yaml"
+        },
+        {
+          "log": "The second static pod is gone.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "flag",
+                  "label": "A manual edit to the API server's static pod manifest set --etcd-servers to the wrong port (2397)"
+                },
+                {
+                  "value": "etcd",
+                  "label": "etcd failed"
+                },
+                {
+                  "value": "cert",
+                  "label": "The API server's certificates expired"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-297)",
+        "checkedAt": "2026-11-14",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "up",
+      "when": "flagOk and not wiped and not apiUp and t >= timeAt(fixAt) + upDelay",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "apiUp",
+          "to": "true"
+        },
+        {
+          "if": "isNull(apiUpAt)",
+          "then": [
+            {
+              "set": "apiUpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "kube-apiserver is Running and serving on 6443.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "peak",
+      "when": "t >= peakAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "healthy",
+          "then": [
+            {
+              "set": "peakOkAt",
+              "to": "t"
+            },
+            {
+              "log": "09:15: the HPA scales web from 4 to 12 pods for the peak.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "peakMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "09:15: the peak arrives; nothing can scale web, and it saturates.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you diagnosed a control plane that kubectl could not reach, what you changed and how, and how you knew it was fixed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Without kubectl",
+          "criteria": "Goes to the node: crictl for the exited container and its logs, the kubelet journal, and the manifest flags; reads the etcd port mismatch.",
+          "modelAnswer": "kubectl was refused, so I worked on cp1: crictl ps showed kube-apiserver exiting while etcd ran; its logs showed it dialing 127.0.0.1:2397; the manifests showed etcd on 2379 and --etcd-servers on 2397."
+        },
+        {
+          "label": "The change",
+          "criteria": "Backs up the manifest outside /etc/kubernetes/manifests, edits the flag in place and lets the kubelet recreate the static pod; explains why kubectl delete, a kubelet restart or kubeadm reset do not help.",
+          "modelAnswer": "I copied the manifest to /root (a copy in the manifests directory would become a second static pod), then fixed --etcd-servers to 2379. The kubelet watches that directory and recreated the pod. kubectl cannot delete anything without the API server, restarting the kubelet reloads the same flag, and kubeadm reset deletes etcd's data."
+        },
+        {
+          "label": "Verified",
+          "criteria": "kubectl get nodes works and the API is up before the 09:15 peak; proposes review of manifest changes.",
+          "modelAnswer": "kubectl get nodes returned all three nodes Ready at about 08:40, before the peak. Manifest changes now go through review and a backup outside the directory."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "The API back before the 09:15 peak; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No second fault: a duplicate static pod manifest or a reset control plane."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not healthy",
+      "class": "harm",
+      "rationale": "Closing with no API server leaves the cluster unable to scale, deploy or heal; it is never a safe outcome.",
+      "source": {
+        "cite": "Kubernetes documentation, Troubleshooting Clusters",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/",
+        "note": "Read in primary text from the kubernetes/website main branch (raw Markdown) through a summarizing fetch on 2026-11-14. Relevant text: with the API server down you are 'unable to stop, update, or start new pods, services, replication controller'; 'existing pods and services should continue to work normally unless they depend on the Kubernetes API'; 'On systemd-based systems, you may need to use journalctl instead of examining log files.' crictl appears under 'What's next' for debugging nodes. The crictl and kubelet output lines in the scenario are authored renderings."
+      }
+    }
+  },
+  "endings": {
+    "wipedOut": {
+      "label": "The control plane was reset",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and wiped",
+      "narrative": "kubeadm reset deleted etcd's data and every manifest: the cluster's state is gone."
+    },
+    "peakMissed": {
+      "label": "The peak hit a cluster that could not scale",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(peakMissedAt)",
+      "narrative": "At 09:15 the API server was still down and web saturated."
+    },
+    "stillDown": {
+      "label": "Closed with the API server down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not healthy",
+      "narrative": "The control plane is still not serving."
+    },
+    "restored": {
+      "label": "Fixed in the manifest, with a backup",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and healthy and timeAt(apiUpAt) <= restoreWindow and backedUp and timeAt(backupAt) <= timeAt(fixAt) and isNull(dupAt) and kubeletRestarts == 0 and not isNull(logsAt) and not isNull(grepAt) and timeAt(grepAt) <= timeAt(firstFixAt) and not isNull(verifiedAt) and causeDoc == \"flag\"",
+      "narrative": "The node's own tools found the transposed port, a backup was kept where the kubelet does not read, and the API was back well before the peak."
+    },
+    "restoredGaps": {
+      "label": "Back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The API server is back, but after a guess, a side effect, without a backup, or without a check."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "wipedOut",
+    "peakMissed",
+    "stillDown",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the container logs and the manifest flags before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsAt) and not isNull(grepAt) and timeAt(logsAt) <= timeAt(firstFixAt) and timeAt(grepAt) <= timeAt(firstFixAt)",
+            "score": "met",
+            "why": "The logs named port 2397 and the manifests showed etcd on 2379."
+          },
+          {
+            "when": "not isNull(logsAt) or not isNull(grepAt)",
+            "score": "partial",
+            "why": "Some evidence, or only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The change was a guess."
+          }
+        ]
+      },
+      {
+        "id": "restoredIt",
+        "label": "API server back before the peak",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "healthy and timeAt(apiUpAt) <= restoreWindow",
+            "score": "met",
+            "why": "Serving {timeAt(apiUpAt) / 60|0dp} min in."
+          },
+          {
+            "when": "healthy",
+            "score": "partial",
+            "why": "Back, but after the peak."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{wiped ? \"The control plane was reset.\" : \"Never restored.\"}"
+          }
+        ]
+      },
+      {
+        "id": "careful",
+        "label": "Backed up the manifest outside the kubelet's directory; no second fault",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "backedUp and timeAt(backupAt) <= timeAt(fixAt) and isNull(dupAt) and not wiped",
+            "score": "met",
+            "why": "Backup in /root before the edit."
+          },
+          {
+            "when": "isNull(dupAt) and not wiped",
+            "score": "partial",
+            "why": "No backup before editing a control plane manifest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{wiped ? \"kubeadm reset destroyed the control plane.\" : \"A copy in the manifests directory became a second static pod.\"}"
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked with kubectl once it was back",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "kubectl get nodes: all Ready."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the manifest flag",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"flag\"",
+            "score": "met",
+            "why": "Cause right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames a component that was fine."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written diagnosis, change and check",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minUp",
+        "label": "Minutes until the API server was serving",
+        "value": "isNull(apiUpAt) ? -1 : timeAt(apiUpAt) / 60",
+        "format": "number",
+        "expert": "under 10"
+      },
+      {
+        "id": "faultK",
+        "label": "Faults added (duplicate manifest, kubelet restarts)",
+        "value": "(isNull(dupAt) ? 0 : 1) + kubeletRestarts",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:30-08:34",
+        "text": "kubectl is refused; crictl ps: kube-apiserver exiting, etcd running; crictl logs: dialing 127.0.0.1:2397; the manifests: etcd listens on 2379."
+      },
+      {
+        "at": "08:34-08:36",
+        "text": "Back up the manifest to /root, fix --etcd-servers to 2379 in place."
+      },
+      {
+        "at": "08:36-08:41",
+        "text": "The kubelet recreates the static pod; kubectl get nodes: all Ready."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: fixed from the node",
+        "body": "With kubectl down you went to the kubelet's tools, read the flag the logs pointed at, kept a backup where the kubelet would not run it, and fixed the manifest the kubelet watches."
+      },
+      "restoredGaps": {
+        "headline": "Back, with gaps",
+        "body": "The API is serving. The criteria show the guess, the missing backup, the duplicate manifest or the skipped check."
+      },
+      "wipedOut": {
+        "headline": "Destroyed",
+        "body": "kubeadm reset deletes etcd's data and the manifests. The fault was one transposed digit in one flag."
+      },
+      "peakMissed": {
+        "headline": "Too slow for the peak",
+        "body": "Existing pods kept serving, but nothing could scale. The container logs on the node named the port in the first minutes."
+      },
+      "stillDown": {
+        "headline": "Still down",
+        "body": "kubectl needs the API server; the kubelet runs it from the manifest. Fix the manifest."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "kubectl is refused, so work on the control plane node. crictl ps shows kube-apiserver exiting and restarting while etcd runs; crictl logs shows it dialing 127.0.0.1:2397; the manifests show etcd listening on 2379 and --etcd-servers set to 2397 by last night's edit. Back the manifest up outside /etc/kubernetes/manifests (the kubelet runs every manifest in that directory), fix the flag in place, and the kubelet recreates the static pod. kubectl delete needs the API server, restarting the kubelet reloads the same flag, and kubeadm reset deletes etcd's data. Existing pods keep serving, but nothing can scale until the API is back, so finish before the 09:15 peak and confirm with kubectl get nodes."
+  }
+}

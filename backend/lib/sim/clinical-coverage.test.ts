@@ -1,4 +1,4 @@
-// REQ-296 (docs/sims-coverage-clinical.md, docs/sims.md 22.16): the sims added
+// REQ-296 (docs/sims-coverage-clinical.md, docs/sims.md 22.18): the sims added
 // to cover the existing clinical courses. Each is a running clinical case on
 // an existing screen, registers to a catalog objective of its course that the
 // selection rule (lib/sim/generator/selection.ts) passes, orders its endings,

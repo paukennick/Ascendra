@@ -1,0 +1,1179 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "node-type-stripping-enum-crash",
+  "title": "Release 2.4.0: the catalog API restarts in a loop",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "deploy@api01:~$",
+      "lines": [
+        {
+          "id": "alert",
+          "text": "14:10 monitor: catalog.fernhill.example answers 502; catalog-api restarted 6 times since the 14:08 release",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "partner",
+          "text": "partner-feed: catalog pull failed; partner marks Fernhill titles unavailable until the next pull",
+          "when": "not isNull(partnerFailedAt)",
+          "at": "timeAt(partnerFailedAt)",
+          "error": "true"
+        },
+        {
+          "id": "up",
+          "text": "catalog-api: listening on :8080",
+          "when": "up",
+          "at": "timeAt(upAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "lb",
+          "label": "load balancer",
+          "spokenLabel": "the load balancer",
+          "kind": "HTTPS front end",
+          "status": "{up ? \"Passing traffic\" : \"502: no healthy back end\"}",
+          "tone": "up ? \"up\" : \"down\""
+        },
+        {
+          "id": "api",
+          "label": "catalog-api",
+          "spokenLabel": "the catalog API service",
+          "kind": "Node.js 26 service, node src/server.ts",
+          "status": "{up ? (running == \"rollback\" ? \"Running 2.3.9 (rolled back)\" : running == \"tsx\" ? \"Running 2.4.0 under npx tsx\" : \"Running 2.4.1\") : \"Exits with code 1 at startup; restarting\"}",
+          "tone": "up ? \"up\" : \"down\""
+        },
+        {
+          "id": "feed",
+          "label": "partner feed",
+          "spokenLabel": "the partner catalog feed",
+          "kind": "Pull every 30 min (next 14:35)",
+          "status": "{not isNull(partnerFailedAt) ? \"Failed: titles shown unavailable\" : \"Waiting for 14:35\"}",
+          "tone": "not isNull(partnerFailedAt) ? \"down\" : up ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "lbApi",
+          "from": "lb",
+          "to": "api",
+          "label": "HTTP :8080",
+          "status": "{up ? \"Healthy\" : \"Connection refused\"}",
+          "tone": "up ? \"up\" : \"down\""
+        },
+        {
+          "id": "feedApi",
+          "from": "feed",
+          "to": "api",
+          "label": "Catalog pull",
+          "status": "{not isNull(partnerFailedAt) ? \"Failed\" : up ? \"Ready\" : \"Would fail now\"}",
+          "tone": "not isNull(partnerFailedAt) ? \"down\" : up ? \"up\" : \"degraded\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "restarts",
+          "label": "Restarts you ran by hand",
+          "value": "{blindRestarts|0dp}"
+        },
+        {
+          "id": "guard",
+          "label": "erasableSyntaxOnly in tsconfig",
+          "value": "{guarded ? \"on\" : \"off\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Run TypeScript with Node.js type stripping, and recognize the syntax it rejects",
+  "secondaryObjectives": [
+    "Choose a union of string literals or an as const object over an enum when code must stay erasable"
+  ],
+  "sources": [
+    {
+      "cite": "Node.js v26 API, Modules: TypeScript (type stripping)",
+      "checkedAt": "2026-11-14",
+      "url": "https://nodejs.org/api/typescript.html",
+      "note": "Key values used (read in full as raw HTML on 2026-11-14 for the TSNODE course, REQ-267, and carried on its unit sources): type stripping is on by default and stable, runs files that use only erasable syntax, does no type checking and ignores tsconfig.json; enums, runtime namespaces, parameter properties and import aliases raise ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX. Not re-read for this sim. The exact error text in the scenario's journal, and the tsc message, are authored renderings; only the error code ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX is the source's."
+    },
+    {
+      "cite": "TSConfig reference: erasableSyntaxOnly",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.typescriptlang.org/tsconfig/",
+      "note": "Key value used (read in full as raw HTML on 2026-11-14 for the TSNODE course, REQ-267): erasableSyntaxOnly makes enums, parameter properties and runtime namespaces errors, so tsc reports what Node.js type stripping would refuse. Not re-read for this sim."
+    },
+    {
+      "cite": "TypeScript handbook: Enums",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.typescriptlang.org/docs/handbook/enums.html",
+      "note": "Key value used (read on 2026-11-14 for the TSNODE course, REQ-267): an enum generates JavaScript at run time, so Node.js type stripping rejects it; a union of string literals or an as const object is erasable. Not re-read for this sim."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call engineer at Fernhill Books, a fictional online bookshop. catalog-api runs its TypeScript directly with Node.js 26 type stripping (node src/server.ts, no build step). Release 2.4.0 went out at 14:08; since then the service exits at startup, systemd restarts it, and the catalog pages answer 502. A partner store pulls the catalog at 14:35 and marks every title unavailable if the pull fails. Restore the service, fix what broke, and make sure the next release cannot break it the same way.",
+    "handover": [
+      "CI runs tsc --noEmit on every pull request, and 2.4.0 passed it.",
+      "Releases are tagged; a rollback to the previous tag takes about 3 minutes, a new release about 6."
+    ],
+    "howItWorks": [
+      "Run commands from the command line: type one, or pick it from the suggestions or the action list. Only this lab's commands run; there is no free shell, and each command's arguments come from its list.",
+      "Each command takes operator time: run it, then let it finish, which moves the clock by the minutes it takes. The incident keeps developing on the same clock.",
+      "The map shows each host, service or job and the links between them, with a status in words. Output appears in the terminal as it happens.",
+      "When you declare the service restored, you write the incident record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:10",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "partnerDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values. The partner pull at 14:35 is 25 minutes after the first alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "journalAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "catAt": {
+      "type": "time",
+      "init": null
+    },
+    "tscAt": {
+      "type": "time",
+      "init": null
+    },
+    "running": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rollback",
+        "fixed",
+        "tsx"
+      ],
+      "init": "none"
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "guarded": {
+      "type": "bool",
+      "init": false
+    },
+    "guardedAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "partnerFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "blindRestarts": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "faultsAdded": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "enum",
+        "typeError",
+        "nodeVersion"
+      ],
+      "init": "none"
+    },
+    "preventDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "erasable",
+        "tscOnly",
+        "nothing"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "up": {
+      "expr": "running != \"none\""
+    },
+    "codeFixed": {
+      "expr": "not isNull(fixedAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "journal",
+        "gitLog",
+        "catFile",
+        "tsc",
+        "restart",
+        "rollback",
+        "releaseConst",
+        "runTsx",
+        "guard",
+        "curl",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "systemctl status catalog-api",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "deploy@api01:~$ systemctl status catalog-api\n● catalog-api.service - Fernhill catalog API\n     Active: {up ? \"active (running)\" : \"activating (auto-restart) (Result: exit-code)\"}\n    Process: {up ? \"running\" : \"code=exited, status=1/FAILURE\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "journal": {
+      "label": "journalctl -u catalog-api -n 20",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(journalAt)",
+          "then": [
+            {
+              "set": "journalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "deploy@api01:~$ journalctl -u catalog-api -n 20\n14:09:52 api01 node[7781]: file:///srv/catalog-api/src/order-status.ts:1\n14:09:52 api01 node[7781]: SyntaxError [ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX]: TypeScript enum is not supported in strip-only mode\n14:09:52 api01 systemd[1]: catalog-api.service: Main process exited, code=exited, status=1/FAILURE"
+        },
+        {
+          "finding": "Node.js refuses src/order-status.ts at line 1 with ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX: the release added syntax that type stripping cannot erase."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "gitLog": {
+      "label": "git -C /srv/catalog-api log --oneline -3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logAt)",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "deploy@api01:~$ git -C /srv/catalog-api log --oneline -3\na41c2e9 (tag: v2.4.0) Add OrderStatus enum for order filters\n7d03b1f (tag: v2.3.9) Cache publisher lookups\n55e9a20 Bump node:test timeouts"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "catFile": {
+      "label": "cat /srv/catalog-api/src/order-status.ts",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(catAt)",
+          "then": [
+            {
+              "set": "catAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "codeFixed",
+              "then": [
+                {
+                  "output": "deploy@api01:~$ cat /srv/catalog-api/src/order-status.ts\nexport const OrderStatus = {{ Open: \"open\", Shipped: \"shipped\", Cancelled: \"cancelled\" }} as const;\nexport type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "deploy@api01:~$ cat /srv/catalog-api/src/order-status.ts\nexport enum OrderStatus {{ Open = \"open\", Shipped = \"shipped\", Cancelled = \"cancelled\" }}"
+                },
+                {
+                  "finding": "An enum: TypeScript compiles it to a JavaScript object, so it is not erasable. tsc accepts it; type stripping cannot run it."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tsc": {
+      "label": "npx tsc --noEmit -p /srv/catalog-api",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(tscAt)",
+          "then": [
+            {
+              "set": "tscAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "guarded and not codeFixed",
+              "then": [
+                {
+                  "output": "deploy@api01:~$ npx tsc --noEmit -p /srv/catalog-api\nsrc/order-status.ts:1:13 - error: enum is not erasable syntax ('erasableSyntaxOnly' is enabled).\nFound 1 error."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "deploy@api01:~$ npx tsc --noEmit -p /srv/catalog-api\n(no errors)"
+                },
+                {
+                  "if": "not guarded",
+                  "then": [
+                    {
+                      "finding": "The type check passes: an enum is valid TypeScript. Type checking and type stripping answer different questions."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "sudo systemctl restart catalog-api",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "not up",
+          "then": [
+            {
+              "add": "blindRestarts",
+              "by": "1"
+            },
+            {
+              "log": "catalog-api starts and exits with code 1 again: the same file, the same error.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "catalog-api restarted.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "output": "deploy@api01:~$ sudo systemctl restart catalog-api"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rollback": {
+      "label": "deploy catalog-api --tag v2.3.9",
+      "group": "Fix",
+      "available": "not busy and running == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "running",
+          "to": "\"rollback\""
+        },
+        {
+          "if": "isNull(upAt)",
+          "then": [
+            {
+              "set": "upAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Rolled back to 2.3.9: catalog-api starts and passes its health check. The order filters from 2.4.0 are gone until a fixed release.",
+          "kind": "good"
+        },
+        {
+          "output": "deploy@api01:~$ deploy catalog-api --tag v2.3.9"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "releaseConst": {
+      "label": "deploy catalog-api --tag v2.4.1  # OrderStatus as an as const object and a union type",
+      "group": "Fix",
+      "available": "not busy and isNull(fixedAt)",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "fixedAt",
+          "to": "t"
+        },
+        {
+          "set": "running",
+          "to": "\"fixed\""
+        },
+        {
+          "if": "isNull(upAt)",
+          "then": [
+            {
+              "set": "upAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "2.4.1 replaces the enum with an as const object and a string-literal union: same values, nothing to erase but types. catalog-api starts.",
+          "kind": "good"
+        },
+        {
+          "output": "deploy@api01:~$ deploy catalog-api --tag v2.4.1  # OrderStatus as an as const object and a union type"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "runTsx": {
+      "label": "sudo sed -i 's|/usr/bin/node src/server.ts|/usr/bin/npx tsx src/server.ts|' /etc/systemd/system/catalog-api.service && sudo systemctl daemon-reload && sudo systemctl restart catalog-api",
+      "group": "Fix",
+      "available": "not busy and running == \"none\"",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "running",
+          "to": "\"tsx\""
+        },
+        {
+          "if": "isNull(upAt)",
+          "then": [
+            {
+              "set": "upAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "faultsAdded",
+          "by": "1"
+        },
+        {
+          "log": "catalog-api is up under npx tsx: production now fetches and runs an unreviewed transpiler at every start instead of the Node.js the team chose.",
+          "kind": "bad"
+        },
+        {
+          "output": "deploy@api01:~$ sudo sed -i 's|/usr/bin/node src/server.ts|/usr/bin/npx tsx src/server.ts|' /etc/systemd/system/catalog-api.service && sudo systemctl daemon-reload && sudo systemctl restart catalog-api"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "git -C /srv/catalog-api commit -am 'tsconfig: erasableSyntaxOnly true'  # CI tsc now rejects non-erasable syntax",
+      "group": "Fix",
+      "available": "not busy and not guarded",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "guarded",
+          "to": "true"
+        },
+        {
+          "if": "isNull(guardedAt)",
+          "then": [
+            {
+              "set": "guardedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "erasableSyntaxOnly is on: tsc in CI will now reject enums, parameter properties and runtime namespaces before they reach production.",
+          "kind": "act"
+        },
+        {
+          "output": "deploy@api01:~$ git -C /srv/catalog-api commit -am 'tsconfig: erasableSyntaxOnly true'  # CI tsc now rejects non-erasable syntax"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "curl -sI https://catalog.fernhill.example/healthz",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "deploy@api01:~$ curl -sI https://catalog.fernhill.example/healthz\n{up ? \"HTTP/2 200\" : \"HTTP/2 502\"}"
+        },
+        {
+          "if": "up and isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "sleep 600",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "output": "deploy@api01:~$ sleep 600"
+        },
+        {
+          "log": "You wait 10 minutes and watch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Declare the service restored and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage and start the write-up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "enum",
+                  "label": "2.4.0 added an enum, which Node.js type stripping cannot erase, so the server exits at startup"
+                },
+                {
+                  "value": "typeError",
+                  "label": "A type error that CI missed"
+                },
+                {
+                  "value": "nodeVersion",
+                  "label": "Node.js 26 cannot run TypeScript"
+                }
+              ]
+            },
+            {
+              "id": "prevent",
+              "label": "Prevention",
+              "options": [
+                {
+                  "value": "erasable",
+                  "label": "erasableSyntaxOnly in tsconfig so CI rejects non-erasable syntax; use as const objects or unions instead of enums"
+                },
+                {
+                  "value": "tscOnly",
+                  "label": "Keep relying on tsc --noEmit as it is"
+                },
+                {
+                  "value": "nothing",
+                  "label": "Nothing needed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "preventDoc",
+          "to": "prevent"
+        },
+        {
+          "log": "Recorded: cause {cause}, prevention {prevent}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Command running",
+      "wait": {
+        "skipLabel": "Let the command finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-269)",
+        "checkedAt": "2026-11-14",
+        "note": "How many operator minutes each command or change takes, and when the fictional incident develops, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "partner",
+      "when": "t >= partnerDelay and phase == \"incident\" and not up",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "partnerFailedAt",
+          "to": "t"
+        },
+        {
+          "log": "14:35: the partner's catalog pull failed; it now shows every Fernhill title as unavailable until its next pull.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: why a release that passed tsc would not start, how you restored it, and what stops this class of break next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it would not start",
+          "criteria": "Explains that Node.js type stripping only removes type syntax and refuses syntax that generates JavaScript, such as an enum (ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX), and that tsc accepts enums, so the type check could not catch it.",
+          "modelAnswer": "2.4.0 added an enum. Type stripping erases types and nothing else; an enum compiles to a runtime object, so Node.js refused the file with ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX and the process exited 1. tsc --noEmit passed because an enum is valid TypeScript."
+        },
+        {
+          "label": "Restoring service",
+          "criteria": "Rolls back or ships an erasable replacement (an as const object with a union type) quickly; does not keep restarting the same release or swap the production runtime for an unreviewed loader.",
+          "modelAnswer": "I rolled back to 2.3.9 within minutes, then shipped 2.4.1 with OrderStatus as an as const object and a string-literal union, which strips cleanly."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "Turns on erasableSyntaxOnly so tsc in CI rejects non-erasable syntax, and prefers unions or as const objects over enums.",
+          "modelAnswer": "tsconfig now has erasableSyntaxOnly, so CI's tsc fails on an enum, a parameter property or a runtime namespace; the team uses unions and as const objects instead."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 20 minutes for this case",
+          "checkedAt": "2026-11-14",
+          "note": "Restored before the 14:35 partner pull with time to spare; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-14",
+          "note": "No fault introduced by the fix itself (an unreviewed runtime in production)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not up",
+      "class": "harm",
+      "rationale": "Closing with the catalog API still exiting at startup leaves the site answering 502; it is never a safe outcome.",
+      "source": {
+        "cite": "Node.js v26 API, Modules: TypeScript (type stripping)",
+        "checkedAt": "2026-11-14",
+        "url": "https://nodejs.org/api/typescript.html",
+        "note": "Key values used (read in full as raw HTML on 2026-11-14 for the TSNODE course, REQ-267, and carried on its unit sources): type stripping is on by default and stable, runs files that use only erasable syntax, does no type checking and ignores tsconfig.json; enums, runtime namespaces, parameter properties and import aliases raise ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX. Not re-read for this sim. The exact error text in the scenario's journal, and the tsc message, are authored renderings; only the error code ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX is the source's."
+      }
+    }
+  },
+  "endings": {
+    "partnerFailed": {
+      "label": "The partner marked every title unavailable",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(partnerFailedAt)",
+      "narrative": "catalog-api was still down at 14:35, and the partner store now shows every Fernhill title as unavailable until its next pull."
+    },
+    "stillDown": {
+      "label": "Closed with the API down",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not up",
+      "narrative": "The incident was closed while catalog-api still exited at every start."
+    },
+    "restored": {
+      "label": "Restored and guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and up and timeAt(upAt) <= restoreWindow and faultsAdded <= newFaults and not isNull(journalAt) and timeAt(journalAt) <= timeAt(upAt) and guarded and not isNull(verifiedAt)",
+      "narrative": "You read the error, restored service fast, and turned on the check that makes CI catch non-erasable syntax."
+    },
+    "restoredGaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The catalog is back, but the restore was late or blind, runs on a swapped runtime, was never checked, or nothing stops the next enum."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no incident record."
+    }
+  },
+  "endingOrder": [
+    "partnerFailed",
+    "stillDown",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "readError",
+        "label": "Read the startup error before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(journalAt) and blindRestarts == 0 and (isNull(upAt) or timeAt(journalAt) <= timeAt(upAt))",
+            "score": "met",
+            "why": "The journal named ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX in src/order-status.ts."
+          },
+          {
+            "when": "not isNull(journalAt)",
+            "score": "partial",
+            "why": "The journal was read only after blind restarts or the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The error was never read."
+          }
+        ]
+      },
+      {
+        "id": "restoredFast",
+        "label": "Service back within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "up and timeAt(upAt) <= restoreWindow",
+            "score": "met",
+            "why": "Back {timeAt(upAt) / 60|0dp} min after the alert."
+          },
+          {
+            "when": "up",
+            "score": "partial",
+            "why": "Back, but {timeAt(upAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The service never came back."
+          }
+        ]
+      },
+      {
+        "id": "sameRuntime",
+        "label": "Restored without swapping the production runtime",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "running == \"tsx\"",
+            "score": "missed",
+            "why": "Production now runs an unreviewed loader fetched by npx."
+          },
+          {
+            "when": "up",
+            "score": "met",
+            "why": "Restored on the team's own Node.js, with released code."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not restored."
+          }
+        ]
+      },
+      {
+        "id": "guard",
+        "label": "Made CI catch non-erasable syntax",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "guarded",
+            "score": "met",
+            "why": "erasableSyntaxOnly is on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The next enum would pass CI and break production again."
+          }
+        ]
+      },
+      {
+        "id": "fixForward",
+        "label": "Shipped an erasable replacement for the enum",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "codeFixed",
+            "score": "met",
+            "why": "2.4.1 uses an as const object and a union type."
+          },
+          {
+            "when": "running == \"rollback\"",
+            "score": "partial",
+            "why": "Rolled back; the enum is still in the main branch."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The enum is still the code to release."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Verified through the health check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The health check answered 200."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked that the API answers."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Recorded the cause and the prevention accurately",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"enum\" and preventDoc == \"erasable\"",
+            "score": "met",
+            "why": "The record matches what happened."
+          },
+          {
+            "when": "causeDoc == \"enum\"",
+            "score": "partial",
+            "why": "The cause is right; the prevention is not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match what happened."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written cause, restore and prevention",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRestore",
+        "label": "Minutes until the API was back",
+        "value": "up ? timeAt(upAt) / 60 : -1",
+        "format": "number",
+        "expert": "5 or less"
+      },
+      {
+        "id": "blindK",
+        "label": "Restarts that changed nothing",
+        "value": "blindRestarts",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "faultsK",
+        "label": "Faults the fix introduced",
+        "value": "faultsAdded",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-1 min",
+        "text": "journalctl: ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX at src/order-status.ts:1. The new file has an enum."
+      },
+      {
+        "at": "1-4 min",
+        "text": "Roll back to v2.3.9 and check the health endpoint: service is back well before 14:35."
+      },
+      {
+        "at": "4-12 min",
+        "text": "Turn on erasableSyntaxOnly (tsc now reports the enum) and ship 2.4.1 with an as const object and a string-literal union."
+      },
+      {
+        "at": "After",
+        "text": "Record the enum as the cause and the tsconfig flag as the prevention."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: restored and guarded",
+        "body": "Type stripping erases types and nothing more. You rolled back or fixed forward quickly and made CI reject the next non-erasable construct."
+      },
+      "restoredGaps": {
+        "headline": "Restored, with gaps",
+        "body": "The catalog is back. The criteria show the cost: time, blind restarts, a swapped runtime, no check, or no guard against the next enum."
+      },
+      "partnerFailed": {
+        "headline": "The partner pull failed",
+        "body": "The journal named the file and the error code at once. A rollback takes three minutes."
+      },
+      "stillDown": {
+        "headline": "Closed too soon",
+        "body": "Restarting the same release exits the same way. Roll back or ship erasable code."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Node.js type stripping runs .ts files by removing type syntax only; an enum generates a runtime object, so Node.js refuses the file with ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX and the process exits 1. tsc accepts enums, which is why CI passed. Roll back to restore service fast, then replace the enum with an as const object and a string-literal union, and turn on erasableSyntaxOnly so tsc rejects non-erasable syntax before release."
+  }
+}

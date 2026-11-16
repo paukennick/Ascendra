@@ -17434,6 +17434,55 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-2000",
+      "date": "2026-11-14",
+      "title": "Course sim tests counted every sim of their course",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Adding a CKA band and SECPLUS bands made terminal.test.ts ('two per course', sources dated 2026-11-11, kind scenario) and security-console.test.ts (exactly three SECPLUS scenarios) fail, though the new documents were valid.",
+      "how_detected": "running lib/sim/terminal.test.ts after registering the CKA band",
+      "root_cause": "Both suites selected documents by course code, so they asserted facts about their own requirement's wave (counts, kinds, source dates) over every later sim of the same course.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/lib/sim/terminal.test.ts",
+        "backend/lib/sim/security-console.test.ts"
+      ],
+      "fix_summary": "Each suite now filters by its own requirement's slugs (REQ237, REQ231); later waves carry their own suite (lib/sim/it-wave3.test.ts).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/terminal.test.ts",
+        "backend/lib/sim/security-console.test.ts",
+        "backend/lib/sim/it-wave3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A wave's test file selects its documents by slug, not by course code (docs/sims.md 22.16 finding 4).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2001",
+      "date": "2026-11-14",
+      "title": "A task's result applied when the task started, not when it ended",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The first build of GCPACE/public-bucket-customer-exports had the product images back the moment the 15-minute copy began: 2 minutes of image outage on the expert path instead of 17, and the imagesUp criterion met too easily.",
+      "how_detected": "reviewing the expert path's KPIs after the first golden build",
+      "root_cause": "Action effects apply at the tick the action is taken; the work wait only moves the clock. A state change that the task's duration should delay has to come from a trigger at its end.",
+      "requirement": "REQ-297",
+      "affected": [
+        "backend/supabase/seed/sims/GCPACE/public-bucket-customer-exports.sim.json"
+      ],
+      "fix_summary": "The copy sets moveStartAt; a trigger sets imagesMoved at moveStartAt + moveDur (900 s), as the Digital Leader case's owner fix does.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.16 finding 3: results that take the task's time come from a trigger at its end.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-2020",
       "date": "2026-11-14",
       "title": "Mock length for NSCA-CSCS read as 40 questions: a sub-count taken as the exam length",
@@ -17510,6 +17559,334 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Pre-completion checklist item 'Key handlers on the web' (REQ-290): anything that must see every key listens on the window in the capture phase. A static test pins capture-phase registration and removal.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2060",
+      "date": "2026-11-14",
+      "title": "Shadow-mode write inside a savepoint could leave a 2 s statement timeout on the rest of the review transaction (and a failed write could fail the review)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Design review of the first shadow write: SET LOCAL statement_timeout made inside a savepoint is kept by RELEASE SAVEPOINT, so the review's remaining statements (and the caller's) would run under the 2 s shadow limit instead of the transaction's own; and any error in the extra reads or update (migration 085 not applied, timeout, model bug) would abort the transaction and fail the learner's review.",
+      "how_detected": "Unit test with a recording fake transaction and DB test with a failing trigger and a timeout-readback",
+      "root_cause": "The shadow work shares the review's transaction. Postgres undoes a SET LOCAL only on ROLLBACK TO the savepoint, not on RELEASE, and an uncaught statement error poisons the whole transaction; a try/catch alone is not enough without a savepoint.",
+      "requirement": "REQ-301",
+      "affected": [
+        "backend/lib/decay-shadow.ts::recordShadowPrediction",
+        "backend/lib/review-step.ts"
+      ],
+      "fix_summary": "recordShadowPrediction wraps all shadow statements in a savepoint, sets the 2 s limit, puts TX_STATEMENT_TIMEOUT_MS back before RELEASE, and on any error rolls back to the savepoint, logs one masked line (describeError) and returns false.",
+      "fix_commits": [
+        "681c85c4"
+      ],
+      "regression_tests": [
+        "backend/lib/decay-shadow.test.ts::recordShadowPrediction never fails the review (FAIL-2060)",
+        "backend/lib/decay-shadow.dbtest.ts::a failure in the shadow work never fails the review (FAIL-2060)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Any best-effort side write in a request transaction uses a savepoint, restores any SET LOCAL before release, and is tested with an injected failure plus a read-back of the setting.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2061",
+      "date": "2026-11-14",
+      "title": "Calibration bar failed a slice whose gap was exactly five points because of float noise",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "decay-calibration unit test: a slice with a gap of exactly 5.0 points was labelled over_predicts",
+      "how_detected": "backend/lib/decay-calibration.test.ts bar test",
+      "root_cause": "gapPoints is (meanPredicted - observed) * 100 in floating point, so an exact 0.05 difference came out as 5.000000000000004 and failed the <= 5 comparison.",
+      "requirement": "REQ-301",
+      "affected": [
+        "backend/lib/decay-calibration.ts::sliceOf"
+      ],
+      "fix_summary": "Compare against CALIBRATION_BAR_POINTS + 1e-9.",
+      "fix_commits": [
+        "6768fcaf"
+      ],
+      "regression_tests": [
+        "backend/lib/decay-calibration.test.ts::the bar is five points",
+        "either side",
+        "and it needs the minimum count (FAIL-2061)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A threshold on a computed float gets a tolerance, and the test pins the exact boundary.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1800",
+      "date": "2026-11-14",
+      "title": "azure.ts said AZ-204 and AZ-500 retired with no active replacement",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "tracks/azure.ts header: AZ-204, AZ-500, DP-100 and AI-102 'all four retired with no active replacement exam as of this pass', so neither the developer nor the security engineer role had a Microsoft course",
+      "how_detected": "Status check before building (Nick's brief 2026-11-14), reading the Skills Hub post linked from both retired certification pages",
+      "root_cause": "The 2026-09-18 pass recorded the retirements from the certification pages but not Microsoft's announcement that names replacements (AI-200, SC-500, AI-300, AI-103, live from mid-2026); the claim was never re-checked, and the comment steered later builders away from the role",
+      "requirement": "REQ-268",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts"
+      ],
+      "fix_summary": "Header names the replacements and where they are built; SC-500 and AI-200 courses added (tracks/microsoft-2026.ts)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/tech-courses-req264.test.ts::FAIL-1800: AZ-500 and AZ-204 retired WITH replacements"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A retirement note in a seed header names the replacement the vendor announces, or says the vendor names none with the page read; the regression test pins the corrected header and the replacement courses",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1820",
+      "date": "2026-11-14",
+      "title": "CEH format text quoted EC-Council's 'ECC Exam Centre' and failed the US English check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/us-spelling.test.ts: 'backend/supabase/seed/tracks/eccouncil.ts: Centre -> Center' (twice) in the CEH questionFormat and format key value.",
+      "how_detected": "backend unit test (us-spelling) before commit",
+      "root_cause": "The vendor's proper name for its delivery channel uses British spelling; copying a vendor's wording into learner-facing text brings its spelling with it, and the allowed-names list in lib/us-spelling.ts does not hold it.",
+      "requirement": "REQ-273",
+      "affected": [
+        "backend/supabase/seed/tracks/eccouncil.ts"
+      ],
+      "fix_summary": "Described the channel instead of quoting the name ('EC-Council's own exam portal with remote proctoring'), so no shared allow-list change was needed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a body's proper name has British spelling, describe it in our own words or add the name to the allowed proper names in lib/us-spelling.ts with a reason; the spelling test runs over every seed string.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1821",
+      "date": "2026-11-14",
+      "title": "Two CEH case labs had a later step with no new information (empty step text)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/labs.test.ts content rules: 'CEH/ceh-mobile-mdm: step 2 text is missing' and the same for ceh-ot-countermeasures.",
+      "how_detected": "backend unit test (labs.test.ts) before commit",
+      "root_cause": "A case lab's later step must reveal new information (lab-content.ts requires 10+ characters of step text on every case step); the second step was authored as a follow-up question only, as a build lab's single step is.",
+      "requirement": "REQ-273",
+      "affected": [
+        "backend/supabase/seed/labs/eccouncil-ceh.ts"
+      ],
+      "fix_summary": "Each second step now states what changed (the director's condition on personal data; the manager's agreement and constraint).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every lab passes the content rules",
+        "names a real active objective of its track",
+        "and has a unique slug"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "labContentProblems already refuses it; authors of case labs give every step after the first a sentence of new information.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1822",
+      "date": "2026-11-14",
+      "title": "CISSP objectivesRevision was 104 characters for a varchar(100) column; only the seed caught it",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed on a fresh database: 'value too long for type character varying(100)' right after ISC2CC, while writing the CISSP credential_exams row; every unit test had passed.",
+      "how_detected": "seeding a throwaway Postgres 16 under /dev/shm (verify-common.md)",
+      "root_cause": "The blueprint test (FAIL-595) checks the length of examRevision, examCode and credentialType only; objectives_revision and standard_revision are also varchar(100) (migration 007), and the CISSP objectivesRevision listed every heading range (104 characters).",
+      "requirement": "REQ-271",
+      "affected": [
+        "backend/supabase/seed/tracks/isc2.ts",
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "fix_summary": "Shortened the CISSP objectivesRevision; the blueprint test now also checks objectives_revision, standard_revision, standard_name and the provider and credential slug and name lengths against their columns.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns (migration 007: exam_code",
+        "exam_revision",
+        "objectives_revision and standard_revision varchar(100)",
+        "credential_type varchar(80))"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every credential text field the seed writes to a varchar column is checked against its width in the unit test, so it fails before seed time.",
+      "recurrence_of": "FAIL-595"
+    },
+    {
+      "id": "FAIL-1840",
+      "date": "2026-11-14",
+      "title": "Copied outline headings passed the new course test because it compared headings with their letter prefix",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CEN objective 'Noncardiac pulmonary edema' was BCEN's heading I verbatim, yet lib/nursing-specialty-course.test.ts passed; earlier PCCN objectives ('Ischemic bowel', 'Pancreatitis', 'Compartment syndrome', 'Rhabdomyolysis') matching unlettered AACN headings were caught.",
+      "how_detected": "a manual sweep (prefix-stripping script) while authoring CEN",
+      "root_cause": "commonChecks compared objectives to the outline lines as printed, so a lettered heading ('I. Noncardiac pulmonary edema') never equalled the copied objective. The NBCC test strips the letter prefix; the new test did not.",
+      "requirement": "REQ-276",
+      "affected": [
+        "backend/lib/nursing-specialty-course.test.ts",
+        "backend/supabase/seed/tracks/cen.ts",
+        "backend/supabase/seed/tracks/pccn.ts"
+      ],
+      "fix_summary": "The test strips a leading letter or number prefix before comparing; the five copied objectives were reworded in our own words before commit.",
+      "fix_commits": [
+        "bc12673d",
+        "e4daa45f"
+      ],
+      "regression_tests": [
+        "backend/lib/nursing-specialty-course.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Course tests that guard the copyright paraphrase rule compare headings without their enumeration prefix, as lib/nbcc-course.test.ts does.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1841",
+      "date": "2026-11-14",
+      "title": "Two new labs had numeric tolerances the content rules reject",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs.test.ts: 'tolerance is more than 10% of the answer' (CEN neonatal ventilation rate as a 30-60 range) and 'partialTolerance is more than 25% of the answer' (CEN epinephrine 0.5 mg).",
+      "how_detected": "npm test (lib/labs.test.ts content rules) while authoring",
+      "root_cause": "A guideline range (30-60/min) was forced into the numeric control, which only grades a point answer within 10%; a partial band was set wider than 25% of a small answer.",
+      "requirement": "REQ-276",
+      "affected": [
+        "backend/supabase/seed/labs/cen.ts"
+      ],
+      "fix_summary": "The ventilation-rate part became a select over in-range and out-of-range rates; the epinephrine part keeps a 0.01 mg tolerance and no partial band.",
+      "fix_commits": [
+        "bc12673d"
+      ],
+      "regression_tests": [
+        "backend/lib/labs.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A guideline range is graded with a select or a written part, not a numeric part (lib/lab-interactive.ts limits).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1860",
+      "date": "2026-11-14",
+      "title": "A PSM I lab used the British spelling 'cancelled' in two learner-facing strings",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Two rubric strings in the Sprint-cancellation lab (seed/labs/scrum-psmi.ts) said 'cancelled'; the US English check failed on the branch.",
+      "how_detected": "backend us-spelling.test.ts during the REQ-282 run",
+      "root_cause": "The earlier REQ-280 commit was made before the full backend suite ran; the lab text was written by hand and not run through the spelling check.",
+      "requirement": "REQ-280",
+      "affected": [
+        "backend/supabase/seed/labs/scrum-psmi.ts"
+      ],
+      "fix_summary": "Both strings now say 'canceled'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/us-spelling.test.ts"
+      ],
+      "prevention_notes": "Run backend npm test (which includes the US spelling check) before committing seed content.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1880",
+      "date": "2026-11-14",
+      "title": "Numeric lab part's model answer spelled out its answer",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs.test.ts: WAPSYCHJP/wajp-sexual-misconduct-waiting-periods step 1 part 1: the model answer must state the answer (2)",
+      "how_detected": "test (lib/labs.test.ts content rules) while authoring",
+      "root_cause": "The model answer quoted the rule in prose ('a key party for two years'); interactiveProblems requires a numeric part's model answer to state the number as digits so the learner sees the graded value after grading",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/supabase/seed/labs/wa-psych-jurisprudence.ts"
+      ],
+      "fix_summary": "The model answer states '2 years'; the new labs test pins every Washington numeric answer to the rule it comes from",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every lab passes the content rules",
+        "backend/lib/labs-aswb-wajp.test.ts::the Washington numeric answers match the rules as read 2026-11-14"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "lib/lab-interactive.ts interactiveProblems already enforces it; the per-set test now also pins the values to cited rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1881",
+      "date": "2026-11-14",
+      "title": "Course test expected a paraphrase the source key value did not use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "aswb-wajp-course.test.ts: input did not match /no later than 48 hours/",
+      "how_detected": "test while authoring",
+      "root_cause": "The test was written from memory of the statute's wording while the seeded key value quotes RCW 26.44.030(1)(h) as read ('in no case later than 48 hours'); the seed was right and the test wrong",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/lib/aswb-wajp-course.test.ts"
+      ],
+      "fix_summary": "The test matches the statute's own words",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aswb-wajp-course.test.ts::key values carry the numbers the labs ask for"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests of legal key values match the statute's wording as recorded in the source, not a paraphrase",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1882",
+      "date": "2026-11-14",
+      "title": "Jurisprudence credential's standardRevision overflowed varchar(100) at seed time",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed: error: value too long for type character varying(100) after ASWBMASTERS, while seeding the WAPSYCHJP credential exam row",
+      "how_detected": "seed on a throwaway Postgres 16 (migrate --all, seed twice)",
+      "root_cause": "credential_exams.standard_revision and objectives_revision are varchar(100) (migrations 007 and 014) but the blueprint test only checked examCode and examRevision lengths (FAIL-595), so a 117-character standardRevision on a non-exam (regulatory_licensure, no exam code) credential passed every unit test",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/supabase/seed/tracks/wa-psych-jurisprudence.ts",
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "fix_summary": "Shortened standardName, standardRevision and objectivesRevision; the blueprint test now checks standardRevision and objectivesRevision against 100 and standardName against 255",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every varchar column the seed writes from a credential is now length-checked in the unit test",
+      "recurrence_of": "FAIL-595"
+    },
+    {
+      "id": "FAIL-1883",
+      "date": "2026-11-14",
+      "title": "Jurisprudence course missing from the server's study-emphasis list",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/content-fixes-req220.test.ts: the server's list of study-emphasis courses is exactly the seed's -- failed after WAPSYCHJP set domainWeights study_emphasis",
+      "how_detected": "test (backend npm test)",
+      "root_cause": "The seed's domainWeights flag only nulls exam_domains weights; readiness, the study plan and the coach decide 'unweighted' from STUDY_EMPHASIS_TRACK_CODES in lib/readiness.ts, a second list by code. Without the code there, readiness would have weighted the jurisprudence units as if they were an exam blueprint",
+      "requirement": "REQ-287",
+      "affected": [
+        "backend/lib/readiness.ts"
+      ],
+      "fix_summary": "WAPSYCHJP added to STUDY_EMPHASIS_TRACK_CODES",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/content-fixes-req220.test.ts::the server's list of study-emphasis courses is exactly the seed's"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing equality test caught it; a new study-emphasis course must add its code to lib/readiness.ts (now noted in the REQ-287 entry)",
       "recurrence_of": ""
     },
     {

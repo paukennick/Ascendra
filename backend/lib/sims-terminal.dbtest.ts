@@ -40,7 +40,10 @@ let simIds: Record<string, string> = {};
 const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1,treatment-session@1,terminal@1";
 const NO_TERMINAL = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1,treatment-session@1";
 
-const SOURCES = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
+// The six original outages. Later sims in these courses (REQ-297) are covered
+// by lib/sim/it-wave3.test.ts.
+const ORIGINAL = new Set(["full-var-stops-database", "selinux-denies-moved-site", "vlan-missing-from-trunk", "branch-dns-route-typo", "crashloop-bad-configmap", "node-notready-swap-drain"]);
+const SOURCES = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course) && ORIGINAL.has(e.slug));
 const entries = (): DocumentEntry[] => SOURCES.map((e) => ({ ...e, course: stand(e.course) }));
 const entryOf = (slug: string) => SOURCES.find((e) => e.slug === slug)!;
 const docOf = (slug: string): ScenarioDoc => loadDocument(entryOf(slug));

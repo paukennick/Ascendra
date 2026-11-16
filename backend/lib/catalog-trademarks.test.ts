@@ -15,23 +15,27 @@ const byCode = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 // new certification course has to be named descriptively from the start.
 const COACH_ALLOWED = new Set([
   "MSCS", "PYTHON", "JAVASCRIPT", "CMPCBS", "MSHI",
+  // REQ-265 / REQ-267 (2026-11-14): general skill courses with no exam body.
+  "SQL", "TSNODE",
   "CNA", "LPNVN", "ADNRN", "BSNRN", "DPT",
 ]);
 
 // Marks of the covered bodies, as they appeared in the old "<mark> Coach" titles.
 const MARKS =
-  /\b(AWS|Azure|Microsoft|Google Cloud|PMI|PMP|CAPM|PgMP|PfMP|CSPP|NCLEX|CCRN|NPTE|ABPTS|Clinical Specialist|Kubernetes|Prometheus|OpenTelemetry|GitOps|Argo|Cilium|Istio|Kyverno|Backstage|Cloud Native|Docker|DCA|Red Hat|OpenShift|NASM|ACE|ACSM|NSCA|CSCS|ISSA|NCCPT|CompTIA|NREMT|National Registry)\b/;
+  /\b(AWS|Azure|Microsoft|Google Cloud|PMI|PMP|CAPM|PgMP|PfMP|CSPP|NCLEX|CCRN|NPTE|ABPTS|Clinical Specialist|Kubernetes|Prometheus|OpenTelemetry|GitOps|Argo|Cilium|Istio|Kyverno|Backstage|Cloud Native|Docker|DCA|Red Hat|OpenShift|NASM|ACE|ACSM|NSCA|CSCS|ISSA|NCCPT|CompTIA|NREMT|National Registry|Scrum|PSM|CSM|ITIL|ASQ|CSSGB)\b/;
 
 const MS = /not affiliated with or endorsed by Microsoft\. Microsoft and Azure are trademarks of the Microsoft group of companies\.$/;
 const PMI = /not affiliated with or endorsed by PMI\. PMI (and \S+ are marks|is a mark) of Project Management Institute, Inc\./;
 const LF = /not affiliated with or endorsed by The Linux Foundation\./;
 const DOCKER = /Docker is a trademark or registered trademark of Docker, Inc\. in the United States and\/or other countries\.$/;
+// REQ-264: pythoninstitute.org marks PCEP™ and PCAP™ (read 2026-11-14).
+const PYTHON_INSTITUTE = /not affiliated with or endorsed by the OpenEDG Python Institute\. PCEP™ and PCAP™ are marks of the OpenEDG Python Institute; Python is a trademark of the Python Software Foundation\.$/;
 const REDHAT = /Ascendra has no affiliation with Red Hat, LLC\. The .+ trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat\./;
 
 type Body = { name: string; codes: string[]; notice?: RegExp };
 const BODIES: Body[] = [
   { name: "AWS", codes: ["AWSCLF", "AWSSAA", "AWSAIF", "AWSDVA", "AWSSOA", "AWSDEA", "AWSMLA", "AWSSAP", "AWSDOP", "AWSSCS", "AWSANS"] },
-  { name: "Microsoft", notice: MS, codes: ["AZ900", "AZ104", "AZ305", "AI901", "DP900", "AZ700", "AZ140", "DP300", "AZ400", "AZ120"] },
+  { name: "Microsoft", notice: MS, codes: ["AZ900", "AZ104", "AZ305", "AI901", "DP900", "AZ700", "AZ140", "DP300", "AZ400", "AZ120", "PL300", "SC500", "AI200"] },
   { name: "Google Cloud", codes: ["GCPCDL", "GCPACE", "GCPPCA", "GCPPDE", "GCPDEVOPS", "GCPSEC", "GCPNET", "GCPDBE", "GCPDEV", "GCPMLE", "GCPGAIL"] },
   { name: "PMI", notice: PMI, codes: ["CAPM", "PMP", "PMIACP", "PGMP", "PFMP", "PMIRMP", "PMISP", "PMICP", "PMIPMOCP", "PMIPBA", "PMICPMAI", "CSPP"] },
   { name: "NCSBN", codes: ["NCLEXRN", "NCLEXPN"] },
@@ -41,14 +45,15 @@ const BODIES: Body[] = [
   { name: "Linux Foundation", notice: LF, codes: ["CKA", "CKAD", "KCNA", "CKS", "KCSA", "PCA", "OTCA", "CGOA", "CAPA", "CCA", "ICA", "KCA", "CBA", "CNPA", "CNPE"] },
   { name: "Docker", notice: DOCKER, codes: ["DCA"] },
   { name: "Red Hat", notice: REDHAT, codes: ["EX188", "EX280"] },
-  { name: "Fitness", codes: ["NASMCPT", "ACECPT", "ACSMCPT", "NSCACSCS", "NSCACPT", "NCCPTCPT"] },
+  { name: "Python Institute", notice: PYTHON_INSTITUTE, codes: ["PCEP", "PCAP"] },
+  { name: "Fitness", codes: ["NASMCPT", "ACECPT", "ACSMCPT", "NSCACSCS", "NSCACPT", "NCCPTCPT", "NASMCNC"] },
 ];
 
 describe("catalog titles and exam bodies' trademarks (REQ-194)", () => {
   test("every covered course still exists under its original code, so mastery stays mapped", () => {
     const missing = BODIES.flatMap((b) => b.codes).filter((c) => !byCode.has(c));
     assert.deepEqual(missing, []);
-    assert.equal(BODIES.flatMap((b) => b.codes).length, 85);
+    assert.equal(BODIES.flatMap((b) => b.codes).length, 91);
   });
 
   test("covered courses are titled 'Prep for the ... Exam', never '<mark> Coach'", () => {

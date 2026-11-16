@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, numericPart, selectPart } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart, numericPart, selectPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Data Fundamentals (DP-900).
@@ -333,6 +333,72 @@ export const DP900_LABS: SeedLabSet = {
               "Combined design and services",
               "Sends the same stream both to real-time processing (alerts, live map) and to storage for later batch analysis, and names fitting services: Microsoft Fabric Real-Time Intelligence (eventstreams to ingest, an eventhouse queried with KQL, Activator for alerts) or Azure Stream Analytics (with Event Hubs or IoT Hub input), with Power BI for the live map and the stored history in a data lake, lakehouse or warehouse for the yearly analysis.",
               "Ingest the van events once and use them twice. Real time: Microsoft Fabric Real-Time Intelligence, where an eventstream ingests the readings, an eventhouse stores and queries them (KQL), and Activator raises the overheating alert; or Azure Stream Analytics reading from Event Hubs or IoT Hub with a temporal SQL query, sending results to Power BI for the live map. History: also land every reading in a data lake or lakehouse (or keep it in the eventhouse, available in OneLake), so analysts can join a year of readings with route data in a batch analysis."
+            ),
+          ],
+        },
+      ],
+    },
+    // REQ-295 (2026-11-14): density fill to 3 / 2 / 2 / 3. Concepts from the
+    // DP-900 skills outline the set cites; no limit or price is quoted.
+    {
+      slug: "file-format-for-each-dataset",
+      objective: "Common formats for data files",
+      kind: "build",
+      title: "Choose the file format for five datasets",
+      brief:
+        "The data team at Wyecombe Farms Co-op (fictional) is setting up a data lake. Five datasets arrive:\n\nA. A weekly price list a supplier emails as a spreadsheet export, opened by people in Excel.\nB. Settings returned by a weather web service, nested objects and lists.\nC. Two years of sensor readings, billions of rows, queried a few columns at a time by analysts.\nD. A stream of event records written row by row by producers whose schema changes over time.\nE. Invoices from an old partner system that only exports with opening and closing tags.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Classifies common data file formats from the DP-900 outline the set cites; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Match each dataset to its format, then say why C should not stay as CSV.",
+          parts: [
+            matchPart(
+              "Format for each dataset",
+              "Met: all five right -- A delimited text (CSV); B JSON; C Parquet; D Avro; E XML. Four right is partly there.",
+              "CSV is plain delimited rows anyone can open. JSON carries nested objects and arrays, the usual shape of a web API response. Parquet is columnar and compressed, so a query reading a few columns of billions of rows skips the rest. Avro is row-based with its schema stored alongside the data, which suits row-by-row writing and evolving schemas. XML uses opening and closing tags. A PDF suits none of them as data.",
+              {
+                leftHeading: "Dataset",
+                rightHeading: "Format",
+                left: ["A: spreadsheet export opened in Excel", "B: nested settings from a web service", "C: billions of rows, a few columns queried", "D: row-by-row events, evolving schema", "E: invoices with opening and closing tags"],
+                right: ["Delimited text (CSV)", "JSON", "Parquet", "Avro", "XML", "PDF"],
+                pairs: [0, 1, 2, 3, 4],
+              }
+            ),
+            part(
+              "Why C should not stay as CSV",
+              "Explains that CSV is row-oriented text: every query reads whole rows and parses text, with no column skipping, weak compression and no embedded data types; Parquet stores each column together, compresses well, keeps types and lets engines read only the columns (and row groups) a query needs, so analytical queries are faster and cheaper. Notes CSV stays fine for small human-facing exchanges like A.",
+              "CSV stores each row as a line of text. To average one sensor column, an engine must read and parse every row in full, it compresses poorly, and nothing records that a column is a number or a timestamp. Parquet stores values column by column with their types and compresses each column well, so a query touching three columns reads only those three, and row-group statistics let it skip blocks that cannot match. On billions of rows that is the difference between scanning everything and reading a fraction -- less time and, on pay-per-scan engines, less cost. CSV remains the right choice for A, which people open by hand."
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      slug: "ingestion-elt-pipeline-plan",
+      objective: "Considerations for data ingestion and processing",
+      kind: "build",
+      title: "Lay out an ingestion pipeline and its trade-offs",
+      brief:
+        "Wyecombe Farms Co-op (fictional) wants a daily dashboard of sales from 40 shop tills plus the online store. Today an analyst copies files by hand each morning and fixes formats in Excel. The team chooses an ELT pipeline: copy the raw data into the data lake first, then transform it there.",
+      safetyNote: GENERAL_SAFETY,
+      noValueSource: "Applies ingestion and processing concepts from the DP-900 outline the set cites; quotes no outside value.",
+      steps: [
+        {
+          text: "",
+          ask: "Put the pipeline steps in order, then explain the ELT choice and two things to decide before building it.",
+          parts: [
+            orderPart(
+              "Pipeline order",
+              "Met: exactly -- extract sales from the tills and the online store on a schedule; load the raw files unchanged into the lake's raw zone; clean and conform them (types, duplicates, shop codes) into a curated zone; build the analytical model (fact and dimension tables); refresh the Power BI dashboard. One item out of place is partly there.",
+              "ELT extracts, then loads the data as it came, and only then transforms it inside the analytical platform. Keeping the raw copy first means a transformation bug can be fixed and re-run without going back to the tills. The model is built from the cleaned data, and the dashboard refreshes last, from the model.",
+              ["Extract sales from the tills and the online store on a schedule", "Load the raw files unchanged into the lake's raw zone", "Clean and conform them into a curated zone", "Build the analytical model (fact and dimension tables)", "Refresh the Power BI dashboard"]
+            ),
+            part(
+              "Why ELT, and two decisions",
+              "ELT: the lake and its compute scale for the transformation; raw data is kept for reprocessing and new questions; the pipeline is simpler to change. Two decisions among: batch frequency vs streaming (a daily dashboard needs batch, not streaming); full vs incremental loads (watermark on a timestamp or change tracking); data quality rules and what happens to bad rows; retention and access to the raw zone (it may hold personal data); orchestration and monitoring (e.g. a Data Factory or Fabric pipeline with alerts on failure).",
+              "ELT puts the heavy work where the compute is -- in the lake or warehouse, which scales -- and keeps the raw data, so a fixed bug or a new question can be answered by re-running the transformation instead of re-extracting from 40 tills. Decide before building: (1) how fresh it must be -- a daily dashboard needs a nightly batch, not streaming; (2) full or incremental loads -- pull only new sales since the last high-water mark once volumes grow; (3) quality rules -- what counts as a bad row and whether it is quarantined or fixed; (4) who can see the raw zone and how long it is kept, since online orders contain customer details; (5) orchestration and alerting, for example a Data Factory or Fabric pipeline that reports a failed run before the morning meeting."
             ),
           ],
         },
