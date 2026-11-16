@@ -283,7 +283,8 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account, study (including answers, milestones and exam results), age confirmations and date of birth, coach and support data: while your account is open.",
         "• Sign-in and security event log: 90 days.",
-        "• Signed-in sessions: a session ends after 30 days without use in the app, or 14 days on the web, and is deleted 30 days after it ends.",
+        "• Signed-in sessions: a session ends after 30 days without use in the app, or 14 days on the web.",
+        "• Ended or expired sessions: 30 days after they end.",
         "• Used or expired one-time codes: 7 days after they expire.",
         "• Email address change requests (so the link we send to your old address can still cancel one): 30 days after they expire.",
         `• AI request counts (section 5): ${AI_COUNTS_MONTHS} months after the request, then deleted.`,
