@@ -10963,6 +10963,35 @@
         "New identifier: the Privacy Policy and the Cookies & Device Storage page must name the random device id before this ships (Nick's decision on a new legal version)",
         "Migration 086 must be applied before the backend: sign-in writes device_id"
       ]
+    },
+    {
+      "id": "REQ-305",
+      "category": "auth",
+      "title": "Biometric sign-in survives over-the-air updates and app closes",
+      "description": "Nick 2026-11-16 (Android): biometric sign-in failed after an update or app close. Approved fix: keep the newest rotated token on a plain secure-store key and send it after the sealed key's OS prompt passes. Tradeoff accepted by Nick: the OS no longer enforces the fingerprint for that newest copy; the app's unlock still requires the sealed read (the prompt) before using it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts"
+      ],
+      "acceptance_criteria": [
+        "A silent rotation with biometric on writes ascendra_refresh_token_latest",
+        "Unlock reads the sealed key before the latest key and sends the latest when present",
+        "No sealed key means no unlock, whatever the latest key holds",
+        "Every delete of the sealed key also deletes the latest key"
+      ],
+      "validation_required": [
+        "cd mobile && npm test",
+        "cd mobile && npx tsc --noEmit",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Not reproduced or verified on an Android device; needs a by-hand check: turn on biometric, wait 15+ minutes, apply an over-the-air update, unlock"
+      ]
     }
   ]
 }
