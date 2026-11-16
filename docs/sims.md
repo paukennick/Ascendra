@@ -5310,3 +5310,24 @@ timeline, a facilitator's log, roles); a *governance board* for CISM Domains
 1 to 3 (a quarter's decisions against budget, risk appetite and
 stakeholders); a *sandbox report* screen for static and dynamic malware
 analysis.
+
+### 22.19 NASM-CNC coaching sessions and coverage for Scrum, ITIL and CSSGB (REQ-282)
+
+Two cases on the client `session` screen for the NASM Certified Nutrition
+Coach course (`backend/supabase/seed/tracks/fitness.ts`,
+`NASMCNC_SIM_OBJECTIVES`): `cnc-crash-diet-request` (signs of disordered
+eating behind a crash-diet request; no meal plan, no diagnosis, referral to a
+primary care provider; NIMH 2024 and NASM's scope statement) and
+`cnc-greens-powder-warfarin` (a high-vitamin-K greens powder brought by a
+client on warfarin; the intake cue, the label's disease claim and missing
+seal, the question sent to her prescriber; NIH ODS and FDA). Same profile
+(`clinical-session`), pacing (learner-paced `turns`) and engine (1.2, explicit
+`endingOrder`) as 22.12; no engine or renderer change. Registered in
+`CNC_SESSION_DOCUMENTS` / `CNC_OBJECTIVES` (lib/sim/documents.ts), golden
+paths by `npm run sim:golden -- steps cnc-crash-diet|cnc-greens-warfarin`,
+checked by `lib/sim/cnc-session.test.ts`.
+
+Coverage per objective for PSM I, CSM, ITIL 4 Foundation, CSSGB and NASM-CNC,
+and the screens proposed for the families no existing screen fits (project
+dashboard in Sprint mode, a service operations desk, a process and data
+console, the client trainer), are in `docs/sim-coverage-pm-frameworks-cnc.md`.
