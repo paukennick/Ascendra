@@ -455,6 +455,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("GCPDBE", "cloud-run-exhausts-sql-connections"),
   entry("GCPMLE", "nightly-retrain-cuda-oom-after-batch-change"),
   entry("AZ120", "nva-route-between-sap-app-and-db"),
+  entry("AZ140", "fslogix-share-missing-share-permission"),
   // ---- end REQ-320 ----
 ];
 
