@@ -11,6 +11,8 @@ import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../en
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
+import { dashboardView, type DashboardView } from "./dashboardView.ts";
+import { deskView, type DeskView } from "./deskView.ts";
 
 type Tile = VitalTile;
 
@@ -371,6 +373,8 @@ export interface RunView {
   console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
+  dashboard: DashboardView | null; // REQ-311: the project dashboard (predictive or Sprint mode)
+  desk: DeskView | null; // REQ-311: the ITIL service desk
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -403,6 +407,8 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
+    dashboard: dashboardView(run),
+    desk: deskView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,

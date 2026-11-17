@@ -138,7 +138,7 @@ export const reasoningMomentSchema = z.object({
 export const outcomeClassSchema = z.enum(["target", "recovered", "harm"]);
 
 export const outcomeSpecSchema = z.object({
-  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session", "physical-therapy"]),
+  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session", "physical-therapy", "scrum", "service"]),
   thresholds: z.record(id, z.object({ value: z.number(), source: sourceSchema })),
   noProgress: z.object({ when: expr, class: outcomeClassSchema, rationale: z.string(), source: sourceSchema }),
 });
@@ -168,7 +168,7 @@ const vitalTileSchema = z.object({
 });
 
 export const screenSpecSchema = z.object({
-  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console", "treatment-session"]),
+  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console", "treatment-session", "project-dashboard", "service-desk"]),
   level: z.number().optional(),
   bedside: z
     .object({
@@ -232,6 +232,59 @@ export const screenSpecSchema = z.object({
       lines: z.array(z.object({ id, text: template, when: expr, at: expr, error: expr.optional() })),
       nodes: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), kind: z.string(), status: template, tone: expr })),
       links: z.array(z.object({ id, from: id, to: id, label: z.string(), status: template, tone: expr })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
+  // REQ-311: the project dashboard (engine types.ts ScreenSpec.dashboard).
+  dashboard: z
+    .object({
+      mode: z.enum(["predictive", "sprint"]),
+      heading: template,
+      commitments: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional() })),
+      columns: z.array(z.object({ id, label: z.string() })),
+      items: z.array(z.object({ id, label: template, column: expr, when: expr, size: template.optional(), note: template.optional(), flag: expr.optional() })),
+      chart: z
+        .object({
+          label: z.string(),
+          unit: z.string(),
+          slots: z.number(),
+          slotLabel: z.string(),
+          series: z.array(z.object({ id, label: z.string(), style: z.enum(["actual", "plan"]), history: id.optional(), values: z.array(z.number()).optional() })),
+        })
+        .optional(),
+      issues: z.array(z.object({ id, label: template, when: expr, at: expr, status: template, open: expr })),
+      people: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), value: expr, max: z.number(), bands: z.array(z.number()), words: z.array(z.string()) })),
+      events: z.array(z.object({ id, label: z.string(), at: expr, status: template, when: expr.optional() })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
+  // REQ-311: the ITIL service desk (engine types.ts ScreenSpec.desk).
+  desk: z
+    .object({
+      matrix: z.object({
+        impacts: z.array(z.string()),
+        urgencies: z.array(z.string()),
+        priorities: z.array(z.array(z.number())),
+        targets: z.array(z.object({ priority: z.number(), label: z.string() })),
+      }),
+      tickets: z.array(
+        z.object({
+          id,
+          ref: z.string(),
+          kind: z.enum(["incident", "request", "problem", "change"]),
+          title: template,
+          when: expr,
+          at: expr,
+          impact: expr,
+          urgency: expr,
+          priority: expr,
+          status: template,
+          open: expr,
+          due: expr,
+          assignee: template.optional(),
+        }),
+      ),
+      services: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), status: template, tone: expr })),
       meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
     })
     .optional(),
