@@ -55,4 +55,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "AWSDEA", slug: "kinesis-poison-record-blocks-shard", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-kinesis" },
   { course: "GCPNET", slug: "gke-pod-range-exhausted-before-promo", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpnet-podrange" },
   { course: "GCPDBE", slug: "cloud-run-exhausts-sql-connections", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpdbe-pooling" },
+  { course: "GCPMLE", slug: "nightly-retrain-cuda-oom-after-batch-change", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpmle-oom" },
 ];

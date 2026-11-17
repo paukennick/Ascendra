@@ -1,0 +1,824 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nightly-retrain-cuda-oom-after-batch-change",
+  "title": "Failure: the nightly retrain runs out of GPU memory after a batch-size change",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mle@workbench:~/forecast$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "01:30 job forecast-nightly-1117 FAILED after 2 min; the 05:00 forecast needs tonight's model",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "02:30: retrain not running",
+          "when": "not isNull(launchMissAt)",
+          "at": "timeAt(launchMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "02:30: retrain on schedule",
+          "when": "not isNull(launchOkAt)",
+          "at": "timeAt(launchOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "job",
+          "label": "Custom training job",
+          "spokenLabel": "the training job",
+          "kind": "PyTorch, 1 x NVIDIA L4",
+          "status": "{healthy ? \"running, past step 500\" : cfg == \"a100\" ? \"queued: no A100 quota\" : cfg == \"same\" ? \"failed again: out of memory\" : not isNull(submitAt) ? \"starting\" : \"failed: out of memory\"}",
+          "tone": "healthy ? \"up\" : \"down\""
+        },
+        {
+          "id": "gpu",
+          "label": "Accelerator",
+          "spokenLabel": "the GPU",
+          "kind": "NVIDIA L4, 24 GB (22.03 GiB usable)",
+          "status": "{healthy ? \"peak 16.2 GiB\" : \"over capacity at batch 256\"}",
+          "tone": "healthy ? \"up\" : \"down\""
+        },
+        {
+          "id": "reg",
+          "label": "Model registry",
+          "spokenLabel": "the model registry",
+          "kind": "demand-forecast",
+          "status": "{healthy ? \"tonight's model on track\" : \"yesterday's model only\"}",
+          "tone": "healthy ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "job",
+          "to": "gpu",
+          "label": "Memory",
+          "status": "{healthy ? \"fits\" : \"exceeds\"}",
+          "tone": "healthy ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting ML model training failures",
+  "secondaryObjectives": [
+    "Evaluating compute and accelerator options: CPU, GPU, TPU"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Machine Learning Engineer certification exam guide (as of June 1, 2026): low-code AI ~13%, collaborating on data and models ~16%, scaling prototypes into ML models ~21%, serving and scaling ~20%, automating pipelines ~18%, monitoring ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under section 3: 'Troubleshooting ML model training failures', 'Evaluation of compute and accelerator options (e.g., CPU, GPU, and TPU)'. The guide names 'Agent Platform' (Gemini Enterprise Agent Platform), not Vertex AI; the gcloud ai commands in the scenario are from memory of the CLI (to verify)."
+    },
+    {
+      "cite": "PyTorch blog, What Every User Should Know About Mixed Precision Training in PyTorch",
+      "checkedAt": "2026-11-17",
+      "url": "https://pytorch.org/blog/what-every-user-should-know-about-mixed-precision-training-in-pytorch/",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: float16 and bfloat16 'are only half the size of float32' and 'reduce the memory required to train a network, allowing for larger models, larger batches, or larger inputs'; torch.amp autocast with float16 or bfloat16; bfloat16's dynamic range equals float32's. Gradient accumulation (summing gradients over several small batches before one optimizer step, so the effective batch is their total) is common practice described in third-party guides seen as search results on 2026-11-17 (to verify against the PyTorch documentation). The out-of-memory message text in the scenario is authored in PyTorch's format."
+    }
+  ],
+  "brief": {
+    "situation": "You are the ML engineer on call for Brightmoor Grocers, a fictional supermarket chain. The demand-forecast model retrains every night as a custom training job on one NVIDIA L4 GPU (24 GB) in us-central1, and the 05:00 forecast run needs the new model. Tonight's job failed two minutes in. Training takes about two and a half hours, so a healthy job must be running by 02:30.",
+    "handover": [
+      "Yesterday PR-381 ('faster nightly retrain') was merged into the training config.",
+      "Last night's job succeeded on the same machine type."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the training job, its accelerator and the model registry.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "01:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "launchBy": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "A healthy job must be running by 02:30 to finish before the 05:00 forecast run."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "memAt": {
+      "type": "time",
+      "init": null
+    },
+    "quotaAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "accum",
+        "revert",
+        "a100",
+        "same"
+      ],
+      "init": "none"
+    },
+    "submitAt": {
+      "type": "time",
+      "init": null
+    },
+    "wasted": {
+      "type": "bool",
+      "init": false
+    },
+    "launchOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "launchMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "oom",
+        "quota",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "healthy": {
+      "expr": "(cfg == \"accum\" or cfg == \"revert\") and not isNull(submitAt) and since(submitAt) >= 360"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "logs",
+        "diff",
+        "memory",
+        "quota",
+        "submit",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "logs": {
+      "label": "gcloud ai custom-jobs stream-logs forecast-nightly-1117 --region us-central1 | tail",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ gcloud ai custom-jobs stream-logs forecast-nightly-1117 --region us-central1 | tail -3\nepoch 0 step 0 batch_size=256\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.25 GiB. GPU 0 has a total capacity of 22.03 GiB of which 1.12 GiB is free.\nJob state: JOB_STATE_FAILED"
+        },
+        {
+          "finding": "The job failed on the first step, out of GPU memory, at batch size 256."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "diff": {
+      "label": "git show PR-381 -- config/train.yaml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(diffAt)",
+          "then": [
+            {
+              "set": "diffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ git show --stat HEAD~1 && git diff HEAD~2 HEAD -- config/train.yaml\n-batch_size: 64\n+batch_size: 256\n-lr_peak: 0.0008\n+lr_peak: 0.0024   # retuned for an effective batch of 256 (PR-381)\n precision: fp32"
+        },
+        {
+          "finding": "PR-381 raised the batch from 64 to 256 and retuned the learning rate for an effective batch of 256; precision is still full fp32."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "memory": {
+      "label": "Compare last night's peak GPU memory (batch 64)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(memAt)",
+          "then": [
+            {
+              "set": "memAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ gcloud ai custom-jobs describe forecast-nightly-1116 --region us-central1 --format='value(labels)'; grep peak_mem logs/1116.txt\nbatch_size=64 precision=fp32 peak_mem=9.6 GiB (L4 usable 22.03 GiB)"
+        },
+        {
+          "finding": "Activation memory grows with the batch: four times the batch at fp32 needs far more than the L4's 22 GiB."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "quota": {
+      "label": "gcloud ... quotas: custom training GPUs in us-central1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(quotaAt)",
+          "then": [
+            {
+              "set": "quotaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ gcloud beta quotas info list --service aiplatform.googleapis.com --filter 'quotaId~custom_model_training_nvidia' --format 'table(quotaId,dimensionsInfos[0].details.value)'\nQUOTA_ID                                     VALUE\nCustomModelTrainingNvidiaA100GpusPerProjectPerRegion   0\nCustomModelTrainingNvidiaL4GpusPerProjectPerRegion     4"
+        },
+        {
+          "finding": "There is no A100 quota in this region tonight; an increase is a request, not a same-night fix."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "submit": {
+      "label": "Resubmit the job with a chosen configuration",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "set": "cfg",
+          "to": "c"
+        },
+        {
+          "set": "submitAt",
+          "to": "t"
+        },
+        {
+          "if": "c == \"a100\" or c == \"same\"",
+          "then": [
+            {
+              "set": "wasted",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ gcloud ai custom-jobs create --region us-central1 --display-name forecast-nightly-1117b --config {c == \"accum\" ? \"train.yaml (batch 64, grad_accum_steps 4, precision bf16)\" : c == \"revert\" ? \"train.yaml (batch 64, lr_peak 0.0024)\" : c == \"a100\" ? \"train.yaml on a2-ultragpu-1g (1 x A100 80 GB)\" : \"train.yaml unchanged\"}\n{c == \"a100\" ? \"ERROR: RESOURCE_EXHAUSTED: The following quota metrics exceed quota limits: aiplatform.googleapis.com/custom_model_training_nvidia_a100_80gb_gpus\" : c == \"same\" ? \"Job state: JOB_STATE_FAILED (torch.OutOfMemoryError at step 0)\" : \"Job state: JOB_STATE_RUNNING\"}"
+        },
+        {
+          "log": "{c == \"accum\" ? \"Four micro-batches of 64 per optimizer step keep the effective batch at 256 that PR-381 tuned for, and bfloat16 halves activation memory.\" : c == \"revert\" ? \"Batch 64 fits, but the learning rate PR-381 retuned for 256 now drives an effective batch of 64.\" : c == \"a100\" ? \"The region has no A100 quota: the job never starts.\" : \"Nothing changed: the same out-of-memory error.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "c",
+          "kind": "choice",
+          "label": "Configuration",
+          "options": [
+            {
+              "value": "accum",
+              "label": "Batch 64 with gradient accumulation of 4 and bf16 autocast (effective batch 256)"
+            },
+            {
+              "value": "revert",
+              "label": "Batch 64, keeping PR-381's learning rate"
+            },
+            {
+              "value": "a100",
+              "label": "Same config on an A100 80 GB machine"
+            },
+            {
+              "value": "same",
+              "label": "Retry unchanged"
+            }
+          ]
+        }
+      ]
+    },
+    "verify": {
+      "label": "gcloud ai custom-jobs stream-logs forecast-nightly-1117b | tail",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "healthy",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mle@workbench:~/forecast$ gcloud ai custom-jobs stream-logs forecast-nightly-1117b --region us-central1 | tail -2\n{healthy and cfg == \"accum\" ? \"step 500 loss 0.412 effective_batch=256 peak_mem=16.2 GiB\" : healthy ? \"step 500 loss 0.538 effective_batch=64 peak_mem=9.6 GiB (loss above last night's 0.43 at step 500)\" : isNull(submitAt) ? \"(no new job)\" : \"(not running yet)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "oom",
+                  "label": "PR-381's batch 256 at fp32 needs more memory than the L4's 22 GiB; fixed with micro-batches of 64, accumulation of 4 and bf16"
+                },
+                {
+                  "value": "quota",
+                  "label": "The project lacks GPU quota"
+                },
+                {
+                  "value": "data",
+                  "label": "Tonight's training data is corrupt"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= launchBy and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "healthy",
+          "then": [
+            {
+              "set": "launchOkAt",
+              "to": "t"
+            },
+            {
+              "log": "02:30: the retrain is running and on time for 05:00.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "launchMissAt",
+              "to": "t"
+            },
+            {
+              "log": "02:30: no healthy retrain is running; 05:00 will use yesterday's model.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the job failed, what configuration you chose and why, and how you know it will finish in time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the out-of-memory error to the config change and the GPU's capacity.",
+          "modelAnswer": "The job failed at step 0 with CUDA out of memory at batch 256; PR-381 had raised the batch from 64 (peak 9.6 GiB at fp32) to 256, which does not fit the L4's 22 GiB."
+        },
+        {
+          "label": "Choice",
+          "criteria": "Keeps the tuned effective batch instead of just shrinking it, and rules out hardware that is not available.",
+          "modelAnswer": "Micro-batches of 64 with four accumulation steps keep the effective batch of 256 the retuned learning rate expects, and bf16 autocast halves activation memory. Reverting the batch alone would mismatch the learning rate; there is no A100 quota tonight."
+        },
+        {
+          "label": "In time",
+          "criteria": "Checks progress and memory before closing.",
+          "modelAnswer": "The new job passed step 500 with loss in line with last night and peak memory 16.2 GiB, running before 02:30, so the model will be registered before the 05:00 forecast."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "A healthy job must be running by 02:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a model trained with a mismatched learning rate."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not healthy",
+      "class": "harm",
+      "rationale": "Closing without a running job leaves the 05:00 forecast on yesterday's model.",
+      "source": {
+        "cite": "PyTorch blog, What Every User Should Know About Mixed Precision Training in PyTorch",
+        "checkedAt": "2026-11-17",
+        "url": "https://pytorch.org/blog/what-every-user-should-know-about-mixed-precision-training-in-pytorch/",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: float16 and bfloat16 'are only half the size of float32' and 'reduce the memory required to train a network, allowing for larger models, larger batches, or larger inputs'; torch.amp autocast with float16 or bfloat16; bfloat16's dynamic range equals float32's. Gradient accumulation (summing gradients over several small batches before one optimizer step, so the effective batch is their total) is common practice described in third-party guides seen as search results on 2026-11-17 (to verify against the PyTorch documentation). The out-of-memory message text in the scenario is authored in PyTorch's format."
+      }
+    }
+  },
+  "endings": {
+    "launchMissed": {
+      "label": "No retrain running by 02:30",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(launchMissAt)",
+      "narrative": "At 02:30 there was still no healthy job; the 05:00 forecast runs on yesterday's model."
+    },
+    "fixed": {
+      "label": "Effective batch kept, memory fits, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and cfg == \"accum\" and healthy and isNull(launchMissAt) and not isNull(logsAt) and not isNull(diffAt) and not isNull(verifiedAt) and not wasted and causeDoc == \"oom\"",
+      "narrative": "The error, the diff and last night's memory showed why; accumulation and bf16 made it fit while keeping the tuned batch."
+    },
+    "gaps": {
+      "label": "Running, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "A retrain is running, but the configuration changes the training or a check was skipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "launchMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Tied the failure to the config change and the GPU's memory",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsAt) and not isNull(diffAt)",
+            "score": "met",
+            "why": "The error and the change behind it."
+          },
+          {
+            "when": "not isNull(logsAt) or not isNull(diffAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Resubmitted without reading the failure."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "A healthy job with the tuned effective batch by 02:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "healthy and cfg == \"accum\" and isNull(launchMissAt)",
+            "score": "met",
+            "why": "Fits, keeps the effective batch, in time."
+          },
+          {
+            "when": "healthy",
+            "score": "partial",
+            "why": "{cfg == \"revert\" ? \"Runs, with a mismatched learning rate.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No healthy job."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "No wasted attempts; progress verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not wasted and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "One right attempt, checked."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Checked, after wasted attempts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"oom\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames quota or data."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "wasted",
+        "label": "Attempts that could not work (unchanged retry, no-quota hardware)",
+        "value": "wasted ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "01:30-01:34",
+        "text": "The log: CUDA out of memory at batch 256; the diff: PR-381 raised the batch and retuned the learning rate; last night: 9.6 GiB at batch 64; no A100 quota."
+      },
+      {
+        "at": "01:34-01:36",
+        "text": "Resubmit with batch 64, four accumulation steps and bf16 autocast."
+      },
+      {
+        "at": "01:36-01:45",
+        "text": "Past step 500 with loss in line with last night and peak memory 16.2 GiB."
+      }
+    ],
+    "debrief": {
+      "launchMissed": {
+        "headline": "The night ran out",
+        "body": "Retrying an out-of-memory job unchanged fails the same way, and hardware the project has no quota for never starts. The fix is in the configuration the error points to."
+      },
+      "fixed": {
+        "headline": "Good: fit the memory, keep the training",
+        "body": "You read the error, found the change that caused it, chose a configuration that fits the GPU without changing what the model learns from, and checked progress and memory before closing."
+      },
+      "gaps": {
+        "headline": "Running, with gaps",
+        "body": "The criteria show what was left: the diagnosis, a configuration that keeps the tuned effective batch, wasted attempts, or the check."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The job failed at step 0 with CUDA out of memory, and the only change is PR-381, which raised the batch from 64 to 256 at full fp32 precision and retuned the learning rate for that batch. Last night's run peaked at 9.6 GiB at batch 64, so 256 cannot fit an L4's 22 GiB. Retrying unchanged fails the same way, and the project has no A100 quota tonight. Reverting the batch to 64 would fit but leave the learning rate tuned for 256. Keep the effective batch at 256 with four micro-batches of 64 and gradient accumulation, and use bfloat16 autocast to halve activation memory; then confirm the job is past its first steps with sensible loss and memory before 02:30."
+  }
+}

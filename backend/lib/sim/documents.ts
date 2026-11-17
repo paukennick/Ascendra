@@ -453,6 +453,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSDEA", "kinesis-poison-record-blocks-shard"),
   entry("GCPNET", "gke-pod-range-exhausted-before-promo"),
   entry("GCPDBE", "cloud-run-exhausts-sql-connections"),
+  entry("GCPMLE", "nightly-retrain-cuda-oom-after-batch-change"),
   // ---- end REQ-320 ----
 ];
 
