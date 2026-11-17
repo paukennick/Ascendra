@@ -265,6 +265,13 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- end REQ-312 ----
 ];
 
+// REQ-312: the data and code console documents (docs/sims.md 22.25), by
+// slug so a later sim in the same course cannot change this set (FAIL-2002).
+export const DATA_CONSOLE_SLUGS: readonly string[] = [
+  "py-report-too-slow-profile",
+  "pl300-rls-region-manager",
+];
+
 // REQ-225: the EPPP client-session documents and the objective titles they
 // are registered to (each must be an active objective of course EPPP).
 export const EPPP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "EPPP");
