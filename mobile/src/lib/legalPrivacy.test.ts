@@ -138,17 +138,17 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    // REQ-306: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-16).
-    assert.equal(TERMS_VERSION, "2026-11-16");
+    // REQ-317: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-17).
+    assert.equal(TERMS_VERSION, "2026-11-17");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy and Cookies are 2026-11-16 (REQ-306)", () => {
+  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy is 2026-11-17 (REQ-317), Cookies 2026-11-16 (REQ-306)", () => {
     const content = read("src", "content", "legal.ts");
     const expected: Record<string, [string, string]> = {
       TERMS: ["2026-11-13", "November 13, 2026"],
-      PRIVACY: ["2026-11-16", "November 16, 2026"],
+      PRIVACY: ["2026-11-17", "November 17, 2026"],
       COOKIES: ["2026-11-16", "November 16, 2026"],
     };
     for (const [n, want] of Object.entries(expected)) {
@@ -265,7 +265,7 @@ describe("website analytics in the policy (REQ-261)", () => {
   test("only the Privacy Policy and Cookies moved; the Terms are unchanged by this", () => {
     assert.equal(TERMS.version, "2026-11-13");
     // REQ-306 moved both again (2026-11-16); the analytics text above is unchanged.
-    assert.equal(PRIVACY.version, "2026-11-16");
+    assert.equal(PRIVACY.version, "2026-11-17");
     assert.equal(COOKIES.version, "2026-11-16");
   });
 });
@@ -284,5 +284,17 @@ describe("device id, session limits and the biometric token are disclosed (REQ-3
     assert.match(all, /A random ID for this install/);
     assert.match(all, /in the browser's local storage, a random ID for this browser \(not a sign-in token\)/);
     assert.match(all, /its newest version is also kept in secure storage, and the app only uses it after that fingerprint, face or passcode check/);
+  });
+});
+
+// REQ-317 (Nick 2026-11-16: "It should name the data recall"): the Privacy
+// Policy names predicted recall, why it is kept, and that no one sees it.
+describe("predicted recall is named in the Privacy Policy (REQ-317)", () => {
+  test("what is collected and why", () => {
+    const src = read("src", "content", "legal.ts");
+    const privacy = src.slice(src.indexOf("export const PRIVACY"), src.indexOf("export const COOKIES"));
+    assert.match(privacy, /the memory model's estimate of how likely you were to remember the answer at that moment \(predicted recall\)/);
+    assert.match(privacy, /To improve review timing: we compare predicted recall with how you actually did/);
+    assert.match(privacy, /no one is shown these numbers and they change nothing in your study/);
   });
 });

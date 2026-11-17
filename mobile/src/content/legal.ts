@@ -214,8 +214,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-16",
-  updated: "November 16, 2026",
+  version: "2026-11-17",
+  updated: "November 17, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -224,7 +224,7 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account: email address, optional display name, optional profile photo, and a hashed password (never the password itself). If you sign in with Google, the Google account's ID and email address.",
         "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details, IP address and a random ID that the app or your browser creates for that device (it lets a new sign-in on the same device replace the old session, so your session list shows each device once); a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
-        "• Study activity: the courses you add or favorite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you, because your answers showed you'd moved up, or because you accepted a suggestion to move a unit down; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
+        "• Study activity: the courses you add or favorite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; for each review, the memory model's estimate of how likely you were to remember the answer at that moment (predicted recall) and the numbers it used, all calculated from your own answers; why you're taking each course and the level you study it at (New, Some background or Experienced, per course or per unit), with each change to that level and whether it was made by you, because your answers showed you'd moved up, or because you accepted a suggestion to move a unit down; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed, why you're taking a course answered or put aside and where you were asked, that question's card shown in a lesson, a suggestion to move a unit's level down and whether you said “Not now”, and whether a typed guess was close, partly right or off) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
@@ -246,6 +246,7 @@ export const PRIVACY: LegalDoc = {
         "• To run your account and keep it secure: sign-in, two-factor checks, the session list, and spotting abuse.",
         "• To check you're old enough for courses meant for adults (mental health courses).",
         "• To teach: tracking progress, choosing what to show next, grading answers and running the AI coach.",
+        "• To improve review timing: we compare predicted recall with how you actually did, to check the memory model before it is used to schedule reviews. While we check it, no one is shown these numbers and they change nothing in your study.",
         "• To check, in aggregate and only ourselves, that Ascendra is actually helping people learn.",
         "• To see, in aggregate, which pages of the website are used and how fast they load, so we can fix what is slow (section 4).",
         "• To answer support requests and fix reported content.",
