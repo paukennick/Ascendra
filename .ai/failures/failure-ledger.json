@@ -18438,6 +18438,81 @@
       "prevention_rules": [],
       "prevention_notes": "Sim outline citations are checked against the guide the course units follow, not a vendor web page that may be stale.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2120",
+      "date": "2026-11-16",
+      "title": "Sims named permission-only exam bodies' marks in learner-facing text",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After REQ-309 (#205), learner-facing sim text still named marks of bodies whose policy allows no use without written permission: NASM-CNC and NASM in two nutrition coaching sims, NCMHCE in three counseling briefs, APTA in a DPT teaching prompt, ITIL in the new service desk sim's reasoning question, and a form number CC-0412 that reads as ISC2's CC mark.",
+      "how_detected": "integration review of the 2026-11-17 wave against catalog-trademarks.test.ts",
+      "root_cause": "REQ-309 checked course titles, descriptions, README, the app list and What's new, but not sim documents; the only sim-level check (lint.ts certMarkProblems, REQ-313) covered the governance, exercise and professional-ethics profiles, and the wave's sims were written before #205.",
+      "requirement": "REQ-309",
+      "affected": [
+        "backend/lib/sim/lint.ts",
+        "backend/supabase/seed/sims/NASMCNC",
+        "backend/supabase/seed/sims/NCMHCE",
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json",
+        "backend/supabase/seed/sims/ITIL5FND/monday-service-desk-wifi-problem.sim.json",
+        "backend/supabase/seed/sims/SECPLUS/departing-engineer-usb-evidence.sim.json"
+      ],
+      "fix_summary": "certMarkProblems checks every profile for the 13 permission bodies' marks (patterns copied from catalog-trademarks.test.ts, less the homonyms GCS, ECS, CISA and 'ACE inhibitor'); the texts were reworded to describe the role or topic.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/cert-marks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "cert-marks.test.ts fails if the lint's patterns drift from the catalog test's permission bodies, and runs the check over every seeded document.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2121",
+      "date": "2026-11-16",
+      "title": "README named ITIL after PeopleCert became permission-only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "README's sims list (added by REQ-311) read 'Scrum (PSM I and CSM) and ITIL Foundation (Version 5)'; catalog-trademarks.test.ts 'README names no permission body or mark' fails on ITIL once #205 is merged.",
+      "how_detected": "integration review of the 2026-11-17 wave",
+      "root_cause": "REQ-311 was written before #205 made PeopleCert a permission-only body.",
+      "requirement": "REQ-309",
+      "affected": [
+        "README.md"
+      ],
+      "fix_summary": "The line now reads 'Scrum and IT service management'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "catalog-trademarks.test.ts checks README for every permission body's marks; new README lines describe the topic, not the exam.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2122",
+      "date": "2026-11-16",
+      "title": "Union merge of the screen branches nested later screen checks inside earlier ones",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the wave branch after merging REQ-312..REQ-314, validate.ts called dataCheck from inside deskCheck, governanceCheck and tabletopCheck from inside dataCheck, and the facility, sandbox and trainer checks from inside tabletopCheck, each after the host's early return, so those screens' bindings were validated only when another screen's bindings existed. The REQ-313 and REQ-316 document entries likewise landed in DATA_CONSOLE_SLUGS instead of ALL_DOCUMENTS (and REQ-315's after the next array).",
+      "how_detected": "integration review of the merged validate.ts and documents.ts",
+      "root_cause": "Each branch inserted a new call plus a new function at the same base point, relying on the base's closing brace to close its function. Concatenating two such insertions (ours then theirs) is valid syntax but moves theirs' call into ours' last function; the same happened with array entries appended before a shared closing bracket.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "All screen checks are called from screenCheck; each block of document entries is inside ALL_DOCUMENTS.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/screen-checks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When resolving same-point insertions by concatenation, check that each side's insertion is self-contained (a call plus a closed function, entries before the array's own bracket); screen-checks.test.ts fails if a screen's check is not reached for a document of that type alone.",
+      "recurrence_of": ""
     }
   ]
 }

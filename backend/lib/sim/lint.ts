@@ -213,13 +213,48 @@ export const CERT_MARKS: readonly RegExp[] = [/\bISC2\b/i, /\(ISC\)/i, /\bISACA\
 const MARK_PROFILES = new Set(["governance", "exercise", "professional-ethics"]);
 const NOT_LEARNER_TEXT = new Set(["objective", "secondaryObjectives", "sources", "source", "slug"]);
 
+// REQ-309 (wave 2026-11-17): every sim, whatever its profile, names no mark of
+// an exam body whose trademark policy allows no use without written
+// permission (the "permission" bodies of lib/catalog-trademarks.test.ts:
+// ISC2, EC-Council, ISACA, BCEN, NBCC, NASM, ACE, ASQ, ANCC, AANPCB, the
+// Python Institute, ABPTS/APTA and PeopleCert). One pattern per body, copied
+// from that test (lib/sim/cert-marks.test.ts fails if they drift), except
+// three acronyms that mean something else wherever sims use them and are
+// left out of the ABPTS and ISACA patterns: GCS (the Glasgow Coma Scale), ECS
+// (Amazon's container service) and CISA (the US Cybersecurity and
+// Infrastructure Security Agency). "ACE inhibitor" is a drug class, not the
+// American Council on Exercise. Sources stay out of the check: whether a
+// citation may name a publisher's document is Nick's decision (REQ-309).
+export const PERMISSION_BODY_MARKS: readonly { body: string; marks: RegExp }[] = [
+  { body: "ISC2", marks: /ISC2|\(ISC\)|CISSP|Certified in Cybersecurity|Certified Information Systems Security Professional|\bCC\b|\bCBK\b/ },
+  { body: "EC-Council", marks: /EC-Council|\bC\|?EH\b|Certified Ethical Hacker|312-50/ },
+  { body: "ISACA", marks: /ISACA|\bCISM\b|Certified Information Security Manager|COBIT/ },
+  { body: "BCEN", marks: /BCEN|\bCEN\b|Certified Emergency Nurse|Board of Certification for Emergency Nursing/ },
+  { body: "NBCC", marks: /NBCC|\bNCE\b|NCMHCE|National Counselor Examination|National Clinical Mental Health Counseling Examination|\bNCC\b/ },
+  { body: "NASM", marks: /NASM|AFAA|Certified Nutrition Coach|\bCNC\b/ },
+  { body: "ACE", marks: /\bACE\b|American Council on Exercise/ },
+  { body: "ASQ", marks: /\bASQ\b|American Society for Quality|CSSGB|Certified Six Sigma/ },
+  { body: "ANCC", marks: /ANCC|American Nurses Credentialing Center|FNP-BC|\bANA\b/ },
+  { body: "AANPCB", marks: /AANPCB|\bNPCB\b|\bAANP\b|American Academy of Nurse Practitioners|\bFNP-C\b|\bNP-C\b/ },
+  { body: "Python Institute", marks: /Python Institute|OpenEDG|PCEP|PCAP|PCPP/ },
+  { body: "ABPTS (APTA)", marks: /ABPTS|American Board of Physical Therapy Specialties|\bAPTA\b|\b(OCS|NCS|CCS|PCS|SCS|WCS|PWCS)\b/ },
+  { body: "PeopleCert", marks: /ITIL|PeopleCert|PRINCE2|AXELOS/ },
+];
+const MARK_HOMONYMS = /\bACE inhibitors?\b/g;
+
 export function certMarkProblems(doc: ScenarioDoc): Problem[] {
-  if (!MARK_PROFILES.has(doc.outcome?.profile)) return [];
+  const strict = MARK_PROFILES.has(doc.outcome?.profile);
   const out: Problem[] = [];
   const walk = (x: unknown, path: string): void => {
     if (typeof x === "string") {
-      const hit = CERT_MARKS.find((r) => r.test(x));
-      if (hit) out.push({ level: "error", path, message: `names a certifying body's mark (${hit.source}); learner-facing sim text says "your professional code of ethics" or the course's topic instead (REQ-313)` });
+      const hit = strict ? CERT_MARKS.find((r) => r.test(x)) : undefined;
+      if (hit) {
+        out.push({ level: "error", path, message: `names a certifying body's mark (${hit.source}); learner-facing sim text says "your professional code of ethics" or the course's topic instead (REQ-313)` });
+        return;
+      }
+      const plain = x.replace(MARK_HOMONYMS, "");
+      const body = PERMISSION_BODY_MARKS.find((b) => b.marks.test(plain));
+      if (body) out.push({ level: "error", path, message: `names a mark of ${body.body} (${plain.match(body.marks)?.[0]}), whose policy allows no use without written permission; describe the role or the topic instead (REQ-309)` });
       return;
     }
     if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
