@@ -3608,7 +3608,7 @@ cover the whole catalog (95 courses):
 | **Security operations console** (REQ-231, 22.7) | Security: Security+ (SY0-701 and V8) now; CySA+, PenTest+, SecurityX, SecAI+ later | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
 | **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
-| **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
+| **Data and code console** (REQ-312, 22.25) | Data, AI and development: Python, JavaScript, PCEP, PCAP, TypeScript & Node.js, SQL, Python for Data Analysis and PL-300 now; the process and data side of ASQ CSSGB; Data+, DataAI, AI-901, DP-300, DP-900, MS Health Informatics, MSCS later | Guided: pick the query, profile, test or fix, change a cell by choosing a value, read authored tables, charts (control charts included) and code, reason in writing about a dataset, a model or a failing program under a deadline; no learner code or SQL is ever run |
 
 Order (each renderer ships behind `SIMS_ENABLED` with its first 3-5
 scenarios; no external review gate):
@@ -5624,3 +5624,189 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.25 The data and code console, and the first code, data and process sims (REQ-312)
+
+Nick, 2026-11-16: build all the proposed screens. This is the data and code
+console that 20.1 designed (decision R3), built so that one screen also
+carries the "process and data console" proposed for CSSGB
+(`docs/sim-coverage-pm-frameworks-cnc.md`): a control chart is a chart with
+reference lines, a capability study is a table, a DMAIC decision is an
+action. `screen.type: "data"`, `data@1`, behind `SIMS_RENDERERS` and on by
+default (`bedside,board,session,security-console,treatment-session,terminal,data`).
+
+**The hard rule: nothing the learner types is executed.** There is no editor
+and no interpreter. Running a query, a profile, a test, a dry run or a fix is
+one of the phase's actions; what it shows is authored (its `output` effects,
+shown as the results, and the screen bindings below over state). An edit is a
+choice: an editable cell names an action whose one param is a `choice`, and
+picking an option sends that action like any other. Every check is the
+engine's: criteria, endings and flags read state that each action's effects
+write at command time (20.1: end conditions read counters, never catalogues).
+The typed `command` and `query` params (4.1) stay unused, as on the terminal
+(22.10 finding 1).
+
+**Bindings** (`screen.data` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `dataCheck`; display and lint only, no stepping change, no
+engine minor, every existing hash unchanged):
+
+- `workspace` (template): what is open ("overdue_report.py, the nightly
+  overdue-notice job", "Line 3 filler").
+- `flags`: quality flags, failing checks and stakeholder messages, each
+  `label`, `text` (template), `when`, and a fixed `severity` (`error`,
+  `warning`, `info`).
+- `tables`: `columns` (`numeric` aligns right), `rows` (one template `cells`
+  per column, optional `when`, optional `flag`), optional `note`, and `edits`
+  (`row`, `column`, `action`): the action must exist, be listed in a phase and
+  have exactly one param, of kind `choice`; a cell is editable once. At most
+  60 rows on screen; a larger dataset is a catalogue shown through an output
+  table.
+- `charts`: `kind` `bar`, `line` or `control`, a `unit`, a fixed axis
+  (`min` < `max`), up to 60 `points` (number expressions, optional `when`
+  and `flag`) and reference `lines` (center line, control or spec limits, a
+  target); a control chart must have lines. The renderer flags only what the
+  document flags: a run-rule signal is the author's `flag`, never computed in
+  the app.
+- `code`: read-only files or cells (`label`, `language`), each line literal
+  text (never a template, so braces are code), at most 160 characters, no
+  newline or tab, optional `when` (a fix swaps one line for another) and a
+  `mark` expression over `none`, `error`, `warning`, `changed`, `focus`. A
+  line's number is its place among the lines shown.
+- `meters` as elsewhere.
+
+Ids are unique across flags, tables, charts, code and meters.
+
+**The renderer** (`DataPanel`, `mobile/src/sim/DataPanel.tsx`; view model
+`dataView`, `dataAlarmTexts`, `dataNews`, `dataSentence`, `editCommand`,
+`numberText` in `src/sim/runtime/dataView.ts`). Reading and web keyboard
+order: workspace, flags, charts, tables (each followed by the open cell's
+options), code, meters, results (newest first, text or a table), "Read the
+console". Charts are drawn with plain views, no chart library: bars, or dots
+on the chart's axis, with dashed reference lines labeled at the right; a
+flagged point is larger, ringed and marked "!" (never color alone). Every
+chart has "Show as table", which lists each point and line as an accessible
+row. A table wider than the phone scrolls sideways inside its card, never
+the page; a flagged row has a "!" column and a tinted background. An
+editable cell is a button ("value ✎", spoken as "editable"); it opens its
+options under the table ("Pick a value; it runs at once") and Cancel; an
+unavailable cell says why and sends nothing. Code is monospace with line
+numbers and the mark as a word beside the line. Every element is at least 48
+dp except the code lines and chart labels inside one accessible block.
+
+**Accessibility**, to the terminal's standard: an `error` flag is an alarm
+(spoken at once, and again as cleared); a new warning or note, new results
+(one sentence, a burst summarized with the newest), a new chart or table, or
+more flagged points or rows are polite news, at most one sentence per 10 s; a
+chart's summary ("X-bar chart of mean fill, control chart, 22 points, from
+... to ..., UCL 503.8 g, CL 502 g, LCL 500.2 g, 8 flagged: ...") is its
+accessible label; "Read the console" speaks the workspace, the flags, every
+chart's summary, each table's size and flagged rows, the marked code lines,
+the meters and the latest result. JavaScript only: it ships over the air,
+and an app without `data@1` is not offered these sims and is told to update
+(5.10).
+
+**Pacing**: learner-paced like the terminal. Every phase is `turns` (a work
+phase and a stopped report phase); each step costs working minutes through
+one `work` wait, and the deadline is a trigger on the same clock that stops a
+skip (`interruptsSkip`). A long run (the full job) is its own timer. The
+general family is not pace-eligible.
+
+**Outcome profile `data`** (9.2, the 20.1 drafts now defaults):
+`deliverWindow` 7200 s (the right result delivered within two hours of the
+request) and `rowsAlteredOutsideFix` 0. Target: the right root cause found
+and the right result delivered in the window, checked, with no data altered
+beyond the fix; recovered: late, unchecked, held back, or with a safe but
+costly side effect; harm: a wrong result shipped to the stakeholder (a
+report, a deployed change, a release on a misleading number) or data deleted
+beyond recovery. Each case tightens `deliverWindow` to its own deadline (45
+to 90 minutes). A case that counts altered rows names its state counter
+differently from the threshold or leaves the threshold out, because
+thresholds are bound as names (SQL case).
+
+**Cases** (golden paths by `npm run sim:golden -- steps <name>`, shared
+driver `scripts/sim-golden/data-helpers.ts`; checked by
+`lib/sim/data-console.test.ts` and `mobile/src/sim/data.test.ts`; listed in
+`DATA_CONSOLE_SLUGS`, lib/sim/documents.ts):
+
+| Course / slug | Objective (catalog title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| PYTHON/py-report-too-slow-profile | Basic performance profiling (timeit, cProfile) before optimizing | measured first; fixed the hot spot (a set for the membership test); diffed against a known good output | py-profile |
+| PYTHON/py-import-crash-traceback | Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs | read the traceback first; fixed the parsing, no row skipped or zeroed by a broad except; dry run matched the control trailer | py-trace |
+| PCAP/py-import-crash-traceback-pcap (band) | Diagnose syntax, runtime and logic errors from tracebacks and step-by-step tracing, then verify the fix with tests | as the base | py-trace-pcap |
+| PCEP/py-import-crash-traceback-pcep (band) | Handle runtime errors with try and one or more specific except branches, and trace the flow when one is raised | as the base | py-trace-pcep |
+| JAVASCRIPT/js-rate-board-zero-percent | Fetching data with the Fetch API and handling JSON responses | looked at the responses first; checks response.ok and shows the failure; a mocked 503 test after the last change | js-fetch |
+| TSNODE/js-rate-board-zero-percent-tsnode (band) | Call another service with fetch, check response.ok, and set a timeout with AbortSignal | as the base, in the board's Node.js proxy | js-fetch-tsnode |
+| PL300/pl300-rls-region-manager | Implementing row-level security roles with DAX filters and mapping groups to them | checked workspace access first; managers are Viewers; a security group mapped to the role | pl300-rls |
+| PL300/pl300-stock-on-hand-summed | Writing semi-additive measures, such as a closing balance, that must not sum over time | checked the grain first; LASTNONBLANK; reconciled with the latest snapshot | pl300-semi |
+| CSSGB/cssgb-fill-weight-chart | Selecting and interpreting a control chart: X-bar and R, ... p, np, c and u | X-bar and R chosen; special cause found before acting, no set point tampering; only the product made since the shift held | cssgb-chart |
+| CSSGB/cssgb-capability-tool-wear | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | stability charted first; Ppk reported, not a cherry-picked or within-only Cpk; the cause put under control | cssgb-cap |
+| SQL/sql-not-in-null-empty-list | Diagnose a NOT IN filter that returns nothing because the list contains a NULL, and fix it with NOT EXISTS | looked for NULLs first; a NULL-safe filter; no data changed | sql-notin |
+
+Each authored case has one three-part written-reasoning moment, endings in
+all three classes with `endingOrder` (harm first), three critical criteria
+and two more, three KPIs with expert values, an expert path, a debrief per
+ending and six or seven golden paths reaching every ending but `time_up`,
+each rating (Good, Mediocre, Bad) and every criterion met and missed. The
+editable cells are used where an edit is the skill: the managers' workspace
+role and the role's members (PL300 RLS), the measure version (PL300
+semi-additive) and the chart type (CSSGB control chart). Places, people and
+data are fictional and use documentation domains.
+
+**Bands** (4.7; the round's rule: where another course already teaches the
+objective, register a band): the Python traceback case on PCAP and PCEP, and
+the fetch case on TSNODE, each patching objective, secondaries, sources and,
+for TSNODE, the brief, two action labels and the code file's name and
+language. No existing terminal sim teaches an objective of the courses this
+screen serves (PYTHON, JAVASCRIPT, PL300, CSSGB have no sims; PYDATA's
+groupby case and the SQL and TSNODE terminal cases are on objectives none of
+these courses share), so no terminal case was banded.
+
+**Sources** carry `checkedAt` 2026-11-16, read that day through summarizing
+fetches of URLs that appeared in a search result: Python 3.15 profile,
+pstats (3.16 dev) and "Time complexity of operations on built-in types";
+the Python tutorial's Errors and Exceptions; MDN Using the Fetch API,
+Response.ok and AbortSignal.timeout(); Microsoft Learn "Row-level security
+(RLS) with Power BI" and the DAX time intelligence training unit
+("Additional time intelligence calculations"); SQLBI "Semi-additive measures
+in DAX"; NIST/SEMATECH e-Handbook 6.1.6, 6.3.2, 6.3.2.1 and 6.3.3.2;
+PostgreSQL 16 "Subquery Expressions". Not on the fetched pages, and marked so
+in each source note: the pstats column definitions, the X-bar and R factor
+values (A2, D3, D4) and the Pp/Ppk definitions (standard values), a NOT
+EXISTS paragraph, and the bands' vendor syllabi (the course seeds' wording
+is used). Every dataset, run time, deadline and total is invented; outputs,
+tracebacks, profiles and query results are authored renderings in each
+tool's style, and the facts they carry are the sources'.
+
+**Findings** (recorded, not worked around):
+
+1. **A sim test selected its documents by course code (FAIL-2180,
+   recurrence of FAIL-2002).** `lib/sim/tech-courses-sims.test.ts` built its
+   set with `e.course in SCREEN` and failed when this change added a third
+   SQL sim and a TSNODE band; it now lists its REQ-269 slugs.
+2. **A target ending reached with a critical criterion missed is a lint
+   error** (9.2). The first PYTHON profiling draft let an unmeasured run end
+   on target; the target condition now requires a measurement. Not a defect
+   of the engine; recorded as an authoring note.
+3. **Thresholds are bound as names**, so a state counter cannot share a
+   threshold's name (`rowsAlteredOutsideFix`); 20.1 suggested both. The SQL
+   case keeps the counter and leaves the threshold out. A decision for later:
+   rename the profile threshold (for example `alteredRowsMax`) before a case
+   needs both.
+4. **`time_up`** stays unreached in every case, as on the other learner-paced
+   screens.
+5. **Literal braces in code** are why code lines are not templates; a brace
+   in any other text (a finding, an output) is still a template slot and is
+   written `{{` / `}}` (22.21).
+
+**Still to build on this screen** (candidates; coverage in
+`docs/sims-coverage-tech.md` and `docs/sim-coverage-pm-frameworks-cnc.md`):
+PL300 Performance Analyzer, gateway and refresh, CALCULATE and filter
+modifiers, relationship cross-filtering, storage mode, Power Query cleaning,
+workspace roles and sensitivity labels; PCEP CSV conversion; PCAP review and
+CI, AI-generated code, merge conflicts; SQL row multiplication, safe UPDATE
+and DELETE, transactions, foreign key actions, multicolumn index; PYDATA
+merge validation, hidden notebook state, time zones; PYTHON mutable default
+argument, file handling, pytest, asyncio, decorators; JAVASCRIPT type
+coercion, async error handling, DOM and Jest objectives; CSSGB gauge R&R,
+FMEA, hypothesis tests, regression, multi-vari, DOE plots, pilots, lean flow
+and the control plan cases (P-Q1 to P-Q8).
