@@ -1,0 +1,1133 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "triage-indigestion-inferior-stemi",
+  "title": "Indigestion at the triage desk",
+  "objective": "Recognize acute coronary syndrome at triage and get a 12-lead ECG read without delay",
+  "secondaryObjectives": [
+    "Prioritize early ACS care: aspirin, nitroglycerin with blood-pressure precautions, oxygen only for hypoxemia, and rapid reperfusion for STEMI"
+  ],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Cardiovascular Emergencies (18 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Cardiovascular Emergencies is 18 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of a secondary summary; the guideline itself was not reachable (PubMed refused the fetch). 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)', with 'a lack of evidence to support its clinical benefits in the absence of hypoxia'."
+    },
+    {
+      "cite": "NITROSTAT (nitroglycerin sublingual tablets) prescribing information, revised January 2017 (FDA label 021134s009)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021134s009lbl.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF. 'Administration of NITROSTAT is contraindicated in patients who are using a phosphodiesterase-5 (PDE-5) inhibitor'; 'Severe hypotension, particularly with upright posture, may occur with small doses of nitroglycerin'; in acute myocardial infarction 'careful clinical or hemodynamic monitoring must be used because of the possibility of hypotension and tachycardia'. No dose is used in the case."
+    },
+    {
+      "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+      "checkedAt": "2026-11-14",
+      "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+      "note": "Relayed from the CEN course seed, which read the handbook PDF 2026-11-14, not re-read: decision point B, a high-risk situation, new confusion or severe pain or distress, is ESI 2; adult high-risk vital signs are heart rate over 100, respiratory rate over 20, SpO2 under 92%."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:10 at the emergency department triage desk. You are the triage nurse. Mr. Reyes, 61, walked in: 'indigestion' for 40 minutes that antacids didn't touch, and he feels sweaty and sick.",
+    "handover": [
+      "First look: pale and clammy, sitting forward, hand on his upper abdomen.",
+      "The department's chest-pain standing order: a 12-lead ECG within 10 minutes of arrival, shown to the emergency physician at once; chewable aspirin unless allergic or bleeding; sublingual nitroglycerin only if the systolic pressure is 90 or more and he takes no PDE-5 inhibitor; oxygen only if the SpO2 is under 90%.",
+      "The emergency physician is in the next resuscitation room and can be interrupted for an ECG."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what he needs first, what the findings mean and who must see them.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:10",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Ongoing ischemia moves toward an arrhythmic arrest over about 35 minutes without reperfusion. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of ventricular fibrillation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nitroFall": {
+      "value": 62,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The systolic fall after nitroglycerin in a patient who took a PDE-5 inhibitor last night. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ecgWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+        "checkedAt": "2026-11-17",
+        "note": "A 12-lead ECG acquired and read within 10 minutes of arrival."
+      }
+    },
+    "showWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The ECG shown to the physician within 5 minutes of the tracing (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused question set or a vital-sign set: about 1 min."
+      }
+    },
+    "ecgTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Leads on, a 12-lead tracing printed: about 2 min."
+      }
+    },
+    "cathTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "STEMI alert to leaving for the catheterization lab: about 10 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "meds",
+        "vitals",
+        "ecg"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "chart"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "esi2",
+        "esi3"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirinAt": {
+      "type": "time",
+      "init": null
+    },
+    "nitroAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 14 * prog + sin(t / 17) * 2 + (isNull(nitroAt) ? 0 : 18 * clamp((t - timeAt(nitroAt)) / 120, 0, 1)))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(134 - 8 * prog - (isNull(nitroAt) ? 0 : nitroFall * clamp((t - timeAt(nitroAt)) / 120, 0, 1)))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(82 - 4 * prog - (isNull(nitroAt) ? 0 : 36 * clamp((t - timeAt(nitroAt)) / 120, 0, 1)))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 2 * prog)",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 4 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "banner": [
+        {
+          "when": "route == \"md\" and inClinic",
+          "text": "STEMI alert: the catheterization team is on its way."
+        },
+        {
+          "when": "dxEnum == \"esi3\" and isNull(callAt)",
+          "text": "He is back in the waiting room."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Ask about the pain: onset, character, spread, sweating, nausea",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Asking about the pain (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Medications and allergies, including anything for erectile dysfunction",
+      "group": "Assess",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Full set of vital signs",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "12-lead ECG now",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "ecgTime"
+        },
+        {
+          "log": "Leads on (about 2 min)."
+        }
+      ]
+    },
+    "aspirin": {
+      "label": "Chewable aspirin per the chest-pain standing order",
+      "group": "Treat",
+      "available": "isNull(aspirinAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "aspirinAt",
+          "to": "t"
+        },
+        {
+          "log": "He chews the aspirin from the standing order.",
+          "kind": "act"
+        }
+      ]
+    },
+    "nitro": {
+      "label": "Sublingual nitroglycerin per the standing order",
+      "group": "Treat",
+      "available": "isNull(nitroAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "nitroAt",
+          "to": "t"
+        },
+        {
+          "log": "Nitroglycerin under his tongue.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen by nasal cannula",
+      "group": "Treat",
+      "available": "isNull(o2At) and inClinic",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "o2At",
+          "to": "t"
+        },
+        {
+          "log": "Nasal cannula on, though his SpO2 is {spo2}% on room air.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Assign the triage level",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "esi2",
+              "label": "ESI 2: high risk, a bed now and the ECG at the bedside"
+            },
+            {
+              "value": "esi3",
+              "label": "ESI 3: stable, needs several resources; waiting room until a bed opens"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"esi2\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"esi2\""
+                },
+                {
+                  "log": "ESI 2. Straight to a monitored bed.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"esi3\""
+                },
+                {
+                  "log": "ESI 3. Back to the waiting room.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "What happens with the ECG",
+      "group": "Decide",
+      "available": "isNull(callAt) and not isNull(ecgAt)",
+      "why": "No ECG yet, or already decided.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "The ECG",
+          "options": [
+            {
+              "value": "md",
+              "label": "Hand it to the emergency physician now and call a STEMI alert"
+            },
+            {
+              "value": "chart",
+              "label": "Put it in the chart for the physician to read on the next round"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "cathTime"
+                },
+                {
+                  "log": "The physician reads it in seconds: 'Inferior STEMI. Activate the cath lab.' The team is on its way.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"chart\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "2100"
+                },
+                {
+                  "log": "The ECG goes in his chart. The physician is still in the resuscitation room.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off to the catheterization team: onset time, ECG, aspirin, sildenafil last night",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off given: onset 13:30, inferior STEMI, aspirin given, sildenafil last night so no nitrate.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Triage",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "meds",
+        "vitals",
+        "ecg",
+        "aspirin",
+        "nitro",
+        "oxygen",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pressure under the breastbone and upper abdomen for 40 minutes, into the jaw; sweaty and nauseated. Smoker, high blood pressure.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"meds\"",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Amlodipine; no allergies. A little embarrassed: he took sildenafil last night.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart rate {hr}, blood pressure {sbp}/{dbp}, SpO2 {spo2}% on room air, respiratory rate {rr}, temperature 36.9 C.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "12-lead ECG: ST elevation in II, III and aVF with ST depression in I and aVL. An inferior STEMI.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to the catheterization lab",
+      "wait": {
+        "skipLabel": "his transfer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min from a STEMI alert to leaving; an unread ECG waits about 30 min."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the catheterization lab.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Mr. Reyes, and what has to happen in the next minutes?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Names probable acute coronary syndrome despite the 'indigestion' label: pressure into the jaw, sweating, nausea, risk factors; the ECG shows an inferior STEMI.",
+          "modelAnswer": "This isn't indigestion. Pressure into the jaw with sweating and nausea in a 61-year-old smoker is acute coronary syndrome until proved otherwise, and the ECG shows an inferior STEMI."
+        },
+        {
+          "label": "The next minutes",
+          "criteria": "ECG within 10 minutes of arrival shown to the physician at once for reperfusion; aspirin; no nitroglycerin because of sildenafil last night (and caution in inferior infarction); no oxygen while SpO2 is 90% or more.",
+          "modelAnswer": "ECG in the first 10 minutes and straight to the physician for a STEMI alert. Aspirin now. No nitroglycerin: he took sildenafil last night, and nitrates can drop his pressure badly. No oxygen, his saturation is normal."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A STEMI still in the emergency department an hour after arrival has lost the reperfusion window the guideline sets, which is harm here.",
+      "source": {
+        "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of a secondary summary; the guideline itself was not reachable (PubMed refused the fetch). 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)', with 'a lack of evidence to support its clinical benefits in the absence of hypoxia'."
+      }
+    }
+  },
+  "endings": {
+    "nitroCrash": {
+      "label": "Profound hypotension after nitroglycerin",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(nitroAt) and t >= timeAt(nitroAt) + 120 and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}, heart rate {hr}: he is gray and barely responding. Nitroglycerin on top of last night's sildenafil has dropped his pressure while his heart muscle is starved. The physician starts a resuscitation."
+    },
+    "vf": {
+      "label": "Ventricular fibrillation in the department",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "The monitor alarms: ventricular fibrillation. His STEMI was never reperfused. A code is called."
+    },
+    "cathNow": {
+      "label": "STEMI found at triage and sent for reperfusion",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and not isNull(ecgAt) and timeAt(ecgAt) <= ecgWindow and timeAt(callAt) <= timeAt(ecgAt) + showWindow and not isNull(aspirinAt) and isNull(nitroAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves for the catheterization lab. The ECG was done and read inside 10 minutes, aspirin is in and no nitrate met the sildenafil."
+    },
+    "cathLate": {
+      "label": "To the catheterization lab, with delays or gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches the catheterization lab, but the ECG came late, sat before anyone read it, or he went without aspirin."
+    },
+    "time_up": {
+      "label": "Still in the department at 15:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:10 and Mr. Reyes is still in the department."
+    }
+  },
+  "endingOrder": [
+    "nitroCrash",
+    "vf",
+    "cathNow",
+    "cathLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "ecg10",
+        "label": "12-lead ECG done within 10 minutes of arrival",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ecgAt) and timeAt(ecgAt) <= ecgWindow",
+            "score": "met",
+            "why": "Tracing at {timeAt(ecgAt)|clock}."
+          },
+          {
+            "when": "not isNull(ecgAt)",
+            "score": "partial",
+            "why": "Done, but after 10 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No ECG."
+          }
+        ]
+      },
+      {
+        "id": "shown",
+        "label": "ECG shown to the physician within 5 minutes of the tracing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(ecgAt) + showWindow",
+            "score": "met",
+            "why": "Shown at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Shown, but late."
+          },
+          {
+            "when": "route == \"chart\"",
+            "score": "missed",
+            "why": "Left in the chart unread."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not shown."
+          }
+        ]
+      },
+      {
+        "id": "noNitro",
+        "label": "No nitroglycerin after sildenafil",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(nitroAt)",
+            "score": "missed",
+            "why": "Nitroglycerin given {isNull(medsAt) ? \"without asking about PDE-5 inhibitors\" : \"despite sildenafil last night\"}."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No nitrate."
+          }
+        ]
+      },
+      {
+        "id": "aspirinC",
+        "label": "Aspirin per the standing order",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(aspirinAt)",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      },
+      {
+        "id": "esiC",
+        "label": "Triaged ESI 2",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"esi2\"",
+            "score": "met",
+            "why": "ESI 2."
+          },
+          {
+            "when": "dxEnum == \"esi3\"",
+            "score": "missed",
+            "why": "ESI 3: a high-risk patient sent to wait."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not triaged."
+          }
+        ]
+      },
+      {
+        "id": "noO2",
+        "label": "No oxygen while the SpO2 was 90% or more",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(o2At)",
+            "score": "met",
+            "why": "Room air."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Oxygen without hypoxemia."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the onset time, ECG, aspirin and the sildenafil",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: ACS behind 'indigestion', the 10-minute ECG, no nitrate after sildenafil",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "doorEcg",
+        "label": "Arrival to the 12-lead ECG",
+        "value": "isNull(ecgAt) ? -1 : timeAt(ecgAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "ecgMd",
+        "label": "ECG to the physician",
+        "value": "isNull(callAt) or isNull(ecgAt) ? -1 : max(0, timeAt(callAt) - timeAt(ecgAt))",
+        "format": "duration",
+        "expert": "under 1 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:10",
+        "text": "Pale, clammy 'indigestion' in a 61-year-old: ESI 2, ECG now."
+      },
+      {
+        "at": "~14:13",
+        "text": "12-lead ECG: inferior STEMI. Straight to the physician; STEMI alert."
+      },
+      {
+        "at": "~14:14",
+        "text": "Medications: sildenafil last night, so no nitroglycerin. Aspirin. Room air (SpO2 96%)."
+      },
+      {
+        "at": "~14:15",
+        "text": "Hand off the onset time, ECG, aspirin and the sildenafil to the catheterization team."
+      }
+    ],
+    "debrief": {
+      "nitroCrash": {
+        "headline": "Hypotension after nitroglycerin",
+        "body": "Ask about PDE-5 inhibitors before any nitrate; the label contraindicates the combination, and inferior infarctions are pressure-sensitive too."
+      },
+      "vf": {
+        "headline": "Arrest before reperfusion",
+        "body": "'Indigestion' with sweating and nausea is ACS until an ECG says otherwise. The ECG is read within 10 minutes of arrival, by the physician, not left in a chart."
+      },
+      "cathNow": {
+        "headline": "Found and sent",
+        "body": "You saw through the 'indigestion' label, got the ECG inside 10 minutes, put it in the physician's hands, gave aspirin and held the nitrate. That is the expert path."
+      },
+      "cathLate": {
+        "headline": "Reperfused, with delays",
+        "body": "Check the arrival-to-ECG time, how long the tracing waited for a reader, and whether aspirin was given."
+      },
+      "time_up": {
+        "headline": "Still in the department",
+        "body": "A STEMI needs reperfusion within minutes of being found."
+      }
+    },
+    "modelReasoning": "Pressure into the jaw with sweating and nausea in a 61-year-old smoker is acute coronary syndrome whatever he calls it, so he is ESI 2 and gets a 12-lead ECG within 10 minutes of arrival, read by the physician at once. It shows an inferior STEMI: STEMI alert for reperfusion. Aspirin per the standing order. Nitroglycerin is contraindicated because he took sildenafil last night, and severe hypotension can follow even small doses. His SpO2 is normal, so no oxygen."
+  },
+  "chapters": [
+    {
+      "id": "ecgDone",
+      "label": "The ECG is printed",
+      "when": "not isNull(ecgAt)"
+    }
+  ],
+  "teaching": {
+    "ecgQ": {
+      "during": "testT",
+      "ask": "While you assess: how soon should a 12-lead ECG be acquired and read for suspected ACS?",
+      "choices": [
+        {
+          "id": "ten",
+          "label": "Within 10 minutes of first medical contact"
+        },
+        {
+          "id": "thirty",
+          "label": "Within 30 minutes"
+        },
+        {
+          "id": "bed",
+          "label": "Once he has a bed"
+        }
+      ],
+      "expect": "ten",
+      "explain": "At least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact.",
+      "source": {
+        "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of a secondary summary; the guideline itself was not reachable (PubMed refused the fetch). 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)', with 'a lack of evidence to support its clinical benefits in the absence of hypoxia'."
+      }
+    },
+    "nitroQ": {
+      "during": "leaveT",
+      "ask": "While the team arrives: why is nitroglycerin held for Mr. Reyes?",
+      "choices": [
+        {
+          "id": "pde5",
+          "label": "He uses a PDE-5 inhibitor (sildenafil); the label contraindicates nitroglycerin"
+        },
+        {
+          "id": "stemi",
+          "label": "Nitroglycerin is never given in STEMI"
+        },
+        {
+          "id": "aspirin",
+          "label": "It interacts with aspirin"
+        }
+      ],
+      "expect": "pde5",
+      "explain": "Nitroglycerin is contraindicated in patients using a PDE-5 inhibitor; severe hypotension may follow even small doses.",
+      "source": {
+        "cite": "NITROSTAT (nitroglycerin sublingual tablets) prescribing information, revised January 2017 (FDA label 021134s009)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021134s009lbl.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF. 'Administration of NITROSTAT is contraindicated in patients who are using a phosphodiesterase-5 (PDE-5) inhibitor'; 'Severe hypotension, particularly with upright posture, may occur with small doses of nitroglycerin'; in acute myocardial infarction 'careful clinical or hemodynamic monitoring must be used because of the possibility of hypotension and tachycardia'. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

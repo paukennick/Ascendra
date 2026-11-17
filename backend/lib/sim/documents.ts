@@ -425,6 +425,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // REQ-323, round 2 (docs/sims.md 22.32): the PTA musculoskeletal case, the
   // emergency department cases, nursing depth and the launch courses.
   entry("NPTEPTA", "pta-back-pain-new-bladder-symptoms"),
+  entry("CEN", "triage-indigestion-inferior-stemi"),
   // ---- end REQ-323 ----
 ];
 
