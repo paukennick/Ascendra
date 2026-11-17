@@ -264,7 +264,7 @@ export const MARK_EVIDENCE: Readonly<Record<string, readonly MarkEvidence[]>> = 
     { url: "https://bcen.org/wp-content/uploads/2022/11/8.1-Trademark-and-Logo-Usage_2025.pdf", readAt: "2026-11-16", via: "pdf",
       finding: "\"The Board of Certification for Emergency Nursing (BCEN®)\"; BCEN Marks are \"trademarks or registered trademarks of BCEN\"." },
   ],
-  NBCC: [{ url: "https://2fwww.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", readAt: "2026-11-16", via: "pdf",
+  NBCC: [{ url: "https://www.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", readAt: "2026-11-16", via: "pdf",
     finding: "Owner \"National Board for Certified Counselors, Inc.\"; lists \"NCE®\" and \"NCMHCE®\" (and \"National Counselor Examination™\")." }],
   NASM: [{ url: "https://www.nasm.org/policies/terms-and-conditions", readAt: "2026-11-16", via: "page",
     finding: "Sites \"owned and operated by the National Academy of Sports Medicine, LLC\"; 19.1: \"NASM/AFAA names and acronyms, including NASM® and AFAA® ... are trademarks or registered trademarks of NASM/AFAA\". NASM-CPT and NASM-CNC appear with no symbol." }],

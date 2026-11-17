@@ -70,7 +70,7 @@ const BODIES: Body[] = [
     marks: /ISACA|\bCISM\b|\bCISA\b|Certified Information Security Manager|COBIT/ },
   { name: "BCEN", policy: "permission", url: "https://bcen.org/wp-content/uploads/2022/11/8.1-Trademark-and-Logo-Usage_2025.pdf", codes: ["CEN"],
     marks: /BCEN|\bCEN\b|Certified Emergency Nurse|Board of Certification for Emergency Nursing/ },
-  { name: "NBCC", policy: "permission", url: "https://2fwww.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", codes: ["NCE", "NCMHCE"],
+  { name: "NBCC", policy: "permission", url: "https://www.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", codes: ["NCE", "NCMHCE"],
     marks: /NBCC|\bNCE\b|NCMHCE|National Counselor Examination|National Clinical Mental Health Counseling Examination|\bNCC\b/ },
   { name: "NASM", policy: "permission", url: "https://www.nasm.org/policies/terms-and-conditions", codes: ["NASMCPT", "NASMCNC"],
     marks: /NASM|AFAA|Certified Nutrition Coach|\bCNC\b/ },
