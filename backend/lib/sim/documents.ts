@@ -450,6 +450,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PGMP", "pgmp-transit-program-steering-review"),
   entry("PFMP", "pfmp-water-utility-rebalance"),
   band("PMIPMOCP", "water-utility-rebalance-pmipmocp"),
+  entry("CSPP", "cspp-school-laptop-p5-review"),
   // ---- end REQ-321 ----
 ];
 

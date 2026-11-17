@@ -52,4 +52,5 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "PGMP", slug: "pgmp-transit-program-steering-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pgmp-steering" },
   { course: "PFMP", slug: "pfmp-water-utility-rebalance", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pfmp-rebalance" },
   { course: "PMIPMOCP", slug: "water-utility-rebalance-pmipmocp", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-pmipmocp-water-utility-rebalance-pmipmocp", base: "PFMP/pfmp-water-utility-rebalance" },
+  { course: "CSPP", slug: "cspp-school-laptop-p5-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "cspp-p5" },
 ];
