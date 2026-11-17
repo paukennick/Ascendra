@@ -1,0 +1,1161 @@
+{
+  "slug": "contact-center-move-contracts-pmicp",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Plan and contract read; time and materials with a ceiling, the engineer negotiated, a cure notice, the overrun funded through change control, contracts closed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rmp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "contracts",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "tm",
+          "seq": 6,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 336,
+          "seq": 7,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 504,
+          "seq": 8,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "negotiate",
+          "seq": 9,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 672,
+          "seq": 10,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 840,
+          "seq": 11,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "cure",
+          "seq": 12,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1008,
+          "seq": 13,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1176,
+          "seq": 14,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "request",
+          "seq": 15,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1344,
+          "seq": 16,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 11,
+          "to": 1512,
+          "seq": 17,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 12,
+          "to": 1680,
+          "seq": 18,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 19,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "closed"
+          },
+          "seq": 20,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 21,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "onPlan",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "contractCrit": "met",
+          "resCrit": "met",
+          "vendorCrit": "met",
+          "financeCrit": "met",
+          "closeCrit": "met"
+        },
+        "kpis": {
+          "spiK": 1,
+          "cpiK": 0.98,
+          "acK": 307
+        },
+        "stateHash": "b69f85d75155c1ee"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "fixedPrice",
+      "title": "A fixed price on the uncertain migration; everything else controlled",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "fixed",
+          "seq": 2,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 2,
+          "to": 336,
+          "seq": 3,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 504,
+          "seq": 4,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "negotiate",
+          "seq": 5,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 672,
+          "seq": 6,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 840,
+          "seq": 7,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "cure",
+          "seq": 8,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 1008,
+          "seq": 9,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1176,
+          "seq": 10,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "request",
+          "seq": 11,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1344,
+          "seq": 12,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1512,
+          "seq": 13,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1680,
+          "seq": 14,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "closed"
+          },
+          "seq": 16,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "contractCrit": "partial",
+          "resCrit": "met",
+          "vendorCrit": "met",
+          "financeCrit": "met",
+          "closeCrit": "met"
+        },
+        "kpis": {
+          "spiK": 1,
+          "cpiK": 0.95,
+          "acK": 316
+        },
+        "stateHash": "c7f33feab9164e2e"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "paidAndWaited",
+      "title": "The late vendor paid with no review; otherwise controlled",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rmp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "tm",
+          "seq": 4,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 336,
+          "seq": 5,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 504,
+          "seq": 6,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "negotiate",
+          "seq": 7,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 672,
+          "seq": 8,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 840,
+          "seq": 9,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "wait",
+          "seq": 10,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1008,
+          "seq": 11,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1176,
+          "seq": 12,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "request",
+          "seq": 13,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1344,
+          "seq": 14,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1512,
+          "seq": 15,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 11,
+          "to": 1680,
+          "seq": 16,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 17,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "skipped"
+          },
+          "seq": 18,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 19,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "contractCrit": "met",
+          "resCrit": "met",
+          "vendorCrit": "missed",
+          "financeCrit": "met",
+          "closeCrit": "missed"
+        },
+        "kpis": {
+          "spiK": 0.93,
+          "cpiK": 0.91,
+          "acK": 307
+        },
+        "stateHash": "1d1c499895eba5f7"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "hidden",
+      "title": "The overrun moved to next quarter's operating budget",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "tm",
+          "seq": 2,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 2,
+          "to": 336,
+          "seq": 3,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 504,
+          "seq": 4,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "negotiate",
+          "seq": 5,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 672,
+          "seq": 6,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 840,
+          "seq": 7,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "cure",
+          "seq": 8,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 1008,
+          "seq": 9,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1176,
+          "seq": 10,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "hide",
+          "seq": 11,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1344,
+          "seq": 12,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1512,
+          "seq": 13,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1680,
+          "seq": 14,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "closed"
+          },
+          "seq": 16,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "misreported",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "contractCrit": "met",
+          "resCrit": "met",
+          "vendorCrit": "met",
+          "financeCrit": "missed",
+          "closeCrit": "met"
+        },
+        "kpis": {
+          "spiK": 1,
+          "cpiK": 0.98,
+          "acK": 307
+        },
+        "stateHash": "bdf15f513e6fb947"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "override",
+      "title": "The sponsor asked to overrule the IT director",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "tm",
+          "seq": 2,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 2,
+          "to": 336,
+          "seq": 3,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 504,
+          "seq": 4,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "override",
+          "seq": 5,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 672,
+          "seq": 6,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 840,
+          "seq": 7,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "cure",
+          "seq": 8,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 1008,
+          "seq": 9,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1176,
+          "seq": 10,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "request",
+          "seq": 11,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1344,
+          "seq": 12,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1512,
+          "seq": 13,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1680,
+          "seq": 14,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "closed"
+          },
+          "seq": 16,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "broken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "contractCrit": "met",
+          "resCrit": "partial",
+          "vendorCrit": "met",
+          "financeCrit": "met",
+          "closeCrit": "met"
+        },
+        "kpis": {
+          "spiK": 1,
+          "cpiK": 0.99,
+          "acK": 303
+        },
+        "stateHash": "983b6044f1325ce2"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "cutTraining",
+      "title": "Training cut unannounced to stay within budget",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "tm",
+          "seq": 2,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 2,
+          "to": 336,
+          "seq": 3,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 504,
+          "seq": 4,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "negotiate",
+          "seq": 5,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 672,
+          "seq": 6,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 840,
+          "seq": 7,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "cure",
+          "seq": 8,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 1008,
+          "seq": 9,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1176,
+          "seq": 10,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "cutTraining",
+          "seq": 11,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1344,
+          "seq": 12,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1512,
+          "seq": 13,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1680,
+          "seq": 14,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "closed"
+          },
+          "seq": 16,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "broken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "contractCrit": "met",
+          "resCrit": "met",
+          "vendorCrit": "met",
+          "financeCrit": "partial",
+          "closeCrit": "met"
+        },
+        "kpis": {
+          "spiK": 1,
+          "cpiK": 0.98,
+          "acK": 307
+        },
+        "stateHash": "e4b2491a67147f97"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "overrun",
+      "title": "Uncapped cost-plus, the engineer lost, the vendor terminated",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 1,
+          "to": 168,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "contractPrompt",
+          "choice": "costplus",
+          "seq": 2,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 2,
+          "to": 336,
+          "seq": 3,
+          "tick": 168
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 3,
+          "to": 504,
+          "seq": 4,
+          "tick": 336
+        },
+        {
+          "type": "choose",
+          "prompt": "resPrompt",
+          "choice": "accept",
+          "seq": 5,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 4,
+          "to": 672,
+          "seq": 6,
+          "tick": 504
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 5,
+          "to": 840,
+          "seq": 7,
+          "tick": 672
+        },
+        {
+          "type": "choose",
+          "prompt": "vendorPrompt",
+          "choice": "terminate",
+          "seq": 8,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 6,
+          "to": 1008,
+          "seq": 9,
+          "tick": 840
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 7,
+          "to": 1176,
+          "seq": 10,
+          "tick": 1008
+        },
+        {
+          "type": "choose",
+          "prompt": "financePrompt",
+          "choice": "request",
+          "seq": 11,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 8,
+          "to": 1344,
+          "seq": 12,
+          "tick": 1176
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 9,
+          "to": 1512,
+          "seq": 13,
+          "tick": 1344
+        },
+        {
+          "type": "skip",
+          "timer": "week",
+          "instance": 10,
+          "to": 1680,
+          "seq": 14,
+          "tick": 1512
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "skipped"
+          },
+          "seq": 16,
+          "tick": 1680
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 1680
+        }
+      ],
+      "expect": {
+        "ending": "overrun",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "contractCrit": "missed",
+          "resCrit": "missed",
+          "vendorCrit": "partial",
+          "financeCrit": "met",
+          "closeCrit": "missed"
+        },
+        "kpis": {
+          "spiK": 0.8,
+          "cpiK": 0.72,
+          "acK": 334
+        },
+        "stateHash": "99ac752c03af7ba7"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

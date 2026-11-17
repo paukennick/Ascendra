@@ -58,4 +58,8 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "CAPM", slug: "warehouse-risk-register-capm", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-capm-warehouse-risk-register-capm", base: "PMIRMP/pmirmp-warehouse-risk-register" },
   { course: "CAPA", slug: "argo-nightly-dag-region-failure", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "capa-dag" },
   { course: "PMIPBA", slug: "pmipba-claims-portal-baseline-signoff", screen: "project-dashboard", profile: "project", kind: "scenario", steps: "pmipba-baseline" },
+  { course: "PMP", slug: "pmp-contact-center-move-procurement", screen: "project-dashboard", profile: "project", kind: "scenario", steps: "pmp-move" },
+  { course: "PROJECTPLUS", slug: "contact-center-move-procurement-projectplus", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-projectplus-contact-center-move-procurement-projectplus", base: "PMP/pmp-contact-center-move-procurement" },
+  { course: "PMICP", slug: "contact-center-move-contracts-pmicp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmicp-contact-center-move-contracts-pmicp", base: "PMP/pmp-contact-center-move-procurement" },
+  { course: "PROJECTPLUS", slug: "warehouse-risk-register-projectplus", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-projectplus-warehouse-risk-register-projectplus", base: "PMIRMP/pmirmp-warehouse-risk-register" },
 ];
