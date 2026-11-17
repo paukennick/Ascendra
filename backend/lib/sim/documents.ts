@@ -451,6 +451,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AI901", "rag-assistant-data-leak-ai901"),
   band("GCPGAIL", "rag-assistant-data-leak-gail"),
   entry("AWSDEA", "kinesis-poison-record-blocks-shard"),
+  entry("GCPNET", "gke-pod-range-exhausted-before-promo"),
   // ---- end REQ-320 ----
 ];
 

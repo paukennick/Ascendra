@@ -1,0 +1,930 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "gke-pod-range-exhausted-before-promo",
+  "title": "Outage: the cluster cannot add nodes an hour before the promotion",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "11:05 autoscaler: scale-up failed for pool-1 (8 -> 14 nodes); 40 Pods Pending; promotion at 12:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "12:00: promotion live, Pods Pending",
+          "when": "not isNull(promoMissAt)",
+          "at": "timeAt(promoMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "12:00: promotion live, Pods running",
+          "when": "not isNull(promoOkAt)",
+          "at": "timeAt(promoOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "subnet",
+          "label": "Subnet gke-prod",
+          "spokenLabel": "the node subnet",
+          "kind": "primary 10.10.0.0/22",
+          "status": "{expanded ? \"expanded to /20 (nodes were not short)\" : \"8 of about 1,000 node addresses used\"}",
+          "tone": "\"up\""
+        },
+        {
+          "id": "pods",
+          "label": "Pod range pods (10.12.0.0/21)",
+          "spokenLabel": "the first Pod range",
+          "kind": "110 Pods per node: a /24 per node",
+          "status": "8 of 8 node blocks used",
+          "tone": "\"down\""
+        },
+        {
+          "id": "pods2",
+          "label": "Pod range pods-2",
+          "spokenLabel": "the second Pod range",
+          "kind": "secondary range",
+          "status": "{rangeAdded ? \"10.14.0.0/21 added\" : \"not created\"}",
+          "tone": "rangeAdded ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "pool2",
+          "label": "Node pool pool-2",
+          "spokenLabel": "the new node pool",
+          "kind": "32 Pods per node: a /26 per node",
+          "status": "{poolReady ? \"6 nodes Ready\" : poolCreated ? \"creating\" : \"none\"}",
+          "tone": "poolReady ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "subnet",
+          "to": "pods",
+          "label": "Secondary range",
+          "status": "exhausted",
+          "tone": "\"down\""
+        },
+        {
+          "id": "l2",
+          "from": "subnet",
+          "to": "pods2",
+          "label": "Secondary range",
+          "status": "{rangeAdded ? \"room for 32 nodes at /26\" : \"none\"}",
+          "tone": "rangeAdded ? \"up\" : \"degraded\""
+        }
+      ]
+    }
+  },
+  "objective": "Planning GKE networking: secondary ranges, IP address space for scale, control-plane access",
+  "secondaryObjectives": [
+    "Planning GKE subnets: primary and secondary ranges",
+    "Planning for network quotas and limits"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Network Engineer certification exam guide (April 2026): designing and planning a VPC network ~21%, VPC network implementation ~20%, managed network services ~16%, hybrid and multicloud interconnectivity ~16%, network operations ~14%, cloud network security ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted there under 1.1: 'Planning for Google Kubernetes Engine (GKE) networking (e.g., secondary ranges, scale potential based on IP address space'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Google Cloud documentation, Configure maximum Pods per node (GKE)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: with the default of 110 Pods 'Kubernetes assigns a /24 CIDR block (256 addresses) to each of the nodes'; the block holds at least twice the maximum Pods; the worked example: 110 Pods per node and a /21 Pod range give 2^(24-21) = 8 nodes; maximum Pods per node 'cannot' be changed after the cluster or node pool is created, but a new node pool can set its own; when Pod addresses run out, 'you can create additional Pod IP address ranges using discontiguous multi-Pod CIDR'. The gcloud flags (--add-secondary-ranges, --pod-ipv4-range) are from memory of the CLI reference (to verify)."
+    },
+    {
+      "cite": "Google Cloud documentation, Troubleshoot VPC-native clusters (GKE)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/troubleshooting/vpc-clusters",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the error '[IP_SPACE_EXHAUSTED] Instance ... creation failed: IP space of ... is exhausted'; each node reserves a contiguous block from the cluster's Pod range even if few Pods run; if the name in the error is [SUBNET_NAME]-[SECONDARY_RANGE_NAME]-[HASH] the Pod range is exhausted, if it is only the subnet name the node range is; remedies: add Pod IPv4 ranges (discontiguous multi-Pod CIDR) without re-creating the cluster, expand the subnet's primary range with expand-ip-range when nodes run out, or create a node pool with a smaller maximum Pods per node (110 reserves a /24, 32 a /26)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer for Orchard Lane Media, a fictional streaming site on Google Cloud. The GKE Standard cluster prod-web in us-central1 runs on subnet gke-prod. A promotion goes live at 12:00 and the web tier is scaling out for it: 40 Pods are Pending and the cluster autoscaler cannot add nodes.",
+    "handover": [
+      "The cluster was built two years ago from a template; nobody has changed its ranges since.",
+      "There are 8 nodes today; capacity planning wants 14 for the promotion."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the subnet's primary range, the Pod ranges and the node pools.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:05",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "promoAt": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The promotion goes live at 12:00, 55 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingAt": {
+      "type": "time",
+      "init": null
+    },
+    "errAt": {
+      "type": "time",
+      "init": null
+    },
+    "clusterAt": {
+      "type": "time",
+      "init": null
+    },
+    "subnetAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rangeAdded": {
+      "type": "bool",
+      "init": false
+    },
+    "poolAt": {
+      "type": "time",
+      "init": null
+    },
+    "expanded": {
+      "type": "bool",
+      "init": false
+    },
+    "triedMax": {
+      "type": "bool",
+      "init": false
+    },
+    "recreated": {
+      "type": "bool",
+      "init": false
+    },
+    "promoOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "promoMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "podrange",
+        "nodes",
+        "quota"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "poolCreated": {
+      "expr": "not isNull(poolAt)"
+    },
+    "poolReady": {
+      "expr": "not isNull(poolAt) and since(poolAt) >= 480"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "pending",
+        "errors",
+        "cluster",
+        "subnet",
+        "tryMax",
+        "addRange",
+        "nodePool",
+        "expand",
+        "recreate",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "pending": {
+      "label": "kubectl get pods -n web --field-selector=status.phase=Pending",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pendingAt)",
+          "then": [
+            {
+              "set": "pendingAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ kubectl get pods -n web --field-selector=status.phase=Pending --no-headers | wc -l\n{poolReady ? \"0\" : \"40\"}\nneteng@cloudshell:~$ kubectl describe pod web-7f9c-x2k4 -n web | tail -2\n{poolReady ? \"Normal  Scheduled  assigned to gke-prod-web-pool-2-...\" : \"Warning FailedScheduling  0/8 nodes are available: 8 Insufficient cpu.\nNormal  NotTriggerScaleUp  pod didn't trigger scale-up: 1 max node group size reached or creation failed\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "errors": {
+      "label": "gcloud container operations list --filter='status=DONE AND statusMessage~EXHAUSTED' --limit 1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(errAt)",
+          "then": [
+            {
+              "set": "errAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud logging read 'resource.type=\"gce_instance_group_manager\" AND severity>=ERROR' --limit 1 --format='value(jsonPayload.message)'\n[IP_SPACE_EXHAUSTED] Instance 'gke-prod-web-pool-1-5d2e-9xk1' creation failed: IP space of 'projects/olm-prod/regions/us-central1/subnetworks/gke-prod-pods-8c41f2a0' is exhausted."
+        },
+        {
+          "finding": "The name in the error is the subnet, then the secondary range, then a hash: the Pod range is exhausted, not the node addresses."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cluster": {
+      "label": "gcloud container clusters describe prod-web --region us-central1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(clusterAt)",
+          "then": [
+            {
+              "set": "clusterAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud container clusters describe prod-web --region us-central1 --format='value(clusterIpv4Cidr,defaultMaxPodsConstraint.maxPodsPerNode,currentNodeCount)'\n10.12.0.0/21  110  8"
+        },
+        {
+          "finding": "110 Pods per node reserves a /24 for every node; a /21 holds 2^(24-21) = 8 of them, and all 8 are taken."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "subnet": {
+      "label": "gcloud compute networks subnets describe gke-prod --region us-central1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(subnetAt)",
+          "then": [
+            {
+              "set": "subnetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute networks subnets describe gke-prod --region us-central1 --format='yaml(ipCidrRange,secondaryIpRanges)'\nipCidrRange: {expanded ? \"10.10.0.0/20\" : \"10.10.0.0/22\"}\nsecondaryIpRanges:\n- ipCidrRange: 10.12.0.0/21\n  rangeName: pods\n- ipCidrRange: 10.16.0.0/22\n  rangeName: services{rangeAdded ? \"\n- ipCidrRange: 10.14.0.0/21\n  rangeName: pods-2\" : \"\"}"
+        },
+        {
+          "finding": "10.14.0.0/21 is free in the VPC's address plan and does not overlap the subnet, the Services range or the peered networks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tryMax": {
+      "label": "gcloud container node-pools update pool-1 --max-pods-per-node 32",
+      "group": "Fix",
+      "available": "not busy and (not triedMax)",
+      "why": "Already tried.",
+      "effects": [
+        {
+          "set": "triedMax",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud container node-pools update pool-1 --cluster prod-web --region us-central1 --max-pods-per-node 32\nERROR: (gcloud.container.node-pools.update) unrecognized arguments: --max-pods-per-node=32"
+        },
+        {
+          "log": "Maximum Pods per node is fixed when a pool is created; it cannot be changed on pool-1.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addRange": {
+      "label": "gcloud compute networks subnets update gke-prod --add-secondary-ranges pods-2=10.14.0.0/21",
+      "group": "Fix",
+      "available": "not busy and (not rangeAdded)",
+      "why": "Already added.",
+      "effects": [
+        {
+          "set": "rangeAdded",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute networks subnets update gke-prod --region us-central1 --add-secondary-ranges pods-2=10.14.0.0/21\nUpdated [.../subnetworks/gke-prod]."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "nodePool": {
+      "label": "gcloud container node-pools create pool-2 --pod-ipv4-range pods-2 --max-pods-per-node 32 --enable-autoscaling ...",
+      "group": "Fix",
+      "available": "not busy and (rangeAdded and isNull(poolAt))",
+      "why": "Add a Pod range for the pool first.",
+      "effects": [
+        {
+          "set": "poolAt",
+          "to": "t"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud container node-pools create pool-2 --cluster prod-web --region us-central1 --pod-ipv4-range pods-2 --max-pods-per-node 32 --machine-type e2-standard-8 --num-nodes 2 --enable-autoscaling --min-nodes 2 --max-nodes 10\nCreating node pool pool-2...working"
+        },
+        {
+          "log": "Each new node takes a /26 from pods-2: the /21 has room for 32 of them.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "expand": {
+      "label": "gcloud compute networks subnets expand-ip-range gke-prod --prefix-length 20",
+      "group": "Fix",
+      "available": "not busy and (not expanded)",
+      "why": "Already expanded.",
+      "effects": [
+        {
+          "set": "expanded",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute networks subnets expand-ip-range gke-prod --region us-central1 --prefix-length 20\nThis operation cannot be undone. Updated [.../subnetworks/gke-prod]."
+        },
+        {
+          "log": "The node range was never short; the next node fails the same way, and a /20 cannot be shrunk back.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "recreate": {
+      "label": "Delete prod-web and recreate it with a /16 Pod range",
+      "group": "Fix",
+      "available": "not busy and (not recreated)",
+      "why": "Already started.",
+      "effects": [
+        {
+          "set": "recreated",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud container clusters delete prod-web --region us-central1 --quiet && gcloud container clusters create prod-web ... --cluster-ipv4-cidr 10.64.0.0/16\nDeleting cluster prod-web...working"
+        },
+        {
+          "log": "The site is down while the cluster is rebuilt and every workload redeployed: through the promotion.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "kubectl get nodes; kubectl get pods -n web | grep -c Running",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "poolReady and not recreated",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ kubectl get nodes --no-headers | wc -l\n{poolReady ? \"14\" : \"8\"}\nneteng@cloudshell:~$ kubectl get pods -n web --no-headers | grep -c Running\n{poolReady ? \"112\" : \"72\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "podrange",
+                  "label": "The Pod secondary range /21 at 110 Pods per node holds only 8 nodes; added pods-2 and a /26-per-node pool"
+                },
+                {
+                  "value": "nodes",
+                  "label": "The subnet's primary range ran out of node addresses"
+                },
+                {
+                  "value": "quota",
+                  "label": "A Compute Engine CPU quota blocked the scale-up"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= promoAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "poolReady and not recreated",
+          "then": [
+            {
+              "set": "promoOkAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: the promotion opens with every web Pod running.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "promoMissAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: the promotion opens with web Pods still Pending.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: which range ran out and why, what you added, and how the cluster will grow next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Which",
+          "criteria": "Reads the error's range name and does the per-node arithmetic.",
+          "modelAnswer": "The IP_SPACE_EXHAUSTED message named gke-prod-pods-..., the Pod range; at 110 Pods per node each node reserves a /24, and a /21 holds 8, all used. The node range had 1,000 free addresses."
+        },
+        {
+          "label": "Added",
+          "criteria": "Adds Pod address space without rebuilding the cluster.",
+          "modelAnswer": "Added secondary range pods-2 (10.14.0.0/21, checked against the address plan) and a node pool on it with 32 Pods per node, a /26 each, room for 32 nodes; the cluster kept running."
+        },
+        {
+          "label": "Next time",
+          "criteria": "Plans capacity in node blocks, not Pods.",
+          "modelAnswer": "Capacity is node blocks: Pod range size divided by the per-node block. Size Pod ranges and max Pods per node for the largest node count, watch the IP utilization insight, and keep free space in the plan for more ranges."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 55 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The promotion goes live at 12:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: an outage from rebuilding the cluster, or an irreversible change that did not help."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not poolReady",
+      "class": "harm",
+      "rationale": "Closing with the Pod range still full leaves 40 web Pods Pending through the promotion.",
+      "source": {
+        "cite": "Google Cloud documentation, Troubleshoot VPC-native clusters (GKE)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/kubernetes-engine/docs/troubleshooting/vpc-clusters",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the error '[IP_SPACE_EXHAUSTED] Instance ... creation failed: IP space of ... is exhausted'; each node reserves a contiguous block from the cluster's Pod range even if few Pods run; if the name in the error is [SUBNET_NAME]-[SECONDARY_RANGE_NAME]-[HASH] the Pod range is exhausted, if it is only the subnet name the node range is; remedies: add Pod IPv4 ranges (discontiguous multi-Pod CIDR) without re-creating the cluster, expand the subnet's primary range with expand-ip-range when nodes run out, or create a node pool with a smaller maximum Pods per node (110 reserves a /24, 32 a /26)."
+      }
+    }
+  },
+  "endings": {
+    "rebuilt": {
+      "label": "Cluster rebuilt during the promotion",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and recreated",
+      "narrative": "Deleting and recreating prod-web took the site down through 12:00."
+    },
+    "promoMissed": {
+      "label": "Pods Pending at the promotion",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(promoMissAt)",
+      "narrative": "At 12:00 the cluster still had 8 nodes."
+    },
+    "scaled": {
+      "label": "New Pod range and pool, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and poolReady and not recreated and isNull(promoMissAt) and not isNull(errAt) and not isNull(clusterAt) and not isNull(subnetAt) and not isNull(verifiedAt) and not expanded and causeDoc == \"podrange\"",
+      "narrative": "The error named the Pod range, the arithmetic showed 8 node blocks, and a new range with a denser pool brought 6 nodes up before 12:00."
+    },
+    "gaps": {
+      "label": "Scaled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The web tier scaled, but a check was skipped or an irreversible change was left behind."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "rebuilt",
+    "promoMissed",
+    "scaled",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found which range was exhausted and why",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(errAt) and not isNull(clusterAt)",
+            "score": "met",
+            "why": "The error's range and the per-node arithmetic."
+          },
+          {
+            "when": "not isNull(errAt) or not isNull(pendingAt)",
+            "score": "partial",
+            "why": "Saw the symptom or the error, not the arithmetic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed ranges without reading the error."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Pod space added without a rebuild, before 12:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "poolReady and not recreated and isNull(promoMissAt)",
+            "score": "met",
+            "why": "New range and pool, in time."
+          },
+          {
+            "when": "poolReady or recreated",
+            "score": "partial",
+            "why": "{recreated ? \"By rebuilding the cluster.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The Pod range is still full."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "Range checked, no irreversible stray change, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(subnetAt) and not expanded and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Checked the plan, changed only what was needed, and confirmed the Pods ran."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Verified, with the range unchecked or the node range expanded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not verified."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"podrange\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the node range or quota."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (rebuild, node range expansion)",
+        "value": "(recreated ? 1 : 0) + (expanded ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:05-11:09",
+        "text": "Pending Pods; the IP_SPACE_EXHAUSTED message names the Pod range; the cluster: a /21 at 110 Pods per node is 8 node blocks; the subnet: 10.14.0.0/21 is free."
+      },
+      {
+        "at": "11:09-11:14",
+        "text": "Add pods-2 and create pool-2 on it with 32 Pods per node."
+      },
+      {
+        "at": "11:14-11:23",
+        "text": "pool-2's nodes come up; Pending Pods schedule; 14 nodes before 12:00."
+      }
+    ],
+    "debrief": {
+      "rebuilt": {
+        "headline": "A bigger range, and an outage",
+        "body": "A cluster does not need rebuilding to get more Pod addresses. Discontiguous multi-Pod CIDR adds a secondary range and a node pool that uses it while everything keeps running."
+      },
+      "promoMissed": {
+        "headline": "The scale-out never happened",
+        "body": "The error named the Pod range. Expanding the node subnet or retrying the old pool changes nothing; a new range and a pool that draws from it do."
+      },
+      "scaled": {
+        "headline": "Good: the right range, no rebuild",
+        "body": "You read which range the error named, worked out the per-node blocks, checked the new range against the plan, and added it with a pool that uses smaller blocks, then confirmed the Pods ran."
+      },
+      "gaps": {
+        "headline": "Scaled, with gaps",
+        "body": "The criteria show what was left: reading the error and the cluster, checking the new range against the plan, verifying, or a node range expanded for nothing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The scale-up failed with IP_SPACE_EXHAUSTED, and the name in the error is the subnet plus a secondary range, so the Pod range ran out, not the node addresses. At 110 Pods per node every node reserves a /24 from the Pod range; a /21 has room for exactly 8, and 8 nodes exist. Maximum Pods per node cannot be changed on an existing pool, and expanding the node subnet does nothing for Pods while being irreversible. Add a second Pod range from free address space and create a node pool on it with a smaller per-node block (32 Pods, a /26, 32 nodes in a /21); the cluster keeps running, unlike a rebuild. Verify the Pods schedule before 12:00 and plan Pod ranges in node blocks."
+  }
+}
