@@ -91,3 +91,23 @@ function nearestSameRoute(stackPaths: readonly string[], there: string): string 
 export function planCourseReturn(trackId: string, stackPaths: readonly string[]): "dismissTo" | "push" {
   return nearestSameRoute(stackPaths, `/course/${trackId}`) === `/course/${trackId}` ? "dismissTo" : "push";
 }
+
+// REQ-328: the persistent sidebar sits beside the signed-in stack, not inside
+// it, so it cannot ask a screen's navigation for the stack. It reads the root
+// navigation state instead (expo-router's useRootNavigationState()) and finds
+// the (app) group's stack: the paths from its bottom up to the screen showing,
+// the same list the slide-in menu builds from its own screen.
+interface NavStateLike {
+  index?: number;
+  routes?: readonly { name: string; params?: object; state?: NavStateLike }[];
+}
+
+export function appStackPaths(rootState: NavStateLike | null | undefined, group: string = "(app)"): string[] {
+  const appRoute = rootState?.routes?.find((r) => r.name === group);
+  const stack = appRoute?.state;
+  if (!stack?.routes) return [];
+  return stack.routes
+    .slice(0, (stack.index ?? stack.routes.length - 1) + 1)
+    .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
+    .filter((p): p is string => p !== null);
+}

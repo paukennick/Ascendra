@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { coursesChanged } from "@/lib/courseEvents"; // REQ-328: the sidebar's Favorites and Recent follow
 import type { CourseReadiness, Track, Unit } from "@/types";
 import {
   Badge,
@@ -44,7 +45,7 @@ import { CourseLevelPanel, useCourseLevel } from "@/components/CourseLevelPanel"
 import { GoalStartSheet } from "@/components/LearnerLevel";
 import { asksAtStart, goalAnswerBody, parseLevelState, type CourseGoal, type Level } from "@/lib/learnerLevel";
 import { friendlyError } from "@/lib/errorMessage";
-import { useWideWeb } from "@/components/WebColumn";
+import { usePersistentSidebarWidth, useWideWeb } from "@/components/WebColumn";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -60,6 +61,7 @@ export default function CourseDashboard() {
   const router = useRouter();
   // REQ-322: wide web windows lay the course actions out in a row.
   const wide = useWideWeb();
+  const persistentSidebar = usePersistentSidebarWidth() > 0;
   const goBack = useGoBack(HOME);
   const [notFound, setNotFound] = useState(false);
   const [track, setTrack] = useState<Track | null>(null);
@@ -98,12 +100,12 @@ export default function CourseDashboard() {
   // populate). Fire-and-forget: this is background bookkeeping, not
   // something the user needs to see succeed or fail.
   useEffect(() => {
-    api.post("/api/sessions", { trackId }).catch(() => undefined);
+    api.post("/api/sessions", { trackId }).then(coursesChanged).catch(() => undefined);
   }, [trackId]);
 
   const toggleFavorite = useCallback(() => {
     setTrack((prev) => (prev ? { ...prev, is_favorite: !prev.is_favorite } : prev));
-    api.patch(`/api/courses/${trackId}/favorite`, { favorite: !track?.is_favorite }).catch(() => {
+    api.patch(`/api/courses/${trackId}/favorite`, { favorite: !track?.is_favorite }).then(coursesChanged).catch(() => {
       setTrack((prev) => (prev ? { ...prev, is_favorite: !prev.is_favorite } : prev));
     });
   }, [trackId, track?.is_favorite]);
@@ -209,7 +211,11 @@ export default function CourseDashboard() {
           headerLeft: () => (
             <View style={{ flexDirection: "row" }}>
               <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={goBack} size={34} />
-              <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
+              {/* REQ-328: on wide web windows the persistent sidebar replaces this
+                  button; the menu's course links are all on this screen. */}
+              {persistentSidebar ? null : (
+                <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
+              )}
             </View>
           ),
         }}

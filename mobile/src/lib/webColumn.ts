@@ -43,26 +43,31 @@ export function isWideWeb(platform: string, windowWidth: number): boolean {
  * screen has no column). The header uses it so its back button, title and
  * right-hand buttons line up with the column instead of the window edges.
  */
-export function webColumnGutter(platform: string, windowWidth: number, routeName: string): number {
+export function webColumnGutter(platform: string, windowWidth: number, routeName: string, sidebarWidth: number = 0): number {
   if (!usesWebColumn(platform, windowWidth, routeName)) return 0;
-  return Math.max(0, Math.floor((windowWidth - WEB_COLUMN_MAX_WIDTH) / 2));
+  // REQ-328: with the persistent sidebar the header and column share what is
+  // left of the window beside it.
+  return Math.max(0, Math.floor((windowWidth - sidebarWidth - WEB_COLUMN_MAX_WIDTH) / 2));
 }
 
 /** Header options that line the header up with the column; {} when there is no column. */
 export function webHeaderInsets(
   platform: string,
   windowWidth: number,
-  routeName: string
+  routeName: string,
+  sidebarWidth: number = 0
 ): { headerLeftContainerStyle?: { paddingLeft: number }; headerRightContainerStyle?: { paddingRight: number } } {
-  const gutter = webColumnGutter(platform, windowWidth, routeName);
+  const gutter = webColumnGutter(platform, windowWidth, routeName, sidebarWidth);
   if (gutter === 0) return {};
   return { headerLeftContainerStyle: { paddingLeft: gutter }, headerRightContainerStyle: { paddingRight: gutter } };
 }
 
 /** Course lists (Home favorites, Explore) show two cards per row on wide web windows, one everywhere else. */
 export const WIDE_GRID_COLUMNS = 2;
-export function gridColumns(platform: string, windowWidth: number): number {
-  return isWideWeb(platform, windowWidth) ? WIDE_GRID_COLUMNS : 1;
+export function gridColumns(platform: string, windowWidth: number, sidebarWidth: number = 0): number {
+  // REQ-328: two per row only while the area beside the sidebar is itself
+  // wider than the breakpoint (a 1000px window leaves 752px: one per row).
+  return isWideWeb(platform, windowWidth) && windowWidth - sidebarWidth > WEB_COLUMN_BREAKPOINT ? WIDE_GRID_COLUMNS : 1;
 }
 
 /** Splits a list into rows of `columns` items, in order. The last row may be short. */
@@ -78,10 +83,16 @@ export function chunkRows<T>(items: readonly T[], columns: number): T[][] {
  * warning and the update banner): on a wide web window it sits over the
  * column, not across the whole monitor. `edge` is the inset used elsewhere.
  */
-export function bottomBannerInsets(platform: string, windowWidth: number, edge: number): { left: number; right: number } {
+export function bottomBannerInsets(
+  platform: string,
+  windowWidth: number,
+  edge: number,
+  sidebarWidth: number = 0
+): { left: number; right: number } {
   if (!isWideWeb(platform, windowWidth)) return { left: edge, right: edge };
-  const side = Math.max(0, Math.floor((windowWidth - WEB_COLUMN_MAX_WIDTH) / 2)) + edge;
-  return { left: side, right: side };
+  // REQ-328: beside the persistent sidebar, centered over the column there.
+  const side = Math.max(0, Math.floor((windowWidth - sidebarWidth - WEB_COLUMN_MAX_WIDTH) / 2)) + edge;
+  return { left: sidebarWidth + side, right: side };
 }
 
 // Overlays the root layout draws outside every stack, so the column never
@@ -107,4 +118,43 @@ export const SESSION_RETRY_NATIVE_MESSAGE = "You're still signed in on this phon
 export function sessionRetryLayout(platform: string, wide: boolean): { maxWidth: number | null; message: string } {
   if (platform === "web") return { maxWidth: wide ? SESSION_RETRY_MAX_WIDTH : null, message: SESSION_RETRY_WEB_MESSAGE };
   return { maxWidth: null, message: SESSION_RETRY_NATIVE_MESSAGE };
+}
+
+// Desktop web step 3 (REQ-328): a persistent sidebar on wide web windows,
+// in place of the menu button on Home and the course page.
+
+/** Width of the persistent sidebar. */
+export const SIDEBAR_WIDTH = 248;
+
+/**
+ * Signed-in screens that never show the persistent sidebar:
+ * - the full-width screens (sims, exams, labs, PBQ simulator) keep the whole
+ *   window, as in step 1 (the sidebar is hidden, not collapsed to a rail);
+ * - the first-run screens (Terms prompt, study notice, welcome) finish by
+ *   moving on and have no back button, so they offer no way out either.
+ */
+export const SIDEBAR_HIDDEN_ROUTES: readonly string[] = [...FULL_WIDTH_ROUTES, "agree", "notice", "welcome"];
+
+/**
+ * The (app) stack's route name for expo-router's useSegments(), or null when
+ * the screen is outside the signed-in group (sign-in and legal pages).
+ * ["(app)"] is Home ("index"); ["(app)","course","[trackId]","sim","[simId]"]
+ * is "course/[trackId]/sim/[simId]".
+ */
+export function appRouteName(segments: readonly string[]): string | null {
+  if (segments[0] !== "(app)") return null;
+  const rest = segments.slice(1);
+  return rest.length ? rest.join("/") : "index";
+}
+
+/** Whether the screen shows the persistent sidebar (web wider than the breakpoint, signed-in group, not a hidden route). */
+export function showsPersistentSidebar(platform: string, windowWidth: number, appRoute: string | null): boolean {
+  if (!isWideWeb(platform, windowWidth)) return false;
+  if (appRoute === null) return false;
+  return !SIDEBAR_HIDDEN_ROUTES.includes(appRoute);
+}
+
+/** The persistent sidebar's width for a screen, 0 where it is not shown. */
+export function persistentSidebarWidth(platform: string, windowWidth: number, appRoute: string | null): number {
+  return showsPersistentSidebar(platform, windowWidth, appRoute) ? SIDEBAR_WIDTH : 0;
 }

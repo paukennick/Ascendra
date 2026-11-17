@@ -11963,6 +11963,53 @@
         "To unmark a sim it must be retired and re-registered (any marked version keeps it 18+)",
         "Everyone is asked to accept the 2026-11-18 Terms and Privacy Policy once"
       ]
+    },
+    {
+      "id": "REQ-328",
+      "category": "ux",
+      "title": "Desktop web step 3: persistent sidebar on wide web windows",
+      "description": "Nick 2026-11-17 08:59 PT: build desktop web step 3, the persistent sidebar the step 2 builder proposed (REQ-322 mockup). On the web in a window wider than 900px a sidebar stays on the left of every signed-in screen: Home, Explore, Review, Release notes; then Recent and Favorites; Settings and Support pinned at the bottom. It replaces the menu button on Home and the course page. It is hidden (not collapsed) on sims, exams, labs and the PBQ simulator so they keep the whole window, and on the first-run screens (agree, notice, welcome). The current page is marked with aria-current, Tab reaches a Skip to content link and then the sidebar before the header, and the step 2 focus ring applies. Both menus read one route list (src/lib/sidebarNav.ts) and navigate by the same rules (navPlan). Phones, the native apps and windows 900px or narrower are unchanged.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/sidebarNav.ts",
+        "mobile/src/lib/courseEvents.ts",
+        "mobile/src/lib/webColumn.ts",
+        "mobile/src/lib/navPlan.ts",
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/components/WebColumn.tsx",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "The sidebar shows only on the web above 900px and never on native",
+        "It is hidden on sims/exams/labs/PBQ and first-run screens and those screens keep the full window width",
+        "Exactly one destination carries aria-current on each screen (page or true for screens inside it)",
+        "Tab order: Skip to content then the sidebar then the header and screen; Enter on a sidebar link navigates",
+        "The menu buttons on Home and the course page are gone where the sidebar shows",
+        "Header insets grids and banners are computed beside the sidebar",
+        "Narrow screenshots (390x844 and 800x900) before and after differ by at most 2 intensity levels",
+        "What's new 2026-11-17-f covers REQ-328"
+      ],
+      "validation_required": [
+        "cd mobile && node --test src/lib/desktopSidebar.test.ts src/lib/desktopWeb.test.ts src/lib/webColumn.test.ts",
+        "cd mobile && npx tsc --noEmit",
+        "Playwright screenshots at 1440x900 1920x1080 800x900 390x844 against production API from a local export",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "The sidebar keeps its own copy of the course list; it reloads when a course is starred or opened (courseEvents) and at most every 10 s on screen changes",
+        "The stack is read from the root navigation state (appStackPaths); if expo-router changes that shape the sidebar falls back to push"
+      ]
     }
   ]
 }
