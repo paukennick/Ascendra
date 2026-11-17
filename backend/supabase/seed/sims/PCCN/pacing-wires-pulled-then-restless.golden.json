@@ -1,0 +1,425 @@
+{
+  "slug": "pacing-wires-pulled-then-restless",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: neck veins, heart sounds, lungs; pulsus paradoxus; rapid response and the surgeon; a bolus; furosemide held; SBAR",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neck",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "becksQ",
+          "choice": "beck",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "paradox",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tamp"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "diureticQ",
+          "choice": "preload",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "drained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "noDiuretic": "met",
+          "pulsusC": "met",
+          "fluidC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "pulsusK": 125
+        },
+        "stateHash": "a860d4d9cb4aa4f5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "History and ECG first, then the triad and pulsus; the call comes 6 minutes after the first sign",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "becksQ",
+          "choice": "beck",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neck",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "paradox",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tamp"
+          },
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "diureticQ",
+          "choice": "preload",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "drainedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "noDiuretic": "met",
+          "pulsusC": "met",
+          "fluidC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "pulsusK": 240
+        },
+        "stateHash": "7d10c7a616dd3592"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noPulsus",
+      "title": "Hears the muffled heart sounds and calls at once, but never measures pulsus paradoxus",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "becksQ",
+          "choice": "beck",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "diureticQ",
+          "choice": "preload",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tamp"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "drainedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "callC": "met",
+          "noDiuretic": "met",
+          "pulsusC": "missed",
+          "fluidC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "pulsusK": -1
+        },
+        "stateHash": "fbf59a8af5f3b0b7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "furosemide",
+      "title": "Failure: reads the neck veins as fluid overload, pages the hospitalist and gives the furosemide",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "becksQ",
+          "choice": "beck",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "chf"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "hosp"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "lasix",
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "diuretic",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "noDiuretic": "missed",
+          "pulsusC": "missed",
+          "fluidC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "pulsusK": -1
+        },
+        "stateHash": "ef6256f28d540e42"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "anxiety",
+      "title": "Failure: a chat and a reassurance; calls it anxiety",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "becksQ",
+          "choice": "beck",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anx"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "pea",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "callC": "missed",
+          "noDiuretic": "met",
+          "pulsusC": "missed",
+          "fluidC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "pulsusK": -1
+        },
+        "stateHash": "e371bd2ce0127052"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

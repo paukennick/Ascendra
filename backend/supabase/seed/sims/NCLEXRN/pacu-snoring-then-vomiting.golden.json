@@ -1,0 +1,489 @@
+{
+  "slug": "pacu-snoring-then-vomiting",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: airway assessed and opened; handover with anesthesia present; antiemetic; on her side to vomit; pain treated after; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "maneuverQ",
+          "choice": "jaw",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "jaw",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "handover",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "open",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "airway"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ok"
+          },
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "ponvQ",
+          "choice": "risks",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 14,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 15,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "airwayC": "met",
+          "sideC": "met",
+          "noOpioidFirst": "met",
+          "ponvC": "met",
+          "handC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAirway": 0,
+          "toSide": 125
+        },
+        "stateHash": "fcb165d0f69959c5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateAirway",
+      "title": "Takes the handover and asks about pain first; opens the airway over a minute after finding the obstruction",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "handover",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "maneuverQ",
+          "choice": "jaw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "jaw",
+          "seq": 6,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 7,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 8,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "airway"
+          },
+          "seq": 9,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ok"
+          },
+          "seq": 10,
+          "tick": 52
+        },
+        {
+          "type": "teach",
+          "prompt": "ponvQ",
+          "choice": "risks",
+          "seq": 11,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 52
+        }
+      ],
+      "expect": {
+        "ending": "recoveredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "airwayC": "partial",
+          "sideC": "met",
+          "noOpioidFirst": "met",
+          "ponvC": "met",
+          "handC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAirway": 80,
+          "toSide": 260
+        },
+        "stateHash": "ac6df4627abf823d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "opioidFirst",
+      "title": "Finds the obstruction but gives the opioid before opening the airway, and lets anesthesia leave",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "maneuverQ",
+          "choice": "jaw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "jaw",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "handover",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "open",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "airway"
+          },
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "none"
+          },
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "ponvQ",
+          "choice": "risks",
+          "seq": 12,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "recoveredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "airwayC": "met",
+          "sideC": "met",
+          "noOpioidFirst": "missed",
+          "ponvC": "met",
+          "handC": "partial",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAirway": 0,
+          "toSide": 60
+        },
+        "stateHash": "5eda43196d2288d2"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "painFirst",
+      "title": "Failure: puts pain first, gives the opioid into the obstructed airway and lets anesthesia leave",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "maneuverQ",
+          "choice": "jaw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pain"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "airwayC": "missed",
+          "sideC": "missed",
+          "noOpioidFirst": "missed",
+          "ponvC": "missed",
+          "handC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAirway": -1,
+          "toSide": -1
+        },
+        "stateHash": "cc68977a818aa597"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "paperwork",
+      "title": "Failure: takes the handover, calls the snoring normal and does the paperwork",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "handover",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "maneuverQ",
+          "choice": "jaw",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "handoff"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "airwayC": "missed",
+          "sideC": "missed",
+          "noOpioidFirst": "met",
+          "ponvC": "missed",
+          "handC": "partial",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAirway": -1,
+          "toSide": -1
+        },
+        "stateHash": "62abd47ab160c128"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1222 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "black-stools-then-hematemesis",
+  "title": "Black stools, then blood in the basin",
+  "objective": "Manage upper and lower GI bleeding with large-bore access and blood",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Gastrointestinal Emergencies (14 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Gastrointestinal Emergencies is 14 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "American College of Gastroenterology. ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding (Laine L, et al. Am J Gastroenterol 2021), as summarized by MDCalc",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.mdcalc.com/guidelines/10362/acg/upper-gastrointestinal-ulcer-bleeding",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of MDCalc's guideline page (updated May 2021); the full text was not read. 'a threshold for transfusion at a hemoglobin of 7 g/dL for patients with UGIB'; patients admitted or observed for UGIB 'undergo endoscopy within 24 hr of presentation'; very low-risk patients (Glasgow-Blatchford score 0-1) may go home with follow-up. The page has no statement on resuscitation."
+    },
+    {
+      "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+      "checkedAt": "2026-11-14",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+      "note": "Relayed from the CMSRN case postop-hemorrhage-early-signs (read 2026-11-14, PubMed abstract), not re-read: the restrictive thresholds are for hemodynamically stable hospitalized adults, not active hemorrhage."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "Relayed from the CMSRN case postop-hemorrhage-early-signs (itself relayed from CCRNADULT/bleeding-after-whipple, read 2026-11-10), not re-read: class I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume; the heart rate rises before the systolic pressure falls. FLAG: the model's vital signs follow the classic table, a teaching simplification for a nontraumatic bleed."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "02:15 in the emergency department. You are the nurse for Mr. Petrov, 67, roomed from triage: two days of black, sticky stools and dizziness when he stands. He takes naproxen for his knees and a daily aspirin.",
+    "handover": [
+      "Triage: heart rate 102, blood pressure 124/76, SpO2 97%. ESI 2.",
+      "The department's GI bleeding standing order: two large-bore IVs, type and crossmatch with a hemoglobin and coagulation tests, nothing by mouth, crystalloid for hypotension; blood and endoscopy on the physician's order.",
+      "The emergency physician is in the department and the gastroenterologist is on call from home."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Crossmatched blood takes time to come up, so what you send early matters later.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:15",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fraction of blood volume lost per minute from the ulcer: about 1.2%. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "crystGain": {
+      "value": 0.03,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Volume restored per crystalloid bolus (at most two count). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bloodGain": {
+      "value": 0.08,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Volume restored per unit of red cells. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shockAt": {
+      "value": 0.4,
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage",
+        "checkedAt": "2026-11-17",
+        "note": "Net loss at which he is in class IV shock (over 40% of blood volume)."
+      }
+    },
+    "hemAt": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "He vomits blood at 8 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "readyTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Crossmatched blood ready about 10 minutes after the sample reaches the lab (authored; local waits vary). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "accessWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Two large-bore IVs and the crossmatch within 5 minutes (department practice)."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician told within 5 minutes of the hematemesis (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "scopeTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Gastroenterologist in, consent and the move to the endoscopy suite: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.15,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "orthoAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "ortho",
+        "hgb"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "active",
+        "threshold",
+        "lower"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "cryst": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "bloodN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 6
+    },
+    "bloodAt": {
+      "type": "time",
+      "init": null
+    },
+    "hemAtT": {
+      "type": "time",
+      "init": null
+    },
+    "aspirated": {
+      "type": "bool",
+      "init": false
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "net": {
+      "expr": "prog - crystGain * min(cryst, 2) - bloodGain * bloodN"
+    },
+    "hr": {
+      "expr": "round(88 + 80 * max(0, net) + sin(t / 15))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(130 - 220 * max(0, net - 0.2), 50, 140))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "aspirated ? 84 : 97",
+      "unit": "%",
+      "precision": 0
+    },
+    "bloodReady": {
+      "expr": "not isNull(labsAt) and t >= timeAt(labsAt) + readyTime"
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "announce": {
+            "bands": [
+              70,
+              65
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Large-bore IVs: {not isNull(ivAt)|yesno}. Crystalloid boluses: {cryst|0dp}. Red cell units: {bloodN|0dp}. Crossmatched blood ready: {bloodReady|yesno}.",
+      "banner": [
+        {
+          "when": "bloodReady and bloodN == 0",
+          "text": "The blood bank: crossmatched units ready."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: stools, vomiting, NSAIDs and aspirin, alcohol, liver disease",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ortho": {
+      "label": "Vital signs, lying and (if safe) sitting",
+      "group": "Assess",
+      "available": "not testPending and isNull(orthoAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ortho\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hgb": {
+      "label": "Ask the lab for the first hemoglobin",
+      "group": "Assess",
+      "available": "not testPending and isNull(hgbAt) and not isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hgb\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "access": {
+      "label": "Two large-bore IVs; send type and crossmatch, hemoglobin and coagulation tests",
+      "group": "Treat",
+      "available": "isNull(ivAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "ivAt",
+          "to": "t"
+        },
+        {
+          "set": "labsAt",
+          "to": "t"
+        },
+        {
+          "log": "Two 18-gauge IVs in; type and crossmatch, hemoglobin and coagulation tests sent.",
+          "kind": "act"
+        }
+      ]
+    },
+    "side": {
+      "label": "Turn him onto his side, head of the bed up, suction at hand; nothing by mouth",
+      "group": "Treat",
+      "available": "isNull(sideAt) and inClinic",
+      "why": "Already positioned.",
+      "effects": [
+        {
+          "set": "sideAt",
+          "to": "t"
+        },
+        {
+          "log": "On his side, head up, suction ready, nothing by mouth.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flat": {
+      "label": "Lay him flat on his back to help the dizziness",
+      "group": "Treat",
+      "available": "isNull(flatAt) and isNull(sideAt) and inClinic",
+      "why": "Already positioned.",
+      "effects": [
+        {
+          "set": "flatAt",
+          "to": "t"
+        },
+        {
+          "log": "Flat on his back.",
+          "kind": "act"
+        }
+      ]
+    },
+    "cryst": {
+      "label": "Crystalloid bolus for hypotension (standing order)",
+      "group": "Treat",
+      "available": "not isNull(ivAt) and cryst < 3 and inClinic",
+      "why": "No IV yet, or three given.",
+      "effects": [
+        {
+          "add": "cryst",
+          "by": "1"
+        },
+        {
+          "log": "Crystalloid bolus running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "blood": {
+      "label": "Transfuse a unit of crossmatched red cells (physician's order)",
+      "group": "Treat",
+      "available": "bloodReady and route == \"md\" and bloodN < 6 and inClinic",
+      "why": "No crossmatched blood yet, or no order.",
+      "effects": [
+        {
+          "add": "bloodN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(bloodAt)",
+          "then": [
+            {
+              "set": "bloodAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Unit {bloodN|0dp} running through a blood warmer, two-person check done.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening and what it means for blood",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active upper GI bleeding with shock developing: the hemoglobin lags, so transfuse for the bleeding, not the number"
+            },
+            {
+              "value": "threshold",
+              "label": "Hemoglobin 9.4 is above 7: no transfusion yet, recheck in 4 hours"
+            },
+            {
+              "value": "lower",
+              "label": "A lower GI bleed from hemorrhoids"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"active\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"active\""
+                },
+                {
+                  "log": "Impression: active upper GI bleed; transfuse for the bleeding.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"threshold\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"threshold\""
+                },
+                {
+                  "log": "Impression: above the threshold; recheck later.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"lower\""
+                },
+                {
+                  "log": "Impression: lower GI bleed.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell the emergency physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you report",
+          "options": [
+            {
+              "value": "md",
+              "label": "Hematemesis on aspirin and naproxen, heart rate rising, pressure falling: blood and the gastroenterologist now"
+            },
+            {
+              "value": "later",
+              "label": "Stable hemoglobin of 9.4; will update after the recheck"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "scopeTime"
+                },
+                {
+                  "log": "The physician orders crossmatched blood as it comes up and calls the gastroenterologist in for endoscopy.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "The physician acknowledges and goes back to another patient.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off to endoscopy: volumes in, units given, airway and vital sign trend",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: {cryst|0dp} boluses and {bloodN|0dp} units in, on his side for the vomiting, heart rate {hr}, blood pressure {sbp}/{dbp}.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Monitored room",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "ortho",
+        "hgb",
+        "access",
+        "side",
+        "flat",
+        "cryst",
+        "blood",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Black stools for two days, no vomiting until now. Naproxen twice a day and aspirin. Two drinks a week; no liver disease.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ortho\"",
+              "then": [
+                {
+                  "set": "orthoAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Lying: heart rate {hr}, blood pressure {sbp}/{dbp}. Sitting up he goes pale and his heart rate climbs by 24.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hgbAt",
+                  "to": "t"
+                },
+                {
+                  "log": "First hemoglobin 9.4 g/dL. It was 14.2 three months ago.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to endoscopy",
+      "wait": {
+        "skipLabel": "his move to endoscopy"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the gastroenterologist, consent and the move."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He goes to the endoscopy suite.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hematemesis",
+      "when": "t >= hemAt and inClinic",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "hemAtT",
+          "to": "t"
+        },
+        {
+          "if": "isNull(redFlagAt)",
+          "then": [
+            {
+              "set": "redFlagAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "aspirated",
+              "to": "true"
+            },
+            {
+              "log": "He vomits a large amount of bright red blood lying on his back and coughs and chokes on it.",
+              "kind": "alarm"
+            }
+          ],
+          "else": [
+            {
+              "log": "He vomits a large amount of bright red blood into the basin; on his side, he clears it.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Mr. Petrov, and does a hemoglobin of 9.4 mean he doesn't need blood?",
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Upper GI bleeding (black stools then hematemesis) on NSAIDs and aspirin, with a rising heart rate and orthostatic change: hemorrhage progressing toward shock.",
+          "modelAnswer": "Black stools and now bright red hematemesis on naproxen and aspirin is an upper GI bleed, probably an ulcer. A rising heart rate, orthostatic change and now a falling pressure mean he is heading into shock."
+        },
+        {
+          "label": "Blood and the number",
+          "criteria": "The restrictive threshold of 7 is for stable patients; an actively bleeding patient's hemoglobin lags behind the loss, so transfuse for the bleeding; two large-bore IVs and the crossmatch early; on his side for airway protection; endoscopy.",
+          "modelAnswer": "The 7 g/dL threshold is for stable patients. His hemoglobin hasn't caught up with the loss yet, so he needs blood for the bleeding. Two large-bore IVs and the crossmatch early, on his side to protect the airway, and the gastroenterologist for endoscopy."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An active upper GI bleed still in a department room an hour on without endoscopy arranged is harm here.",
+      "source": {
+        "cite": "American College of Gastroenterology. ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding (Laine L, et al. Am J Gastroenterol 2021), as summarized by MDCalc",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mdcalc.com/guidelines/10362/acg/upper-gastrointestinal-ulcer-bleeding",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of MDCalc's guideline page (updated May 2021); the full text was not read. 'a threshold for transfusion at a hemoglobin of 7 g/dL for patients with UGIB'; patients admitted or observed for UGIB 'undergo endoscopy within 24 hr of presentation'; very low-risk patients (Glasgow-Blatchford score 0-1) may go home with follow-up. The page has no statement on resuscitation."
+      }
+    }
+  },
+  "endings": {
+    "aspiration": {
+      "label": "Aspiration of blood",
+      "class": "harm",
+      "terminal": true,
+      "when": "aspirated and t >= timeAt(hemAtT) + 60",
+      "narrative": "SpO2 {spo2}%: he aspirated blood while flat on his back. He needs suction and intubation before anyone can scope him."
+    },
+    "shock": {
+      "label": "Hemorrhagic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "net >= shockAt and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}, heart rate {hr}, confused and cold: more than 40% of his blood volume is gone. Massive transfusion is called."
+    },
+    "scoped": {
+      "label": "Resuscitated and to endoscopy",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and not isNull(ivAt) and timeAt(ivAt) <= accessWindow and not isNull(sideAt) and timeAt(callAt) <= hemAt + callWindow and bloodN >= 1",
+      "narrative": "{timeAt(leftAt)|clock}: heart rate {hr}, blood pressure {sbp}/{dbp} as he goes to endoscopy with blood running. Access and crossmatch early, the airway protected, blood for the bleeding."
+    },
+    "scopedLate": {
+      "label": "To endoscopy, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches endoscopy, but access, the crossmatch, the call or the blood came late, or he went without blood."
+    },
+    "time_up": {
+      "label": "Still in the room at 03:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "03:15 and Mr. Petrov is still bleeding in the room."
+    }
+  },
+  "endingOrder": [
+    "aspiration",
+    "shock",
+    "scoped",
+    "scopedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "accessC",
+        "label": "Two large-bore IVs and the crossmatch within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ivAt) and timeAt(ivAt) <= accessWindow",
+            "score": "met",
+            "why": "At {timeAt(ivAt)|clock}."
+          },
+          {
+            "when": "not isNull(ivAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "airwayC",
+        "label": "On his side with suction before the hematemesis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sideAt) and timeAt(sideAt) <= hemAt",
+            "score": "met",
+            "why": "Positioned."
+          },
+          {
+            "when": "not isNull(sideAt)",
+            "score": "partial",
+            "why": "Positioned after he vomited."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{not isNull(flatAt) ? \"Flat on his back.\" : \"Never positioned.\"}"
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician told within 5 minutes of the hematemesis, asking for blood and endoscopy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= hemAt + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"later\"",
+            "score": "missed",
+            "why": "Reported as stable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "bloodC",
+        "label": "Blood started for the active bleeding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "bloodN >= 1",
+            "score": "met",
+            "why": "{bloodN|0dp} units."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No blood."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Transfused for the bleeding, not the first hemoglobin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"active\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"threshold\"",
+            "score": "missed",
+            "why": "Applied a stable patient's threshold to active bleeding."
+          },
+          {
+            "when": "dxEnum == \"lower\"",
+            "score": "missed",
+            "why": "Hematemesis is upper GI."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off to endoscopy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: upper GI bleed heading to shock; blood for the bleeding, not the number",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAccess",
+        "label": "Arrival in the room to two IVs and the crossmatch",
+        "value": "isNull(ivAt) ? -1 : timeAt(ivAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toBlood",
+        "label": "Arrival to the first unit",
+        "value": "isNull(bloodAt) ? -1 : timeAt(bloodAt)",
+        "format": "duration",
+        "expert": "under 15 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:15",
+        "text": "Two large-bore IVs; type and crossmatch, hemoglobin and coagulation tests. Nothing by mouth."
+      },
+      {
+        "at": "~02:16",
+        "text": "On his side, head up, suction ready. History: naproxen and aspirin."
+      },
+      {
+        "at": "~02:23",
+        "text": "Hematemesis: tell the physician now; crystalloid for the falling pressure."
+      },
+      {
+        "at": "~02:25",
+        "text": "Blood as soon as it is up, whatever the first hemoglobin says; the gastroenterologist for endoscopy; hand off."
+      }
+    ],
+    "debrief": {
+      "aspiration": {
+        "headline": "Aspiration",
+        "body": "A patient who may vomit blood lies on his side with the head up and suction at hand, never flat on his back."
+      },
+      "shock": {
+        "headline": "Hemorrhagic shock",
+        "body": "Send the crossmatch early so blood is ready, and transfuse an actively bleeding patient for the bleeding: the first hemoglobin lags behind the loss."
+      },
+      "scoped": {
+        "headline": "Resuscitated and scoped",
+        "body": "Access and crossmatch early, the airway protected, an early call and blood for the bleeding. That is the expert path."
+      },
+      "scopedLate": {
+        "headline": "To endoscopy, with delays",
+        "body": "Check when access and the crossmatch went in, when the physician heard about the hematemesis and whether blood ran before he left."
+      },
+      "time_up": {
+        "headline": "Still bleeding in the room",
+        "body": "An active upper GI bleed needs blood and endoscopy arranged within minutes of the hematemesis."
+      }
+    },
+    "modelReasoning": "Black stools then bright red hematemesis on naproxen and aspirin is an upper GI bleed, likely an ulcer. A rising heart rate with orthostatic change, then a falling pressure, is hemorrhage heading to shock. Two large-bore IVs and the crossmatch go in first so blood is ready; he lies on his side with suction to protect his airway. The 7 g/dL restrictive threshold applies to stable patients; while he is actively bleeding his hemoglobin lags behind the loss, so he is transfused for the bleeding. The physician hears about the hematemesis at once and calls the gastroenterologist for endoscopy."
+  },
+  "chapters": [
+    {
+      "id": "vomited",
+      "label": "Hematemesis",
+      "when": "not isNull(hemAtT)"
+    }
+  ],
+  "teaching": {
+    "scopeQ": {
+      "during": "leaveT",
+      "ask": "While he goes: by when should a patient admitted for upper GI bleeding have endoscopy?",
+      "choices": [
+        {
+          "id": "day",
+          "label": "Within 24 hours of presentation"
+        },
+        {
+          "id": "week",
+          "label": "Within a week"
+        },
+        {
+          "id": "never",
+          "label": "Only if he rebleeds"
+        }
+      ],
+      "expect": "day",
+      "explain": "Patients admitted or observed for upper GI bleeding undergo endoscopy within 24 hours of presentation; this one, unstable, goes now.",
+      "source": {
+        "cite": "American College of Gastroenterology. ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding (Laine L, et al. Am J Gastroenterol 2021), as summarized by MDCalc",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.mdcalc.com/guidelines/10362/acg/upper-gastrointestinal-ulcer-bleeding",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of MDCalc's guideline page (updated May 2021); the full text was not read. 'a threshold for transfusion at a hemoglobin of 7 g/dL for patients with UGIB'; patients admitted or observed for UGIB 'undergo endoscopy within 24 hr of presentation'; very low-risk patients (Glasgow-Blatchford score 0-1) may go home with follow-up. The page has no statement on resuscitation."
+      }
+    },
+    "threshQ": {
+      "during": "testT",
+      "ask": "While you assess: for whom is the 7 g/dL transfusion threshold meant?",
+      "choices": [
+        {
+          "id": "stable",
+          "label": "Hemodynamically stable patients, not those actively bleeding into shock"
+        },
+        {
+          "id": "all",
+          "label": "Every patient, whatever is happening"
+        },
+        {
+          "id": "none",
+          "label": "Nobody: transfuse to a hemoglobin of 10"
+        }
+      ],
+      "expect": "stable",
+      "explain": "The guideline suggests 7 g/dL for upper GI bleeding; restrictive thresholds are set for hemodynamically stable adults, not active hemorrhage.",
+      "source": {
+        "cite": "Carson JL, et al. Red Blood Cell Transfusion: 2023 AABB International Guidelines. JAMA 2023;330(19):1892-1902",
+        "checkedAt": "2026-11-14",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+        "note": "Relayed from the CMSRN case postop-hemorrhage-early-signs (read 2026-11-14, PubMed abstract), not re-read: the restrictive thresholds are for hemodynamically stable hospitalized adults, not active hemorrhage."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

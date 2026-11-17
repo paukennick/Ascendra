@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hallway-head-injury-falling-gcs",
+  "title": "Waiting for CT in the hallway",
+  "objective": "Recognize rising intracranial pressure from a falling level of consciousness, then pupil changes and Cushing's triad",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Neurological Emergencies (17 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Neurological Emergencies is 17 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+      "note": "Relayed from the NCLEX-PN case head-strike-on-apixaban (read 2026-11-16 through a summarizing fetch with quotes), not re-read (NCBI refused fetches on 2026-11-17): suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "23:10 in a crowded emergency department. You are the nurse for the hallway beds. Mr. Doyle, 44, fell from a bar stool at 22:30 and struck his head on the floor. He smells of beer. He is in a hallway bed waiting for a head CT; the scanner is backed up about 40 minutes.",
+    "handover": [
+      "Triage: GCS 14 (confused to time), pupils 3 mm and equal, blood pressure 138/84, heart rate 88. A scalp hematoma over the right temple. No blood thinners.",
+      "The physician's orders: head CT when the scanner is free, neuro checks every hour, nothing by mouth.",
+      "The physician is in the department and wants to hear about any change. Department practice: a drop of 2 or more GCS points is reported at once."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Check him as often as you think he needs; each check takes a minute. The order says hourly; you decide whether that is enough.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "23:10",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An expanding hematoma raises the pressure over about 35 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hobFactor": {
+      "value": 0.8,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Head of the bed at 30 degrees with the neck midline slows the rise a little. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pupilAt": {
+      "value": 0.75,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a dilating right pupil. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cushingAt": {
+      "value": 0.85,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of Cushing's triad. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "herniateAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of herniation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A GCS drop of 2 or more reported within 5 minutes (department practice)."
+      }
+    },
+    "firstCheckWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The first neuro check within 5 minutes of taking over (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "ctTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A stat CT and the neurosurgeon: about 10 min to leave the department."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "glucose"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "hourly"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icp",
+        "alcohol",
+        "concussion"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "hobAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastGcs": {
+      "type": "number",
+      "init": 14,
+      "min": 3,
+      "max": 15
+    }
+  },
+  "derived": {
+    "gcs": {
+      "expr": "round(clamp(17 - 10 * prog, 3, 15))",
+      "precision": 0
+    },
+    "pupil": {
+      "expr": "prog >= pupilAt"
+    },
+    "cushing": {
+      "expr": "prog >= cushingAt"
+    },
+    "hr": {
+      "expr": "round(cushing ? 88 - 120 * (prog - cushingAt) - 10 : 88 + sin(t / 17))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(138 + (cushing ? 300 * (prog - cushingAt) + 12 : 0))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(84 + (cushing ? 30 * (prog - cushingAt) : 0))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(cushing ? 10 + 4 * sin(t / 3) : 16)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "cushing ? 93 : 97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * (isNull(hobAt) ? 1 : hobFactor) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 55
+          },
+          "announce": {
+            "bands": [
+              60,
+              55
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 170
+          },
+          "announce": {
+            "bands": [
+              160,
+              170
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              12,
+              10
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "banner": [
+        {
+          "when": "route == \"md\" and inClinic",
+          "text": "Stat CT: the scanner is being cleared; neurosurgery paged."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Ask his friend: the fall, how much he drank, any vomiting",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose",
+      "group": "Assess",
+      "available": "not testPending and isNull(glucoseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glucose\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Neuro check: GCS, pupils, limb strength, vital signs",
+      "group": "Assess",
+      "available": "inClinic",
+      "why": "He has left.",
+      "effects": [
+        {
+          "add": "neuroN",
+          "by": "1"
+        },
+        {
+          "if": "isNull(neuroAt)",
+          "then": [
+            {
+              "set": "neuroAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastGcs",
+          "to": "gcs"
+        },
+        {
+          "if": "gcs <= 12 and isNull(redFlagAt)",
+          "then": [
+            {
+              "set": "redFlagAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "cushing",
+              "then": [
+                {
+                  "log": "GCS {gcs}. Right pupil 6 mm and sluggish. Blood pressure {sbp}/{dbp}, heart rate {hr}, breathing irregular.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "pupil",
+              "then": [
+                {
+                  "log": "GCS {gcs}. Right pupil 5 mm and sluggish; left 3 mm. Left arm drifting.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "gcs <= 12",
+              "then": [
+                {
+                  "log": "GCS {gcs}: opens his eyes only to voice, words muddled. Pupils equal, 3 mm.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "GCS {gcs}: confused to time, obeys commands. Pupils equal, 3 mm.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hob": {
+      "label": "Head of the bed to 30 degrees, neck midline",
+      "group": "Treat",
+      "available": "isNull(hobAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "hobAt",
+          "to": "t"
+        },
+        {
+          "log": "Head of the bed at 30 degrees, head and neck midline.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "icp",
+              "label": "Rising intracranial pressure: a falling GCS is the earliest sign; pupils and Cushing's triad come late"
+            },
+            {
+              "value": "alcohol",
+              "label": "Alcohol: he's sleeping it off"
+            },
+            {
+              "value": "concussion",
+              "label": "A concussion; hourly checks are enough"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"icp\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"icp\""
+                },
+                {
+                  "log": "Impression: rising intracranial pressure.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"alcohol\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"alcohol\""
+                },
+                {
+                  "log": "Impression: intoxication.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"concussion\""
+                },
+                {
+                  "log": "Impression: concussion.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell the physician",
+      "group": "Decide",
+      "available": "isNull(callAt) and neuroN >= 1",
+      "why": "Check him first, or already reported.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you report",
+          "options": [
+            {
+              "value": "md",
+              "label": "His GCS is falling, with headache and vomiting: stat CT and neurosurgery"
+            },
+            {
+              "value": "hourly",
+              "label": "He's drowsy but he has been drinking; I'll keep to hourly checks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "ctTime"
+                },
+                {
+                  "log": "The physician examines him: 'Stat CT now, page neurosurgery.' The scanner is cleared for him.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"hourly\""
+                },
+                {
+                  "log": "The physician agrees to hourly checks until the scan.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: GCS trend with times, pupils, vital signs",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: GCS 14 at triage, {lastGcs|0dp} at the last check, pupils, vital signs.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Hallway bed",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "glucose",
+        "neuro",
+        "hob",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "\"Three beers. He wasn't drunk, he slipped.\" He vomited once in the car. He has had a worsening headache since.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "glucoseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose 112 mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to CT",
+      "wait": {
+        "skipLabel": "his stat CT"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to clear the scanner and move him."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He goes for a stat CT; neurosurgery meets him there.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "vomit",
+      "when": "prog >= 0.55",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "He vomits again and says his head is 'splitting'.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Mr. Doyle is drowsier. Is it the beer? What do you do?",
+      "parts": [
+        {
+          "label": "What it means",
+          "criteria": "A falling GCS with worsening headache and vomiting after a head strike is rising intracranial pressure, the earliest sign; pupil changes and Cushing's triad (hypertension, bradycardia, irregular breathing) are late signs of herniation; alcohol is not the explanation for a falling GCS.",
+          "modelAnswer": "His GCS is falling, his headache is worse and he is vomiting after a blow to the head. That is rising intracranial pressure, and the falling level of consciousness is the earliest sign. Three beers don't explain a dropping GCS. A blown pupil and Cushing's triad would be late."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Neuro checks far more often than hourly; reports a 2-point drop at once for a stat CT and neurosurgery; head of the bed at 30 degrees, neck midline.",
+          "modelAnswer": "I check him every few minutes, not hourly, tell the physician now for a stat CT and neurosurgery, and raise the head of the bed to 30 degrees with his neck midline."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A falling level of consciousness after head injury still unscanned an hour on is harm here.",
+      "source": {
+        "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+        "note": "Relayed from the NCLEX-PN case head-strike-on-apixaban (read 2026-11-16 through a summarizing fetch with quotes), not re-read (NCBI refused fetches on 2026-11-17): suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'."
+      }
+    }
+  },
+  "endings": {
+    "herniation": {
+      "label": "Herniation in the hallway",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= herniateAt and inClinic",
+      "narrative": "Both pupils fixed, breathing irregular, GCS {gcs}. He is herniating in a hallway bed. A code is called and he is intubated on the spot."
+    },
+    "earlyCt": {
+      "label": "Caught on the falling GCS",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and not isNull(neuroAt) and timeAt(neuroAt) <= firstCheckWindow and not isNull(redFlagAt) and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(hobAt) and not pupil",
+      "narrative": "{timeAt(leftAt)|clock}: GCS {gcs}, pupils still equal as he goes for a stat CT. You caught the earliest sign, not the late ones."
+    },
+    "lateCt": {
+      "label": "Scanned, but on late signs",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches CT, but the call came after a delay, the pupil had already changed, or the first check came late."
+    },
+    "time_up": {
+      "label": "Still in the hallway at 00:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "00:10 and Mr. Doyle is still in the hallway."
+    }
+  },
+  "endingOrder": [
+    "herniation",
+    "earlyCt",
+    "lateCt"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "serial",
+        "label": "First neuro check within 5 minutes and repeated often",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt) and timeAt(neuroAt) <= firstCheckWindow and neuroN >= 2",
+            "score": "met",
+            "why": "{neuroN|0dp} checks."
+          },
+          {
+            "when": "neuroN >= 1",
+            "score": "partial",
+            "why": "Too few, or the first came late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No neuro check."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Reported the GCS drop within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and not isNull(redFlagAt) and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late, or before a drop was seen."
+          },
+          {
+            "when": "route == \"hourly\"",
+            "score": "missed",
+            "why": "Put it down to alcohol."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "earlySign",
+        "label": "Acted before the pupil changed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(callAt) and route == \"md\" and not pupil",
+            "score": "met",
+            "why": "Before any late sign."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "After a late sign."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never escalated."
+          }
+        ]
+      },
+      {
+        "id": "hobC",
+        "label": "Head of the bed at 30 degrees, neck midline",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hobAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named rising intracranial pressure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"icp\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"alcohol\"",
+            "score": "missed",
+            "why": "Put a falling GCS down to alcohol."
+          },
+          {
+            "when": "dxEnum == \"concussion\"",
+            "score": "missed",
+            "why": "Called it a concussion."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the GCS trend",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the falling GCS is the earliest sign; not the beer; report now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "checks",
+        "label": "Neuro checks",
+        "value": "neuroN",
+        "format": "number",
+        "expert": "every 5 minutes or so"
+      },
+      {
+        "id": "toCall",
+        "label": "GCS drop to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "23:10",
+        "text": "A baseline neuro check now. Head of the bed to 30 degrees, neck midline."
+      },
+      {
+        "at": "~23:15",
+        "text": "Check again: still GCS 14. Ask his friend: vomiting, three beers."
+      },
+      {
+        "at": "~23:21",
+        "text": "GCS 12 with worse headache: the earliest sign. Tell the physician now: stat CT."
+      },
+      {
+        "at": "~23:22",
+        "text": "Hand off the GCS trend with times."
+      }
+    ],
+    "debrief": {
+      "herniation": {
+        "headline": "Herniation",
+        "body": "A falling GCS after a head strike is the earliest sign of rising pressure; a blown pupil and Cushing's triad are late. Never put it down to alcohol."
+      },
+      "earlyCt": {
+        "headline": "Caught early",
+        "body": "Frequent checks found the falling GCS, and you reported it before any pupil change. That is the expert path."
+      },
+      "lateCt": {
+        "headline": "Scanned on late signs",
+        "body": "Check how often you looked, how long the drop waited for a report, and whether a pupil had already changed."
+      },
+      "time_up": {
+        "headline": "Still in the hallway",
+        "body": "A falling GCS after head injury needs a scan within minutes."
+      }
+    },
+    "modelReasoning": "After a head strike, a GCS that falls from 14 to 12 with worsening headache and vomiting is rising intracranial pressure; the level of consciousness is the earliest sign, and pupil changes and Cushing's triad of hypertension, bradycardia and irregular breathing are late signs of herniation. A few beers don't explain it. Hourly checks are too slow: check every few minutes, report a 2-point drop at once for a stat CT and neurosurgery, and keep the head of the bed at 30 degrees with the neck midline."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Reported",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "earlyQ": {
+      "during": "testT",
+      "ask": "While you assess: which is the earliest sign of rising intracranial pressure?",
+      "choices": [
+        {
+          "id": "loc",
+          "label": "A falling level of consciousness"
+        },
+        {
+          "id": "pupil",
+          "label": "A fixed, dilated pupil"
+        },
+        {
+          "id": "triad",
+          "label": "Cushing's triad"
+        }
+      ],
+      "expect": "loc",
+      "explain": "Altered mental status from drowsiness to coma comes first; Cushing triad is a late and ominous sign of impending herniation.",
+      "source": {
+        "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+        "note": "Relayed from the NCLEX-PN case head-strike-on-apixaban (read 2026-11-16 through a summarizing fetch with quotes), not re-read (NCBI refused fetches on 2026-11-17): suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'."
+      }
+    },
+    "triadQ": {
+      "during": "leaveT",
+      "ask": "While he goes to CT: what makes up Cushing's triad?",
+      "choices": [
+        {
+          "id": "htn",
+          "label": "Hypertension, bradycardia and irregular respiration"
+        },
+        {
+          "id": "hypo",
+          "label": "Hypotension, tachycardia and fast breathing"
+        },
+        {
+          "id": "fever",
+          "label": "Fever, neck stiffness and rash"
+        }
+      ],
+      "expect": "htn",
+      "explain": "Cushing triad is hypertension, bradycardia and irregular respiration, a late sign of impending herniation.",
+      "source": {
+        "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+        "note": "Relayed from the NCLEX-PN case head-strike-on-apixaban (read 2026-11-16 through a summarizing fetch with quotes), not re-read (NCBI refused fetches on 2026-11-17): suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

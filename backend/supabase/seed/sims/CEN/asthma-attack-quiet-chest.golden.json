@@ -1,0 +1,488 @@
+{
+  "slug": "asthma-attack-quiet-chest",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: nebulizer, oxygen titrated, upright, history, steroid, reassess; at the quiet chest the physician now for the airway; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "how": "titrate"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "upright",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "silentQ",
+          "choice": "silent",
+          "seq": 6,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "steroid",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 167
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 10,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "failing"
+          },
+          "seq": 11,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 12,
+          "tick": 175
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "mid",
+          "seq": 13,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 175
+        }
+      ],
+      "expect": {
+        "ending": "airwayNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "nebC": "met",
+          "callC": "met",
+          "o2C": "met",
+          "steroidC": "met",
+          "reassessC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toNeb": 5,
+          "toCall": 0
+        },
+        "stateHash": "2ac99a5e6e352894"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "maxOxygen",
+      "title": "Nebulizer and steroid at once and the tiring caught, but oxygen on a non-rebreather pushed toward 100%",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "how": "nrb"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "steroid",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 167
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "failing"
+          },
+          "seq": 7,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 175
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "mid",
+          "seq": 9,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 175
+        }
+      ],
+      "expect": {
+        "ending": "airwayLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "nebC": "met",
+          "callC": "met",
+          "o2C": "partial",
+          "steroidC": "met",
+          "reassessC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toNeb": 0,
+          "toCall": 0
+        },
+        "stateHash": "430d8a9779595ed0"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Treats well and sees the quiet chest, but calls the physician more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "how": "titrate"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "steroid",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 167
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "failing"
+          },
+          "seq": 7,
+          "tick": 250
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 250
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "mid",
+          "seq": 9,
+          "tick": 250
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 250
+        }
+      ],
+      "expect": {
+        "ending": "airwayLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "nebC": "met",
+          "callC": "partial",
+          "o2C": "met",
+          "steroidC": "met",
+          "reassessC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toNeb": 0,
+          "toCall": 375
+        },
+        "stateHash": "5083496af075fa75"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "quietIsBetter",
+      "title": "Failure: treats, then reads the quiet chest as improvement and asks for a recheck in 30 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "params": {
+            "how": "titrate"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 167
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "better"
+          },
+          "seq": 5,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 175
+        },
+        {
+          "type": "teach",
+          "prompt": "o2Q",
+          "choice": "mid",
+          "seq": 7,
+          "tick": 175
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "nebC": "met",
+          "callC": "missed",
+          "o2C": "met",
+          "steroidC": "missed",
+          "reassessC": "partial",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toNeb": 0,
+          "toCall": 0
+        },
+        "stateHash": "d9efe1bfae1eaf31"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noTreatment",
+      "title": "Failure: questions, vital signs and a peak flow attempt; calls it anxiety; no nebulizer or oxygen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "silentQ",
+          "choice": "silent",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "peak",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anxiety"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 121
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "nebC": "missed",
+          "callC": "missed",
+          "o2C": "missed",
+          "steroidC": "missed",
+          "reassessC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toNeb": -1,
+          "toCall": -1
+        },
+        "stateHash": "d9ada0bccc51d2f9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

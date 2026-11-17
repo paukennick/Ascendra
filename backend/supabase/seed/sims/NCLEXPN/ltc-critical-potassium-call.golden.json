@@ -1,0 +1,431 @@
+{
+  "slug": "ltc-critical-potassium-call",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: read-back, apical pulse, symptoms; potassium chloride held; RN and provider now, 911; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "readback",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cramp",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "severeQ",
+          "choice": "sixfive",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "transferred",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "holdC": "met",
+          "pulseC": "met",
+          "readC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 185,
+          "pulseK": 125
+        },
+        "stateHash": "039b52e1c66b1c6d"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Reviews the record and symptoms first, then reads back and checks the pulse; reports 7 minutes after the read-back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cramp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "readback",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 9,
+          "tick": 125
+        },
+        {
+          "type": "teach",
+          "prompt": "severeQ",
+          "choice": "sixfive",
+          "seq": 10,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 125
+        }
+      ],
+      "expect": {
+        "ending": "transferredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "holdC": "met",
+          "pulseC": "met",
+          "readC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 625,
+          "pulseK": 240
+        },
+        "stateHash": "0f8691d4193fa666"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noPulse",
+      "title": "Reads back, holds the potassium and reports at once, but never checks his pulse",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readback",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cramp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "severeQ",
+          "choice": "sixfive",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "high"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "transferredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "reportC": "met",
+          "holdC": "met",
+          "pulseC": "missed",
+          "readC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "pulseK": -1
+        },
+        "stateHash": "ca7adbb65c21cd7a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "assumeHemolysis",
+      "title": "Failure: assumes a hemolyzed sample, gives the morning medications with the potassium and books a redraw",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readback",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cramp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hemolyzed"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "kcl",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "redraw"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "holdC": "missed",
+          "pulseC": "missed",
+          "readC": "met",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 60,
+          "pulseK": -1
+        },
+        "stateHash": "fc6d051b19cb3a4c"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "forRounds",
+      "title": "Failure: reviews the medications, calls it mildly high and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cramp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mild"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "holdC": "missed",
+          "pulseC": "missed",
+          "readC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "pulseK": -1
+        },
+        "stateHash": "108164c7c2cc33d3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

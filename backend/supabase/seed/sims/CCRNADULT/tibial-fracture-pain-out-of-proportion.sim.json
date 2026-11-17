@@ -1,0 +1,1112 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tibial-fracture-pain-out-of-proportion",
+  "title": "The pain isn't touching it",
+  "objective": "Recognize acute compartment syndrome from pain out of proportion, pain on passive stretch and a tense compartment, then remove constricting dressings, keep the limb at heart level, support blood pressure and escalate for fasciotomy",
+  "secondaryObjectives": [
+    "Compartment syndrome: early recognition and management"
+  ],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: musculoskeletal problems, including compartment syndrome, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: musculoskeletal problems, including compartment syndrome, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "WikEM. Compartment syndrome (open emergency medicine wiki, physician authors; revision of 2026-03-22)",
+      "checkedAt": "2026-11-17",
+      "url": "https://wikem.org/wiki/Compartment_Syndrome",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: pain out of proportion and pain with passive stretch (the 'most sensitive exam finding'); a 'tense, firm compartment on palpation'; paresthesias; paralysis and pulselessness are late, and intact pulses do not rule it out; remove all circumferential dressings, casts and splints; keep the limb at heart level, not elevated; maintain blood pressure and avoid hypotension; emergent surgical consultation for fasciotomy without delay for imaging; a delta pressure (diastolic minus compartment pressure) under 30 mmHg indicates fasciotomy. A physician-edited secondary source."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "01:00 in a trauma ICU. You are Mr. Ortiz's nurse. He is 34, admitted 10 hours ago after a motorcycle crash with a right tibial plateau fracture in a long-leg splint with a circumferential elastic wrap, awaiting surgery in the morning.",
+    "handover": [
+      "He has had the ordered IV opioid three times since midnight; his pain is 10 out of 10 and 'getting worse, not better'.",
+      "His right leg is propped high on three pillows 'to help the swelling'. His MAP has drifted from 80 to 66 after the last opioid dose.",
+      "Unit policy for suspected compartment syndrome: loosen any circumferential dressing to the skin, keep the limb at heart level, support the blood pressure, and call orthopedics at once for compartment pressures and fasciotomy."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "01:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Muscle ischemia in the anterior compartment progresses. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "eased": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with the wrap loosened, the leg at heart level and the pressure supported, until fasciotomy. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "opioidBump": {
+      "value": 0.1,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "More opioid lowers the pressure further and hides the pain that tracks the ischemia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "necrosisAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of irreversible muscle necrosis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Orthopedics called within 5 minutes of the passive stretch finding (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Orthopedics measures the compartments and takes him for fasciotomy: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "stretchAt": {
+      "type": "time",
+      "init": null
+    },
+    "palpateAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stretch",
+        "palpate",
+        "neuro",
+        "pain"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ortho",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "acs",
+        "fracture",
+        "dvt"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "wrapAt": {
+      "type": "time",
+      "init": null
+    },
+    "levelAt": {
+      "type": "time",
+      "init": null
+    },
+    "mapAt": {
+      "type": "time",
+      "init": null
+    },
+    "opioidAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "easedAll": {
+      "expr": "not isNull(wrapAt) and not isNull(levelAt) and not isNull(mapAt)"
+    },
+    "hr": {
+      "expr": "round(108 + 12 * prog + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round((isNull(mapAt) ? 96 : 116) - (isNull(opioidAt) ? 0 : 8))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.52)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (easedAll ? eased : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              100,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Wrap loosened to skin: {not isNull(wrapAt)|yesno}. Leg at heart level: {not isNull(levelAt)|yesno}. Pressure supported: {not isNull(mapAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"ortho\" and inClinic",
+          "text": "Orthopedics is on the way to measure compartment pressures; the OR is notified."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "stretch": {
+      "label": "Passively flex and extend his toes and ankle",
+      "group": "Assess",
+      "available": "not testPending and isNull(stretchAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"stretch\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "palpate": {
+      "label": "Feel the leg compartments above and below the splint",
+      "group": "Assess",
+      "available": "not testPending and isNull(palpateAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"palpate\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Check sensation, movement and pulses in the foot",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pain": {
+      "label": "Review his pain scores and opioid doses since admission",
+      "group": "Assess",
+      "available": "not testPending and isNull(painAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pain\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "wrap": {
+      "label": "Cut the circumferential elastic wrap and padding down to the skin, keeping the splint in place",
+      "group": "Treat",
+      "available": "isNull(wrapAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "wrapAt",
+          "to": "t"
+        },
+        {
+          "log": "Wrap and padding split to the skin along the length; splint held.",
+          "kind": "act"
+        }
+      ]
+    },
+    "level": {
+      "label": "Take the leg off the pillows to heart level",
+      "group": "Treat",
+      "available": "isNull(levelAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "levelAt",
+          "to": "t"
+        },
+        {
+          "log": "Leg at heart level.",
+          "kind": "act"
+        }
+      ]
+    },
+    "map": {
+      "label": "Support his blood pressure: hold further opioid pending orthopedics and give the ordered fluid bolus",
+      "group": "Treat",
+      "available": "isNull(mapAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "mapAt",
+          "to": "t"
+        },
+        {
+          "log": "Opioid held pending orthopedics; fluid bolus running; MAP rising.",
+          "kind": "act"
+        }
+      ]
+    },
+    "opioid": {
+      "label": "Give another dose of the ordered IV opioid and recheck in an hour",
+      "group": "Treat",
+      "available": "isNull(opioidAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "opioidAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + opioidBump"
+        },
+        {
+          "log": "Opioid given; his MAP falls into the low 60s.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "acs",
+              "label": "Acute compartment syndrome of the right leg: pain out of proportion, pain on passive stretch, a tense compartment, early numbness; pulses don't rule it out"
+            },
+            {
+              "value": "fracture",
+              "label": "Fracture pain: he needs better analgesia"
+            },
+            {
+              "value": "dvt",
+              "label": "A DVT: start anticoagulation"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"acs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"acs\""
+                },
+                {
+                  "log": "Acute compartment syndrome.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fracture\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fracture\""
+                },
+                {
+                  "log": "Impression: fracture pain.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dvt\""
+                },
+                {
+                  "log": "Impression: DVT.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call orthopedics",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "ortho",
+              "label": "Pain 10 and rising despite three opioid doses, severe pain on passive toe stretch, tense anterior compartment, first web space numbness, pulses present: suspected compartment syndrome. Wrap split, leg at heart level, pressure supported. Please come now for pressures and fasciotomy"
+            },
+            {
+              "value": "morning",
+              "label": "Mention the pain at the morning pre-op check"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ortho\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ortho\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "orTime"
+                },
+                {
+                  "log": "Orthopedics comes at once, measures a delta pressure under 30 and takes him for fasciotomy.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "You add his pain to the pre-op list.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document hourly neurovascular checks, the findings and times, and actions taken",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: pain trend, passive stretch pain, tense compartment, web space numbness, pulses, wrap split, leg level, pressure support, orthopedics called.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "stretch",
+        "palpate",
+        "neuro",
+        "pain",
+        "wrap",
+        "level",
+        "map",
+        "opioid",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"stretch\"",
+              "then": [
+                {
+                  "set": "stretchAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Passive stretch of his toes makes him cry out: severe pain in the front of the shin.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"palpate\"",
+              "then": [
+                {
+                  "set": "palpateAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The anterior compartment is tense and firm, 'like wood'.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Numbness between the first and second toes; weak toe extension; dorsalis pedis and posterior tibial pulses present. Pulses do not rule it out.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "painAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pain 6 at 20:00, now 10 despite three doses: pain out of proportion to the injury and rising.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going for fasciotomy",
+      "wait": {
+        "skipLabel": "his move to the OR"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for orthopedics to measure and take him."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He goes to the OR for a four-compartment fasciotomy.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Why is his pain rising, and what do you do now?",
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Acute compartment syndrome: pain out of proportion and rising despite opioids, pain on passive stretch (most sensitive), a tense compartment and early paresthesia; pulses are a late sign and their presence does not rule it out.",
+          "modelAnswer": "His pain is out of proportion and climbing despite opioids, stretching his toes is agony, the front of his shin is rock hard and he's numb between his first two toes. That's compartment syndrome. His pulses being there doesn't rule it out; losing them is late."
+        },
+        {
+          "label": "What now",
+          "criteria": "Splits circumferential dressings to the skin; brings the leg to heart level (not elevated); supports blood pressure (holds more opioid, fluid as ordered); calls orthopedics at once for pressures and fasciotomy.",
+          "modelAnswer": "Cut the wrap down to the skin, bring the leg down to heart level, and support his pressure: hold more opioid and run the fluid. Call orthopedics now for compartment pressures and fasciotomy."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected compartment syndrome without a surgeon an hour on is harm here.",
+      "source": {
+        "cite": "WikEM. Compartment syndrome (open emergency medicine wiki, physician authors; revision of 2026-03-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Compartment_Syndrome",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: pain out of proportion and pain with passive stretch (the 'most sensitive exam finding'); a 'tense, firm compartment on palpation'; paresthesias; paralysis and pulselessness are late, and intact pulses do not rule it out; remove all circumferential dressings, casts and splints; keep the limb at heart level, not elevated; maintain blood pressure and avoid hypotension; emergent surgical consultation for fasciotomy without delay for imaging; a delta pressure (diastolic minus compartment pressure) under 30 mmHg indicates fasciotomy. A physician-edited secondary source."
+      }
+    }
+  },
+  "endings": {
+    "necrosis": {
+      "label": "Muscle necrosis",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= necrosisAt and inClinic",
+      "narrative": "His pain suddenly eases and his foot drops; he cannot feel the top of his foot. At fasciotomy the anterior compartment muscle is dead."
+    },
+    "decompressed": {
+      "label": "Caught early and decompressed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ortho\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and easedAll and isNull(opioidAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to fasciotomy with viable muscle. You recognized it from the stretch pain and the tense compartment, not the pulses, and bought time while the surgeon came."
+    },
+    "decompressedGaps": {
+      "label": "To fasciotomy, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to fasciotomy, but the call was late, the wrap or leg position was left, or more opioid dropped his pressure."
+    },
+    "time_up": {
+      "label": "Undecompressed at 02:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "02:00 and the compartment is still undecompressed."
+    }
+  },
+  "endingOrder": [
+    "necrosis",
+    "decompressed",
+    "decompressedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Called orthopedics within 5 minutes of the stretch pain",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ortho\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ortho\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"morning\"",
+            "score": "missed",
+            "why": "Left for the morning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "wrapLevelC",
+        "label": "Split the wrap to the skin and brought the leg to heart level",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(wrapAt) and not isNull(levelAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(wrapAt) or not isNull(levelAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "mapC",
+        "label": "Supported the blood pressure; no more opioid to mask it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(opioidAt)",
+            "score": "missed",
+            "why": "More opioid given."
+          },
+          {
+            "when": "not isNull(mapAt)",
+            "score": "met",
+            "why": "Supported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "compC",
+        "label": "Felt the compartments",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(palpateAt)",
+            "score": "met",
+            "why": "Tense."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not felt."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized compartment syndrome despite pulses",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"acs\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"fracture\"",
+            "score": "missed",
+            "why": "Called it fracture pain."
+          },
+          {
+            "when": "dxEnum == \"dvt\"",
+            "score": "missed",
+            "why": "Called it a DVT."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the neurovascular findings",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: compartment syndrome from stretch pain and a tense compartment; split, level, support, surgeon",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Stretch pain to orthopedics",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toWrap",
+        "label": "01:00 to the wrap split",
+        "value": "isNull(wrapAt) ? -1 : timeAt(wrapAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "01:00",
+        "text": "Passive toe stretch: severe pain. Anterior compartment tense."
+      },
+      {
+        "at": "~01:02",
+        "text": "Split the wrap to the skin; leg to heart level; hold opioid, run the fluid."
+      },
+      {
+        "at": "~01:03",
+        "text": "Compartment syndrome. Call orthopedics now for pressures and fasciotomy. Document."
+      }
+    ],
+    "debrief": {
+      "necrosis": {
+        "headline": "Muscle lost",
+        "body": "Pain out of proportion, pain on passive stretch and a tense compartment are compartment syndrome, pulses or not. Split dressings, keep the limb at heart level, support pressure and get the surgeon now."
+      },
+      "decompressed": {
+        "headline": "Caught early",
+        "body": "You recognized it from the stretch pain and the tense compartment, split the wrap, leveled the leg, supported his pressure and called within minutes. That is the expert path."
+      },
+      "decompressedGaps": {
+        "headline": "To fasciotomy, with gaps",
+        "body": "Check how fast you called, whether the wrap and leg position were fixed, and whether more opioid went in."
+      },
+      "time_up": {
+        "headline": "Undecompressed",
+        "body": "Suspected compartment syndrome needs a surgeon within minutes."
+      }
+    },
+    "modelReasoning": "Rising pain out of proportion despite opioids, severe pain on passive stretch of the toes, a tense anterior compartment and early numbness in the first web space are acute compartment syndrome; present pulses do not rule it out, because loss of pulses is late. Split the circumferential wrap to the skin, bring the leg down to heart level (elevation lowers arterial inflow), and support his blood pressure by holding more opioid and giving the ordered fluid, because a low pressure narrows the gap between perfusion and compartment pressure. Call orthopedics at once for compartment pressures and fasciotomy."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Orthopedics called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "signQ": {
+      "during": "testT",
+      "ask": "While you examine: which is the most sensitive early finding of compartment syndrome?",
+      "choices": [
+        {
+          "id": "stretch",
+          "label": "Pain on passive stretch of the compartment's muscles"
+        },
+        {
+          "id": "pulse",
+          "label": "Loss of the pedal pulse"
+        },
+        {
+          "id": "paralysis",
+          "label": "Paralysis"
+        }
+      ],
+      "expect": "stretch",
+      "explain": "Pain with passive stretch is the most sensitive exam finding; paralysis and pulselessness are late.",
+      "source": {
+        "cite": "WikEM. Compartment syndrome (open emergency medicine wiki, physician authors; revision of 2026-03-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Compartment_Syndrome",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: pain out of proportion and pain with passive stretch (the 'most sensitive exam finding'); a 'tense, firm compartment on palpation'; paresthesias; paralysis and pulselessness are late, and intact pulses do not rule it out; remove all circumferential dressings, casts and splints; keep the limb at heart level, not elevated; maintain blood pressure and avoid hypotension; emergent surgical consultation for fasciotomy without delay for imaging; a delta pressure (diastolic minus compartment pressure) under 30 mmHg indicates fasciotomy. A physician-edited secondary source."
+      }
+    },
+    "levelQ": {
+      "during": "leaveT",
+      "ask": "While he goes to the OR: why heart level and not elevated?",
+      "choices": [
+        {
+          "id": "inflow",
+          "label": "Elevation lowers arterial inflow to an already squeezed compartment"
+        },
+        {
+          "id": "swelling",
+          "label": "Elevation increases swelling"
+        },
+        {
+          "id": "comfort",
+          "label": "Only for comfort"
+        }
+      ],
+      "expect": "inflow",
+      "explain": "Keep the limb at heart level rather than elevated, since elevation may reduce arterial perfusion.",
+      "source": {
+        "cite": "WikEM. Compartment syndrome (open emergency medicine wiki, physician authors; revision of 2026-03-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Compartment_Syndrome",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: pain out of proportion and pain with passive stretch (the 'most sensitive exam finding'); a 'tense, firm compartment on palpation'; paresthesias; paralysis and pulselessness are late, and intact pulses do not rule it out; remove all circumferential dressings, casts and splints; keep the limb at heart level, not elevated; maintain blood pressure and avoid hypotension; emergent surgical consultation for fasciotomy without delay for imaging; a delta pressure (diastolic minus compartment pressure) under 30 mmHg indicates fasciotomy. A physician-edited secondary source."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

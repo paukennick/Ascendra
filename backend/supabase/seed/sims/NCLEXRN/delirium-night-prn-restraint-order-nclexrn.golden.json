@@ -1,0 +1,462 @@
+{
+  "slug": "delirium-night-prn-restraint-order-nclexrn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: low bed and alarm, a sitter, delirium screen, pain, bladder scan; catheter; reorientation; IV covered; report and document",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "lowbed",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "sitter",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "prnQ",
+          "choice": "never",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bladder",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "orient",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "sleeve",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "delirium"
+          },
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "ret",
+          "seq": 14,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 15,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "settled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "noRestraint": "met",
+          "causeC": "met",
+          "safeC": "met",
+          "camC": "met",
+          "orientC": "met",
+          "callC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toScan": 185,
+          "toSafe": 5
+        },
+        "stateHash": "c0609692af6016f9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateSafety",
+      "title": "Finds and drains the retention, but the low bed and alarm wait 12 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "prnQ",
+          "choice": "never",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bladder",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "orient",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "chapter",
+          "chapter": "drained",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "lowbed",
+          "seq": 9,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "sitter",
+          "seq": 10,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "delirium"
+          },
+          "seq": 11,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 12,
+          "tick": 145
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "ret",
+          "seq": 13,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 145
+        }
+      ],
+      "expect": {
+        "ending": "settledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "noRestraint": "met",
+          "causeC": "met",
+          "safeC": "partial",
+          "camC": "met",
+          "orientC": "met",
+          "callC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toScan": 180,
+          "toSafe": 725
+        },
+        "stateHash": "94bebb4d63f4ab42"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noScreen",
+      "title": "Safety first and the retention drained, but no delirium screen or reorientation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lowbed",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sitter",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bladder",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "prnQ",
+          "choice": "never",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "ret",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "settledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "noRestraint": "met",
+          "causeC": "met",
+          "safeC": "met",
+          "camC": "missed",
+          "orientC": "missed",
+          "callC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toScan": 60,
+          "toSafe": 0
+        },
+        "stateHash": "9b1dfa8f79b4af6e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "restrained",
+      "title": "Failure: applies wrist restraints under the PRN order from admission",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restrain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "behavior"
+          },
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "restraintInjury",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "noRestraint": "missed",
+          "causeC": "missed",
+          "safeC": "missed",
+          "camC": "missed",
+          "orientC": "missed",
+          "callC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toScan": -1,
+          "toSafe": -1
+        },
+        "stateHash": "feb1139778e307e6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "askForSedation",
+      "title": "Failure: checks her pain, calls it dementia and asks the provider for sedation; no precautions",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "prnQ",
+          "choice": "never",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dementia"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "sedate"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "noRestraint": "met",
+          "causeC": "missed",
+          "safeC": "missed",
+          "camC": "missed",
+          "orientC": "missed",
+          "callC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toScan": -1,
+          "toSafe": -1
+        },
+        "stateHash": "9c66319b3536f9cb"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,551 @@
+{
+  "slug": "pressor-arm-cold-and-pale",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: site check; stopped, aspirated, catheter left; restarted in the other arm; intensivist; elevated; phentolamine; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "large",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "asp",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "extrav"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "catheterQ",
+          "choice": "antidote",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "elev",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 13,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 65
+        }
+      ],
+      "expect": {
+        "ending": "saved",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopC": "met",
+          "restartC": "met",
+          "antiC": "met",
+          "callC": "met",
+          "elevC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "offTime": 0
+        },
+        "stateHash": "25b139f89e749c37"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateStop",
+      "title": "Reviews the trend and the other IV first, then takes over a minute to stop the infusion after finding the site",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trend",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "large",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "other",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 6,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "asp",
+          "seq": 7,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 8,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "extrav"
+          },
+          "seq": 9,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 10,
+          "tick": 52
+        },
+        {
+          "type": "teach",
+          "prompt": "catheterQ",
+          "choice": "antidote",
+          "seq": 11,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "elev",
+          "seq": 12,
+          "tick": 52
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 14,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 15,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "savedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "stopC": "partial",
+          "restartC": "met",
+          "antiC": "met",
+          "callC": "met",
+          "elevC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 80,
+          "offTime": 0
+        },
+        "stateHash": "8594b92e7cd7bc0a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pulledOut",
+      "title": "Stops and restarts fast but pulls the catheter before the antidote",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "large",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pull",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "catheterQ",
+          "choice": "antidote",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "extrav"
+          },
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "anti",
+          "seq": 11,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "elev",
+          "seq": 12,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 65
+        }
+      ],
+      "expect": {
+        "ending": "savedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "stopC": "met",
+          "restartC": "met",
+          "antiC": "partial",
+          "callC": "met",
+          "elevC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "offTime": 0
+        },
+        "stateHash": "50713046722d52ab"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "leftOff",
+      "title": "Failure: stops the infiltrated infusion and calls, but never restarts the vasopressor anywhere",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "large",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "extrav"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "asp",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "elev",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "catheterQ",
+          "choice": "antidote",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "stopC": "met",
+          "restartC": "missed",
+          "antiC": "missed",
+          "callC": "met",
+          "elevC": "met",
+          "dxC": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": 0,
+          "offTime": -1
+        },
+        "stateHash": "ebadf1afa97a082e"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "turnedUp",
+      "title": "Failure: reads the falling MAP as worse shock, turns the rate up, flushes the line and leaves the arm for the line team",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trend",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "large",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "shock"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "rate",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flush",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "note"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "necrosis",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopC": "missed",
+          "restartC": "missed",
+          "antiC": "missed",
+          "callC": "missed",
+          "elevC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "offTime": -1
+        },
+        "stateHash": "516aea539ddb8f36"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

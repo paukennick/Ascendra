@@ -1,0 +1,1162 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pale-urine-after-pituitary-surgery",
+  "title": "Half a liter an hour",
+  "objective": "Recognize diabetes insipidus from large volumes of dilute urine and rising sodium, give desmopressin, and watch for hyponatremia once treatment starts",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: endocrine problems, including diabetes insipidus, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: endocrine problems, including diabetes insipidus, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Arginine Vasopressin Disorder (Diabetes Insipidus), Channing Hui, Myra Khan, Jared M. Radbel, last updated 2024-02-07",
+      "checkedAt": "2026-11-17",
+      "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20428",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Polyuria is defined as a urine output of more than 3 L/day in adults'; 'Hypotonic urine is typically defined as <300 mOsm/Kg osmolality', and urine specific gravity also identifies a hypotonic polyuric disorder; 'Patients without an intact thirst mechanism can develop severe hypernatremia'; trauma to the hypothalamus and posterior pituitary and transsphenoidal surgery cause AVP deficiency; after surgery 'the specific gravity of the urine and osmolality should be monitored before administering desmopressin'; it is 'crucial to monitor hyponatremia, as water retention can lead to sodium concentration changes'; regular electrolyte monitoring. The chapter gives no sodium correction rate."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "23:00 in a neuroscience ICU. You are Mr. Brandt's nurse. He is 49, on the evening of a transsphenoidal resection of a pituitary adenoma. His hourly urine has been 350, then 420, then 500 mL, clear as water.",
+    "handover": [
+      "He has had only the ordered maintenance IV fluid since surgery. He keeps asking for water but is drowsy between requests.",
+      "Orders: hourly intake and output, urine specific gravity and serum sodium if output exceeds 250 mL/h for two hours, and call neurosurgery. The ordered desmopressin is to be given only on the neurosurgeon's call.",
+      "His 19:00 sodium was 143 mmol/L."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "23:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Free water loss continues: sodium climbs and volume falls. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": -0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Losses slow and are replaced once desmopressin is in. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "restrictBump": {
+      "value": 0.25,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fluid restricted in a patient losing free water. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a hypernatremic seizure with hypovolemia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Neurosurgery called within 5 minutes of the sodium and specific gravity (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Neurosurgery reviews and orders: about 4 min."
+      }
+    },
+    "recheck": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The repeat sodium after desmopressin: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "ioAt": {
+      "type": "time",
+      "init": null
+    },
+    "sgAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "io",
+        "sg",
+        "glucose",
+        "neuro"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "nsg",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "di",
+        "siadh",
+        "fluids"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "desmoAt": {
+      "type": "time",
+      "init": null
+    },
+    "replaceAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrictAt": {
+      "type": "time",
+      "init": null
+    },
+    "naPlanAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"nsg\" and t >= timeAt(callAt) + orderTime"
+    },
+    "na": {
+      "expr": "round(143 + 16 * prog)",
+      "unit": "mmol/L",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(92 + 30 * prog + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(124 - 30 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "uo": {
+      "expr": "isNull(desmoAt) ? round(420 + 150 * prog) : round(max(80, 500 - (t - timeAt(desmoAt)) / 2))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "max(0, prog + (isNull(desmoAt) or isNull(replaceAt) ? (isNull(desmoAt) ? progRate : progRate / 3) : treatedRate) * dt / 60)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output",
+          "value": "uo",
+          "unit": "mL/h",
+          "alarm": {
+            "high": 250
+          },
+          "announce": {
+            "bands": [
+              250,
+              400
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Desmopressin given: {not isNull(desmoAt)|yesno}. Replacement fluid running: {not isNull(replaceAt)|yesno}. Fluids restricted: {not isNull(restrictAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(desmoAt)",
+          "text": "Neurosurgery has ordered desmopressin and replacement fluid matched to output, with sodium every 2 hours."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "io": {
+      "label": "Total the intake and output since surgery",
+      "group": "Assess",
+      "available": "not testPending and isNull(ioAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"io\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "sg": {
+      "label": "Urine specific gravity and a serum sodium",
+      "group": "Assess",
+      "available": "not testPending and isNull(sgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose (rule out an osmotic diuresis)",
+      "group": "Assess",
+      "available": "not testPending and isNull(glucoseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glucose\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Neurological check",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "desmo": {
+      "label": "Give the ordered desmopressin",
+      "group": "Treat",
+      "available": "ordered and isNull(desmoAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "desmoAt",
+          "to": "t"
+        },
+        {
+          "log": "Desmopressin given.",
+          "kind": "act"
+        }
+      ]
+    },
+    "replace": {
+      "label": "Start the ordered replacement fluid matched to his output",
+      "group": "Treat",
+      "available": "ordered and isNull(replaceAt) and isNull(restrictAt) and inClinic",
+      "why": "Not ordered yet, running, or fluids were restricted.",
+      "effects": [
+        {
+          "set": "replaceAt",
+          "to": "t"
+        },
+        {
+          "log": "Replacement fluid running, matched to the hourly output.",
+          "kind": "act"
+        }
+      ]
+    },
+    "naPlan": {
+      "label": "Set sodium checks every 2 hours and watch for a sodium that falls too far once the urine slows",
+      "group": "Treat",
+      "available": "not isNull(desmoAt) and isNull(naPlanAt) and inClinic",
+      "why": "Give the desmopressin first, or already set.",
+      "effects": [
+        {
+          "set": "naPlanAt",
+          "to": "t"
+        },
+        {
+          "log": "Sodium every 2 hours; strict intake and output; alert for output falling sharply or sodium dropping.",
+          "kind": "act"
+        }
+      ]
+    },
+    "restrict": {
+      "label": "Restrict his fluids: the IV must be running too fast",
+      "group": "Treat",
+      "available": "isNull(restrictAt) and isNull(replaceAt) and inClinic",
+      "why": "Already restricted, or replacing.",
+      "effects": [
+        {
+          "set": "restrictAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + restrictBump"
+        },
+        {
+          "log": "Maintenance IV stopped and water withheld. He keeps passing pale urine.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "di",
+              "label": "Central diabetes insipidus after pituitary surgery: large volumes of dilute urine (SG 1.002) and a rising sodium"
+            },
+            {
+              "value": "siadh",
+              "label": "SIADH: restrict fluids"
+            },
+            {
+              "value": "fluids",
+              "label": "Just the IV fluids coming out; it will settle"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"di\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"di\""
+                },
+                {
+                  "log": "Central DI after pituitary surgery.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"siadh\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"siadh\""
+                },
+                {
+                  "log": "Impression: SIADH.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fluids\""
+                },
+                {
+                  "log": "Impression: diuresis of IV fluid.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call neurosurgery",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "nsg",
+              "label": "Output 350, 420, 500 mL/h, specific gravity 1.002, sodium up from 143, 2.1 L negative, glucose normal: likely central DI. Ask for desmopressin, replacement fluid and a sodium plan"
+            },
+            {
+              "value": "morning",
+              "label": "Keep recording output and report it at the 06:00 labs"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"nsg\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"nsg\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "recheck"
+                },
+                {
+                  "log": "The neurosurgeon agrees: desmopressin now, replacement matched to output, sodium every 2 hours.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "You keep the hourly chart going for the morning team.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and hand off: output and specific gravity trend, sodium, desmopressin time, replacement and sodium plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: output 350 to 500 mL/h, SG 1.002, sodium rising from 143, desmopressin time, replacement running, sodium every 2 hours.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "io",
+        "sg",
+        "glucose",
+        "neuro",
+        "desmo",
+        "replace",
+        "naPlan",
+        "restrict",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"io\"",
+              "then": [
+                {
+                  "set": "ioAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Out 1,270 mL in the last 3 hours against 300 mL in. Net 2.1 L negative since the operation.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"sg\"",
+              "then": [
+                {
+                  "set": "sgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Urine specific gravity 1.002. Serum sodium {na} mmol/L, up from 143 at 19:00.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"glucose\"",
+              "then": [
+                {
+                  "set": "glucoseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose 126 mg/dL: not an osmotic diuresis.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Drowsy but rousable, oriented, pupils equal; no new visual loss; thirsty.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the repeat sodium",
+      "wait": {
+        "skipLabel": "the repeat sodium"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min until the repeat sodium after desmopressin."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The repeat sodium is back; his urine has slowed.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Why is he passing so much urine, and what do you do now and after treatment?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Central DI (AVP deficiency) after transsphenoidal surgery: polyuria of very dilute urine (low specific gravity), rising sodium and a negative balance, with osmotic diuresis ruled out.",
+          "modelAnswer": "He's making 400 to 500 mL an hour of urine with a specific gravity of 1.002, his sodium is climbing and he's 2 liters down. His glucose is normal. After pituitary surgery that's central diabetes insipidus."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls neurosurgery now; gives the ordered desmopressin and replacement fluid; never restricts fluid; then monitors sodium closely for hyponatremia as the urine slows.",
+          "modelAnswer": "Call neurosurgery now for desmopressin and replacement fluid. Don't restrict fluids, he's losing water. Once it works, check his sodium every couple of hours, because water retention can drop it too low."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Diabetes insipidus with a rising sodium untreated for an hour is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Arginine Vasopressin Disorder (Diabetes Insipidus), Channing Hui, Myra Khan, Jared M. Radbel, last updated 2024-02-07",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20428",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Polyuria is defined as a urine output of more than 3 L/day in adults'; 'Hypotonic urine is typically defined as <300 mOsm/Kg osmolality', and urine specific gravity also identifies a hypotonic polyuric disorder; 'Patients without an intact thirst mechanism can develop severe hypernatremia'; trauma to the hypothalamus and posterior pituitary and transsphenoidal surgery cause AVP deficiency; after surgery 'the specific gravity of the urine and osmolality should be monitored before administering desmopressin'; it is 'crucial to monitor hyponatremia, as water retention can lead to sodium concentration changes'; regular electrolyte monitoring. The chapter gives no sodium correction rate."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "Hypernatremic seizure",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His sodium reaches 159, his pressure falls and he has a generalized seizure."
+    },
+    "treated": {
+      "label": "DI recognized and treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"nsg\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(desmoAt) and not isNull(replaceAt) and isNull(restrictAt)",
+      "narrative": "{timeAt(leftAt)|clock}: his urine has slowed, his sodium is coming down steadily, and the sodium plan is in place for the night."
+    },
+    "treatedGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the desmopressin is in, but the call was late, the losses were not replaced, or fluids were restricted."
+    },
+    "time_up": {
+      "label": "Untreated at 00:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Midnight and he is still losing water."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "treated",
+    "treatedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Called neurosurgery within 5 minutes of the sodium",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"nsg\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"nsg\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"morning\"",
+            "score": "missed",
+            "why": "Left for the morning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "treatC",
+        "label": "Desmopressin and replacement fluid given",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(desmoAt) and not isNull(replaceAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(desmoAt)",
+            "score": "partial",
+            "why": "Desmopressin only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "noRestrict",
+        "label": "Did not restrict fluids",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(restrictAt)",
+            "score": "missed",
+            "why": "Restricted."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Not restricted."
+          }
+        ]
+      },
+      {
+        "id": "sgC",
+        "label": "Checked specific gravity and sodium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(sgAt)",
+            "score": "met",
+            "why": "Checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "naC",
+        "label": "Planned sodium checks for hyponatremia after desmopressin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(naPlanAt)",
+            "score": "met",
+            "why": "Set."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No plan."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized central DI",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"di\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"siadh\"",
+            "score": "missed",
+            "why": "Called it SIADH."
+          },
+          {
+            "when": "dxEnum == \"fluids\"",
+            "score": "missed",
+            "why": "Called it IV fluid."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the trend and plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: central DI; desmopressin and replacement, no restriction; watch sodium after",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Sodium to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toDesmo",
+        "label": "23:00 to desmopressin",
+        "value": "isNull(desmoAt) ? -1 : timeAt(desmoAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "23:00",
+        "text": "Intake and output: 1,270 mL out in 3 hours. Specific gravity 1.002, sodium rising."
+      },
+      {
+        "at": "~23:02",
+        "text": "Central DI. Call neurosurgery: desmopressin, replacement, sodium plan."
+      },
+      {
+        "at": "~23:07",
+        "text": "Give the desmopressin, start replacement matched to output."
+      },
+      {
+        "at": "~23:08",
+        "text": "Sodium every 2 hours for hyponatremia as the urine slows; document."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "Hypernatremic seizure",
+        "body": "Large volumes of dilute urine with a rising sodium after pituitary surgery is DI. Replace the water and give desmopressin; never restrict fluid."
+      },
+      "treated": {
+        "headline": "Recognized and treated",
+        "body": "You recognized central DI from the output, specific gravity and sodium, called within minutes, gave desmopressin and replacement, and planned sodium checks for the swing the other way. That is the expert path."
+      },
+      "treatedGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you called, whether the losses were replaced, and whether fluids were restricted."
+      },
+      "time_up": {
+        "headline": "Untreated",
+        "body": "DI with a rising sodium needs desmopressin and replacement within the hour."
+      }
+    },
+    "modelReasoning": "After transsphenoidal surgery, 350 to 500 mL an hour of urine with a specific gravity of 1.002, a sodium rising from 143 and a 2-liter negative balance, with a normal glucose, is central diabetes insipidus: too little vasopressin. Call neurosurgery now, give the ordered desmopressin and replacement fluid matched to output, and never restrict fluid in a patient losing free water. Once the desmopressin works, water retention can drive the sodium too low, so check sodium every 2 hours and watch for output falling sharply."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Neurosurgery called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "afterQ": {
+      "during": "leaveT",
+      "ask": "While you wait for the repeat sodium: what is the main risk once desmopressin works?",
+      "choices": [
+        {
+          "id": "hypo",
+          "label": "Hyponatremia from water retention"
+        },
+        {
+          "id": "hyper",
+          "label": "Hyperkalemia"
+        },
+        {
+          "id": "none",
+          "label": "None; the problem is solved"
+        }
+      ],
+      "expect": "hypo",
+      "explain": "Water retention after desmopressin can drop the sodium; monitor electrolytes closely.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Arginine Vasopressin Disorder (Diabetes Insipidus), Channing Hui, Myra Khan, Jared M. Radbel, last updated 2024-02-07",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20428",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Polyuria is defined as a urine output of more than 3 L/day in adults'; 'Hypotonic urine is typically defined as <300 mOsm/Kg osmolality', and urine specific gravity also identifies a hypotonic polyuric disorder; 'Patients without an intact thirst mechanism can develop severe hypernatremia'; trauma to the hypothalamus and posterior pituitary and transsphenoidal surgery cause AVP deficiency; after surgery 'the specific gravity of the urine and osmolality should be monitored before administering desmopressin'; it is 'crucial to monitor hyponatremia, as water retention can lead to sodium concentration changes'; regular electrolyte monitoring. The chapter gives no sodium correction rate."
+      }
+    },
+    "urineQ": {
+      "during": "testT",
+      "ask": "While you check: which urine fits diabetes insipidus?",
+      "choices": [
+        {
+          "id": "dilute",
+          "label": "More than 3 L a day, osmolality under 300, a low specific gravity"
+        },
+        {
+          "id": "conc",
+          "label": "Small volumes with a high specific gravity"
+        },
+        {
+          "id": "glucose",
+          "label": "Large volumes with glucose in it"
+        }
+      ],
+      "expect": "dilute",
+      "explain": "Polyuria is more than 3 L a day in adults; hypotonic urine is under 300 mOsm/kg, and specific gravity also identifies it.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Arginine Vasopressin Disorder (Diabetes Insipidus), Channing Hui, Myra Khan, Jared M. Radbel, last updated 2024-02-07",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20428",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Polyuria is defined as a urine output of more than 3 L/day in adults'; 'Hypotonic urine is typically defined as <300 mOsm/Kg osmolality', and urine specific gravity also identifies a hypotonic polyuric disorder; 'Patients without an intact thirst mechanism can develop severe hypernatremia'; trauma to the hypothalamus and posterior pituitary and transsphenoidal surgery cause AVP deficiency; after surgery 'the specific gravity of the urine and osmolality should be monitored before administering desmopressin'; it is 'crucial to monitor hyponatremia, as water retention can lead to sodium concentration changes'; regular electrolyte monitoring. The chapter gives no sodium correction rate."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

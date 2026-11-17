@@ -1,0 +1,1325 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "leg-ulcer-calcified-abi-compression",
+  "title": "A leg ulcer sent for compression, and an ABI that looks too good",
+  "objective": "Use toe-brachial index and pedal Doppler waveforms with the ABI when vessels may be calcified, and treat ankle pressure below 50 mm Hg or ABI below 0.5 as a sign of poor healing and higher amputation risk",
+  "secondaryObjectives": [
+    "Use high compression to knee height as the core venous ulcer treatment, drop to 20 mm Hg or less while waiting for vascular testing, and avoid it with arterial occlusion, ABPI under 0.5, heart failure or thrombosis",
+    "Measure the ankle-brachial index correctly: use the highest ankle systolic pressure over the higher brachial pressure, measuring both arms, and suspect falsely high values in calcified vessels (diabetes, CKD, old age)",
+    "Recognize arterial disease: claudication relieved by rest, then ischemic forefoot rest pain when the legs are raised that eases with the foot dependent; arterial ulcers are deep, dry and sit on toes, dorsum or anterior leg"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: wound management (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
+      "note": "Relayed from the wound management course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: examination and evaluation is 25% of the exam. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra wound management specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSWMS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Fitridge R, Chuter V, Mills J, et al. The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes and a foot ulcer (2023)",
+      "checkedAt": "2026-11-17",
+      "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the guideline PDF (the first 100,000 of about 164,000 characters). 'PAD is less likely in the presence of ABI 0.9-1.3; TBI >= 0.70; and triphasic or biphasic pedal Doppler waveforms'; an elevated ABI (>1.3) is associated with a greater likelihood of amputation; 'A low ankle pressure (e.g. < 50 mmHg) or ABI (e.g. < 0.5) may be associated with greater likelihood of impaired healing'; a toe pressure under 30 mmHg raises the probability of major amputation; urgent vascular consultation for 'an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg'; monophasic or absent pedal waveforms are findings of ischemia."
+    },
+    {
+      "cite": "Ankle brachial pressure index and compression application: review summary. Wound Practice and Research, volume 27 number 2 (Cambridge Media)",
+      "checkedAt": "2026-11-17",
+      "url": "https://journals.cambridgemedia.com.au/wpr/volume-27-no-2/ankle-brachial-pressure-index-and-compression-application-review-summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Six practice guidelines disagreed on the ABPI below which compression is contraindicated; two allow compression with close monitoring above 0.5; reduced compression below 0.8 in two; ABPI results should be interpreted with caution pending assessment for arterial calcification, and two guidelines refer to a specialist above 1.2."
+    },
+    {
+      "cite": "Robles-Tenorio A, et al. Venous Leg Ulcer. StatPearls (updated 2026-06-17), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK430685/",
+      "note": "Relayed from the course seed (tag SP-VLU; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: high compression to knee height is the core venous ulcer treatment; reduce to 20 mm Hg or less while waiting for vascular testing; avoid it with arterial occlusion, ABPI under 0.5, heart failure or thrombosis."
+    },
+    {
+      "cite": "Zemaitis MR, et al. Peripheral Arterial Disease. StatPearls (updated 2026-01-31), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK430685/",
+      "note": "Relayed from the course seed (tag SP-PAD; read 2026-11-04 from the literature-archive snapshot), not re-read: ischemic forefoot rest pain when the legs are raised that eases with the foot dependent; falsely high ABI values in calcified vessels (diabetes, chronic kidney disease, old age)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. The measured values are authored to match the cited thresholds; the time course of compression pain is authored and carries FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in an outpatient wound clinic. You are the physical therapist. Mr. Delgado, 71, is referred by his primary care physician: 'Venous leg ulcer, right lateral ankle, 6 weeks, not healing. Please start multilayer compression.'",
+    "handover": [
+      "Type 2 diabetes for 22 years, chronic kidney disease stage 3, former smoker. Ankle swelling by evening.",
+      "Ulcer dressed at home by his daughter with gauze.",
+      "Clinic equipment: handheld Doppler, ankle and toe cuffs with a photoplethysmography sensor, multilayer compression kits.",
+      "Clinic policy: the vascular surgery service takes same-day calls for limb-threatening ischemia."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each measurement takes the time on its button. Decide what to measure, what the numbers mean and what to do.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Not used in this case: the limb does not change within one visit unless it is compressed. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ischRate": {
+      "value": 0.08,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "With high compression on a limb with severe ischemia, pain and pallor rise to an injury point in about 12 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lightRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Light compression on the same limb: slower, but still unsafe. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ischLimit": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point at which compression has caused an ischemic injury. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "testTime": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A bedside vascular measurement: about 2 min."
+      }
+    },
+    "historyTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused history: about 3 min."
+      }
+    },
+    "callTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The call and the plan to leave: about 5 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "woundAt": {
+      "type": "time",
+      "init": null
+    },
+    "pulsesAt": {
+      "type": "time",
+      "init": null
+    },
+    "abiAt": {
+      "type": "time",
+      "init": null
+    },
+    "dopplerAt": {
+      "type": "time",
+      "init": null
+    },
+    "toeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "wound",
+        "pulses",
+        "abi",
+        "doppler",
+        "toe"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vasc",
+        "letter",
+        "compress"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "arterial",
+        "venous"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "isch": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "comp": {
+      "type": "enum",
+      "values": [
+        "none",
+        "light",
+        "high"
+      ],
+      "init": "none"
+    },
+    "highAt": {
+      "type": "time",
+      "init": null
+    },
+    "lightAt": {
+      "type": "time",
+      "init": null
+    },
+    "dressAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(78 + 12 * isch + sin(t / 21))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(3 + 7 * isch, 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "compression",
+      "when": "inClinic",
+      "update": {
+        "isch": "isch + (comp == \"high\" ? ischRate : (comp == \"light\" ? lightRate : 0)) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Delgado, 71",
+        "presentation": "Right lateral ankle ulcer, 6 weeks; referred for compression. {comp == \"high\" ? \"Multilayer compression on.\" : (comp == \"light\" ? \"Light compression on.\" : \"\")}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain in the right foot, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "alarm": {
+            "high": 7
+          },
+          "announce": {
+            "bands": [
+              5,
+              7
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "activity": "{not inClinic ? \"Left the clinic.\" : (isch >= 0.5 ? \"Gripping the chair, the right toes pale under the wrap.\" : (comp != \"none\" ? \"Sitting with the leg wrapped, shifting in the chair.\" : \"Sitting on the plinth, the right foot hanging over the edge.\"))}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Calf cramps after half a block for two years; for a month, foot pain at night that wakes him and eases when he hangs the foot off the bed.",
+          "when": "not isNull(hxAt)",
+          "flag": "true"
+        },
+        {
+          "id": "woundResult",
+          "label": "Ulcer",
+          "result": "2.1 x 1.6 cm over the lateral malleolus, punched-out, pale dry base, little exudate; shiny hairless skin, cool foot; no redness, warmth or odor.",
+          "when": "not isNull(woundAt)",
+          "flag": "true"
+        },
+        {
+          "id": "pulsesResult",
+          "label": "Pulses",
+          "result": "Dorsalis pedis and posterior tibial not palpable on the right; capillary refill 5 s.",
+          "when": "not isNull(pulsesAt)"
+        },
+        {
+          "id": "abiResult",
+          "label": "ABI",
+          "result": "Right ABI 1.48: the ankle cuff would not fully compress the artery. Not reliable.",
+          "when": "not isNull(abiAt)"
+        },
+        {
+          "id": "dopplerResult",
+          "label": "Pedal Doppler",
+          "result": "Monophasic, damped signals in both pedal arteries on the right.",
+          "when": "not isNull(dopplerAt)",
+          "flag": "true"
+        },
+        {
+          "id": "toeResult",
+          "label": "Toe pressure",
+          "result": "Right great toe 24 mmHg; TBI 0.17. Severe ischemia.",
+          "when": "not isNull(toeAt)",
+          "flag": "true"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "{comp == \"high\" ? \"Multilayer high compression\" : \"Light compression\"}",
+            "when": "comp != \"none\""
+          },
+          {
+            "label": "Dry protective dressing and offloading",
+            "when": "not isNull(dressAt)"
+          },
+          {
+            "label": "{route == \"vasc\" ? \"Vascular surgery today\" : (route == \"letter\" ? \"Routine vascular letter\" : \"Compression, recheck next week\")}",
+            "when": "not isNull(callAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleCalc",
+          "label": "ABI above 1.3, or an artery the cuff cannot compress",
+          "text": "Do not trust the ABI: measure toe pressure and TBI, and listen to the pedal waveforms.",
+          "met": "not isNull(abiAt) and isNull(toeAt) and isNull(dopplerAt)"
+        },
+        {
+          "id": "ruleIsch",
+          "label": "Toe pressure under 30 mmHg, ankle pressure under 50 mmHg or ABI under 0.4, monophasic waveforms, rest pain",
+          "text": "No compression; urgent vascular consultation.",
+          "met": "redSeen and isNull(callAt)"
+        },
+        {
+          "id": "rulePain",
+          "label": "New pain or pale toes under a wrap",
+          "text": "Take the compression off.",
+          "met": "comp != \"none\" and isch >= 0.3"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Focused history: pain pattern, walking, nights, wound course",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "historyTime"
+        },
+        {
+          "log": "Taking his history (about 3 min)."
+        }
+      ]
+    },
+    "wound": {
+      "label": "Measure and describe the ulcer and the skin around it",
+      "group": "Examine",
+      "available": "not testPending and isNull(woundAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"wound\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "pulses": {
+      "label": "Palpate the foot pulses and capillary refill",
+      "group": "Examine",
+      "available": "not testPending and isNull(pulsesAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pulses\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "abi": {
+      "label": "Ankle-brachial index, both arms and both ankle arteries",
+      "group": "Examine",
+      "available": "not testPending and isNull(abiAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"abi\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "doppler": {
+      "label": "Handheld Doppler: pedal artery waveforms",
+      "group": "Examine",
+      "available": "not testPending and isNull(dopplerAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"doppler\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "toe": {
+      "label": "Toe pressure and toe-brachial index",
+      "group": "Examine",
+      "available": "not testPending and isNull(toeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"toe\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "high": {
+      "label": "Apply multilayer high compression to the knee, as referred",
+      "group": "Treat",
+      "available": "comp != \"high\" and inClinic",
+      "why": "It is on.",
+      "effects": [
+        {
+          "set": "comp",
+          "to": "\"high\""
+        },
+        {
+          "if": "isNull(highAt)",
+          "then": [
+            {
+              "set": "highAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Multilayer compression on, to the knee.",
+          "kind": "act"
+        }
+      ]
+    },
+    "light": {
+      "label": "Apply light compression (20 mm Hg or less) while waiting for vascular testing",
+      "group": "Treat",
+      "available": "comp == \"none\" and inClinic",
+      "why": "Compression is on.",
+      "effects": [
+        {
+          "set": "comp",
+          "to": "\"light\""
+        },
+        {
+          "if": "isNull(lightAt)",
+          "then": [
+            {
+              "set": "lightAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Light compression on.",
+          "kind": "act"
+        }
+      ]
+    },
+    "remove": {
+      "label": "Take the compression off",
+      "group": "Treat",
+      "available": "comp != \"none\" and inClinic",
+      "why": "Nothing to remove.",
+      "effects": [
+        {
+          "set": "comp",
+          "to": "\"none\""
+        },
+        {
+          "log": "Wrap removed; the toes slowly pink up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "dress": {
+      "label": "Dress the ulcer to keep it dry and protected; offload the heel and ankle",
+      "group": "Treat",
+      "available": "isNull(dressAt) and inClinic",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "dressAt",
+          "to": "t"
+        },
+        {
+          "log": "Dry protective dressing, padding over the malleolus, a soft heel and ankle offloading boot.",
+          "kind": "good"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Record your working impression",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "arterial",
+              "label": "Severe arterial insufficiency (limb-threatening ischemia); the ABI is falsely high from calcified vessels"
+            },
+            {
+              "value": "venous",
+              "label": "Venous leg ulcer, as referred; ABI normal"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"arterial\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"arterial\""
+                },
+                {
+                  "log": "Impression: severe arterial insufficiency; ABI falsely high.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"venous\""
+                },
+                {
+                  "log": "Impression: venous leg ulcer.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide where he goes next",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Route",
+          "options": [
+            {
+              "value": "vasc",
+              "label": "Call the vascular surgery service now: toe pressure 24, TBI 0.17, monophasic waveforms, rest pain; urgent assessment"
+            },
+            {
+              "value": "letter",
+              "label": "Send a routine referral letter to vascular surgery and review him in four weeks"
+            },
+            {
+              "value": "compress",
+              "label": "Start compression as referred and recheck next week"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"vasc\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"vasc\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "callTime"
+                },
+                {
+                  "log": "The vascular fellow will see him in clinic this afternoon. No compression meanwhile.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"letter\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"letter\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "callTime"
+                },
+                {
+                  "log": "Letter sent; the routine wait is several weeks.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"compress\""
+                },
+                {
+                  "set": "comp",
+                  "to": "\"high\""
+                },
+                {
+                  "if": "isNull(highAt)",
+                  "then": [
+                    {
+                      "set": "highAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "1200"
+                },
+                {
+                  "log": "Compression on; he will wait for his daughter to pick him up.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his primary care physician what you found and why there is no compression",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His physician has the readings and the plan; the referral diagnosis is corrected.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "In the clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "wound",
+        "pulses",
+        "abi",
+        "doppler",
+        "toe",
+        "high",
+        "light",
+        "remove",
+        "dress",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Calf cramps after half a block for two years. For a month his foot has hurt at night until he hangs it over the side of the bed.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"wound\"",
+              "then": [
+                {
+                  "set": "woundAt",
+                  "to": "t"
+                },
+                {
+                  "log": "2.1 x 1.6 cm over the lateral malleolus: punched-out edges, a pale dry base, little drainage. Shiny hairless skin, a cool foot, no signs of infection.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"pulses\"",
+              "then": [
+                {
+                  "set": "pulsesAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No dorsalis pedis or posterior tibial pulse on the right; capillary refill about 5 seconds.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"abi\"",
+              "then": [
+                {
+                  "set": "abiAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Brachial 138 and 134. Right ankle: the signal persists above 200 mmHg; ABI 1.48 by the highest ankle pressure. The vessels are not compressible.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"doppler\"",
+              "then": [
+                {
+                  "set": "dopplerAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right dorsalis pedis and posterior tibial: monophasic, damped signals.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "toeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right great toe pressure 24 mmHg over a brachial 138: TBI 0.17.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving the clinic",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 5 min after the plan is made; about 20 min for his ride if compressed."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves the clinic.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Is this a venous ulcer that needs compression? What do the vascular numbers mean, and what do you do?",
+      "parts": [
+        {
+          "label": "Interpretation",
+          "criteria": "An ABI of 1.48 with arteries the cuff cannot compress is falsely high (diabetes, kidney disease); toe pressure 24 mmHg and TBI 0.17 with monophasic pedal waveforms, absent pulses and rest pain that eases dependent show severe arterial disease; the ulcer looks arterial.",
+          "modelAnswer": "The ABI of 1.48 is not reassuring: his arteries are calcified and would not compress. His toe pressure is 24 with a TBI of 0.17, the pedal signals are monophasic, the pulses are absent and he has rest pain relieved by hanging the foot down. This is severe arterial disease, not a venous ulcer."
+        },
+        {
+          "label": "Action",
+          "criteria": "No compression of any strength; dry protective dressing and offloading; same-day call to vascular surgery for urgent assessment; tells the referring physician.",
+          "modelAnswer": "No compression. Dress and protect the ulcer and call vascular surgery today for an urgent assessment, because a toe pressure under 30 is a threshold for urgent consultation. Then tell his physician why I did not start compression."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. The measured values are authored to match the cited thresholds; the time course of compression pain is authored and carries FLAG. Authored: a wrap that causes new pain comes off within 2 min."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. The measured values are authored to match the cited thresholds; the time course of compression pain is authored and carries FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Fitridge R, Chuter V, Mills J, et al. The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes and a foot ulcer (2023)",
+          "checkedAt": "2026-11-17",
+          "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+          "note": "Read 2026-11-17 through a summarizing fetch with quotes of the guideline PDF (the first 100,000 of about 164,000 characters). 'PAD is less likely in the presence of ABI 0.9-1.3; TBI >= 0.70; and triphasic or biphasic pedal Doppler waveforms'; an elevated ABI (>1.3) is associated with a greater likelihood of amputation; 'A low ankle pressure (e.g. < 50 mmHg) or ABI (e.g. < 0.5) may be associated with greater likelihood of impaired healing'; a toe pressure under 30 mmHg raises the probability of major amputation; urgent vascular consultation for 'an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg'; monophasic or absent pedal waveforms are findings of ischemia. Authored window: the call within 15 min of the first ischemic finding, during the same visit."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Severe ischemia found and no plan an hour later leaves a threatened limb unescalated, which the profile calls harm.",
+      "source": {
+        "cite": "Fitridge R, Chuter V, Mills J, et al. The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes and a foot ulcer (2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the guideline PDF (the first 100,000 of about 164,000 characters). 'PAD is less likely in the presence of ABI 0.9-1.3; TBI >= 0.70; and triphasic or biphasic pedal Doppler waveforms'; an elevated ABI (>1.3) is associated with a greater likelihood of amputation; 'A low ankle pressure (e.g. < 50 mmHg) or ABI (e.g. < 0.5) may be associated with greater likelihood of impaired healing'; a toe pressure under 30 mmHg raises the probability of major amputation; urgent vascular consultation for 'an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg'; monophasic or absent pedal waveforms are findings of ischemia."
+      }
+    }
+  },
+  "endings": {
+    "injury": {
+      "label": "An ischemic injury under the wrap",
+      "class": "harm",
+      "terminal": true,
+      "when": "isch >= ischLimit and inClinic",
+      "narrative": "His toes are white and the pain is unbearable under the compression. The wrap is cut off, and vascular surgery admits him with new tissue loss on the foot."
+    },
+    "urgentVascular": {
+      "label": "Severe ischemia found; urgent vascular care",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"vasc\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + escalateWindow and isNull(highAt) and isNull(lightAt) and not isNull(toeAt) and not isNull(dopplerAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the vascular clinic this afternoon with your readings and no compression. You looked past a falsely high ABI and found limb-threatening ischemia."
+    },
+    "referredGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves without injury, but the referral was routine or late, the vascular check incomplete, or compression went on before it came off."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and Mr. Delgado is still in the clinic without a plan."
+    }
+  },
+  "endingOrder": [
+    "injury",
+    "urgentVascular",
+    "referredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "beyondAbi",
+        "label": "Toe pressure and pedal Doppler, not the ABI alone",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(toeAt) and not isNull(dopplerAt)",
+            "score": "met",
+            "why": "Toe pressure and waveforms measured."
+          },
+          {
+            "when": "not isNull(toeAt) or not isNull(dopplerAt)",
+            "score": "partial",
+            "why": "Only one of toe pressure and waveforms."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(abiAt) ? \"No vascular measurement\" : \"Relied on a falsely high ABI\"}."
+          }
+        ]
+      },
+      {
+        "id": "noComp",
+        "label": "No compression on a limb with severe ischemia",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(highAt)",
+            "score": "missed",
+            "why": "High compression applied."
+          },
+          {
+            "when": "not isNull(lightAt)",
+            "score": "partial",
+            "why": "Light compression applied; still unsafe at a toe pressure of 24."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No compression."
+          }
+        ]
+      },
+      {
+        "id": "urgent",
+        "label": "Vascular surgery called the same visit, within 15 minutes of the first ischemic finding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No referral."
+          },
+          {
+            "when": "route == \"vasc\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + escalateWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"vasc\"",
+            "score": "partial",
+            "why": "Called, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{route == \"letter\" ? \"A routine letter\" : \"Compression instead of a referral\"}."
+          }
+        ]
+      },
+      {
+        "id": "history",
+        "label": "Asked about claudication and rest pain",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt)",
+            "score": "met",
+            "why": "Asked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "Dressed and offloaded the ulcer",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dressAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Recorded severe arterial insufficiency",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"arterial\"",
+            "score": "met",
+            "why": "Arterial insufficiency."
+          },
+          {
+            "when": "dxEnum == \"venous\"",
+            "score": "missed",
+            "why": "Recorded a venous ulcer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No impression."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the referring physician",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: falsely high ABI; toe pressure and waveforms show severe ischemia; no compression; urgent vascular care",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toRedFlag",
+        "label": "10:00 to the first ischemic finding",
+        "value": "isNull(redFlagAt) ? -1 : timeAt(redFlagAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toCall",
+        "label": "First ischemic finding to the vascular call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "History: claudication, and rest pain at night eased by hanging the foot down. Look at the ulcer: punched-out, pale, dry, over the lateral malleolus."
+      },
+      {
+        "at": "~10:05",
+        "text": "ABI 1.48 with an artery the cuff cannot compress: falsely high. Do not stop there."
+      },
+      {
+        "at": "~10:07",
+        "text": "Pedal Doppler: monophasic. Toe pressure 24 mmHg, TBI 0.17. Severe ischemia: no compression."
+      },
+      {
+        "at": "~10:12",
+        "text": "Dress and offload. Call vascular surgery for an urgent assessment today; tell his physician."
+      }
+    ],
+    "debrief": {
+      "injury": {
+        "headline": "An ischemic injury under the wrap",
+        "body": "Compression on a limb with severe arterial disease cuts off what flow is left. With an unreliable ABI, check toe pressure and waveforms before any compression."
+      },
+      "urgentVascular": {
+        "headline": "Severe ischemia found; urgent vascular care",
+        "body": "You did not trust an ABI above 1.3, measured toe pressure and pedal waveforms, kept compression off and called vascular surgery the same visit. That is the expert path."
+      },
+      "referredGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you measured beyond the ABI, whether any compression went on, and whether the referral matched the urgency of a toe pressure under 30 mmHg."
+      },
+      "time_up": {
+        "headline": "No plan",
+        "body": "A referral diagnosis is a hypothesis. Test it, then act on what the limb shows."
+      }
+    },
+    "modelReasoning": "In a long-standing diabetic with kidney disease, an ABI of 1.48 with an artery the cuff cannot compress is falsely high and says nothing about perfusion. Toe pressure and the toe-brachial index, with pedal Doppler waveforms, are the measures that still work: here a toe pressure of 24 mmHg, a TBI of 0.17 and monophasic signals, with absent pulses, rest pain eased by dependency and a pale punched-out ulcer, mean severe arterial disease. A toe pressure under 30 mmHg calls for urgent vascular consultation, and compression of any strength is unsafe on a limb this ischemic, so no compression, protect and offload the ulcer, call vascular surgery today and correct the referral."
+  },
+  "chapters": [
+    {
+      "id": "plan",
+      "label": "A plan for the limb",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "abiQ": {
+      "during": "testT",
+      "ask": "While you measure: what does an ABI above 1.3 in a long-standing diabetic usually mean?",
+      "choices": [
+        {
+          "id": "calc",
+          "label": "Calcified arteries the cuff cannot compress: the number is unreliable"
+        },
+        {
+          "id": "normal",
+          "label": "Excellent arterial flow"
+        },
+        {
+          "id": "venous",
+          "label": "Venous disease"
+        }
+      ],
+      "expect": "calc",
+      "explain": "Above 1.3 the ankle arteries are often noncompressible; use toe pressure, TBI and pedal waveforms.",
+      "source": {
+        "cite": "Fitridge R, Chuter V, Mills J, et al. The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes and a foot ulcer (2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the guideline PDF (the first 100,000 of about 164,000 characters). 'PAD is less likely in the presence of ABI 0.9-1.3; TBI >= 0.70; and triphasic or biphasic pedal Doppler waveforms'; an elevated ABI (>1.3) is associated with a greater likelihood of amputation; 'A low ankle pressure (e.g. < 50 mmHg) or ABI (e.g. < 0.5) may be associated with greater likelihood of impaired healing'; a toe pressure under 30 mmHg raises the probability of major amputation; urgent vascular consultation for 'an ankle-brachial index <0.4, ankle pressure <50mmHg, toe pressure <30mmHg or transcutaneous oxygen pressure <30mmHg'; monophasic or absent pedal waveforms are findings of ischemia."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

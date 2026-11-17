@@ -1,0 +1,1190 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "capnography-alarm-saturation-fine",
+  "title": "The saturation is fine",
+  "objective": "Recognize opioid-induced respiratory depression with sedation scales and capnography before the oxygen saturation falls",
+  "secondaryObjectives": [
+    "Administer medications and monitor for the expected and adverse response"
+  ],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Respiratory (14% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: respiratory monitoring includes continuous SpO2 and end-tidal CO2. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Pasero Opioid-Induced Sedation Scale (POSS) with interventions, as reproduced by RNAO best practice guideline pages",
+      "checkedAt": "2026-11-11",
+      "url": "https://bpgmobile.rnao.ca/node/763",
+      "note": "Relayed from the ADN-RN case pca-oversedation-naloxone (read 2026-11-11), not re-read: 1-2 acceptable; 3 (frequently drowsy, arousable, drifts off to sleep during conversation) unacceptable: monitor closely, decrease the opioid or notify the prescriber; 4 (somnolent, minimal or no response) unacceptable: stop the opioid, consider naloxone, notify the prescriber, monitor closely."
+    },
+    {
+      "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+      "note": "Relayed from the ADN-RN case pca-oversedation-naloxone (read 2026-11-11, primary web pages), not re-read: in postoperative opioid depression give small IV doses at two to three minute intervals titrated to response; larger than necessary doses can reverse analgesia and raise blood pressure; abrupt postoperative reversal may cause nausea, vomiting, sweating, tachycardia and has been followed by ventricular tachycardia and fibrillation, pulmonary edema and cardiac arrest; the duration of some opioids may exceed naloxone's, so keep the patient under surveillance. The case states no dose number."
+    },
+    {
+      "cite": "Overdyk FJ, Guerra JJ. Improving outcomes in med-surg patients with opioid-induced respiratory depression. American Nurse (myamericannurse.com), 2011-11-11",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.myamericannurse.com/improving-outcomes-in-med-surg-patients-with-opioid-induced-respiratory-depression/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. In patients on PCA with hypercarbia, 'Their sedation stemmed from hypercarbia, yet their Spo2 values remained normal'; significant clinical respiratory depression occurred with end-tidal values above 55 mm Hg; 'Sleep apnea and certain other conditions predispose patients to airway collapse'; most catastrophic outcomes occur in the early morning."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "03:40 on a progressive care unit. You are Mr. Ruiz's nurse. He is 58, the evening after a hip replacement, with obstructive sleep apnea; his home CPAP is in the room but not on. The capnography alarm sounds for the third time this hour; the aide says 'his sats are 96, it's just the sensor'.",
+    "handover": [
+      "On 2 L/min oxygen by nasal cannula with continuous SpO2 and end-tidal CO2 monitoring.",
+      "IV hydromorphone as needed for pain, last given at 02:50. The unit's opioid protocol: assess sedation with the POSS before every dose; at POSS 3 or more hold opioids, stay with him and call the rapid response team; naloxone in small titrated IV doses by protocol for POSS 4 or a respiratory rate under 8.",
+      "Rapid response comes within minutes of a call."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the numbers on the monitor mean and act on them.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "03:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Opioid and sleep apnea push CO2 up toward apnea over about 20 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "naloxFall": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "How fast titrated naloxone reverses the depression. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "resedRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Depression creeping back once naloxone wears off. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "naloxSpan": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "How long a titrated dose acts here (naloxone can wear off before the opioid). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "prnBump": {
+      "value": 0.4,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Another hydromorphone dose on a sedated patient. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cpapFactor": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "CPAP and the head up slow the rise. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "apneaAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of apnea and arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response within 5 minutes of POSS 3 or a rising end-tidal CO2 (unit protocol)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "rrtTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response takes over and sets the plan for the night: about 15 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.55,
+      "min": 0,
+      "max": 2
+    },
+    "possCkAt": {
+      "type": "time",
+      "init": null
+    },
+    "capnoAt": {
+      "type": "time",
+      "init": null
+    },
+    "marAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "possCk",
+        "capno",
+        "mar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rrt",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "oird",
+        "sensor",
+        "sleep"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "cpapAt": {
+      "type": "time",
+      "init": null
+    },
+    "naloxAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "prnAt": {
+      "type": "time",
+      "init": null
+    },
+    "silenceAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "naloxOn": {
+      "expr": "not isNull(naloxAt) and t < timeAt(naloxAt) + naloxSpan"
+    },
+    "etco2": {
+      "expr": "round(38 + 32 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(17 - 11 * prog, 3, 20))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(97 - 30 * max(0, prog - 0.85), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(78 + 10 * prog + (isNull(bolusAt) ? 0 : 40 * clamp(1 - (t - timeAt(bolusAt)) / 600, 0, 1)) + sin(t / 17))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "poss": {
+      "expr": "prog < 0.45 ? 2 : (prog < 0.75 ? 3 : 4)",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "clamp(prog + (naloxOn ? 0 - naloxFall : (not isNull(naloxAt) ? resedRate : progRate * (isNull(cpapAt) ? 1 : cpapFactor))) * dt / 60, 0.2, 2)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 50
+          },
+          "announce": {
+            "bands": [
+              45,
+              50,
+              55
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              12,
+              10,
+              8
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Opioids held: {not isNull(holdAt)|yesno}. CPAP: {not isNull(cpapAt)|yesno}. Naloxone given: {not isNull(naloxAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"rrt\" and inClinic",
+          "text": "Rapid response is at the bedside."
+        },
+        {
+          "when": "not isNull(silenceAt) and isNull(callAt)",
+          "text": "Capnography alarm silenced."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "possCk": {
+      "label": "Wake him and score sedation (POSS)",
+      "group": "Assess",
+      "available": "not testPending and isNull(possCkAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"possCk\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "capno": {
+      "label": "Read the capnography trend and count his breathing for a full minute",
+      "group": "Assess",
+      "available": "not testPending and isNull(capnoAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"capno\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mar": {
+      "label": "Review the medication record",
+      "group": "Assess",
+      "available": "not testPending and isNull(marAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold all opioids and sedatives; stay with him",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inClinic",
+      "why": "Already held.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Opioids and sedating drugs held; a note on the pump and the record.",
+          "kind": "act"
+        }
+      ]
+    },
+    "cpap": {
+      "label": "Head of the bed up, wake him, put on his home CPAP",
+      "group": "Treat",
+      "available": "isNull(cpapAt) and inClinic",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "cpapAt",
+          "to": "t"
+        },
+        {
+          "log": "Head up 30 degrees; his own CPAP on; you keep talking to him.",
+          "kind": "act"
+        }
+      ]
+    },
+    "naloxone": {
+      "label": "Naloxone by protocol: small IV doses titrated to breathing, not to full wakefulness",
+      "group": "Treat",
+      "available": "isNull(naloxAt) and isNull(bolusAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "naloxAt",
+          "to": "t"
+        },
+        {
+          "log": "Small titrated doses: his breathing picks up to {rr} and he answers you, still comfortable.",
+          "kind": "act"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Push the whole naloxone vial at once to wake him fully",
+      "group": "Treat",
+      "available": "isNull(naloxAt) and isNull(bolusAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "set": "naloxAt",
+          "to": "t"
+        },
+        {
+          "log": "He bolts awake, shouting with hip pain, sweating and retching.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "prn": {
+      "label": "He woke saying his hip hurts: give the as-needed hydromorphone",
+      "group": "Treat",
+      "available": "isNull(prnAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "prnAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + prnBump"
+        },
+        {
+          "log": "Hydromorphone given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "silence": {
+      "label": "Silence the capnography alarm: the saturation is fine",
+      "group": "Treat",
+      "available": "isNull(silenceAt) and inClinic",
+      "why": "Already silenced.",
+      "effects": [
+        {
+          "set": "silenceAt",
+          "to": "t"
+        },
+        {
+          "log": "Capnography alarm silenced for the night.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "oird",
+              "label": "Opioid-induced respiratory depression: rising CO2 and sedation, with the saturation propped up by oxygen"
+            },
+            {
+              "value": "sensor",
+              "label": "A capnography sensor artifact: the saturation is normal"
+            },
+            {
+              "value": "sleep",
+              "label": "Normal sleep after a long day"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"oird\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"oird\""
+                },
+                {
+                  "log": "Impression: opioid-induced respiratory depression.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sensor\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sensor\""
+                },
+                {
+                  "log": "Impression: artifact.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sleep\""
+                },
+                {
+                  "log": "Impression: asleep.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who you call",
+          "options": [
+            {
+              "value": "rrt",
+              "label": "Rapid response now: POSS 3-4, end-tidal CO2 rising, respiratory rate 8 with pauses, on IV hydromorphone with sleep apnea"
+            },
+            {
+              "value": "morning",
+              "label": "Leave a note for the morning team about his opioid use"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rrt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rrt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "rrtTime"
+                },
+                {
+                  "log": "Rapid response arrives, reviews the capnography trend and takes over with you.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "A note for the morning team.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "SBAR to rapid response: POSS, EtCO2 trend, rate, last opioid doses, naloxone given",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "SBAR: POSS {poss|0dp}, EtCO2 {etco2} and rising, rate {rr}, hydromorphone last at 02:50, sleep apnea, {isNull(naloxAt) ? \"no naloxone yet\" : \"naloxone titrated\"}.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "possCk",
+        "capno",
+        "mar",
+        "hold",
+        "cpap",
+        "naloxone",
+        "bolus",
+        "prn",
+        "silence",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"possCk\"",
+              "then": [
+                {
+                  "set": "possCkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "POSS {poss|0dp}: {poss >= 4 ? \"barely rouses to a sternal rub and drifts straight off.\" : (poss == 3 ? \"opens his eyes to his name, then drifts off mid-sentence.\" : \"awake, a little drowsy.\")} Snoring with pauses.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"capno\"",
+              "then": [
+                {
+                  "set": "capnoAt",
+                  "to": "t"
+                },
+                {
+                  "log": "End-tidal CO2 {etco2} mm Hg and climbing for 40 minutes; respiratory rate {rr} with pauses of 15 seconds. SpO2 {spo2}% on 2 L.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Hydromorphone IV at 22:30, 00:40 and 02:50; gabapentin at bedtime. Sleep apnea on the problem list.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "rapid response's plan",
+      "wait": {
+        "skipLabel": "the rapid response team's plan"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for rapid response to take over and set the plan for the night."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Rapid response sets the plan: continuous monitoring, CPAP, a non-opioid regimen and a watch for resedation.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "His saturation is 96%. Is the capnography alarm a false alarm?",
+      "parts": [
+        {
+          "label": "What the numbers mean",
+          "criteria": "Rising end-tidal CO2 (above 55) with a slow rate, pauses and POSS 3-4 is opioid-induced respiratory depression; supplemental oxygen keeps the SpO2 normal while CO2 climbs, so the saturation is a late sign; sleep apnea adds risk.",
+          "modelAnswer": "No. His end-tidal CO2 has climbed past 55 with a rate of 8 and pauses, and he drifts off mid-sentence: that is opioid-induced respiratory depression. The oxygen is holding his saturation up while CO2 builds, so SpO2 will fall late. His sleep apnea makes it worse."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Hold opioids; wake him, head up, his CPAP; naloxone in small titrated doses (not a full bolus) by protocol; rapid response now; watch for resedation; no as-needed opioid.",
+          "modelAnswer": "Hold every opioid, wake him, head up and his CPAP on, small titrated naloxone doses by protocol, and rapid response now. No hydromorphone when he wakes in pain, and watch him for resedation as the naloxone wears off."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Opioid-induced respiratory depression unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Pasero Opioid-Induced Sedation Scale (POSS) with interventions, as reproduced by RNAO best practice guideline pages",
+        "checkedAt": "2026-11-11",
+        "url": "https://bpgmobile.rnao.ca/node/763",
+        "note": "Relayed from the ADN-RN case pca-oversedation-naloxone (read 2026-11-11), not re-read: 1-2 acceptable; 3 (frequently drowsy, arousable, drifts off to sleep during conversation) unacceptable: monitor closely, decrease the opioid or notify the prescriber; 4 (somnolent, minimal or no response) unacceptable: stop the opioid, consider naloxone, notify the prescriber, monitor closely."
+      }
+    }
+  },
+  "endings": {
+    "reversal": {
+      "label": "Abrupt reversal",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(bolusAt) and t >= timeAt(bolusAt) + 90 and inClinic",
+      "narrative": "Heart rate {hr}, blood pressure 210/110, a run of ventricular tachycardia on the monitor: the full reversal has thrown him into severe pain and a surge of adrenaline."
+    },
+    "apnea": {
+      "label": "Apnea and arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= apneaAt and inClinic",
+      "narrative": "End-tidal CO2 {etco2}, then a flat capnography line: he has stopped breathing. SpO2 falls only now. A code is called."
+    },
+    "rescued": {
+      "label": "Caught on capnography and reversed safely",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(holdAt) and isNull(prnAt) and isNull(bolusAt) and isNull(silenceAt) and not isNull(cpapAt)",
+      "narrative": "{timeAt(leftAt)|clock}: end-tidal CO2 {etco2}, rate {rr}, POSS {poss|0dp}: breathing and comfortable as rapid response sets the plan."
+    },
+    "rescuedLate": {
+      "label": "Rescued, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is breathing, but the call came late, the alarm was silenced, his CPAP stayed off, or he had more opioid first."
+    },
+    "time_up": {
+      "label": "Still unescalated at 04:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "04:40 and nobody has been called."
+    }
+  },
+  "endingOrder": [
+    "reversal",
+    "apnea",
+    "rescued",
+    "rescuedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Rapid response within 5 minutes of POSS 3 or the rising CO2",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rrt\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"morning\"",
+            "score": "missed",
+            "why": "A note for the morning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody called."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Opioids held; no further dose",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(prnAt)",
+            "score": "missed",
+            "why": "More hydromorphone on a sedated patient."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not held."
+          }
+        ]
+      },
+      {
+        "id": "alarmC",
+        "label": "Trusted the capnography over the saturation; alarm not silenced",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(silenceAt)",
+            "score": "missed",
+            "why": "Silenced."
+          },
+          {
+            "when": "not isNull(capnoAt)",
+            "score": "met",
+            "why": "Read the trend."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Never read the trend."
+          }
+        ]
+      },
+      {
+        "id": "naloxC",
+        "label": "Naloxone titrated in small doses, not a full bolus",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bolusAt)",
+            "score": "missed",
+            "why": "Full reversal."
+          },
+          {
+            "when": "not isNull(naloxAt)",
+            "score": "met",
+            "why": "Titrated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None given."
+          }
+        ]
+      },
+      {
+        "id": "cpapC",
+        "label": "Head up and his CPAP on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cpapAt)",
+            "score": "met",
+            "why": "On."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Off."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "SBAR to rapid response",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: capnography before saturation; hold, CPAP, titrated naloxone, rapid response",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "First red flag to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "peakCo2",
+        "label": "End-tidal CO2 now",
+        "value": "etco2",
+        "format": "number",
+        "expert": "back under 45"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "03:40",
+        "text": "Don't trust the saturation alone: read the capnography trend and count his breathing. EtCO2 56 and rising, rate 8 with pauses."
+      },
+      {
+        "at": "~03:41",
+        "text": "Wake him: POSS 3. Hold all opioids. Head up, his CPAP on."
+      },
+      {
+        "at": "~03:42",
+        "text": "Rapid response now; naloxone in small titrated doses by protocol."
+      },
+      {
+        "at": "~03:43",
+        "text": "SBAR; watch for resedation; no as-needed hydromorphone."
+      }
+    ],
+    "debrief": {
+      "reversal": {
+        "headline": "Abrupt reversal",
+        "body": "Naloxone in postoperative opioid depression is titrated in small doses to breathing. A full bolus can cause severe pain, hypertension, arrhythmias and pulmonary edema."
+      },
+      "apnea": {
+        "headline": "Apnea",
+        "body": "On oxygen, the saturation stays normal while CO2 climbs. Rising end-tidal CO2 with sedation is the early warning; silence it and you lose it."
+      },
+      "rescued": {
+        "headline": "Caught early",
+        "body": "You read the capnography over the saturation, scored his sedation, held opioids, put his CPAP on, titrated naloxone and called rapid response. That is the expert path."
+      },
+      "rescuedLate": {
+        "headline": "Rescued, with gaps",
+        "body": "Check the time to the call, whether the alarm was silenced, whether his CPAP went on, and whether he had more opioid."
+      },
+      "time_up": {
+        "headline": "Unescalated",
+        "body": "POSS 3 or rising CO2 means a call within minutes."
+      }
+    },
+    "modelReasoning": "A rising end-tidal CO2 above 55, a respiratory rate of 8 with pauses and a POSS of 3-4 is opioid-induced respiratory depression, even with an SpO2 of 96%: supplemental oxygen keeps the saturation normal while CO2 builds, and sleep apnea adds to it. Hold all opioids, wake him, head up and CPAP on, naloxone in small titrated doses by protocol, rapid response now, and watch for resedation because naloxone can wear off before the opioid. No as-needed hydromorphone, and the alarm stays on."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Rapid response called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "spo2Q": {
+      "during": "testT",
+      "ask": "While you assess: why can his saturation look fine while his breathing fails?",
+      "choices": [
+        {
+          "id": "o2",
+          "label": "Supplemental oxygen keeps the SpO2 up while CO2 builds; capnography shows the CO2"
+        },
+        {
+          "id": "sensor",
+          "label": "Capnography sensors are unreliable"
+        },
+        {
+          "id": "fine",
+          "label": "If the SpO2 is normal, his breathing is adequate"
+        }
+      ],
+      "expect": "o2",
+      "explain": "Patients on PCA with hypercarbia were sedated while their SpO2 values remained normal; end-tidal values above 55 marked significant respiratory depression.",
+      "source": {
+        "cite": "Overdyk FJ, Guerra JJ. Improving outcomes in med-surg patients with opioid-induced respiratory depression. American Nurse (myamericannurse.com), 2011-11-11",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.myamericannurse.com/improving-outcomes-in-med-surg-patients-with-opioid-induced-respiratory-depression/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. In patients on PCA with hypercarbia, 'Their sedation stemmed from hypercarbia, yet their Spo2 values remained normal'; significant clinical respiratory depression occurred with end-tidal values above 55 mm Hg; 'Sleep apnea and certain other conditions predispose patients to airway collapse'; most catastrophic outcomes occur in the early morning."
+      }
+    },
+    "naloxQ": {
+      "during": "leaveT",
+      "ask": "While rapid response takes over: why watch him after naloxone?",
+      "choices": [
+        {
+          "id": "short",
+          "label": "Naloxone can wear off before the opioid, so sedation can return"
+        },
+        {
+          "id": "allergy",
+          "label": "Naloxone causes allergy"
+        },
+        {
+          "id": "none",
+          "label": "No need: one dose is enough"
+        }
+      ],
+      "expect": "short",
+      "explain": "The duration of some opioids may exceed naloxone's; keep the patient under continued surveillance and repeat doses as needed.",
+      "source": {
+        "cite": "Pfizer. Naloxone Hydrochloride Injection, prescribing information",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.pfizermedical.com/naloxone/dosage-admin",
+        "note": "Relayed from the ADN-RN case pca-oversedation-naloxone (read 2026-11-11, primary web pages), not re-read: in postoperative opioid depression give small IV doses at two to three minute intervals titrated to response; larger than necessary doses can reverse analgesia and raise blood pressure; abrupt postoperative reversal may cause nausea, vomiting, sweating, tachycardia and has been followed by ventricular tachycardia and fibrillation, pulmonary edema and cardiac arrest; the duration of some opioids may exceed naloxone's, so keep the patient under surveillance. The case states no dose number."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

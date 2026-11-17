@@ -11775,6 +11775,86 @@
         "bands across certification levels (security-analyst cases on leader and fundamentals courses)",
         "third-party summaries used where official outline pages did not load"
       ]
+    },
+    {
+      "id": "REQ-323",
+      "category": "content",
+      "title": "Health sims of the 2026-11-17 round: a sim for every physical therapy specialty course, NPTE-PTA and strength and conditioning, then nursing depth by bands",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Breadth first: each of the ten physical therapy specialty courses, NPTE-PTA and the strength and conditioning course gets at least one sim on its highest-weighted domain where an objective there fits an existing screen, by a band of a DPT, NPTE or trainer case where the objective is the same and a new treatment-session case where none is. Then depth: nursing objectives that fit the selection rule, launch courses first, by bands of existing bedside cases. No new screen, engine, schema or migration. Sims name no permission-only body or specialist letters (REQ-309/319). Round 2 (same day): a PTA-specific musculoskeletal case on the treatment-session screen; purpose-written emergency department cases on the bedside screen, highest-weighted categories first; new progressive care, med-surg, FNP, CCRN Adult and NCLEX-PN bedside cases; and bands of the new cases to NCLEX-RN and the other FNP course where the setting fits.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-sims-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every breadth course has at least one sim",
+        "each band registers another course's case to a fitting catalog objective and changes only objective secondary objectives sources and brief",
+        "each new scenario has endingOrder three or four critical criteria harm endings that are outcomes and Good Mediocre and Bad golden paths reaching every ending but time_up",
+        "every document lints with zero errors and replays its goldens",
+        "sources are dated and say how they were read",
+        "no learner text names a permission-only mark or specialist letters",
+        "no claim of clinician or expert review",
+        "round 2: NPTE-PTA has a sim on Musculoskeletal, and the emergency nursing course has a case in each of its four highest-weighted categories"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-323 documents",
+        "lib/sim/health-sims-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.32",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-325",
+      "category": "content",
+      "title": "Nursing depth, round 3 of 2026-11-17: purpose-written bedside cases for CCRN Adult, NCLEX-RN and NCLEX-PN, highest-weighted categories first",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. A third builder adds depth to the launch nursing courses: open fitting objectives in CCRN Adult (72), NCLEX-RN (97) and NCLEX-PN (38), highest-weighted categories first, as purpose-written cases on the bedside screen in the shape of the REQ-323 round-2 cases. Bands only where an existing case truly teaches the objective in the right setting and scope. Drugs only as the ordered drug with no dose; unsafe choices end in harm; sources checked and dated, US sources preferred; no clinician or expert review claim; no permission-only marks. No new screen, engine, schema or migration. Stop at about 25 cases or when the remaining objectives no longer fit, and record where it stopped.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/nursing-depth-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a bedside case on engine 1.2 with endingOrder three or four critical criteria and a conditional harm ending that is an outcome",
+        "goldens reach Good Mediocre and Bad and every ending but time_up with every criterion met and missed",
+        "every document lints with zero errors",
+        "objectives are the course's own and pass the selection screen",
+        "sources are dated and say how they were read",
+        "no dose number and no permission-only mark or specialist letters in learner text",
+        "no claim of clinician or expert review",
+        "each course has a case in its highest-weighted category with a fitting objective"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-325 documents",
+        "lib/sim/nursing-depth-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.33",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

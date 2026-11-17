@@ -1,0 +1,461 @@
+{
+  "slug": "pressor-climbing-home-prednisone-missed",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: glucose treated; omitted prednisone found; adrenal crisis; intensivist now; cortisol drawn, hydrocortisone at once; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "stop",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "dex",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "adrenal"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "ifNoDelay",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "draw",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "hydro",
+          "seq": 11,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "recovering",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "steroidC": "met",
+          "glucoseC": "met",
+          "medsC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSteroid": 285,
+          "toDex": 65
+        },
+        "stateHash": "f36cf47c18bbbe69"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Looks for sepsis and reads the chemistry first, raises the pressor, and tells the intensivist late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sepsis",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "stop",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "dex",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "pressor",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "adrenal"
+          },
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "ifNoDelay",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "draw",
+          "seq": 12,
+          "tick": 160
+        },
+        {
+          "type": "act",
+          "action": "hydro",
+          "seq": 13,
+          "tick": 160
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 160
+        }
+      ],
+      "expect": {
+        "ending": "recoveringGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "steroidC": "met",
+          "glucoseC": "met",
+          "medsC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSteroid": 620,
+          "toDex": 180
+        },
+        "stateHash": "fa4a0ed15ce907cd"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "glucoseLeft",
+      "title": "Finds the glucose of 54 and the missing prednisone, gets hydrocortisone in fast, but never treats the glucose",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "stop",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "adrenal"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "ifNoDelay",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "hydro",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "recoveringGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "callC": "met",
+          "steroidC": "met",
+          "glucoseC": "missed",
+          "medsC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSteroid": 290,
+          "toDex": -1
+        },
+        "stateHash": "ca8a5e790e108dad"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "septic",
+      "title": "Failure: calls it septic shock, raises the pressor and asks for a stimulation test before any steroid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sepsis",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "stop",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sepsis"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pressor",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "stimtest"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "steroidC": "missed",
+          "glucoseC": "missed",
+          "medsC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toSteroid": -1,
+          "toDex": -1
+        },
+        "stateHash": "1ef62b376a33e0e2"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "moreFluid",
+      "title": "Failure: checks the glucose but calls it hypovolemia and waits",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "causeQ",
+          "choice": "stop",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hypovolemia"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "steroidC": "missed",
+          "glucoseC": "missed",
+          "medsC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toSteroid": -1,
+          "toDex": -1
+        },
+        "stateHash": "891f8b67013eb494"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

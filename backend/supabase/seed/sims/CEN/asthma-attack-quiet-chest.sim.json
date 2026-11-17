@@ -1,0 +1,1263 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "asthma-attack-quiet-chest",
+  "title": "He's quieter now",
+  "objective": "Manage an acute asthma attack and recognize the signs of impending respiratory failure",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Respiratory Emergencies (17 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Respiratory Emergencies is 17 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Dabbs W, Bradley MH, Chamberlin SM. Acute Asthma Exacerbations: Management Strategies. Am Fam Physician 2024;109(1):43-50",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2024/0100/acute-asthma-exacerbations.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the article PDF. Life-threatening: 'Drowsy, confused or silent chest'; severe: 'Talks in words, sits hunched forward, agitated', 'O2 saturation (on air) <90%'; 'Inhalation therapy with a SABA should begin promptly'; a short-acting muscarinic antagonist added reduces hospitalizations; 'Oral corticosteroids should be administered within the first hour of presentation'; oxygen 'titrated to achieve saturation levels of 93% to 95% in adults and adolescents', higher saturation 'may lead to hypercapnia'; with drowsiness, confusion or a silent chest, consult the ICU, start SABA and oxygen and prepare for intubation. No dose is used in the case."
+    },
+    {
+      "cite": "Adams JY, Sutter ME, Albertson TE. The Patient with Asthma in the Emergency Department. Clin Rev Allergy Immunol 2012;43(1):14-29",
+      "checkedAt": "2026-11-17",
+      "url": "https://link.springer.com/doi/10.1007/s12016-011-8273-z",
+      "note": "Read 2026-11-17 through a summarizing fetch of the abstract only (the full text is paywalled): 'Early recognition and appropriate management of respiratory failure are required'; inhaled short-acting beta-agonists, systemic corticosteroids and supplemental oxygen are the initial therapies; high-dose beta-agonists and inhaled anticholinergics in severe exacerbations."
+    },
+    {
+      "cite": "ENA, Emergency Severity Index Implementation Handbook, 5th edition (version 5, 2023)",
+      "checkedAt": "2026-11-14",
+      "url": "https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",
+      "note": "Relayed from the CEN course seed, which read the handbook PDF 2026-11-14, not re-read: decision point B, a high-risk situation, new confusion or severe pain or distress, is ESI 2; adult high-risk vital signs are heart rate over 100, respiratory rate over 20, SpO2 under 92%."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "22:40 in the emergency department. You are the nurse in a monitored room. Mr. Banda, 24, came in by private car with an asthma attack that his inhaler hasn't helped since this afternoon. He sits hunched forward and talks in single words.",
+    "handover": [
+      "Triage: ESI 2. Heart rate 124, respiratory rate 30, SpO2 89% on room air, loud wheeze in both lungs.",
+      "The department's asthma standing order: continuous nebulized short-acting bronchodilator with ipratropium, oxygen titrated to SpO2 93-95%, the ordered systemic corticosteroid within the first hour, and the physician called for any sign of tiring.",
+      "The emergency physician is with a trauma patient two rooms away and will come when called."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Start his treatment and reassess him as often as you think he needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "22:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.025,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The attack worsens without bronchodilator. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nebRate": {
+      "value": 0.018,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The attack still worsens, more slowly, on continuous nebulizers: this attack does not turn around. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "silentAt": {
+      "value": 0.8,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point where he tires: drowsy, quieter breath sounds. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.25,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of respiratory arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nebWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bronchodilator started within 5 minutes of reaching the room (department practice; the article says promptly)."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician called within 5 minutes of the first sign of tiring (department practice)."
+      }
+    },
+    "steroidWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Dabbs W, Bradley MH, Chamberlin SM. Acute Asthma Exacerbations: Management Strategies. Am Fam Physician 2024;109(1):43-50",
+        "checkedAt": "2026-11-17",
+        "note": "The systemic corticosteroid within the first hour."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "airwayTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician and airway team at the bedside, intubation prepared and an ICU bed requested: about 10 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.55,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "vitals",
+        "peak"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "failing",
+        "better",
+        "anxiety"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "nebAt": {
+      "type": "time",
+      "init": null
+    },
+    "steroidAt": {
+      "type": "time",
+      "init": null
+    },
+    "o2": {
+      "type": "enum",
+      "values": [
+        "none",
+        "titrate",
+        "nrb"
+      ],
+      "init": "none"
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    },
+    "uprightAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(118 + 20 * prog - (prog >= arrestAt - 0.1 ? 40 : 0) + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(prog >= silentAt ? 34 - 20 * (prog - silentAt) : 26 + 10 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp((o2 == \"nrb\" ? 100 : (o2 == \"titrate\" ? 95 : 91)) - 14 * max(0, prog - 0.55), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(136 - 10 * max(0, prog - 0.8))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(84 - 6 * max(0, prog - 0.8))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "tired": {
+      "expr": "prog >= silentAt"
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(nebAt) ? progRate : nebRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              120,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 32,
+            "low": 12
+          },
+          "announce": {
+            "bands": [
+              28,
+              32
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Nebulizer: {not isNull(nebAt)|yesno}. Oxygen: {o2 == \"none\" ? \"room air\" : (o2 == \"titrate\" ? \"titrated to 93-95%\" : \"non-rebreather 15 L/min\")}. Corticosteroid given: {not isNull(steroidAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"md\" and inClinic",
+          "text": "The physician and the airway team are coming."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Ask (yes/no questions): triggers, inhaler use today, past ICU stays or intubation",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Full vital signs and his speech",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "peak": {
+      "label": "Peak expiratory flow",
+      "group": "Assess",
+      "available": "not testPending and isNull(peakAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"peak\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neb": {
+      "label": "Start the continuous bronchodilator nebulizer with ipratropium (standing order)",
+      "group": "Treat",
+      "available": "isNull(nebAt) and inClinic",
+      "why": "Already running.",
+      "effects": [
+        {
+          "set": "nebAt",
+          "to": "t"
+        },
+        {
+          "log": "Continuous nebulizer running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "oxygen": {
+      "label": "Oxygen",
+      "group": "Treat",
+      "available": "inClinic",
+      "why": "He has left.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Oxygen",
+          "options": [
+            {
+              "value": "titrate",
+              "label": "Titrate to SpO2 93-95%"
+            },
+            {
+              "value": "nrb",
+              "label": "Non-rebreather at 15 L/min, as high as it goes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"titrate\"",
+              "then": [
+                {
+                  "set": "o2",
+                  "to": "\"titrate\""
+                },
+                {
+                  "log": "Oxygen titrated to SpO2 93-95%.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "o2",
+                  "to": "\"nrb\""
+                },
+                {
+                  "log": "Non-rebreather on: SpO2 climbing toward 100%.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "steroid": {
+      "label": "Give the ordered systemic corticosteroid",
+      "group": "Treat",
+      "available": "isNull(steroidAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "steroidAt",
+          "to": "t"
+        },
+        {
+          "log": "Corticosteroid given as ordered.",
+          "kind": "act"
+        }
+      ]
+    },
+    "upright": {
+      "label": "Sit him upright, leaning forward on the table",
+      "group": "Treat",
+      "available": "isNull(uprightAt) and inClinic",
+      "why": "Already positioned.",
+      "effects": [
+        {
+          "set": "uprightAt",
+          "to": "t"
+        },
+        {
+          "log": "Sitting up, arms on the over-bed table.",
+          "kind": "act"
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: breath sounds, work of breathing, alertness",
+      "group": "Assess",
+      "available": "inClinic",
+      "why": "He has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "tired",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Barely any air movement now: the wheeze has almost gone. His eyes keep closing, he doesn't answer, and his chest hardly moves.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Loud wheeze in both lungs, using his neck muscles, answering in single words, alert.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "failing",
+              "label": "Impending respiratory failure: he is tiring, and the quiet chest is less air moving"
+            },
+            {
+              "value": "better",
+              "label": "Improving: the wheeze is quieter and he is calmer"
+            },
+            {
+              "value": "anxiety",
+              "label": "Mostly anxiety on top of a moderate attack"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"failing\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"failing\""
+                },
+                {
+                  "log": "Impression: impending respiratory failure.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"better\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"better\""
+                },
+                {
+                  "log": "Impression: improving.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anxiety\""
+                },
+                {
+                  "log": "Impression: anxiety.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the emergency physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "md",
+              "label": "To the bedside now: a tiring asthmatic, prepare the airway, an ICU bed"
+            },
+            {
+              "value": "later",
+              "label": "When free: he's settling, recheck in 30 minutes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "airwayTime"
+                },
+                {
+                  "log": "The physician leaves the trauma bay for your room and calls the airway team; an ICU bed is requested.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "3000"
+                },
+                {
+                  "log": "The physician will look in when the trauma patient is sorted.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: onset, treatments and times, the past intubation, the tiring",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: since 15:00, nebulizer and steroid times, intubated two years ago, tiring and quiet chest.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Monitored room",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "vitals",
+        "peak",
+        "neb",
+        "oxygen",
+        "steroid",
+        "upright",
+        "reassess",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A cold for three days; his inhaler 'every 20 minutes' since 15:00. He nods: an ICU stay and a breathing tube two years ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart rate {hr}, respiratory rate {rr}, SpO2 {spo2}%, blood pressure {sbp}/{dbp}. {tired ? \"He no longer answers in words.\" : \"Speaks in single words.\"}",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "peakAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He can't manage a peak flow; he is too breathless to blow.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to the ICU",
+      "wait": {
+        "skipLabel": "his move to the ICU"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for the physician and airway team; a non-urgent look about 50 min."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The airway team takes over and he goes to the ICU.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "quiet",
+      "when": "tired",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The room is quieter. He has stopped talking and his head is drooping.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "satAlarm",
+      "when": "spo2 < 92",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "SpO2 alarm: {spo2}%.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "tired or t >= 900",
+      "question": "Mr. Banda is quieter. What does that mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What the quiet means",
+          "criteria": "A softer wheeze with drowsiness and a falling breathing rate after this long is a silent chest from tiring, a life-threatening sign of impending respiratory failure, not improvement; the past intubation raises the risk.",
+          "modelAnswer": "He hasn't got better. The wheeze is quieter because so little air is moving, and he is drowsy and his breathing rate is falling: he is tiring. Drowsiness or a silent chest is life-threatening, and he has been intubated before."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls the physician to the bedside now for the airway and ICU; keeps the nebulizer going, oxygen titrated to 93-95%, the steroid within the hour; stays with him.",
+          "modelAnswer": "Get the physician now for the airway and an ICU bed, keep the continuous nebulizer running, oxygen at 93-95%, the steroid given, and stay with him."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A severe attack still in a department room an hour on, without an airway plan, is harm here.",
+      "source": {
+        "cite": "Dabbs W, Bradley MH, Chamberlin SM. Acute Asthma Exacerbations: Management Strategies. Am Fam Physician 2024;109(1):43-50",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2024/0100/acute-asthma-exacerbations.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the article PDF. Life-threatening: 'Drowsy, confused or silent chest'; severe: 'Talks in words, sits hunched forward, agitated', 'O2 saturation (on air) <90%'; 'Inhalation therapy with a SABA should begin promptly'; a short-acting muscarinic antagonist added reduces hospitalizations; 'Oral corticosteroids should be administered within the first hour of presentation'; oxygen 'titrated to achieve saturation levels of 93% to 95% in adults and adolescents', higher saturation 'may lead to hypercapnia'; with drowsiness, confusion or a silent chest, consult the ICU, start SABA and oxygen and prepare for intubation. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Respiratory arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "Heart rate {hr} and falling, SpO2 {spo2}%: he stops breathing. A code is called and he is intubated in crisis."
+    },
+    "airwayNow": {
+      "label": "Tiring recognized and the airway team called in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and (isNull(redFlagAt) or timeAt(callAt) <= timeAt(redFlagAt) + callWindow) and not isNull(nebAt) and timeAt(nebAt) <= nebWindow and o2 == \"titrate\"",
+      "narrative": "{timeAt(leftAt)|clock}: the airway team takes over a tiring patient in a controlled way and he goes to the ICU. Bronchodilators started at once, oxygen titrated, and the quiet chest read for what it was."
+    },
+    "airwayLate": {
+      "label": "To the ICU, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches the ICU, but the nebulizer started late, the oxygen was not titrated, or the tiring went unreported for minutes."
+    },
+    "time_up": {
+      "label": "Still in the room at 23:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "23:40 and Mr. Banda is still in the room without an airway plan."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "airwayNow",
+    "airwayLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "nebC",
+        "label": "Bronchodilator nebulizer started within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(nebAt) and timeAt(nebAt) <= nebWindow",
+            "score": "met",
+            "why": "Started at {timeAt(nebAt)|clock}."
+          },
+          {
+            "when": "not isNull(nebAt)",
+            "score": "partial",
+            "why": "Started late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never started."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician called to the bedside within 5 minutes of the first sign of tiring",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and (isNull(redFlagAt) or timeAt(callAt) <= timeAt(redFlagAt) + callWindow)",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Called, but late."
+          },
+          {
+            "when": "route == \"later\"",
+            "score": "missed",
+            "why": "Asked for a recheck in 30 minutes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "o2C",
+        "label": "Oxygen titrated to SpO2 93-95%",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "o2 == \"titrate\"",
+            "score": "met",
+            "why": "Titrated."
+          },
+          {
+            "when": "o2 == \"nrb\"",
+            "score": "partial",
+            "why": "Maximal oxygen; above 95% risks hypercapnia."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Room air at SpO2 under 90%."
+          }
+        ]
+      },
+      {
+        "id": "steroidC",
+        "label": "Systemic corticosteroid within the first hour",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(steroidAt) and timeAt(steroidAt) <= steroidWindow",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed him at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named impending respiratory failure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"failing\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"better\"",
+            "score": "missed",
+            "why": "Read the quiet chest as improvement."
+          },
+          {
+            "when": "dxEnum == \"anxiety\"",
+            "score": "missed",
+            "why": "Called it anxiety."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the history, treatment times and the tiring",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the quiet chest is tiring, not improvement; the airway now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toNeb",
+        "label": "Arrival in the room to the nebulizer",
+        "value": "isNull(nebAt) ? -1 : timeAt(nebAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "First sign of tiring to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "22:40",
+        "text": "Continuous nebulizer with ipratropium, oxygen titrated to 93-95%, upright."
+      },
+      {
+        "at": "~22:42",
+        "text": "History: a past intubation. Corticosteroid as ordered. Reassess."
+      },
+      {
+        "at": "~22:52",
+        "text": "Reassess again: quiet chest, drowsy, breathing rate falling. That is tiring."
+      },
+      {
+        "at": "~22:53",
+        "text": "Physician to the bedside now for the airway and an ICU bed; hand off."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Respiratory arrest",
+        "body": "A quieter chest in a drowsy asthmatic is less air moving, not less asthma. Reassess often, and call for the airway the moment he tires."
+      },
+      "airwayNow": {
+        "headline": "Tiring caught in time",
+        "body": "You treated at once, titrated oxygen, reassessed and read the silent chest as life-threatening. That is the expert path."
+      },
+      "airwayLate": {
+        "headline": "To the ICU, with delays",
+        "body": "Check how soon the nebulizer started, whether oxygen was titrated to 93-95%, and how long the tiring went before the call."
+      },
+      "time_up": {
+        "headline": "Still in the room",
+        "body": "A severe attack that doesn't turn around needs an airway plan within minutes."
+      }
+    },
+    "modelReasoning": "Single words, a saturation under 90% and a past intubation make this a severe attack. Bronchodilators with ipratropium start at once, oxygen is titrated to 93-95% (higher risks hypercapnia), he sits upright, and the corticosteroid goes in within the hour. When he becomes drowsy with a quiet chest and a falling breathing rate, that is tiring, a life-threatening sign of impending respiratory failure, not improvement: the physician comes now for the airway and an ICU bed."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "The physician called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "o2Q": {
+      "during": "leaveT",
+      "ask": "While the team takes over: what oxygen saturation is the target in an adult asthma attack?",
+      "choices": [
+        {
+          "id": "mid",
+          "label": "93-95%"
+        },
+        {
+          "id": "hundred",
+          "label": "As close to 100% as possible"
+        },
+        {
+          "id": "low",
+          "label": "88-92%"
+        }
+      ],
+      "expect": "mid",
+      "explain": "Oxygen is titrated to 93-95% in adults and adolescents; higher saturation may lead to hypercapnia.",
+      "source": {
+        "cite": "Dabbs W, Bradley MH, Chamberlin SM. Acute Asthma Exacerbations: Management Strategies. Am Fam Physician 2024;109(1):43-50",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2024/0100/acute-asthma-exacerbations.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the article PDF. Life-threatening: 'Drowsy, confused or silent chest'; severe: 'Talks in words, sits hunched forward, agitated', 'O2 saturation (on air) <90%'; 'Inhalation therapy with a SABA should begin promptly'; a short-acting muscarinic antagonist added reduces hospitalizations; 'Oral corticosteroids should be administered within the first hour of presentation'; oxygen 'titrated to achieve saturation levels of 93% to 95% in adults and adolescents', higher saturation 'may lead to hypercapnia'; with drowsiness, confusion or a silent chest, consult the ICU, start SABA and oxygen and prepare for intubation. No dose is used in the case."
+      }
+    },
+    "silentQ": {
+      "during": "testT",
+      "ask": "While you assess: which finding marks a life-threatening asthma attack?",
+      "choices": [
+        {
+          "id": "silent",
+          "label": "Drowsiness, confusion or a silent chest"
+        },
+        {
+          "id": "wheeze",
+          "label": "A loud wheeze on both sides"
+        },
+        {
+          "id": "cough",
+          "label": "A cough at night"
+        }
+      ],
+      "expect": "silent",
+      "explain": "Drowsy, confused or silent chest is life-threatening: consult the ICU and prepare for intubation.",
+      "source": {
+        "cite": "Dabbs W, Bradley MH, Chamberlin SM. Acute Asthma Exacerbations: Management Strategies. Am Fam Physician 2024;109(1):43-50",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2024/0100/acute-asthma-exacerbations.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the article PDF. Life-threatening: 'Drowsy, confused or silent chest'; severe: 'Talks in words, sits hunched forward, agitated', 'O2 saturation (on air) <90%'; 'Inhalation therapy with a SABA should begin promptly'; a short-acting muscarinic antagonist added reduces hospitalizations; 'Oral corticosteroids should be administered within the first hour of presentation'; oxygen 'titrated to achieve saturation levels of 93% to 95% in adults and adolescents', higher saturation 'may lead to hypercapnia'; with drowsiness, confusion or a silent chest, consult the ICU, start SABA and oxygen and prepare for intubation. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

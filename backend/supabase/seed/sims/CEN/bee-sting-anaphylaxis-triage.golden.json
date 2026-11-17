@@ -1,0 +1,461 @@
+{
+  "slug": "bee-sting-anaphylaxis-triage",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: epinephrine, flat with legs up, oxygen, a bolus, the physician; airway check; second dose at 5 minutes; adjuncts after; report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 6,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "postureQ",
+          "choice": "flat",
+          "seq": 7,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "airwayCk",
+          "seq": 8,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "epi",
+          "seq": 9,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstDose",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anaph"
+          },
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 13,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 14,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 15,
+          "tick": 63
+        }
+      ],
+      "expect": {
+        "ending": "stable",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "epiFirst": "met",
+          "repeatC": "met",
+          "postureC": "met",
+          "fluidC": "met",
+          "mdC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toEpi": 5,
+          "epiGap": 310
+        },
+        "stateHash": "a743c90c91c818e5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateRepeat",
+      "title": "Epinephrine, posture and fluid at once, but the second dose comes 11 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airwayCk",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "epi",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstDose",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anaph"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 9,
+          "tick": 135
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 10,
+          "tick": 135
+        },
+        {
+          "type": "teach",
+          "prompt": "postureQ",
+          "choice": "flat",
+          "seq": 11,
+          "tick": 135
+        },
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 12,
+          "tick": 135
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 135
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "epiFirst": "met",
+          "repeatC": "partial",
+          "postureC": "met",
+          "fluidC": "met",
+          "mdC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "epiGap": 675
+        },
+        "stateHash": "a5aa28d1733cee83"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "adjunctFirst",
+      "title": "Antihistamine and steroid first, then epinephrine within 5 minutes and repeated on time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "epi",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "postureQ",
+          "choice": "flat",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "firstDose",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 10,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 75
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "stableLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "epiFirst": "partial",
+          "repeatC": "met",
+          "postureC": "met",
+          "fluidC": "met",
+          "mdC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toEpi": 60,
+          "epiGap": 315
+        },
+        "stateHash": "37252db7729a3820"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "stoodUp",
+      "title": "Failure: one dose of epinephrine, then helps her stand to walk to the bathroom",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "epiFirst": "met",
+          "repeatC": "missed",
+          "postureC": "missed",
+          "fluidC": "missed",
+          "mdC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toEpi": 0,
+          "epiGap": -1
+        },
+        "stateHash": "6e3f5c84e68f004b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "waitForAntihistamine",
+      "title": "Failure: calls it a large local reaction, gives the antihistamine and waits for it to work",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "antihist",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "local"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "obstruction",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "epiFirst": "missed",
+          "repeatC": "missed",
+          "postureC": "missed",
+          "fluidC": "missed",
+          "mdC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toEpi": -1,
+          "epiGap": -1
+        },
+        "stateHash": "c51eebe1d1a4232b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

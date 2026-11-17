@@ -1,0 +1,465 @@
+{
+  "slug": "leg-ulcer-calcified-abi-compression",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, ulcer, ABI (falsely high), pedal Doppler and toe pressure; no compression; dressed; vascular surgery today; physician told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "abiQ",
+          "choice": "calc",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 5,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "abi",
+          "seq": 6,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "doppler",
+          "seq": 7,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "toe",
+          "seq": 8,
+          "tick": 109
+        },
+        {
+          "type": "act",
+          "action": "dress",
+          "seq": 9,
+          "tick": 133
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "arterial"
+          },
+          "seq": 10,
+          "tick": 133
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "vasc"
+          },
+          "seq": 11,
+          "tick": 133
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 133
+        }
+      ],
+      "expect": {
+        "ending": "urgentVascular",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "beyondAbi": "met",
+          "noComp": "met",
+          "urgent": "met",
+          "history": "met",
+          "protect": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 185,
+          "toCall": 480
+        },
+        "stateHash": "eaec6af4b8f1cba6"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lightWrap",
+      "title": "Toe pressure but no waveforms, light compression 'while waiting', then an urgent vascular call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "abiQ",
+          "choice": "calc",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "abi",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "toe",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "light",
+          "seq": 6,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "arterial"
+          },
+          "seq": 7,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "vasc"
+          },
+          "seq": 8,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "referredGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "beyondAbi": "partial",
+          "noComp": "partial",
+          "urgent": "met",
+          "history": "met",
+          "protect": "missed",
+          "impression": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 240
+        },
+        "stateHash": "187fe4265a4e478e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "routineLetter",
+      "title": "A full vascular check and no compression, but a routine letter and a four-week review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "abiQ",
+          "choice": "calc",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "abi",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "doppler",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "toe",
+          "seq": 6,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "dress",
+          "seq": 7,
+          "tick": 108
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "arterial"
+          },
+          "seq": 8,
+          "tick": 108
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "letter"
+          },
+          "seq": 9,
+          "tick": 108
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 108
+        }
+      ],
+      "expect": {
+        "ending": "referredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "beyondAbi": "met",
+          "noComp": "met",
+          "urgent": "missed",
+          "history": "met",
+          "protect": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 360
+        },
+        "stateHash": "7ca506065aa53e0a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrappedThenRemoved",
+      "title": "Trusts the ABI and wraps, takes the wrap off when the toes go pale, then measures and calls vascular surgery late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abi",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "abiQ",
+          "choice": "calc",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "high",
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "remove",
+          "seq": 4,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "doppler",
+          "seq": 5,
+          "tick": 77
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 101
+        },
+        {
+          "type": "act",
+          "action": "toe",
+          "seq": 7,
+          "tick": 101
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 8,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "arterial"
+          },
+          "seq": 9,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "vasc"
+          },
+          "seq": 10,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "referredGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "beyondAbi": "met",
+          "noComp": "missed",
+          "urgent": "partial",
+          "history": "met",
+          "protect": "missed",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 505,
+          "toCall": 995
+        },
+        "stateHash": "3fa9fe4ff13a584e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "asReferred",
+      "title": "Failure: a normal-looking ABI, a venous impression and compression as referred",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abi",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "abiQ",
+          "choice": "calc",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "venous"
+          },
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "compress"
+          },
+          "seq": 4,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "injury",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "beyondAbi": "missed",
+          "noComp": "missed",
+          "urgent": "missed",
+          "history": "missed",
+          "protect": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": -1,
+          "toCall": -1
+        },
+        "stateHash": "546180703591d0d5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

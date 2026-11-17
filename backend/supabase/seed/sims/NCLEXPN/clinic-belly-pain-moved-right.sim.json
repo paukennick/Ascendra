@@ -1,0 +1,1000 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "clinic-belly-pain-moved-right",
+  "title": "It moved to the right",
+  "objective": "Recognize appendicitis by right lower quadrant or periumbilical pain, and report it because perforation can cause peritonitis and sepsis",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-PN cases (read 2026-11-11, primary PDF), not re-read: Coordinated Care includes care within the legal scope of practice; Physiological Adaptation includes recognizing and reporting a change in the client's condition."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Appendicitis (Nursing), nurse editor Beth A. Kendall, last updated 2024-02-12",
+      "checkedAt": "2026-11-17",
+      "url": "https://statpearls.com/articlelibrary/nursingarticle/17784",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Classically, appendicitis presents as an initial generalized or periumbilical abdominal pain' that localizes to the right lower quadrant, with decreased appetite, nausea or vomiting, and fever in about 40%; right lower quadrant pain on palpation of the left lower quadrant; symptoms 'progress from early appendicitis at 12 to 24 hours to perforation at greater than 48 hours', with rupture risk rising after 36 hours; nurses 'alert the health care provider to symptoms of peritonitis, as this could indicate a ruptured appendix', including a 'board-like abdomen' with rigidity and guarding, and to tachycardia or fever."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in a family medicine clinic. You are the LPN rooming patients. Ms. Hale, 19, walked in without an appointment with belly pain since last night. The provider is with another patient for the next 20 minutes.",
+    "handover": [
+      "Her mother drove her and says, 'It's probably something she ate.'",
+      "Clinic policy: the LPN takes vital signs and a focused history and reports any abnormal finding or urgent concern to the provider at once, interrupting if needed; the LPN does not send a walk-in home without the provider seeing them.",
+      "Standing order: the LPN may give acetaminophen for fever under 38.5 C only after the provider has seen the patient."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what her findings mean, what not to do, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Appendicitis progresses toward perforation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seenRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It progresses slowly once she is on the way to surgical care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "perfAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of perforation with peritonitis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Reported to the provider within 5 minutes of the exam finding (clinic policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "edTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider sees her and she leaves for the emergency department: about 25 min."
+      }
+    },
+    "homeTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Checkout and leaving the clinic: about 5 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "bellyAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "history",
+        "vitals",
+        "belly"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "report",
+        "home"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "appy",
+        "gastro",
+        "cramps"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "npoAt": {
+      "type": "time",
+      "init": null
+    },
+    "apapAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 24 * prog + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(118 - 16 * max(0, prog - 0.7))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.62)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.0 + 0.8 * prog) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "spo2": {
+      "expr": "98",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"report\" ? seenRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "high": 38
+          },
+          "announce": {
+            "bands": [
+              38,
+              38.5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        }
+      ],
+      "infusions": "Nothing by mouth: {not isNull(npoAt)|yesno}. Acetaminophen given: {not isNull(apapAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"report\" and inClinic",
+          "text": "The provider is stepping out to see her now."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "history": {
+      "label": "Focused history: where the pain started, where it is now, appetite, nausea, last period",
+      "group": "Assess",
+      "available": "not testPending and isNull(historyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"history\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "belly": {
+      "label": "Watch how she moves, and ask where it hurts when she coughs or you press gently on the left lower belly",
+      "group": "Assess",
+      "available": "not testPending and isNull(bellyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"belly\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "npo": {
+      "label": "Ask her to take nothing by mouth until the provider has seen her",
+      "group": "Treat",
+      "available": "isNull(npoAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "npoAt",
+          "to": "t"
+        },
+        {
+          "log": "She agrees to nothing by mouth for now.",
+          "kind": "act"
+        }
+      ]
+    },
+    "apap": {
+      "label": "Give acetaminophen for the fever and pain so she's comfortable while she waits",
+      "group": "Treat",
+      "available": "isNull(apapAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "apapAt",
+          "to": "t"
+        },
+        {
+          "log": "Acetaminophen given before the provider has seen her, outside the standing order.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do her findings suggest?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "appy",
+              "label": "Possible appendicitis: pain that started around the navel and moved to the right lower quadrant, anorexia, nausea, fever, pain on coughing and right-sided pain when the left is pressed"
+            },
+            {
+              "value": "gastro",
+              "label": "A stomach bug: fluids and rest at home"
+            },
+            {
+              "value": "cramps",
+              "label": "Period cramps"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"appy\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"appy\""
+                },
+                {
+                  "log": "Possible appendicitis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"gastro\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"gastro\""
+                },
+                {
+                  "log": "Impression: gastroenteritis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"cramps\""
+                },
+                {
+                  "log": "Impression: menstrual cramps.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "report",
+              "label": "Interrupt the provider now: periumbilical pain moved to the right lower quadrant, anorexia, nausea, temperature over 38, pulse up, pain on coughing and right-sided pain when the left is pressed: possible appendicitis"
+            },
+            {
+              "value": "home",
+              "label": "Tell her it is probably a stomach bug and to come back if it gets worse"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"report\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "edTime"
+                },
+                {
+                  "log": "The provider sees her at once, agrees, and sends her to the emergency department for a surgical evaluation.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"home\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "homeTime"
+                },
+                {
+                  "log": "She checks out and goes home with her mother.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document her history, vital signs and findings, and the report to the provider",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: pain migration, anorexia, nausea, vital signs, abdominal findings, provider told at once.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Clinic room",
+      "clock": "running",
+      "actions": [
+        "history",
+        "vitals",
+        "belly",
+        "npo",
+        "apap",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"history\"",
+              "then": [
+                {
+                  "set": "historyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pain began around her navel last night, and since this morning is low on the right. No appetite, nauseated, vomited once. Last period two weeks ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Temperature {temp} C, pulse {hr}, blood pressure {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "bellyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "She walks bent forward; coughing hurts in the right lower belly; gentle pressure on the left lower belly causes pain on the right.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "her leaving the clinic",
+      "wait": {
+        "skipLabel": "her leaving"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider's review and her departure (about 25 min), or checkout (about 5 min)."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves the clinic.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do Ms. Hale's findings suggest, why is it urgent, and what do you do within your role?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Possible appendicitis: periumbilical pain migrating to the right lower quadrant, anorexia, nausea, fever and a raised pulse, pain on coughing and right-sided pain when the left is pressed; it can perforate and cause peritonitis and sepsis, with risk rising after 36 hours.",
+          "modelAnswer": "Her pain started around her navel and moved to the right lower belly, she has no appetite, she's nauseated and febrile, and pressing on the left hurts on the right. That sounds like appendicitis. It can perforate and cause peritonitis and sepsis, so it can't wait."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Reports to the provider at once, interrupting; keeps her nothing by mouth; does not give medication outside the standing order or mask the symptoms; does not send her home; documents.",
+          "modelAnswer": "Interrupt the provider now, keep her nothing by mouth, and don't give her anything that would mask the pain or that I'm not allowed to give yet. She doesn't go home until the provider has seen her. Document what I found."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Possible appendicitis unreported an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Appendicitis (Nursing), nurse editor Beth A. Kendall, last updated 2024-02-12",
+        "checkedAt": "2026-11-17",
+        "url": "https://statpearls.com/articlelibrary/nursingarticle/17784",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Classically, appendicitis presents as an initial generalized or periumbilical abdominal pain' that localizes to the right lower quadrant, with decreased appetite, nausea or vomiting, and fever in about 40%; right lower quadrant pain on palpation of the left lower quadrant; symptoms 'progress from early appendicitis at 12 to 24 hours to perforation at greater than 48 hours', with rupture risk rising after 36 hours; nurses 'alert the health care provider to symptoms of peritonitis, as this could indicate a ruptured appendix', including a 'board-like abdomen' with rigidity and guarding, and to tachycardia or fever."
+      }
+    }
+  },
+  "endings": {
+    "perforated": {
+      "label": "Perforation",
+      "class": "harm",
+      "terminal": true,
+      "when": "(prog >= perfAt and inClinic) or (not inClinic and route == \"home\")",
+      "narrative": "That night her pain spreads across her whole abdomen, which becomes rigid; she comes back by ambulance with a fever of 39.5 and a perforated appendix with peritonitis."
+    },
+    "referred": {
+      "label": "Reported and referred in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and not isNull(vitalsAt) and not isNull(npoAt) and isNull(apapAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she leaves for the emergency department with your findings, nothing by mouth, and an appendectomy that evening before it perforates."
+    },
+    "referredGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she goes to the emergency department, but the report was slow, her vital signs weren't taken, she ate or drank, or medication was given outside the standing order."
+    },
+    "time_up": {
+      "label": "Unreported at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and the provider still hasn't heard about her."
+    }
+  },
+  "endingOrder": [
+    "perforated",
+    "referred",
+    "referredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Reported to the provider within 5 minutes; did not send her home",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"report\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"home\"",
+            "score": "missed",
+            "why": "Sent home."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "noMed",
+        "label": "No medication outside the standing order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(apapAt)",
+            "score": "missed",
+            "why": "Acetaminophen before she was seen."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "vitalsC",
+        "label": "Took vital signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Febrile, pulse up."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      },
+      {
+        "id": "npoC",
+        "label": "Kept her nothing by mouth",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(npoAt)",
+            "score": "met",
+            "why": "NPO."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized possible appendicitis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"appy\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"gastro\"",
+            "score": "missed",
+            "why": "Called it a stomach bug."
+          },
+          {
+            "when": "dxEnum == \"cramps\"",
+            "score": "missed",
+            "why": "Called it period cramps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: migrating pain and signs of appendicitis; perforation risk; report now, NPO, no masking",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Abdominal finding to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toVitals",
+        "label": "14:00 to vital signs",
+        "value": "isNull(vitalsAt) ? -1 : timeAt(vitalsAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "History: periumbilical pain moved to the right lower quadrant, anorexia, nausea."
+      },
+      {
+        "at": "~14:01",
+        "text": "Vital signs: febrile, pulse up. Abdomen: pain on coughing, right-sided pain when the left is pressed."
+      },
+      {
+        "at": "~14:03",
+        "text": "Nothing by mouth. Interrupt the provider now. Document."
+      }
+    ],
+    "debrief": {
+      "perforated": {
+        "headline": "Perforation",
+        "body": "Periumbilical pain that moves to the right lower quadrant with anorexia, nausea and fever is appendicitis until proved otherwise. Report it at once; perforation causes peritonitis and sepsis."
+      },
+      "referred": {
+        "headline": "Referred in time",
+        "body": "You took a focused history and vital signs, recognized the pattern, kept her nothing by mouth, didn't mask it, and interrupted the provider within minutes. That is the expert path."
+      },
+      "referredGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check how soon you reported, whether vital signs were taken, whether she stayed nothing by mouth, and whether medication went in early."
+      },
+      "time_up": {
+        "headline": "Unreported",
+        "body": "Possible appendicitis goes to the provider at once."
+      }
+    },
+    "modelReasoning": "Pain that began around the navel and moved to the right lower quadrant, with anorexia, nausea, a temperature over 38, a raised pulse, pain on coughing and right-sided pain when the left lower quadrant is pressed, suggests appendicitis. It can perforate, causing peritonitis and sepsis, with risk rising beyond about 36 hours of symptoms. Within the LPN role: take vital signs and a focused history, keep her nothing by mouth, give nothing outside the standing order, never send her home unseen, and interrupt the provider at once. Then document."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Reported",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "perfQ": {
+      "during": "leaveT",
+      "ask": "As she leaves: which change would suggest the appendix has ruptured?",
+      "choices": [
+        {
+          "id": "board",
+          "label": "A rigid, board-like abdomen with guarding, fever and a rising pulse"
+        },
+        {
+          "id": "hungry",
+          "label": "Her appetite returning"
+        },
+        {
+          "id": "normal",
+          "label": "A normal temperature"
+        }
+      ],
+      "expect": "board",
+      "explain": "Alert the provider to peritonitis, a board-like abdomen with rigidity and guarding, which can indicate a ruptured appendix; and to tachycardia or fever.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Appendicitis (Nursing), nurse editor Beth A. Kendall, last updated 2024-02-12",
+        "checkedAt": "2026-11-17",
+        "url": "https://statpearls.com/articlelibrary/nursingarticle/17784",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Classically, appendicitis presents as an initial generalized or periumbilical abdominal pain' that localizes to the right lower quadrant, with decreased appetite, nausea or vomiting, and fever in about 40%; right lower quadrant pain on palpation of the left lower quadrant; symptoms 'progress from early appendicitis at 12 to 24 hours to perforation at greater than 48 hours', with rupture risk rising after 36 hours; nurses 'alert the health care provider to symptoms of peritonitis, as this could indicate a ruptured appendix', including a 'board-like abdomen' with rigidity and guarding, and to tachycardia or fever."
+      }
+    },
+    "classicQ": {
+      "during": "testT",
+      "ask": "While you assess: what is the classic pain pattern of appendicitis?",
+      "choices": [
+        {
+          "id": "migrate",
+          "label": "Starting around the navel, then moving to the right lower quadrant"
+        },
+        {
+          "id": "left",
+          "label": "Left lower quadrant from the start"
+        },
+        {
+          "id": "back",
+          "label": "Flank pain into the groin"
+        }
+      ],
+      "expect": "migrate",
+      "explain": "Appendicitis classically starts as generalized or periumbilical pain that localizes to the right lower quadrant.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Appendicitis (Nursing), nurse editor Beth A. Kendall, last updated 2024-02-12",
+        "checkedAt": "2026-11-17",
+        "url": "https://statpearls.com/articlelibrary/nursingarticle/17784",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Classically, appendicitis presents as an initial generalized or periumbilical abdominal pain' that localizes to the right lower quadrant, with decreased appetite, nausea or vomiting, and fever in about 40%; right lower quadrant pain on palpation of the left lower quadrant; symptoms 'progress from early appendicitis at 12 to 24 hours to perforation at greater than 48 hours', with rupture risk rising after 36 hours; nurses 'alert the health care provider to symptoms of peritonitis, as this could indicate a ruptured appendix', including a 'board-like abdomen' with rigidity and guarding, and to tachycardia or fever."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,1134 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "digoxin-due-yellow-halos",
+  "title": "Yellow halos at the med pass",
+  "objective": "Monitor digoxin for toxicity -- anorexia, nausea, vomiting, visual changes and dysrhythmias -- and remember low potassium and magnesium increase the risk",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "LANOXIN (digoxin) tablets prescribing information (revised 08/2018), FDA label",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/020405s14lbl.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF: 'Signs and symptoms of digoxin toxicity include anorexia, nausea, vomiting, visual changes and cardiac arrhythmias'; visual disturbances include 'blurred vision, green-yellow color disturbances, halo effect'; 'Sinus bradycardia may be a sign of impending digoxin intoxication'; it can cause advanced or complete heart block and ventricular tachycardia or fibrillation; 'Low body weight, advanced age or impaired renal function' and 'hypokalemia, hypercalcemia, or hypomagnesemia may predispose to digoxin toxicity'; 'If there is suspicion of toxicity, discontinue LANOXIN and place the patient on a cardiac monitor'; obtain serum digoxin levels and assess electrolytes and renal function. The label notes it may not be the latest approved. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:00 on a medical unit. You are Mrs. Albright's nurse. She is 84, with heart failure and atrial fibrillation, admitted two days ago with pneumonia. Her morning medications are due, including the ordered digoxin and furosemide.",
+    "handover": [
+      "She ate nothing at breakfast: 'I feel sick to my stomach, and the lights have yellow rings around them.'",
+      "This morning's labs posted at 07:30: you have not opened them yet. She weighs 48 kg.",
+      "Unit policy: an apical pulse for a full minute before digoxin; hold it and call the provider for a pulse under 60 or suspected toxicity; any RN may place a patient on telemetry while calling."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Digoxin toxicity with low potassium progresses toward a dangerous rhythm. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "heldRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with the digoxin held and potassium being replaced, as levels fall. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "doseBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Another digoxin dose on top of toxicity. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of complete heart block or ventricular tachycardia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of the pulse (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews and orders: about 4 min."
+      }
+    },
+    "reviewTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews her at the bedside with the digoxin level: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "apicalAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "symptomsAt": {
+      "type": "time",
+      "init": null
+    },
+    "marAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "apical",
+        "labs",
+        "symptoms",
+        "mar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "provider",
+        "rounds"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tox",
+        "gi",
+        "af"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "teleAt": {
+      "type": "time",
+      "init": null
+    },
+    "kAt": {
+      "type": "time",
+      "init": null
+    },
+    "doseAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"provider\" and t >= timeAt(callAt) + orderTime"
+    },
+    "hr": {
+      "expr": "round(56 - 16 * max(0, prog - 0.4) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(112 - 20 * max(0, prog - 0.5))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "94",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(holdAt) and not isNull(kAt) ? heldRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              60,
+              50
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(apicalAt) or not isNull(teleAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr",
+            "flat": "isNull(teleAt)"
+          }
+        }
+      ],
+      "infusions": "Digoxin held: {not isNull(holdAt)|yesno}. On telemetry: {not isNull(teleAt)|yesno}. Potassium replacement: {not isNull(kAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(kAt)",
+          "text": "Ordered: digoxin held, a digoxin level, magnesium, and potassium replacement."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "apical": {
+      "label": "Apical pulse for a full minute",
+      "group": "Assess",
+      "available": "not testPending and isNull(apicalAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"apical\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Open this morning's labs",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "symptoms": {
+      "label": "Ask about appetite, nausea, vomiting and her vision",
+      "group": "Assess",
+      "available": "not testPending and isNull(symptomsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"symptoms\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mar": {
+      "label": "Review her medications",
+      "group": "Assess",
+      "available": "not testPending and isNull(marAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the digoxin and flag it for the provider",
+      "group": "Treat",
+      "available": "isNull(holdAt) and isNull(doseAt) and inClinic",
+      "why": "Already held, or given.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Digoxin held and flagged.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tele": {
+      "label": "Place her on telemetry",
+      "group": "Treat",
+      "available": "isNull(teleAt) and inClinic",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "teleAt",
+          "to": "t"
+        },
+        {
+          "log": "Telemetry on: slow, irregular rhythm with pauses.",
+          "kind": "act"
+        }
+      ]
+    },
+    "k": {
+      "label": "Give the ordered potassium replacement",
+      "group": "Treat",
+      "available": "ordered and isNull(kAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "kAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium replacement started as ordered; level and magnesium sent.",
+          "kind": "act"
+        }
+      ]
+    },
+    "dose": {
+      "label": "Give the digoxin as scheduled with the ordered PRN antiemetic for her nausea",
+      "group": "Treat",
+      "available": "isNull(doseAt) and isNull(holdAt) and inClinic",
+      "why": "Held, or already given.",
+      "effects": [
+        {
+          "set": "doseAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + doseBump"
+        },
+        {
+          "log": "Digoxin and the antiemetic given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "tox",
+              "label": "Suspected digoxin toxicity: anorexia, nausea, vomiting, yellow halos, a slow irregular pulse, made likelier by low potassium, worse kidney function and her age and weight"
+            },
+            {
+              "value": "gi",
+              "label": "A stomach upset from the antibiotic: give an antiemetic"
+            },
+            {
+              "value": "af",
+              "label": "Her usual atrial fibrillation"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"tox\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tox\""
+                },
+                {
+                  "log": "Suspected digoxin toxicity.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"gi\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"gi\""
+                },
+                {
+                  "log": "Impression: antibiotic side effect.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"af\""
+                },
+                {
+                  "log": "Impression: baseline AF.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the provider",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "provider",
+              "label": "Apical 48 and irregular with pauses, anorexia, nausea, vomiting, yellow halos; potassium 3.1, creatinine up to 1.6, 84 years and 48 kg: suspected digoxin toxicity. Digoxin held, on telemetry. Ask for a level, magnesium and potassium replacement"
+            },
+            {
+              "value": "rounds",
+              "label": "Report it on rounds at 10:00"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"provider\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"provider\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "reviewTime"
+                },
+                {
+                  "log": "The provider agrees: digoxin held, a level and magnesium, potassium replaced, telemetry; she will review her.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rounds\""
+                },
+                {
+                  "log": "You add it to your rounds list.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the pulse, symptoms, held dose and the report; teach her to report vision changes and nausea",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: apical 48, symptoms, digoxin held, telemetry, provider told; she knows to report vision changes and nausea.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit",
+      "clock": "running",
+      "actions": [
+        "apical",
+        "labs",
+        "symptoms",
+        "mar",
+        "hold",
+        "tele",
+        "k",
+        "dose",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"apical\"",
+              "then": [
+                {
+                  "set": "apicalAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Apical pulse {hr}, irregular, with pauses. Her usual rate was 70s to 80s.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Potassium 3.1 (low); creatinine 1.6, up from 1.1 on admission; magnesium not drawn; last digoxin level two months ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"symptoms\"",
+              "then": [
+                {
+                  "set": "symptomsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No appetite for two days, nauseated, vomited once overnight; 'yellow rings' around lights and blurry vision.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Digoxin daily, furosemide twice daily since admission; a new antibiotic; no potassium supplement.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the provider's review",
+      "wait": {
+        "skipLabel": "the provider's review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min until the provider reviews her with the level."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The provider reviews her: digoxin level high; digoxin stopped for now.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What explains her pulse and symptoms, why now, and what do you do with the morning digoxin?",
+      "parts": [
+        {
+          "label": "What and why now",
+          "criteria": "Digoxin toxicity: anorexia, nausea, vomiting, visual changes (yellow halos) and a slow, irregular pulse; risk raised by low potassium (on furosemide), worsening kidney function, age and low weight.",
+          "modelAnswer": "This looks like digoxin toxicity: no appetite, nausea, vomiting, yellow halos and a slow irregular pulse. Her potassium is low from the furosemide, her kidneys are worse, and she's 84 and 48 kg, which all raise the risk."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds the digoxin; places her on telemetry; calls the provider now for a level, magnesium and potassium replacement; does not give the dose with an antiemetic to cover the nausea.",
+          "modelAnswer": "Hold the digoxin, put her on telemetry and call the provider now for a level, magnesium and potassium. I don't give it with an antiemetic: the nausea is the warning."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected digoxin toxicity unreported an hour on is harm here.",
+      "source": {
+        "cite": "LANOXIN (digoxin) tablets prescribing information (revised 08/2018), FDA label",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/020405s14lbl.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF: 'Signs and symptoms of digoxin toxicity include anorexia, nausea, vomiting, visual changes and cardiac arrhythmias'; visual disturbances include 'blurred vision, green-yellow color disturbances, halo effect'; 'Sinus bradycardia may be a sign of impending digoxin intoxication'; it can cause advanced or complete heart block and ventricular tachycardia or fibrillation; 'Low body weight, advanced age or impaired renal function' and 'hypokalemia, hypercalcemia, or hypomagnesemia may predispose to digoxin toxicity'; 'If there is suspicion of toxicity, discontinue LANOXIN and place the patient on a cardiac monitor'; obtain serum digoxin levels and assess electrolytes and renal function. The label notes it may not be the latest approved. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "block": {
+      "label": "Complete heart block",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "Her pulse falls to 30 and she becomes gray and confused: complete heart block. A rapid response is called."
+    },
+    "caught": {
+      "label": "Toxicity caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"provider\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(holdAt) and isNull(doseAt) and not isNull(teleAt) and not isNull(kAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the level comes back high; the digoxin stays stopped, her potassium is coming up and her rhythm is being watched."
+    },
+    "caughtGaps": {
+      "label": "Caught, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the provider reviews her, but the call was late, telemetry or potassium was missed, or the dose went in."
+    },
+    "time_up": {
+      "label": "Unreported at 09:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:00 and no one has acted on her toxicity."
+    }
+  },
+  "endingOrder": [
+    "block",
+    "caught",
+    "caughtGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "holdC",
+        "label": "Held the digoxin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(doseAt)",
+            "score": "missed",
+            "why": "Given."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Called the provider within 5 minutes of the pulse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"provider\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"provider\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"rounds\"",
+            "score": "missed",
+            "why": "Left for rounds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "apicalC",
+        "label": "Took an apical pulse for a full minute before the dose",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(apicalAt) and (isNull(doseAt) or timeAt(apicalAt) < timeAt(doseAt))",
+            "score": "met",
+            "why": "Taken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken first."
+          }
+        ]
+      },
+      {
+        "id": "labsC",
+        "label": "Read the potassium and kidney function",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(labsAt)",
+            "score": "met",
+            "why": "Read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read."
+          }
+        ]
+      },
+      {
+        "id": "teleC",
+        "label": "Placed her on telemetry; potassium replaced as ordered",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(teleAt) and not isNull(kAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(teleAt) or not isNull(kAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized digoxin toxicity",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"tox\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"gi\"",
+            "score": "missed",
+            "why": "Blamed the antibiotic."
+          },
+          {
+            "when": "dxEnum == \"af\"",
+            "score": "missed",
+            "why": "Called it her usual AF."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and taught her the warning signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: digoxin toxicity with low potassium and worse kidneys; hold, monitor, call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Apical pulse to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toTele",
+        "label": "08:00 to telemetry",
+        "value": "isNull(teleAt) ? -1 : timeAt(teleAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:00",
+        "text": "Apical pulse 48, irregular with pauses. Anorexia, nausea, yellow halos."
+      },
+      {
+        "at": "~08:02",
+        "text": "Potassium 3.1, creatinine 1.6. Hold the digoxin; telemetry on."
+      },
+      {
+        "at": "~08:03",
+        "text": "Suspected toxicity. Call the provider: level, magnesium, potassium."
+      },
+      {
+        "at": "~08:08",
+        "text": "Give the ordered potassium; document; teach her the warning signs."
+      }
+    ],
+    "debrief": {
+      "block": {
+        "headline": "Heart block",
+        "body": "Anorexia, nausea, visual changes and a slow irregular pulse on digoxin are toxicity until proved otherwise, especially with low potassium. Hold it, monitor, call."
+      },
+      "caught": {
+        "headline": "Toxicity caught",
+        "body": "You took the apical pulse, connected her symptoms and potassium, held the digoxin, put her on telemetry and called within minutes. That is the expert path."
+      },
+      "caughtGaps": {
+        "headline": "Caught, with gaps",
+        "body": "Check how soon you called, whether telemetry and potassium followed, and whether the dose went in."
+      },
+      "time_up": {
+        "headline": "Unreported",
+        "body": "Suspected digoxin toxicity goes to the provider within minutes."
+      }
+    },
+    "modelReasoning": "Anorexia, nausea, vomiting, yellow halos around lights and a slow, irregular apical pulse of 48 in a patient on digoxin are digoxin toxicity until proved otherwise. Her risk is raised by low potassium from the furosemide, worsening kidney function, her age and her low weight. Hold the digoxin, place her on telemetry, and call the provider now for a digoxin level, magnesium and potassium replacement. Giving the dose with an antiemetic would treat the warning sign and add to the toxicity."
+  },
+  "chapters": [
+    {
+      "id": "held",
+      "label": "Digoxin held",
+      "when": "not isNull(holdAt)"
+    }
+  ],
+  "teaching": {
+    "riskQ": {
+      "during": "leaveT",
+      "ask": "While the provider reviews her: which lab finding raises the risk of digoxin toxicity?",
+      "choices": [
+        {
+          "id": "lowk",
+          "label": "Low potassium or low magnesium"
+        },
+        {
+          "id": "highk",
+          "label": "High potassium only"
+        },
+        {
+          "id": "lowna",
+          "label": "Low sodium"
+        }
+      ],
+      "expect": "lowk",
+      "explain": "Hypokalemia, hypercalcemia or hypomagnesemia may predispose to digoxin toxicity, as do advanced age, low body weight and impaired renal function.",
+      "source": {
+        "cite": "LANOXIN (digoxin) tablets prescribing information (revised 08/2018), FDA label",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/020405s14lbl.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF: 'Signs and symptoms of digoxin toxicity include anorexia, nausea, vomiting, visual changes and cardiac arrhythmias'; visual disturbances include 'blurred vision, green-yellow color disturbances, halo effect'; 'Sinus bradycardia may be a sign of impending digoxin intoxication'; it can cause advanced or complete heart block and ventricular tachycardia or fibrillation; 'Low body weight, advanced age or impaired renal function' and 'hypokalemia, hypercalcemia, or hypomagnesemia may predispose to digoxin toxicity'; 'If there is suspicion of toxicity, discontinue LANOXIN and place the patient on a cardiac monitor'; obtain serum digoxin levels and assess electrolytes and renal function. The label notes it may not be the latest approved. No dose is used in the case."
+      }
+    },
+    "signsQ": {
+      "during": "testT",
+      "ask": "While you check: which findings fit digoxin toxicity?",
+      "choices": [
+        {
+          "id": "gi",
+          "label": "Anorexia, nausea, vomiting, visual changes and dysrhythmias"
+        },
+        {
+          "id": "cough",
+          "label": "A dry cough and angioedema"
+        },
+        {
+          "id": "gum",
+          "label": "Gum overgrowth and a rash"
+        }
+      ],
+      "expect": "gi",
+      "explain": "Signs of digoxin toxicity include anorexia, nausea, vomiting, visual changes and cardiac arrhythmias.",
+      "source": {
+        "cite": "LANOXIN (digoxin) tablets prescribing information (revised 08/2018), FDA label",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/020405s14lbl.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label PDF: 'Signs and symptoms of digoxin toxicity include anorexia, nausea, vomiting, visual changes and cardiac arrhythmias'; visual disturbances include 'blurred vision, green-yellow color disturbances, halo effect'; 'Sinus bradycardia may be a sign of impending digoxin intoxication'; it can cause advanced or complete heart block and ventricular tachycardia or fibrillation; 'Low body weight, advanced age or impaired renal function' and 'hypokalemia, hypercalcemia, or hypomagnesemia may predispose to digoxin toxicity'; 'If there is suspicion of toxicity, discontinue LANOXIN and place the patient on a cardiac monitor'; obtain serum digoxin levels and assess electrolytes and renal function. The label notes it may not be the latest approved. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

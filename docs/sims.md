@@ -6993,3 +6993,340 @@ types); PMI's projectmanagement.com wiki on three-point estimating.
    needs a verification pass.
 2. **Outline texts not read directly** for PgMP, PMI-PBA and PMI-PMOCP (PMI's
    PDFs did not come up in search); their objective wording is the seed's.
+
+### 22.32 Health breadth and nursing depth of the 2026-11-17 round (REQ-323)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." Breadth first: the ten physical therapy specialty courses,
+NPTE-PTA and the strength and conditioning course had no sims. Each now has
+at least one. Then depth: nursing bands, launch courses first. No engine,
+renderer, schema or migration change; engine 1.2 throughout; every case on
+an existing screen (treatment session, bedside, trainer).
+`lib/sim/health-sims-1117.test.ts` pins every document by slug.
+
+**Bands (16).** Each registers an existing case to a fitting catalog
+objective of another course; the patch changes only `objective`,
+`secondaryObjectives`, `sources` and, for three, `brief`. Scoring, outcome
+thresholds and endings are the base's (the test compares them). Golden paths
+are the base's steps rebuilt against the band (`scripts/sim-golden/*-band-*.steps.ts`).
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| ABPTSGCS/stroke-balance-fall-risk-geri | DPT | Fall-risk and balance examination with standardized measures and cut-offs (Examination, 25%) |
+| ABPTSNCS/dizziness-central-red-flags-neuro | DPT | Recognizing medical instability and emergencies, new neurologic signs (30%) |
+| ABPTSNCS/parkinson-freezing-session-neuro | DPT | External cueing for freezing of gait in Parkinson disease (30%) |
+| ABPTSCCS/icu-early-mobility-cardiopulm | DPT | Recognizing decompensation that requires stopping activity or escalating care (Evaluation, 30%) |
+| ABPTSOCS/tka-gait-dvt-red-flag-ortho | DPT | After knee arthroplasty: early progressive strength, NMES, except with DVT (19%) |
+| NPTEPTA/icu-early-mobility-pta | DPT | Cardiopulmonary distress that requires stopping treatment and notifying the supervising PT (17%); brief: the PTA carries out the PT's plan |
+| NSCACSCS/cscs-squat-knees-cave | NASMCPT | Assessing, cueing and modifying technique (15%); brief: a strength and conditioning coach |
+| CMSRN/post-op-transfusion-reaction-cmsrn | NCLEXRN | Restrictive threshold; stop at once for a suspected reaction |
+| CMSRN/pca-oversedation-naloxone-cmsrn | ADNRN | Opioid-induced oversedation on a sedation scale |
+| CMSRN/med-surg-deterioration-sbar-cmsrn | NCLEXRN | The nursing process applied to a changing med-surg patient |
+| PCCN/postop-hemorrhage-early-signs-pccn | CMSRN | Urgent situations and procedural or surgical complications |
+| PCCN/sepsis-to-septic-shock-pccn | CCRNADULT | Screen for sepsis and recognize shock |
+| PCCN/status-epilepticus-after-craniotomy-pccn | CCRNADULT | Status epilepticus; brief: a neuroscience progressive care unit |
+| NCLEXRN/femoral-access-retroperitoneal-bleed-nclexrn | PCCN | Prioritize hypotheses and revisit them as data arrive |
+| FNPANCC/clinic-severe-bp-stroke-signs-fnp-role | FNPAANP | Red flags that need emergency referral |
+| FNPAANP/clinic-sulfonylurea-hypoglycemia-fnp-clinical | FNPANCC | Hypoglycemia from diabetes treatment and the regimen |
+
+Band slugs use plain words, not the specialist letters (REQ-309/319).
+
+**New treatment-session cases (7)**, built in the shape of
+DPT/dizziness-central-red-flags: examine (tests share one timer and one
+pending slot), find the red flag, act on it by the right route. Each has
+`endingOrder`, a conditional harm ending that is an outcome, three critical
+criteria inside the `target` condition, a reasoning moment, one or two
+sourced teaching prompts in jsonb key order, a chapter, KPIs, an expert path,
+a debrief per ending, and five or six golden paths (Good, Mediocre, Bad;
+every ending but `time_up`; every criterion met and missed).
+
+| Course / slug | Objective (domain weight) | Critical criteria | Steps name |
+|---|---|---|---|
+| ABPTSPWCS/prenatal-exercise-severe-bp-headache | Stop exercise in pregnancy for warning signs; preeclampsia is a contraindication (55%) | warning symptoms asked and a severe-range BP confirmed on a repeat; no exercise after a warning sign; labor and delivery called and 911 within 10 min | pwcs-preeclampsia |
+| ABPTSSCS/preseason-collapse-heat-stroke | Exertional heat stroke: ice-water immersion, rectal temperature, stop at 38-39 C (35%) | rectal temperature; immersion within 5 min of the first sign; out at 38-39.2 C and cooled before transport | scs-heatstroke |
+| ABPTSWMS/leg-ulcer-calcified-abi-compression | Toe pressure, TBI and pedal Doppler when the ABI is unreliable (25%) | toe pressure and waveforms, not the ABI alone; no compression; vascular surgery the same visit within 15 min | wms-abi |
+| ABPTSPCS/knee-pain-limp-hip-slip | Suspect a slipped capital femoral epiphysis behind knee pain and a limp (20%) | hip examined; no hop test, squats or treadmill; emergency department the same day within 15 min | pcs-scfe |
+| ABPTSOCS/acute-back-pain-mri-request-cauda-equina | Classify low back pain by duration and hold back routine imaging (30%); cauda equina as the exception | bladder, bowel, saddle and sexual questions; no thrust manipulation; emergency MRI the same hour within 10 min | ocs-ces |
+| ABPTSONC/post-mastectomy-strength-start-back-pain | Supervised progressive resistance training after breast cancer surgery (27%); suspected cord compression first | back and leg questions before loading; no loading; emergency department within 10 min | onc-mscc |
+| ABPTSECS/carpal-tunnel-referral-demyelinating-gbs | Interpreting abnormal findings: axonal or demyelinating, focal or diffuse, acute or chronic (25%) | single breath count; studies read as diffuse, acute, demyelinating; 911 within 15 min | ecs-gbs |
+
+- **Harm endings** are outcomes: an eclamptic seizure, organ injury from
+  prolonged hyperthermia or transport before cooling, an ischemic injury
+  under a wrap, an unstable slip, retention, legs giving way, respiratory
+  distress; and, for a route that sends the patient away with the condition
+  unrecognized, its course after leaving (as the FNP stroke case does).
+- **Scope.** The physical therapist acts within the clinic's named policy
+  (911, labor and delivery triage, the vascular service, the emergency
+  department) and tells the referrer. No drug is given in any new case; no
+  dose appears.
+- **Breadth by highest domain.** Every physical therapy specialty course
+  has a sim whose main objective sits in its highest-weighted domain, or in
+  a tied highest one (pediatrics, neurology, geriatrics). Two courses do
+  not: NPTE-PTA's band is on Cardiovascular and Pulmonary (17%), not
+  Musculoskeletal (26%), and the strength and conditioning band is on
+  exercise technique (15%), not Scientific Foundations (25%). See "Open".
+- **Sources** are on each document with the date read and how. Read
+  2026-11-17 through summarizing fetches with quotes: the MSD Manual on
+  preeclampsia and eclampsia, Table 1 of the 2017 Pregnancy Hypertension
+  definitions (PMC5435450), a perinatology.com summary of the 2019 Canadian
+  pregnancy activity guideline (secondary), the ACOG Committee Opinion 804
+  abstract only, the NATA exertional heat illness executive summary (2014),
+  the IWGDF/ESVS/SVS 2023 PAD guideline (first 100,000 characters), a
+  Wound Practice and Research review summary on ABPI and compression, REBEL
+  EM on SCFE (2020), the GIRFT national suspected cauda equina pathway
+  (February 2023), NICE NG234 recommendations (2023) and the EAN/PNS 2023
+  Guillain-Barre guideline (a repository copy, first 100,000 characters).
+  Relayed from the course seed's 2026-11-04 reading: the StatPearls chapters
+  tagged SP-PREG, SP-HS, SP-VLU, SP-PAD, SP-SCFE, SP-LBP, SP-SCC, SP-NCS,
+  SP-GBS, and the 2020 breast cancer lymphedema guideline. Measured values,
+  disease courses, rates and local waits are authored teaching values marked
+  `FLAG`.
+- **Findings while authoring.** A measure id equal to a vital tile id is
+  refused by the validator ("duplicate id"); the builder names measures
+  `<test>Result`. The vital tile colour set has no temperature colour
+  (`neutral` is used) and a KPI format is `duration`, `number` or `usd`.
+  `time_up` is reached by no golden path in the new cases (the linter's
+  warning, as in the other clinical waves); `actions.bp2` in the pregnancy
+  case draws an availability warning although two goldens use it.
+
+**Open.**
+- NPTE-PTA Musculoskeletal (26%) needs a PTA-specific case: the DPT knee
+  case's right call is to the surgeon, not to the supervising PT, so it was
+  not banded to "report back to the supervising PT".
+- Strength and conditioning, Scientific Foundations (25%): its objectives
+  (biomechanics, physiology planning, research literacy) did not fit a timed
+  case on an existing screen. The heat stroke case was not banded to the
+  course's heat-illness objective (8%): rectal temperature and immersion are
+  led by the athletic trainer or clinician, not the coach.
+- Nursing depth: 9 bands this round. The remaining fitting objectives and
+  the next candidates are in docs/sims-coverage-nursing-specialty.md
+  ("REQ-323 progress").
+
+**Round 2 (same day, a second builder).** Nick's ask covers finishing the
+work. Order: the NPTE-PTA musculoskeletal case, purpose-written emergency
+department cases (highest-weighted categories first), nursing depth, the
+launch courses, and strength and conditioning only where an objective fits
+an existing screen (none did; see "Still open"). Fourteen new cases and
+three bands; no engine, renderer, schema or migration change.
+
+New cases share one shape, built from the treatment-session cases above:
+assessments share one timer and one pending slot; a red-flag finding sets
+`redFlagAt`; the escalation (`refer`) is timed against it; leaving for the
+next level of care ends the run. Each has `endingOrder`, three critical
+criteria inside the `target` condition, harm endings that are outcomes, a
+reasoning moment, two sourced teaching prompts in jsonb key order, a
+chapter, KPIs, an expert path, a debrief per ending and five or six golden
+paths (Good, Mediocre, Bad; every ending but `time_up`; every criterion met
+and missed). The bedside cases use the `clinical` profile.
+
+| Course / slug | Screen | Objective (abridged, unit weight) | Critical criteria | Steps name |
+|---|---|---|---|---|
+| NPTEPTA/pta-back-pain-new-bladder-symptoms | treatment session | Report any new red flag in back pain to the supervising PT before continuing (Musculoskeletal, 26%) | bladder, bowel and saddle screen before treating; no traction or exercise after a red flag; the PT told within 5 min | pta-ces |
+| CEN/triage-indigestion-inferior-stemi | bedside | Recognize ACS at triage and get a 12-lead ECG read without delay (Cardiovascular, 18 of 150 items) | ECG within 10 min of arrival; shown to the physician within 5 min; no nitroglycerin after sildenafil | cen-acs |
+| CEN/tearing-pain-heparin-ordered | bedside | Recognize aortic dissection from tearing pain and pulse or pressure differences (Cardiovascular) | ordered heparin held; physician told within 5 min; beta-blocker before vasodilator | cen-dissection |
+| CEN/asthma-attack-quiet-chest | bedside | Manage acute asthma and recognize impending respiratory failure (Respiratory, 17) | nebulizer within 5 min; physician within 5 min of tiring; oxygen titrated to 93-95% | cen-asthma |
+| CEN/diving-injury-low-pressure-slow-pulse | bedside | Recognize neurogenic shock (Neurological, 17) | bleeding looked for before the report; vasopressor within 10 min of it; collar kept on | cen-neuroshock |
+| CEN/hallway-head-injury-falling-gcs | bedside | Rising ICP from a falling level of consciousness, then pupils and Cushing's triad (Neurological) | first neuro check within 5 min and repeated; 2-point drop reported within 5 min; acted before the pupil changed | cen-icp |
+| CEN/bee-sting-anaphylaxis-triage | bedside | IM epinephrine first, then airway, fluids and adjuncts (Medical, 15) | epinephrine within 5 min and before the antihistamine; repeated within 10 min; flat, never stood | cen-anaphylaxis |
+| CEN/black-stools-then-hematemesis | bedside | Upper and lower GI bleeding with large-bore access and blood (Gastrointestinal, 14) | two large-bore IVs and the crossmatch within 5 min; on his side before the hematemesis; physician within 5 min of it | cen-gibleed |
+| PCCN/pacing-wires-pulled-then-restless | bedside | Recognize tamponade and escalate for drainage (Cardiovascular, 20%) | rapid response and the surgeon within 5 min; no diuretic; pulsus paradoxus measured | pccn-tamponade |
+| PCCN/capnography-alarm-saturation-fine | bedside | Opioid respiratory depression on sedation scales and capnography before SpO2 falls (Respiratory, 14%) | rapid response within 5 min; opioids held and no more given; alarm not silenced | pccn-capno |
+| CMSRN/delirium-night-prn-restraint-order | bedside | Restraint only after less restrictive measures fail, never PRN (Patient/Care Management, 32%) | no restraint under the PRN order; retention found and drained; low bed and alarm within 10 min | cmsrn-restraint |
+| FNPAANP/two-falls-not-herself | bedside | Atypical presentations in older adults (Diagnose, 26.5%) | respiratory rate, SpO2 and temperature; lungs examined; emergency department within 10 min of the first sign | fnp-atypical |
+| CCRNADULT/falling-platelets-cold-foot-on-heparin | bedside | Recognize HIT, stop all heparin, a non-heparin anticoagulant, flag against heparin | every heparin source (flushes and lock too) stopped within 5 min; non-heparin anticoagulant; no warfarin or platelets | ccrn-hit |
+| NCLEXPN/ltc-critical-potassium-call | bedside | Recognize high potassium and report it as a risk of dysrhythmia | reported within 5 min of the call; potassium chloride held; apical pulse checked | pn-potassium |
+
+**Bands (3)**, built as in round 1 (patch changes `objective`,
+`secondaryObjectives`, `sources`; steps reuse the base's): the head injury
+case to NCLEX-RN "Recognize Cushing's triad ..." (`rn-band-icp`); the
+restraint case to NCLEX-RN "Restraints and safety devices: assessing
+appropriateness of the type used" (`rn-band-restraint`); the FNP case to
+FNPANCC "Build and prioritize a differential diagnosis ..."
+(`fnp-role-band-atypical`). NCLEX-RN is a generalist exam, so an emergency
+department or med-surg case is its setting; the emergency cases were not
+banded to CCRN Adult or PCCN (an ICU or progressive care patient, not one
+at triage), nor the progressive care cases to CCRN Adult.
+
+- **Scope and drugs.** Every drug is "the ordered" or "the standing
+  order's" drug; no dose number appears. The RN acts on standing orders
+  named in the brief; the PTA collects data, holds treatment for safety and
+  tells the PT, who reexamines; the PN reads back, checks, holds a dose
+  pending the provider and reports.
+- **Harm endings** are outcomes: severe hypotension after a nitrate on a
+  PDE-5 inhibitor, ventricular fibrillation, respiratory arrest, a neck
+  moved out of its collar, secondary cord injury from prolonged
+  hypotension, collapse on standing in anaphylaxis, airway obstruction,
+  aspiration of blood, hemorrhagic shock, bleeding into the pericardium
+  after heparin, extension of a dissection, herniation, collapse after a
+  diuretic in tamponade, PEA, abrupt naloxone reversal, apnea, injury in
+  restraints, a fall, septic shock or a night-time collapse after being sent
+  home, a lost limb, a dysrhythmic arrest, retention in the clinic.
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes: the
+  2018 House of Delegates policy on PTA direction and supervision; Guideline
+  Central's summary of the 2025 ACC/AHA ACS guideline (the guideline itself
+  was not reachable); the NITROSTAT label (January 2017); Dabbs et al., Am
+  Fam Physician 2024 (asthma); Adams et al. 2012 (abstract only); emDocs on
+  neurogenic shock (2023) and on missed aortic dissection (2020); King and
+  Olson, American Nurse 2007 (neurogenic shock signs only); MDCalc's page on
+  the 2021 ACG upper GI bleeding guideline; the ACC's key perspectives on
+  the 2022 ACC/AHA aortic disease guideline; Overdyk and Guerra, American
+  Nurse 2011; Jaqua et al., Am Fam Physician 2023 (delirium); the Washington
+  State Department of Health UTI FAQ for providers (March 2023, citing IDSA
+  2019); the ASH HIT pocket guide (December 2018). Relayed with their dates
+  from course seeds and earlier cases: the CEN outline and ESI handbook, the
+  2020 anaphylaxis practice parameter summary, NASEMSO 2022, the 2021
+  Resuscitation Council UK guideline (posture and repeat dosing, named as
+  the department's policy), ATLS classes, AABB 2023, StatPearls on
+  intracranial pressure and low back pain, the 2025 ESC pericardial
+  guideline (named as the unit's policy), the POSS as reproduced by RNAO,
+  the naloxone label, 42 CFR 482.13(e), OpenStax Fundamentals 20.1 and the
+  UK Kidney Association hyperkalaemia guideline (named as the facility's
+  policy). A fetch of the CCJM anaphylaxis summary was not approved in time
+  and NCBI pages refused automated fetches. Disease courses, effect sizes
+  and local waits are authored teaching values marked `FLAG`.
+- **Findings while authoring.** A teaching choice id must start with a
+  letter (`24` was refused); a reasoning moment that opens on the same tick
+  as a terminal ending makes the golden builder's reasoning command fail
+  ("run has ended"), so the restraint case's harm ending fires at 8 minutes,
+  before the 10-minute reasoning trigger. `time_up` is reached by no golden
+  path (the linter's warning, as before).
+
+**Still open.**
+- Emergency nursing: 25 fitting objectives remain (tachy- and
+  bradycardias, limb ischemia, cardiogenic versus obstructive shock, COPD,
+  inhalation injury, tension pneumothorax, TIA, variceal bleeding, testicular
+  torsion, ectopic pregnancy, trauma in pregnancy, overdose, electrolytes,
+  neutropenic fever, withdrawal, injection injury, eye emergencies,
+  epistaxis, epiglottitis, burns, heat and cold, EMTALA, consent). Suicide
+  and homicide risk needs the session screen and the 18+ gate, not bedside.
+- Progressive care 37, med-surg 19, FNP 11 and 11 (counting this round's
+  cases and bands) fitting objectives remain; the list is in
+  docs/sims-coverage-nursing-specialty.md ("REQ-323 progress").
+- Strength and conditioning, Scientific Foundations (25%): no objective there
+  fits a timed case on an existing screen; left as round 1 said. A decision
+  for Nick if he wants a "trainer" case on, for example, recovery planning.
+
+### 22.33 Nursing depth of the 2026-11-17 round, third builder (REQ-325)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This builder took depth for the three launch nursing
+courses (CCRN Adult, NCLEX-RN, NCLEX-PN) while sims-health-4 took the
+nursing specialty, FNP and NPTE-PTA courses. Highest-weighted categories
+first; every case purpose-written on the bedside screen in the round-2
+shape (22.32): assessments share one timer and one pending slot, a
+red-flag finding sets `redFlagAt`, the escalation is timed against it, and
+leaving for the next level of care (or a reassessment) ends the run. No
+engine, renderer, schema or migration change; engine 1.2; clinical profile.
+No bands this round (see "Bands considered"). `lib/sim/nursing-depth-1117.test.ts`
+pins every case by slug (121 tests).
+
+Each case has `endingOrder`, three or four critical criteria inside the
+`target` condition, a conditional harm ending that is an outcome, a
+reasoning moment, two sourced teaching prompts in jsonb key order, a
+chapter, two KPIs, an expert path, a debrief per ending and five golden
+paths (Good, two Mediocre, two Bad; every ending but `time_up`; every
+criterion met and missed). Drugs appear as "the ordered" drug, with no dose
+number in learner text (the pin test checks for one); lab values and urine
+output criteria are not doses.
+
+| Course / slug | Category (weight) | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|---|
+| CCRNADULT/low-urine-after-contrast-on-vancomycin | Endocrine, Heme, GI, Renal, Integ (21%) | Protect the kidney from nephrotoxins and contrast, keep perfusion (+ AKI/ATN, classify AKI) | intensivist within 5 min; NSAID and ACE inhibitor held; fluid, no diuretic | ccrn-aki |
+| CCRNADULT/oozing-lines-in-septic-shock | 21% | DIC from its lab pattern; treat the trigger; components for bleeding (+ coagulopathies) | call within 5 min; enoxaparin held; components given | ccrn-dic |
+| CCRNADULT/pressor-climbing-home-prednisone-missed | 21% | Adrenal crisis after steroid withdrawal; hydrocortisone without delay | call within 5 min; hydrocortisone within 15 min; low glucose treated | ccrn-adrenal |
+| CCRNADULT/pale-urine-after-pituitary-surgery | 21% | Diabetes insipidus; desmopressin; watch for hyponatremia | call within 5 min; desmopressin and replacement; no restriction | ccrn-di |
+| CCRNADULT/fever-ten-days-after-chemo | 21% | Grade neutropenia; fever in neutropenia as an emergency | call within 5 min; antibiotic within 1 h after cultures; no acetaminophen-and-wait | ccrn-neutro |
+| CCRNADULT/cirrhosis-hematemesis-at-night | 21% | Portal hypertension and variceal bleeding through TIPS (+ upper GI bleeding) | call within 5 min; vasoactive drug within 15 min; airway first | ccrn-varices |
+| CCRNADULT/pressor-arm-cold-and-pale | 21% | IV infiltration: recognition and treatment (norepinephrine extravasation) | stopped within 1 min, no flush or rate rise; restarted through another line; catheter kept for the antidote | ccrn-extrav |
+| CCRNADULT/tight-belly-after-massive-resuscitation | 21% | Measure intra-abdominal pressure; organ effects of ACS | measured by protocol; surgeon within 5 min; no bolus | ccrn-abdcomp |
+| CCRNADULT/pounding-headache-c6-injury | Musculoskeletal, Neuro, Behavioral (18%) | Autonomic dysreflexia; bladder or bowel first | sat up within 2 min, never flat; bladder fixed within 10 min; no acetaminophen-and-wait | ccrn-ad |
+| CCRNADULT/tibial-fracture-pain-out-of-proportion | 18% | Acute compartment syndrome; split dressings, heart level, pressure, fasciotomy (+ early recognition) | orthopedics within 5 min; wrap split and leg level; pressure supported, no more opioid | ccrn-compartment |
+| CCRNADULT/day-six-after-coiling-new-weakness | 18% | Subarachnoid hemorrhage after securing: vasospasm, rebleed, hydrocephalus, seizures | call within 5 min; no labetalol or restriction; euvolemia and augmentation | ccrn-sah |
+| CCRNADULT/fever-stiff-neck-waiting-for-lp | 18% | Bacterial meningitis: antibiotics without delay | antibiotics within 15 min; cultures first; dexamethasone before or with | ccrn-meningitis |
+| CCRNADULT/toothache-tablets-level-above-line | Multisystem (16%) | Acetaminophen overdose: time, nomogram, acetylcysteine early | acetylcysteine within 20 min of plotting; time established; baselines sent | ccrn-apap |
+| CCRNADULT/found-on-floor-tea-colored-urine | 16% | Rhabdomyolysis: early aggressive fluids, watch potassium, kidneys, compartments | call within 5 min; fluid with lungs watched; NSAID and statin held | ccrn-rhabdo |
+| NCLEXPN/aide-feeding-thin-liquids-dysphagia | Coordinated Care (21%) | Monitor assistive personnel; intervene or report (+ accountability, PN delegation) | feeding stopped within 1 min; RN and provider within 5 min; aide redirected | pn-aide |
+| NCLEXPN/warfarin-inr-high-tarry-stool | Pharmacological Therapies (13%) | Warfarin: consistent vitamin K; higher INR, more bleeding | reported within 5 min; warfarin held; consistent intake reinforced, no big salad | pn-warfarin |
+| NCLEXPN/clinic-belly-pain-moved-right | Physiological Adaptation (10%) | Recognize and report appendicitis | provider within 5 min, never sent home; no medication outside the standing order; vital signs | pn-appendix |
+| NCLEXRN/preop-consent-after-opioid | Management of Care (18%) | The nurse's part in informed consent (+ liability and battery) | teach-back before any signature; no invalid signature; surgeon within 5 min | rn-consent |
+| NCLEXRN/digoxin-due-yellow-halos | Pharmacological and Parenteral (16%) | Digoxin toxicity; low potassium raises risk | digoxin held; provider within 5 min; apical pulse first | rn-digoxin |
+| NCLEXRN/insulin-given-to-wrong-bed | 16% | Report a medication error honestly and promptly | provider within 5 min; glucose treated; record kept honest | rn-mederror |
+| NCLEXRN/heparin-aptt-high-pink-urine | 16% | Read anticoagulant monitoring | stopped within 5 min, never increased; provider called; bleeding assessed | rn-heparin |
+| NCLEXRN/postop-fever-150-graves-meds-stopped | Physiological Adaptation (14%) | Thyroid storm as an emergency | rapid response within 5 min; cooling without aspirin; no sedate-and-wait | rn-storm |
+| NCLEXRN/day-two-chemo-potassium-climbing | Safety and Infection Prevention (13%) | Oncologic emergencies: tumor lysis syndrome | reported within 5 min; potassium fluid stopped; telemetry | rn-tls |
+| NCLEXRN/pacu-snoring-then-vomiting | Reduction of Risk Potential (12%) | PACU airway and PONV, clear handover | airway within 1 min; side and suction; no opioid before the airway | rn-pacu |
+
+- **Scope.** The ICU nurse acts on named unit policies and the
+  intensivist's orders; the RN on standing orders and protocols named in the
+  brief; the LPN reads back, checks, holds a dose pending the provider,
+  reinforces teaching the RN or provider started, and reports. Delegation
+  by the LPN is set in a state whose practice act allows it (the brief says
+  so).
+- **Harm endings** are outcomes: emergency dialysis, hemorrhagic shock,
+  refractory shock and arrest, a hypernatremic seizure, septic shock,
+  aspiration, collapse off a vasopressor, tissue necrosis, collapse from
+  abdominal compartment syndrome, a hypertensive brain hemorrhage, muscle
+  necrosis, a completed infarct, raised ICP with septic shock, the 8-hour
+  acetylcysteine window lost, a hyperkalemic dysrhythmia, aspiration with
+  respiratory distress, a GI bleed, perforation, surgery without valid
+  consent, complete heart block, a hypoglycemic seizure, a major
+  hemorrhage, heart failure from thyroid storm.
+- **No mental health content.** The NCLEX and CCRN courses are not behind
+  the 18+ gate, so the acetaminophen case is an accidental single acute
+  ingestion for dental pain, and no case touches self-harm.
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes
+  (direct pages or PDFs unless noted): StatPearls (statpearls.com copies;
+  NCBI refuses automated fetches) on AKI, DIC, adrenal crisis, AVP
+  deficiency, neutropenic fever, abdominal compartment syndrome, thyroid
+  storm, tumor lysis syndrome and appendicitis (nursing); the Guideline
+  Central summary of the 2016 AASLD portal hypertensive bleeding guidance
+  (secondary); the LEVOPHED label (5.1) and the NYU Langone peripheral
+  vasopressor protocol; the ANA/NCSBN National Guidelines for Nursing
+  Delegation (2019); the American Stroke Association page on dysphagia;
+  Open RN Nursing Fundamentals 1.6 and Management and Professional
+  Concepts 5.6; the UAMS autonomic dysreflexia guideline (2018); WikEM on
+  compartment syndrome and rhabdomyolysis (physician-edited, secondary);
+  US Pharmacist 2024 on the 2023 AHA/ASA aSAH guideline (secondary); AFP
+  2005 on the IDSA meningitis guideline (secondary); the LANOXIN label
+  (2018); American Nurse Journal 2011 on error disclosure; the Pfizer
+  heparin label (11/2025); the Merck Manual Professional on acetaminophen
+  poisoning (2026); MedlinePlus on warfarin (2026); the UF anesthesiology
+  postoperative guide. Relayed with their dates: the CCRN handbook and the
+  NCLEX test plans from the course seeds, OpenStax Fundamentals 16.3, and
+  the ADA 2026 Standards and Lilly lispro page from the LPN/VN insulin
+  case. A fetch of the AHA "top things to know" page for aSAH failed at
+  the site. Disease courses, effect sizes and local waits are authored
+  teaching values marked `FLAG`.
+- **Findings while authoring.** A test id makes a `<id>At` state, so a
+  test named `bleed` clashes with a parameter `bleedAt` (the linter refused
+  it, "name already used by params") and a test named `time` would shadow
+  the `timeAt()` function; the builder renamed both. `time_up` is reached
+  by no golden path, and an action that becomes available only after an
+  order draws the linter's "never available" warning although goldens use
+  it, as in 22.32.
+
+**Bands considered and not made.** The emergency neurogenic shock and
+anaphylaxis cases (CEN, at triage) were not banded to CCRN Adult's
+neurogenic shock and anaphylactic shock objectives, and the progressive care
+tamponade case not to CCRN's tamponade objective: the setting is not the
+ICU (the rule 22.32 used). No existing case teaches an open NCLEX-PN
+objective in PN scope.
+
+**Where this builder stopped (24 new cases).** Counted again from the
+seeded catalog: CCRN Adult 72 to 58, NCLEX-RN 97 to 90, NCLEX-PN 38 to 35
+fitting objectives that are no sim's main objective (secondary-only
+included). Next candidates, highest weight first, all bedside:
+- CCRN Adult 21%: acute pancreatitis, acute mesenteric ischemia, hepatic
+  encephalopathy, CRRT complications, ITP bleeding precautions. 18%:
+  Monro-Kellie and a falling level of consciousness, PICS and the ABCDEF
+  bundle. Neurogenic shock needs an ICU case of its own.
+- NCLEX-PN 21%: accepting a delegated task only within scope; consent and
+  battery. NCLEX-RN 18%: someone else giving consent, and refusal of
+  treatment and interpreter services.
+- Not fitting a timed bedside case: CCRN moral agency (20%) and the
+  knowledge-only Management of Care and Coordinated Care objectives
+  (malpractice parts, sentinel events, ethical principles, SMART outcomes,
+  privacy, resource management), which would suit the governance board or
+  tabletop screens; CCRN behavioral emergencies and levetiracetam mood
+  effects, and the NCLEX-RN Psychosocial Integrity objectives (31 at 9%),
+  which need the session screen and the 18+ gate. Decisions for Nick.

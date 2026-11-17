@@ -1,0 +1,496 @@
+{
+  "slug": "two-falls-not-herself",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: full vital signs with a counted rate, delirium screen, lungs; pneumonia with early sepsis; emergency department now; hand-over",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pna"
+          },
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "atypQ",
+          "choice": "delir",
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "edNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "vitalsC": "met",
+          "lungsC": "met",
+          "edC": "met",
+          "camC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVitals": 65,
+          "toDecide": 120
+        },
+        "stateHash": "122bbc56dfc2daf2"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateDecision",
+      "title": "Dipstick and medications first, then the findings; the decision comes 13 minutes after the first sign",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dip",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "cam",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pna"
+          },
+          "seq": 8,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 9,
+          "tick": 200
+        },
+        {
+          "type": "teach",
+          "prompt": "atypQ",
+          "choice": "delir",
+          "seq": 10,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 200
+        }
+      ],
+      "expect": {
+        "ending": "edGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "vitalsC": "met",
+          "lungsC": "met",
+          "edC": "partial",
+          "camC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVitals": 180,
+          "toDecide": 820
+        },
+        "stateHash": "4e34ee8dad2fab45"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noDeliriumScreen",
+      "title": "Vital signs and lungs, sent promptly, but delirium never screened",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "atypQ",
+          "choice": "delir",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pna"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "edGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "vitalsC": "met",
+          "lungsC": "met",
+          "edC": "met",
+          "camC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVitals": 60,
+          "toDecide": 60
+        },
+        "stateHash": "dd423805eef5c4d6"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "dipstickUti",
+      "title": "Failure: dipstick and vital signs, calls it a UTI, home on antibiotics",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dip",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "uti"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "abx"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "atypQ",
+          "choice": "delir",
+          "seq": 7,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "home",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "vitalsC": "met",
+          "lungsC": "missed",
+          "edC": "missed",
+          "camC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toVitals": 120,
+          "toDecide": 0
+        },
+        "stateHash": "5e078d731dd548f9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "fallsClinic",
+      "title": "Failure: a medication review, calls it dementia with mechanical falls, referrals and home",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dementia"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pt"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "atypQ",
+          "choice": "delir",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "home",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "vitalsC": "missed",
+          "lungsC": "missed",
+          "edC": "missed",
+          "camC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toVitals": -1,
+          "toDecide": -1
+        },
+        "stateHash": "cf61c65527b8d999"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noDecision",
+      "title": "Failure: dipstick and medication review, then no decision while she worsens",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dip",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "asb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "vitalsC": "missed",
+          "lungsC": "missed",
+          "edC": "missed",
+          "camC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toVitals": -1,
+          "toDecide": -1
+        },
+        "stateHash": "dc9b5821bf4e28c0"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

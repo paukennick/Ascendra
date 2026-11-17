@@ -224,3 +224,62 @@ course to match).
 | Evaluation | Monitor treatment response and adverse effects, and modify the plan by patient outcomes | cues, choices |  |  |
 | Evaluation | Recognize hypoglycemia from diabetes treatment and adjust the regimen to prevent it | cues, choices | clinic-sulfonylurea-hypoglycemia |  |
 | Evaluation | Apply justice, consent, guardianship and bioethics principles to treatment decisions | choices, priorities |  |  |
+
+## REQ-323 progress (2026-11-17)
+
+Nick approved bands on 2026-11-16 (docs/sims.md 22.28), which settles the
+decision above: an existing sim on another course now covers a fitting
+objective by a band registered to this course. Nine bands this round
+(docs/sims.md 22.32), each a fitting objective's main sim:
+
+- **CMSRN** (3): the transfusion threshold and stopping for a reaction
+  (NCLEX-RN transfusion case); opioid oversedation on a sedation scale (ADN-RN
+  PCA case); the nursing process for a changing med-surg patient (NCLEX-RN
+  deterioration case).
+- **PCCN** (3): urgent procedural or surgical complications (CMSRN bleeding
+  case); sepsis screening and shock (CCRN Adult sepsis case); status
+  epilepticus (CCRN Adult case, set on a neuroscience progressive care unit).
+- **FNPAANP and FNPANCC** (1 each): each FNP course now has both FNP cases,
+  the stroke red flags and the sulfonylurea hypoglycemia.
+- **NCLEX-RN** (1): prioritizing hypotheses as data arrive (PCCN femoral
+  access bleed).
+
+That leaves 115 of the 123 fitting objectives above without a main sim
+(CMSRN 20, CEN 32, PCCN 39, FNPAANP 12, FNPANCC 12, counted from the table
+above less this round's bands). Not banded, and why: the CCRN Adult tension
+pneumothorax case to PCCN or CEN (a ventilated ICU patient after a line,
+not a progressive care or emergency department patient); the NCLEX-PN
+anaphylaxis case to CEN, PCCN or CCRN (the LPN scope and a subacute unit);
+the NCLEX-RN hyperkalemia and CIWA cases to CEN (inpatient medical units).
+Next new bedside cases, in order: CEN anaphylaxis, acute asthma and a
+ruptured ectopic pregnancy; PCCN atrial fibrillation with a rapid
+ventricular response, hyperkalemia on the ECG and opioid depression with
+capnography; CMSRN restraint as a last resort.
+
+### Round 2 (2026-11-17)
+
+New bedside cases, each a fitting objective's main sim (docs/sims.md 22.32,
+"Round 2"):
+
+- **CEN** (+7): ACS at triage (12-lead ECG read without delay), aortic
+  dissection, acute asthma with impending failure, neurogenic shock, rising
+  intracranial pressure, anaphylaxis (IM epinephrine first), upper and lower
+  GI bleeding. Every one of the four highest-weighted categories now has a
+  case.
+- **PCCN** (+2): cardiac tamponade escalated for drainage; opioid
+  respiratory depression on sedation scales and capnography.
+- **CMSRN** (+1): restraint only after less restrictive measures, never PRN.
+- **FNPAANP** (+1): atypical presentations in older adults; banded to
+  **FNPANCC** (+1) on building and prioritizing a differential diagnosis.
+
+Counted again from the seeded catalog after this round (fitting objectives
+that are no sim's main objective, secondary-only included): CEN 25, PCCN 37,
+CMSRN 19, FNPAANP 11, FNPANCC 11. Not banded, and why: the new emergency
+department cases to PCCN or CCRN Adult (triage and emergency department
+patients); the DPT Parkinson session to NPTE-PTA (its scoring rewards
+calling the neurologist and agreeing the home program, which are the PT's).
+Next candidates, in order: CEN ruptured ectopic pregnancy, tachy- and
+bradycardias, COPD and burns; PCCN atrial fibrillation with a rapid
+ventricular response, ST elevation on telemetry, compartment syndrome and
+rhabdomyolysis; CMSRN moderate sedation monitoring and the pre-procedure
+timeout; FNP suicide risk (session screen, 18+ gate).

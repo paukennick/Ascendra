@@ -1,0 +1,490 @@
+{
+  "slug": "oozing-lines-in-septic-shock",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: coagulation panel and bleeding exam; enoxaparin held; precautions; overt DIC; intensivist for components and drainage; components given; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "coags",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "labsQ",
+          "choice": "pattern",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "prec",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dic"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "productsQ",
+          "choice": "bleeding",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "products",
+          "seq": 12,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "controlled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "enoxC": "met",
+          "productsC": "met",
+          "bleedC": "met",
+          "precC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toProducts": 450
+        },
+        "stateHash": "6c160dd62ef025b7"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Reviews the source and medications first, calls 7 minutes after the panel; no bleeding exam or precautions",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "source",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "labsQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "coags",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dic"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 135
+        },
+        {
+          "type": "teach",
+          "prompt": "productsQ",
+          "choice": "bleeding",
+          "seq": 9,
+          "tick": 135
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "products",
+          "seq": 11,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 200
+        }
+      ],
+      "expect": {
+        "ending": "controlledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "callC": "partial",
+          "enoxC": "met",
+          "productsC": "met",
+          "bleedC": "missed",
+          "precC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 495,
+          "toProducts": 1000
+        },
+        "stateHash": "430a9d71d3bf1e85"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "enoxGiven",
+      "title": "Calls at once but gives the enoxaparin early 'because septic patients clot'",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "coags",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "labsQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "enox",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "productsQ",
+          "choice": "bleeding",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "prec",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dic"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "products",
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "controlledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "callC": "met",
+          "enoxC": "missed",
+          "productsC": "met",
+          "bleedC": "met",
+          "precC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toProducts": 450
+        },
+        "stateHash": "e104f480b38d87d2"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "calledHit",
+      "title": "Failure: calls it HIT, gives the enoxaparin anyway and waits for a repeat panel",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "coags",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "labsQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hit"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "enox",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "hemorrhage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "enoxC": "missed",
+          "productsC": "missed",
+          "bleedC": "missed",
+          "precC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toProducts": -1
+        },
+        "stateHash": "2eff3b8200844f40"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "dilution",
+      "title": "Failure: sees the bleeding, calls it dilution and waits for a repeat panel",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "labsQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dilution"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "hemorrhage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "enoxC": "missed",
+          "productsC": "missed",
+          "bleedC": "met",
+          "precC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toProducts": -1
+        },
+        "stateHash": "a456df393aba4616"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

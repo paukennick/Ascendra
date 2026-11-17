@@ -1,0 +1,1176 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "diving-injury-low-pressure-slow-pulse",
+  "title": "Low pressure, slow pulse, warm skin",
+  "objective": "Recognize neurogenic shock -- hypotension with bradycardia after spinal cord injury",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Neurological Emergencies (17 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Neurological Emergencies is 17 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Brayan K, Beck-Esmay J. Neurogenic Shock: Definition, Identification, and Management in the ED. emDocs, 2023-03-13",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.emdocs.net/neurogenic-shock-definition-identification-and-management-in-the-ed/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Injury 'at or above T6' risks neurogenic shock; 'the hallmark symptoms of neurogenic shock, bradycardia and hypotension', with 'warm extremities and flushed skin'; 'neurogenic shock is a diagnosis of exclusion in the setting of trauma', 'particularly hemorrhagic shock'; 'The first-line treatment for hypotension in trauma patients is intravenous crystalloid fluid resuscitation', but 'IV fluids are not adequate for hypotension caused by neurogenic shock and these patients will require vasopressors'; atropine or glycopyrrolate for bradycardia not improved by vasopressors; a MAP 'greater than 85-90 mmHg' (citing StatPearls); cervical collar, blocks and a rigid board for immobilization. A secondary review; no dose is used in the case."
+    },
+    {
+      "cite": "King KJ, Olson DM. What you should know about neurogenic shock. American Nurse (myamericannurse.com), 2007-02-11",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.myamericannurse.com/what-you-should-know-about-neurogenic-shock/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Bradycardia, hypotension and 'warm, dry skin (from vasodilation)' after 'high thoracic spinal injury (T6 level or higher)'; 'aggressive blood pressure support with cautious I.V. fluids and vasoactive drugs'; a 'mean arterial pressure (MAP) of 85 to 90 mm Hg should be maintained'. An older nursing review, used for the signs only alongside the 2023 review."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "16:20 in the emergency department trauma bay. You are the trauma nurse. Mr. Osei, 23, dove into a shallow lake and didn't come up; friends pulled him out. EMS brings him in a cervical collar with blocks on a board.",
+    "handover": [
+      "EMS: 'Couldn't move his legs at the scene. Pressure's been in the 80s the whole way, pulse in the 50s.' Two IVs in, 500 mL crystalloid given.",
+      "The trauma team's orders so far: spinal motion restriction, crystalloid boluses for hypotension, trauma labs and type and screen, CT when stable enough. The trauma physician is at the head of the bed and wants your findings.",
+      "Unit practice: a vasopressor runs only on the physician's order, to the MAP target the physician sets."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the pattern means, what to rule out and what to tell the physician.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:20",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "baseMap": {
+      "value": 58,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Mean arterial pressure from the lost sympathetic tone, on arrival. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusGain": {
+      "value": 4,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "MAP gained per crystalloid bolus: fluids alone do not restore the tone. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pressorGain": {
+      "value": 26,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "MAP gained once the ordered vasopressor runs. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "mapTarget": {
+      "value": 85,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Brayan K, Beck-Esmay J. Neurogenic Shock: Definition, Identification, and Management in the ED. emDocs, 2023-03-13",
+        "checkedAt": "2026-11-17",
+        "note": "The MAP target the physician sets after spinal cord injury (the reviews give greater than 85-90)."
+      }
+    },
+    "lowLimit": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Minutes of MAP below 80 the authored model allows before a secondary cord injury: 25. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "pressorWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The vasopressor running within 10 minutes of the report (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "ctTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "From the report to leaving for CT and the ICU once the pressure is supported: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "bleedAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "bleed",
+        "skin",
+        "neuro"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "fluids"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neuro",
+        "hemo",
+        "spinal"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "boluses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressorAt": {
+      "type": "time",
+      "init": null
+    },
+    "collarOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "lowMapS": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99999
+    }
+  },
+  "derived": {
+    "map": {
+      "expr": "round(baseMap + bolusGain * boluses + (isNull(pressorAt) ? 0 : pressorGain * clamp((t - timeAt(pressorAt)) / 180, 0, 1)) + sin(t / 23))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(map * 1.45)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(map * 0.78)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(52 + (isNull(pressorAt) ? 0 : 6) + sin(t / 17))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pressorOrdered": {
+      "expr": "route == \"md\""
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "cord",
+      "when": "inClinic",
+      "update": {
+        "lowMapS": "lowMapS + (map < 80 ? dt : 0)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              60,
+              50
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "announce": {
+            "bands": [
+              85,
+              65
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Crystalloid boluses: {boluses|0dp}. Vasopressor: {not isNull(pressorAt)|yesno}. Collar and blocks: {isNull(collarOffAt)|yesno}.",
+      "banner": [
+        {
+          "when": "pressorOrdered and isNull(pressorAt)",
+          "text": "Vasopressor ordered to a MAP of 85 or more."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "airway": {
+      "label": "Airway and breathing: chest movement, voice, SpO2",
+      "group": "Assess",
+      "available": "not testPending and isNull(airwayAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"airway\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bleed": {
+      "label": "Look for bleeding: chest, abdomen, pelvis, long bones; ask for the bedside ultrasound result",
+      "group": "Assess",
+      "available": "not testPending and isNull(bleedAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bleed\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "skin": {
+      "label": "Skin: color, temperature, capillary refill",
+      "group": "Assess",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Motor and sensory level, with the collar on",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Crystalloid bolus (trauma order)",
+      "group": "Treat",
+      "available": "boluses < 4 and inClinic",
+      "why": "Four boluses already given.",
+      "effects": [
+        {
+          "add": "boluses",
+          "by": "1"
+        },
+        {
+          "if": "isNull(bolusAt)",
+          "then": [
+            {
+              "set": "bolusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bolus in. MAP {map}; heart rate {hr}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pressor": {
+      "label": "Start the ordered vasopressor through the IV, titrated to the MAP target",
+      "group": "Treat",
+      "available": "pressorOrdered and isNull(pressorAt) and inClinic",
+      "why": "Not ordered yet, or already running.",
+      "effects": [
+        {
+          "set": "pressorAt",
+          "to": "t"
+        },
+        {
+          "log": "Vasopressor running; MAP checked every few minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "collar": {
+      "label": "Take the collar off so he can breathe and talk more easily",
+      "group": "Treat",
+      "available": "isNull(collarOffAt) and inClinic",
+      "why": "Already off.",
+      "effects": [
+        {
+          "set": "collarOffAt",
+          "to": "t"
+        },
+        {
+          "log": "Collar and blocks off. He turns his head toward his friend's voice.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the shock",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "neuro",
+              "label": "Neurogenic shock: hypotension with bradycardia and warm skin after a cervical cord injury, bleeding ruled out"
+            },
+            {
+              "value": "hemo",
+              "label": "Hemorrhagic shock: keep giving volume until the pressure comes up"
+            },
+            {
+              "value": "spinal",
+              "label": "Spinal shock: it will resolve on its own; no treatment needed"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"neuro\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"neuro\""
+                },
+                {
+                  "log": "Impression: neurogenic shock.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"hemo\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hemo\""
+                },
+                {
+                  "log": "Impression: hemorrhagic shock.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"spinal\""
+                },
+                {
+                  "log": "Impression: spinal shock, self-limiting.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report to the trauma physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "md",
+              "label": "MAP stays low after fluid, heart rate in the 50s, warm skin, a cord level at the nipples, no bleeding found: neurogenic shock; ask for a vasopressor and MAP target"
+            },
+            {
+              "value": "fluids",
+              "label": "Pressure still low; I'll keep the boluses going and update you after CT"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "ctTime"
+                },
+                {
+                  "log": "The physician agrees: neurogenic shock. 'Start the vasopressor to a MAP of 85 or more; atropine at the bedside for symptomatic bradycardia. CT when he's supported.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"fluids\""
+                },
+                {
+                  "log": "The physician nods and turns back to the airway check.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off to the ICU: mechanism, cord level, MAP target, pressor start time",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: diving injury, cervical cord level, bleeding ruled out, vasopressor {isNull(pressorAt) ? \"not yet running\" : \"running\"}, MAP target 85 or more.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Trauma bay",
+      "clock": "running",
+      "actions": [
+        "airway",
+        "bleed",
+        "skin",
+        "neuro",
+        "bolus",
+        "pressor",
+        "collar",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"airway\"",
+              "then": [
+                {
+                  "set": "airwayAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Talking in full sentences. Belly rises more than the chest with each breath; SpO2 {spo2}%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bleed\"",
+              "then": [
+                {
+                  "set": "bleedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No external bleeding; abdomen soft; pelvis stable; thighs normal. Bedside ultrasound: no free fluid. Hemoglobin 14.1 g/dL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"skin\"",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Warm, dry and pink to the toes, capillary refill 2 seconds, despite a blood pressure of {sbp}/{dbp}.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Shrugs and bends his elbows; no grip, nothing below. Sensation lost from the nipple line down. A cervical cord injury.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to CT and the ICU",
+      "wait": {
+        "skipLabel": "his move to CT"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min from the report to leaving for CT and the ICU."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for CT and then the ICU, collar on.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "mapAlarm",
+      "when": "map < 65",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "MAP alarm: {map} mm Hg.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Mr. Osei's pressure low, and what does he need?",
+      "parts": [
+        {
+          "label": "Which shock",
+          "criteria": "Hypotension with bradycardia and warm, dry skin after a cervical cord injury is neurogenic shock (lost sympathetic tone), but in trauma it is a diagnosis of exclusion: bleeding is looked for first and not found.",
+          "modelAnswer": "A low pressure with a slow pulse and warm, pink skin after a cord injury at the neck is neurogenic shock, not the cold, fast picture of bleeding. In trauma I still rule out bleeding first: chest, abdomen, pelvis and long bones are clear."
+        },
+        {
+          "label": "What he needs",
+          "criteria": "Crystalloid first, but fluid alone will not restore the tone: report to the physician for a vasopressor to a MAP target (85 or more); keep the collar and motion restriction; atropine for symptomatic bradycardia.",
+          "modelAnswer": "A fluid bolus first, then tell the physician that fluid isn't enough: he needs a vasopressor to a MAP of 85 or more, and atropine ready for the slow heart rate. The collar stays on."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An hour of unsupported hypotension after a cord injury risks secondary injury to the cord, which is harm here.",
+      "source": {
+        "cite": "Brayan K, Beck-Esmay J. Neurogenic Shock: Definition, Identification, and Management in the ED. emDocs, 2023-03-13",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.emdocs.net/neurogenic-shock-definition-identification-and-management-in-the-ed/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Injury 'at or above T6' risks neurogenic shock; 'the hallmark symptoms of neurogenic shock, bradycardia and hypotension', with 'warm extremities and flushed skin'; 'neurogenic shock is a diagnosis of exclusion in the setting of trauma', 'particularly hemorrhagic shock'; 'The first-line treatment for hypotension in trauma patients is intravenous crystalloid fluid resuscitation', but 'IV fluids are not adequate for hypotension caused by neurogenic shock and these patients will require vasopressors'; atropine or glycopyrrolate for bradycardia not improved by vasopressors; a MAP 'greater than 85-90 mmHg' (citing StatPearls); cervical collar, blocks and a rigid board for immobilization. A secondary review; no dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "moved": {
+      "label": "Neck moved without the collar",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(collarOffAt) and t >= timeAt(collarOffAt) + 60 and inClinic",
+      "narrative": "With the collar off he turned his head. Now he can't shrug or bend his elbows: the unstable cervical injury has moved. The team reapplies the collar."
+    },
+    "ischemia": {
+      "label": "Prolonged hypotension: a secondary cord injury",
+      "class": "harm",
+      "terminal": true,
+      "when": "lowMapS >= lowLimit and inClinic",
+      "narrative": "MAP {map} after nearly half an hour below target. His level has crept up; fluid alone never restored the tone a cord injury takes away."
+    },
+    "supported": {
+      "label": "Neurogenic shock recognized and supported",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and not isNull(bleedAt) and timeAt(bleedAt) <= timeAt(callAt) and not isNull(bolusAt) and not isNull(pressorAt) and timeAt(pressorAt) <= timeAt(callAt) + pressorWindow and isNull(collarOffAt)",
+      "narrative": "{timeAt(leftAt)|clock}: MAP {map} on the vasopressor as he leaves for CT, collar on. Bleeding ruled out, fluid first, then the pressor neurogenic shock needs."
+    },
+    "slower": {
+      "label": "Supported, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves for CT, but the bleeding screen, the fluid or the vasopressor came late or not at all."
+    },
+    "time_up": {
+      "label": "Still in the trauma bay at 17:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "17:20 and Mr. Osei is still hypotensive in the trauma bay."
+    }
+  },
+  "endingOrder": [
+    "moved",
+    "ischemia",
+    "supported",
+    "slower"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "bleedC",
+        "label": "Looked for bleeding before calling it neurogenic",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bleedAt) and (isNull(callAt) or timeAt(bleedAt) <= timeAt(callAt))",
+            "score": "met",
+            "why": "Bleeding screen at {timeAt(bleedAt)|clock}."
+          },
+          {
+            "when": "not isNull(bleedAt)",
+            "score": "partial",
+            "why": "Screened, but after the report."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No bleeding screen."
+          }
+        ]
+      },
+      {
+        "id": "pressorC",
+        "label": "Reported for a vasopressor and started it within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pressorAt) and timeAt(pressorAt) <= timeAt(callAt) + pressorWindow",
+            "score": "met",
+            "why": "Running at {timeAt(pressorAt)|clock}."
+          },
+          {
+            "when": "not isNull(pressorAt)",
+            "score": "partial",
+            "why": "Started late."
+          },
+          {
+            "when": "route == \"fluids\"",
+            "score": "missed",
+            "why": "Kept to fluid alone."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No vasopressor."
+          }
+        ]
+      },
+      {
+        "id": "collarC",
+        "label": "Collar and motion restriction kept on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(collarOffAt)",
+            "score": "met",
+            "why": "Kept on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed at {timeAt(collarOffAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "bolusC",
+        "label": "A crystalloid bolus first",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bolusAt)",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No bolus."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named neurogenic shock",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"neuro\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"hemo\"",
+            "score": "missed",
+            "why": "Called it hemorrhagic with no bleeding found."
+          },
+          {
+            "when": "dxEnum == \"spinal\"",
+            "score": "missed",
+            "why": "Spinal shock is a loss of reflexes, not a cause of hypotension to wait out."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the cord level, MAP target and pressor time",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: neurogenic, not hemorrhagic, after ruling out bleeding; pressor for a MAP target",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "lowMap",
+        "label": "Time with MAP below 80",
+        "value": "lowMapS",
+        "format": "duration",
+        "expert": "under 12 min"
+      },
+      {
+        "id": "toPressor",
+        "label": "Report to the vasopressor",
+        "value": "isNull(pressorAt) or isNull(callAt) ? -1 : max(0, timeAt(pressorAt) - timeAt(callAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:20",
+        "text": "Collar stays on. Breathing: diaphragmatic but adequate. A crystalloid bolus."
+      },
+      {
+        "at": "~16:22",
+        "text": "Bleeding screen: chest, abdomen, pelvis, long bones and ultrasound all clear."
+      },
+      {
+        "at": "~16:24",
+        "text": "Warm pink skin, heart rate 52, a sensory level at the nipples: neurogenic shock."
+      },
+      {
+        "at": "~16:25",
+        "text": "Report to the physician; start the vasopressor to a MAP of 85 or more; hand off for CT and the ICU."
+      }
+    ],
+    "debrief": {
+      "moved": {
+        "headline": "The neck moved",
+        "body": "An unstable cervical injury stays in its collar and blocks until imaging and the team clear it."
+      },
+      "ischemia": {
+        "headline": "Prolonged hypotension",
+        "body": "Fluid first, but neurogenic shock is lost vascular tone: fluid alone won't fix it. Once bleeding is ruled out, ask for a vasopressor to a MAP target."
+      },
+      "supported": {
+        "headline": "Recognized and supported",
+        "body": "You ruled out bleeding, gave fluid, read the slow pulse and warm skin as neurogenic shock and got a vasopressor running within minutes, collar on. That is the expert path."
+      },
+      "slower": {
+        "headline": "Supported, with delays",
+        "body": "Check whether bleeding was ruled out first, whether fluid came before the pressor, and how long the MAP sat below 80."
+      },
+      "time_up": {
+        "headline": "Still hypotensive",
+        "body": "Neurogenic shock needs a vasopressor within minutes of being recognized."
+      }
+    },
+    "modelReasoning": "After a diving injury with a cervical cord level, hypotension with a slow pulse and warm, pink skin is neurogenic shock: the cord injury has cut the sympathetic tone. In trauma it is a diagnosis of exclusion, so bleeding is looked for first and not found. Crystalloid comes first, but fluid alone won't restore the tone: the physician orders a vasopressor to a MAP of 85 or more and atropine for symptomatic bradycardia. The collar stays on throughout."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "The physician told",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "fluidQ": {
+      "during": "leaveT",
+      "ask": "While he goes to CT: why did he need a vasopressor after fluid?",
+      "choices": [
+        {
+          "id": "tone",
+          "label": "Fluid alone doesn't restore the vascular tone the cord injury removed"
+        },
+        {
+          "id": "bleed",
+          "label": "He was still bleeding"
+        },
+        {
+          "id": "heart",
+          "label": "His heart muscle was injured"
+        }
+      ],
+      "expect": "tone",
+      "explain": "IV fluids are not adequate for hypotension caused by neurogenic shock; these patients need vasopressors.",
+      "source": {
+        "cite": "Brayan K, Beck-Esmay J. Neurogenic Shock: Definition, Identification, and Management in the ED. emDocs, 2023-03-13",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.emdocs.net/neurogenic-shock-definition-identification-and-management-in-the-ed/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Injury 'at or above T6' risks neurogenic shock; 'the hallmark symptoms of neurogenic shock, bradycardia and hypotension', with 'warm extremities and flushed skin'; 'neurogenic shock is a diagnosis of exclusion in the setting of trauma', 'particularly hemorrhagic shock'; 'The first-line treatment for hypotension in trauma patients is intravenous crystalloid fluid resuscitation', but 'IV fluids are not adequate for hypotension caused by neurogenic shock and these patients will require vasopressors'; atropine or glycopyrrolate for bradycardia not improved by vasopressors; a MAP 'greater than 85-90 mmHg' (citing StatPearls); cervical collar, blocks and a rigid board for immobilization. A secondary review; no dose is used in the case."
+      }
+    },
+    "patternQ": {
+      "during": "testT",
+      "ask": "While you assess: which pattern points to neurogenic shock rather than bleeding?",
+      "choices": [
+        {
+          "id": "slow",
+          "label": "Low blood pressure with a slow heart rate and warm, dry skin"
+        },
+        {
+          "id": "fast",
+          "label": "Low blood pressure with a fast heart rate and cold, pale skin"
+        },
+        {
+          "id": "high",
+          "label": "High blood pressure with a slow heart rate"
+        }
+      ],
+      "expect": "slow",
+      "explain": "Bradycardia and hypotension with warm, flushed skin after an injury at or above T6; in trauma, hemorrhage is ruled out first.",
+      "source": {
+        "cite": "Brayan K, Beck-Esmay J. Neurogenic Shock: Definition, Identification, and Management in the ED. emDocs, 2023-03-13",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.emdocs.net/neurogenic-shock-definition-identification-and-management-in-the-ed/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Injury 'at or above T6' risks neurogenic shock; 'the hallmark symptoms of neurogenic shock, bradycardia and hypotension', with 'warm extremities and flushed skin'; 'neurogenic shock is a diagnosis of exclusion in the setting of trauma', 'particularly hemorrhagic shock'; 'The first-line treatment for hypotension in trauma patients is intravenous crystalloid fluid resuscitation', but 'IV fluids are not adequate for hypotension caused by neurogenic shock and these patients will require vasopressors'; atropine or glycopyrrolate for bradycardia not improved by vasopressors; a MAP 'greater than 85-90 mmHg' (citing StatPearls); cervical collar, blocks and a rigid board for immobilization. A secondary review; no dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

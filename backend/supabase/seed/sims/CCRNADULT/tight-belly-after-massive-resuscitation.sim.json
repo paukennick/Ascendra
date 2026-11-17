@@ -1,0 +1,1125 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tight-belly-after-massive-resuscitation",
+  "title": "Peak pressures climbing",
+  "objective": "Measure intra-abdominal pressure in at-risk patients because examination cannot detect abdominal compartment syndrome, and recognize its effects on kidneys, lungs and heart",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: gastrointestinal problems, including abdominal compartment syndrome, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: gastrointestinal problems, including abdominal compartment syndrome, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Abdominal Compartment Syndrome, Nalin Dayal, last updated 2023-07-20",
+      "checkedAt": "2026-11-17",
+      "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/19771",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Intraabdominal hypertension is defined as the sustained intra-abdominal pressure (IAP) above 12 mmHg'; 'ACS is diagnosed when the IAP is >20 mm Hg, and is associated with organ dysfunction/failure'; abdominal pain and distension are 'not a sensitive or specific finding'; the intravesical method is the gold standard: clamp the drainage tubing, zero at the mid-axillary line, instill about 25 mL of saline, and 'Measurements should be taken at end-expiration and complete supine position'; compression lowers GFR and urine output, raises peak airway pressures and reduces venous return and cardiac output; large-volume fluid replacement 'greater than 3 liters' is a risk factor; management includes NG or rectal decompression, goal-directed fluid balance, brief neuromuscular blockade, and emergent decompressive laparotomy if organ dysfunction persists."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in a surgical ICU. You are Mr. Abara's nurse. He is 63, the day after repair of a ruptured abdominal aortic aneurysm, intubated and sedated. He received about 11 L of fluid and blood in the first 24 hours.",
+    "handover": [
+      "Over the last two hours: peak airway pressure up from 28 to 38 cm H2O, urine output down to 10 mL/h, MAP drifting down, heart rate up.",
+      "The resident felt his abdomen at 08:00: 'distended but soft enough'. An intra-abdominal pressure order exists 'every 4 hours'; none has been done since surgery.",
+      "Unit policy: bladder pressure supine, at end-expiration, zeroed at the mid-axillary line, with no more than 25 mL instilled; report any value over 20 mmHg to the surgeon at once."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Organ dysfunction from abdominal compartment syndrome progresses. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "decompRate": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with NG decompression and neuromuscular blockade before surgery. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bolusBump": {
+      "value": 0.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Another fluid bolus raises the abdominal pressure further. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "failAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of cardiovascular collapse from abdominal compartment syndrome. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgeon told within 5 minutes of a pressure over 20 (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgeon reviews and orders: about 4 min."
+      }
+    },
+    "orTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Decompressive laparotomy at the bedside or in the OR: about 30 min to start."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "iapCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "quickAt": {
+      "type": "time",
+      "init": null
+    },
+    "examAt": {
+      "type": "time",
+      "init": null
+    },
+    "organsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "iapCheck",
+        "quick",
+        "exam",
+        "organs"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "surg",
+        "repeat"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "acs",
+        "dry",
+        "ards"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "ngAt": {
+      "type": "time",
+      "init": null
+    },
+    "nmbAt": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"surg\" and t >= timeAt(callAt) + orderTime"
+    },
+    "iap": {
+      "expr": "round(22 + 10 * prog - (isNull(ngAt) ? 0 : 2) - (isNull(nmbAt) ? 0 : 3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(104 + 24 * prog + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(112 - 30 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "peak": {
+      "expr": "round(30 + 14 * prog)",
+      "unit": "cm H2O",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 6 * max(0, prog - 0.4))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(nmbAt) and isNull(ngAt) ? progRate : decompRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              100,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "peak",
+          "label": "Ppeak",
+          "spokenLabel": "Peak airway pressure",
+          "value": "peak",
+          "unit": "cm H2O",
+          "alarm": {
+            "high": 35
+          },
+          "announce": {
+            "bands": [
+              35,
+              40
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "NG tube to suction: {not isNull(ngAt)|yesno}. Neuromuscular blockade: {not isNull(nmbAt)|yesno}. Extra fluid bolus: {not isNull(bolusAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(nmbAt)",
+          "text": "The surgeon is coming for a decompressive laparotomy; neuromuscular blockade and NG decompression ordered meanwhile."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "iapCheck": {
+      "label": "Measure the bladder pressure: supine, end-expiration, zeroed at the mid-axillary line, 25 mL instilled",
+      "group": "Assess",
+      "available": "not testPending and isNull(iapCheckAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"iapCheck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "quick": {
+      "label": "Quick bladder pressure with the head of the bed up and 100 mL instilled",
+      "group": "Assess",
+      "available": "not testPending and isNull(quickAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"quick\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "exam": {
+      "label": "Examine the abdomen",
+      "group": "Assess",
+      "available": "not testPending and isNull(examAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"exam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "organs": {
+      "label": "Review kidneys, lungs and heart: output, creatinine, airway pressures, gases",
+      "group": "Assess",
+      "available": "not testPending and isNull(organsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"organs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ng": {
+      "label": "Put the NG tube to low continuous suction",
+      "group": "Treat",
+      "available": "isNull(ngAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "ngAt",
+          "to": "t"
+        },
+        {
+          "log": "NG tube on suction: 300 mL of bilious fluid out.",
+          "kind": "act"
+        }
+      ]
+    },
+    "nmb": {
+      "label": "Give the ordered neuromuscular blocker (he is sedated) while the surgeon comes",
+      "group": "Treat",
+      "available": "ordered and isNull(nmbAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "nmbAt",
+          "to": "t"
+        },
+        {
+          "log": "Neuromuscular blocker given under sedation; peak pressure eases a little.",
+          "kind": "act"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give another fluid bolus for the low urine output",
+      "group": "Treat",
+      "available": "isNull(bolusAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + bolusBump"
+        },
+        {
+          "log": "A liter of fluid runs in. The urine does not pick up; the peak pressure rises.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "acs",
+              "label": "Abdominal compartment syndrome: pressure over 20 with kidney, lung and heart dysfunction after massive resuscitation"
+            },
+            {
+              "value": "dry",
+              "label": "Hypovolemia: he needs more fluid"
+            },
+            {
+              "value": "ards",
+              "label": "ARDS: adjust the ventilator"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"acs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"acs\""
+                },
+                {
+                  "log": "Abdominal compartment syndrome.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dry\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dry\""
+                },
+                {
+                  "log": "Impression: hypovolemia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ards\""
+                },
+                {
+                  "log": "Impression: ARDS.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell the surgeon",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "surg",
+              "label": "Bladder pressure over 20 measured by protocol, urine 10 mL/h, peak pressure 38 and rising, MAP falling, after 11 L: abdominal compartment syndrome. Ask for decompression now"
+            },
+            {
+              "value": "repeat",
+              "label": "Repeat the bladder pressure in 4 hours as ordered"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"surg\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"surg\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "orTime"
+                },
+                {
+                  "log": "The surgeon agrees: decompressive laparotomy; neuromuscular blockade and NG decompression meanwhile; no more fluid boluses.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"repeat\""
+                },
+                {
+                  "log": "The next pressure is due at 14:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and hand off: pressures with the technique, organ trends, actions and times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: IAP measured supine at end-expiration with 25 mL, value and time, urine, peak pressure and MAP trend, NG and blocker times, surgeon's plan.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "iapCheck",
+        "quick",
+        "exam",
+        "organs",
+        "ng",
+        "nmb",
+        "bolus",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"iapCheck\"",
+              "then": [
+                {
+                  "set": "iapCheckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Intra-abdominal pressure {iap} mmHg, measured supine at end-expiration. Over 20 with falling urine, rising airway pressure and falling MAP.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"quick\"",
+              "then": [
+                {
+                  "set": "quickAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Reading 31 mmHg, but taken head-up with four times the volume: not a valid measurement. Repeat it by the protocol.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"exam\"",
+              "then": [
+                {
+                  "set": "examAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Distended and firm, but examination cannot tell you the pressure.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "organsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Urine 10 mL/h, creatinine doubled; peak pressure {peak} cm H2O, PaO2 falling on the same settings; MAP {map}, heart rate {hr}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "decompressive laparotomy",
+      "wait": {
+        "skipLabel": "the laparotomy"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min until the decompression starts."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The surgeon opens his abdomen; the peak pressure falls and urine starts to flow.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "What is driving his kidneys, lungs and heart down, how do you know, and what do you do?",
+      "parts": [
+        {
+          "label": "What and how",
+          "criteria": "Abdominal compartment syndrome after massive resuscitation: IAP over 20 measured correctly (supine, end-expiration, mid-axillary zero, 25 mL) with new organ dysfunction (oliguria, rising peak pressures, falling MAP); examination cannot detect it.",
+          "modelAnswer": "After 11 liters his bladder pressure, measured properly, is over 20, and his kidneys, lungs and heart are all failing together. That's abdominal compartment syndrome. Feeling his belly can't tell you that; you have to measure."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Tells the surgeon now for decompression; NG to suction; neuromuscular blockade as ordered; no further fluid bolus; measures by protocol, not head-up or with a large volume.",
+          "modelAnswer": "Tell the surgeon now for decompression, put the NG to suction and give the ordered blocker while we wait. No more boluses, they'd raise the pressure. And measure it the right way: flat, end-expiration, 25 mL."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Abdominal compartment syndrome undecompressed an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Abdominal Compartment Syndrome, Nalin Dayal, last updated 2023-07-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/19771",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Intraabdominal hypertension is defined as the sustained intra-abdominal pressure (IAP) above 12 mmHg'; 'ACS is diagnosed when the IAP is >20 mm Hg, and is associated with organ dysfunction/failure'; abdominal pain and distension are 'not a sensitive or specific finding'; the intravesical method is the gold standard: clamp the drainage tubing, zero at the mid-axillary line, instill about 25 mL of saline, and 'Measurements should be taken at end-expiration and complete supine position'; compression lowers GFR and urine output, raises peak airway pressures and reduces venous return and cardiac output; large-volume fluid replacement 'greater than 3 liters' is a risk factor; management includes NG or rectal decompression, goal-directed fluid balance, brief neuromuscular blockade, and emergent decompressive laparotomy if organ dysfunction persists."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Cardiovascular collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= failAt and inClinic",
+      "narrative": "His MAP falls into the 40s, his urine stops and his oxygen saturation drops on maximal settings. He arrests."
+    },
+    "decompressed": {
+      "label": "Measured, recognized and decompressed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"surg\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(ngAt) and not isNull(nmbAt) and isNull(bolusAt)",
+      "narrative": "{timeAt(leftAt)|clock}: decompression starts; his peak pressure falls, his MAP rises and urine flows. You measured it properly and acted on the number."
+    },
+    "decompressedGaps": {
+      "label": "Decompressed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is decompressed, but the call came late, a fluid bolus went in, or the bridging measures were missed."
+    },
+    "time_up": {
+      "label": "Undecompressed at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and his abdomen is still under pressure."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "decompressed",
+    "decompressedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "measureC",
+        "label": "Measured the bladder pressure by protocol",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(iapCheckAt)",
+            "score": "met",
+            "why": "Supine, end-expiration, 25 mL."
+          },
+          {
+            "when": "not isNull(quickAt)",
+            "score": "missed",
+            "why": "Only an invalid head-up reading."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not measured."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Told the surgeon within 5 minutes of a pressure over 20",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"surg\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"surg\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"repeat\"",
+            "score": "missed",
+            "why": "Left for 4 hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "noBolus",
+        "label": "No fluid bolus into the compartment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bolusAt)",
+            "score": "missed",
+            "why": "Bolus given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "bridgeC",
+        "label": "NG decompression and neuromuscular blockade while the surgeon came",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ngAt) and not isNull(nmbAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(ngAt) or not isNull(nmbAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized abdominal compartment syndrome",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"acs\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"dry\"",
+            "score": "missed",
+            "why": "Called it hypovolemia."
+          },
+          {
+            "when": "dxEnum == \"ards\"",
+            "score": "missed",
+            "why": "Called it ARDS."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented with the technique",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: ACS measured, not felt; organ effects; decompression; no more fluid",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Pressure to the surgeon",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toMeasure",
+        "label": "10:00 to a valid pressure",
+        "value": "isNull(iapCheckAt) ? -1 : timeAt(iapCheckAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Measure the bladder pressure by protocol: over 20."
+      },
+      {
+        "at": "~10:01",
+        "text": "Abdominal compartment syndrome. Tell the surgeon now; NG to suction."
+      },
+      {
+        "at": "~10:06",
+        "text": "Give the ordered blocker; no boluses; document the technique and trend."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Collapse",
+        "body": "After massive resuscitation, measure the bladder pressure: examination cannot detect abdominal compartment syndrome. Over 20 with organ dysfunction needs decompression, not more fluid."
+      },
+      "decompressed": {
+        "headline": "Measured and decompressed",
+        "body": "You measured it properly, recognized ACS from the number and the organs, told the surgeon at once, bridged with NG suction and a blocker, and gave no more fluid. That is the expert path."
+      },
+      "decompressedGaps": {
+        "headline": "Decompressed, with gaps",
+        "body": "Check how soon you called, whether a bolus went in, and whether NG suction and the blocker bridged him."
+      },
+      "time_up": {
+        "headline": "Undecompressed",
+        "body": "ACS with failing organs needs decompression within the hour."
+      }
+    },
+    "modelReasoning": "After 11 L of resuscitation, falling urine output, rising peak airway pressures and a falling MAP together point to the abdomen. Examination cannot detect abdominal compartment syndrome, so measure the bladder pressure by protocol: supine, at end-expiration, zeroed at the mid-axillary line, with no more than 25 mL instilled. A pressure over 20 with new organ dysfunction is ACS: the kidneys are compressed, the diaphragm is pushed up and venous return falls. Tell the surgeon now for decompressive laparotomy, put the NG tube to suction and give the ordered neuromuscular blocker meanwhile, and give no more fluid boluses."
+  },
+  "chapters": [
+    {
+      "id": "measured",
+      "label": "Pressure measured",
+      "when": "not isNull(iapCheckAt)"
+    }
+  ],
+  "teaching": {
+    "defQ": {
+      "during": "testT",
+      "ask": "While you measure: what defines abdominal compartment syndrome?",
+      "choices": [
+        {
+          "id": "over20",
+          "label": "IAP over 20 mmHg with new organ dysfunction"
+        },
+        {
+          "id": "over12",
+          "label": "Any IAP over 12"
+        },
+        {
+          "id": "distended",
+          "label": "A tense, distended abdomen"
+        }
+      ],
+      "expect": "over20",
+      "explain": "IAH is a sustained IAP above 12; ACS is an IAP over 20 with organ dysfunction or failure. Distension is not a sensitive or specific finding.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Abdominal Compartment Syndrome, Nalin Dayal, last updated 2023-07-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/19771",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Intraabdominal hypertension is defined as the sustained intra-abdominal pressure (IAP) above 12 mmHg'; 'ACS is diagnosed when the IAP is >20 mm Hg, and is associated with organ dysfunction/failure'; abdominal pain and distension are 'not a sensitive or specific finding'; the intravesical method is the gold standard: clamp the drainage tubing, zero at the mid-axillary line, instill about 25 mL of saline, and 'Measurements should be taken at end-expiration and complete supine position'; compression lowers GFR and urine output, raises peak airway pressures and reduces venous return and cardiac output; large-volume fluid replacement 'greater than 3 liters' is a risk factor; management includes NG or rectal decompression, goal-directed fluid balance, brief neuromuscular blockade, and emergent decompressive laparotomy if organ dysfunction persists."
+      }
+    },
+    "techQ": {
+      "during": "leaveT",
+      "ask": "While he is decompressed: how is a valid bladder pressure taken?",
+      "choices": [
+        {
+          "id": "protocol",
+          "label": "Supine, at end-expiration, zeroed at the mid-axillary line, about 25 mL instilled"
+        },
+        {
+          "id": "headup",
+          "label": "Head of bed up 30 degrees, 100 mL instilled"
+        },
+        {
+          "id": "anytime",
+          "label": "Any position, as long as it is consistent"
+        }
+      ],
+      "expect": "protocol",
+      "explain": "Clamp the tubing, zero at the mid-axillary line, instill about 25 mL, and measure at end-expiration in the complete supine position.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Abdominal Compartment Syndrome, Nalin Dayal, last updated 2023-07-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/19771",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Intraabdominal hypertension is defined as the sustained intra-abdominal pressure (IAP) above 12 mmHg'; 'ACS is diagnosed when the IAP is >20 mm Hg, and is associated with organ dysfunction/failure'; abdominal pain and distension are 'not a sensitive or specific finding'; the intravesical method is the gold standard: clamp the drainage tubing, zero at the mid-axillary line, instill about 25 mL of saline, and 'Measurements should be taken at end-expiration and complete supine position'; compression lowers GFR and urine output, raises peak airway pressures and reduces venous return and cardiac output; large-volume fluid replacement 'greater than 3 liters' is a risk factor; management includes NG or rectal decompression, goal-directed fluid balance, brief neuromuscular blockade, and emergent decompressive laparotomy if organ dysfunction persists."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

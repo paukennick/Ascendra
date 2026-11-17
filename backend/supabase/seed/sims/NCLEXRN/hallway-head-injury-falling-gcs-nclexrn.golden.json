@@ -1,0 +1,466 @@
+{
+  "slug": "hallway-head-injury-falling-gcs-nclexrn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: a baseline neuro check, head of the bed up, the history; checks every few minutes; the 2-point drop reported at once; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "hob",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "earlyQ",
+          "choice": "loc",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 8,
+          "tick": 152
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 152
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "icp"
+          },
+          "seq": 10,
+          "tick": 152
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 11,
+          "tick": 152
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "htn",
+          "seq": 12,
+          "tick": 152
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 152
+        }
+      ],
+      "expect": {
+        "ending": "earlyCt",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "serial": "met",
+          "callC": "met",
+          "earlySign": "met",
+          "hobC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "checks": 4,
+          "toCall": 0
+        },
+        "stateHash": "36aeccca1fb4817a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "sparseChecks",
+      "title": "A baseline check, then nothing for 16 minutes; the drop is reported at once, but the pupil changes before CT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hob",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "earlyQ",
+          "choice": "loc",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "icp"
+          },
+          "seq": 8,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 9,
+          "tick": 230
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "htn",
+          "seq": 10,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 230
+        }
+      ],
+      "expect": {
+        "ending": "lateCt",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "serial": "met",
+          "callC": "met",
+          "earlySign": "partial",
+          "hobC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "checks": 2,
+          "toCall": 0
+        },
+        "stateHash": "e611519b40a83d92"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Frequent checks find the drop, but the report waits 6 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hob",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 152
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 152
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "icp"
+          },
+          "seq": 7,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 230
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "htn",
+          "seq": 9,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 230
+        }
+      ],
+      "expect": {
+        "ending": "lateCt",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "serial": "met",
+          "callC": "partial",
+          "earlySign": "partial",
+          "hobC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "checks": 4,
+          "toCall": 390
+        },
+        "stateHash": "3530b3227e15cb50"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sleepingItOff",
+      "title": "Failure: sees the GCS fall and puts it down to the beer; hourly checks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "earlyQ",
+          "choice": "loc",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "alcohol"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 152
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 152
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "hourly"
+          },
+          "seq": 7,
+          "tick": 152
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "serial": "met",
+          "callC": "missed",
+          "earlySign": "missed",
+          "hobC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "checks": 2,
+          "toCall": 0
+        },
+        "stateHash": "fc33d3528866e061"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noChecks",
+      "title": "Failure: history and a glucose, calls it a concussion, no neuro checks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "earlyQ",
+          "choice": "loc",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "concussion"
+          },
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "serial": "missed",
+          "callC": "missed",
+          "earlySign": "missed",
+          "hobC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "checks": 0,
+          "toCall": -1
+        },
+        "stateHash": "e82f9c25f7d7e5e8"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

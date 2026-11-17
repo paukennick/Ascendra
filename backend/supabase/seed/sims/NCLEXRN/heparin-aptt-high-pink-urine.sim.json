@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "heparin-aptt-high-pink-urine",
+  "title": "The aPTT is back",
+  "objective": "Read anticoagulant monitoring: a higher aPTT, INR or anti-Xa level means blood that clots more slowly and a client more prone to bleeding",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Heparin Sodium in 0.45% Sodium Chloride Injection, prescribing information (Pfizer, revised 11/2025), as published on pfizermedical.com",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pfizermedical.com/heparin-inj-1",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Hemorrhage can occur at virtually any site in patients receiving heparin'; 'An unexplained fall in hematocrit or fall in blood pressure should lead to serious consideration of a hemorrhagic event'; 'The dosage of heparin sodium should be adjusted according to the patient's coagulation test results', adequate when 'the activated partial thromboplastin time (APTT) is 1.5 to 2 times normal'; 'If the coagulation test is unduly prolonged or if hemorrhage occurs, heparin sodium should be discontinued promptly'; 'Bleeding is the chief sign of heparin overdosage', and protamine sulfate neutralizes heparin. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 on a medical unit. You are Mrs. Sato's nurse. She is 70, on day 2 of a heparin infusion for a pulmonary embolism, run by the unit's weight-based protocol. Her 6-hour aPTT has just posted.",
+    "handover": [
+      "The protocol's target aPTT is about 1.5 to 2 times the lab's normal (control 30 seconds). At 08:00 the rate was increased after a low result.",
+      "She mentioned at lunch that her gums bled when she brushed her teeth.",
+      "Protocol: for an aPTT far above target, or any bleeding, stop the infusion and call the provider; recheck as ordered; an independent double check of the pump and rate after any change."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bleeding progresses while heparin keeps running at an excessive level. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stoppedRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the infusion stops; heparin effect wears off over the next hours. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "upBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The rate increased instead of stopped. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hemorrhageAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a major hemorrhage. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stopWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Infusion stopped within 5 minutes of the result (protocol: promptly)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "reviewTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews her with the repeat labs: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "apttAt": {
+      "type": "time",
+      "init": null
+    },
+    "bleedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cbcAt": {
+      "type": "time",
+      "init": null
+    },
+    "pumpAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "aptt",
+        "bleed",
+        "cbc",
+        "pump"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "provider",
+        "recheck"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "over",
+        "under",
+        "ok"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(92 + 26 * prog + sin(t / 11) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(128 - 30 * max(0, prog - 0.4))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(stopAt) ? stoppedRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "infusions": "Heparin infusion running: {isNull(stopAt)|yesno}. Rate increased: {not isNull(upAt)|yesno}. Pump double-checked: {not isNull(checkAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"provider\" and inClinic",
+          "text": "The provider is coming: heparin off, a repeat aPTT and blood count, a type and screen; protamine is available if she bleeds further."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "aptt": {
+      "label": "Read the aPTT against the protocol target",
+      "group": "Assess",
+      "available": "not testPending and isNull(apttAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"aptt\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bleed": {
+      "label": "Look for bleeding: gums, IV sites, urine, stool, skin, neuro check",
+      "group": "Assess",
+      "available": "not testPending and isNull(bleedAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bleed\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cbc": {
+      "label": "Read today's blood count against yesterday's",
+      "group": "Assess",
+      "available": "not testPending and isNull(cbcAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cbc\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pump": {
+      "label": "Check the pump against the protocol and the last order",
+      "group": "Assess",
+      "available": "not testPending and isNull(pumpAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pump\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the heparin infusion",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already stopped.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Heparin infusion stopped; line kept open with saline.",
+          "kind": "act"
+        }
+      ]
+    },
+    "check": {
+      "label": "Independent double check of the pump settings with the charge nurse, and file an event report",
+      "group": "Treat",
+      "available": "isNull(checkAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "checkAt",
+          "to": "t"
+        },
+        {
+          "log": "The charge nurse confirms the programming error; event report filed.",
+          "kind": "act"
+        }
+      ]
+    },
+    "up": {
+      "label": "Increase the rate per the protocol: a high aPTT means she is clotting",
+      "group": "Treat",
+      "available": "isNull(upAt) and isNull(stopAt) and inClinic",
+      "why": "Stopped, or already changed.",
+      "effects": [
+        {
+          "set": "upAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + upBump"
+        },
+        {
+          "log": "Rate increased.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Read the result",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "over",
+              "label": "Over-anticoagulated: an aPTT far above target means her blood clots much more slowly, and she is bleeding"
+            },
+            {
+              "value": "under",
+              "label": "Under-anticoagulated: a high aPTT means she is clotting"
+            },
+            {
+              "value": "ok",
+              "label": "Close enough to target; recheck in 6 hours"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"over\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"over\""
+                },
+                {
+                  "log": "Over-anticoagulated and bleeding.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"under\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"under\""
+                },
+                {
+                  "log": "Read as under-anticoagulated.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ok\""
+                },
+                {
+                  "log": "Read as near target.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the provider",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "provider",
+              "label": "aPTT 142, nearly 5 times control, with gum, IV-site and urine bleeding and hemoglobin down to 9.4; a pump programming error found. Heparin stopped. Ask for orders: repeat labs, type and screen, and whether to reverse"
+            },
+            {
+              "value": "recheck",
+              "label": "Recheck the aPTT at the next 6-hour draw"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"provider\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"provider\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "reviewTime"
+                },
+                {
+                  "log": "The provider agrees: heparin stays off, repeat aPTT and blood count, type and screen, protamine if bleeding worsens, and a plan to restart safely.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"recheck\""
+                },
+                {
+                  "log": "Next aPTT at 20:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the result, bleeding signs, the stop time, the pump finding and the report",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: aPTT 142, bleeding signs, heparin stopped, pump programming error, provider told.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit",
+      "clock": "running",
+      "actions": [
+        "aptt",
+        "bleed",
+        "cbc",
+        "pump",
+        "stop",
+        "check",
+        "up",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"aptt\"",
+              "then": [
+                {
+                  "set": "apttAt",
+                  "to": "t"
+                },
+                {
+                  "log": "aPTT 142 seconds: nearly 5 times the control of 30, far above the 1.5 to 2 times target. Her blood is clotting far too slowly.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bleed\"",
+              "then": [
+                {
+                  "set": "bleedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Gums oozing, the IV site oozing, urine pink, new bruises on her arms; alert and oriented with no headache.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cbc\"",
+              "then": [
+                {
+                  "set": "cbcAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Hemoglobin 9.4 from 11.2 yesterday; platelets 210.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pumpAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The 08:00 change was programmed as a higher concentration than the bag hanging: the pump is delivering more heparin than ordered.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the provider's review",
+      "wait": {
+        "skipLabel": "the provider's review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the provider to review her with the repeat labs."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The provider reviews her: bleeding slowing with the heparin off.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does the aPTT mean for Mrs. Sato, and what do you do?",
+      "parts": [
+        {
+          "label": "What it means",
+          "criteria": "A higher aPTT means blood that clots more slowly; 142 seconds is far above the 1.5 to 2 times target: she is over-anticoagulated and bleeding (gums, IV site, urine, falling hemoglobin).",
+          "modelAnswer": "A higher aPTT means her blood is clotting more slowly. At 142, nearly five times control, she's way over target, and she's bleeding: gums, IV site, pink urine, and her hemoglobin is down."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops the infusion promptly; assesses for bleeding including a neuro check; calls the provider now; checks the pump and finds the error; event report; never increases the rate.",
+          "modelAnswer": "Stop the heparin now, check her for bleeding including a neuro check, and call the provider. Check the pump, find the programming error with a second nurse and file a report. I'd never turn it up: high means too thin."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An excessive aPTT with bleeding unreported an hour on is harm here.",
+      "source": {
+        "cite": "Heparin Sodium in 0.45% Sodium Chloride Injection, prescribing information (Pfizer, revised 11/2025), as published on pfizermedical.com",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pfizermedical.com/heparin-inj-1",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Hemorrhage can occur at virtually any site in patients receiving heparin'; 'An unexplained fall in hematocrit or fall in blood pressure should lead to serious consideration of a hemorrhagic event'; 'The dosage of heparin sodium should be adjusted according to the patient's coagulation test results', adequate when 'the activated partial thromboplastin time (APTT) is 1.5 to 2 times normal'; 'If the coagulation test is unduly prolonged or if hemorrhage occurs, heparin sodium should be discontinued promptly'; 'Bleeding is the chief sign of heparin overdosage', and protamine sulfate neutralizes heparin. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "hemorrhage": {
+      "label": "Major hemorrhage",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= hemorrhageAt and inClinic",
+      "narrative": "She complains of severe back pain and becomes pale and clammy; her pressure falls to 84/50. A rapid response is called for a major bleed."
+    },
+    "safe": {
+      "label": "Read correctly and stopped",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and not isNull(stopAt) and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow and isNull(upAt) and route == \"provider\" and not isNull(checkAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the heparin is off, her bleeding is slowing, the pump error is reported, and a safe restart plan is in place."
+    },
+    "safeGaps": {
+      "label": "Stopped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the provider has her plan, but the infusion ran on, the pump error was missed, or the rate went up first."
+    },
+    "time_up": {
+      "label": "Still running at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and the heparin is still running."
+    }
+  },
+  "endingOrder": [
+    "hemorrhage",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopC",
+        "label": "Stopped the infusion within 5 minutes; never increased it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(upAt)",
+            "score": "missed",
+            "why": "Rate increased."
+          },
+          {
+            "when": "not isNull(stopAt) and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow",
+            "score": "met",
+            "why": "Stopped."
+          },
+          {
+            "when": "not isNull(stopAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left running."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Called the provider",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"provider\"",
+            "score": "met",
+            "why": "Called."
+          },
+          {
+            "when": "route == \"recheck\"",
+            "score": "missed",
+            "why": "Waited 6 hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "bleedC",
+        "label": "Assessed for bleeding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bleedAt)",
+            "score": "met",
+            "why": "Assessed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not assessed."
+          }
+        ]
+      },
+      {
+        "id": "pumpC",
+        "label": "Found the pump error with a double check and reported it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(checkAt) and not isNull(pumpAt)",
+            "score": "met",
+            "why": "Found and reported."
+          },
+          {
+            "when": "not isNull(checkAt) or not isNull(pumpAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the aPTT correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"over\"",
+            "score": "met",
+            "why": "Over-anticoagulated."
+          },
+          {
+            "when": "dxEnum == \"under\"",
+            "score": "missed",
+            "why": "Read backwards."
+          },
+          {
+            "when": "dxEnum == \"ok\"",
+            "score": "missed",
+            "why": "Called it near target."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: a high aPTT means slow clotting and bleeding risk; stop, assess, call, check the pump",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "Result to stop",
+        "value": "isNull(stopAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(stopAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "toCall",
+        "label": "14:00 to the call",
+        "value": "isNull(callAt) ? -1 : timeAt(callAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "aPTT 142: nearly 5 times control. Stop the heparin."
+      },
+      {
+        "at": "~14:01",
+        "text": "Bleeding check: gums, IV site, pink urine, bruises; neuro intact."
+      },
+      {
+        "at": "~14:02",
+        "text": "Call the provider. Double-check the pump with the charge nurse: programming error; event report."
+      },
+      {
+        "at": "~14:04",
+        "text": "Document; repeat labs as ordered."
+      }
+    ],
+    "debrief": {
+      "hemorrhage": {
+        "headline": "Major bleed",
+        "body": "A higher aPTT means blood that clots more slowly. Far above target with bleeding: stop the heparin promptly and call. Never turn it up."
+      },
+      "safe": {
+        "headline": "Read and stopped",
+        "body": "You read the aPTT correctly, stopped the heparin at once, assessed for bleeding, found the pump error and called. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Stopped, with gaps",
+        "body": "Check how fast the infusion stopped and whether the pump error was found and reported."
+      },
+      "time_up": {
+        "headline": "Still running",
+        "body": "An unduly prolonged aPTT means stopping heparin promptly."
+      }
+    },
+    "modelReasoning": "A higher aPTT means blood that clots more slowly. At 142 seconds, nearly five times the control of 30 and far above the 1.5 to 2 times target, Mrs. Sato is over-anticoagulated, and she is bleeding from her gums, IV site and urine with a falling hemoglobin. The label says to discontinue heparin promptly when the test is unduly prolonged or hemorrhage occurs. Stop the infusion, assess for bleeding including a neuro check, call the provider, and check the pump with a second nurse: the programming error explains the high level and goes on an event report. Increasing the rate would be reading the number backwards."
+  },
+  "chapters": [
+    {
+      "id": "stopped",
+      "label": "Heparin stopped",
+      "when": "not isNull(stopAt)"
+    }
+  ],
+  "teaching": {
+    "signQ": {
+      "during": "leaveT",
+      "ask": "While the provider reviews her: what is the chief sign of heparin overdosage?",
+      "choices": [
+        {
+          "id": "bleeding",
+          "label": "Bleeding"
+        },
+        {
+          "id": "clot",
+          "label": "New clots"
+        },
+        {
+          "id": "rash",
+          "label": "A rash"
+        }
+      ],
+      "expect": "bleeding",
+      "explain": "Bleeding is the chief sign of heparin overdosage; an unexplained fall in hematocrit or blood pressure suggests a hemorrhage.",
+      "source": {
+        "cite": "Heparin Sodium in 0.45% Sodium Chloride Injection, prescribing information (Pfizer, revised 11/2025), as published on pfizermedical.com",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pfizermedical.com/heparin-inj-1",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Hemorrhage can occur at virtually any site in patients receiving heparin'; 'An unexplained fall in hematocrit or fall in blood pressure should lead to serious consideration of a hemorrhagic event'; 'The dosage of heparin sodium should be adjusted according to the patient's coagulation test results', adequate when 'the activated partial thromboplastin time (APTT) is 1.5 to 2 times normal'; 'If the coagulation test is unduly prolonged or if hemorrhage occurs, heparin sodium should be discontinued promptly'; 'Bleeding is the chief sign of heparin overdosage', and protamine sulfate neutralizes heparin. No dose is used in the case."
+      }
+    },
+    "targetQ": {
+      "during": "testT",
+      "ask": "While you check: what aPTT does the heparin label call adequate?",
+      "choices": [
+        {
+          "id": "x15",
+          "label": "About 1.5 to 2 times normal"
+        },
+        {
+          "id": "normal",
+          "label": "Normal"
+        },
+        {
+          "id": "x5",
+          "label": "About 5 times normal"
+        }
+      ],
+      "expect": "x15",
+      "explain": "Dosage is adequate when the APTT is 1.5 to 2 times normal; adjust to the coagulation results.",
+      "source": {
+        "cite": "Heparin Sodium in 0.45% Sodium Chloride Injection, prescribing information (Pfizer, revised 11/2025), as published on pfizermedical.com",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pfizermedical.com/heparin-inj-1",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Hemorrhage can occur at virtually any site in patients receiving heparin'; 'An unexplained fall in hematocrit or fall in blood pressure should lead to serious consideration of a hemorrhagic event'; 'The dosage of heparin sodium should be adjusted according to the patient's coagulation test results', adequate when 'the activated partial thromboplastin time (APTT) is 1.5 to 2 times normal'; 'If the coagulation test is unduly prolonged or if hemorrhage occurs, heparin sodium should be discontinued promptly'; 'Bleeding is the chief sign of heparin overdosage', and protamine sulfate neutralizes heparin. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

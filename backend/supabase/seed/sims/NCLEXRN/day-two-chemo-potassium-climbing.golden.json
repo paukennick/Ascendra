@@ -1,0 +1,470 @@
+{
+  "slug": "day-two-chemo-potassium-climbing",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: labs; telemetry; potassium fluid stopped; tumor lysis syndrome; oncology provider now; ordered treatment; calcium signs; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "pattern",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "tele",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stopK",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tls"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "onc"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "dangerQ",
+          "choice": "aki",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tx",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 92
+        }
+      ],
+      "expect": {
+        "ending": "reported",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "stopKC": "met",
+          "teleC": "met",
+          "symC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toTele": 65
+        },
+        "stateHash": "6aba527023b0366c"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Intake, output and symptoms first, then the labs; reports 6 minutes after them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "tele",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "stopK",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tls"
+          },
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "onc"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "dangerQ",
+          "choice": "aki",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tx",
+          "seq": 12,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "reportedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "stopKC": "met",
+          "teleC": "met",
+          "symC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toTele": 180
+        },
+        "stateHash": "37548c5f56872f9d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noMonitor",
+      "title": "Stops the potassium and reports at once, but never puts him on telemetry or checks his calcium signs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stopK",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "onc"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "dangerQ",
+          "choice": "aki",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tls"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tx",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "reportedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "callC": "met",
+          "stopKC": "met",
+          "teleC": "missed",
+          "symC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toTele": -1
+        },
+        "stateHash": "8c1a558eac9a2bdc"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "keptPotassium",
+      "title": "Failure: calls it dehydration, keeps the potassium-containing fluid running and waits for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dehydration"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "keep",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rounds"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "stopKC": "missed",
+          "teleC": "missed",
+          "symC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toTele": -1
+        },
+        "stateHash": "6b8bbdc56ba0f581"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "justCramps",
+      "title": "Failure: hears about his cramps and tingling, calls it bed rest and moves on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "pattern",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cramps"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "callC": "missed",
+          "stopKC": "missed",
+          "teleC": "missed",
+          "symC": "met",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toTele": -1
+        },
+        "stateHash": "cb1c2f60d21aa6ae"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

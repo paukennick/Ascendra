@@ -1,0 +1,1374 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "preseason-collapse-heat-stroke",
+  "title": "Preseason practice: a confused lineman after sprints",
+  "objective": "Recognize exertional heat stroke (core temperature usually above 40 C with CNS dysfunction such as confusion, ataxia or seizures), cool by ice-water immersion, and track rectal temperature, stopping at 38 to 39 C",
+  "secondaryObjectives": [
+    "Emergency management and athlete safety: spine-injury management, sudden cardiac arrest, heat illness and the emergency action plan"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: sports (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
+      "note": "Relayed from the sports specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: patient and client clinical intervention, including emergency management, is 35% of the exam. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra sports specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSSCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person."
+    },
+    {
+      "cite": "Morris A, Patel G. Heat Stroke. StatPearls (updated 2023-02-13), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK430685/",
+      "note": "Relayed from the course seed (tag SP-HS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: exertional heat stroke is a core temperature usually above 40 C with CNS dysfunction such as confusion, ataxia or seizures; cool by ice-water immersion and track rectal temperature, stopping at 38 to 39 C."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. The direction of each change follows the cited sources; the cooling rates and timings are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:30 at a high school's preseason football practice, the second practice of a hot, humid day. You are the sports physical therapist covering practice. Jordan, 17, a lineman, stumbles off the field after conditioning sprints, then sits down hard on the bench, glassy-eyed.",
+    "handover": [
+      "The emergency action plan names you to lead on the field. A cold-water immersion tub is filled with ice water beside the bench; ice towels, a rectal thermometer and the AED are in your kit.",
+      "The coaches and two student aides can help. Phone coverage is good; EMS takes about 10 minutes to reach the field.",
+      "His parent is in the stands."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each check takes the time on its button. His core temperature responds to what you do.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "heatRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "With exercise stopped but no cooling in the heat, his core temperature creeps up. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cwiRate": {
+      "value": 0.2,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Cooling rate in ice-water immersion, trunk and limbs covered. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "towelRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Cooling rate with ice towels and a fan in the shade: far slower than immersion. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "packRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Cooling rate with ice packs at the neck, armpits and groin. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hotLimit": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+        "note": "Thirty minutes from collapse: the window the position statement sets for cooling below 102.5 F (39.2 C)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A bedside check: about 1 min."
+      }
+    },
+    "ambulance": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "EMS reaches the field about 10 min after a 911 call."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "rectalAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "gluAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neuro",
+        "rectal",
+        "vit",
+        "hx",
+        "glu"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "parent"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ehs",
+        "exhaust"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "core": {
+      "type": "number",
+      "init": 41.3,
+      "min": 34,
+      "max": 44
+    },
+    "cool": {
+      "type": "enum",
+      "values": [
+        "none",
+        "towels",
+        "packs",
+        "tub"
+      ],
+      "init": "none"
+    },
+    "tubAt": {
+      "type": "time",
+      "init": null
+    },
+    "outAt": {
+      "type": "time",
+      "init": null
+    },
+    "coreOut": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 44
+    },
+    "coreLeave": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 44
+    },
+    "emsHere": {
+      "type": "bool",
+      "init": false
+    },
+    "oralAt": {
+      "type": "time",
+      "init": null
+    },
+    "seized": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "coreF": {
+      "expr": "core * 9 / 5 + 32",
+      "unit": "F",
+      "precision": 1
+    },
+    "hr": {
+      "expr": "round(clamp(100 + 18 * (core - 38), 80, 170) + 2 * sin(t / 17))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(128 - 9 * (core - 38), 90, 140))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(clamp(72 - 6 * (core - 38), 50, 80))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "confused": {
+      "expr": "core >= 39.5"
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "heat",
+      "when": "inClinic",
+      "update": {
+        "core": "core + (cool == \"tub\" ? -cwiRate : (cool == \"towels\" ? -towelRate : (cool == \"packs\" ? -packRate : heatRate))) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Jordan, 17, lineman",
+        "presentation": "Stumbled off the field after sprints; glassy-eyed. {cool == \"tub\" ? \"In the ice-water tub.\" : (cool == \"towels\" ? \"Ice towels and a fan in the shade.\" : (cool == \"packs\" ? \"Ice packs on.\" : \"\"))}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 140
+          },
+          "announce": {
+            "bands": [
+              120,
+              140
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitAt)"
+        },
+        {
+          "id": "temp",
+          "label": "Rectal T",
+          "spokenLabel": "Rectal temperature",
+          "value": "core",
+          "unit": "C",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              39,
+              40
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(rectalAt)"
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the hospital.\" : (seized ? \"Seized briefly; now on his side, breathing.\" : (cool == \"tub\" ? \"In the ice-water tub to the neck, an aide holding him under the arms.\" : (confused ? \"Confused and combative on the bench, unsteady when he tries to stand.\" : \"Calmer, answering questions.\")))}",
+      "measures": [
+        {
+          "id": "neuroResult",
+          "label": "Mental status",
+          "result": "Does not know the day or score; slurred, irritable, ataxic when he tries to stand.",
+          "when": "not isNull(neuroAt)",
+          "flag": "true"
+        },
+        {
+          "id": "rectalResult",
+          "label": "Rectal temperature",
+          "result": "Above 40 C with CNS dysfunction: exertional heat stroke.",
+          "when": "not isNull(rectalAt)",
+          "flag": "true"
+        },
+        {
+          "id": "vitResult",
+          "label": "Vital signs",
+          "result": "Fast pulse, low-normal pressure, fast breathing.",
+          "when": "not isNull(vitAt)"
+        },
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Second practice today; sprints in pads; had a cold last week; takes no medicines; drank 'some'.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "gluResult",
+          "label": "Glucose",
+          "result": "112 mg/dL: not the cause.",
+          "when": "not isNull(gluAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "{cool == \"tub\" ? \"Cold-water immersion\" : (cool == \"towels\" ? \"Ice towels and a fan\" : (cool == \"packs\" ? \"Ice packs\" : (isNull(outAt) ? \"No cooling yet\" : \"Out of the tub\")))}",
+            "when": "true"
+          },
+          {
+            "label": "911 called; EMS on the way",
+            "when": "route == \"ems\" and not emsHere"
+          },
+          {
+            "label": "EMS at the field",
+            "when": "emsHere"
+          },
+          {
+            "label": "Parent driving him",
+            "when": "route == \"parent\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleEhs",
+          "label": "Collapse in the heat with confusion, ataxia or a seizure",
+          "text": "Rectal temperature now; above 40 C, cold-water immersion now: cool first, transport second.",
+          "met": "confused and isNull(tubAt)"
+        },
+        {
+          "id": "ruleStop",
+          "label": "Rectal temperature 39 C (102 F) or lower during immersion",
+          "text": "Take him out of the tub.",
+          "met": "cool == \"tub\" and core <= 39.0"
+        },
+        {
+          "id": "ruleWindow",
+          "label": "Thirty minutes from collapse",
+          "text": "Core temperature below about 39 C by then.",
+          "met": "t >= 1200 and core > 39.2 and inClinic"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "neuro": {
+      "label": "Check responsiveness, orientation and how he moves",
+      "group": "Examine",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "rectal": {
+      "label": "Rectal temperature (privacy screen)",
+      "group": "Examine",
+      "available": "not testPending and isNull(rectalAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rectal\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "vit": {
+      "label": "Pulse, blood pressure, breathing",
+      "group": "Examine",
+      "available": "not testPending and isNull(vitAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vit\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask the aides and coaches: what happened, fluids, illness, medicines",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "glu": {
+      "label": "Fingerstick glucose",
+      "group": "Examine",
+      "available": "not testPending and isNull(gluAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glu\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "oral": {
+      "label": "Oral thermometer",
+      "group": "Examine",
+      "available": "isNull(oralAt) and inClinic",
+      "why": "Already taken.",
+      "effects": [
+        {
+          "set": "oralAt",
+          "to": "t"
+        },
+        {
+          "log": "Oral reading {core - 2.4|1dp} C, with fast mouth breathing. Oral and other surface readings are unreliable in an exercising athlete.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "tub": {
+      "label": "Into the ice-water tub now: trunk and limbs under, an aide holding him",
+      "group": "Treat",
+      "available": "cool != \"tub\" and isNull(tubAt) and inClinic",
+      "why": "He is in the tub, or has been.",
+      "effects": [
+        {
+          "set": "cool",
+          "to": "\"tub\""
+        },
+        {
+          "set": "tubAt",
+          "to": "t"
+        },
+        {
+          "log": "In the ice-water tub, stirred, head supported above the water.",
+          "kind": "good"
+        }
+      ]
+    },
+    "towels": {
+      "label": "Ice towels and a fan in the shade",
+      "group": "Treat",
+      "available": "cool == \"none\" and inClinic",
+      "why": "Cooling is already under way.",
+      "effects": [
+        {
+          "set": "cool",
+          "to": "\"towels\""
+        },
+        {
+          "log": "Rotating ice towels and a fan in the shade.",
+          "kind": "act"
+        }
+      ]
+    },
+    "packs": {
+      "label": "Ice packs to the neck, armpits and groin",
+      "group": "Treat",
+      "available": "cool == \"none\" and inClinic",
+      "why": "Cooling is already under way.",
+      "effects": [
+        {
+          "set": "cool",
+          "to": "\"packs\""
+        },
+        {
+          "log": "Ice packs to the neck, armpits and groin.",
+          "kind": "act"
+        }
+      ]
+    },
+    "out": {
+      "label": "Out of the tub, dried and on his side",
+      "group": "Treat",
+      "available": "cool == \"tub\" and inClinic",
+      "why": "He is not in the tub.",
+      "effects": [
+        {
+          "set": "cool",
+          "to": "\"none\""
+        },
+        {
+          "set": "outAt",
+          "to": "t"
+        },
+        {
+          "set": "coreOut",
+          "to": "core"
+        },
+        {
+          "log": "Out of the tub at {core|1dp} C ({coreF|1dp} F).",
+          "kind": "act"
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Hand him to EMS for transport",
+      "group": "Decide",
+      "available": "emsHere and inClinic",
+      "why": "EMS is not here yet.",
+      "effects": [
+        {
+          "set": "coreLeave",
+          "to": "core"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "EMS takes him with your timeline and his temperatures.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Record your working impression",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ehs",
+              "label": "Exertional heat stroke: core temperature above 40 C with confusion and ataxia"
+            },
+            {
+              "value": "exhaust",
+              "label": "Heat exhaustion: rest, fluids and shade"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ehs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ehs\""
+                },
+                {
+                  "log": "Impression: exertional heat stroke.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"exhaust\""
+                },
+                {
+                  "log": "Impression: heat exhaustion.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Activate the emergency action plan",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Route",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911: exertional heat stroke, cooling on site; transport once cooled"
+            },
+            {
+              "value": "parent",
+              "label": "Have his parent drive him to the emergency department now"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "emsT",
+                  "after": "ambulance"
+                },
+                {
+                  "log": "911 called: heat stroke, cold-water immersion under way, cool first and then transport.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"parent\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "300"
+                },
+                {
+                  "log": "His parent brings the car to the gate.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his parent what happened and where he is going",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His parent has the story and the hospital's name.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "In the clinic",
+      "clock": "running",
+      "actions": [
+        "neuro",
+        "rectal",
+        "vit",
+        "hx",
+        "glu",
+        "oral",
+        "tub",
+        "towels",
+        "packs",
+        "out",
+        "handoff",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He cannot tell you the day or where he is, his speech is slurred, and he staggers when he tries to stand.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"rectal\"",
+              "then": [
+                {
+                  "set": "rectalAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Rectal temperature {core|1dp} C ({coreF|1dp} F).",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vit\"",
+              "then": [
+                {
+                  "set": "vitAt",
+                  "to": "t"
+                },
+                {
+                  "log": "HR {hr}, BP {sbp}/{dbp}, breathing fast and shallow.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Second practice today, sprints in full pads; a cold last week; no medicines; drank 'some' water.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "gluAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose 112 mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving for the hospital",
+      "wait": {
+        "skipLabel": "his departure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 5 min to bring a car to the gate."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "His parent drives him to the emergency department.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "emsT": {
+      "label": "EMS arriving",
+      "wait": {
+        "skipLabel": "EMS (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "EMS about 10 min after 911."
+      },
+      "effects": [
+        {
+          "set": "emsHere",
+          "to": "true"
+        },
+        {
+          "log": "EMS is at the field.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "seize",
+      "when": "core >= 42.0 and inClinic",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "log": "He has a brief generalized seizure.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Jordan, how do you confirm it, and what are your next minutes?",
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Collapse in the heat with confusion, slurred speech and ataxia (CNS dysfunction) and a rectal temperature above 40 C: exertional heat stroke, not heat exhaustion; oral or skin temperatures cannot rule it out.",
+          "modelAnswer": "This is exertional heat stroke until proven otherwise: he collapsed after sprints in the heat, he is confused, slurring and ataxic, and his rectal temperature is over 40 C. An oral reading would mislead me."
+        },
+        {
+          "label": "Action",
+          "criteria": "Ice-water immersion at once on site; 911 with the plan to cool first and transport second; rectal temperature tracked; out of the tub at about 38.9-39 C; within 30 minutes of collapse; hand over to EMS after cooling.",
+          "modelAnswer": "Into the ice-water tub now, call 911 and say we will cool first, then transport. Track rectal temperature, take him out at about 39 C, aiming to get there within 30 minutes of collapse, then hand him to EMS with the timeline."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+          "checkedAt": "2026-11-17",
+          "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+          "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person. Authored: no on-field decision should wait more than 2 min."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. The direction of each change follows the cited sources; the cooling rates and timings are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+          "checkedAt": "2026-11-17",
+          "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+          "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person. Authored window: immersion within 5 min of the first sign found."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An athlete with heat stroke still on the field an hour after collapse is an emergency left unmanaged, which the profile calls harm.",
+      "source": {
+        "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person."
+      }
+    }
+  },
+  "endings": {
+    "organInjury": {
+      "label": "Still hot 30 minutes after collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "inClinic and t >= hotLimit and core > 39.2",
+      "narrative": "Thirty minutes after collapse his rectal temperature is still above 39 C. He is taken to hospital with kidney and liver injury from prolonged hyperthermia."
+    },
+    "hotTransport": {
+      "label": "Transported before cooling",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inClinic and (coreLeave > 40.0 or (route == \"parent\" and core > 40.0))",
+      "narrative": "{timeAt(leftAt)|clock}: he left the field still above 40 C. Cooling started late, at the hospital, and he has organ injury."
+    },
+    "cooledFirst": {
+      "label": "Cooled first, then transported",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and not isNull(rectalAt) and not isNull(tubAt) and timeAt(tubAt) <= timeAt(redFlagAt) + escalateWindow and not isNull(outAt) and coreOut <= 39.2 and coreOut >= 38.0 and coreLeave <= 39.2",
+      "narrative": "{timeAt(leftAt)|clock}: EMS takes Jordan, alert and below 39 C, with your timeline. Cool first, transport second, and he is likely to recover fully."
+    },
+    "cooledGaps": {
+      "label": "Cooled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he left the field cooler than he was, but slower cooling, a late start, no rectal reading or overcooling cost him."
+    },
+    "time_up": {
+      "label": "Still on the field at 16:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:30 and Jordan is still on the field."
+    }
+  },
+  "endingOrder": [
+    "organInjury",
+    "hotTransport",
+    "cooledFirst",
+    "cooledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rectal",
+        "label": "Measured core temperature rectally",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(rectalAt)",
+            "score": "met",
+            "why": "Rectal temperature at {timeAt(rectalAt)|clock}."
+          },
+          {
+            "when": "not isNull(oralAt)",
+            "score": "missed",
+            "why": "Only an oral reading, which is unreliable after exercise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No core temperature."
+          }
+        ]
+      },
+      {
+        "id": "immerse",
+        "label": "Ice-water immersion within 5 minutes of the first sign found",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(tubAt) and redSeen and timeAt(tubAt) <= timeAt(redFlagAt) + escalateWindow",
+            "score": "met",
+            "why": "In the tub at {timeAt(tubAt)|clock}."
+          },
+          {
+            "when": "not isNull(tubAt)",
+            "score": "partial",
+            "why": "Immersion, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{cool == \"none\" ? \"No cooling\" : \"Slower cooling methods only\"}."
+          }
+        ]
+      },
+      {
+        "id": "stopRight",
+        "label": "Out of the tub at about 38-39 C, cooled before transport",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(outAt) and coreOut <= 39.2 and coreOut >= 38.0 and (inClinic or coreLeave <= 39.2)",
+            "score": "met",
+            "why": "Out at {coreOut|1dp} C."
+          },
+          {
+            "when": "not isNull(outAt) and coreOut < 38.0",
+            "score": "partial",
+            "why": "Overcooled to {coreOut|1dp} C."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(outAt) ? \"Not cooled to the target before leaving\" : \"Out of the tub while still hot\"}."
+          }
+        ]
+      },
+      {
+        "id": "ems",
+        "label": "911 called with the plan to cool first, transport second",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"ems\"",
+            "score": "met",
+            "why": "911 at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{route == \"parent\" ? \"A parent's car\" : \"No call\"}."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named exertional heat stroke",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ehs\"",
+            "score": "met",
+            "why": "Exertional heat stroke."
+          },
+          {
+            "when": "dxEnum == \"exhaust\"",
+            "score": "missed",
+            "why": "Called it heat exhaustion."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No impression."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told his parent",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: heat stroke by rectal temperature and CNS signs; immerse, cool first, transport second",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toTub",
+        "label": "Collapse to immersion",
+        "value": "isNull(tubAt) ? -1 : timeAt(tubAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toTarget",
+        "label": "Collapse to out of the tub",
+        "value": "isNull(outAt) ? -1 : timeAt(outAt)",
+        "format": "duration",
+        "expert": "under 20 min"
+      },
+      {
+        "id": "coreOutK",
+        "label": "Temperature out of the tub (C)",
+        "value": "isNull(outAt) ? -1 : round(coreOut * 10) / 10",
+        "format": "number",
+        "expert": "38.6-39.0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30",
+        "text": "Mental status: confused, slurred, ataxic. Rectal temperature: about 41.4 C (106.5 F). Exertional heat stroke."
+      },
+      {
+        "at": "~15:32",
+        "text": "Into the ice-water tub, an aide holding him. Call 911: heat stroke, cooling on site, cool first then transport."
+      },
+      {
+        "at": "~15:44",
+        "text": "Rectal temperature reaches 39 C: out of the tub, on his side. Tell his parent."
+      },
+      {
+        "at": "~15:45",
+        "text": "Hand him to EMS with the timeline and his temperatures."
+      }
+    ],
+    "debrief": {
+      "organInjury": {
+        "headline": "Still hot at 30 minutes",
+        "body": "Every minute above 40 C adds injury. Immersion in ice water is the fastest way down; towels, fans and ice packs are far slower."
+      },
+      "hotTransport": {
+        "headline": "Transported before cooling",
+        "body": "Cool first, transport second: an ambulance or car ride wastes the minutes that matter. Cool on site to about 39 C, then transport."
+      },
+      "cooledFirst": {
+        "headline": "Cooled first, then transported",
+        "body": "You confirmed heat stroke with a rectal temperature and CNS signs, immersed him at once, stopped at about 39 C and then handed over to EMS. That is the expert path."
+      },
+      "cooledGaps": {
+        "headline": "Cooled, with gaps",
+        "body": "Check how fast immersion started, whether a rectal temperature guided it, and where you stopped (about 38.9-39 C, not lower)."
+      },
+      "time_up": {
+        "headline": "Still on the field",
+        "body": "Heat stroke is treated on site. Recognize, immerse, measure, then transport."
+      }
+    },
+    "modelReasoning": "Collapse after sprints in the heat with confusion, slurred speech and ataxia is exertional heat stroke until a rectal temperature says otherwise; oral and skin readings are unreliable in an exercising athlete. The statement's diagnosis is CNS dysfunction with a core temperature above 105 F (40.5 C). Cold-water immersion is the most effective treatment and should start on site at once, aiming below 102.5 F (39.2 C) within 30 minutes of collapse; stop at about 38.9-39 C to avoid overcooling. Call 911 but cool first and transport second, then hand over with the timeline."
+  },
+  "chapters": [
+    {
+      "id": "immersed",
+      "label": "Cooling under way",
+      "when": "not isNull(tubAt)"
+    }
+  ],
+  "teaching": {
+    "emsQ": {
+      "during": "emsT",
+      "ask": "While EMS comes: when should he leave the field?",
+      "choices": [
+        {
+          "id": "cooled",
+          "label": "Once cooled to about 39 C, unless the plan says otherwise"
+        },
+        {
+          "id": "now",
+          "label": "As soon as the ambulance arrives"
+        },
+        {
+          "id": "never",
+          "label": "Only when he can walk"
+        }
+      ],
+      "expect": "cooled",
+      "explain": "Cool first, transport second: immersion on site, then transport.",
+      "source": {
+        "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person."
+      }
+    },
+    "tempQ": {
+      "during": "testT",
+      "ask": "While you wait: which temperature can you trust in an athlete who just collapsed?",
+      "choices": [
+        {
+          "id": "rectal",
+          "label": "Rectal"
+        },
+        {
+          "id": "oral",
+          "label": "Oral"
+        },
+        {
+          "id": "skin",
+          "label": "Forehead or ear"
+        }
+      ],
+      "expect": "rectal",
+      "explain": "Rectal temperature is the only immediate and accurate core measurement in an exercising athlete.",
+      "source": {
+        "cite": "National Athletic Trainers' Association. Exertional heat illnesses: executive summary of the position statement (Casa DJ, et al., 2014; J Athl Train 2015)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Exertional heat stroke: 'profound central nervous system (CNS) dysfunction and a core body temperature above 105°F'; 'Cold water immersion is the most effective way to treat a patient with exertional heat stroke'; cool to 'less than 102.5°F within 30 minutes of collapse'; 'cool first, transport second'; 'Rectal temperature is the only method of obtaining an immediate and accurate measurement' of core temperature in an exercising person."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional athlete. Not medical advice."
+}
