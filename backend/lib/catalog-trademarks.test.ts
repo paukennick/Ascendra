@@ -256,12 +256,17 @@ describe("REQ-309: app copy, README and What's new", () => {
 // REQ-194 (Nick, 2026-11-09; migration 065): the Red Hat and Docker courses
 // are hidden from the catalog, not deleted, so they can come back if the
 // owners agree. Nothing else is hidden by accident.
+const PERMISSION_PENDING = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
+
 describe("hidden courses", () => {
   // REQ-308: ITIL4FND is hidden too, replaced by ITIL5FND (its reason is
   // checked in pm-frameworks-course.test.ts).
-  test("exactly EX188, EX280, DCA and ITIL4FND are hidden, each with its reason and guideline URL", () => {
+  // REQ-318 (Nick, 2026-11-16): the courses of ISC2, EC-Council, NBCC and
+  // BCEN, whose policies allow no use of their marks without written
+  // permission, are hidden until that permission or legal advice arrives.
+  test("exactly EX188, EX280, DCA, ITIL4FND and the six permission-pending courses are hidden, each with its reason", () => {
     const hidden = CATALOG_TRACKS.filter((t) => t.hiddenAt).map((t) => t.code).sort();
-    assert.deepEqual(hidden, ["DCA", "EX188", "EX280", "ITIL4FND"]);
+    assert.deepEqual(hidden, ["CEH", "CEN", "CISSP", "DCA", "EX188", "EX280", "ISC2CC", "ITIL4FND", "NCE", "NCMHCE"]);
     for (const code of ["EX188", "EX280"]) {
       const t = byCode.get(code)!;
       assert.ok(!Number.isNaN(Date.parse(t.hiddenAt!)), code);
@@ -270,8 +275,18 @@ describe("hidden courses", () => {
     assert.match(byCode.get("DCA")!.hiddenReason ?? "", /https:\/\/www\.docker\.com\/legal\/trademark-guidelines/);
   });
 
+  test("REQ-318: the ISC2, EC-Council, NBCC and BCEN courses are hidden pending permission", () => {
+    const pending = BODIES.filter((b) => ["ISC2", "EC-Council", "NBCC", "BCEN"].includes(b.name)).flatMap((b) => b.codes).sort();
+    assert.deepEqual(pending, PERMISSION_PENDING);
+    for (const code of PERMISSION_PENDING) {
+      const t = byCode.get(code)!;
+      assert.equal(t.hiddenAt, "2026-11-16T00:00:00Z", code);
+      assert.equal(t.hiddenReason, "Hidden pending the exam body's permission to name its exam (REQ-309/REQ-318)", code);
+    }
+  });
+
   test("their content is kept: units and objectives are still seeded", () => {
-    for (const code of ["EX188", "EX280", "DCA"]) {
+    for (const code of ["EX188", "EX280", "DCA", ...PERMISSION_PENDING]) {
       const t = byCode.get(code)!;
       assert.ok(t.units.length > 0, code);
       assert.ok(t.units.every((u) => u.objectives.length > 0), code);

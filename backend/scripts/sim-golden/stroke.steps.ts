@@ -113,7 +113,11 @@ export function spec(): StepsSpec {
       },
       {
         id: "bpDrift",
-        title: "Failure: BP brought under 185/110 with one labetalol dose, then left to drift above 180/105 with no checks",
+        // REQ-318: with labetalol's label half-life (5.5 h) one dose wears off
+        // slowly, so the drift above 180/105 takes longer than the 30 minutes
+        // before the angio suite; this path makes no thrombectomy call, so
+        // nothing ends the post-thrombolysis watch early.
+        title: "Failure: BP brought under 185/110 with one labetalol dose, then no checks and no thrombectomy call while it drifts back above 180/105",
         reasoning: "partial",
         drive: (c) => {
           until(c, 20);
@@ -129,7 +133,6 @@ export function spec(): StepsSpec {
           c.waitUntil(() => n(c, "sbp") < 185);
           c.act("lytic");
           skipUntilSet(c, "ctaT", "ctaAt");
-          c.act("evt");
           c.waitUntil((r) => r.state.ended !== null);
         },
       },

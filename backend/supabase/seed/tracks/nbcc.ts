@@ -103,6 +103,7 @@
 
 import type { SeedTrack, UnitSource } from "../data";
 import { source } from "../sources";
+import { PERMISSION_PENDING_HIDDEN_AT, PERMISSION_PENDING_REASON } from "./permission-pending";
 
 const CHECKED = "2026-11-11";
 const VERIFIED_AT = "2026-11-11T00:00:00Z";
@@ -556,6 +557,8 @@ const unitWith = (base: string[], extra: string[]): string[] => [...base, ...ext
 
 export const NCE_TRACK: SeedTrack = {
   code: "NCE",
+  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
+  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for a counselor licensure and certification knowledge exam",
   description:
     "Preparation for a national counselor licensure and certification exam: six domains, from professional practice and ethics to counseling skills and interventions, weighted as the exam weights them, with the eight CACREP core areas the questions align to. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
@@ -640,6 +643,8 @@ export const NCE_TRACK: SeedTrack = {
 
 export const NCMHCE_TRACK: SeedTrack = {
   code: "NCMHCE",
+  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
+  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for a case-based clinical mental health counseling licensure exam",
   description:
     "Preparation for a case-based clinical mental health counseling licensure exam: clinical case studies, each an intake summary and two counseling sessions, testing domains from intake, assessment and diagnosis to counseling skills and interventions, weighted as the exam weights them. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",

@@ -809,7 +809,7 @@
      "by": "drugGain"
     },
     {
-     "log": "Given. Ten minutes later her BP is climbing and she says she has a pounding headache. Methylergonovine is contraindicated with hypertension.",
+     "log": "Given. Ten minutes later her BP is 180/112 and she says she has a pounding headache. Methylergonovine is contraindicated with hypertension: the label lists hypertension and toxemia as contraindications and warns of seizure and stroke.",
      "kind": "bad"
     }
    ]
@@ -1065,6 +1065,13 @@
    "terminal": true,
    "narrative": "Ms. Morgan is gray and confused, HR {hr}, BP {sbp}/{dbp}. She goes to the OR in hemorrhagic shock for a massive transfusion."
   },
+  "metherHarm": {
+   "label": "Bleeding treated, but a contraindicated drug given",
+   "class": "harm",
+   "when": "metherGiven and not isNull(controlledAt)",
+   "terminal": true,
+   "narrative": "{timeAt(controlledAt)|clock}: the bleeding is controlled at a QBL of {round(loss / 10) * 10} mL, but methylergonovine went into a client who was already hypertensive. Her BP climbed to the 180s over 110s with a pounding headache, the warning signs of a stroke or seizure that the drug's label lists. Methylergonovine is contraindicated in hypertension and preeclampsia: leave it in the kit and use oxytocin, carboprost (no asthma) and tranexamic acid."
+  },
   "controlled": {
    "label": "Hemorrhage recognized early and controlled",
    "class": "target",
@@ -1077,7 +1084,7 @@
    "class": "recovered",
    "when": "not isNull(controlledAt)",
    "terminal": true,
-   "narrative": "{timeAt(controlledAt)|clock}: the bleeding is controlled at a QBL of {round(loss / 10) * 10} mL, but the route cost blood or safety: a late or vague call, an eyeballed loss, or a drug she should not have had."
+   "narrative": "{timeAt(controlledAt)|clock}: the bleeding is controlled at a QBL of {round(loss / 10) * 10} mL, but the route cost blood or time: a late or vague call, or an eyeballed loss."
   },
   "time_up": {
    "label": "16:30 and still bleeding",
@@ -1088,6 +1095,7 @@
  },
  "endingOrder": [
   "shock",
+  "metherHarm",
   "controlled",
   "controlledLate"
  ],

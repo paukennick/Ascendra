@@ -144,17 +144,18 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // 2026-11-16: the checkpoint and wave ships (#193, #199), desktop web
     // column (REQ-304), biometric unlock fix (REQ-305), one session per device
-    // (REQ-306). The sims item is gated like every sims mention.
+    // (REQ-306). The sims item is gated like every sims mention. REQ-318: the
+    // count leaves out the four hidden pending their exam body's permission.
     id: "2026-11-16",
     date: "2026-11-16",
     appVersion: "2.0.0",
     covers: ["REQ-304", "REQ-305", "REQ-306"],
-    title: "28 new courses, and sign-in fixes",
+    title: "24 new courses, and sign-in fixes",
     items: [
       {
         icon: "book-open",
-        headline: "28 new courses",
-        body: "Python and Linux, SQL, TypeScript, Power BI, security management and ethical hacking, nursing specialties and FNP, Scrum, IT service, Six Sigma, nutrition coaching, and social work licensure.",
+        headline: "24 new courses",
+        body: "Python and Linux, SQL, TypeScript, Power BI, security management, nursing specialties and FNP, Scrum, IT service, Six Sigma, nutrition coaching, and social work licensure.",
       },
       {
         icon: "compass",
@@ -301,13 +302,15 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // Wave 2 (2026-11-12 UTC): REQ-237 terminal screen, REQ-238 security,
     // REQ-239 NCE/NCMHCE, REQ-240 nursing, REQ-241 EMS, REQ-242 AWS. Gated
-    // whole on sims: four of its five items are sims (FAIL-1271 rule).
+    // whole on sims: all its items are sims (FAIL-1271 rule).
+    // REQ-318: the counseling courses item was taken out when those courses
+    // were hidden pending their exam body's permission.
     id: "2026-11-12-b",
     date: "2026-11-12",
     appVersion: "2.0.0",
     covers: ["REQ-237", "REQ-238", "REQ-239", "REQ-240", "REQ-241", "REQ-242"],
     requires: "sims",
-    title: "Outages, incidents and two counseling courses",
+    title: "Outages, incidents and new cases",
     items: [
       {
         icon: "tool",
@@ -322,13 +325,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         body:
           "CySA+, PenTest+, SecurityX and SecAI+ each get two incidents on the security console. " +
           "The attacker keeps moving while you work.",
-      },
-      {
-        icon: "book-open",
-        headline: "Two counselor licensure courses",
-        body:
-          "Two new counseling courses built on the current exam outlines, with 12 labs each and five client " +
-          "sessions, from a first intake to a substance use assessment. For learners 18 and over.",
       },
       {
         icon: "zap",

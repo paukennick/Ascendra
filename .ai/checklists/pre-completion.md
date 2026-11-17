@@ -321,6 +321,13 @@
   float carries a tolerance and a test at the exact boundary. A parameter
   change that moves a stored prediction needs a new `MEMORY_MODEL_VERSION`
   (lib/decay-shadow.test.ts pins them together).
+- Hiding a catalog course (REQ-194 `hiddenAt`; REQ-318, FAIL-2282): README counts,
+  the sims list and What's new items that name or count it are updated in the
+  same change, and the hidden lists in catalog-trademarks.test.ts and
+  catalog-hidden.dbtest.ts name it. A drug the sources call contraindicated
+  for the case's client is a harm ending once its label is read, and a drug
+  time constant is derived from the label in its param note (FAIL-2280,
+  FAIL-2281).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

@@ -18143,6 +18143,74 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-2280",
+      "date": "2026-11-16",
+      "title": "Methylergonovine given to a hypertensive postpartum client could still end the hemorrhage case as recovered",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "In NCLEXRN/postpartum-hemorrhage-atony, giving methylergonovine raised BP to 180/112 with a headache, but a run that then controlled the bleeding ended controlledLate (class recovered); the golden methergine path was Mediocre-range recovered.",
+      "how_detected": "verify pass review, decision by Nick 2026-11-16",
+      "root_cause": "When the case was written the contraindication had been read only in StatPearls and one hospital protocol and ACOG Practice Bulletin 183 could not be opened, so it was left a critical criterion rather than a harm ending, pending Nick. The verify pass then read the FDA label (contraindicated in hypertension and toxemia) and OpenStax 21.2 citing ACOG 2017.",
+      "requirement": "REQ-318",
+      "affected": [
+        "backend/supabase/seed/sims/NCLEXRN/postpartum-hemorrhage-atony.sim.json"
+      ],
+      "fix_summary": "A metherHarm ending (class harm, terminal, when metherGiven and the bleeding is controlled) placed before the controlled endings in endingOrder; an uncontrolled run already ends as harm. The label and OpenStax sources copied from feature/verify-pass; goldens rebuilt.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/followups-1116.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A drug the sources call contraindicated for the case's client is a harm ending, not only a critical criterion, once the label is read; the test pins that every path giving it ends as harm.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2281",
+      "date": "2026-11-16",
+      "title": "Stroke case labetalol and nicardipine responded much faster than their labels",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "In CCRNADULT/acute-ischemic-stroke-lvo a labetalol dose faded with a 2-hour time constant (label: half-life about 5.5 h, back toward baseline in 16-18 h) and nicardipine reached half its effect in about 6 minutes (label: about 45 minutes at a constant rate).",
+      "how_detected": "verify pass review, decision by Nick 2026-11-16",
+      "root_cause": "The constants were authored to make BP control and drift fit the case's short window before the labels were opened; the verify pass read the labels and flagged both for clinical review rather than changing them.",
+      "requirement": "REQ-318",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/acute-ischemic-stroke-lvo.sim.json",
+        "backend/scripts/sim-golden/stroke.steps.ts"
+      ],
+      "fix_summary": "labTau 476 min (5.5 h / ln 2) and nicTau 65 min (45 min / ln 2), with notes saying what one first-order constant approximates; the bpDrift golden path makes no thrombectomy call so BP has time to drift back over 180/105; goldens rebuilt with Good, Mediocre and Bad paths and every criterion met and missed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/followups-1116.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Drug time constants are derived from the label's half-life or half-effect time and the derivation is in the param note; a FLAG that a constant disagrees with a read label is fixed, not left.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2282",
+      "date": "2026-11-16",
+      "title": "README counted and named hidden courses",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "README said the catalog has 149 courses and listed Red Hat (2) and Docker (1) container certifications, which have been hidden from the catalog since REQ-194 (2026-11-09); learners cannot find them.",
+      "how_detected": "review while hiding the REQ-318 courses",
+      "root_cause": "The README counts were kept as seeded tracks minus the one replaced course, and nothing compared them with the hidden list when courses were hidden.",
+      "requirement": "REQ-318",
+      "affected": [
+        "README.md"
+      ],
+      "fix_summary": "README lists only visible courses (140) by area, and a sentence says ten more are hidden and why.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "README prose counts by area; the hidden list itself is pinned in catalog-trademarks.test.ts and catalog-hidden.dbtest.ts, and a count test over prose would be brittle.",
+      "prevention_rules": [],
+      "prevention_notes": "When a course is hidden, README counts, the sims list and What's new items that name or count it are updated in the same change.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-2180",
       "date": "2026-11-16",
       "title": "REQ-269 sim test selected its documents by course code",

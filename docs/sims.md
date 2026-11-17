@@ -4026,7 +4026,14 @@ so study pace (3x) and the skip offer apply as in 5.4a and 5.4c.
   stand in for a probability or a missing guideline number carry `FLAG`
   (sepsis: fluid effect fading within the hour; DKA: the 100 mg/dL per hour
   limit and the ketone fall rate; stroke: a bleed made certain by BP above
-  the thresholds, labetalol and nicardipine effect sizes).
+  the thresholds, labetalol and nicardipine effect sizes). REQ-318
+  (2026-11-16): the stroke case's drug time constants follow the labels read
+  by the verify pass: labetalol's effect fades with its 5.5-hour elimination
+  half-life (`labTau` 476 min; Hikma 2024: back toward baseline in 16-18 h),
+  and nicardipine at a constant rate reaches half its effect in about 45
+  minutes (`nicTau` 65 min; Baxter 2026). Each is one first-order constant,
+  as the param notes say. With the slower fade, the `bpDrift` golden path
+  makes no thrombectomy call, so BP has time to drift back over 180/105.
 
 ### 22.4 Batch S2b: post-op hemorrhage (CCRN Adult), choking and a fall (CNA) (REQ-223)
 
@@ -5213,11 +5220,15 @@ names the other fitting objectives it exercises as secondary objectives.
 
 - **Harm endings** are outcomes (a fall, collapse, shock, hypoxia, refractory
   status) except where a guideline names the action: standing or walking a
-  person in anaphylaxis (RCUK 2021, "avoid sudden changes in posture"). The
-  methylergonovine trap in the hemorrhage case is a critical criterion, not a
-  harm ending: the contraindication was read in StatPearls and one hospital
-  protocol, and ACOG Practice Bulletin 183 could not be opened (a decision
-  for Nick if he wants it to end the run).
+  person in anaphylaxis (RCUK 2021, "avoid sudden changes in posture"), and
+  methylergonovine given to the hypertensive client in the hemorrhage case
+  (REQ-318, Nick 2026-11-16): the `metherHarm` ending, before the controlled
+  endings in `endingOrder`, so a run that gives it ends as harm whether or not
+  the bleeding is controlled (an uncontrolled run already ends as harm). The
+  label (American Regent, revised 08/2025: contraindicated in hypertension and
+  toxemia) and OpenStax Maternal-Newborn 21.2, citing ACOG 2017 ("should not
+  be given ... hypertension or preeclampsia"), are in its sources; ACOG
+  Practice Bulletin 183 itself still could not be opened.
 - **Scope.** The aide, PN and RN cases stay in scope through standing orders
   named in the brief (vital signs and reporting; the PN's epinephrine
   auto-injector order; the RN's oxytocin and hemorrhage protocol); the PT

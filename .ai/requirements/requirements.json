@@ -11251,6 +11251,46 @@
       "risk_notes": []
     },
     {
+      "id": "REQ-318",
+      "category": "content",
+      "title": "Follow-ups of 2026-11-16: hide permission-only bodies' courses, PPH methylergonovine harm, stroke drug time constants",
+      "description": "Nick approved on 2026-11-16: (1) the ISC2 (ISC2CC, CISSP), EC-Council (CEH), NBCC (NCE, NCMHCE) and BCEN (CEN) courses are hidden from the catalog with the REQ-194 hiddenAt mechanism, reason 'Hidden pending the exam body's permission to name its exam (REQ-309/REQ-318)', until written permission or legal advice arrives; units, objectives, labs and sims stay seeded and learners who already studied a course keep it; README lists only visible courses (140) and What's new no longer counts or describes the hidden ones. Permission request emails to the four bodies are drafted for Nick, not sent. (2) Category names are unchanged: Nick (2026-11-16) judged a category heading a factual, nominative reference, which the nominative-use policies allow, so the drafted migration 087 was dropped. (3) NCLEX-RN postpartum hemorrhage: methylergonovine given to the hypertensive client ends the run as harm (metherHarm in endingOrder), per the American Regent label (rev. 08/2025) and OpenStax Maternal-Newborn 21.2 citing ACOG 2017. (4) CCRN Adult stroke: labetalol fades with its 5.5 h half-life (labTau 476 min) and nicardipine reaches half its effect in 45 min at a constant rate (nicTau 65 min), per the Hikma 2024 and Baxter 2026 labels; approximations stated in the param notes; Good, Mediocre and Bad paths and every criterion met and missed kept.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks",
+        "backend/supabase/seed/sims/NCLEXRN",
+        "backend/supabase/seed/sims/CCRNADULT",
+        "backend/scripts/sim-golden",
+        "backend/lib/release-notes.ts",
+        "README.md",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Six courses hidden with the stated reason and content kept",
+        "No README or What's new text counts or describes a hidden course",
+        "Methylergonovine run ends as harm",
+        "Stroke constants match the labels with Good/Mediocre/Bad and every criterion met and missed"
+      ],
+      "validation_required": [
+        "backend/lib/catalog-trademarks.test.ts",
+        "backend/lib/catalog-hidden.dbtest.ts",
+        "backend/lib/sim/followups-1116.test.ts",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sims.md",
+        "docs/deploy-runbook-integration.md",
+        "README.md"
+      ],
+      "risk_notes": [
+        "Hidden courses stay reachable by id for study routes by REQ-194 design",
+        "Not legal advice",
+        "Category names are display text so 087 has no health probe"
+      ]
+    },
+    {
       "id": "REQ-311",
       "category": "feature",
       "title": "Sims: project dashboard (predictive and Sprint modes) and ITIL service desk screens, with the first Scrum and ITIL cases",

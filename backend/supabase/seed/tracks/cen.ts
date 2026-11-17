@@ -47,6 +47,7 @@
 
 import type { SeedTrack, UnitSource } from "../data";
 import { source } from "../sources";
+import { PERMISSION_PENDING_HIDDEN_AT, PERMISSION_PENDING_REASON } from "./permission-pending";
 
 const CHECKED = "2026-11-14";
 const VERIFIED_AT = "2026-11-14T00:00:00Z";
@@ -128,6 +129,8 @@ const label = (n: number) => `${n} of 150 scored items`;
 
 export const CEN_TRACK: SeedTrack = {
   code: "CEN",
+  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
+  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for an emergency nursing certification exam",
   description:
     "An emergency nursing specialty certification, built on the examination content outline effective July 2026: ten clinical categories from cardiovascular to environment, toxicology and communicable disease, plus professional issues, weighted by the published item counts. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
