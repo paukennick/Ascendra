@@ -56,4 +56,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "GCPNET", slug: "gke-pod-range-exhausted-before-promo", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpnet-podrange" },
   { course: "GCPDBE", slug: "cloud-run-exhausts-sql-connections", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpdbe-pooling" },
   { course: "GCPMLE", slug: "nightly-retrain-cuda-oom-after-batch-change", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpmle-oom" },
+  { course: "AZ120", slug: "nva-route-between-sap-app-and-db", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-nva" },
 ];

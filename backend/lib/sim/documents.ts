@@ -454,6 +454,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("GCPNET", "gke-pod-range-exhausted-before-promo"),
   entry("GCPDBE", "cloud-run-exhausts-sql-connections"),
   entry("GCPMLE", "nightly-retrain-cuda-oom-after-batch-change"),
+  entry("AZ120", "nva-route-between-sap-app-and-db"),
   // ---- end REQ-320 ----
 ];
 
