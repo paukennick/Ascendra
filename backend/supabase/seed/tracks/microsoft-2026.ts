@@ -111,7 +111,7 @@ const PL300_DOCS = {
 
 export const PL300_TRACK: SeedTrack = {
   code: "PL300",
-  title: "Exam Prep for Power BI Data Analyst Associate (PL-300)",
+  title: "Exam Prep for Microsoft Power BI Data Analyst Associate (PL-300)",
   description: `Microsoft Certified: Power BI Data Analyst Associate (PL-300): preparing data with Power Query, modeling it with relationships, date tables and DAX measures, building and enhancing reports (including Copilot features), and managing workspaces, apps, refresh, row-level security and sensitivity labels. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "azure-certifications",
@@ -507,7 +507,7 @@ const AI200_DOCS = {
 
 export const AI200_TRACK: SeedTrack = {
   code: "AI200",
-  title: "Exam Prep for Azure AI Cloud Developer Associate (AI-200)",
+  title: "Exam Prep for Microsoft Azure AI Cloud Developer Associate (AI-200)",
   description: `Microsoft Certified: Azure AI Cloud Developer Associate (AI-200), the successor to the retired Azure Developer Associate (AZ-204): containerized apps on Container Registry, App Service, Container Apps and AKS; AI data solutions on Cosmos DB, PostgreSQL with pgvector and Azure Managed Redis; Service Bus, Event Grid and Azure Functions; and Key Vault, App Configuration, OpenTelemetry and KQL. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "azure-certifications",

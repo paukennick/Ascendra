@@ -286,6 +286,19 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     }
   });
 
+  // REQ-324 follow-up (Nick, 2026-11-17 08:59 PT): Microsoft courses are named
+  // for the certification as Microsoft Learn names it, with "Microsoft" first
+  // ("Microsoft Certified: Azure Fundamentals" -> "Exam Prep for Microsoft
+  // Azure Fundamentals (AZ-900)"), as the AWS titles use the certification name.
+  test("REQ-324: Microsoft titles are 'Exam Prep for Microsoft <certification> (<exam code>)'", () => {
+    for (const code of BODIES.find((b) => b.name === "Microsoft")!.codes) {
+      const t = byCode.get(code)!;
+      const cert = t.credential!.credentialName.replace(/^Microsoft Certified: (Microsoft )?/, "");
+      assert.equal(t.title, `Exam Prep for Microsoft ${cert} (${t.credential!.examCode})`, code);
+    }
+    assert.equal(byCode.get("AZ900")!.title, "Exam Prep for Microsoft Azure Fundamentals (AZ-900)");
+  });
+
   test("titles are unique across the catalog", () => {
     const seen = new Map<string, string>();
     for (const t of CATALOG_TRACKS) {
