@@ -230,6 +230,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("NSCACPT", "nscacpt-squat-knees-cave"),
   band("NCCPTCPT", "nccpt-squat-knees-cave"),
   entry("NASMCNC", "cnc-ambivalent-food-record"),
+  entry("CISSP", "cissp-datahall-tailgate-cooling"),
+  band("SECPLUS", "datahall-tailgate-cooling-secplus"),
   // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
@@ -386,7 +388,7 @@ export const REQ314_SLUGS = {
     "nccpt-squat-knees-cave",
     "cnc-ambivalent-food-record",
   ],
-  facility: [] as string[],
+  facility: ["cissp-datahall-tailgate-cooling", "datahall-tailgate-cooling-secplus"],
   sandbox: [] as string[],
 } as const;
 export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));

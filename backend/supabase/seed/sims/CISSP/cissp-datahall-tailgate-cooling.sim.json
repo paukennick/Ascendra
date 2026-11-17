@@ -1,0 +1,1663 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cissp-datahall-tailgate-cooling",
+  "title": "A tailgater in the data hall and a cooling unit down",
+  "screen": {
+    "type": "facility-console",
+    "level": 1,
+    "facility": {
+      "site": {
+        "name": "Harbor Point Data Center, night shift",
+        "status": "{not isNull(plantAt) ? \"Customer cage C7 breached\" : temp >= allowable ? \"Data hall above the allowable temperature\" : isNull(interceptAt) ? \"Unbadged person in the data hall\" : \"Intruder held; monitoring\"}"
+      },
+      "zones": [
+        {
+          "id": "lobby",
+          "label": "Lobby",
+          "spokenLabel": "Lobby",
+          "kind": "entrance",
+          "status": "Staffed by the desk guard",
+          "tone": "\"secure\""
+        },
+        {
+          "id": "mantrap",
+          "label": "Mantrap B",
+          "spokenLabel": "Mantrap B",
+          "kind": "access vestibule",
+          "status": "{isNull(badgeInOffAt) and not lockedBoth ? \"Badge-in active\" : lockedBoth ? \"Locked both ways\" : \"Entry suspended; exit free\"}",
+          "tone": "lockedBoth or not isNull(badgeInOffAt) ? \"locked\" : \"watch\""
+        },
+        {
+          "id": "hall",
+          "label": "Data hall",
+          "spokenLabel": "Data hall",
+          "kind": "data center floor",
+          "status": "{isNull(interceptAt) and isNull(plantAt) ? \"Unbadged person inside; 2 night technicians\" : \"2 night technicians\"}{propped ? \"; doors propped open\" : \"\"}",
+          "tone": "(isNull(interceptAt) and isNull(plantAt)) or propped ? \"alarm\" : temp > hot ? \"watch\" : \"secure\""
+        },
+        {
+          "id": "c7",
+          "label": "Cage C7",
+          "spokenLabel": "Cage C 7",
+          "kind": "customer cage",
+          "status": "{not isNull(plantAt) ? \"Device found on the customer's switch\" : not isNull(cageAt) ? \"Door held open\" : \"Closed\"}",
+          "tone": "not isNull(plantAt) or (not isNull(cageAt) and isNull(interceptAt)) ? \"alarm\" : not isNull(cageAt) ? \"watch\" : \"secure\""
+        },
+        {
+          "id": "elec",
+          "label": "Electrical room",
+          "spokenLabel": "Electrical room",
+          "kind": "power distribution",
+          "status": "{isNull(tripAt) ? \"Normal\" : isNull(cracBackAt) ? \"PDU-2 breaker 14 tripped\" : \"Breaker reset\"}",
+          "tone": "not isNull(tripAt) and isNull(cracBackAt) ? \"alarm\" : \"secure\""
+        }
+      ],
+      "alarms": [
+        {
+          "id": "aTail",
+          "kind": "door",
+          "severity": "high",
+          "title": "Tailgating at mantrap B: one badge, two people",
+          "detail": "Badge: R. Okoye (contractor)",
+          "when": "true",
+          "at": "0",
+          "status": "{not isNull(interceptAt) ? \"Person held at the desk\" : not isNull(plantAt) ? \"Person left the building\" : not isNull(dispatchAt) ? \"Guards dispatched\" : \"Unacknowledged\"}",
+          "open": "isNull(interceptAt) and isNull(plantAt)"
+        },
+        {
+          "id": "aPower",
+          "kind": "power",
+          "severity": "high",
+          "title": "PDU-2 breaker 14 tripped (CRAC-2)",
+          "when": "not isNull(tripAt)",
+          "at": "timeAt(tripAt)",
+          "status": "{not isNull(cracBackAt) ? \"Reset\" : not isNull(engineerAt) ? \"Engineer called out\" : \"Open\"}",
+          "open": "not isNull(tripAt) and isNull(cracBackAt) and isNull(engineerAt)"
+        },
+        {
+          "id": "aHeat",
+          "kind": "hvac",
+          "severity": "high",
+          "title": "Row C inlet temperature high",
+          "when": "not isNull(tripAt) and peakTemp > hot",
+          "at": "timeAt(tripAt) + 600",
+          "status": "{temp > hot ? \"Above the recommended range\" : \"Back in range\"}",
+          "open": "temp > hot"
+        },
+        {
+          "id": "aCage",
+          "kind": "door",
+          "severity": "critical",
+          "title": "Cage C7 door held open",
+          "when": "not isNull(cageAt)",
+          "at": "timeAt(cageAt)",
+          "status": "{not isNull(interceptAt) ? \"Cleared\" : \"Open\"}",
+          "open": "not isNull(cageAt) and isNull(interceptAt) and isNull(plantAt)"
+        },
+        {
+          "id": "aProp",
+          "kind": "door",
+          "severity": "medium",
+          "title": "Data hall doors held open",
+          "when": "propped",
+          "at": "timeAt(proppedAt)",
+          "status": "Doors propped",
+          "open": "propped"
+        }
+      ],
+      "doors": [
+        {
+          "id": "d1",
+          "reader": "Lobby reader",
+          "text": "R. Okoye (contractor), work order 4471",
+          "result": "\"granted\"",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "d2",
+          "reader": "Mantrap B",
+          "text": "R. Okoye badge; 2 people counted through",
+          "result": "\"tailgate\"",
+          "when": "true",
+          "at": "60"
+        },
+        {
+          "id": "d3",
+          "reader": "Cage C7",
+          "text": "Door opened without a badge (latch not engaged)",
+          "result": "\"held\"",
+          "when": "not isNull(cageAt)",
+          "at": "timeAt(cageAt)"
+        },
+        {
+          "id": "d4",
+          "reader": "Data hall exit",
+          "text": "Exit by push bar",
+          "result": "\"granted\"",
+          "when": "not isNull(plantAt)",
+          "at": "timeAt(plantAt) + 60"
+        },
+        {
+          "id": "d5",
+          "reader": "Data hall readers",
+          "text": "Entry suspended by the security desk",
+          "result": "\"denied\"",
+          "when": "not isNull(badgeInOffAt)",
+          "at": "timeAt(badgeInOffAt)"
+        }
+      ],
+      "cameras": [
+        {
+          "id": "camB",
+          "label": "Mantrap B",
+          "spokenLabel": "mantrap B",
+          "view": "{isNull(camAt) ? \"Live: empty.\" : \"Replay 01:00: Okoye badges in and holds the inner door; a man in a hi-vis vest with a laptop bag follows, no badge visible.\"}"
+        },
+        {
+          "id": "camC",
+          "label": "Row C",
+          "spokenLabel": "row C",
+          "view": "{not isNull(interceptAt) ? \"Two guards walking a man in hi-vis to the exit.\" : not isNull(plantAt) ? \"Empty aisle; cage C7 door ajar.\" : not isNull(cageAt) ? \"A man in hi-vis inside cage C7, at the network rack.\" : \"A man in hi-vis walking the row, reading cage labels.\"}"
+        }
+      ],
+      "environment": [
+        {
+          "id": "eTemp",
+          "label": "Row C inlet",
+          "spokenLabel": "Row C inlet temperature",
+          "value": "temp",
+          "unit": "°C",
+          "precision": 1,
+          "low": 18,
+          "high": 27
+        },
+        {
+          "id": "eHum",
+          "label": "Humidity",
+          "spokenLabel": "Relative humidity",
+          "value": "45",
+          "unit": "%"
+        },
+        {
+          "id": "eAgent",
+          "label": "Clean-agent suppression",
+          "spokenLabel": "Clean agent suppression panel",
+          "value": "1",
+          "unit": "zone armed, normal"
+        }
+      ],
+      "people": [
+        {
+          "id": "pOkoye",
+          "label": "R. Okoye, contractor",
+          "status": "{not isNull(callAt) ? \"'He said he was from the carrier and with me, so I held the door.'\" : \"On a work order in the meet-me room\"}{not isNull(okoyeOffAt) ? \"; badge suspended\" : \"\"}",
+          "when": "true"
+        },
+        {
+          "id": "pIntruder",
+          "label": "Unbadged man in hi-vis",
+          "status": "{not isNull(interceptAt) ? (isNull(policeAt) ? \"Held at the security desk\" : \"Held at the security desk; police called\") : not isNull(plantAt) ? \"Left the building\" : \"In the data hall\"}",
+          "when": "true",
+          "flag": "isNull(interceptAt) and isNull(plantAt)"
+        },
+        {
+          "id": "pTechs",
+          "label": "Two night technicians",
+          "status": "{lockedBoth ? \"Cannot get out: the doors are locked both ways\" : \"Working in row A\"}",
+          "when": "true",
+          "flag": "lockedBoth"
+        },
+        {
+          "id": "pGuard",
+          "label": "Guard",
+          "status": "Hurt wrist; first aid at the desk",
+          "when": "guardHurt",
+          "flag": "true"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mVisit",
+          "label": "Visitor log",
+          "value": "{isNull(visitorAt) ? \"Not checked\" : \"No visitors tonight; work order 4471 lists one contractor\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Design site and facility security: wiring closets, server rooms and data centers, media and evidence storage, restricted work areas, utilities and HVAC, environmental threats, fire prevention, detection and suppression, and power",
+  "secondaryObjectives": [
+    "Implement physical security and address personnel safety: travel, insider threat and social media awareness, emergency management and duress",
+    "Control physical and logical access to information, systems, devices, facilities, applications and services"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2 CISSP Certification Exam Outline (effective 2024-04-15): Domain 3 Security Architecture and Engineering, 3.7 site and facility design and controls (server rooms and data centers, restricted work areas, utilities and HVAC, environmental issues, fire prevention, detection and suppression, power); Domain 7 Security Operations, 7.11 physical security and personnel safety; Domain 5 5.1 control physical and logical access",
+      "checkedAt": "2026-11-16",
+      "note": "Read for the course (REQ-271) through the ISC2 outline PDF; not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Greene L. QQ: Fire Alarm Release of Electrified Locks. I Dig Hardware (Allegion), 2023-03-06: doors in a means of egress 'must allow free and immediate egress at all times, with a few exceptions'; IBC: 'Loss of power to the lock or locking system shall automatically unlock the electric locks'; delayed egress locks must release on fire alarm and power failure",
+      "checkedAt": "2026-11-16",
+      "url": "https://idighardware.com/2023/03/qq-fire-alarm-release-of-electrified-locks/",
+      "note": "Read 2026-11-16 through a summarizing fetch of a door-hardware specialist's article on the IBC and NFPA 101; the codes themselves were not read. Used for the rule that access control may restrict entry but never egress."
+    },
+    {
+      "cite": "ASHRAE TC 9.9, Thermal Guidelines for Data Processing Environments (4th edition), as summarized by Upsite Technologies (Ian Seaton, 2019-11-27): recommended inlet temperature 18-27 °C for all classes; allowable class A1 15-32 °C, A2 10-35 °C; the allowable limits 'allow for short operating excursions'",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.upsite.com/blog/what-is-the-difference-between-ashraes-recommended-and-allowable-data-center-environmental-limits-part-4/",
+      "note": "Read 2026-11-16 through a summarizing fetch of a vendor blog; the ASHRAE book itself (now in a later edition) was not read. Used for the 27 °C and 32 °C lines only."
+    },
+    {
+      "cite": "Author's teaching model (REQ-314)",
+      "checkedAt": "2026-11-16",
+      "note": "The intruder's timeline, the guards' walk, the temperature rise of 0.25 °C a minute with one cooling unit down and the fall with the standby unit are the author's figures for teaching, not measurements."
+    }
+  ],
+  "brief": {
+    "situation": "You are the night security operations lead at Harbor Point, a fictional colocation data center. At 01:00 the access system reports a tailgate at data hall mantrap B: one contractor's badge, two people through. Two guards are on site, plus two night technicians in the data hall. Facilities systems report to your console too.",
+    "handover": [
+      "You can dispatch the guards, change door modes, start standby plant from the building management system, call out the on-call engineer and call the police. Guards observe and escort; they are not to confront alone.",
+      "Data hall cooling is N+1: CRAC-1 and CRAC-2 run, CRAC-3 is standby."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock.",
+      "Alarms, zones, cameras (described in words), the environment and the door log update as events happen.",
+      "When you close the incident you write the report and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "01:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cageDelay": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Fifteen minutes for the unbadged person to reach cage C7 is the author's figure."
+      }
+    },
+    "plantDelay": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Twenty-five minutes until a device is plugged into the customer's switch is the author's figure."
+      }
+    },
+    "tripDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "The cooling unit's breaker trips ten minutes in; the author's figure."
+      }
+    },
+    "pairWalk": {
+      "value": 360,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Six minutes for two guards to reach the data hall together; the author's figure."
+      }
+    },
+    "singleWalk": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Four minutes for the nearer guard alone; the author's figure."
+      }
+    },
+    "engineerDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Thirty minutes for the on-call engineer to arrive and reset the breaker; the author's figure."
+      }
+    },
+    "hot": {
+      "value": 27,
+      "unit": "°C",
+      "source": {
+        "cite": "ASHRAE TC 9.9, Thermal Guidelines for Data Processing Environments (4th edition), as summarized by Upsite Technologies (Ian Seaton, 2019-11-27): recommended inlet temperature 18-27 °C for all classes; allowable class A1 15-32 °C, A2 10-35 °C; the allowable limits 'allow for short operating excursions'",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.upsite.com/blog/what-is-the-difference-between-ashraes-recommended-and-allowable-data-center-environmental-limits-part-4/",
+        "note": "Read 2026-11-16 through a summarizing fetch of a vendor blog; the ASHRAE book itself (now in a later edition) was not read. Used for the 27 °C and 32 °C lines only."
+      }
+    },
+    "allowable": {
+      "value": 32,
+      "unit": "°C",
+      "source": {
+        "cite": "ASHRAE TC 9.9, Thermal Guidelines for Data Processing Environments (4th edition), as summarized by Upsite Technologies (Ian Seaton, 2019-11-27): recommended inlet temperature 18-27 °C for all classes; allowable class A1 15-32 °C, A2 10-35 °C; the allowable limits 'allow for short operating excursions'",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.upsite.com/blog/what-is-the-difference-between-ashraes-recommended-and-allowable-data-center-environmental-limits-part-4/",
+        "note": "Read 2026-11-16 through a summarizing fetch of a vendor blog; the ASHRAE book itself (now in a later edition) was not read. Used for the 27 °C and 32 °C lines only."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "camAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "visitorAt": {
+      "type": "time",
+      "init": null
+    },
+    "dispatchAt": {
+      "type": "time",
+      "init": null
+    },
+    "dispatchMode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pair",
+        "single"
+      ],
+      "init": "none"
+    },
+    "interceptAt": {
+      "type": "time",
+      "init": null
+    },
+    "guardHurt": {
+      "type": "bool",
+      "init": false
+    },
+    "policeAt": {
+      "type": "time",
+      "init": null
+    },
+    "badgeInOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedBoth": {
+      "type": "bool",
+      "init": false
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "okoyeOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "cageAt": {
+      "type": "time",
+      "init": null
+    },
+    "plantAt": {
+      "type": "time",
+      "init": null
+    },
+    "tripAt": {
+      "type": "time",
+      "init": null
+    },
+    "crac3At": {
+      "type": "time",
+      "init": null
+    },
+    "engineerAt": {
+      "type": "time",
+      "init": null
+    },
+    "cracBackAt": {
+      "type": "time",
+      "init": null
+    },
+    "propped": {
+      "type": "bool",
+      "init": false
+    },
+    "proppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "preserveAt": {
+      "type": "time",
+      "init": null
+    },
+    "customerAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "temp": {
+      "type": "number",
+      "init": 23,
+      "unit": "°C",
+      "min": 15,
+      "max": 45
+    },
+    "peakTemp": {
+      "type": "number",
+      "init": 23,
+      "unit": "°C",
+      "min": 15,
+      "max": 45
+    },
+    "firstActAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "heat",
+      "when": "not isNull(tripAt)",
+      "update": {
+        "temp": "clamp(temp + ((not isNull(crac3At) or not isNull(cracBackAt)) ? -0.2 : propped ? 0.15 : 0.25) * dt / 60, 23, 45)",
+        "peakTemp": "max(peakTemp, temp)"
+      }
+    }
+  ],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "reviewCam",
+        "callOkoye",
+        "visitorLog",
+        "dispatch",
+        "suspendIn",
+        "lockBoth",
+        "unlock",
+        "disableOkoye",
+        "police",
+        "crac3",
+        "engineer",
+        "prop",
+        "preserve",
+        "customer",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reviewCam": {
+      "label": "Review the mantrap B camera and the badge log",
+      "group": "Investigate",
+      "available": "not busy and (isNull(camAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(camAt)",
+          "then": [
+            {
+              "set": "camAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You replay mantrap B and pull the badge log.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "callOkoye": {
+      "label": "Call the contractor, R. Okoye, on his mobile",
+      "group": "Investigate",
+      "available": "not busy and (isNull(callAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You call Okoye.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "visitorLog": {
+      "label": "Check tonight's visitor log and work orders",
+      "group": "Investigate",
+      "available": "not busy and (isNull(visitorAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(visitorAt)",
+          "then": [
+            {
+              "set": "visitorAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You check the visitor log and the work orders for tonight.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dispatch": {
+      "label": "Dispatch security to the data hall",
+      "group": "Respond",
+      "available": "not busy and (isNull(dispatchAt))",
+      "why": "Already dispatched.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who goes",
+          "options": [
+            {
+              "value": "pair",
+              "label": "Both guards together: observe, keep distance, escort out; police if he refuses"
+            },
+            {
+              "value": "single",
+              "label": "The nearer guard alone, now, to stop him"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(dispatchAt)",
+          "then": [
+            {
+              "set": "dispatchAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "dispatchMode",
+          "to": "how"
+        },
+        {
+          "schedule": "arrive",
+          "after": "how == \"pair\" ? pairWalk : singleWalk"
+        },
+        {
+          "log": "You radio the guards.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "suspendIn": {
+      "label": "Suspend badge-in to the data hall (exit stays free)",
+      "group": "Respond",
+      "available": "not busy and (isNull(badgeInOffAt) and not lockedBoth)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(badgeInOffAt)",
+          "then": [
+            {
+              "set": "badgeInOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You suspend entry on the data hall readers; exit buttons and push bars still work.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "lockBoth": {
+      "label": "Lock every data hall door in both directions",
+      "group": "Respond",
+      "available": "not busy and (not lockedBoth)",
+      "why": "Already locked.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lockedBoth",
+          "to": "true"
+        },
+        {
+          "if": "isNull(lockedAt)",
+          "then": [
+            {
+              "set": "lockedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You lock the data hall doors in and out.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "unlock": {
+      "label": "Restore free exit on the data hall doors",
+      "group": "Respond",
+      "available": "not busy and (lockedBoth)",
+      "why": "Exit is free.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lockedBoth",
+          "to": "false"
+        },
+        {
+          "log": "You restore free exit.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "disableOkoye": {
+      "label": "Suspend Okoye's badge pending review",
+      "group": "Respond",
+      "available": "not busy and (isNull(okoyeOffAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(okoyeOffAt)",
+          "then": [
+            {
+              "set": "okoyeOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You suspend the contractor's badge.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "police": {
+      "label": "Call the police",
+      "group": "Respond",
+      "available": "not busy and (isNull(policeAt) and not isNull(interceptAt))",
+      "why": "Nobody is held yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(policeAt)",
+          "then": [
+            {
+              "set": "policeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You call the police non-emergency line about a trespasser held at the desk.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "crac3": {
+      "label": "Start the standby cooling unit, CRAC-3, from the building management system",
+      "group": "Environment",
+      "available": "not busy and (not isNull(tripAt) and isNull(crac3At))",
+      "why": "Nothing to replace yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(crac3At)",
+          "then": [
+            {
+              "set": "crac3At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You start CRAC-3 from the BMS.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "engineer": {
+      "label": "Call out the on-call facilities engineer for the tripped breaker",
+      "group": "Environment",
+      "available": "not busy and (not isNull(tripAt) and isNull(engineerAt))",
+      "why": "Nothing has tripped.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(engineerAt)",
+          "then": [
+            {
+              "set": "engineerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "fix",
+          "after": "engineerDelay"
+        },
+        {
+          "log": "You call the on-call engineer.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "prop": {
+      "label": "Prop the data hall doors open for air",
+      "group": "Environment",
+      "available": "not busy and (not propped and not isNull(tripAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "propped",
+          "to": "true"
+        },
+        {
+          "if": "isNull(proppedAt)",
+          "then": [
+            {
+              "set": "proppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You have the hall doors propped open.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "preserve": {
+      "label": "Export and preserve the camera clips and the badge log, with a custody record",
+      "group": "Evidence",
+      "available": "not busy and (isNull(preserveAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(preserveAt)",
+          "then": [
+            {
+              "set": "preserveAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You export the clips and the log, hash them and record custody.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "customer": {
+      "label": "Notify the customer whose cage was approached",
+      "group": "Communicate",
+      "available": "not busy and (isNull(customerAt) and not isNull(cageAt))",
+      "why": "No customer is affected yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(customerAt)",
+          "then": [
+            {
+              "set": "customerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You notify the customer's security contact.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the cameras and panels (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You watch the cameras and the panels.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident report",
+      "group": "Report",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Report",
+          "options": [
+            {
+              "value": "full",
+              "label": "Timeline, the tailgate and how it happened, who was held, the cooling failure and temperatures, evidence with custody, notifications, and the changes needed"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Tailgate and CRAC trip, resolved'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "arrive": {
+      "label": "Guards on the way",
+      "wait": {
+        "skipLabel": "Wait for the guards"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's teaching model (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "The intruder's timeline, the guards' walk, the temperature rise of 0.25 °C a minute with one cooling unit down and the fall with the standby unit are the author's figures for teaching, not measurements."
+      },
+      "effects": [
+        {
+          "if": "isNull(plantAt)",
+          "then": [
+            {
+              "if": "isNull(interceptAt)",
+              "then": [
+                {
+                  "set": "interceptAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "dispatchMode == \"single\"",
+              "then": [
+                {
+                  "set": "guardHurt",
+                  "to": "true"
+                },
+                {
+                  "log": "The guard blocks the man's way; he shoves past, the guard falls against a rack and hurts his wrist. The second guard catches up at the exit and he is held at the desk.",
+                  "kind": "alarm"
+                }
+              ],
+              "else": [
+                {
+                  "log": "Two guards find the man in hi-vis at row C, keep their distance and ask for his badge; he has none and walks with them to the security desk.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "log": "The guards arrive; he is gone.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Engineer on the way",
+      "wait": {
+        "skipLabel": "Wait for the engineer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Thirty minutes for the on-call engineer to arrive and reset the breaker; the author's figure."
+      },
+      "effects": [
+        {
+          "if": "isNull(cracBackAt)",
+          "then": [
+            {
+              "set": "cracBackAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The engineer resets breaker 14 and CRAC-2 restarts.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cage",
+      "when": "isNull(interceptAt) and isNull(plantAt) and t >= cageDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(cageAt)",
+          "then": [
+            {
+              "set": "cageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Cage C7 door held open: the unbadged person is inside a customer cage.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "plant",
+      "when": "isNull(interceptAt) and isNull(plantAt) and t >= plantDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(plantAt)",
+          "then": [
+            {
+              "set": "plantAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Camera C7: he plugs a small device into the customer's switch and walks out through the free-exit door.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "trip",
+      "when": "t >= tripDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(tripAt)",
+          "then": [
+            {
+              "set": "tripAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Power: PDU-2 breaker 14 tripped; CRAC-2 has stopped.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident report: what happened at the door and why, how you protected people and the customer, how you handled the cooling failure, and what should change.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The tailgate",
+          "criteria": "Recognizes tailgating via social engineering (one badge, two people; the contractor held the door for a claimed colleague); verified on camera and the visitor log; intercepted with two guards observing and escorting rather than one guard confronting; police for the trespasser; the contractor's badge suspended pending review.",
+          "modelAnswer": "Okoye held the mantrap door for a man claiming to be with the carrier: a tailgate through social engineering. Camera and visitor log confirmed he had no access. Two guards escorted him to the desk; police called; Okoye's badge suspended."
+        },
+        {
+          "label": "People and the customer",
+          "criteria": "Entry restricted while exit stays free (life safety: never lock egress); the customer notified of the approach to their cage; evidence exported with custody.",
+          "modelAnswer": "I suspended badge-in but kept exit free, because egress doors must always open. The customer was told; the clips and badge log were exported, hashed and logged."
+        },
+        {
+          "label": "Cooling and lessons",
+          "criteria": "Started the N+1 standby unit at once and called the engineer for the breaker; did not prop doors (defeats access control); kept inlet temperature within or near the recommended range; changes: tailgate training, mantrap anti-passback, alarms on held doors.",
+          "modelAnswer": "I started CRAC-3 from the BMS within minutes and called out the engineer; temperatures stayed under 27 °C. Changes: contractor briefing on tailgating, mantrap occupancy enforcement, review of cage latch alarms."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "facility",
+    "thresholds": {
+      "responseWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Facility outcome profile (docs/sims.md 9.2, 22.27), tightened to 5 minutes for a tailgate",
+          "checkedAt": "2026-11-16",
+          "note": "Author's figure."
+        }
+      },
+      "peopleAtRisk": {
+        "value": 0,
+        "source": {
+          "cite": "Greene L. QQ: Fire Alarm Release of Electrified Locks. I Dig Hardware (Allegion), 2023-03-06: doors in a means of egress 'must allow free and immediate egress at all times, with a few exceptions'; IBC: 'Loss of power to the lock or locking system shall automatically unlock the electric locks'; delayed egress locks must release on fire alarm and power failure",
+          "checkedAt": "2026-11-16",
+          "url": "https://idighardware.com/2023/03/qq-fire-alarm-release-of-electrified-locks/",
+          "note": "Read 2026-11-16 through a summarizing fetch of a door-hardware specialist's article on the IBC and NFPA 101; the codes themselves were not read. Used for the rule that access control may restrict entry but never egress."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(dispatchAt)",
+      "class": "harm",
+      "rationale": "Closing with an unidentified person loose in the data hall is never a safe outcome.",
+      "source": {
+        "cite": "ISC2 CISSP Certification Exam Outline (effective 2024-04-15): Domain 3 Security Architecture and Engineering, 3.7 site and facility design and controls (server rooms and data centers, restricted work areas, utilities and HVAC, environmental issues, fire prevention, detection and suppression, power); Domain 7 Security Operations, 7.11 physical security and personnel safety; Domain 5 5.1 control physical and logical access",
+        "checkedAt": "2026-11-16",
+        "note": "Read for the course (REQ-271) through the ISC2 outline PDF; not re-read for this case. The objective titles are the course's own words."
+      }
+    }
+  },
+  "endings": {
+    "peopleHarm": {
+      "label": "People put at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and (lockedBoth ? 1 : 0) + (guardHurt ? 1 : 0) > peopleAtRisk",
+      "narrative": "{guardHurt ? \"A lone guard was hurt confronting the man.\" : \"\"}{lockedBoth ? \" Two technicians were locked in the data hall with no way out.\" : \"\"}"
+    },
+    "breach": {
+      "label": "Customer cage breached",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(plantAt)",
+      "narrative": "A device sat on the customer's switch; the man walked out through the free-exit door before anyone reached him."
+    },
+    "hallHot": {
+      "label": "Data hall overheated",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and peakTemp >= allowable",
+      "narrative": "Row C passed {allowable} °C and customer servers began to throttle and shut down."
+    },
+    "handled": {
+      "label": "Intercepted, cooled, recorded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and not isNull(interceptAt) and isNull(cageAt) and dispatchMode == \"pair\" and not lockedBoth and isNull(lockedAt) and not propped and peakTemp <= hot and not isNull(preserveAt) and not isNull(policeAt) and timeAt(firstActAt) <= responseWindow",
+      "narrative": "The man was escorted out before he reached a cage, nobody was put at risk, the standby unit held the temperature, and the evidence is kept."
+    },
+    "handledGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{not isNull(cageAt) ? \"He reached a customer cage before he was stopped.\" : peakTemp > hot ? \"Row C ran above the recommended range for a while.\" : not isNull(lockedAt) or propped ? \"Doors were locked or propped along the way.\" : isNull(preserveAt) ? \"The clips and badge log were not preserved.\" : \"The response was slow or the report thin.\"}"
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The shift ran out with no report."
+    }
+  },
+  "endingOrder": [
+    "peopleHarm",
+    "breach",
+    "hallHot",
+    "handled",
+    "handledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "intercept",
+        "label": "Intercepted before he reached a customer cage, by two guards",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(interceptAt) and isNull(cageAt) and dispatchMode == \"pair\"",
+            "score": "met",
+            "why": "Escorted out at {timeAt(interceptAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(interceptAt)",
+            "score": "partial",
+            "why": "Held, late or at a guard's expense."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not intercepted."
+          }
+        ]
+      },
+      {
+        "id": "egress",
+        "label": "Entry restricted, exit never blocked, doors never propped",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(lockedAt) and not propped and not isNull(badgeInOffAt)",
+            "score": "met",
+            "why": "Entry suspended, exit free."
+          },
+          {
+            "when": "isNull(lockedAt) and not propped",
+            "score": "partial",
+            "why": "Exit free, entry never restricted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Egress locked or doors propped."
+          }
+        ]
+      },
+      {
+        "id": "cooling",
+        "label": "Standby cooling started; inlet stayed at or under 27 °C",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(crac3At) and peakTemp <= hot",
+            "score": "met",
+            "why": "Peak {peakTemp|1dp} °C."
+          },
+          {
+            "when": "peakTemp < allowable",
+            "score": "partial",
+            "why": "Peak {peakTemp|1dp} °C, above the recommended range."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Peak {peakTemp|1dp} °C, past the allowable limit."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Clips and badge log preserved with custody; police called",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(preserveAt) and not isNull(policeAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(preserveAt) or not isNull(policeAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "verify",
+        "label": "Verified on camera, the visitor log or with the contractor",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(camAt) and (not isNull(visitorAt) or not isNull(callAt))",
+            "score": "met",
+            "why": "Verified."
+          },
+          {
+            "when": "not isNull(camAt) or not isNull(visitorAt) or not isNull(callAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not verified."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written tailgate, people, cooling and lessons",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minIntercept",
+        "label": "Minutes until he was held",
+        "value": "isNull(interceptAt) ? -1 : timeAt(interceptAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "peak",
+        "label": "Peak row C inlet temperature (°C)",
+        "value": "peakTemp",
+        "format": "number",
+        "expert": "27 or less"
+      },
+      {
+        "id": "atRisk",
+        "label": "People put at risk",
+        "value": "(lockedBoth ? 1 : 0) + (guardHurt ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "01:00-01:03",
+        "text": "Dispatch both guards together; review mantrap B and the visitor log; suspend badge-in (exit stays free)."
+      },
+      {
+        "at": "01:03-01:10",
+        "text": "Call Okoye; suspend his badge pending review; the guards hold the man at the desk; call the police."
+      },
+      {
+        "at": "01:10-01:15",
+        "text": "Breaker trip: start CRAC-3 from the BMS; call out the engineer."
+      },
+      {
+        "at": "Before closing",
+        "text": "Export the clips and badge log with custody; a full report."
+      }
+    ],
+    "debrief": {
+      "handled": {
+        "headline": "Good: people, access, cooling, evidence",
+        "body": "Two guards escorted him before he reached a cage, entry was restricted without locking anyone in, the standby unit held the temperature, and the evidence is kept."
+      },
+      "handledGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Speed matters at a tailgate; egress stays free; standby cooling first, the engineer second; preserve the clips and log before they roll over."
+      },
+      "peopleHarm": {
+        "headline": "Life safety comes first",
+        "body": "Egress doors must always open, and a guard should never confront an intruder alone. Security controls that endanger people are the wrong controls."
+      },
+      "breach": {
+        "headline": "Too slow at the door",
+        "body": "A tailgate is an intrusion until proven otherwise: dispatch at once, verify in parallel."
+      },
+      "hallHot": {
+        "headline": "Cooling lost",
+        "body": "With N+1 cooling, the standby unit is minutes away from the BMS; waiting for the engineer let the hall pass the allowable limit."
+      },
+      "time_up": {
+        "headline": "No report",
+        "body": "The shift ran out without a report."
+      }
+    },
+    "modelReasoning": "Tailgate through social engineering: two guards escort, police, the contractor's badge suspended; entry suspended with free exit; customer told; evidence with custody. Cooling: CRAC-3 from the BMS at once, engineer called; no propped doors; inlet under 27 °C. Lessons: contractor training, mantrap enforcement, held-door alarms."
+  }
+}
