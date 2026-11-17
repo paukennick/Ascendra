@@ -250,8 +250,9 @@ describe("FAIL-928..933, 938: roles, labels, wording and structure (static)", ()
   });
   test("FAIL-933: the course card's star is not inside a pressable card", () => {
     const card = read("src/components/CourseCard.tsx");
-    assert.doesNotMatch(card, /<Card onPress/);
-    assert.match(card, /<Card>/);
+    assert.doesNotMatch(card, /<Card[^>]*onPress/);
+    // REQ-322: a grid cell may pass a style ({ flex: 1 }); the card stays a plain surface.
+    assert.match(card, /<Card( style=\{style\})?>/);
   });
   test("FAIL-938: one 'Sign out' wording, no '--' in a button label, content width capped", () => {
     for (const f of ["app/(app)/account.tsx", "src/components/Sidebar.tsx", "src/components/AppLock.tsx"]) {
