@@ -18890,6 +18890,52 @@
       "prevention_rules": [],
       "prevention_notes": "A lesson fix on an objective with a scheduled retiredAt sets includeRetired when it is written.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2390",
+      "date": "2026-11-17",
+      "title": "ABPTSECS told learners to delay electrodiagnosis 3 weeks in suspected GBS/AIDP",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Objective said: 'For suspected AIDP, delay NCS and EMG until at least 3 weeks after onset and include F-waves...' (cited SP-EDX-AIDP, StatPearls 2022).",
+      "how_detected": "REQ-310 verify-2 pass; EAN/PNS 2023 guideline full text (JPNS copy, UAB repository) read 2026-11-17",
+      "root_cause": "The 2026-11-04 depth pass used a 2022 StatPearls chapter (Tier 2) as sole support for a timing claim; the EAN/PNS 2023 guideline (Tier 1), which advises electrodiagnosis to support the EARLY diagnosis and says a normal first-week study does not exclude GBS, was never looked for.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/tracks/pt-abpts.ts"
+      ],
+      "fix_summary": "Objective rewritten to the guideline (early electrodiagnosis; first-week supportive features; sural sparing more specific; normal first-week study does not exclude; repeat later). EAN-PNS-GBS added as a Tier 1 source and the disagreement recorded. The retitle invalidates the objective's stored lessons on seed (intended).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-2.test.ts::FAIL-2390"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A clinical timing or threshold claim backed only by a StatPearls chapter is checked against the current professional-society guideline before it ships; the source header records disagreements and which side was followed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2391",
+      "date": "2026-11-17",
+      "title": "Project+ unit 4 named 'Basics of IT Governance' instead of CompTIA's 'Basics of IT and Governance'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "PROJECTPLUS unit 4 title read 'Basics of IT Governance'; CompTIA's Project+ page and PK0-005 blog name domain 4.0 'Basics of IT and Governance'.",
+      "how_detected": "REQ-310 verify-2 pass; comptia.org Project+ page read 2026-11-17",
+      "root_cause": "The 2026-09-24 author condensed the domain name; no test pinned unit titles to the owner's wording.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/tracks/comptia.ts"
+      ],
+      "fix_summary": "Unit title set to CompTIA's wording. Units are matched by sort_order, and only objective retitles invalidate content, so no learner history or stored lesson is lost.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-2.test.ts::FAIL-2391"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Unit titles copy the owner's domain names; course-verification-2.test.ts pins Project+, CNPE and PCA unit titles and weights.",
+      "recurrence_of": ""
     }
   ]
 }
