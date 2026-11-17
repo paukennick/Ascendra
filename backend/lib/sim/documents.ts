@@ -445,6 +445,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-325 (docs/sims.md 22.33): nursing depth, round 3 ----
   entry("CCRNADULT", "low-urine-after-contrast-on-vancomycin"),
   entry("CCRNADULT", "oozing-lines-in-septic-shock"),
+  entry("CCRNADULT", "pressor-climbing-home-prednisone-missed"),
   // ---- end REQ-325 ----
 ];
 
