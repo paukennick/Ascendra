@@ -1,0 +1,33 @@
+{
+  "band": "pca",
+  "label": "Google Cloud Professional Cloud Architect",
+  "base": {
+    "course": "GCPNET",
+    "slug": "gke-pod-range-exhausted-before-promo"
+  },
+  "slug": "gke-pod-range-exhausted-before-promo-pca",
+  "patch": {
+    "objective": "Designing cloud-native networking: VPC, peering, firewalls, load balancers, routing, container networking, Shared VPC, Private Service Connect",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Google Cloud, Professional Cloud Architect exam guide v6.1 (English exams on or after October 30): Section 1 Designing and planning a cloud solution architecture (~25%), Section 2 (~18%), Section 3 Designing for security and compliance (~19%), Section 4 (~15%), Section 5 (~11%), Section 6 (~12%)",
+        "checkedAt": "2026-11-17",
+        "url": "https://services.google.com/fh/files/misc/v6.1_pca_professional_cloud_architect_exam_guide_english.pdf",
+        "note": "Read through a summarizing fetch of the PDF on 2026-11-17. Quoted: 'Cost optimization / resource optimization (CapEx / OpEx)' (4.2), 'Designing for security' (3.1). The v6.1 weights differ slightly from the course seed's (17.5/17.5/15/12.5/12.5); the objective wording is the course seed's. Finding for the verification pass."
+      },
+      {
+        "cite": "Google Cloud documentation, Configure maximum Pods per node (GKE)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: with the default of 110 Pods 'Kubernetes assigns a /24 CIDR block (256 addresses) to each of the nodes'; the block holds at least twice the maximum Pods; the worked example: 110 Pods per node and a /21 Pod range give 2^(24-21) = 8 nodes; maximum Pods per node 'cannot' be changed after the cluster or node pool is created, but a new node pool can set its own; when Pod addresses run out, 'you can create additional Pod IP address ranges using discontiguous multi-Pod CIDR'. The gcloud flags (--add-secondary-ranges, --pod-ipv4-range) are from memory of the CLI reference (to verify)."
+      },
+      {
+        "cite": "Google Cloud documentation, Troubleshoot VPC-native clusters (GKE)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/kubernetes-engine/docs/troubleshooting/vpc-clusters",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the error '[IP_SPACE_EXHAUSTED] Instance ... creation failed: IP space of ... is exhausted'; each node reserves a contiguous block from the cluster's Pod range even if few Pods run; if the name in the error is [SUBNET_NAME]-[SECONDARY_RANGE_NAME]-[HASH] the Pod range is exhausted, if it is only the subnet name the node range is; remedies: add Pod IPv4 ranges (discontiguous multi-Pod CIDR) without re-creating the cluster, expand the subnet's primary range with expand-ip-range when nodes run out, or create a node pool with a smaller maximum Pods per node (110 reserves a /24, 32 a /26)."
+      }
+    ]
+  }
+}

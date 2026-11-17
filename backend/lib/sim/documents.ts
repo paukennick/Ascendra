@@ -461,6 +461,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CBA", "plugin-token-marked-frontend"),
   entry("AI901", "chat-client-model-name-not-deployment"),
   entry("GCPPDE", "streaming-window-drops-late-rides"),
+  band("AZ700", "nva-route-between-sap-app-and-db-az700"),
+  band("GCPPCA", "gke-pod-range-exhausted-before-promo-pca"),
+  band("GCPDEV", "cloud-run-exhausts-sql-connections-pcd"),
+  band("CNPA", "policy-enforced-without-reading-reports-cnpa"),
+  band("AZ104", "fslogix-share-missing-share-permission-az104"),
+  band("AZ104", "stale-udr-to-retired-nva-az104"),
+  band("KCSA", "policy-enforced-without-reading-reports-kcsa"),
+  band("CNPE", "policy-enforced-without-reading-reports-cnpe"),
+  band("AWSDOP", "kinesis-poison-record-blocks-shard-dop"),
   // ---- end REQ-320 ----
 ];
 

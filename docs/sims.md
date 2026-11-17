@@ -6725,6 +6725,31 @@ verify" in the source notes.
 After this pass every course in the round's list has a sim on its
 highest-weighted domain (AZ120 on one of its two tied domains).
 
+**Depth bands of the second pass (9).** Same construction as the first
+pass's bands, with the base's own course outline (its first source) dropped
+and the band course's outline first (`bands2.py` in the builder's
+scratchpad; goldens `npm run sim:golden -- steps c20-<course>-<slug>`).
+Each objective is the same decision as the base case's:
+
+| Course | Band (base) | Objective (abridged) |
+|---|---|---|
+| AZ700 | nva-route-between-sap-app-and-db-az700 (AZ120) | Designing and implementing user-defined routes (core networking 25-30%) |
+| GCPPCA | gke-pod-range-exhausted-before-promo-pca (GCPNET) | Designing cloud-native networking, including container networking (~25%) |
+| GCPDEV | cloud-run-exhausts-sql-connections-pcd (GCPDBE) | Managing connections to Google Cloud datastores: Cloud SQL (~21%) |
+| CNPA | policy-enforced-without-reading-reports-cnpa (KCA) | Policy engines for platform governance, conformance reporting (20%) |
+| AZ104 | fslogix-share-missing-share-permission-az104 (AZ140) | Configuring identity-based access for Azure Files (storage 15-20%) |
+| AZ104 | stale-udr-to-retired-nva-az104 (AZ700) | Configuring user-defined routes (networking 15-20%) |
+| KCSA | policy-enforced-without-reading-reports-kcsa (KCA) | Admission control: webhooks, policy engines (threat model 16%) |
+| CNPE | policy-enforced-without-reading-reports-cnpe (KCA) | Policy engines and admission controllers for governance (15%) |
+| AWSDOP | kinesis-poison-record-blocks-shard-dop (AWSDEA) | Event processing workflows with Kinesis and Lambda (14%) |
+
+Candidates looked at and not banded: the GKE Pod range case for AWS
+Advanced Networking's "preventing IP address depletion with secondary CIDRs"
+(a GKE case in an AWS course would teach the wrong service), and the Backstage
+proxy case for the DevOps Engineer's "build-time versus runtime secret
+injection" (a near miss: the case is about where code runs, not when a secret
+is injected).
+
 **Findings of the second pass** (recorded; none needed a code fix, so no
 failure-ledger entry):
 

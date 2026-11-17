@@ -63,4 +63,13 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "CBA", slug: "plugin-token-marked-frontend", screen: "terminal", profile: "security", kind: "scenario", steps: "cba-proxy" },
   { course: "AI901", slug: "chat-client-model-name-not-deployment", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "ai901-deploy" },
   { course: "GCPPDE", slug: "streaming-window-drops-late-rides", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcppde-lateness" },
+  { course: "AZ700", slug: "nva-route-between-sap-app-and-db-az700", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-az700-nva-route-between-sap-app-and-db-az700", base: "AZ120/nva-route-between-sap-app-and-db" },
+  { course: "GCPPCA", slug: "gke-pod-range-exhausted-before-promo-pca", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-gcppca-gke-pod-range-exhausted-before-promo-pca", base: "GCPNET/gke-pod-range-exhausted-before-promo" },
+  { course: "GCPDEV", slug: "cloud-run-exhausts-sql-connections-pcd", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-gcpdev-cloud-run-exhausts-sql-connections-pcd", base: "GCPDBE/cloud-run-exhausts-sql-connections" },
+  { course: "CNPA", slug: "policy-enforced-without-reading-reports-cnpa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-cnpa-policy-enforced-without-reading-reports-cnpa", base: "KCA/policy-enforced-without-reading-reports" },
+  { course: "AZ104", slug: "fslogix-share-missing-share-permission-az104", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-az104-fslogix-share-missing-share-permission-az104", base: "AZ140/fslogix-share-missing-share-permission" },
+  { course: "AZ104", slug: "stale-udr-to-retired-nva-az104", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-az104-stale-udr-to-retired-nva-az104", base: "AZ700/stale-udr-to-retired-nva" },
+  { course: "KCSA", slug: "policy-enforced-without-reading-reports-kcsa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-kcsa-policy-enforced-without-reading-reports-kcsa", base: "KCA/policy-enforced-without-reading-reports" },
+  { course: "CNPE", slug: "policy-enforced-without-reading-reports-cnpe", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-cnpe-policy-enforced-without-reading-reports-cnpe", base: "KCA/policy-enforced-without-reading-reports" },
+  { course: "AWSDOP", slug: "kinesis-poison-record-blocks-shard-dop", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-awsdop-kinesis-poison-record-blocks-shard-dop", base: "AWSDEA/kinesis-poison-record-blocks-shard" },
 ];
