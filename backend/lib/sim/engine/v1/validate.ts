@@ -110,7 +110,11 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     stakeholderRecovered: { value: 40, tighter: "higher", note: "one stakeholder 40-59" },
     attritionHarm: { value: 2, tighter: "lower", note: "team attrition >= 2 is harm" },
   },
+  // REQ-314: the client trainer adds `stopWindow` (exercise stopped or eased
+  // <= 2 min of sim time after a warning sign; ACSM's Guidelines name the
+  // signs, the window is a teaching figure, as for physical therapy).
   fitness: {
+    stopWindow: { value: 120, tighter: "lower", note: "exercise stopped or eased <= 2 min after a warning sign appears" },
     painReductionTarget: { value: 50, tighter: "higher", note: "primary goal: pain reduced >= 50%" },
     painReductionRecovered: { value: 25, tighter: "higher", note: "pain reduced 25-49%" },
     adherenceTarget: { value: 80, tighter: "higher", note: "adherence >= 80%" },
@@ -149,6 +153,17 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     allianceTarget: { value: 6, tighter: "higher", note: "rapport >= 6/10 at the close of the session" },
     allianceRecovered: { value: 3, tighter: "higher", note: "rapport below this at the close is a rupture" },
     safetyWindow: { value: 1200, tighter: "lower", note: "the critical safety question asked <= 20 min after the cue" },
+  },
+  // REQ-314 (docs/sims.md 9.2, 22.27): an event on the facility console.
+  // Target: life safety first (no one left in danger), the alarm acted on
+  // within the response window, the breach or failure contained and the
+  // evidence (badge log, video) kept; recovered: handled late, or at a cost
+  // (equipment lost, a door left unsecured for a while, evidence partly
+  // lost); harm: a person put in danger, a breach left open, or the critical
+  // room lost. Times are sim seconds from the first alarm.
+  facility: {
+    responseWindow: { value: 600, tighter: "lower", note: "the first alarm acted on <= 10 min after it sounds" },
+    peopleAtRisk: { value: 0, tighter: "lower", note: "people left in danger at the close; none is the target" },
   },
   // REQ-232 (docs/sims.md 9.2, 22.8): a physical therapy treatment session.
   // Target: the session's goal reached with every stopping rule respected and
@@ -1528,6 +1543,220 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
   }
   consoleCheck(doc, root, info, col);
   terminalCheck(doc, root, info, col);
+  facilityCheck(doc, root, info, col);
+  sandboxCheck(doc, root, info, col);
+  trainerCheck(doc, root, info, col);
+}
+
+// REQ-314 (docs/sims.md 22.27): the facility console, the sandbox report and
+// the client trainer, checked like the console and the session. Display and
+// lint only: nothing here changes stepping, the corpus or any hash.
+export const FACILITY_ALARM_KINDS: readonly string[] = ["intrusion", "door", "duress", "fire", "power", "hvac", "water", "other"];
+export const FACILITY_TONES: readonly string[] = ["secure", "watch", "alarm", "locked"];
+export const DOOR_RESULTS: readonly string[] = ["granted", "denied", "forced", "held", "tailgate"];
+export const INDICATOR_TYPES: readonly string[] = ["hash", "domain", "ip", "url", "file", "registry", "mutex", "other"];
+export const INDICATOR_TONES: readonly string[] = ["unreviewed", "confirmed", "benign", "actioned"];
+export const RULE_TONES: readonly string[] = ["draft", "tested", "noisy", "deployed"];
+export const RULE_KINDS: readonly string[] = ["yara", "sigma", "other"];
+
+function uniqueIds(col: Collector): (id: string, path: string) => void {
+  const ids = new Set<string>();
+  return (id, path) => {
+    if (typeof id !== "string" || !/^[a-z][a-zA-Z0-9_]{0,47}$/.test(id)) col.error(path, `bad id ${String(id)}`);
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+}
+
+function facilityCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "facility-console" && !s.facility) col.error("screen.facility", "a facility console needs its site, zone, alarm, door, camera and environment bindings");
+  const f = s.facility;
+  if (!f) return;
+  const P = "screen.facility";
+  const unique = uniqueIds(col);
+  const tone: Ty = { k: "enum", values: [...FACILITY_TONES] };
+  const result: Ty = { k: "enum", values: [...DOOR_RESULTS] };
+  if (!f.site || !f.site.name) col.error(`${P}.site`, "needs the site's name");
+  else checkTemplate(f.site.status, root, WHERE_TICK, `${P}.site.status`, info, col);
+  if (!Array.isArray(f.zones) || !f.zones.length) col.error(`${P}.zones`, "needs at least one zone (lobby, server room, loading dock, ...)");
+  if (!Array.isArray(f.alarms) || !f.alarms.length) col.error(`${P}.alarms`, "needs at least one alarm");
+  for (const k of ["doors", "cameras", "environment"] as const) if (!Array.isArray(f[k])) col.error(`${P}.${k}`, `needs a ${k} list (it may be empty)`);
+  (f.zones ?? []).forEach((z, i) => {
+    const path = `${P}.zones[${i}]`;
+    unique(z.id, path);
+    if (!z.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!z.kind) col.error(`${path}.kind`, "says what it is (lobby, server room, loading dock, ...)");
+    checkTemplate(z.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(z.tone, root, WHERE_TICK, `${path}.tone`, info, col, tone);
+  });
+  (f.alarms ?? []).forEach((a, i) => {
+    const path = `${P}.alarms[${i}]`;
+    unique(a.id, path);
+    if (FACILITY_ALARM_KINDS.indexOf(a.kind) < 0) col.error(`${path}.kind`, `must be one of ${FACILITY_ALARM_KINDS.join(", ")}`);
+    if (CONSOLE_SEVERITIES.indexOf(a.severity) < 0) col.error(`${path}.severity`, `must be one of ${CONSOLE_SEVERITIES.join(", ")}`);
+    checkTemplate(a.title, root, WHERE_TICK, `${path}.title`, info, col);
+    if (a.detail) checkTemplate(a.detail, root, WHERE_TICK, `${path}.detail`, info, col);
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(a.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+    checkOne(a.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (f.doors ?? []).forEach((d, i) => {
+    const path = `${P}.doors[${i}]`;
+    unique(d.id, path);
+    if (!d.reader) col.error(`${path}.reader`, "names the reader or door");
+    checkTemplate(d.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(d.result, root, WHERE_TICK, `${path}.result`, info, col, result);
+    checkOne(d.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(d.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (f.cameras ?? []).forEach((c, i) => {
+    const path = `${P}.cameras[${i}]`;
+    unique(c.id, path);
+    if (!c.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(c.view, root, WHERE_TICK, `${path}.view`, info, col);
+    if (c.when) checkOne(c.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  (f.environment ?? []).forEach((e, i) => {
+    const path = `${P}.environment[${i}]`;
+    unique(e.id, path);
+    if (!e.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!e.unit) col.error(`${path}.unit`, "needs a unit (°C, %, min, ...)");
+    checkOne(e.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (e.low !== undefined && e.high !== undefined && !(e.low < e.high)) col.error(path, "low must be below high");
+  });
+  (f.people ?? []).forEach((p, i) => {
+    const path = `${P}.people[${i}]`;
+    unique(p.id, path);
+    checkTemplate(p.label, root, WHERE_TICK, `${path}.label`, info, col);
+    checkTemplate(p.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(p.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (p.flag) checkOne(p.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (f.meters ?? []).forEach((m, i) => {
+    unique(m.id, `${P}.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `${P}.meters[${i}].value`, info, col);
+  });
+}
+
+function sandboxCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "sandbox-report" && !s.sandbox) col.error("screen.sandbox", "a sandbox report needs its sample, process, network, indicator, rule and host bindings");
+  const b = s.sandbox;
+  if (!b) return;
+  const P = "screen.sandbox";
+  const unique = uniqueIds(col);
+  if (!b.sample || !b.sample.name) col.error(`${P}.sample`, "needs the sample's name");
+  else checkTemplate(b.sample.summary, root, WHERE_TICK, `${P}.sample.summary`, info, col);
+  for (const k of ["static", "processes", "network", "indicators", "rules"] as const) if (!Array.isArray(b[k])) col.error(`${P}.${k}`, `needs a ${k} list (it may be empty)`);
+  if (!Array.isArray(b.hosts) || !b.hosts.length) col.error(`${P}.hosts`, "needs at least one host in scope");
+  const line = (l: { id: string; when: string; flag?: string }, path: string, texts: string[]): void => {
+    unique(l.id, path);
+    for (const t of texts) checkTemplate(t, root, WHERE_TICK, `${path}`, info, col);
+    checkOne(l.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (l.flag) checkOne(l.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  };
+  (b.static ?? []).forEach((x, i) => line(x, `${P}.static[${i}]`, [x.text]));
+  const seen = new Set<string>();
+  (b.processes ?? []).forEach((x, i) => {
+    const path = `${P}.processes[${i}]`;
+    if (!x.image) col.error(`${path}.image`, "names the process image");
+    if (x.parent !== undefined && !seen.has(x.parent)) col.error(`${path}.parent`, `no earlier process ${x.parent} (a parent comes before its children)`);
+    line(x, path, [x.detail]);
+    seen.add(x.id);
+  });
+  (b.network ?? []).forEach((x, i) => {
+    if (!x.proto) col.error(`${P}.network[${i}].proto`, "names the protocol (DNS, HTTPS, SMB, ...)");
+    line(x, `${P}.network[${i}]`, [x.dest, x.detail]);
+  });
+  (b.indicators ?? []).forEach((x, i) => {
+    const path = `${P}.indicators[${i}]`;
+    if (INDICATOR_TYPES.indexOf(x.type) < 0) col.error(`${path}.type`, `must be one of ${INDICATOR_TYPES.join(", ")}`);
+    line(x, path, [x.value, x.status]);
+    checkOne(x.tone, root, WHERE_TICK, `${path}.tone`, info, col, { k: "enum", values: [...INDICATOR_TONES] });
+  });
+  (b.rules ?? []).forEach((x, i) => {
+    const path = `${P}.rules[${i}]`;
+    if (RULE_KINDS.indexOf(x.kind) < 0) col.error(`${path}.kind`, `must be one of ${RULE_KINDS.join(", ")}`);
+    if (!x.label) col.error(`${path}.label`, "names the rule");
+    line(x, path, [x.text, x.status]);
+    checkOne(x.tone, root, WHERE_TICK, `${path}.tone`, info, col, { k: "enum", values: [...RULE_TONES] });
+  });
+  (b.hosts ?? []).forEach((h, i) => {
+    const path = `${P}.hosts[${i}]`;
+    unique(h.id, path);
+    if (!h.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!h.kind) col.error(`${path}.kind`, "says what it is (workstation, mail server, ...)");
+    checkTemplate(h.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(h.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TONE);
+  });
+  (b.meters ?? []).forEach((m, i) => {
+    unique(m.id, `${P}.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `${P}.meters[${i}].value`, info, col);
+  });
+}
+
+function trainerCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "trainer" && !s.trainer) col.error("screen.trainer", "a client trainer screen needs its client bindings");
+  const tr = s.trainer;
+  if (!tr) return;
+  const P = "screen.trainer";
+  const unique = uniqueIds(col);
+  if (!tr.client || !tr.client.name) col.error(`${P}.client`, "needs the client's name");
+  else checkTemplate(tr.client.presentation, root, WHERE_TICK, `${P}.client.presentation`, info, col);
+  if (!Array.isArray(tr.gauges) || !tr.gauges.length) col.error(`${P}.gauges`, "needs at least one gauge (trust, readiness, confidence, adherence)");
+  (tr.gauges ?? []).forEach((g, i) => {
+    const path = `${P}.gauges[${i}]`;
+    unique(g.id, path);
+    if (!g.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkOne(g.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (!(g.max > 0)) col.error(`${path}.max`, "must be positive");
+    if (g.bands.some((v, j) => j > 0 && v <= g.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+    if (g.words.length !== g.bands.length + 1) col.error(`${path}.words`, "needs one word more than bands (the state in words, 13.1)");
+  });
+  (tr.readings ?? []).forEach((r, i) => {
+    const path = `${P}.readings[${i}]`;
+    unique(r.id, path);
+    if (!r.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(r.value, root, WHERE_TICK, `${path}.value`, info, col);
+    if (r.when) checkOne(r.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (r.flag) checkOne(r.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.intake?.items ?? []).forEach((it, i) => {
+    const path = `${P}.intake.items[${i}]`;
+    unique(it.id, path);
+    if (!it.question) col.error(`${path}.question`, "needs the question as asked");
+    checkTemplate(it.answer, root, WHERE_TICK, `${path}.answer`, info, col);
+    checkOne(it.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (it.flag) checkOne(it.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.findings ?? []).forEach((m, i) => {
+    const path = `${P}.findings[${i}]`;
+    unique(m.id, path);
+    checkTemplate(m.result, root, WHERE_TICK, `${path}.result`, info, col);
+    checkOne(m.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (m.flag) checkOne(m.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.program?.items ?? []).forEach((it, j) => {
+    checkOne(it.when, root, WHERE_TICK, `${P}.program.items[${j}].when`, info, col, "bool");
+    checkTemplate(it.label, root, WHERE_TICK, `${P}.program.items[${j}].label`, info, col);
+  });
+  (tr.journal ?? []).forEach((j, i) => {
+    const path = `${P}.journal[${i}]`;
+    unique(j.id, path);
+    checkTemplate(j.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(j.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(j.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  if (!Array.isArray(tr.rules) || !tr.rules.length) col.error(`${P}.rules`, "needs at least one scope-of-practice or stop rule");
+  (tr.rules ?? []).forEach((r, i) => {
+    const path = `${P}.rules[${i}]`;
+    unique(r.id, path);
+    checkTemplate(r.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(r.met, root, WHERE_TICK, `${path}.met`, info, col, "bool");
+  });
 }
 
 // REQ-237 (docs/sims.md 20.1, 22.10): the terminal screen's bindings,
