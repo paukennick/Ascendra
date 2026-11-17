@@ -487,6 +487,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "after-amputation-im-done"),
   entry("NCLEXRN", "visiting-hours-threat-on-the-unit"),
   entry("NCLEXRN", "crash-survivor-wishes-she-had-died-too"),
+  entry("NCLEXPN", "rehab-resident-no-use-to-anyone"),
+  entry("NCLEXPN", "day-room-threat-then-emergency-medicine"),
+  entry("NCLEXPN", "clinic-eviction-no-way-out"),
   // ---- end REQ-329 ----
 ];
 

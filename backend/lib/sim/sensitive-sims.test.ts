@@ -33,6 +33,9 @@ export const REQ329_CASES: readonly { course: string; slug: string; harmPath: st
   { course: "NCLEXRN", slug: "after-amputation-im-done", harmPath: "neverScreened" },
   { course: "NCLEXRN", slug: "visiting-hours-threat-on-the-unit", harmPath: "secretAndVisit" },
   { course: "NCLEXRN", slug: "crash-survivor-wishes-she-had-died-too", harmPath: "sedatedAlone" },
+  { course: "NCLEXPN", slug: "rehab-resident-no-use-to-anyone", harmPath: "secretAndLeft" },
+  { course: "NCLEXPN", slug: "day-room-threat-then-emergency-medicine", harmPath: "forceAndLeft" },
+  { course: "NCLEXPN", slug: "clinic-eviction-no-way-out", harmPath: "waitingRoom" },
 ];
 
 export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [
