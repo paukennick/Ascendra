@@ -5771,6 +5771,7 @@ A+ help-desk cases later.
 |---|---|---|
 | PSMI / `sprint-status-meeting-daily-scrum` (CSM band `csm-sprint-status-meeting-daily-scrum`) | Running a Daily Scrum as the Developers' planning event rather than a status report (+6 PSMI and 8 CSM secondary objectives) | A one-week Sprint. The engineering manager runs the Daily Scrum as status reports. Handing it back to the Developers surfaces a missing sandbox key and drift off the Sprint Goal. The Scrum Master can raise the key with security, mock around the Definition of Done, assign tasks, or show the manager the board. The Review shows Done work only, or everything. Then the Retrospective. 6 golden paths. |
 | PSMI / `sprint-goal-becomes-obsolete` (CSM band `csm-sprint-goal-becomes-obsolete`) | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint (+3 secondary each) | An item is bigger than planned: renegotiate scope, cut quality, stretch the Sprint, or add overtime. A VP goes round the Product Owner. On Wednesday the partner bank ends the points scheme, and the Product Owner (only she) cancels. Done work is kept, discarded or shipped half-built. 8 golden paths. |
+| PSMI / `sprint-release-before-review` (CSM band `csm-sprint-release-before-review`) | Creating more than one Increment in a Sprint and releasing before the Sprint Review (+4 secondary each) | A size filter is Done on Wednesday: release it now, hold it for the Review, or ship it with a half-built filter. On Friday the mobile filters fail the keyboard accessibility check: return them to the Product Backlog, stretch the Sprint, or show them as done. Then the Review (working session, presentation or sign-off gate) and the Retrospective (one improvement at the cause, ten, blame or none). 7 golden paths. |
 | ITIL5FND / `monday-service-desk-wifi-problem` | Distinguishing a problem, an error and a known error in an operational scenario (+ the value chain terms and service levels/SLA titles) | A 4-hour shift. Catalog search goes down everywhere (P1 under a 1-hour target); restoring it needs an escalation. Wi-Fi drops at branch after branch after a weekend firmware update; each drop is an incident with a workaround, together they are a problem, the firmware leak is the error, and the analysed cause is a known error. Also a new-starter service request and a backup-disk event. 7 golden paths. |
 
 Every case:
@@ -5781,7 +5782,7 @@ Every case:
   run.
 
 Golden paths are built with `npm run sim:golden -- steps
-psm-daily|csm-daily|psm-obsolete|csm-obsolete|itil-desk`.
+psm-daily|csm-daily|psm-obsolete|csm-obsolete|psm-release|csm-release|itil-desk`.
 
 The scenario documents are written by Python generators in the screens-pm
 scratchpad. Those are not committed; the JSON is the source of record, as
@@ -5806,5 +5807,5 @@ needs ITIL5FND seeded first. Merge REQ-308 before or with this branch.
 
 **Coverage.** The REQ-282 table (`docs/sim-coverage-pm-frameworks-cnc.md`)
 is updated for the objectives these cases cover. The rest of the Scrum list
-(P-S1 to P-S16) and the predictive PMI cases are open; REQ-311's report
+(P-S1 to P-S16, less P-S5, P-S8 and P-S9 built here) and the predictive PMI cases are open; REQ-311's report
 lists them.

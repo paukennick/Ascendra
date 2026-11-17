@@ -26,6 +26,7 @@ const seed = join(here, "..", "..", "..", "backend", "supabase", "seed", "sims")
 const SPRINTS: [string, string][] = [
   ["PSMI", "sprint-status-meeting-daily-scrum"],
   ["PSMI", "sprint-goal-becomes-obsolete"],
+  ["PSMI", "sprint-release-before-review"],
 ];
 const DESKS: [string, string][] = [["ITIL5FND", "monday-service-desk-wifi-problem"]];
 const ALL = [...SPRINTS, ...DESKS];

@@ -266,6 +266,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("CSM", "csm-sprint-status-meeting-daily-scrum"),
   entry("PSMI", "sprint-goal-becomes-obsolete"),
   band("CSM", "csm-sprint-goal-becomes-obsolete"),
+  entry("PSMI", "sprint-release-before-review"),
+  band("CSM", "csm-sprint-release-before-review"),
   // The ITIL service desk, course ITIL5FND. That course is built on another
   // branch (REQ-308, feature/itil5); until it is in the catalog the seed
   // stops here with a clear error, and lib/sim/objectives.test.ts checks
@@ -400,6 +402,8 @@ export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
   "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
   "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
   "csm-sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "csm-sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
   "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
 };
 

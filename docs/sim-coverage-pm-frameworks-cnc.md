@@ -45,7 +45,7 @@ and a sim's sources must be read first.
 
 The project dashboard (with Sprint mode) and the service desk now exist
 (docs/sims.md 22.24). The Sim column below shows the PSMI and CSM objectives
-the first two Sprints cover. ITIL 4 Foundation (ITIL4FND) is hidden and
+the first three Sprints cover. ITIL 4 Foundation (ITIL4FND) is hidden and
 replaced by ITIL Foundation (Version 5) (ITIL5FND, REQ-308), whose syllabus
 has no practices-in-detail unit; the ITIL rows below are kept as the
 ITIL 4 record. The service-desk case is registered to ITIL5FND
@@ -106,17 +106,17 @@ calculations without a decision); the lessons and labs cover them.
 | Scrum Events | Explaining the Sprint as the container for every other event, with a fixed length of one month or less | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events | Running Sprint Planning that answers why, what and how within its timebox | Yes: timebox; choices with consequences | Proposed screen: P-S4 Sprint Planning under a timebox |
 | Scrum Events | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` |
-| Scrum Events | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Proposed screen: P-S6 A Sprint Review with an unhappy stakeholder |
-| Scrum Events | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Proposed screen: P-S7 Retrospective that sticks |
+| Scrum Events | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Built (REQ-311, project dashboard): `sprint-release-before-review` (secondary) |
+| Scrum Events | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Built (REQ-311, project dashboard): `sprint-release-before-review` (secondary) |
 | Scrum Events | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` |
 | Scrum Events | Treating Product Backlog refinement as an ongoing activity rather than an event | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events | Choosing a Sprint length from risk, the need for feedback and the cost of planning | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Artifacts, Commitments and Done | Linking each artifact to its commitment: the Product Goal, the Sprint Goal and the Definition of Done | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Artifacts, Commitments and Done | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary) |
 | Scrum Artifacts, Commitments and Done | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary) |
-| Scrum Artifacts, Commitments and Done | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts, Commitments and Done | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Built (REQ-311, project dashboard): `sprint-release-before-review` |
 | Scrum Artifacts, Commitments and Done | Writing and evolving a Definition of Done, including organizational standards and teams that share one | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts, Commitments and Done | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
+| Scrum Artifacts, Commitments and Done | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary), `sprint-release-before-review` (secondary) |
 | Developing People and Teams | Supporting a self-managing team: when the Scrum Master steps in and when the team decides | Yes: choices with consequences: step in or not | Proposed screen: P-S10 Conflict in a self-managing team |
 | Developing People and Teams | Choosing between facilitating, teaching, mentoring and coaching for a given situation | Yes: cues to read; choices with consequences | Proposed screen: P-S10 Conflict in a self-managing team |
 | Developing People and Teams | Facilitating a team decision so every voice is heard and the decision stays the team's | Yes: competing priorities in the room | Proposed screen: P-S10 Conflict in a self-managing team |
@@ -125,11 +125,11 @@ calculations without a decision); the lessons and labs cover them.
 | Developing People and Teams | Leading the organization's Scrum adoption: training, coaching and helping stakeholders work with the team | Yes: competing priorities with management | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
 | Managing Products with Agility | Ordering the Product Backlog to maximize value, and measuring value by outcomes rather than output | Yes: competing priorities: value against requests | Proposed screen: P-S13 Ordering the backlog under pressure |
 | Managing Products with Agility | Forecasting and release planning from empirical data such as burn-down charts, cumulative flow and past throughput, and knowing their limits | Yes: cues to read in throughput data; consequences of a promise | Proposed screen: P-S14 A release date from real data |
-| Managing Products with Agility | Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers | Yes: competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary) |
+| Managing Products with Agility | Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers | Yes: competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary), `sprint-release-before-review` (secondary) |
 | Managing Products with Agility | Defining a Product Goal and using it to decide what not to build | No: recall or explanation; lessons and labs cover it | none |
 | Managing Products with Agility | Managing technical debt and its effect on transparency and future value | Yes: delayed consequences; competing priorities | Proposed screen: P-S15 Debt that slows every Sprint |
 
-PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 11 of them with two Sprints on the project dashboard (see the Sim column).
+PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 14 of them with three Sprints on the project dashboard (see the Sim column).
 
 ### CSM
 
@@ -152,8 +152,8 @@ PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 11 of them with two Sprints
 | Scrum Events and Activities | Explaining the Sprint as the container for every other event, with a fixed length of one month or less | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Running Sprint Planning that answers why, what and how within its timebox | Yes: timebox; choices with consequences | Proposed screen: P-S4 Sprint Planning under a timebox |
 | Scrum Events and Activities | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` |
-| Scrum Events and Activities | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Proposed screen: P-S6 A Sprint Review with an unhappy stakeholder |
-| Scrum Events and Activities | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Proposed screen: P-S7 Retrospective that sticks |
+| Scrum Events and Activities | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` (secondary) |
+| Scrum Events and Activities | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` (secondary) |
 | Scrum Events and Activities | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` |
 | Scrum Events and Activities | Treating Product Backlog refinement as an ongoing activity rather than an event | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Choosing a Sprint length from risk, the need for feedback and the cost of planning | No: recall or explanation; lessons and labs cover it | none |
@@ -162,9 +162,9 @@ PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 11 of them with two Sprints
 | Scrum Artifacts and Commitments | Linking each artifact to its commitment: the Product Goal, the Sprint Goal and the Definition of Done | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Artifacts and Commitments | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary) |
 | Scrum Artifacts and Commitments | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary) |
-| Scrum Artifacts and Commitments | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts and Commitments | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` |
 | Scrum Artifacts and Commitments | Writing and evolving a Definition of Done, including organizational standards and teams that share one | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts and Commitments | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
+| Scrum Artifacts and Commitments | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary), `csm-sprint-release-before-review` (secondary) |
 | Scrum Artifacts and Commitments | Explaining why the Sprint Goal stays fixed during the Sprint while the Sprint Backlog can change | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Master Core Competencies | Recognizing situations where facilitation serves the team or the organization | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Master Core Competencies | Facilitating group decisions with techniques such as fist of five, dot voting and a decision rule agreed in advance | Yes: competing priorities in the room | Proposed screen: P-S10 Conflict in a self-managing team |
@@ -175,12 +175,12 @@ PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 11 of them with two Sprints
 | Service to the Team, Product Owner and Organization | Leading the Scrum Team as a servant leader in concrete situations | Yes: choices with consequences | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Service to the Team, Product Owner and Organization | Explaining how technical debt builds up and what it does to the team's ability to deliver | No: recall or explanation; lessons and labs cover it | none |
 | Service to the Team, Product Owner and Organization | Choosing development practices that keep each Increment high quality: test automation, continuous integration, pairing and refactoring | Yes: delayed consequences | Proposed screen: P-S15 Debt that slows every Sprint |
-| Service to the Team, Product Owner and Organization | Supporting the Product Owner with backlog techniques and stakeholder collaboration | Yes: competing priorities: stakeholders against value | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary) |
+| Service to the Team, Product Owner and Organization | Supporting the Product Owner with backlog techniques and stakeholder collaboration | Yes: competing priorities: stakeholders against value | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary), `csm-sprint-release-before-review` (secondary) |
 | Service to the Team, Product Owner and Organization | Identifying organizational impediments that block Scrum Teams | Yes: cues to read | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Service to the Team, Product Owner and Organization | Applying a technique to resolve an impediment, and deciding when the team should solve it themselves | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Service to the Team, Product Owner and Organization | Explaining the organizational design changes Scrum brings, and why Scrum has no project manager | No: recall or explanation; lessons and labs cover it | none |
 
-CSM: 44 objectives, 23 fit the rule; REQ-311 covers 13 rows with the two CSM bands (12 that fit) (see the Sim column; one, comparing the Daily Scrum with a status meeting, was rated "No" above and is served as a secondary objective).
+CSM: 44 objectives, 23 fit the rule; REQ-311 covers 16 rows with the three CSM bands (15 that fit) (see the Sim column; one, comparing the Daily Scrum with a status meeting, was rated "No" above and is served as a secondary objective).
 
 ### ITIL4FND
 
