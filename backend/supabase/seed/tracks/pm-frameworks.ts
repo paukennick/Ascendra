@@ -618,7 +618,7 @@ export const ITIL4FND_TRACK: SeedTrack = {
 //     parallel for a period; the Version 5 Foundation stays a closed-book
 //     multiple-choice exam; ITIL 4 Foundation holders need not retake it.
 //   - PeopleCert's ITIL Foundation (Version 5) Syllabus, Version 5.0
-//     (February 2026), as reproduced under licence in Van Haren Publishing's
+//     (February 2026), as reproduced under license in Van Haren Publishing's
 //     "ITIL 5 Foundation Courseware" (Maarten Bordewijk, first edition July
 //     2026, ISBN 978 94 018 1471 3), in the publisher's public sample PDF on
 //     boekhuis.nl. Seven categories with exam weights 30 / 10 / 10 / 40 / 5 /
@@ -640,7 +640,7 @@ export const ITIL4FND_TRACK: SeedTrack = {
 // mark used only as an adjective, and the acknowledgement "ITIL(R) is a
 // registered trademark of the PeopleCert group"; it addresses licensees and
 // grants no use to others, so the title stays descriptive ("Prep for the
-// ... Exam", REQ-097/194), carries no "Used under licence" line (we hold
+// ... Exam", REQ-097/194), carries no "Used under license" line (we hold
 // none) and the description says the course is independent.
 
 const ITIL5_CHECKED = "2026-11-16";
@@ -652,7 +652,7 @@ export const ITIL5_PRODUCT_URL =
   "https://www.peoplecert.org/jp/browse-certifications/it-governance-and-service-management/ITIL-1/itil-5-foundation-version-50-4154";
 const ITIL5_FAQ_URL = "https://peoplecert.org/help-and-support/faq-itil";
 // Van Haren's public sample of its ITIL 5 Foundation Courseware, which
-// reproduces PeopleCert's syllabus v5.0 under licence.
+// reproduces PeopleCert's syllabus v5.0 under license.
 export const ITIL5_SYLLABUS_COPY_URL = "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf";
 
 const itil5Src = (title: string, url: string, kind: UnitSource["kind"], extra: Partial<UnitSource> = {}): UnitSource => ({
@@ -663,7 +663,7 @@ const itil5Src = (title: string, url: string, kind: UnitSource["kind"], extra: P
 
 const itil5Syllabus = (category: string, sections: string[], keyValues: string[] = []): UnitSource =>
   itil5Src(
-    "ITIL Foundation (Version 5) Syllabus v5.0 (PeopleCert, February 2026), category and section headings, as reproduced under licence in Van Haren's ITIL 5 Foundation Courseware (PeopleCert does not publish the syllabus)",
+    "ITIL Foundation (Version 5) Syllabus v5.0 (PeopleCert, February 2026), category and section headings, as reproduced under license in Van Haren's ITIL 5 Foundation Courseware (PeopleCert does not publish the syllabus)",
     ITIL5_SYLLABUS_COPY_URL,
     "exam_outline",
     { outline: [category, ...sections], ...(keyValues.length ? { keyValues } : {}) }
