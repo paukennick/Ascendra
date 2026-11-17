@@ -29,8 +29,8 @@ export function spec(): StepsSpec {
         drive: (c) => { for (const a of ["openQ", "affirm", "readRecord", "explore", "recall", "mineStep"]) d(c, a); close(c, "brief"); } },
       { id: "stillWeighing", title: "Open question only, the record read and not explored; no step", reasoning: "partial",
         drive: (c) => { for (const a of ["openQ", "readRecord", "herStep"]) d(c, a); close(c, "brief"); } },
-      { id: "accused", title: "The record called wrong, then advice twice: she walks out", reasoning: "missed",
-        drive: (c) => { for (const a of ["readRecord", "confront", "righting", "righting"]) d(c, a); close(c, "nothing"); } },
+      { id: "accused", title: "Advice twice, unasked: she walks out before the record is discussed", reasoning: "missed",
+        drive: (c) => { for (const a of ["readRecord", "righting", "righting", "confront"]) d(c, a); close(c, "nothing"); } },
     ],
   };
 }
