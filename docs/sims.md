@@ -2665,7 +2665,9 @@ testers see the client session; `bedside,board,session,security-console`
 since REQ-231; `bedside,board,session,security-console,treatment-session`
 since REQ-232, for the PT treatment session;
 `bedside,board,session,security-console,treatment-session,terminal` since
-REQ-237, for the terminal and network screen). A renderer can be launched, or pulled after a bad
+REQ-237, for the terminal and network screen;
+`...,terminal,project-dashboard,service-desk` since REQ-311, for the
+project dashboard and the ITIL service desk). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -5624,3 +5626,185 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.24 The project dashboard (Sprint mode), the ITIL service desk, and the first Scrum and ITIL cases (REQ-311)
+
+Nick, 2026-11-16: build all the proposed screens. Two of them are here. No
+project dashboard existed for the PMI courses (section 20 planned one; the
+`project` profile and the `dashboard` placeholder type were all there was,
+and no sim used either), so this builds the dashboard with both its modes,
+plus the service desk the REQ-282 coverage proposed for ITIL. As with the
+terminal (22.10) and the console (22.7): schema, validator, renderer,
+`SIMS_RENDERERS` negotiation, tests, docs. Display only: nothing changes
+stepping, so there is no engine minor; documents stay engine 1.2.
+
+**Screen types.** `project-dashboard` (bindings `screen.dashboard`) and
+`service-desk` (`screen.desk`). The design's `dashboard` placeholder stays
+unused, like `security`. Both are in `DEFAULT_RENDERERS`, and the app
+advertises `project-dashboard@1,service-desk@1`. An older build does not
+advertise them, so `runnable()` is false, the server offers no version and
+the app shows "Update the app to open this simulation". It never sends an
+older build a screen that build cannot draw (`lib/sim/project-dashboard.test.ts`
+checks this with REQ-237's capability header).
+
+**`screen.dashboard`.**
+- `mode` is `predictive` (a plan-driven project week by week) or `sprint`
+  (one Scrum Sprint day by day).
+- `heading` is a template.
+- `commitments` are the Product Goal, the Sprint Goal and the Definition of
+  Done, or a project's objective and baseline. The linter requires a
+  commitment labeled "Sprint Goal" in Sprint mode.
+- `columns` are the board's columns. Each item's `column` must type-check
+  as one of the column ids. An item can carry a `size`, a `note` and a
+  `flag` (blocked or at risk).
+- `chart` draws series across `slots`. An actual series is a `history`,
+  sampled as the run goes. A plan series is fixed `values`, one per slot.
+  This allows a burn-down with its plan line, or planned value against
+  earned value and actual cost.
+- `issues` are impediments or risks, each with a status in words and `open`.
+- `people` are gauges read in words, the same as the client session's.
+- `events` are the Daily Scrums, the Review and the Retrospective, or
+  milestones, each with a status.
+- `meters` are short read-outs.
+
+**`screen.desk`.**
+- `matrix` is the organization's priority matrix: rows by impact, columns by
+  urgency, priority 1 the highest. The highest impact and urgency must be
+  P1. `targets` gives a service level target for every priority used.
+- `tickets` are incidents, requests, problems and changes. Each has a
+  reference, `at`, `impact`, `urgency`, the `priority` the scenario assigned
+  (0 until assessed), a status, `open`, and `due` (sim seconds; negative when
+  no target applies).
+- `services` each have a tone: ok, degraded, down or maintenance.
+
+The renderer never computes priority. The mobile test checks every ticket's
+priority against the matrix at every command of every golden path. The
+seconds-unit lint covers dashboard `issues[].at` and `events[].at` and desk
+`tickets[].at` and `.due`.
+
+**Renderers** (`mobile/src/sim/DashboardPanel.tsx`, `DeskPanel.tsx`; view
+models `runtime/dashboardView.ts`, `runtime/deskView.ts`).
+
+The dashboard reads in this order (web keyboard order too): the heading and
+commitments, the board by column, the chart, the impediments, the people,
+then the events. The chart is drawn as bars (actual) with plan markers, and
+is hidden from the screen reader. In its place the reader gets a summary in
+words ("Points remaining, Day 3 of 5: 13 points; Plan 15.") and a per-slot
+text line, which sighted users see too.
+
+The desk reads the queue first: open tickets, then breached ones, then by
+priority, then by due time. Each ticket shows its priority, a breach and
+the due time in words ("Due in 1 h 20 min", "Breached 10 min ago"). The
+services and the matrix follow; the matrix is spoken as sentences.
+
+A flag, a breach and a tone are always a word plus a color, never color
+alone. Every element is at least 48 dp. "Read the dashboard" and "Read the
+queue" speak the whole screen.
+
+What each screen announces:
+- Dashboard, assertive: open impediments and flagged items.
+- Dashboard, polite: column moves, gauge band changes, event status
+  changes, a changed commitment, and a new chart sample.
+- Desk, assertive: breached tickets and down services.
+- Desk, polite: new tickets, priority and status changes, and tone changes.
+
+The learner acts through the scenario's action groups. Those are buttons,
+so they are keyboard-reachable on the web, and Space pauses under REQ-290
+as on every screen. The panels hold no rule.
+
+**Outcome profiles** (`PROFILE_THRESHOLDS`):
+
+*`scrum`.* The earlier builder was right that the `project` profile is
+earned value (CPI and SPI against a baseline). The Scrum Guide 2020 does not
+use earned value. Its commitments are the Sprint Goal and the Definition of
+Done, and it says forecasts like burn-downs "do not replace the importance
+of empiricism". So the Scrum profile scores what the Guide makes binding:
+- `dailyScrumMax` 900 s. "The Daily Scrum is a 15-minute event."
+- `undoneShown` 0. An item that misses the Definition of Done "cannot be
+  released or even presented at the Sprint Review."
+- `impedimentWindow` 86400 s (author's threshold). An impediment to the
+  Sprint Goal is acted on within one working day, before the next Daily
+  Scrum, the event that inspects progress toward the Goal every day. The
+  Scrum Master's accountability is "Causing the removal of impediments".
+- `trustTarget` 60 and `trustRecovered` 40. These are working relationships
+  at the Sprint's end, the author's teaching model, in line with the
+  `project` profile's stakeholder gauges.
+
+The classes:
+- **target**: the Sprint Goal met with a Done Increment, or, when the Goal
+  is obsolete, the Sprint cancelled by the Product Owner.
+- **recovered**: the Goal missed but the shortfall transparent, or a
+  timebox or an impediment handled late.
+- **harm**: undone work shown or released as done, quality cut, the Sprint
+  cancelled by anyone but the Product Owner, or a working relationship
+  broken.
+
+The predictive mode keeps the `project` profile unchanged.
+
+*`service`.* `slaBreachTarget` 0, `slaBreachRecovered` 1,
+`unauthorizedChanges` 0. Breaches are counted against each incident's
+**correct** priority. If a priority 1 is assessed as priority 3, the
+service is still down past the agreement, even if the ticket looks green.
+
+**ITIL depth (Nick's decision, relayed by the lead, 2026-11-16).** ITIL
+Foundation (Version 5), syllabus v5.0 of February 2026, has no
+practices-in-detail unit. It tests incident, event, service request,
+problem, error, known error, service level and SLA only as terms (outcomes
+1.5.5-1.5.6 and 4.4.3-4.4.10). It has no change enablement or service desk
+objective.
+
+The desk sim therefore stays at Foundation depth:
+- Its critical criteria are the terms, applied: the service level target
+  met, the problem and the known error named correctly, and the event told
+  apart from an incident.
+- The priority matrix and escalation appear as the fictional organization's
+  own agreement, never as ITIL doctrine. Their criteria are not critical.
+
+The screen keeps the full ITIL 4 mechanics (priority from impact and
+urgency, targets, escalation, problems, changes), so it can serve CompTIA
+A+ help-desk cases later.
+
+**Cases** (all learner-paced `turns`, engine 1.2 with an explicit
+`endingOrder`, sources read 2026-11-16):
+
+| Course / slug | Objective | What happens |
+|---|---|---|
+| PSMI / `sprint-status-meeting-daily-scrum` (CSM band `csm-sprint-status-meeting-daily-scrum`) | Running a Daily Scrum as the Developers' planning event rather than a status report (+6 PSMI and 8 CSM secondary objectives) | A one-week Sprint. The engineering manager runs the Daily Scrum as status reports. Handing it back to the Developers surfaces a missing sandbox key and drift off the Sprint Goal. The Scrum Master can raise the key with security, mock around the Definition of Done, assign tasks, or show the manager the board. The Review shows Done work only, or everything. Then the Retrospective. 6 golden paths. |
+| PSMI / `sprint-goal-becomes-obsolete` (CSM band `csm-sprint-goal-becomes-obsolete`) | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint (+3 secondary each) | An item is bigger than planned: renegotiate scope, cut quality, stretch the Sprint, or add overtime. A VP goes round the Product Owner. On Wednesday the partner bank ends the points scheme, and the Product Owner (only she) cancels. Done work is kept, discarded or shipped half-built. 8 golden paths. |
+| ITIL5FND / `monday-service-desk-wifi-problem` | Distinguishing a problem, an error and a known error in an operational scenario (+ the value chain terms and service levels/SLA titles) | A 4-hour shift. Catalog search goes down everywhere (P1 under a 1-hour target); restoring it needs an escalation. Wi-Fi drops at branch after branch after a weekend firmware update; each drop is an incident with a workaround, together they are a problem, the firmware leak is the error, and the analysed cause is a known error. Also a new-starter service request and a backup-disk event. 7 golden paths. |
+
+Every case:
+- has endings in all three classes and 3 critical criteria;
+- has KPIs with expert values, an expert path and a debrief for each ending;
+- has golden paths that reach every ending but `time_up`, score every
+  criterion both met and missed, and include a Good, a Mediocre and a Bad
+  run.
+
+Golden paths are built with `npm run sim:golden -- steps
+psm-daily|csm-daily|psm-obsolete|csm-obsolete|itil-desk`.
+
+The scenario documents are written by Python generators in the screens-pm
+scratchpad. Those are not committed; the JSON is the source of record, as
+it is for the other waves.
+
+**ITIL5FND course order.** The ITIL5FND course is built on `feature/itil5`
+(REQ-308). Until it is in the catalog, `objectives.test.ts` skips the
+catalog check for the desk sim, and `project-dashboard.test.ts` checks the
+sim against the titles REQ-308 gave (`ITIL5_DESK_OBJECTIVES`). The seed
+needs ITIL5FND seeded first. Merge REQ-308 before or with this branch.
+
+**Sources** (read 2026-11-16):
+- The Scrum Guide, November 2020: scrumguides.org PDF, read directly.
+- PeopleCert ITIL Foundation Syllabus v5.0 (February 2026): read directly as
+  printed in Van Haren's ITIL 5 Foundation Courseware sample (July 2026).
+  The syllabus gives the outcomes, not the definitions.
+- MindMesh Academy's ITIL 5 study guide 5.4.4: read through a summary of
+  the page. It gives the problem, error and known error definitions. It is
+  secondary and must be verified against the official glossary.
+- The AXELOS ITIL 4 Problem Management syllabus (February 2023): read
+  directly. It has no definitions.
+
+**Coverage.** The REQ-282 table (`docs/sim-coverage-pm-frameworks-cnc.md`)
+is updated for the objectives these cases cover. The rest of the Scrum list
+(P-S1 to P-S16) and the predictive PMI cases are open; REQ-311's report
+lists them.
