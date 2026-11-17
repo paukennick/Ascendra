@@ -224,6 +224,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("ACSMCPT", "acsm-parq-chest-tightness"),
   band("NSCACPT", "nscacpt-parq-chest-tightness"),
   band("NCCPTCPT", "nccpt-parq-chest-tightness"),
+  entry("NASMCPT", "cpt-squat-knees-cave"),
+  band("ACECPT", "ace-squat-knees-cave"),
+  band("ACSMCPT", "acsm-squat-knees-cave"),
+  band("NSCACPT", "nscacpt-squat-knees-cave"),
+  band("NCCPTCPT", "nccpt-squat-knees-cave"),
   // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS

@@ -1,0 +1,1206 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-squat-knees-cave",
+  "title": "Knees that cave on the overhead squat",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Dana Ruiz, 34",
+        "presentation": "{not isNull(reassessAt) ? (valgus <= 4 ? \"Four weeks on: squatting with more control, keen to add load.\" : \"Four weeks on: still frustrated by her knees.\") : not isNull(loadAt) and isNull(stoppedAt) and pain > 0 ? \"Wincing on the way up; she rubs the inside of her knee.\" : \"A recreational runner, cleared on the PAR-Q+ (all NO), here to start strength training.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gConf",
+          "label": "Confidence",
+          "spokenLabel": "Her confidence",
+          "value": "conf",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "low",
+            "building",
+            "high"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "rPain",
+          "label": "Knee",
+          "spokenLabel": "Knee discomfort",
+          "value": "{pain|0dp}/10{pain > 0 ? \" ache, inside of the right knee\" : \"\"}",
+          "flag": "pain > 0"
+        },
+        {
+          "id": "rLoad",
+          "label": "Squat",
+          "spokenLabel": "What she is squatting",
+          "value": "{not isNull(loadAt) and isNull(stoppedAt) ? \"goblet squat, 16 kg\" : not isNull(boxAt) ? \"box squat, body weight\" : \"body weight\"}"
+        },
+        {
+          "id": "rKnees",
+          "label": "Knees",
+          "spokenLabel": "Knee tracking",
+          "value": "{isNull(frontAt) ? \"not assessed\" : valgus >= 7 ? \"move inward on every rep\" : valgus >= 5 ? \"move inward on most reps\" : valgus >= 3 ? \"move inward on the last reps only\" : \"stay over the toes\"}",
+          "flag": "not isNull(frontAt) and valgus >= 5"
+        }
+      ],
+      "intake": {
+        "label": "PAR-Q+ and history",
+        "items": [
+          {
+            "id": "parq",
+            "question": "PAR-Q+ page 1",
+            "answer": "All seven NO; signed.",
+            "when": "true"
+          },
+          {
+            "id": "hist",
+            "question": "Running and history",
+            "answer": "Runs 20 km a week; the right knee aches after long runs, never during; no injury or surgery.",
+            "when": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "front",
+          "label": "Overhead squat, front view (5 reps)",
+          "result": "Both knees move inward on every rep, the right more; the feet turn out slightly.",
+          "when": "not isNull(frontAt)",
+          "flag": "true"
+        },
+        {
+          "id": "side",
+          "label": "Overhead squat, side view",
+          "result": "Torso and arms hold position; the low back stays neutral.",
+          "when": "not isNull(sideAt)"
+        },
+        {
+          "id": "heel",
+          "label": "Heels raised on plates",
+          "result": "The knees still move inward: the foot and ankle are not the main source; hip abductor and external rotator weakness fits.",
+          "when": "not isNull(heelAt)",
+          "flag": "true"
+        },
+        {
+          "id": "re",
+          "label": "Reassessment at four weeks",
+          "result": "{valgus <= 2 ? \"Knees stay over the toes on all five reps.\" : valgus <= 4 ? \"Knees drift inward only on the last reps.\" : \"Knees still move inward on most reps.\"}",
+          "when": "not isNull(reassessAt)",
+          "flag": "valgus >= 5"
+        }
+      ],
+      "program": {
+        "label": "Program",
+        "items": [
+          {
+            "label": "Lengthen the hip adductors (foam roll, static stretch); activate the hip abductors and external rotators (band side steps, side-lying hip abduction); squat to a box with a mini-band",
+            "when": "plan == \"hip\""
+          },
+          {
+            "label": "Calf stretching and ankle mobility before squats",
+            "when": "plan == \"ankle\""
+          },
+          {
+            "label": "General leg day: squats, lunges and leg press, progressing the load weekly",
+            "when": "plan == \"generic\""
+          },
+          {
+            "label": "Today: box squats to depth she controls",
+            "when": "not isNull(boxAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jWeeks",
+          "text": "Four weeks of twice-weekly sessions on the plan.",
+          "when": "not isNull(weeksAt)",
+          "at": "timeAt(weeksAt)"
+        },
+        {
+          "id": "jPain",
+          "text": "Knee ache under load.",
+          "when": "not isNull(painAt)",
+          "at": "timeAt(painAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rPainStop",
+          "label": "Pain during a movement",
+          "text": "Stop the movement that causes pain; if pain persists, she sees a health care professional.",
+          "met": "not isNull(loadAt) and isNull(stoppedAt) and pain > 0"
+        },
+        {
+          "id": "rForm",
+          "label": "Form before load",
+          "text": "No added load while the knees still move inward; regress and cue first.",
+          "met": "not isNull(loadAt) and isNull(stoppedAt) and valgus >= 5"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope of practice",
+          "text": "Describe movement; never name a condition or recommend treatment.",
+          "met": "diagnosed"
+        }
+      ]
+    }
+  },
+  "objective": "Static and dynamic postural assessments and the movement compensations they reveal",
+  "secondaryObjectives": [
+    "Correcting technique with verbal, visual and kinesthetic cues and kinetic-chain checkpoints",
+    "Regressions and progressions matched to the client's ability",
+    "Designing flexibility, core, balance and reactive (plyometric) components from assessment results"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Assessment 16% (static and dynamic postural assessments), Program Design 20%, Exercise Technique and Training Instruction 24% (observing movement, cueing, regressions and progressions)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Read for the course on 2026-10-08 (backend/supabase/seed/tracks/fitness.ts); not re-read for this case."
+    },
+    {
+      "cite": "NASM blog, How to Perform an Overhead Squat Assessment (OSA)",
+      "checkedAt": "2026-11-16",
+      "url": "https://blog.nasm.org/fitness/how-to-perform-an-overhead-squat-assessment-osa",
+      "note": "Relevant text: five repetitions viewed from the front (feet, ankles, knees) and the side (LPHC, shoulder, cervical); compensations: feet flatten or turn out, knees move inward, low back arches, excessive forward lean, arms fall forward; knees moving inward is linked to 'decreased hip abductor and hip external rotation strength', 'increased hip adductor activity' and 'restricted ankle dorsiflexion'; with heels raised on a 2x4 or plates, knees in line suggest the foot and ankle, knees still in suggest hip weakness; 'lengthen overactive muscles and activate underactive muscles'. Read 2026-11-16 through a summarizing fetch; no date on the page. NASM's overhead squat solutions table (muscle lists) was not on the page and is not used."
+    },
+    {
+      "cite": "ACSM Information On... Who Needs a Stress Test Before Exercising? (2017): warning signs 'Chest pain or pressure', 'Neck, jaw or arm pain', 'Shortness of breath', 'Unusual fatigue', 'Heart palpitations', 'Dizziness or a feeling like you are going to faint', 'Ankle swelling or overnight shortness of breath'; if they develop, 'discontinue exercise and seek a doctor's clearance right away'",
+      "checkedAt": "2026-11-16",
+      "url": "https://acsm.org/docs/default-source/files-for-resource-library/cpi-who-needs-a-stress-test-before-exercising-brochure.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch. A consumer brochure; it does not say when to call emergency services, so the 911 step rests on the AHA page."
+    },
+    {
+      "cite": "Author's teaching model (REQ-314)",
+      "checkedAt": "2026-11-16",
+      "note": "How much each corrective choice reduces the knees moving inward over four weeks, and the knee ache under load, are teaching simplifications, not measured effects. The direction follows the NASM page: the heel-raise retest separates the ankle from the hip, and the strategy is to lengthen overactive and activate underactive muscles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer. Dana Ruiz, 34 (a fictional client), runs 20 km a week and wants to start strength training. Her PAR-Q+ answers are all NO. Assess how she moves, write the corrective part of her program, coach today's session and see whether it worked four weeks on.",
+    "handover": [
+      "Trainers assess movement and program exercise; naming a condition or recommending medicine is outside a trainer's scope."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock.",
+      "The screen shows her read-outs, your findings, the program and the rules that apply now.",
+      "When you close the case you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "2027-03-01T07:00",
+    "tick": "5min",
+    "maxDuration": "35d",
+    "calendar": "date"
+  },
+  "params": {
+    "painDelay": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's teaching model (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How much each corrective choice reduces the knees moving inward over four weeks, and the knee ache under load, are teaching simplifications, not measured effects. The direction follows the NASM page: the heel-raise retest separates the ankle from the hip, and the strategy is to lengthen overactive and activate underactive muscles."
+      }
+    },
+    "fourWeeks": {
+      "value": 2419200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Four weeks of twice-weekly sessions between the first session and the reassessment; NASM lists time elapsed among reassessment reasons (course objective)."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "frontAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "heelAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hip",
+        "ankle",
+        "generic"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "cuedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cue": {
+      "type": "enum",
+      "values": [
+        "none",
+        "verbal",
+        "band",
+        "demo"
+      ],
+      "init": "none"
+    },
+    "boxAt": {
+      "type": "time",
+      "init": null
+    },
+    "loadAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "pushedAt": {
+      "type": "time",
+      "init": null
+    },
+    "diagnosed": {
+      "type": "bool",
+      "init": false
+    },
+    "weeksAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "valgus": {
+      "type": "number",
+      "init": 8,
+      "min": 0,
+      "max": 10
+    },
+    "pain": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "conf": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Sessions",
+      "clock": "turns",
+      "actions": [
+        "front",
+        "side",
+        "heel",
+        "program",
+        "cue",
+        "box",
+        "load",
+        "stopLoad",
+        "pushOn",
+        "diagnose",
+        "weeks",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "front": {
+      "label": "Overhead squat assessment, front view (5 reps)",
+      "group": "Assess",
+      "available": "not busy and (isNull(frontAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(frontAt)",
+          "then": [
+            {
+              "set": "frontAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You watch five reps from the front: feet, ankles, knees.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "side": {
+      "label": "Overhead squat assessment, side view (5 reps)",
+      "group": "Assess",
+      "available": "not busy and (isNull(sideAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "sideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You watch five reps from the side.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "heel": {
+      "label": "Repeat with her heels raised on plates",
+      "group": "Assess",
+      "available": "not busy and (not isNull(frontAt) and isNull(heelAt))",
+      "why": "Watch from the front first.",
+      "effects": [
+        {
+          "if": "isNull(heelAt)",
+          "then": [
+            {
+              "set": "heelAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You put her heels on two plates and watch again.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Write the corrective part of her program",
+      "group": "Program",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "focus",
+          "kind": "choice",
+          "label": "Focus",
+          "options": [
+            {
+              "value": "hip",
+              "label": "Lengthen the adductors; activate the hip abductors and external rotators"
+            },
+            {
+              "value": "ankle",
+              "label": "Calf stretching and ankle mobility"
+            },
+            {
+              "value": "generic",
+              "label": "No corrective work: a general leg day, adding load weekly"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "focus"
+        },
+        {
+          "log": "You write the plan.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "cue": {
+      "label": "Coach the squat with a cue",
+      "group": "Coach",
+      "available": "not busy and (isNull(cuedAt))",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Cue",
+          "options": [
+            {
+              "value": "verbal",
+              "label": "Verbal: 'knees track over your second and third toes'"
+            },
+            {
+              "value": "band",
+              "label": "Kinesthetic: a mini-band above the knees to push against"
+            },
+            {
+              "value": "demo",
+              "label": "Visual: demonstrate, then film one rep for her"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(cuedAt)",
+          "then": [
+            {
+              "set": "cuedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "cue",
+          "to": "kind"
+        },
+        {
+          "add": "conf",
+          "by": "1"
+        },
+        {
+          "add": "valgus",
+          "by": "-1"
+        },
+        {
+          "log": "You coach her squat.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "box": {
+      "label": "Regress to a box squat at the depth she controls",
+      "group": "Coach",
+      "available": "not busy and (isNull(boxAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(boxAt)",
+          "then": [
+            {
+              "set": "boxAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "conf",
+          "by": "1"
+        },
+        {
+          "log": "You set a box at the depth where her knees stay over her toes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "load": {
+      "label": "Progress today: goblet squat with 16 kg",
+      "group": "Coach",
+      "available": "not busy and (isNull(loadAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(loadAt)",
+          "then": [
+            {
+              "set": "loadAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "conf",
+          "by": "1"
+        },
+        {
+          "log": "You hand her a 16 kg kettlebell for goblet squats.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "stopLoad": {
+      "label": "Stop the loaded squats and go back to body weight",
+      "group": "Coach",
+      "available": "not isNull(loadAt) and isNull(stoppedAt)",
+      "why": "She is not squatting with load.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pain",
+          "to": "0"
+        },
+        {
+          "log": "You take the kettlebell back and stop the loaded set.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pushOn": {
+      "label": "Tell her to finish the set: a little ache is normal",
+      "group": "Coach",
+      "available": "not isNull(loadAt) and isNull(stoppedAt) and pain > 0 and isNull(pushedAt)",
+      "why": "Only with pain under load.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(pushedAt)",
+          "then": [
+            {
+              "set": "pushedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pain",
+          "to": "5"
+        },
+        {
+          "add": "conf",
+          "by": "-2"
+        },
+        {
+          "log": "You ask her to finish the set.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Tell her the ache sounds like patellofemoral pain syndrome and to take ibuprofen",
+      "group": "Talk",
+      "available": "not busy and (not diagnosed)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "set": "diagnosed",
+          "to": "true"
+        },
+        {
+          "log": "You name a condition and a medicine.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "weeks": {
+      "label": "Train her on the plan for four weeks, then reassess",
+      "group": "Program",
+      "available": "not busy and not isNull(planAt) and isNull(weeksAt) and not (not isNull(loadAt) and isNull(stoppedAt))",
+      "why": "Write the plan first, and not mid-set.",
+      "effects": [
+        {
+          "if": "isNull(weeksAt)",
+          "then": [
+            {
+              "set": "weeksAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "month",
+          "after": "fourWeeks"
+        },
+        {
+          "log": "Four weeks of sessions on the plan.",
+          "kind": "act"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "Close and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You close the case.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Assessment findings, the heel-raise result, the plan, cues, today's response and the reassessment"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Knee valgus; corrective plan'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "month": {
+      "label": "Four weeks of training",
+      "wait": {
+        "skipLabel": "Skip to the reassessment"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Four weeks of twice-weekly sessions between the first session and the reassessment; NASM lists time elapsed among reassessment reasons (course objective)."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(reassessAt)",
+          "then": [
+            {
+              "set": "reassessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "valgus",
+          "by": "plan == \"hip\" ? -4 : plan == \"ankle\" ? -1 : 1"
+        },
+        {
+          "add": "valgus",
+          "by": "isNull(boxAt) ? 0 : -1"
+        },
+        {
+          "add": "conf",
+          "by": "plan == \"hip\" ? 2 : 0"
+        },
+        {
+          "log": "Four weeks later you repeat the overhead squat assessment.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "ache",
+      "when": "not isNull(loadAt) and isNull(stoppedAt) and valgus >= 5 and isNull(painAt) and t - timeAt(loadAt) >= painDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(painAt)",
+          "then": [
+            {
+              "set": "painAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pain",
+          "to": "3"
+        },
+        {
+          "log": "On the way up she winces: an ache on the inside of her right knee.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For her record: what the assessment showed and how you found its source, what you changed and how you coached it, and how you will judge progress.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Finding and source",
+          "criteria": "Knees move inward on the overhead squat (front view); the heel-raised retest still caves, so the hip (abductor and external rotator weakness, adductor activity) rather than the ankle.",
+          "modelAnswer": "Both knees moved inward on all five reps. With her heels raised they still did, which points away from ankle dorsiflexion and toward weak hip abductors and external rotators with overactive adductors."
+        },
+        {
+          "label": "Program and coaching",
+          "criteria": "Lengthen the overactive (adductors) and activate the underactive (hip abductors, external rotators); a cue or a regression (box squat) that keeps the knees over the toes; no load while the knees still cave; stop a movement that causes pain.",
+          "modelAnswer": "Adductor foam rolling and stretching, band side steps and side-lying abduction, then box squats with a mini-band and the cue 'knees over your second and third toes'. No load until the pattern holds."
+        },
+        {
+          "label": "Progress",
+          "criteria": "Reassess the overhead squat after a set time (four weeks) and progress load only when the knees track; refer a persistent pain rather than name it.",
+          "modelAnswer": "Repeat the overhead squat at four weeks; add load when the knees stay over the toes. If the knee ache persists she sees a clinician; I don't diagnose it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "A movement that causes pain stopped within 2 minutes; a teaching figure."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(planAt)",
+      "class": "recovered",
+      "rationale": "Closing without a plan leaves her no worse off but no better; nothing unsafe was done.",
+      "source": {
+        "cite": "NASM blog, How to Perform an Overhead Squat Assessment (OSA)",
+        "checkedAt": "2026-11-16",
+        "url": "https://blog.nasm.org/fitness/how-to-perform-an-overhead-squat-assessment-osa",
+        "note": "Relevant text: five repetitions viewed from the front (feet, ankles, knees) and the side (LPHC, shoulder, cervical); compensations: feet flatten or turn out, knees move inward, low back arches, excessive forward lean, arms fall forward; knees moving inward is linked to 'decreased hip abductor and hip external rotation strength', 'increased hip adductor activity' and 'restricted ankle dorsiflexion'; with heels raised on a 2x4 or plates, knees in line suggest the foot and ankle, knees still in suggest hip weakness; 'lengthen overactive muscles and activate underactive muscles'. Read 2026-11-16 through a summarizing fetch; no date on the page. NASM's overhead squat solutions table (muscle lists) was not on the page and is not used."
+      }
+    }
+  },
+  "endings": {
+    "outOfScope": {
+      "label": "A diagnosis from the trainer",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and diagnosed",
+      "narrative": "You named a knee condition and a medicine: a clinician's call, not a trainer's."
+    },
+    "hurt": {
+      "label": "Pushed through knee pain",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(pushedAt)",
+      "narrative": "She finished a loaded set through knee pain; the ache lasts the week and she skips her runs."
+    },
+    "fixed": {
+      "label": "Found, corrected, progressing",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and not isNull(reassessAt) and valgus <= 4 and not isNull(heelAt) and timeAt(heelAt) <= timeAt(planAt) and isNull(loadAt) and not isNull(cuedAt)",
+      "narrative": "You found where the knees came from, built the plan around her hips and coached the pattern before the load. Four weeks on, her knees track."
+    },
+    "partial": {
+      "label": "Some progress, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{isNull(reassessAt) ? \"You never reassessed, so nobody knows if it worked.\" : valgus >= 5 ? \"Four weeks on, her knees still move inward: the plan did not reach the source.\" : not isNull(loadAt) ? \"It improved, but load came before the pattern and her knee complained.\" : \"It improved, but the source was guessed or the record is thin.\"}"
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The case ran out without a record."
+    }
+  },
+  "endingOrder": [
+    "outOfScope",
+    "hurt",
+    "fixed",
+    "partial"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "assessed",
+        "label": "Front-view overhead squat and the heel-raised retest before writing the plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(heelAt) and not isNull(planAt) and timeAt(heelAt) <= timeAt(planAt)",
+            "score": "met",
+            "why": "Source tested before programming."
+          },
+          {
+            "when": "not isNull(frontAt)",
+            "score": "partial",
+            "why": "The compensation seen, its source assumed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not assessed."
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "label": "Corrective plan matched to the source (hip)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"hip\"",
+            "score": "met",
+            "why": "Hip-focused."
+          },
+          {
+            "when": "plan == \"ankle\"",
+            "score": "partial",
+            "why": "Aimed at the ankle, which the retest ruled out."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No corrective plan."
+          }
+        ]
+      },
+      {
+        "id": "formFirst",
+        "label": "No load while the knees still moved inward; pain stopped the movement",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(loadAt)",
+            "score": "met",
+            "why": "Pattern first."
+          },
+          {
+            "when": "isNull(pushedAt) and (isNull(painAt) or not isNull(stoppedAt))",
+            "score": "partial",
+            "why": "Loaded early; stopped at the ache."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Pushed through pain."
+          }
+        ]
+      },
+      {
+        "id": "coached",
+        "label": "Cued or regressed the squat",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cuedAt) and not isNull(boxAt)",
+            "score": "met",
+            "why": "Cue and regression."
+          },
+          {
+            "when": "not isNull(cuedAt) or not isNull(boxAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "reassess",
+        "label": "Reassessed at four weeks and recorded it",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(reassessAt) and documented == \"full\"",
+            "score": "met",
+            "why": "Reassessed and recorded."
+          },
+          {
+            "when": "not isNull(reassessAt) or documented == \"full\"",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written finding, plan and progress",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "kneesEnd",
+        "label": "Knees moving inward at the end (0-10, lower is better)",
+        "value": "valgus",
+        "format": "number",
+        "expert": "4 or less"
+      },
+      {
+        "id": "painMax",
+        "label": "Knee pain reported (0-10)",
+        "value": "pain",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "conf",
+        "label": "Her confidence at the end (0-10)",
+        "value": "conf",
+        "format": "number",
+        "expert": "7 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Session 1, first 15 min",
+        "text": "Overhead squat from the front and side; repeat with heels raised: the knees still cave, so the hip."
+      },
+      {
+        "at": "Session 1",
+        "text": "Plan: lengthen the adductors, activate the hip abductors and external rotators; cue 'knees over the second and third toes', box squats; no load yet."
+      },
+      {
+        "at": "Week 4",
+        "text": "Reassess the overhead squat; add load when the knees track. Write it all down."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: tested, targeted, coached",
+        "body": "The heel-raise retest told you the ankle was not the source. A hip plan, a cue and a regression did the rest; load waits for the pattern."
+      },
+      "partial": {
+        "headline": "Some progress, with gaps",
+        "body": "The heel-raise retest is what separates the ankle from the hip; a plan aimed at the wrong link, load before the pattern, or no reassessment leaves the result to luck."
+      },
+      "hurt": {
+        "headline": "Pain stops the movement",
+        "body": "An ache under load is the signal to stop and regress, not to finish the set."
+      },
+      "outOfScope": {
+        "headline": "Describe, don't diagnose",
+        "body": "A trainer reports what the movement shows. Naming a condition or a medicine belongs to a clinician."
+      },
+      "time_up": {
+        "headline": "No record",
+        "body": "The case ran out without a record."
+      }
+    },
+    "modelReasoning": "Knees moved inward on the overhead squat and still did with heels raised: hip abductor and external rotator weakness with overactive adductors, not the ankle. Lengthen the adductors, activate the hip; cue and regress the squat; no load until the knees track; stop a movement that hurts; reassess at four weeks; describe, never diagnose."
+  }
+}
