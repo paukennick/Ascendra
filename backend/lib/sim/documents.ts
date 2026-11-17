@@ -445,6 +445,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-326 (docs/sims.md 22.34): specialty nursing and PTA depth, sims-health-4 ----
   entry("CEN", "dizzy-slow-pulse-atropine-not-working"),
   entry("CEN", "cold-leg-new-numbness"),
+  entry("CEN", "bike-crash-breath-sounds-gone"),
   // ---- end REQ-326 ----
 ];
 
