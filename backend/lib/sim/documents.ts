@@ -445,6 +445,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("PROJECTPLUS", "clinic-fitout-variance-projectplus"),
   band("PMICP", "clinic-fitout-claim-pmicp"),
   band("PMIRMP", "clinic-fitout-contingency-pmirmp"),
+  // sims-pm-2 (docs/sims.md 22.31, second part): new cases for the courses
+  // that still had none, their bands, then depth (launch courses first).
+  entry("PGMP", "pgmp-transit-program-steering-review"),
   // ---- end REQ-321 ----
 ];
 

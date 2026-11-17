@@ -1,0 +1,1214 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pgmp-transit-program-steering-review",
+  "title": "A transit program's steering reviews: consolidated status, a risk to a benefit, a stage gate and a benefits variance",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rCert",
+          "label": "Payment processor certification for the fare app is slipping",
+          "spokenLabel": "Certification risk",
+          "owner": "{riskR == \"escalated\" ? \"Steering committee (program reserve)\" : \"Fare-app project manager\"}",
+          "rating": "certSlip ? \"critical\" : riskR == \"escalated\" ? \"medium\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "certSlip or (p >= 2 and riskR != \"escalated\") ? \"above\" : \"within\"",
+          "status": "{certSlip ? \"Certification failed: the fare launch slips a quarter\" : riskR == \"escalated\" ? \"Escalated; a second test lab funded from the reserve\" : riskR == \"cut\" ? \"Kiosk scope cut to pay for it, without the committee\" : riskR == \"team\" ? \"Left with the project team\" : p >= 2 ? \"Above the program's appetite: decision needed\" : \"Watched by the project\"}"
+        },
+        {
+          "id": "rDep",
+          "label": "Station kiosks depend on the back-office integration",
+          "spokenLabel": "Dependency risk",
+          "owner": "\"Program manager\"",
+          "rating": "status == \"rag\" and p >= 1 ? \"high\" : \"low\"",
+          "appetite": "status == \"rag\" and p >= 1 ? \"above\" : \"within\"",
+          "status": "{status == \"consolidated\" ? \"Kiosk installs re-sequenced after integration\" : status == \"takeover\" ? \"Integration re-planned by you, with an overtime team\" : status == \"rag\" ? \"Not seen: each project reports its own status\" : \"Not yet analyzed\"}"
+        },
+        {
+          "id": "rBen",
+          "label": "Fare-app adoption below the benefits realization plan",
+          "spokenLabel": "Benefits risk",
+          "owner": "\"Operations director (benefit owner)\"",
+          "when": "p >= 4",
+          "rating": "benefit == \"corrective\" ? \"medium\" : \"high\"",
+          "appetite": "\"within\"",
+          "status": "{benefit == \"corrective\" ? \"Corrective action agreed; benefits register updated\" : benefit == \"retarget\" ? \"Target lowered to match the forecast\" : benefit == \"defer\" ? \"Left for program closure\" : \"Forecast 22% adoption against a 35% plan\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Steering committee chair",
+          "spokenLabel": "the steering committee chair's support",
+          "value": "sponsor",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sFin",
+          "label": "Finance director",
+          "spokenLabel": "the finance director's support",
+          "value": "finance",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPm",
+          "label": "Project managers",
+          "spokenLabel": "the project managers' support",
+          "value": "pm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dStatus",
+          "kind": "Steering review",
+          "label": "Month 1: program status from the four projects",
+          "status": "{status == \"none\" ? \"Due\" : status == \"consolidated\" ? \"Consolidated view with variances and a corrective action\" : status == \"rag\" ? \"Four RAG reports passed on\" : \"You re-planned the integration project yourself\"}",
+          "when": "p >= 1"
+        },
+        {
+          "id": "dReserve",
+          "kind": "Board request",
+          "label": "250 thousand dollars from the program reserve for a second certification lab",
+          "status": "Approved by the steering committee",
+          "when": "riskR == \"escalated\""
+        },
+        {
+          "id": "dGate",
+          "kind": "Stage gate",
+          "label": "Month 3: authorization to start deployment",
+          "status": "{gate == \"none\" ? \"Due\" : gate == \"conditional\" ? \"Authorized with one condition and a date\" : gate == \"self\" ? \"Declared passed by you\" : \"Postponed a month\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and gate == \"none\""
+        },
+        {
+          "id": "dBen",
+          "kind": "Benefits register",
+          "label": "Month 4: fare-app adoption against the benefits plan",
+          "status": "{benefit == \"none\" ? \"Due\" : benefit == \"corrective\" ? \"Variance analyzed; corrective action and register updated\" : benefit == \"retarget\" ? \"Target changed\" : \"Deferred\"}",
+          "when": "p >= 4"
+        }
+      ],
+      "budget": {
+        "label": "Program budget committed",
+        "spent": "spent",
+        "total": "6000",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mMonth",
+          "label": "Program month",
+          "value": "{p} of 5"
+        },
+        {
+          "id": "mInt",
+          "label": "Integration project SPI",
+          "value": "{p == 0 ? \"not reported yet\" : status == \"consolidated\" or status == \"takeover\" ? \"0.82 at month 1, recovering\" : \"reported amber, no figures\"}"
+        },
+        {
+          "id": "mBen",
+          "label": "Fare-app adoption forecast",
+          "value": "{p < 4 ? \"not yet measured\" : benefit == \"corrective\" ? \"22% now, 33% forecast after the campaign (plan 35%)\" : \"22% against a 35% plan\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing cost/schedule/quality/risk variances against planned values and updating plans with corrective actions",
+  "secondaryObjectives": [
+    "Executing program management plans and consolidating project-level data to monitor performance and communicate status",
+    "Managing program-level issues and risk per the risk management plan to protect benefits realization",
+    "Obtaining authorization through stage-gate reviews to proceed to the next program phase",
+    "Monitoring benefit metrics (forecasting, variance analysis, what-if scenarios) and taking corrective action to protect realization"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+      "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF."
+    },
+    {
+      "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+      "note": "Read 2026-11-17 (through a summarizing fetch, by this round's first builder). SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done. Used here for the consolidated variances of the constituent projects."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The transit authority, the program, the projects, the vendor and the people are fictional. The budget, the burn rate, the reserve, the costs of each decision, the SPI figures and the support gauges are teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the program manager of the fare modernization program at Tidewater Regional Transit, a fictional transit authority. Four projects make up the program: a fare-payment app, a back-office integration, station kiosks and a data platform. The program's benefit is fare revenue collected through the app. A steering committee meets monthly and holds the program reserve.",
+    "handover": [
+      "Program budget: 6,000 thousand dollars, including a 300 thousand dollar reserve the steering committee controls. Planned spend is about 1,400 thousand dollars a month.",
+      "The risk management plan sends any risk that threatens a program benefit to the steering committee. Stage gates are authorized by the committee."
+    ],
+    "howItWorks": [
+      "The board shows the program's risk register against its appetite, each stakeholder's support in words, the budget committed and the steering docket.",
+      "Move the program on a month at a time. A decision comes to you at each steering review; before the first, you can consolidate the projects' data or read the registers.",
+      "After month 5 you write the program status record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "200d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "status": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consolidated",
+        "rag",
+        "takeover"
+      ],
+      "init": "none"
+    },
+    "riskR": {
+      "type": "enum",
+      "values": [
+        "none",
+        "escalated",
+        "team",
+        "cut"
+      ],
+      "init": "none"
+    },
+    "gate": {
+      "type": "enum",
+      "values": [
+        "none",
+        "conditional",
+        "self",
+        "postpone"
+      ],
+      "init": "none"
+    },
+    "benefit": {
+      "type": "enum",
+      "values": [
+        "none",
+        "corrective",
+        "retarget",
+        "defer"
+      ],
+      "init": "none"
+    },
+    "certSlip": {
+      "type": "bool",
+      "init": false
+    },
+    "sponsor": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "finance": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "consolidateAt": {
+      "type": "time",
+      "init": null
+    },
+    "registersAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "spent": {
+      "expr": "min(p, 4) * 1400 + (riskR == \"escalated\" ? 250 : 0) + (status == \"takeover\" ? 500 : 0) + (gate == \"postpone\" ? 100 : 0) + (benefit == \"corrective\" ? 40 : 0) + (certSlip ? 600 : 0)"
+    },
+    "spendPct": {
+      "expr": "spent / 6000 * 100"
+    },
+    "aboveCount": {
+      "expr": "(riskR == \"escalated\" ? 0 : 1) + (status == \"rag\" ? 1 : 0)"
+    },
+    "minSupport": {
+      "expr": "min(sponsor, min(finance, pm))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The program",
+      "clock": "turns",
+      "actions": [
+        "consolidate",
+        "registers"
+      ]
+    },
+    "close": {
+      "label": "Status record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "consolidate": {
+      "label": "Pull the four projects' schedule and cost data into one program view",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(consolidateAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "consolidateAt",
+          "to": "t"
+        },
+        {
+          "log": "You line up the projects' planned and earned value and their dependencies.",
+          "kind": "act"
+        },
+        {
+          "finding": "Integration: SPI 0.82, CPI 0.97. Fare app SPI 1.02, kiosks 1.00, data platform 0.99. The kiosk installs in month 2 need the integration's station links, so the kiosks' green depends on the amber project."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "registers": {
+      "label": "Read the program risk register and the benefits register",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(registersAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "registersAt",
+          "to": "t"
+        },
+        {
+          "log": "You read both registers.",
+          "kind": "act"
+        },
+        {
+          "finding": "Risk P-07, payment processor certification: owner the fare-app project, threatens the fare revenue benefit; the plan's threshold sends such risks to the committee. Benefits register: 35% of fares through the app by year end."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the program status record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Consolidated variances and the corrective actions, the escalated risk and its owner, the gate decision with its condition, and benefits measured against the plan"
+                },
+                {
+                  "value": "summary",
+                  "label": "A one-line summary: the program is on track"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next steering review",
+      "wait": {
+        "skipLabel": "Go to the next steering review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "status == \"rag\"",
+              "then": [
+                {
+                  "add": "sponsor",
+                  "by": "-2"
+                },
+                {
+                  "log": "Month 2: the kiosk vendor arrives at stations whose back-office links are not ready. The committee hears of the integration slip from the vendor's invoice, not from you.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "if": "status == \"consolidated\"",
+              "then": [
+                {
+                  "log": "Month 2: kiosk installs now follow the integration; the two developers moved from the fare app close the gap.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "if": "status == \"takeover\"",
+              "then": [
+                {
+                  "log": "Month 2: the overtime team catches up, at 500 thousand dollars the plan did not have.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "riskR == \"team\"",
+              "then": [
+                {
+                  "set": "certSlip",
+                  "to": "true"
+                },
+                {
+                  "add": "sponsor",
+                  "by": "-2"
+                },
+                {
+                  "log": "Month 3: the processor fails the fare app's certification; the next slot is a quarter away. The fare revenue benefit slips with it.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "if": "riskR == \"escalated\"",
+              "then": [
+                {
+                  "log": "Month 3: with the second lab, the fare app passes certification.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 5",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "28d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Month 5: the program closes its first release.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "28d"
+        }
+      ]
+    },
+    {
+      "id": "t_statusPrompt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Month 1: the steering committee meets.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "statusPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_riskPrompt",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Month 2: a risk report from the fare-app team.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "riskPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_gatePrompt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Month 3: the deployment stage gate is on the agenda.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "gatePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_benefitPrompt",
+      "when": "p == 4 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Month 4: the first benefit measurement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "benefitPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "statusPrompt": {
+      "title": "Month 1: the first steering review",
+      "context": "The four project managers send their reports: fare app green, back-office integration amber, station kiosks green, data platform green. Their schedule data, put side by side, show the integration project at SPI 0.82, and the kiosk installs start next month on stations that need the integration's links.",
+      "choices": [
+        {
+          "id": "consolidated",
+          "label": "Consolidate the four projects' data into one program view, show the integration variance and its effect on the kiosks, and propose the corrective action: re-sequence the kiosk installs after integration and move two developers from the fare app",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"consolidated\""
+            },
+            {
+              "add": "sponsor",
+              "by": "1"
+            },
+            {
+              "add": "pm",
+              "by": "1"
+            },
+            {
+              "log": "The committee approves the re-sequencing; the integration plan is updated.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Program status is consolidated from the components' data, variances are analyzed across their interdependencies, and corrective action updates the plan."
+        },
+        {
+          "id": "rag",
+          "label": "Pass the four RAG reports to the committee as the program status",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"rag\""
+            },
+            {
+              "log": "The committee sees mostly green.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Four separate reports hide the interdependency: the kiosks are green only until they need the integration's links."
+        },
+        {
+          "id": "takeover",
+          "label": "Take over the integration project's plan yourself and add a second vendor team on overtime to catch up",
+          "effects": [
+            {
+              "set": "status",
+              "to": "\"takeover\""
+            },
+            {
+              "add": "pm",
+              "by": "-3"
+            },
+            {
+              "add": "finance",
+              "by": "-1"
+            },
+            {
+              "log": "You re-plan the integration over its project manager's head and book an overtime team.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The program manager directs components through their project managers and the plan; taking over a project and adding unplanned spend bypasses both."
+        }
+      ]
+    },
+    "riskPrompt": {
+      "title": "Month 2: the certification risk moves above the program's appetite",
+      "context": "The payment processor's certification queue is now six weeks; the fare app's slot is at the end of month 3, with no retest before next quarter. The risk management plan says risks that threaten a program benefit go to the steering committee, which holds a 300 thousand dollar reserve. A second test lab (250 thousand) would let the team pre-test.",
+      "choices": [
+        {
+          "id": "escalated",
+          "label": "Escalate it to the steering committee as the risk management plan says, with the options and their effect on the fare revenue benefit; recommend the second lab from the program reserve",
+          "effects": [
+            {
+              "set": "riskR",
+              "to": "\"escalated\""
+            },
+            {
+              "add": "sponsor",
+              "by": "1"
+            },
+            {
+              "add": "finance",
+              "by": "1"
+            },
+            {
+              "log": "The committee funds the second lab from the reserve and records the decision.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Program risks that threaten benefits are escalated to the level that owns them, with options, and treated by the plan's response."
+        },
+        {
+          "id": "team",
+          "label": "Leave it with the fare-app project team; certification is a project matter",
+          "effects": [
+            {
+              "set": "riskR",
+              "to": "\"team\""
+            },
+            {
+              "log": "The risk stays at project level.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A risk that threatens a program benefit is a program risk; leaving it in one project leaves it untreated."
+        },
+        {
+          "id": "cut",
+          "label": "Cut the kiosk project's scope by a third to free 250 thousand dollars and fund the lab now, without waiting for the committee",
+          "effects": [
+            {
+              "set": "riskR",
+              "to": "\"cut\""
+            },
+            {
+              "add": "sponsor",
+              "by": "-3"
+            },
+            {
+              "add": "pm",
+              "by": "-1"
+            },
+            {
+              "log": "You cut another project's scope on your own authority.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Re-scoping a component and moving its money is the committee's decision, not the program manager's."
+        }
+      ]
+    },
+    "gatePrompt": {
+      "title": "Month 3: the stage gate to deployment",
+      "context": "The gate's three criteria: integration tests passed, certification passed, operations staff trained. The first two are met; training is 60% done and scheduled to finish in three weeks. Deployment is planned to start next week.",
+      "choices": [
+        {
+          "id": "conditional",
+          "label": "Present the gate pack as it stands and ask the committee to authorize deployment on condition that training finishes before any station goes live, with a date",
+          "effects": [
+            {
+              "set": "gate",
+              "to": "\"conditional\""
+            },
+            {
+              "add": "sponsor",
+              "by": "1"
+            },
+            {
+              "log": "Authorized with one condition, recorded with its date.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Authorization to proceed comes from the governance body at the gate; an unmet criterion is presented with a condition and a date."
+        },
+        {
+          "id": "self",
+          "label": "Declare the gate passed yourself; two of three is close enough and the schedule matters",
+          "effects": [
+            {
+              "set": "gate",
+              "to": "\"self\""
+            },
+            {
+              "add": "sponsor",
+              "by": "-2"
+            },
+            {
+              "log": "Deployment starts without the committee's authorization.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Passing a gate is the governance body's decision; the program manager prepares and recommends."
+        },
+        {
+          "id": "postpone",
+          "label": "Postpone the gate a month until every criterion is met",
+          "effects": [
+            {
+              "set": "gate",
+              "to": "\"postpone\""
+            },
+            {
+              "add": "sponsor",
+              "by": "-1"
+            },
+            {
+              "add": "finance",
+              "by": "-1"
+            },
+            {
+              "log": "The gate moves a month; the deployment crews stand by at 100 thousand dollars.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Waiting is safe but costs a month and money; a conditional authorization would have kept the plan."
+        }
+      ]
+    },
+    "benefitPrompt": {
+      "title": "Month 4: fare-app adoption is below the benefits plan",
+      "context": "The benefits realization plan expects 35% of fares paid through the app by the end of the year. Adoption is 22% after six weeks; the forecast on the current trend is 26%. Operations, the benefit owner, says station staff were never asked to promote the app.",
+      "choices": [
+        {
+          "id": "corrective",
+          "label": "Analyze the variance with the benefit owner, agree a corrective action (station staff promotion and a first-ride offer, 40 thousand dollars), forecast its effect, and update the benefits register and the sponsor",
+          "effects": [
+            {
+              "set": "benefit",
+              "to": "\"corrective\""
+            },
+            {
+              "add": "sponsor",
+              "by": "1"
+            },
+            {
+              "log": "Forecast after the campaign: 33%. The benefits register shows the variance, the action and the owner.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Benefit metrics are monitored against the plan; a variance gets analysis, a forecast and corrective action with the benefit owner."
+        },
+        {
+          "id": "retarget",
+          "label": "Change the target in the benefits register to 26% so the program reports on plan",
+          "effects": [
+            {
+              "set": "benefit",
+              "to": "\"retarget\""
+            },
+            {
+              "add": "finance",
+              "by": "-2"
+            },
+            {
+              "log": "The register now says 26%; the business case still says 35%.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Moving the target to the forecast hides the variance from the people who approved the business case."
+        },
+        {
+          "id": "defer",
+          "label": "Note it for the program closure report",
+          "effects": [
+            {
+              "set": "benefit",
+              "to": "\"defer\""
+            },
+            {
+              "add": "sponsor",
+              "by": "-1"
+            },
+            {
+              "log": "The variance waits for closure.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Benefits are protected during the program, while there is time to act, not reported after it."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the program status note for the steering committee: how the program performed against its plan and what you corrected, and how the risk, the gate and the benefits variance were handled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Variances and corrective action",
+          "criteria": "Consolidates the projects' data, reads the integration's SPI of 0.82 and its effect on the kiosks, and names the corrective action that updated the plan.",
+          "modelAnswer": "Put together, the projects' data showed integration at SPI 0.82 with the kiosks waiting on it; we re-sequenced the kiosk installs and moved two developers, and integration recovered."
+        },
+        {
+          "label": "Risk, gate and benefits",
+          "criteria": "The certification risk went to the committee under the risk plan; the gate was authorized by the committee with a condition; the adoption variance got analysis, corrective action and an updated register.",
+          "modelAnswer": "Certification threatened the fare benefit, so it went to the committee, which funded a second lab from the reserve. The committee authorized deployment on condition training finished first. Adoption was 22% against 35%; with operations we ran a staff promotion and forecast 33%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Program spend within the 6,000 thousand dollar budget at month 5."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No program risk above appetite at the close without the committee's treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "The committee chair, the finance director and the project managers at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and benefit == \"defer\" and gate == \"postpone\"",
+      "class": "recovered",
+      "rationale": "Waiting at the gate and on the benefits costs time and money but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+        "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF."
+      }
+    }
+  },
+  "endings": {
+    "authority": {
+      "label": "A decision outside your authority",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (riskR == \"cut\" or gate == \"self\")",
+      "narrative": "{gate == \"self\" ? \"Deployment started on a gate the committee never authorized.\" : \"You cut a project's scope and moved its money without the committee.\"}"
+    },
+    "materialized": {
+      "label": "A benefit lost to an untreated risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and certSlip",
+      "narrative": "The fare app failed certification and the revenue benefit slipped a quarter; the program paid 600 thousand dollars to recover."
+    },
+    "overspend": {
+      "label": "Over the program budget",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and spendPct > budgetCap",
+      "narrative": "The program committed {spent} of 6,000 thousand dollars."
+    },
+    "steered": {
+      "label": "Steered on the plan, within authority",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and status == \"consolidated\" and riskR == \"escalated\" and gate == \"conditional\" and benefit == \"corrective\" and record == \"honest\" and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "The program finished its first release within budget: the integration recovered, certification passed, deployment was authorized with its condition met and adoption is on course for 33%."
+    },
+    "drifted": {
+      "label": "Delivered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The first release went out, but the criteria show where status, a gate or the benefits slipped out of control."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "authority",
+    "materialized",
+    "overspend",
+    "steered",
+    "drifted"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "statusCrit",
+        "label": "Consolidated the projects' data, analyzed the variance and corrected the plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "status == \"consolidated\"",
+            "score": "met",
+            "why": "One program view, a corrective action."
+          },
+          {
+            "when": "status == \"takeover\"",
+            "score": "partial",
+            "why": "Corrected, but by taking over a project with unplanned spend."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Passed on four separate reports."
+          }
+        ]
+      },
+      {
+        "id": "riskCrit",
+        "label": "Escalated the risk to the benefit under the risk management plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "riskR == \"escalated\"",
+            "score": "met",
+            "why": "To the committee, treated from the reserve."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{riskR == \"cut\" ? \"Treated outside your authority.\" : \"Left in the project.\"}"
+          }
+        ]
+      },
+      {
+        "id": "gateCrit",
+        "label": "Took the stage gate to the committee for authorization",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gate == \"conditional\"",
+            "score": "met",
+            "why": "Authorized with a condition and a date."
+          },
+          {
+            "when": "gate == \"postpone\"",
+            "score": "partial",
+            "why": "Safe, but a month and 100 thousand dollars lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Declared passed by you."
+          }
+        ]
+      },
+      {
+        "id": "benefitCrit",
+        "label": "Analyzed the benefits variance and took corrective action with the benefit owner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "benefit == \"corrective\"",
+            "score": "met",
+            "why": "Variance, action, forecast and register."
+          },
+          {
+            "when": "benefit == \"defer\"",
+            "score": "partial",
+            "why": "Left for closure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The target was moved instead."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The status record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Variances, risk, gate and benefits."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spentK",
+        "label": "Program spend at close, thousand dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "5,890 of 6,000"
+      },
+      {
+        "id": "aboveK",
+        "label": "Risks above appetite at close",
+        "value": "aboveCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before month 1",
+        "text": "Consolidate the projects' data and read the registers."
+      },
+      {
+        "at": "Month 1",
+        "text": "Show the integration variance and its effect on the kiosks; re-sequence and move two developers."
+      },
+      {
+        "at": "Month 2",
+        "text": "Escalate the certification risk to the committee; recommend the second lab from the reserve."
+      },
+      {
+        "at": "Month 3",
+        "text": "Ask the committee for conditional authorization at the gate."
+      },
+      {
+        "at": "Month 4",
+        "text": "Analyze the adoption variance with operations; corrective action, forecast and register update."
+      },
+      {
+        "at": "Close",
+        "text": "An honest status record."
+      }
+    ],
+    "debrief": {
+      "authority": {
+        "headline": "Not your decision to take",
+        "body": "Gates are authorized and components re-scoped by the governance body. The program manager analyzes, recommends and escalates."
+      },
+      "materialized": {
+        "headline": "The risk to the benefit was left in a project",
+        "body": "A risk that threatens a program benefit belongs at program level and, under this plan, with the steering committee."
+      },
+      "overspend": {
+        "headline": "Over budget",
+        "body": "Unplanned spend to catch up a project is a decision for the plan and the committee, not a fix the program manager books."
+      },
+      "steered": {
+        "headline": "Good: steered on the plan, within authority",
+        "body": "Consolidated variances drove corrective action, the risk went to its owner, the gate to the committee and the benefit variance to the benefit owner."
+      },
+      "drifted": {
+        "headline": "Delivered, with gaps",
+        "body": "The criteria show which review was missed: the consolidated status, the gate, or the benefits variance."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A program manager monitors performance by consolidating the components' data: four green and amber reports hid that the kiosks depended on an integration project at SPI 0.82, so the corrective action re-sequenced the kiosks and moved capacity. A risk that threatens a program benefit is a program risk, escalated as the risk management plan says to the committee that holds the reserve. A stage gate is authorized by the governance body; an unmet criterion is presented with a condition and a date. Benefit metrics are tracked against the realization plan; a variance gets analysis with the benefit owner, a corrective action and a forecast, and the register keeps the original target."
+  }
+}
