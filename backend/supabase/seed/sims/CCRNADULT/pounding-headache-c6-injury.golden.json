@@ -1,0 +1,478 @@
+{
+  "slug": "pounding-headache-c6-injury",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: blood pressure; sat up and loosened; kinked catheter found and drained; autonomic dysreflexia; intensivist; documented and taught",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "t6",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "loose",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "sit",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "settled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "sitC": "met",
+          "bladderC": "met",
+          "noMask": "met",
+          "callC": "met",
+          "looseC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSit": 0,
+          "toFix": 60
+        },
+        "stateHash": "0fab8cdfeb4c4e0e"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateSit",
+      "title": "Looks at the skin and bowel first, then leaves him lying for 3 minutes after the pressure before sitting him up",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "t6",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bowel",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 6,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "loose",
+          "seq": 7,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 8,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 9,
+          "tick": 87
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 10,
+          "tick": 87
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 11,
+          "tick": 87
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "sit",
+          "seq": 12,
+          "tick": 87
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 87
+        }
+      ],
+      "expect": {
+        "ending": "settledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "sitC": "partial",
+          "bladderC": "met",
+          "noMask": "met",
+          "callC": "met",
+          "looseC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSit": 195,
+          "toFix": 255
+        },
+        "stateHash": "aaa8781a8aa3c185"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "acetaminophen",
+      "title": "Sits him up and calls at once, but gives acetaminophen for the headache and leaves the binder on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "t6",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "firstQ",
+          "choice": "sit",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "apap",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "settledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "sitC": "met",
+          "bladderC": "met",
+          "noMask": "missed",
+          "callC": "met",
+          "looseC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toSit": 0,
+          "toFix": 60
+        },
+        "stateHash": "9ebc4a71eaff7960"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "laidFlat",
+      "title": "Failure: reads the pressure as a stroke, lays him flat with legs raised and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "t6",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stroke"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "sitC": "missed",
+          "bladderC": "missed",
+          "noMask": "met",
+          "callC": "missed",
+          "looseC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toSit": -1,
+          "toFix": -1
+        },
+        "stateHash": "5189d9d28adf5f89"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "justPain",
+      "title": "Failure: sees the flushing, calls it a headache and gives acetaminophen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "t6",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "migraine"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "apap",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "sitC": "missed",
+          "bladderC": "missed",
+          "noMask": "missed",
+          "callC": "missed",
+          "looseC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toSit": -1,
+          "toFix": -1
+        },
+        "stateHash": "d417386581aac630"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
