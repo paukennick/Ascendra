@@ -42,8 +42,10 @@ describe("capabilities", () => {
     const { parseCaps, runnable } = await import("../../../backend/lib/sim/server-run.ts");
     const caps = parseCaps(simCaps());
     for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: r.level, screen_type: r.type }, caps), true);
-    // A session version that needs a later session renderer is not offered.
-    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 2, screen_type: "session" }, caps), false);
+    // REQ-313: the session is at level 2 now; a session version that needs a
+    // later session renderer is still not offered.
+    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 2, screen_type: "session" }, caps), true);
+    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 3, screen_type: "session" }, caps), false);
   });
 });
 

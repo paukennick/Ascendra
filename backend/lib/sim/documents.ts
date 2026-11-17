@@ -404,3 +404,24 @@ export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.fi
 export const WAJP_OBJECTIVES: Readonly<Record<string, string>> = {
   "wajp-duty-to-protect-threat": "Apply the duty to warn or protect when a client threatens an identifiable person",
 };
+
+// REQ-313 (docs/sims.md 22.26): the governance board, tabletop and
+// professional-ethics documents (authored and bands), by profile.
+export const GOVERNANCE_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) =>
+  [
+    "cism-security-business-case-budget",
+    "cism-risk-appetite-exception",
+    "cism-ransomware-tabletop",
+    "cc-ethics-shared-credentials",
+    "cissp-ethics-audit-finding-pressure",
+    "cissp-flood-continuity-tabletop",
+    "cc-ransomware-tabletop",
+    "ransomware-tabletop-secplus",
+    "ransomware-tabletop-v8",
+    "risk-exception-appetite-secplus",
+    "risk-exception-appetite-v8",
+    "cc-flood-continuity-tabletop",
+    "flood-continuity-tabletop-secplus",
+    "flood-continuity-tabletop-v8",
+  ].includes(e.slug),
+);
