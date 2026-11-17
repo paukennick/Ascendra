@@ -5796,7 +5796,10 @@ author's teaching figure and says so on its param or source.
 4. **A peak tracked by an edge trigger** fires once while the value keeps
    rising; a `process` (`peakTemp: max(peakTemp, temp)`) is the way. Caught
    by the golden paths.
-5. **`time_up`** stays unreached, as in every earlier case.
+5. **A debrief equal to its ending's narrative (FAIL-2222).** Three time_up
+   debriefs repeated the narrative the app shows, which the leak test counts
+   as server-only text reaching the client; rewritten as advice.
+6. **`time_up`** stays unreached, as in every earlier case.
 
 **Still open** (candidates on these screens, not built in this round):
 CISSP 7.11 a duress or evacuation case, 3.7 a clean-agent discharge with
