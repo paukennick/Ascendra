@@ -11682,6 +11682,76 @@
         "docs/sims-coverage-clinical.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-327",
+      "category": "feature",
+      "title": "Per-sim 18+ gate: a sim marked mature in any course needs the 18+ acknowledgment of that course's sims",
+      "description": "Nick 2026-11-17 08:59 PT: build a per-sim 18+ gate so suicide/homicide-risk and other behavioral-emergency sims can live outside the mental health category; 09:18 PT: the gate works across sensitive sims regardless of profession, and the Terms and Privacy Policy disclose it. A sim document with mature: true (schema boolean; any version marked makes the sim 18+) is refused on the detail, start/resume and every run route without an acknowledgment of that course's 18+ sims (mature_course_acknowledgements.scope = 'sims', migration 087) or of the whole course (scope 'course', a mental health course): 403 mature_content_required with the course gate's shape plus scope and simId. Same attestation, date of birth asked once and never replaced, under 18 locked, under 16 one owner mail without the date. A build without x-sim-caps features=mature gets 409 app_update_required and never the brief. The list shows the sim by name with mature: true. Terms and Privacy Policy 2026-11-18 (no lawyer review).",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/087_mature_sim_acknowledgements.sql",
+        "backend/lib/mature-content.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/sim/server-run.ts",
+        "backend/lib/sim/schema.ts",
+        "backend/lib/sim/engine/v1/types.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/app/api/mature-content/accept/route.ts",
+        "backend/app/api/sims/",
+        "backend/lib/schema-status.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/email.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/release-notes.ts",
+        "backend/app/delete-account/page.tsx",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/sim/runtime/caps.ts",
+        "mobile/app/(app)/course/[trackId]/sims.tsx",
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx",
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "docs/sims.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "an 18+ sim without an acknowledgment answers 403 mature_content_required with scope sims and simId on detail start and run routes and creates no run",
+        "an acknowledged adult starts and resumes",
+        "under 18 is locked and records nothing; under 16 sends one owner mail without the date",
+        "a stored date of birth is reused and never replaced",
+        "a build without features=mature gets 409 app_update_required and the brief is withheld",
+        "mental health course gates are unchanged and a course acknowledgment covers its 18+ sims",
+        "a sims acknowledgment never opens a mental health course",
+        "the gate works in a non-clinical course",
+        "any sim outside mental health on a suicide homicide or self-harm objective is marked mature",
+        "the Terms and Privacy Policy disclose 18+ simulations in any course"
+      ],
+      "validation_required": [
+        "backend unit tests and typecheck",
+        "npm run test:db on a throwaway Postgres with every migration applied",
+        "mobile npm test and tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.35",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "mobile/src/content/legal.ts",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Installed builds before this release cannot open 18+ sims (told to update)",
+        "A run begun before a sim was marked stops at the gate until acknowledged",
+        "The legal text has had no lawyer review",
+        "To unmark a sim it must be retired and re-registered (any marked version keeps it 18+)",
+        "Everyone is asked to accept the 2026-11-18 Terms and Privacy Policy once"
+      ]
     }
   ]
 }

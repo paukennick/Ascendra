@@ -99,6 +99,40 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-327 (Nick, 2026-11-17): the per-sim 18+ gate, in any course, and the
+    // Terms and Privacy Policy 2026-11-18 that disclose it. Not gated as a
+    // whole (everyone is asked to accept the new Terms and Privacy Policy);
+    // the simulation item is gated on sims.
+    id: "2026-11-17-g",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-327"],
+    title: "Updated Terms and Privacy Policy, and 18+ simulations",
+    items: [
+      {
+        icon: "shield",
+        headline: "Some simulations are marked 18+",
+        body: "Simulations on sensitive topics, such as suicide-risk assessment, can now be part of any course. They show an Adults (18+) badge and ask you to confirm you're 18 or older once per course.",
+        requires: "sims",
+      },
+      {
+        icon: "info",
+        headline: "Updated Terms of Service",
+        body: "The Terms now say that simulations on sensitive topics in any course are for adults, as mental health courses are. You'll be asked to accept them once.",
+      },
+      {
+        icon: "eye",
+        headline: "Updated Privacy Policy",
+        body: "It explains that the date of birth asked once for adults-only content also covers these simulations, and that each confirmation is kept per course. Nothing new is collected.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Your date of birth is asked only once",
+        body: "If you already gave it for a mental health course, you won't be asked again. It can't be changed in the app; if it's wrong, contact Support.",
+      },
+    ],
+  },
+  {
     // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
     // plain reference line with a specific disclaimer, and show its published
     // facts; the six courses REQ-318 hid are listed again. Not gated.

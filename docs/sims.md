@@ -6962,3 +6962,102 @@ Cost: every under-18 learner loses the emergency nursing course for one
 objective's sake, and the course's category would misdescribe it. Not
 building it (c) costs one 8.67%-weighted objective in CEN, plus the FNP and
 PCCN suicide objectives.
+
+*Update (REQ-327, 2026-11-17).* Nick chose (a): the per-sim 18+ gate now exists (22.35). The guard in
+`lib/sim/health-sims-4.test.ts` is replaced by a test that every sim outside mental health on a
+suicide, homicide or self-harm objective is marked `mature`. The CEN, FNP and PCCN cases are not
+built yet; the lead assigns them.
+
+### 22.35 Marking a sim 18+: the per-sim age gate (REQ-327)
+
+Nick (2026-11-17): "build a per-sim 18+ gate", then (09:18 PT) "The gate should work across sensitive
+sims regardless of profession." A simulation on suicide or homicide risk, self-harm or another
+behavioral emergency can live in any course (nursing, PT, fitness, IT, anything), not only in the
+mental health category, as long as it is marked.
+
+**How to mark a sim.** Add `mature: true` at the top level of the scenario document:
+
+```ts
+export const doc: ScenarioDoc = {
+  schemaVersion: 1,
+  engine: { major: 1, minor: 2 },
+  slug: "...",
+  title: "...",
+  mature: true, // REQ-327: 18+; the server asks for the acknowledgment first
+  ...
+};
+```
+
+- The schema (`lib/sim/schema.ts`) takes it as a boolean only. The engine never reads it, so it needs
+  no engine minor. It is part of the content hash, so adding it to a published case makes a new version.
+- A sim is 18+ when ANY of its versions says so (`matureSimSql`, lib/mature-content.ts). An older
+  approved version of the same content, or an open run pinned to one, is gated too. To unmark a sim,
+  retire it and register a new one.
+- `lib/sim/health-sims-4.test.ts` fails when a sim outside the mental health category has a main or
+  secondary objective about suicide, homicide or self-harm and is not marked. The exception is a case
+  listed in `NOT_MATURE_REVIEWED`, which holds cases whose objective names the topic only in a list
+  and whose text was read. Mental health courses are gated whole (REQ-259), so their sims need no mark.
+  Marking one anyway is harmless: the course acknowledgment covers it.
+- Never put 18+ material in a sim that is not marked. The brief, the list title and the debrief are all
+  shown, and only a marked sim's brief is withheld.
+
+**What the server does** (`lib/sims.ts` `requireNotice`, `simView`, `listSims`):
+
+- The list shows an 18+ sim by name with `mature: true`. Nothing is asked to browse it.
+- The detail route (GET /api/sims/:id), the start and resume route, and every run route (commands, skip,
+  reasoning, finish) check two things, after the course's own gates (the mental health course gate and
+  the study notice):
+  1. **Capability.** A build that does not send `features=mature` in `x-sim-caps` (every build before
+     REQ-327, or no header) gets 409 `app_update_required`. On the detail route it gets the title, with
+     the brief replaced by "Update the app" and `runnable: false`. It never gets the brief or the document.
+  2. **Acknowledgment.** Without an acknowledgment, the answer is 403 `mature_content_required`, the
+     course gate's shape plus `scope: "sims"` and `simId`. The acknowledgment that counts is one of that
+     course's 18+ sims (`scope = 'sims'`) or of the whole course (`scope = 'course'`, a mental health
+     course), at the current notice version.
+- "Report a problem" on a run still needs the acknowledgment, but not the capability.
+
+**The acknowledgment** (POST /api/mature-content/accept with `scope: "sims"`):
+
+- It uses the same table as REQ-259 (`mature_course_acknowledgements`, migration 087 adds `scope`).
+- It is one row per course and notice version. It covers every 18+ sim of that course, including ones
+  added later, until the notice version changes.
+- Same attestation. The date of birth is asked once per account, and a stored one is reused and never
+  replaced. Under 18, nothing is recorded and the sims stay locked, while the rest of the course stays
+  open. Under 16, the owners also get one review mail with no date in it.
+- The route answers 400 for a mental health course (acknowledge the course itself) and for a course with
+  no 18+ sim.
+- If a course with a `sims` row later moves into the mental health category, the course acknowledgment
+  widens that row, so nobody is asked forever.
+
+**The app:**
+
+- It sends `features=mature` (`src/sim/runtime/caps.ts`).
+- It badges 18+ sims "Adults (18+)" in the list and on the sim screen.
+- On the 403, the API client shows the sims notice (`noticeText("sims")`), sends the acknowledgment with
+  `scope: "sims"` and resends the request once.
+- If the learner closes the notice, or the account is under 18, they see the simulation's own words.
+- This works the same on phones and the web.
+
+**Tests.**
+
+- `lib/mature-sims.test.ts`: the capability, the gate SQL, the 403 shape and 087.
+- `lib/mature-sims.dbtest.ts`:
+  - no acknowledgment gives a 403;
+  - an acknowledged adult starts;
+  - under 18 is locked, and under 16 sends one mail;
+  - an older build is told to update;
+  - the counseling-course gates are unchanged;
+  - a run begun before the mark;
+  - a non-clinical course;
+  - the export and deletion.
+- `src/lib/matureContent.test.ts` covers the app's side.
+
+**Legal.**
+
+- The Terms and the Privacy Policy 2026-11-18 say that simulations on sensitive topics in any course
+  are 18+.
+- They also cover what asks, that the date of birth is asked once and cannot be changed in the app,
+  that the attestation is kept per course, and what happens under 18 and under 16. Retention is
+  unchanged.
+- No new kind of data is collected.
+- No lawyer has reviewed the text.
