@@ -6804,3 +6804,161 @@ at triage), nor the progressive care cases to CCRN Adult.
 - Strength and conditioning, Scientific Foundations (25%): no objective there
   fits a timed case on an existing screen; left as round 1 said. A decision
   for Nick if he wants a "trainer" case on, for example, recovery planning.
+
+### 22.34 Specialty nursing and PTA depth, sims-health-4 (REQ-326)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This builder's scope: depth for the emergency, progressive
+care, med-surg, both FNP and the NPTE-PTA courses, highest-weighted
+categories first, with purpose-built cases on the bedside or treatment-session
+screen, stopping at about 25 new cases. No engine, renderer, schema or
+migration change; engine 1.2 throughout. `lib/sim/health-sims-4.test.ts`
+pins every document by slug. NCLEX-RN, NCLEX-PN and CCRN Adult were left to
+sims-health-3, which worked in parallel.
+
+**One shape for all 25.** Each case is the round 2 shape (22.32): assessments
+share one timer and one pending slot; a red-flag finding (a detecting
+assessment, a reassessment once the authored course crosses `redAt`, or a key
+assessment that always finds it) sets `redFlagAt`; the escalation (`refer`)
+is timed against it; leaving for the next level of care ends the run. Every
+case has one first-line action (`fix`, timed from the start or from the red
+flag), one supporting action with its own criterion, one unsafe action that
+ends in a harm ending of its own (`unsafe`, after `unsafeDelay`), a wrong
+route that ends in harm (`wrongRoute`), progression to harm in place
+(`worsened`), `target` and `recovered`, and `time_up`; `endingOrder` lists
+the five conditional endings. Three critical criteria (`fixC`, `callC`,
+`safeC`), then the key assessment, reassessment, the supporting action, the
+impression (or, for the PTA, the note: data, not a diagnosis) and the
+hand-off. One reasoning moment, two sourced teaching prompts in jsonb key
+order, one chapter, two KPIs, an expert path and a debrief per ending. Five
+golden paths each: expert (Good), late call (Mediocre, recovered), wrong
+route, unsafe choice, no action (Bad), reaching every ending but `time_up`
+with every criterion met and missed. Bedside cases use the `clinical`
+profile, the PTA cases `physical-therapy`. The cases were written from one
+compact spec each through a scratch generator (not committed); the JSON and
+steps files are the source of truth.
+
+| Course / slug | Screen | Objective (abridged, unit weight) | Critical criteria | Steps |
+|---|---|---|---|---|
+| CEN/dizzy-slow-pulse-atropine-not-working | bedside | Stable and unstable tachycardias and bradycardias (Cardiovascular, 18 items) | atropine in 5 min; pacing called within 5 min of instability; no beta-blocker | cen-brady |
+| CEN/cold-leg-new-numbness | bedside | Acute arterial occlusion and DVT in a limb (Cardiovascular) | heparin in 5 min; vascular within 5 min of new numbness; no heat or elevation | cen-limb |
+| CEN/bike-crash-breath-sounds-gone | bedside | Tension pneumothorax, a clinical diagnosis treated before imaging (Respiratory, 17) | oxygen and access in 5 min; physician within 5 min of the signs; not sent to radiology | cen-tension |
+| CEN/copd-drowsy-on-high-flow | bedside | COPD with controlled oxygen and early NIV (Respiratory) | Venturi 88-92% in 5 min; NIV call within 5 min of acidosis; never toward 100% | cen-copd |
+| CEN/house-fire-hoarse-voice | bedside | Inhalation injury needing early airway protection (Respiratory) | oxygen and access in 5 min; anesthesia within 5 min of stridor; not sent to CT | cen-inhal |
+| CEN/missed-dialysis-weak-legs | bedside | Hyperkalemia and other electrolyte emergencies (Medical, 15) | monitor in 5 min; physician within 5 min of the ECG change; never off the monitor | cen-k |
+| CEN/chemo-day-ten-fever | bedside | Neutropenic fever as an emergency (Medical) | cultures and antibiotic within 60 min of triage; physician within 5 min of hypotension; not held for the count | cen-neutro |
+| PCCN/af-rate-control-pressure-sliding | bedside | AF with RVR; hypotension during IV rate control (Cardiovascular, 20%) | infusion with pressure checks in 5 min; stopped and called within 5 min of hypotension; no fast push | pccn-af |
+| PCCN/telemetry-st-rising-inferior-leads | bedside | ST elevation on telemetry escalated at once (Cardiovascular) | protocol in 5 min; rapid response within 5 min; no nitroglycerin in an RV infarct | pccn-stemi |
+| PCCN/pressure-crisis-headache-titration | bedside | Hypertensive emergency lowered gradually (Cardiovascular) | titrated infusion in 5 min; provider within 5 min of new confusion; never pushed to normal | pccn-htn |
+| PCCN/groin-swelling-after-cath | bedside | Access site and limb after catheterization; pressure above the puncture (Cardiovascular) | pressure within 5 min of the hematoma; fellow within 5 min; kept flat | pccn-groin |
+| PCCN/day-two-mi-cold-and-wet | bedside | Cardiogenic shock recognized and escalated (Cardiovascular) | up with oxygen in 5 min; rapid response within 5 min; no fluid bolus | pccn-cardioshock |
+| PCCN/chest-tube-on-the-floor | bedside | Tension pneumothorax and a dislodged chest tube (Respiratory, 14%) | three-sided dressing in 5 min; provider in 5 min; never reinserted | pccn-chesttube |
+| PCCN/found-down-dark-urine | bedside | Rhabdomyolysis: early fluid, potassium and kidneys (Multisystem, 15%) | fluid in 5 min; provider within 5 min of low urine or ECG change; no potassium supplement | pccn-rhabdo |
+| CMSRN/bedside-debridement-sedation-quiet-capnograph | bedside | Monitoring during and after moderate sedation (Patient/Care Management, 32%) | capnography before the first dose; stop and call within 5 min of deep sedation; no extra increment | cmsrn-sed |
+| CMSRN/found-on-floor-on-anticoagulant | bedside | Patient, drug, environment and equipment risk factors for harm (32%) | injury check before moving; provider within 5 min of the GCS drop; no sedative | cmsrn-fall |
+| CMSRN/stroke-day-one-coffee-and-pills | bedside | Nutrition and feeding with the dietitian and speech therapist (32%) | upright and nothing by mouth in 5 min; team within 5 min of the failed screen; nothing by mouth before it | cmsrn-swallow |
+| FNPANCC/clinic-swollen-lip-years-on-lisinopril | bedside | Monitor treatment response and adverse effects (Evaluation, 13%) | ACE inhibitor stopped in 5 min; 911 within 5 min of tongue or voice; not treated as allergy | fnp-angio |
+| FNPAANP/clinic-calf-ache-after-flight-now-breathless | bedside | Tests, including when a test will not change management (Assess, 32%) | Wells score in 5 min; transfer within 5 min of hypoxia; not home for a D-dimer | fnp-pe |
+| FNPAANP/clinic-three-falls-five-new-pills | bedside | Older adults: falls, cognition, function, polypharmacy, frailty (Assess) | helped to stand from the start; plan within 5 min of orthostasis; no sleeping pill | fnp-falls |
+| NPTEPTA/pta-knee-replacement-calf-swollen | treatment session | When a response requires reporting to the supervising PT (Musculoskeletal, 26%) | exercise stopped and PT told within 5 min; no calf massage | pta-dvt |
+| NPTEPTA/pta-gaze-exercises-new-double-vision | treatment session | Gaze and balance exercises for vestibular hypofunction, report symptom changes (Neuromuscular, 22%) | stopped and PT told within 5 min; not pushed through | pta-vest |
+| NPTEPTA/pta-treadmill-pressure-falls-with-grade | treatment session | Vital signs and activity tolerance during a session (Cardiovascular and Pulmonary, 17%) | stopped and PT told within 5 min of the rule; grade not raised | pta-bp |
+| NPTEPTA/pta-six-minute-walk-saturation-drops | treatment session | The 6-minute walk test by protocol (Cardiovascular and Pulmonary) | stopped and PT told within 5 min of the rule; not urged on | pta-6mwt |
+| NPTEPTA/pta-glucose-before-exercise-low | treatment session | Glucose around exercise; carbohydrate below 100; tell the PT (Metabolic, 4%) | carbohydrate and PT within 5 min; no exercise below the threshold | pta-glu |
+
+**Bands (3)**, built as in 22.32 (patch: `objective`, `secondaryObjectives`,
+`sources`; steps reuse the base's): each FNP case to the other FNP course's
+matching objective: the angioedema case to FNPAANP "Monitor treatment
+response and adverse effects ..." (`fnp-clinical-band-angio`), the PE case to
+FNPANCC "Select the diagnostic test that will change management ..."
+(`fnp-role-band-pe`), the falls case to FNPANCC "Assess older adults for
+falls ..." (`fnp-role-band-falls`). Not banded: the CCRN Adult HIT case to
+PCCN (its reasoning and model text name the intensivist and an arterial line,
+which a band cannot change; the round 2 setting rule).
+
+- **Scope and drugs.** Every drug is "the ordered" drug or named by class or
+  brand only where the history needs it (the home lisinopril, metoprolol,
+  doxazosin); no dose number appears (the test checks learner text for a
+  number with a dose unit; lab values in mg/dL are allowed). The RN acts on
+  standing orders named in the brief; the FNP decides as the prescriber; the
+  PTA stops for safety, collects data and tells the PT, who reexamines.
+- **Harm endings** are outcomes: an asystolic pause, a burned ischemic foot,
+  PEA from tension, CO2 narcosis, a closed airway, a potassium arrest, septic
+  shock, collapse after a fast push or nitroglycerin, a watershed stroke,
+  hemorrhagic shock, flash pulmonary edema, a reinserted chest tube, apnea
+  after sedation, a masked head bleed, aspiration, airway obstruction, a PE,
+  a fall and a hip fracture, a stroke left untreated, collapse on a treadmill
+  or a walk test, severe hypoglycemia.
+- **Sources** (on each document with how they were read). Read 2026-11-17
+  through summarizing fetches with quotes: ACLS-algorithms.com's summary of
+  the 2025 AHA bradycardia changes (secondary; page modified 2026-01-12);
+  emDOCs on acute limb ischemia (2015, modified 2018); RCEMLearning, burns
+  airway (UK, modified 2026-01-14); UCSF Hospitalist Handbook on neutropenic
+  fever and on cardiogenic shock (undated); ABEM Key Advance on AF with RVR
+  (reconfirmed July 2025; a summary of the 2023 ACC/AHA/ACCP/HRS guideline,
+  which was not read); StatPearls, Hypertensive Emergency (updated
+  2023-07-24); Open RN Nursing Advanced Skills 6.4 (2023); OpenAnesthesia,
+  Rhabdomyolysis (2025-09-09); Guideline Central's summary of the ASA 2018
+  moderate sedation guideline (the guideline itself was not read); the RCP
+  post-fall guide, head (UK, 2025-07-09); the American Stroke Association
+  dysphagia deck (September 2025); MSD Manual, Angioedema (September 2026);
+  the ACC summary of the ACP 2015 PE best practice advice; Phelan et al. 2015
+  on STEADI (CDC stacks manuscript). Relayed with their dates from earlier
+  cases and course seeds, not re-read: StatPearls tension pneumothorax
+  (2026-11-16), BTS/ICS 2016 (2026-11-16), UKKA hyperkalaemia (2026-11-14),
+  the 2025 ACC/AHA ACS summary and the NITROSTAT label (2026-11-17), Kern 2013
+  on femoral hemostasis (2026-11-14), Hillegass 2016 on VTE and the 2021 vital
+  sign guide (2026-11-11), Hall 2022 vestibular guideline (2026-11-14),
+  NASEMSO 2022 stroke (2026-11-11), ADA Standards 2026 (2026-11-16), the
+  2018 HOD PTA supervision policy (2026-11-17), and the course outlines.
+  Prefer-US: four sources are UK (RCEM, RCP, UKKA, BTS/ICS), each named in
+  the case as the unit's or hospital's policy where it sets a rule. The Joint
+  Commission Universal Protocol poster was not reachable (client error), so
+  no time-out case was built. Disease courses, effect sizes and local waits
+  are authored teaching values marked `FLAG`.
+- **Findings while authoring.** `npm run sims:lint` lints every document and
+  ignores a slug argument, so a run holds the shared heavy lock for minutes;
+  the builder used a local one-document lint (not committed) calling
+  `checkDocument`. A reasoning moment that opens on the same tick as a
+  terminal ending makes the golden builder fail (as in 22.32); the trigger is
+  set two minutes before the authored untreated harm. Where the key
+  assessment always finds the red flag, the call window runs from that
+  assessment, so the expert path calls at once rather than waiting for the
+  course to cross `redAt`. `time_up` is reached by no golden path (the
+  linter's warning, as before).
+
+**Where this stopped.** At 25 new cases (7 CEN, 7 PCCN, 3 CMSRN, 3 FNP, 5
+NPTE-PTA) and 3 bands, the stopping point of the brief. Counted again from
+the seeded catalog after this work (fitting objectives that are no sim's
+main objective): CEN 18, PCCN 30, CMSRN 16, FNPAANP 8, FNPANCC 8, NPTE-PTA
+13. Next candidates, highest weight first: CEN cardiogenic versus obstructive
+shock, the ACS priorities objective, TIA, variceal bleeding; PCCN
+dysrhythmias on monitoring, QTc and ST monitoring, arterial lines and CVP,
+dissection on the unit, procedural sedation, anaphylaxis, PE; CMSRN IV
+medicine adverse reactions, the pre-procedure time-out (a US source is
+needed), multimodal pain; NPTE-PTA Parkinson cueing, reflex and tone data,
+pulmonary rehabilitation intensity, guarding and fall prevention.
+
+**Not built, and why.**
+- CEN suicide and homicide risk (Mental Health Emergencies, 8.67): the 18+
+  gate is per course. `startableTrack` (lib/visibility.ts) refuses a course
+  whose category is mental health without the per-course acknowledgement
+  (`matureContentNeededSql`, lib/mature-content.ts); the counseling sessions
+  are gated because their courses sit in that category. CEN is not, and the
+  sim routes have no per-sim gate, so a CEN session would start without the
+  18+ check. Decision for Nick (below); `lib/sim/health-sims-4.test.ts`
+  fails if a CEN sim takes that objective before then. The same applies to
+  the FNP "Screen for depression and anxiety, assess suicide risk" objective
+  and PCCN "Assess and manage a patient with suicidal ideation".
+- NSCA CSCS Scientific Foundations: left without a sim, as briefed.
+
+**Decision for Nick: the CEN suicide and homicide risk session.** (a) A
+per-sim 18+ gate: a document field (for example `mature: true`) checked by
+the sim start route against an acknowledgement a non-mental-health course
+can carry. Cost: a route and engine-adjacent change, an acknowledgement
+model for one sim inside an ungated course (probably a migration), the app's
+notice for that case, tests. (b) Gate the whole CEN course as mental health.
+Cost: every under-18 learner loses the emergency nursing course for one
+objective's sake, and the course's category would misdescribe it. Not
+building it (c) costs one 8.67%-weighted objective in CEN, plus the FNP and
+PCCN suicide objectives.

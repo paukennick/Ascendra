@@ -1037,3 +1037,15 @@ nursing facility); **CCRNADULT** +1 case (heparin-induced thrombocytopenia).
 Musculoskeletal). Counted again from the seeded catalog: NCLEX-RN 97,
 NCLEX-PN 38 and CCRN Adult 72 fitting objectives are no sim's main
 objective (secondary-only included).
+
+## REQ-326, sims-health-4 (2026-11-17)
+
+**NPTEPTA** +5 treatment-session cases (docs/sims.md 22.34): reporting a
+response to the supervising PT (new calf swelling after a knee replacement,
+Musculoskeletal); gaze-stabilization exercises with new neurological signs
+(Neuromuscular; implementing balance interventions as secondary); vital
+signs and activity tolerance (a systolic falling as the treadmill grade
+rises; cardiac and pulmonary rehabilitation as secondary); the 6-minute walk
+test stopped at desaturation; glucose around exercise (hypo- and
+hyperglycemia during a session as secondary). Counted again: NPTE-PTA 13
+fitting objectives are no sim's main objective.

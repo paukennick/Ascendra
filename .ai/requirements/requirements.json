@@ -11644,6 +11644,44 @@
         "docs/sims-coverage-clinical.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-326",
+      "category": "content",
+      "title": "Specialty nursing and PTA depth sims of the 2026-11-17 round (sims-health-4): purpose-built bedside and treatment-session cases, highest-weighted categories first",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. This builder's scope is depth for the specialty courses: CEN, PCCN, CMSRN, FNPAANP, FNPANCC and NPTE-PTA, highest-weighted categories first, purpose-built cases on the bedside or treatment-session screen, stopping at about 25 new cases. No new screen, engine, schema or migration. Drugs appear only as the ordered drug with no dose; unsafe choices lead to harm endings; no permission-only marks in sim text; no claim of clinician or expert review. The CEN suicide and homicide risk session is deferred (decision for Nick): the 18+ gate is per course (mental health category), and CEN is not in that category. NSCA CSCS Scientific Foundations stays without a sim.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-sims-4.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a fitting objective's main sim on the bedside or treatment-session screen",
+        "each has endingOrder three critical criteria an unsafe choice that ends in harm and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band registers the case to the other FNP course's matching objective and changes only objective secondary objectives and sources",
+        "no dose number and no permission-only mark in learner text",
+        "sources dated and say how they were read",
+        "no CEN sim on suicide or homicide risk until a per-sim 18+ gate exists"
+      ],
+      "validation_required": [
+        "lint of the REQ-326 documents",
+        "lib/sim/health-sims-4.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.34",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

@@ -283,3 +283,33 @@ bradycardias, COPD and burns; PCCN atrial fibrillation with a rapid
 ventricular response, ST elevation on telemetry, compartment syndrome and
 rhabdomyolysis; CMSRN moderate sedation monitoring and the pre-procedure
 timeout; FNP suicide risk (session screen, 18+ gate).
+
+### REQ-326, sims-health-4 (2026-11-17)
+
+New bedside cases, each a fitting objective's main sim (docs/sims.md 22.34):
+
+- **CEN** (+7): stable and unstable bradycardias (complete heart block that
+  atropine doesn't fix); acute arterial occlusion in a limb; tension
+  pneumothorax treated before imaging; COPD with controlled oxygen and early
+  NIV; inhalation injury (burn assessment as secondary); hyperkalemia and
+  other electrolyte emergencies; neutropenic fever.
+- **PCCN** (+7): AF with RVR and hypotension during IV rate control; ST
+  elevation on telemetry (differentiating ACS as secondary); hypertensive
+  emergency lowered gradually; the access site after catheterization (care
+  around catheterization as secondary); cardiogenic shock; a dislodged chest
+  tube; rhabdomyolysis.
+- **CMSRN** (+3): monitoring moderate sedation (pre- and post-procedure
+  standards as secondary); patient, drug, environment and equipment risk
+  factors (the falls safety protocol as secondary); nutrition with the
+  dietitian and speech therapist.
+- **FNPAANP** (+2 cases, +1 band) and **FNPANCC** (+1 case, +2 bands): adverse
+  effects (ACE inhibitor angioedema), the test that will (or won't) change
+  management (suspected PE), and older adults' falls and polypharmacy, each
+  on both courses.
+
+Counted again from the seeded catalog (fitting objectives that are no sim's
+main objective): CEN 18, PCCN 30, CMSRN 16, FNPAANP 8, FNPANCC 8. Not built:
+the suicide objectives of CEN, PCCN and both FNP courses (the 18+ gate is per
+course; decision for Nick, docs/sims.md 22.34); the CMSRN time-out (no US
+source was reachable). Not banded: the CCRN Adult HIT case to PCCN (its
+non-brief text names the intensivist).
