@@ -153,6 +153,9 @@ export const LESSON_FIXES_2026_11_09: LessonFix[] = [
     track: "AWSSAP",
     objective: "Connectivity for on-premises, co-location, and cloud integration: AWS Direct Connect and AWS VPN",
     action: "replace",
+    // FAIL-2372: this is an SAP-C02 objective, retired 2026-11-17T12:00Z
+    // (SAP_C02_RETIRED_AT); the fix still matches it after retirement.
+    includeRetired: true,
     note: "Guided check had two defensible answers (second DX at another location = AWS High Resiliency); hosted speeds now 50 Mbps-25 Gbps; dedicated ports include 400 Gbps; large-bandwidth VPN tunnels reach 5 Gbps",
     expect: ["a sub-1Gbps-to-10Gbps slice of their own dedicated connection", "Budget allows for one additional network path, but it must come up almost instantly if Direct Connect fails."],
     voidChecks: ["fade"],

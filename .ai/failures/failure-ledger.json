@@ -18867,6 +18867,29 @@
       "prevention_rules": [],
       "prevention_notes": "Turning a naming switch back on reruns the readers' tests with real names, not only the hidden ones.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2372",
+      "date": "2026-11-17",
+      "title": "A lesson fix stopped matching its objective when SAP-C02 retired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The Database job failed on every branch after 2026-11-17 12:00 UTC: 'every 2026-11-09 fix maps to exactly one seeded objective' found 0 objectives for AWSSAP-24.",
+      "how_detected": "CI Database job on #209 (lib/generation-pipeline.dbtest.ts)",
+      "root_cause": "AWSSAP-24 targets an SAP-C02 objective whose unit retires at SAP_C02_RETIRED_AT (2026-11-17T12:00Z); lookupFix skips retired objectives unless the fix sets includeRetired.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "AWSSAP-24 sets includeRetired: true, like the CMPCBS fixes for retired objectives.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A lesson fix on an objective with a scheduled retiredAt sets includeRetired when it is written.",
+      "recurrence_of": ""
     }
   ]
 }
