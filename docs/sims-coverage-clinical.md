@@ -1016,8 +1016,10 @@ section lists what REQ-315 added as a main objective.
   existing PT screen case could carry without new authoring).
 
 Still to build, in the approved order: the rest of the launch courses'
-fitting objectives listed above as `none` (NCLEX-RN about 90, NCLEX-PN
-about 35, CCRN Adult about 70, CNA 2, NPTE-PT about 25, NCE 7, NCMHCE 7,
-DPT about 8); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
+fitting objectives that no sim has as its main objective (fitting minus
+main, REQ-296 and REQ-315 together: NCLEX-RN 101 of 111, NCLEX-PN 39 of 44,
+CCRN Adult 73 of 81, CNA 4 of 7, NPTE-PT 27 of 32, NCE 9 of 11, NCMHCE 8
+of 11, DPT 13 of 15, PTPREREQ 1 of 2; many of these are already secondary
+objectives of a sim); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
 123 open); the ABPTS courses (none yet); ASWB and the remaining mental
 health objectives (docs/sims-coverage-mental-health-wave.md).
