@@ -1,0 +1,1150 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cspp-school-laptop-p5-review",
+  "title": "A school laptop refresh: a P5 impact analysis, three offers, 2,000 old devices and a claim",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "iLife",
+          "label": "Product: the new laptops' lifespan and servicing",
+          "spokenLabel": "Product impact",
+          "owner": "\"Project manager\"",
+          "rating": "device == \"repairable\" ? \"low\" : device == \"none\" ? \"medium\" : \"high\"",
+          "appetite": "device == \"cheapest\" or device == \"offset\" ? \"above\" : \"within\"",
+          "status": "{device == \"repairable\" ? \"Offer B: five to six years, battery and keyboard replaceable, parts for six years\" : device == \"cheapest\" ? \"Offer A: three years, glued battery, no parts after two\" : device == \"offset\" ? \"Offer C: offer A with bought carbon offsets\" : \"Offers under review\"}"
+        },
+        {
+          "id": "iDisp",
+          "label": "Planet and People: disposal of 2,000 old laptops",
+          "spokenLabel": "Disposal impact",
+          "owner": "\"Project manager\"",
+          "when": "p >= 2",
+          "rating": "dumped ? \"critical\" : disposal == \"certified\" ? \"low\" : disposal == \"none\" ? \"medium\" : \"high\"",
+          "appetite": "dumped or disposal == \"lowest\" ? \"above\" : \"within\"",
+          "status": "{dumped ? \"Found stripped by hand at an unlicensed yard abroad\" : disposal == \"certified\" ? \"Certified recycler: drives wiped, 600 refurbished for families, downstream audited\" : disposal == \"lowest\" ? \"Sold to the highest bidder; destination unknown\" : disposal == \"store\" ? \"Stored in a warehouse\" : \"Not decided\"}"
+        },
+        {
+          "id": "iClaim",
+          "label": "Communications: the district's sustainability claim",
+          "spokenLabel": "Claim impact",
+          "owner": "\"Communications office\"",
+          "when": "p >= 4",
+          "rating": "exposed ? \"critical\" : claim == \"zero\" ? \"high\" : \"low\"",
+          "appetite": "claim == \"zero\" ? \"above\" : \"within\"",
+          "status": "{exposed ? \"A reporter shows the 'zero-impact' claim is false\" : claim == \"honest\" ? \"Impacts reported as rated, with what remains\" : claim == \"zero\" ? \"'Zero-impact devices' published\" : claim == \"silent\" ? \"Nothing published\" : \"Draft on your desk\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sBoard",
+          "label": "School board",
+          "spokenLabel": "the school board's support",
+          "value": "schoolBoard",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeach",
+          "label": "Teachers' association",
+          "spokenLabel": "the teachers' support",
+          "value": "teachers",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sComm",
+          "label": "Parents and community",
+          "spokenLabel": "the community's support",
+          "value": "community",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dP5",
+          "kind": "Impact analysis",
+          "label": "Week 2: the project's sustainability impacts",
+          "status": "{p5 == \"full\" ? \"P5 impact analysis done with stakeholders, rated\" : p5 == \"planetOnly\" ? \"Energy use only\" : p5 == \"skip\" ? \"Left to the supplier\" : \"Due\"}",
+          "when": "p >= 1"
+        },
+        {
+          "id": "dOffer",
+          "kind": "Procurement",
+          "label": "Week 4: choose one of three offers",
+          "status": "{device == \"none\" ? \"Due\" : device == \"repairable\" ? \"Offer B awarded\" : device == \"cheapest\" ? \"Offer A awarded\" : \"Offer C awarded\"}",
+          "when": "p >= 2"
+        },
+        {
+          "id": "dDisp",
+          "kind": "Disposal",
+          "label": "Week 6: what happens to the old laptops",
+          "status": "{disposal == \"none\" ? \"Due\" : disposal == \"certified\" ? \"Certified recycler\" : disposal == \"lowest\" ? \"Highest bidder\" : \"Warehouse\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and disposal == \"none\""
+        }
+      ],
+      "budget": {
+        "label": "Device refresh budget committed",
+        "spent": "spent",
+        "total": "1600",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mWeek",
+          "label": "Week",
+          "value": "{p * 2} of 10"
+        },
+        {
+          "id": "mTco",
+          "label": "Six-year cost of the devices",
+          "value": "{device == \"repairable\" ? \"about 1,460 thousand dollars (one battery swap each)\" : device == \"cheapest\" ? \"about 2,560 thousand dollars (bought twice)\" : device == \"offset\" ? \"about 2,640 thousand dollars (bought twice, plus offsets)\" : \"not compared yet\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Performing a P5 Impact Analysis: Product lenses (lifespan, servicing) and Process lenses (efficiency, effectiveness, fairness)",
+  "secondaryObjectives": [
+    "Evaluating People impacts: labor practices and decent work, community/customer concerns, human rights considerations, and ethical behavior (anti-corruption, greenwashing)",
+    "Evaluating Planet and Prosperity impacts: transport/consumption considerations, project feasibility (business case, social ROI), business agility, and market/economic stimulation",
+    "Evaluating P5 Impact Analysis results: analysis mechanics, assigning items to elements, and project status reporting at closure"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Certified Sustainable Project Professional (CSPP) bundle and exam page: P5 Standard: Sustainability and Impact Analysis 24% (the largest domain with PRiSM Life Cycle Approach 23% and Project Management Considerations 23%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/certifications/cspp-bundle-exam-course",
+      "note": "Read 2026-11-17 directly (summarizing fetch of pmi.org/certifications/cspp-bundle-exam-course). The page lists six domains: Foundations of Sustainable Project Work 12%, PRiSM Life Cycle Approach 23%, P5 Standard: Sustainability and Impact Analysis 24%, Developing a Sustainability Management Plan 12%, ESG & Sustainability Reporting, Governance, and Project Communications 7%, Project Management Considerations 23% (they add to 101%). It says the P5 Standard evaluates project impacts on 'people, planet, and prosperity', and a prep module practices 'a P5 Impact Analysis' to 'identify, assess and mitigate sustainability impacts'. The course seed's five domains and weights (P5 36%) differ from this page; the P5 domain is the largest either way. The objective wording is the course seed's."
+    },
+    {
+      "cite": "GPM Global, The GPM P5 Standard for Sustainability in Project Management, version 2.0 (September 2019; patch releases 2.0.1 and 2.0.2, February 2020)",
+      "checkedAt": "2026-11-17",
+      "url": "https://sovnet.ru/media/Editor/%d0%9d%d0%be%d0%b2%d0%be%d0%b5/The%20GPM%20P5%20Standard%20for%20Sustainability%20in%20Project%20Management%20v2.0.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of the PDF hosted by a third party. Categories: Product (lifespan, servicing of the product); Process (effectiveness, efficiency and fairness of project processes); People (labor practices and decent work, society and customers, human rights, ethical behavior including procurement practices and anti-corruption); Planet (transport, energy, land, air and water, consumption including recycling and reuse, disposal, contamination and pollution, waste generation); Prosperity (business case analysis, business agility, economic stimulation). The P5 Impact Analysis starts as early as possible and is updated regularly: identify events for each element, describe causes and potential impacts, rate each impact by 'the magnitude of their effect on sustainability', identify responses that minimize negative and maximize positive impacts, and re-rate assuming the response is implemented; an item may be recorded under several elements. The standard sets no numeric scale."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The school district, the offers, the prices, device lifespans, the recyclers and the support gauges are fictional teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the project manager for Pine Hollow Unified, a fictional school district, replacing 2,000 student laptops before the next school year. The district's sustainability policy asks every capital project to analyze and report its impacts. The budget is 1,600 thousand dollars.",
+    "handover": [
+      "Three offers are due in week 4; 2,000 old laptops must leave the schools by week 8.",
+      "The school board approves the announcement; the teachers' association and a parents' group sit on the project's advisory group."
+    ],
+    "howItWorks": [
+      "The board shows the project's impact register against the district's appetite, each group's support in words, the budget committed and the docket.",
+      "Move on two weeks at a time. A decision comes to you at each review; before the first you can compare the offers over six years or check the recyclers.",
+      "After week 10 you write the closing status of the impact analysis and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1d",
+    "maxDuration": "120d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "p5": {
+      "type": "enum",
+      "values": [
+        "none",
+        "full",
+        "planetOnly",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "device": {
+      "type": "enum",
+      "values": [
+        "none",
+        "repairable",
+        "cheapest",
+        "offset"
+      ],
+      "init": "none"
+    },
+    "disposal": {
+      "type": "enum",
+      "values": [
+        "none",
+        "certified",
+        "lowest",
+        "store"
+      ],
+      "init": "none"
+    },
+    "claim": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "zero",
+        "silent"
+      ],
+      "init": "none"
+    },
+    "dumped": {
+      "type": "bool",
+      "init": false
+    },
+    "exposed": {
+      "type": "bool",
+      "init": false
+    },
+    "schoolBoard": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "teachers": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "community": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "tcoAt": {
+      "type": "time",
+      "init": null
+    },
+    "recyclersAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "spent": {
+      "expr": "(device == \"repairable\" ? 1380 : device == \"cheapest\" ? 1280 : device == \"offset\" ? 1320 : 0) + (disposal == \"certified\" ? 40 : disposal == \"store\" ? 15 : disposal == \"lowest\" ? -10 : 0)"
+    },
+    "spendPct": {
+      "expr": "spent / 1600 * 100"
+    },
+    "aboveCount": {
+      "expr": "(device == \"repairable\" ? 0 : 1) + (disposal == \"lowest\" ? 1 : 0) + (claim == \"zero\" ? 1 : 0)"
+    },
+    "minSupport": {
+      "expr": "min(schoolBoard, min(teachers, community))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The refresh",
+      "clock": "turns",
+      "actions": [
+        "tco",
+        "recyclers"
+      ]
+    },
+    "close": {
+      "label": "Closing report",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "tco": {
+      "label": "Compare the three offers over six years",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(tcoAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "tcoAt",
+          "to": "t"
+        },
+        {
+          "log": "You model each offer over six school years.",
+          "kind": "act"
+        },
+        {
+          "finding": "A: bought twice, about 2,560 thousand dollars; broken units cannot be repaired after year two. B: bought once with one battery swap each, about 1,460 thousand dollars. C: as A plus offsets, about 2,640 thousand dollars; the offsets do not change the hardware."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "recyclers": {
+      "label": "Check the recyclers' certifications and where the devices go",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(recyclersAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "recyclersAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask both bidders for certificates and downstream records.",
+          "kind": "act"
+        },
+        {
+          "finding": "The recycler holds an electronics-recycling certification with an audited downstream and issues wipe certificates per device. The broker shows neither and will not name a destination."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Report the impact analysis at closure",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the closing report says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Each element's impacts as rated at the start, the responses taken, the re-rated results and the impacts that remain"
+                },
+                {
+                  "value": "summary",
+                  "label": "The project was delivered sustainably"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next project review",
+      "wait": {
+        "skipLabel": "Go to the next project review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 5",
+          "then": [
+            {
+              "if": "disposal == \"lowest\"",
+              "then": [
+                {
+                  "set": "dumped",
+                  "to": "true"
+                },
+                {
+                  "add": "community",
+                  "by": "-4"
+                },
+                {
+                  "add": "schoolBoard",
+                  "by": "-2"
+                },
+                {
+                  "log": "Week 10: a news report finds district laptops, asset tags still on, being stripped by hand at an unlicensed yard abroad.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "if": "claim == \"zero\"",
+              "then": [
+                {
+                  "set": "exposed",
+                  "to": "true"
+                },
+                {
+                  "add": "schoolBoard",
+                  "by": "-4"
+                },
+                {
+                  "log": "Week 10: a local reporter sets the 'zero-impact devices' headline against the devices' manufacture and shipping; the board retracts it.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 5",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Week 10: the new laptops are in the schools.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_p5Prompt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the impact analysis is due.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "p5Prompt"
+        }
+      ]
+    },
+    {
+      "id": "t_offerPrompt",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 4: the offers are in.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "offerPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_dispPrompt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 6: the old laptops must go.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dispPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_claimPrompt",
+      "when": "p == 4 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 8: the announcement draft arrives.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "claimPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "p5Prompt": {
+      "title": "Week 2: the project's sustainability impacts",
+      "context": "The district's sustainability policy asks every capital project for an impact analysis at the start. The supplier's sales lead says its products 'are sustainable' and offers to fill in the form.",
+      "choices": [
+        {
+          "id": "full",
+          "label": "Run a P5 impact analysis with teachers, IT, finance and a parents' group: for each element, the events, causes and impacts, rated, with responses and a re-rating; include the rollout order (schools with the most failed devices first) as a process-fairness item",
+          "effects": [
+            {
+              "set": "p5",
+              "to": "\"full\""
+            },
+            {
+              "add": "teachers",
+              "by": "1"
+            },
+            {
+              "add": "community",
+              "by": "1"
+            },
+            {
+              "log": "Impacts rated across product, process, people, planet and prosperity; the largest are device lifespan, disposal, and which schools wait longest.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A P5 impact analysis covers every element, rates each impact, sets responses and re-rates; it is done by the project, early, with stakeholders."
+        },
+        {
+          "id": "planetOnly",
+          "label": "Estimate the new laptops' energy use; that is the environmental question",
+          "effects": [
+            {
+              "set": "p5",
+              "to": "\"planetOnly\""
+            },
+            {
+              "log": "Energy use estimated.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Energy is one Planet element; lifespan, servicing, disposal, labor and fairness are left out."
+        },
+        {
+          "id": "skip",
+          "label": "Let the supplier fill in the sustainability form",
+          "effects": [
+            {
+              "set": "p5",
+              "to": "\"skip\""
+            },
+            {
+              "add": "community",
+              "by": "-1"
+            },
+            {
+              "log": "The supplier's form says 'sustainable' throughout.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The project owns its impact analysis; a vendor's self-description is not one."
+        }
+      ]
+    },
+    "offerPrompt": {
+      "title": "Week 4: three offers",
+      "context": "A: 640 dollars a laptop, three-year expected life, battery glued in, no parts after two years. B: 690 dollars, five to six years, battery and keyboard replaceable by district IT, parts for six years. C: offer A plus 20 dollars of carbon offsets each, sold as 'carbon neutral'.",
+      "choices": [
+        {
+          "id": "repairable",
+          "label": "Award offer B: over six years it is bought once, serviced in-house, and its cost is about 1,460 thousand dollars against about 2,560 for A",
+          "effects": [
+            {
+              "set": "device",
+              "to": "\"repairable\""
+            },
+            {
+              "add": "schoolBoard",
+              "by": "1"
+            },
+            {
+              "log": "Offer B awarded; district IT is trained on battery and keyboard swaps.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Product lenses weigh lifespan and servicing; a longer-lived, repairable device lowers both impact and the cost over the period."
+        },
+        {
+          "id": "cheapest",
+          "label": "Award offer A: lowest price, within budget",
+          "effects": [
+            {
+              "set": "device",
+              "to": "\"cheapest\""
+            },
+            {
+              "add": "teachers",
+              "by": "-1"
+            },
+            {
+              "log": "Offer A awarded.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The lowest price buys the devices twice in six years and leaves broken ones unrepairable."
+        },
+        {
+          "id": "offset",
+          "label": "Award offer C and use its 'carbon neutral' label in the district's report",
+          "effects": [
+            {
+              "set": "device",
+              "to": "\"offset\""
+            },
+            {
+              "log": "Offer C awarded.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Offsets do not change the product's lifespan or servicing; the label invites a claim the project cannot support."
+        }
+      ]
+    },
+    "dispPrompt": {
+      "title": "Week 6: the 2,000 old laptops",
+      "context": "A certified electronics recycler will wipe the drives, refurbish about 600 for families without a computer and recycle the rest with an audited downstream, for a net 40 thousand dollars. A broker bids 10 thousand dollars for the lot, collected as is; it will not say where they go. A warehouse would cost 15 thousand dollars a year.",
+      "choices": [
+        {
+          "id": "certified",
+          "label": "Use the certified recycler: drives wiped, 600 refurbished for families, the rest recycled with an audited downstream",
+          "effects": [
+            {
+              "set": "disposal",
+              "to": "\"certified\""
+            },
+            {
+              "add": "community",
+              "by": "1"
+            },
+            {
+              "log": "Collected; wipe certificates and the downstream audit filed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Disposal is a Planet (consumption) and People (human rights, community) impact; a certified, audited downstream and reuse address both."
+        },
+        {
+          "id": "lowest",
+          "label": "Sell the lot to the broker: it brings in money",
+          "effects": [
+            {
+              "set": "disposal",
+              "to": "\"lowest\""
+            },
+            {
+              "log": "Collected by the broker.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "An unknown downstream can mean hand-stripping in unsafe conditions and unwiped student data."
+        },
+        {
+          "id": "store",
+          "label": "Store them in a warehouse until next year",
+          "effects": [
+            {
+              "set": "disposal",
+              "to": "\"store\""
+            },
+            {
+              "add": "schoolBoard",
+              "by": "-1"
+            },
+            {
+              "log": "The laptops go into storage.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Storage defers the impact and adds cost; the devices lose reuse value every month."
+        }
+      ]
+    },
+    "claimPrompt": {
+      "title": "Week 8: the board's announcement",
+      "context": "The communications office drafts: 'Our new zero-impact student devices.' The board meets next week to announce the program.",
+      "choices": [
+        {
+          "id": "honest",
+          "label": "Rewrite it with the analysis: what was rated, what the responses changed, and what impact remains (manufacture and shipping)",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"honest\""
+            },
+            {
+              "add": "schoolBoard",
+              "by": "1"
+            },
+            {
+              "log": "The announcement reports the impacts as rated, with what remains.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Sustainability communications report impacts as analyzed, including what remains; an absolute claim is greenwashing."
+        },
+        {
+          "id": "zero",
+          "label": "Publish it: the families will like it",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"zero\""
+            },
+            {
+              "add": "schoolBoard",
+              "by": "1"
+            },
+            {
+              "log": "'Zero-impact devices' is published.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "No device has zero impact; the claim cannot be supported by the analysis."
+        },
+        {
+          "id": "silent",
+          "label": "Publish nothing about sustainability",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"silent\""
+            },
+            {
+              "add": "community",
+              "by": "-1"
+            },
+            {
+              "log": "Nothing is published.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Silence avoids greenwashing but leaves stakeholders without the results they were promised."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the closing sustainability note: which impacts the analysis found, what you did about lifespan, servicing, disposal and the claim, and what remains.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The analysis",
+          "criteria": "Covers all five elements early with stakeholders, rates the impacts and re-rates after the responses; names process fairness in the rollout.",
+          "modelAnswer": "At the start we rated impacts across the five elements with teachers, IT, finance and parents: lifespan, disposal and which schools waited longest were the largest; rollout went to the schools with most failed devices first."
+        },
+        {
+          "label": "Responses and reporting",
+          "criteria": "The repairable, longer-lived offer; certified disposal with reuse; and an announcement that reports remaining impact without an absolute claim.",
+          "modelAnswer": "Offer B lasts five to six years and is serviced in-house, about 1,460 thousand dollars over six years against 2,560. The old laptops went to a certified recycler, 600 to families. We reported what remains, manufacture and shipping, rather than 'zero impact'."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Committed spend within the 1,600 thousand dollar budget."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No sustainability impact above the district's appetite at the close."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "The school board, the teachers and the community at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and disposal == \"store\" and claim == \"silent\"",
+      "class": "recovered",
+      "rationale": "Deferring disposal and saying nothing costs money and trust but harms no one yet.",
+      "source": {
+        "cite": "GPM Global, The GPM P5 Standard for Sustainability in Project Management, version 2.0 (September 2019; patch releases 2.0.1 and 2.0.2, February 2020)",
+        "checkedAt": "2026-11-17",
+        "url": "https://sovnet.ru/media/Editor/%d0%9d%d0%be%d0%b2%d0%be%d0%b5/The%20GPM%20P5%20Standard%20for%20Sustainability%20in%20Project%20Management%20v2.0.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of the PDF hosted by a third party. Categories: Product (lifespan, servicing of the product); Process (effectiveness, efficiency and fairness of project processes); People (labor practices and decent work, society and customers, human rights, ethical behavior including procurement practices and anti-corruption); Planet (transport, energy, land, air and water, consumption including recycling and reuse, disposal, contamination and pollution, waste generation); Prosperity (business case analysis, business agility, economic stimulation). The P5 Impact Analysis starts as early as possible and is updated regularly: identify events for each element, describe causes and potential impacts, rate each impact by 'the magnitude of their effect on sustainability', identify responses that minimize negative and maximize positive impacts, and re-rate assuming the response is implemented; an item may be recorded under several elements. The standard sets no numeric scale."
+      }
+    }
+  },
+  "endings": {
+    "dumping": {
+      "label": "Old laptops dumped abroad",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and dumped",
+      "narrative": "The district's old laptops were found at an unlicensed yard abroad, with asset tags and possibly student data on them."
+    },
+    "greenwash": {
+      "label": "A claim that could not stand",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and exposed",
+      "narrative": "The 'zero-impact' announcement was retracted after a reporter's story."
+    },
+    "sustained": {
+      "label": "Impacts analyzed, reduced and reported",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and p5 == \"full\" and device == \"repairable\" and disposal == \"certified\" and claim == \"honest\" and record == \"honest\" and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "Longer-lived, repairable laptops at a lower six-year cost, 600 old ones in families' homes, and an honest report of what remains."
+    },
+    "partly": {
+      "label": "Delivered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The laptops arrived, but the criteria show where the analysis or a response fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "dumping",
+    "greenwash",
+    "sustained",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "p5Crit",
+        "label": "Ran a P5 impact analysis across every element, early, with stakeholders",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "p5 == \"full\"",
+            "score": "met",
+            "why": "All five elements, rated and re-rated."
+          },
+          {
+            "when": "p5 == \"planetOnly\"",
+            "score": "partial",
+            "why": "One element only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left to the supplier."
+          }
+        ]
+      },
+      {
+        "id": "productCrit",
+        "label": "Chose the offer on lifespan and servicing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "device == \"repairable\"",
+            "score": "met",
+            "why": "Offer B."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{device == \"offset\" ? \"Offsets bought instead of a longer-lived device.\" : \"The lowest price, bought twice.\"}"
+          }
+        ]
+      },
+      {
+        "id": "dispCrit",
+        "label": "Disposed of the old devices through an audited downstream, with reuse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "disposal == \"certified\"",
+            "score": "met",
+            "why": "Certified recycler, 600 refurbished."
+          },
+          {
+            "when": "disposal == \"store\"",
+            "score": "partial",
+            "why": "Deferred to a warehouse."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sold with no known destination."
+          }
+        ]
+      },
+      {
+        "id": "claimCrit",
+        "label": "Reported impacts as analyzed, without an absolute claim",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "claim == \"honest\"",
+            "score": "met",
+            "why": "Impacts and what remains."
+          },
+          {
+            "when": "claim == \"silent\"",
+            "score": "partial",
+            "why": "Nothing reported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "'Zero-impact'."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The closing report re-rates each impact",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Re-rated, with what remains."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line claim."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spentK",
+        "label": "Committed spend, thousand dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "1,420"
+      },
+      {
+        "id": "aboveK",
+        "label": "Impacts above appetite at close",
+        "value": "aboveCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "reuseK",
+        "label": "Old laptops refurbished for families",
+        "value": "disposal == \"certified\" ? 600 : 0",
+        "format": "number",
+        "expert": "600"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before week 2",
+        "text": "Compare the offers over six years; check the recyclers."
+      },
+      {
+        "at": "Week 2",
+        "text": "A P5 impact analysis with stakeholders across all five elements, including rollout fairness."
+      },
+      {
+        "at": "Week 4",
+        "text": "Offer B: longer life, in-house servicing, lower six-year cost."
+      },
+      {
+        "at": "Week 6",
+        "text": "Certified recycler with wipe certificates and reuse."
+      },
+      {
+        "at": "Week 8",
+        "text": "Report the impacts as rated, with what remains."
+      },
+      {
+        "at": "Close",
+        "text": "Re-rate each impact in the closing report."
+      }
+    ],
+    "debrief": {
+      "dumping": {
+        "headline": "The disposal impact landed on people",
+        "body": "An unknown downstream is a People and Planet impact the analysis should have rated: hand-stripping, contamination and data exposure."
+      },
+      "greenwash": {
+        "headline": "Greenwashing",
+        "body": "Report impacts as analyzed, with what remains; no device has zero impact."
+      },
+      "sustained": {
+        "headline": "Good: analyzed, reduced and reported",
+        "body": "The P5 analysis drove the offer, the disposal and the announcement, and the closing report re-rated each impact."
+      },
+      "partly": {
+        "headline": "Delivered, with gaps",
+        "body": "The criteria show which element was missed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A P5 impact analysis is the project's own work, done early with stakeholders: for each element, identify events, describe causes and impacts, rate them, set responses and re-rate. Here the Product lenses decide the offer: a repairable laptop that lasts five to six years is bought once and serviced in-house, lowering both impact and the six-year cost; offsets change neither lifespan nor servicing. Disposal is a Planet and People impact: a certified, audited downstream with data wiping and reuse, not the highest bidder. Communications report impacts as analyzed with what remains; 'zero impact' is greenwashing."
+  }
+}

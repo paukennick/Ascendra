@@ -1,0 +1,1539 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmipba-claims-portal-baseline-signoff",
+  "title": "A claims portal's requirements: a conflict, a baseline over capacity, a withheld signature and a change",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Claims portal, release 1 · end of week {week} of 10",
+      "commitments": [
+        {
+          "id": "objective",
+          "label": "Release objective",
+          "text": "Policyholders file and track claims online; adjusters work them in one queue; finance gets the reserve reports the regulator asks for."
+        },
+        {
+          "id": "baseline",
+          "label": "Plan",
+          "text": "10 weeks, 200 thousand dollars: planned value 20 thousand dollars a week. Requirements baselined and signed off by the end of week 5."
+        },
+        {
+          "id": "rmplan",
+          "label": "Requirements management plan",
+          "text": "Conflicts settled against the business objectives; sign-off by the claims and finance directors, the sponsor deciding if they disagree; changes after sign-off go to the change control board with an impact analysis."
+        }
+      ],
+      "columns": [
+        {
+          "id": "elicited",
+          "label": "Elicited"
+        },
+        {
+          "id": "analyzed",
+          "label": "Analyzed"
+        },
+        {
+          "id": "baselined",
+          "label": "Baselined"
+        },
+        {
+          "id": "deferred",
+          "label": "Deferred to release 2"
+        },
+        {
+          "id": "built",
+          "label": "Built"
+        }
+      ],
+      "items": [
+        {
+          "id": "intake",
+          "label": "Claim intake and tracking (12 requirements)",
+          "column": "c1",
+          "when": "true",
+          "size": "must"
+        },
+        {
+          "id": "adjust",
+          "label": "Adjuster queue and workflow (15)",
+          "column": "c2",
+          "when": "true",
+          "size": "must"
+        },
+        {
+          "id": "reserve",
+          "label": "Reserve and regulatory reports (6)",
+          "column": "c3",
+          "when": "true",
+          "size": "must: regulator"
+        },
+        {
+          "id": "dash",
+          "label": "Finance trend dashboards (9)",
+          "column": "c4",
+          "when": "true",
+          "size": "should"
+        },
+        {
+          "id": "fraud",
+          "label": "CR-04: fraud score on each claim",
+          "column": "c5",
+          "when": "cr != \"none\" or week >= 8",
+          "size": "change request",
+          "flag": "week >= 8 and cr == \"none\""
+        }
+      ],
+      "chart": {
+        "label": "Earned value against plan",
+        "unit": "thousand dollars",
+        "slots": 11,
+        "slotLabel": "Status meeting",
+        "series": [
+          {
+            "id": "evS",
+            "label": "Earned value",
+            "style": "actual",
+            "history": "evH"
+          },
+          {
+            "id": "acS",
+            "label": "Actual cost",
+            "style": "actual",
+            "history": "acH"
+          },
+          {
+            "id": "pvS",
+            "label": "Planned value",
+            "style": "plan",
+            "values": [
+              0,
+              20,
+              40,
+              60,
+              80,
+              100,
+              120,
+              140,
+              160,
+              180,
+              200
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "conflict",
+          "label": "Claims wants instant payouts under 500 dollars; Finance wants every payout approved",
+          "when": "week >= 2",
+          "at": "1209600",
+          "status": "{conflict == \"workshop\" ? \"Settled in a prioritization workshop: instant payout under 500 dollars with a fraud check, rationale recorded\" : conflict == \"both\" ? \"Both kept as must-haves\" : conflict == \"loudest\" ? \"Claims' version taken; Finance overruled\" : \"Open\"}",
+          "open": "conflict == \"none\""
+        },
+        {
+          "id": "capacity",
+          "label": "42 must and should requirements against capacity for 33",
+          "when": "week >= 4",
+          "at": "2419200",
+          "status": "{alloc == \"allocated\" ? \"Release 1: 33 must-haves; 9 dashboards deferred to release 2 with their trace\" : alloc == \"all\" ? \"All 42 baselined; overtime planned\" : alloc == \"cutCompliance\" ? \"Reserve reports cut to fit\" : \"Open\"}",
+          "open": "alloc == \"none\""
+        },
+        {
+          "id": "signoff",
+          "label": "Finance director withholds sign-off over a missing trend report",
+          "when": "week >= 5",
+          "at": "3024000",
+          "status": "{signoff == \"consensus\" ? \"Signed: the baseline walked through on the prototype; the trend report logged as a release-2 request\" : signoff == \"startBuild\" ? \"Build started without sign-off\" : signoff == \"addSilently\" ? \"Trend report added to get the signature\" : \"Open\"}",
+          "open": "signoff == \"none\""
+        },
+        {
+          "id": "crIssue",
+          "label": "Claims asks for a fraud score field after sign-off",
+          "when": "week >= 8",
+          "at": "4838400",
+          "status": "{cr == \"impact\" ? \"Impact analyzed through the trace: 3 days, 2 tests; approved by the board\" : cr == \"direct\" ? \"Added by the developers on request\" : cr == \"rejected\" ? \"Refused: the baseline is frozen\" : \"Open\"}",
+          "open": "cr == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "claims",
+          "label": "Claims director",
+          "spokenLabel": "the claims director",
+          "value": "claimsTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "fin",
+          "label": "Finance director",
+          "spokenLabel": "the finance director",
+          "value": "finTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "dev",
+          "label": "Development team",
+          "spokenLabel": "the development team",
+          "value": "devTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "m1",
+          "label": "Requirements baseline signed off",
+          "at": "3024000",
+          "status": "{signoff == \"consensus\" or signoff == \"addSilently\" ? \"Signed\" : week >= 5 ? \"Not signed\" : \"Planned\"}"
+        },
+        {
+          "id": "m2",
+          "label": "Release 1 live",
+          "at": "6048000",
+          "status": "{week < 10 ? \"Planned\" : spi >= 0.95 ? \"On the planned date\" : \"Late\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "evm",
+          "label": "PV / EV / AC",
+          "value": "${pv}k / ${round(ev)}k / ${round(ac)}k"
+        },
+        {
+          "id": "spiM",
+          "label": "SPI",
+          "value": "{spi|2dp}"
+        },
+        {
+          "id": "cpiM",
+          "label": "CPI",
+          "value": "{cpi|2dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Obtaining sign-off on the requirements baseline through decision-making techniques that build stakeholder consensus",
+  "secondaryObjectives": [
+    "Allocating accepted/deferred requirements against scope, schedule, budget, and resource constraints to create a requirements baseline",
+    "Evaluating product options and capabilities with decision-making and valuation techniques to accept, defer, or reject requirements",
+    "Managing requirement changes by assessing impact, dependencies, and risk against the change-control plan and requirements baseline"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+      "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify."
+    },
+    {
+      "cite": "Jama Software, Requirements Management Guide: Defining and Implementing a Requirements Baseline (page modified 2026-10-02)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.jamasoftware.com/requirements-management-guide/requirements-gathering-and-management-processes/defining-and-implementing-requirements-baselines/",
+      "note": "Read 2026-11-17 through a summarizing fetch. A requirements baseline is 'a snapshot in time that represents an agreed-upon, reviewed, and approved set of requirements' committed to a release; stakeholders who sign off are 'agreeing and committing to a specific requirements baseline'; 'Change requests are made against an established baseline'; before baselining, confirm 'that the change control board is assembled and chartered'. A vendor's guide, cited for the practice, not as a standard."
+    },
+    {
+      "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+      "note": "Read 2026-11-17 (through a summarizing fetch, by this round's first builder). SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The insurer, the portal, the requirement counts, the budget, the weekly planned value, the rework each event costs and the trust gauges are teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the business analyst for Lakeview Mutual, a fictional insurer, on release 1 of its online claims portal. The project is predictive: 10 weeks and 200 thousand dollars, with the requirements baselined and signed off by the end of week 5. The claims and finance directors sign the baseline; the sponsor decides if they disagree.",
+    "handover": [
+      "Sponsor: Priya Nair, chief operating officer. Claims director: Tom Becker. Finance director: Ana Morales.",
+      "Planned value is 20 thousand dollars a week; the dashboard shows PV, EV, AC, SPI and CPI at each Friday status meeting."
+    ],
+    "howItWorks": [
+      "The dashboard shows the release objective and plan, the requirement groups by state, earned value against plan, the open issues, the people and the milestones.",
+      "Move the project on a week at a time. Decisions come to you as they arise; before them you can review the traceability matrix or demonstrate the prototype.",
+      "At go-live you close the release and write a short note."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T08:00",
+    "tick": "1h",
+    "maxDuration": "80d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "week": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "ev": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400
+    },
+    "ac": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400
+    },
+    "c1": {
+      "type": "enum",
+      "values": [
+        "elicited",
+        "analyzed",
+        "baselined",
+        "deferred",
+        "built"
+      ],
+      "init": "elicited"
+    },
+    "c2": {
+      "type": "enum",
+      "values": [
+        "elicited",
+        "analyzed",
+        "baselined",
+        "deferred",
+        "built"
+      ],
+      "init": "elicited"
+    },
+    "c3": {
+      "type": "enum",
+      "values": [
+        "elicited",
+        "analyzed",
+        "baselined",
+        "deferred",
+        "built"
+      ],
+      "init": "elicited"
+    },
+    "c4": {
+      "type": "enum",
+      "values": [
+        "elicited",
+        "analyzed",
+        "baselined",
+        "deferred",
+        "built"
+      ],
+      "init": "elicited"
+    },
+    "c5": {
+      "type": "enum",
+      "values": [
+        "elicited",
+        "analyzed",
+        "baselined",
+        "deferred",
+        "built"
+      ],
+      "init": "elicited"
+    },
+    "conflict": {
+      "type": "enum",
+      "values": [
+        "none",
+        "workshop",
+        "both",
+        "loudest"
+      ],
+      "init": "none"
+    },
+    "alloc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "allocated",
+        "all",
+        "cutCompliance"
+      ],
+      "init": "none"
+    },
+    "signoff": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consensus",
+        "startBuild",
+        "addSilently"
+      ],
+      "init": "none"
+    },
+    "cr": {
+      "type": "enum",
+      "values": [
+        "none",
+        "impact",
+        "direct",
+        "rejected"
+      ],
+      "init": "none"
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "trace",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "traceAt": {
+      "type": "time",
+      "init": null
+    },
+    "protoAt": {
+      "type": "time",
+      "init": null
+    },
+    "claimsTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "finTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "devTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "evH": {
+      "of": "ev",
+      "every": "7d",
+      "keep": "70d"
+    },
+    "acH": {
+      "of": "ac",
+      "every": "7d",
+      "keep": "70d"
+    }
+  },
+  "derived": {
+    "pv": {
+      "expr": "week * 20",
+      "unit": "k$"
+    },
+    "spi": {
+      "expr": "week == 0 ? 1 : ev / (week * 20)"
+    },
+    "cpi": {
+      "expr": "ac == 0 ? 1 : ev / ac"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "build": {
+      "label": "The release",
+      "clock": "turns",
+      "actions": [
+        "trace",
+        "proto"
+      ]
+    },
+    "close": {
+      "label": "Closing",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "build",
+  "actions": {
+    "trace": {
+      "label": "Review the traceability matrix",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(traceAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "traceAt",
+          "to": "t"
+        },
+        {
+          "log": "You walk the matrix from business objectives to requirements to tests.",
+          "kind": "act"
+        },
+        {
+          "finding": "Every intake and adjuster requirement traces to an objective; the 9 dashboards trace to Finance's 'should' list; the 6 reserve reports trace to the regulator's rule. A change to the claim record touches 2 adjuster screens and 2 tests."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "proto": {
+      "label": "Demonstrate the clickable prototype to both directors",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(protoAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "protoAt",
+          "to": "t"
+        },
+        {
+          "add": "finTrust",
+          "by": "5"
+        },
+        {
+          "log": "You walk both directors through the prototype screens against the requirements.",
+          "kind": "act"
+        },
+        {
+          "finding": "Both agree the screens match the requirements; Finance notices the trend report is not there and says it is a 'nice to have for now'."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Close the release",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Closing",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you close",
+              "options": [
+                {
+                  "value": "trace",
+                  "label": "Update the traceability matrix and baseline to v1.1 (with CR-04), list the deferred requirements for release 2, and archive the sign-off record"
+                },
+                {
+                  "value": "skip",
+                  "label": "Hand over to support and start release 2"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Close the release first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "Release 1 is closed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the week"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "week": {
+      "label": "The next weekly status meeting",
+      "wait": {
+        "skipLabel": "Go to the next weekly status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "week",
+          "by": "1"
+        },
+        {
+          "add": "ac",
+          "by": "20"
+        },
+        {
+          "add": "ev",
+          "by": "20"
+        },
+        {
+          "if": "conflict == \"both\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-6"
+            },
+            {
+              "log": "Developers build the payout flow twice, once for each department's rule.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "alloc == \"all\" and week >= 6 and week <= 9",
+          "then": [
+            {
+              "add": "ac",
+              "by": "6"
+            },
+            {
+              "log": "Overtime to fit 42 requirements into capacity for 33.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "alloc == \"cutCompliance\" and week == 8",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-12"
+            },
+            {
+              "add": "ac",
+              "by": "6"
+            },
+            {
+              "add": "claimsTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Compliance review: the regulator's reserve reports are required for go-live. They go back in, late.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "signoff == \"startBuild\" and week == 7",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-20"
+            },
+            {
+              "add": "finTrust",
+              "by": "-15"
+            },
+            {
+              "log": "Finance rejects the built reports it never signed off; two weeks of reporting work is redone.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "signoff == \"addSilently\" and week == 7",
+          "then": [
+            {
+              "add": "ac",
+              "by": "8"
+            },
+            {
+              "add": "devTrust",
+              "by": "-15"
+            },
+            {
+              "log": "The trend report, added to win a signature, was never sized; the team absorbs it.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "cr == \"direct\" and week == 9",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-5"
+            },
+            {
+              "add": "ac",
+              "by": "4"
+            },
+            {
+              "add": "devTrust",
+              "by": "-10"
+            },
+            {
+              "log": "The fraud field breaks two adjuster screens nobody traced to it.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "cr == \"impact\" and week == 9",
+          "then": [
+            {
+              "add": "ac",
+              "by": "3"
+            },
+            {
+              "log": "CR-04 built in three days as analyzed; the trace and tests updated.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "week == 3",
+          "then": [
+            {
+              "set": "c1",
+              "to": "\"analyzed\""
+            },
+            {
+              "set": "c2",
+              "to": "\"analyzed\""
+            },
+            {
+              "set": "c3",
+              "to": "\"analyzed\""
+            },
+            {
+              "set": "c4",
+              "to": "\"analyzed\""
+            }
+          ]
+        },
+        {
+          "if": "week == 5",
+          "then": [
+            {
+              "set": "c1",
+              "to": "\"baselined\""
+            },
+            {
+              "set": "c2",
+              "to": "\"baselined\""
+            },
+            {
+              "set": "c3",
+              "to": "alloc == \"cutCompliance\" ? \"deferred\" : \"baselined\""
+            },
+            {
+              "set": "c4",
+              "to": "alloc == \"allocated\" ? \"deferred\" : \"baselined\""
+            }
+          ]
+        },
+        {
+          "if": "week == 9",
+          "then": [
+            {
+              "set": "c1",
+              "to": "\"built\""
+            },
+            {
+              "set": "c2",
+              "to": "\"built\""
+            },
+            {
+              "set": "c5",
+              "to": "cr == \"impact\" or cr == \"direct\" ? \"built\" : cr == \"rejected\" ? \"deferred\" : \"analyzed\""
+            }
+          ]
+        },
+        {
+          "if": "week == 10",
+          "then": [
+            {
+              "set": "c3",
+              "to": "\"built\""
+            },
+            {
+              "set": "c4",
+              "to": "alloc == \"allocated\" ? \"deferred\" : \"built\""
+            }
+          ]
+        },
+        {
+          "if": "week < 10",
+          "then": [
+            {
+              "schedule": "week",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Friday of week 10: release 1 goes live.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "week",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_conflictPrompt",
+      "when": "week == 2 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 2: two directors, two rules.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "conflictPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_allocPrompt",
+      "when": "week == 4 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 4: the analyzed requirements are sized.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "allocPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_signPrompt",
+      "when": "week == 5 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 5: sign-off is due.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "signPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_crPrompt",
+      "when": "week == 8 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 8: a request from Claims.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "crPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "conflictPrompt": {
+      "title": "End of week 2: conflicting requirements",
+      "context": "Claims wants payouts under 500 dollars paid instantly; Finance wants every payout approved by an adjuster. Both are written as must-haves. The developers need one rule.",
+      "choices": [
+        {
+          "id": "workshop",
+          "label": "Run a prioritization workshop with both directors: score the options against the release objective and the fraud risk, agree one rule (instant under 500 dollars with an automated fraud check), and record the rationale",
+          "effects": [
+            {
+              "set": "conflict",
+              "to": "\"workshop\""
+            },
+            {
+              "add": "claimsTrust",
+              "by": "5"
+            },
+            {
+              "add": "finTrust",
+              "by": "5"
+            },
+            {
+              "log": "One rule, agreed and recorded with its rationale.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Conflicting requirements are resolved with a decision-making technique against agreed criteria, and the rationale is recorded."
+        },
+        {
+          "id": "both",
+          "label": "Keep both as must-haves; the developers can make it configurable",
+          "effects": [
+            {
+              "set": "conflict",
+              "to": "\"both\""
+            },
+            {
+              "add": "devTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Both rules stay in.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Two contradictory must-haves are not a requirement; they move the conflict to the developers."
+        },
+        {
+          "id": "loudest",
+          "label": "Take Claims' version; the claims director is the louder voice and more senior",
+          "effects": [
+            {
+              "set": "conflict",
+              "to": "\"loudest\""
+            },
+            {
+              "add": "finTrust",
+              "by": "-30"
+            },
+            {
+              "log": "Finance is overruled without a hearing.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Deciding by seniority or volume skips the agreed decision process and loses the overruled stakeholder."
+        }
+      ]
+    },
+    "allocPrompt": {
+      "title": "End of week 4: 42 requirements, capacity for 33",
+      "context": "Analysis gives 42 must and should requirements; the team's capacity to week 10 is about 33. The 6 reserve reports are required by the regulator. The 9 trend dashboards are Finance's 'should'.",
+      "choices": [
+        {
+          "id": "allocated",
+          "label": "Allocate against the constraints: baseline the 33 must-haves (with the reserve reports) for release 1, defer the 9 dashboards to release 2 with their trace, and say so to Finance",
+          "effects": [
+            {
+              "set": "alloc",
+              "to": "\"allocated\""
+            },
+            {
+              "add": "devTrust",
+              "by": "10"
+            },
+            {
+              "log": "Release 1 fits capacity; the deferred list is traced.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Accepted requirements are allocated against scope, schedule, budget and resources; what does not fit is deferred, not dropped, and stays traced."
+        },
+        {
+          "id": "all",
+          "label": "Baseline all 42 and plan overtime",
+          "effects": [
+            {
+              "set": "alloc",
+              "to": "\"all\""
+            },
+            {
+              "add": "devTrust",
+              "by": "-15"
+            },
+            {
+              "log": "All 42 go in; overtime from week 6.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A baseline that exceeds capacity is a plan to overrun."
+        },
+        {
+          "id": "cutCompliance",
+          "label": "Cut the reserve reports to fit; they are only back-office",
+          "effects": [
+            {
+              "set": "alloc",
+              "to": "\"cutCompliance\""
+            },
+            {
+              "add": "finTrust",
+              "by": "-10"
+            },
+            {
+              "log": "The reserve reports leave release 1.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A requirement traced to a regulation is a constraint, not a candidate for deferral."
+        }
+      ]
+    },
+    "signPrompt": {
+      "title": "End of week 5: the finance director will not sign",
+      "context": "The claims director has signed the baseline. The finance director says: \"I won't sign without a trend report.\" Build starts Monday. The plan says the sponsor decides if the directors disagree.",
+      "choices": [
+        {
+          "id": "consensus",
+          "label": "Walk the finance director through the baseline on the prototype, log the trend report as a release-2 request, and if she still objects take it to the sponsor as the plan says; record the sign-off",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"consensus\""
+            },
+            {
+              "add": "finTrust",
+              "by": "5"
+            },
+            {
+              "log": "Signed: the trend report is a logged request for release 2.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Sign-off is reached with the plan's decision rule: validate the baseline with the stakeholder, record the open request, escalate per the plan if needed."
+        },
+        {
+          "id": "startBuild",
+          "label": "Start the build Monday without her signature; it can be fixed later",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"startBuild\""
+            },
+            {
+              "add": "devTrust",
+              "by": "5"
+            },
+            {
+              "log": "Build starts on an unsigned baseline.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Building on an unsigned baseline is building on requirements nobody has committed to."
+        },
+        {
+          "id": "addSilently",
+          "label": "Add the trend report to the baseline to get her signature",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"addSilently\""
+            },
+            {
+              "add": "finTrust",
+              "by": "10"
+            },
+            {
+              "log": "The trend report goes in unsized; she signs.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Adding scope to win a signature skips the analysis and the allocation."
+        }
+      ]
+    },
+    "crPrompt": {
+      "title": "End of week 8: a change after sign-off",
+      "context": "The claims director asks for a fraud score on each claim, shown in the adjuster queue: \"It's one field.\" The baseline is signed; the plan routes changes to the change control board with an impact analysis.",
+      "choices": [
+        {
+          "id": "impact",
+          "label": "Log CR-04, trace its impact (the claim record, 2 adjuster screens, 2 tests: about 3 days), and take it to the change control board",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"impact\""
+            },
+            {
+              "add": "claimsTrust",
+              "by": "5"
+            },
+            {
+              "log": "The board approves CR-04 with its impact known; baseline v1.1.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A change against the baseline is assessed for impact, dependencies and risk through the trace, and decided by the change control board."
+        },
+        {
+          "id": "direct",
+          "label": "Ask a developer to add the field; it is small",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"direct\""
+            },
+            {
+              "add": "claimsTrust",
+              "by": "5"
+            },
+            {
+              "log": "The field goes in on request.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A small change outside change control is still a change: here it broke two screens nobody traced."
+        },
+        {
+          "id": "rejected",
+          "label": "Refuse: the baseline is frozen",
+          "effects": [
+            {
+              "set": "cr",
+              "to": "\"rejected\""
+            },
+            {
+              "add": "claimsTrust",
+              "by": "-25"
+            },
+            {
+              "log": "Claims is told no without an analysis.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A baseline is controlled, not frozen; a change request is analyzed and decided."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release note for the sponsor: how the baseline was built and signed, and how the conflict and the change after sign-off were handled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Baseline and sign-off",
+          "criteria": "Resolves the conflict with agreed criteria and a recorded rationale; allocates against capacity with the regulator's reports kept and the dashboards deferred and traced; reaches sign-off by the plan's decision rule.",
+          "modelAnswer": "One payout rule came out of a scored workshop. The baseline held the 33 must-haves, including the regulator's reserve reports, and deferred 9 dashboards with their trace. Finance signed after the prototype walk-through, with the trend report logged for release 2."
+        },
+        {
+          "label": "Change after sign-off",
+          "criteria": "Treats the fraud field as a change request: impact through the trace, decided by the change control board, baseline versioned.",
+          "modelAnswer": "CR-04 touched the claim record, two adjuster screens and two tests: about three days. The board approved it and the baseline became v1.1."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI at close at or above this is on schedule."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI at close at or above this is on budget."
+        }
+      },
+      "spiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI below this at close is a schedule failure."
+        }
+      },
+      "cpiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI below this at close is a cost failure."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): every stakeholder at or above this at close."
+        }
+      },
+      "stakeholderRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): a stakeholder below this at close is a broken working relationship."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and cr == \"rejected\" and signoff == \"consensus\"",
+      "class": "recovered",
+      "rationale": "Refusing a change keeps the baseline but costs a stakeholder; a cost, not harm.",
+      "source": {
+        "cite": "Jama Software, Requirements Management Guide: Defining and Implementing a Requirements Baseline (page modified 2026-10-02)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.jamasoftware.com/requirements-management-guide/requirements-gathering-and-management-processes/defining-and-implementing-requirements-baselines/",
+        "note": "Read 2026-11-17 through a summarizing fetch. A requirements baseline is 'a snapshot in time that represents an agreed-upon, reviewed, and approved set of requirements' committed to a release; stakeholders who sign off are 'agreeing and committing to a specific requirements baseline'; 'Change requests are made against an established baseline'; before baselining, confirm 'that the change control board is assembled and chartered'. A vendor's guide, cited for the practice, not as a standard."
+      }
+    }
+  },
+  "endings": {
+    "unsigned": {
+      "label": "Built on an unsigned baseline",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and signoff == \"startBuild\"",
+      "narrative": "Finance rejected reports it never agreed to; two weeks of work were redone."
+    },
+    "overrun": {
+      "label": "Over the harm line",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (spi < spiHarm or cpi < cpiHarm)",
+      "narrative": "The release closed at SPI {spi|2dp} and CPI {cpi|2dp}."
+    },
+    "broken": {
+      "label": "A working relationship broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (claimsTrust < stakeholderRecovered or finTrust < stakeholderRecovered or devTrust < stakeholderRecovered)",
+      "narrative": "{finTrust < stakeholderRecovered ? \"Finance no longer trusts the requirements process.\" : claimsTrust < stakeholderRecovered ? \"Claims no longer brings its needs to analysis.\" : \"The team no longer trusts the baseline.\"}"
+    },
+    "baselined": {
+      "label": "Baselined, signed and controlled",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and conflict == \"workshop\" and alloc == \"allocated\" and signoff == \"consensus\" and cr == \"impact\" and record == \"trace\" and spi >= spiTarget and cpi >= cpiTarget and claimsTrust >= stakeholderTarget and finTrust >= stakeholderTarget and devTrust >= stakeholderTarget",
+      "narrative": "Release 1 went live on plan with a signed baseline, one controlled change and a traced list for release 2."
+    },
+    "partly": {
+      "label": "Released, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "Release 1 went live at SPI {spi|2dp} and CPI {cpi|2dp}; the criteria show where the baseline slipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "unsigned",
+    "overrun",
+    "broken",
+    "baselined",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "conflictCrit",
+        "label": "Resolved the conflicting requirements with agreed criteria and a recorded rationale",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "conflict == \"workshop\"",
+            "score": "met",
+            "why": "Scored workshop, one rule."
+          },
+          {
+            "when": "conflict == \"loudest\"",
+            "score": "partial",
+            "why": "One rule, but by seniority."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Both kept."
+          }
+        ]
+      },
+      {
+        "id": "allocCrit",
+        "label": "Allocated requirements against capacity into a baseline, deferring with the trace",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "alloc == \"allocated\"",
+            "score": "met",
+            "why": "33 baselined, 9 deferred and traced."
+          },
+          {
+            "when": "alloc == \"all\"",
+            "score": "partial",
+            "why": "Everything in, with overtime."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A regulatory requirement cut."
+          }
+        ]
+      },
+      {
+        "id": "signCrit",
+        "label": "Obtained sign-off by the plan's decision rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "signoff == \"consensus\"",
+            "score": "met",
+            "why": "Validated, request logged, signed."
+          },
+          {
+            "when": "signoff == \"addSilently\"",
+            "score": "partial",
+            "why": "Signed, for unsized scope."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Build started unsigned."
+          }
+        ]
+      },
+      {
+        "id": "crCrit",
+        "label": "Took the change after sign-off through impact analysis and the board",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cr == \"impact\"",
+            "score": "met",
+            "why": "Traced impact, board decision."
+          },
+          {
+            "when": "cr == \"rejected\"",
+            "score": "partial",
+            "why": "Baseline kept, without analysis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Added outside change control."
+          }
+        ]
+      },
+      {
+        "id": "closeCrit",
+        "label": "Closed with the trace and baseline updated and the deferred list kept",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"trace\"",
+            "score": "met",
+            "why": "Baseline v1.1 and the release-2 list."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not updated."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spiK",
+        "label": "SPI at close",
+        "value": "round(spi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at close",
+        "value": "round(cpi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "acK",
+        "label": "Actual cost at close, thousand dollars",
+        "value": "round(ac)",
+        "format": "number",
+        "expert": "about 203"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Weeks 1-2",
+        "text": "Review the trace; demonstrate the prototype; settle the payout conflict in a scored workshop."
+      },
+      {
+        "at": "Week 4",
+        "text": "Baseline the 33 must-haves with the reserve reports; defer the dashboards with their trace."
+      },
+      {
+        "at": "Week 5",
+        "text": "Walk Finance through the baseline; log the trend report for release 2; sign-off."
+      },
+      {
+        "at": "Week 8",
+        "text": "CR-04: impact through the trace, decided by the change control board."
+      },
+      {
+        "at": "Week 10",
+        "text": "Baseline v1.1, the release-2 list and the sign-off record archived."
+      }
+    ],
+    "debrief": {
+      "baselined": {
+        "headline": "Good: baselined, signed and controlled",
+        "body": "The conflict was decided on criteria, the baseline fit capacity, sign-off followed the plan and the change went through the board."
+      },
+      "partly": {
+        "headline": "Released, with gaps",
+        "body": "The criteria show where the conflict, the allocation, the sign-off or the change slipped."
+      },
+      "unsigned": {
+        "headline": "Built on requirements nobody signed",
+        "body": "The baseline is the agreement; building without it builds what someone may reject."
+      },
+      "overrun": {
+        "headline": "Beyond the harm line",
+        "body": "A baseline over capacity, contradictory requirements or a regulator's requirement cut are the usual ways there."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Overruling a stakeholder without a hearing, or refusing a change unread, loses the people the requirements come from."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The release was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Conflicting requirements are decided with a technique the stakeholders agree to, scored against the business objectives, and the rationale is recorded. Accepted requirements are allocated against capacity, budget and schedule into a baseline; what does not fit is deferred and stays traced, and a requirement traced to a regulation stays in. Sign-off is reached with the decision rule in the requirements management plan: validate the baseline with the objecting stakeholder (a prototype helps), log the new ask as a request, and escalate to the sponsor if needed. After sign-off the baseline is controlled, not frozen: a change is logged, its impact traced through dependencies and tests, and the change control board decides."
+  }
+}

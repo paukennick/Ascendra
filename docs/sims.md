@@ -6592,3 +6592,225 @@ The CKA case reuses the CKA curriculum read on 2026-11-14.
    backout plan; the band teaches both (the base case calls it a backout
    plan).
 5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").
+
+### 22.31 Sims for the PMI and CompTIA courses that had none (REQ-321)
+
+Nick, 2026-11-17: build the breadth and depth sims still needed. Production
+had 252 sims on 74 courses; every PMI course and eight CompTIA courses had
+none.
+
+**Why PMP showed no sims (finding, not a defect).** On origin/master
+(5bbb7f0b) `ALL_DOCUMENTS` has 252 entries over 74 courses, the same as
+production. The project dashboard (22.24) shipped with Scrum Sprints only:
+three PSMI scenarios and their three CSM bands. No document was ever
+registered to a PMI course, and the dashboard's predictive mode had no
+document at all (22.24 left "the predictive PMI cases" open; Phase 1a had
+deferred the Lakeshore clinic PMP prototype). The CSM bands compile and are
+counted, so no band or registration was broken and there is no FAIL entry.
+
+**What this adds** (no new screen, no migration, engine 1.2, all
+learner-paced; `lib/sim/pm-comptia.ts` lists every document by slug for
+`lib/sim/pm-comptia.test.ts`):
+
+- 42 bands (4.7): a case another course already teaches, registered on this
+  course's objective, with this course's outline (read 2026-11-17) as the
+  first source and the base course's outline dropped. Behavior, endings and
+  golden outcomes are the base's.
+- 1 new case: `PMP/pmp-clinic-fitout-schedule-variance`, the first
+  predictive-mode document on the project dashboard.
+
+**The PMP clinic fit-out.** You are the owner's project manager on an
+8-week, $240,000 fixed-price fit-out of a clinic's second floor (fictional
+clinic, contractor and people). The dashboard shows the objective, the
+baseline and the contingency reserve, four work packages, earned value and
+actual cost against planned value (nine status meetings, the kickoff
+first), risks and issues, three people gauges and the milestones. Four
+decisions:
+
+1. End of week 2: the sponsor asks the site lead for a second sink in each
+   exam room. A change request to the change control board (met), a refusal
+   without analysis (partial) or "just do it" (missed: unpriced rework).
+2. End of week 4: risk R4's trigger (no confirmed panel delivery) is
+   reached. Execute the planned contingency, the alternate supplier, from
+   the reserve (met); add an off-plan overtime crew (partial, $18,000 on the
+   wrong constraint); wait (missed: two critical-path weeks lost).
+3. End of week 5: the status report. Every path is behind (the clinic
+   returned drawings late). Report SPI and CPI as measured with the cause
+   and a recovery plan, fast-tracking finishes (met); blame the contractor
+   without figures (partial); report green (missed, and harm).
+4. Week 7: the contractor's notice of claim for the drawing delay. Assess
+   it against the contract and records (met: half is owed); reject it
+   unread (partial: a formal dispute); sign it in full as a change order
+   (missed).
+
+Endings, in order: `misreported` (harm), `overrun` (harm, SPI or CPI
+below 0.85), `broken` (harm, a gauge below 40), `onBaseline` (target: SPI
+and CPI at least 0.95, the change through control, an honest report and
+every gauge at least 60), `partly` (recovered). The `project` profile's
+thresholds are unchanged. Seven golden paths (`pmp-fitout`): Good 1,
+Mediocre 3, Bad 3. The money and progress figures are teaching figures,
+marked as the author's.
+
+Bands of the fit-out: CAPM (cost and schedule variances), PMI-SP (schedule
+analysis, its 35% domain), Project+ (change control processes), PMI-CP (the
+claims process, its 50% domain) and PMI-RMP (implementing risk response).
+
+**Bands by course** (steps names `pmc-<course>-<slug>`):
+
+| Course / slug | Base | Objective (start) |
+|---|---|---|
+| PMP/sprint-release-before-review-pmp | PSMI/sprint-release-before-review | Ensuring value-based delivery... |
+| PMP/sprint-goal-becomes-obsolete-pmp | PSMI/sprint-goal-becomes-obsolete | Evaluating external business-environment changes... |
+| PMP/sprint-status-meeting-daily-scrum-pmp | PSMI/sprint-status-meeting-daily-scrum | Removing impediments and managing issues... |
+| CAPM/sprint-status-meeting-daily-scrum-capm | PSMI/sprint-status-meeting-daily-scrum | Evaluating meeting effectiveness... |
+| PMIACP/sprint-release-before-review-pmiacp | PSMI/sprint-release-before-review | Seeking early feedback... |
+| PMIACP/sprint-status-meeting-daily-scrum-pmiacp | PSMI/sprint-status-meeting-daily-scrum | Managing impediments and risk... |
+| PMIACP/sprint-goal-becomes-obsolete-pmiacp | PSMI/sprint-goal-becomes-obsolete | Embracing change... |
+| PROJECTPLUS/sprint-status-meeting-daily-scrum-projectplus | PSMI/sprint-status-meeting-daily-scrum | Meeting management... |
+| PROJECTPLUS/firewall-change-backout-projectplus | SECPLUS/firewall-change-backout | Change control specific to IT... |
+| SERVERPLUS/retired-dns-server-orders-stuck-serverplus | LINUXPLUS/retired-dns-server-orders-stuck | Configuring network services... |
+| SERVERPLUS/sale-traffic-third-backend-serverplus | LFCS/sale-traffic-third-backend | High availability... |
+| SERVERPLUS/report-workers-starve-api-serverplus | LFCS/report-workers-starve-api | Managing server functions... |
+| SERVERPLUS/service-no-restart-after-update-serverplus | LFCS/service-no-restart-after-update | Troubleshooting software... |
+| SERVERPLUS/nightly-backup-missing-serverplus | LINUXFUND/nightly-backup-missing | Disaster recovery... |
+| SERVERPLUS/shared-folder-permission-denied-serverplus | LINUXFUND/shared-folder-permission-denied | Identity and access management... |
+| CLOUDNETX/sale-traffic-third-backend-cloudnetx | LFCS/sale-traffic-third-backend | Availability technologies... |
+| CLOUDNETX/firewall-change-backout-cloudnetx | SECPLUS/firewall-change-backout | Access control configuration... |
+| CLOUDNETX/branch-dns-route-typo-cloudnetx | NETWORKPLUS/branch-dns-route-typo | The network troubleshooting methodology... |
+| CLOUDNETX/retired-dns-server-orders-stuck-cloudnetx | LINUXPLUS/retired-dns-server-orders-stuck | Troubleshooting connectivity issues... |
+| CLOUDPLUS/nat-gateway-bill-spike-cloudplus | AWSSAA/nat-gateway-bill-spike | Billing management... |
+| CLOUDPLUS/leaked-access-key-cloudplus | AWSCLF/leaked-access-key | Implementing identity and access management... |
+| CLOUDPLUS/rds-update-without-where-pitr-cloudplus | AWSSOA/rds-update-without-where-pitr | Implementing backup and recovery... |
+| CLOUDPLUS/cloud-run-bad-revision-rollback-cloudplus | GCPACE/cloud-run-bad-revision-rollback | Diagnosing and resolving deployment problems... |
+| AUTOOPSPLUS/py-import-crash-traceback-autoopsplus | PYTHON/py-import-crash-traceback | Troubleshooting the code life cycle... |
+| AUTOOPSPLUS/web-service-fails-after-edit-autoopsplus | LINUXFUND/web-service-fails-after-edit | Troubleshooting configuration issues... |
+| AUTOOPSPLUS/canary-rollback-dlq-autoopsplus | AWSDVA/canary-rollback-dlq | CI workflow management... |
+| DATAPLUS/sql-not-in-null-empty-list-dataplus | SQL/sql-not-in-null-empty-list | Using tools and resources to troubleshoot... |
+| DATAPLUS/stock-on-hand-summed-dataplus | PL300/pl300-stock-on-hand-summed | Applying validation and review... |
+| DATAPLUS/rls-region-manager-dataplus | PL300/pl300-rls-region-manager | Privacy strategies... |
+| DATAAI/loan-data-bias-dataai | AWSMLA/loan-data-bias | Foundational machine-learning concepts... |
+| DATAAI/fraud-model-drift-dataai | AWSMLA/fraud-model-drift | DevOps and MLOps concepts... |
+| TECHPLUS/rogue-dhcp-soho-office-techplus | APLUS_CORE1/rogue-dhcp-soho-office | Networking basics... |
+| TECHPLUS/home-office-laptop-malware-techplus | APLUS_CORE2/home-office-laptop-malware | Device security... |
+| TECHPLUS/branch-dns-route-typo-techplus | NETWORKPLUS/branch-dns-route-typo | Troubleshooting methodology... |
+| PMICPMAI/loan-data-bias-pmicpmai | AWSMLA/loan-data-bias | Overseeing data evaluation... |
+| PMICPMAI/fraud-model-drift-pmicpmai | AWSMLA/fraud-model-drift | Overseeing model governance... |
+| CMPCBS/phish-to-account-takeover-cmpcbs | SECPLUS/phish-to-account-takeover | Common attacker tactics... |
+| CAPM/clinic-fitout-variance-capm | PMP/pmp-clinic-fitout-schedule-variance | Calculating cost and schedule variances... |
+| PMISP/clinic-fitout-variance-pmisp | PMP/pmp-clinic-fitout-schedule-variance | Performing schedule analyses... |
+| PROJECTPLUS/clinic-fitout-variance-projectplus | PMP/pmp-clinic-fitout-schedule-variance | Change control processes... |
+| PMICP/clinic-fitout-claim-pmicp | PMP/pmp-clinic-fitout-schedule-variance | Managing the claims process... |
+| PMIRMP/clinic-fitout-contingency-pmirmp | PMP/pmp-clinic-fitout-schedule-variance | Implementing risk response... |
+
+**Breadth.** Each of PMP, CAPM, PMI-ACP, Project+, PMI-SP, PMI-CP, Server+,
+CloudNetX, Cloud+, AutoOps+, Data+, DataAI, Tech+, PMI-CPMAI and CMPCBS has a
+sim on (one of) its highest-weighted domains; the test checks it. PMI-RMP's
+only sim is on Risk Response (13%).
+
+**Sources** (read 2026-11-17, all through summarizing fetches): PMI's PMP
+(July 2026), CAPM (2023), PMI-SP and PMI-RMP outlines (copies hosted by a
+training provider, a university and a consultancy) and PMI-ACP (pmi.org);
+the PMI-CP domain weights from a Scribd copy (task text not shown, to
+verify); CompTIA's Server+ SK0-005, CloudNetX CNX-001, AutoOps+ AT0-001,
+DataAI DY0-001 and Tech+ FC0-U71 objective PDFs and the Cloud+ CV0-004 and
+Data+ DA0-002 pages; third-party restatements for Project+ PK0-005 (CompTIA's
+PDF refused automated reading) and PMI-CPMAI (PMI's PDF did not come up in
+search), both marked to verify; MITRE ATT&CK Enterprise tactics v20.1;
+Oguz, Project Management 2nd ed., 11.3 (earned value); Construction
+Contracting: Business and Legal Principles, ch. 22 (claims).
+
+**Findings** (recorded; none needed a code fix):
+
+1. **Bands across levels and roles**, as 22.29 finding 3: LFCS and Linux+
+   cases on Server+, A+ cases on Tech+, Network+ cases on CloudNetX (an
+   expert exam), AWS and Google Cloud cases on vendor-neutral Cloud+, an ML
+   engineer's cases on PMI-CPMAI's "overseeing" objectives, and Scrum
+   Sprints on PMP, CAPM, PMI-ACP and Project+ objectives. The decision taught
+   matches each objective; the level and the role are the base's.
+2. **Cloud+ is vendor-neutral;** its bands run on AWS and Google Cloud as
+   worked examples (the first source says so).
+3. **Open: PGMP, PFMP, PMI-PMOCP, PMI-PBA, CSPP and CAPA have no sim.** No
+   existing case teaches their top domains (program life cycle, portfolio
+   strategic alignment and performance, PMO strategy and design,
+   requirements analysis, P5 impact analysis, Argo Workflows). Proposed:
+   a program steering review on the governance board (PGMP), a portfolio
+   rebalancing after a strategy change (PFMP, PMI-PMOCP bands), a
+   requirements baseline and sign-off on the project dashboard (PMI-PBA),
+   a P5 impact review on the governance board (CSPP), and an Argo
+   Workflows DAG failure on the terminal (CAPA). PMI-RMP's identification
+   and analysis domains want a risk-register case on the governance board.
+
+#### 22.31, second part: the six courses still without a sim, PMI-RMP's top domain, and PMP depth (sims-pm-2)
+
+Same rules as the first part: existing screens only, no migration, engine
+1.2, learner-paced, each case with endings in all three classes and an
+`endingOrder` with harm first, four critical criteria met and missed across
+its goldens, Good, Mediocre and Bad goldens, one written-reasoning moment,
+and its own course outline as its first source with the date read. Every
+document is listed by slug in `lib/sim/pm-comptia.ts`; the review-paced cases
+share a golden driver, `scripts/sim-golden/pm2-helpers.ts` (move a period
+on, answer each prompt, run the inspect tasks named for a period, close).
+
+**New cases** (author's fictional organizations and teaching figures):
+
+| Course / slug | Screen, profile | Objective (start) | Core of the case | Steps |
+|---|---|---|---|---|
+| PGMP/pgmp-transit-program-steering-review | governance board, governance | Analyzing cost/schedule/quality/risk variances... (Program Life Cycle 44%) | Four monthly steering reviews of a transit fare program: consolidate the four projects' data (integration at SPI 0.82 holding up the kiosks) and correct the plan; escalate a certification risk that threatens the fare benefit to the committee and its reserve; ask the committee for conditional authorization at the deployment gate; analyze the adoption variance with the benefit owner | pgmp-steering |
+| PFMP/pfmp-water-utility-rebalance | governance board, governance | Determining how a change in strategic goals impacts the portfolio... (Strategic Alignment 25%) | A water utility's board puts water loss first: re-score six components, evaluate three scenarios (C saves 10 million but breaks the meters' dependency on billing), recommend B to the governance board, move four engineers from the paused app | pfmp-rebalance |
+| CSPP/cspp-school-laptop-p5-review | governance board, governance | Performing a P5 Impact Analysis: Product lenses... (P5 36%) | A school district's 2,000-laptop refresh: a P5 impact analysis with stakeholders, the repairable offer on lifespan and servicing (about 1,460 against 2,560 thousand dollars over six years), a certified recycler with reuse, and an announcement without a 'zero-impact' claim | cspp-p5 |
+| PMIRMP/pmirmp-warehouse-risk-register | governance board, governance | Developing a risk register... (Risk Identification 23%) | A warehouse automation project: validate thirty workshop lines into a register (issues and assumptions out, an opportunity classified), rate on the plan's matrix with urgency, EMV 200 to 50 thousand dollars for an 80 thousand mitigation, a trigger (pass rate below 95% by week 10) that starts the peak-season fallback | pmirmp-register |
+| PMIPBA/pmipba-claims-portal-baseline-signoff | project dashboard (predictive), project | Obtaining sign-off on the requirements baseline... (Analysis 35%) | An insurer's claims portal: a scored workshop for conflicting payout rules, 33 requirements baselined and 9 deferred with their trace, sign-off by the plan's decision rule after a prototype walk-through, a change after sign-off through traced impact analysis and the board | pmipba-baseline |
+| CAPA/argo-nightly-dag-region-failure | terminal, infrastructure | Build DAGs: tasks with dependencies... (Argo Workflows 36%) | A nightly DAG fans out over 12 regions and fans in to aggregate; eu-west's extract failed on a transient reset, fail fast stopped the DAG, and the exit handler said 'ready'. argo retry (failed node and dependents, about 25 minutes) before 05:30, not resubmit (late) or a run without eu-west (a wrong total); retryStrategy OnFailure with backoff (OnError does not cover a container that exits 1) and an exit handler that reads workflow.status | capa-dag |
+| PMP/pmp-contact-center-move-procurement | project dashboard (predictive), project | Planning and managing resources, procurement... and project finances (Process 41%) | A city contact center move: time and materials with a ceiling for an uncertain data migration, a critical-path engineer negotiated with the IT director before escalating, a vendor's missed milestone handled by the contract's cure step, an EAC above budget funded from the management reserve through change control | pmp-move |
+| PMP/pmp-permit-portal-hybrid-plan | project dashboard (predictive), project | Developing and maintaining an integrated project management plan... (Process 41%) | A county permit portal: a hybrid approach (the fee module fixed in law baselined, the wizard in iterations), PERT (8 + 4 x 12 + 22) / 6 = 13 days and parametric estimates, a legal amendment assessed across the plan and taken through change control, the wizard's scope flexed to the date with the product owner | pmp-permits |
+
+**New bands** (steps `pmc-<course>-<slug>`):
+
+| Course / slug | Base | Objective (start) |
+|---|---|---|
+| PMIPMOCP/water-utility-rebalance-pmipmocp | PFMP rebalance | Establishing and maintaining PMO governance... (PMO Strategic Elements 18%) |
+| PMP/warehouse-risk-register-pmp | PMI-RMP register | Planning and managing risk... (Business Environment 26%) |
+| CAPM/warehouse-risk-register-capm | PMI-RMP register | Following and executing a planned strategy or framework... (36%) |
+| PROJECTPLUS/warehouse-risk-register-projectplus | PMI-RMP register | Risk management (33%) |
+| PROJECTPLUS/contact-center-move-procurement-projectplus | PMP move | Procurement and vendor selection (33%) |
+| PMICP/contact-center-move-contracts-pmicp | PMP move | Recognizing how contract type and delivery method selection affect claims... (50%) |
+
+**Breadth after this part.** Every course of 22.31 has a sim on (one of)
+its highest-weighted domains, including PgMP, PfMP, PMI-PMOCP, PMI-PBA, CSPP,
+CAPA and PMI-RMP; `pm-comptia.test.ts` checks it for all 22 courses.
+
+**Depth after this part.** PMP's Process objectives that meet the selection
+rule (`sims:generate -- --select`) all have a sim: the integrated plan and
+resources/procurement/finances (new predictive cases), schedule (the fit-out)
+and value-based delivery (a Scrum band). PMP's Business Environment risk
+objective is a band. CAPM gains the executing-a-planned-strategy objective.
+Not built (a decision of scope, not a screen gap): PMP's People objectives
+(conflict, stakeholders, expectations), governance and compliance as primary
+objectives; CAPM's core-concepts, ethics and roadmap objectives; further
+depth in the other courses of the first part.
+
+**Sources** (read 2026-11-17; WebSearch, then summarizing fetches of pages
+that came up in search): PfMP outline (PRA-206-2017, a training provider's
+copy of PMI's PDF); PMI-PMOCP weights (a study page citing PMI's January 2025
+v2 outline; task text not shown, to verify); PgMP weights (a training
+provider's article; PMI's PDF did not come up, tasks to verify); PMI-PBA
+weights and tasks (two study pages; PMI's PDF not opened, to verify); CSPP
+(pmi.org's CSPP bundle page, direct); CAPA (the Linux Foundation's exam
+page, direct, and a study page); PMI-RMP outline (January 2023, a training
+provider's copy); GPM P5 Standard v2.0 (a third-party copy of the PDF); Argo
+Workflows documentation (Retries and the DAG walk-through, release 3.4; argo
+retry, latest), a retry-versus-resubmit article and KodeKloud's exit-handler
+notes (to verify against Argo's own walk-through); Jama Software's guide to
+the requirements baseline; Watt, Project Management 2e, ch. 13 (contract
+types); PMI's projectmanagement.com wiki on three-point estimating.
+
+**Findings for Nick** (recorded; no code defect, so no FAIL entry):
+
+1. **CSPP's weights in the seed differ from PMI's page.** The course seed has
+   five domains with P5 at 36%; pmi.org's CSPP page (read today) lists six,
+   with P5 at 24%, PRiSM 23% and a "Project Management Considerations"
+   domain at 23% that the seed does not have (the page's weights add to
+   101%). The sim is on P5, the largest domain either way. The course itself
+   needs a verification pass.
+2. **Outline texts not read directly** for PgMP, PMI-PBA and PMI-PMOCP (PMI's
+   PDFs did not come up in search); their objective wording is the seed's.

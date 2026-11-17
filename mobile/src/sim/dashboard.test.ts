@@ -29,7 +29,9 @@ const SPRINTS: [string, string][] = [
   ["PSMI", "sprint-release-before-review"],
 ];
 const DESKS: [string, string][] = [["ITIL5FND", "monday-service-desk-wifi-problem"]];
-const ALL = [...SPRINTS, ...DESKS];
+// REQ-321: the first predictive-mode case.
+const PREDICTIVE: [string, string][] = [["PMP", "pmp-clinic-fitout-schedule-variance"]];
+const ALL = [...SPRINTS, ...DESKS, ...PREDICTIVE];
 const courseOf = (slug: string) => ALL.find((c) => c[1] === slug)![0];
 const doc = (slug: string): ScenarioDoc => JSON.parse(readFileSync(join(seed, courseOf(slug), `${slug}.sim.json`), "utf8")) as ScenarioDoc;
 const golden = (slug: string) => JSON.parse(readFileSync(join(seed, courseOf(slug), `${slug}.golden.json`), "utf8")) as { paths: { id: string; seed: number; commands: Command[] }[] };
@@ -116,6 +118,36 @@ describe("project dashboard (Sprint mode)", () => {
           assert.equal(new Set(ids).size, ids.length);
         }
       }
+    }
+  });
+});
+
+describe("project dashboard (predictive mode, REQ-321)", () => {
+  const slug = "pmp-clinic-fitout-schedule-variance";
+  test("at the start: the objective and baseline, work packages by column, planned value from the kickoff, and issues read as issues", () => {
+    const run = createRun(doc(slug), 1);
+    const v = dashboardView(run)!;
+    assert.equal(v.mode, "predictive");
+    assert.match(v.heading, /end of week 0 of 8/);
+    assert.ok(v.commitments.some((c) => c.label === "Baseline" && /\$240,000/.test(c.text)));
+    assert.equal(v.columns.flatMap((c) => c.items).length, 4, "the unplanned sinks are not on the board");
+    const pv = v.chart!.series.find((x) => x.id === "pvS")!;
+    assert.equal(pv.points[0], 0);
+    assert.equal(pv.points[8], 240);
+    assert.match(dashboardSentence(v), /No open issues\./);
+  });
+
+  test("every golden path: at the end the chart has nine samples, earned value meets the plan only on the expert path, and an open risk or claim is spoken as an issue", () => {
+    for (const p of golden(slug).paths) {
+      const run = replay(slug, p.id);
+      const v = runView(run).dashboard!;
+      assert.equal(v.mode, "predictive");
+      const ev = v.chart!.series.find((x) => x.id === "evS")!.points;
+      assert.ok(ev.every((x) => x !== null), `${p.id}: nine samples`);
+      if (p.id === "expert") assert.equal(ev[8], 240);
+      else assert.ok((ev[8] as number) <= 240, p.id);
+      for (const t of dashboardAlarmTexts(v)) assert.match(t, /^(Open issue|Flagged): /);
+      assert.match(v.chart!.summary, /Status meeting 9 of 9/);
     }
   });
 });

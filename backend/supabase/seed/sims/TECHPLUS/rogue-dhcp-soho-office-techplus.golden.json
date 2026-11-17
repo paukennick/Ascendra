@@ -1,0 +1,897 @@
+{
+  "slug": "rogue-dhcp-soho-office-techplus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Compares a bad and a good ipconfig /all, checks the router's leases, finds the travel router, unplugs it and renews all three PCs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "front"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "good"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "routerLeases",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "unplug"
+          },
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "renewOthers",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 24,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "pingShare",
+          "seq": 15,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 25,
+          "seq": 16,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 17,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rogue"
+          },
+          "seq": 19,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidenceFirst": "met",
+          "atSource": "met",
+          "fixedFast": "met",
+          "renewedAll": "met",
+          "noDisruption": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 17,
+          "faultsK": 0,
+          "driverK": 0
+        },
+        "stateHash": "2024430a3040eb65"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "rebootFirst",
+      "title": "Reboots the office router first, then reads the lease, finds and unplugs the travel router and renews everyone",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rebootRouter",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "front"
+          },
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "unplug"
+          },
+          "seq": 7,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 20,
+          "seq": 8,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 22,
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "renewOthers",
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 25,
+          "seq": 12,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rogue"
+          },
+          "seq": 15,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "evidenceFirst": "partial",
+          "atSource": "met",
+          "fixedFast": "met",
+          "renewedAll": "met",
+          "noDisruption": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 18,
+          "faultsK": 1,
+          "driverK": 0
+        },
+        "stateHash": "d10ba03f16766bae"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "frontOnly",
+      "title": "Finds the travel router before reading any lease, unplugs it and renews only the front desk PC",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "unplug"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 12,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "front"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rogue"
+          },
+          "seq": 11,
+          "tick": 16
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "evidenceFirst": "partial",
+          "atSource": "met",
+          "fixedFast": "met",
+          "renewedAll": "partial",
+          "noDisruption": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 10,
+          "faultsK": 0,
+          "driverK": 0
+        },
+        "stateHash": "ee59760b11c22592"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "factoryReset",
+      "title": "Blames the router and restores it to factory defaults, then finds the real cause",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "front"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "reset"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "unplug"
+          },
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "renewOthers",
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rogue"
+          },
+          "seq": 15,
+          "tick": 21
+        }
+      ],
+      "expect": {
+        "ending": "routerWiped",
+        "class": "harm",
+        "rating": "bad",
+        "score": 71,
+        "criteria": {
+          "evidenceFirst": "met",
+          "atSource": "partial",
+          "fixedFast": "met",
+          "renewedAll": "met",
+          "noDisruption": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 14,
+          "faultsK": 1,
+          "driverK": 0
+        },
+        "stateHash": "5451662519f0aa6f"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "staticClose",
+      "title": "Types a static address on the front desk PC, sees it work and closes blaming the adapter",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pingShare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "static"
+          },
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "pingShare",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "nic"
+          },
+          "seq": 9,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "stillDown",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "evidenceFirst": "missed",
+          "atSource": "missed",
+          "fixedFast": "missed",
+          "renewedAll": "missed",
+          "noDisruption": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToFix": -1,
+          "faultsK": 0,
+          "driverK": 0
+        },
+        "stateHash": "2792b731f4b57434"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "driverDeadline",
+      "title": "Reinstalls the adapter driver twice and waits: the 09:30 deadline passes, then finds and fixes the travel router",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "nslookup",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "driver",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 16,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "driver",
+          "seq": 5,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 31,
+          "seq": 6,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 41,
+          "seq": 8,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 51,
+          "seq": 10,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 61,
+          "seq": 12,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 61,
+          "seq": 13,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "ipAll",
+          "params": {
+            "pc": "front"
+          },
+          "seq": 14,
+          "tick": 61
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 63,
+          "seq": 15,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 16,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 73,
+          "seq": 17,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "params": {
+            "change": "unplug"
+          },
+          "seq": 18,
+          "tick": 73
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 75,
+          "seq": 19,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "renew",
+          "seq": 20,
+          "tick": 75
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 77,
+          "seq": 21,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "renewOthers",
+          "seq": 22,
+          "tick": 77
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 80,
+          "seq": 23,
+          "tick": 77
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 24,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rogue"
+          },
+          "seq": 26,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "deadlineMissed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 86,
+        "criteria": {
+          "evidenceFirst": "met",
+          "atSource": "met",
+          "fixedFast": "partial",
+          "renewedAll": "met",
+          "noDisruption": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToFix": 73,
+          "faultsK": 0,
+          "driverK": 2
+        },
+        "stateHash": "23b92427ac43dfac"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

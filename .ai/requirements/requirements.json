@@ -11691,6 +11691,48 @@
         "Hover wash and focus ring are CSS selectors on react-native-web roles; a control without a role gets neither",
         "Header alignment uses the stack's header container styles; a screen that renders its own header option overrides would not be aligned"
       ]
+    },
+    {
+      "id": "REQ-321",
+      "category": "content",
+      "title": "Sims for the PMI and CompTIA courses that had none: breadth first, bands where a case already teaches the objective",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Production had 252 sims on 74 courses; every PMI course and eight CompTIA courses had none. Investigation: the project dashboard (REQ-311) shipped only Scrum Sprints (PSMI, and CSM bands); no PMI course was ever registered and the predictive mode had no document. No band or registration was broken. This builds, on existing screens only: bands of the Scrum Sprints for PMP, CAPM, PMI-ACP and Project+; bands of terminal, console, board and data-console cases for Server+, CloudNetX, Cloud+, AutoOps+, Data+, DataAI, Tech+, PMI-CPMAI and the CS degree foundations (CMPCBS); and the first predictive case, a PMP clinic fit-out (earned value, change control, a risk trigger, a status report and a contractor's claim) with bands for CAPM, PMI-SP, Project+, PMI-CP and PMI-RMP. PGMP, PFMP, PMI-PMOCP, PMI-PBA, CSPP and CAPA need new cases and are left open with proposals. Second part (sims-pm-2, same day): new cases for the six and PMI-RMP's top domain, on existing screens only: a PgMP program steering review, a PfMP portfolio rebalancing (PMI-PMOCP band), a CSPP P5 impact review and a PMI-RMP risk register (PMP, CAPM and Project+ bands) on the governance board; a PMI-PBA requirements baseline and sign-off on the project dashboard; a CAPA Argo Workflows DAG failure on the terminal. Depth for PMP's Process domain (41%): two purpose-written predictive cases, a contact center move (contract type, a borrowed engineer, a late vendor, a cost forecast; Project+ and PMI-CP bands) and a county permit portal (hybrid approach, PERT and parametric estimates, a legal amendment through integrated change control).",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/pm-comptia.ts",
+        "backend/lib/sim/pm-comptia.test.ts",
+        "backend/scripts/sim-golden/",
+        "mobile/src/sim/dashboard.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "every course of the round has a sim on its highest-weighted domain except PMI-RMP (risk response only) and the six left open",
+        "each band cites its own course outline read 2026-11-17 first and drops the base course outline",
+        "bands keep their base's behavior and golden outcomes",
+        "no Official Approved or Authorized claims",
+        "the predictive case lints with zero errors and its goldens reach every ending but time_up rated Good Mediocre and Bad",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/pm-comptia.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "lib/sim tests",
+        "mobile src/sim/dashboard.test.ts",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.31",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "sims-pm-2 (2026-11-17): the acceptance criterion's exceptions (PMI-RMP and the six open courses) are closed; every course of the round now has a sim on its highest-weighted domain, checked by pm-comptia.test.ts."
+      ]
     }
   ]
 }

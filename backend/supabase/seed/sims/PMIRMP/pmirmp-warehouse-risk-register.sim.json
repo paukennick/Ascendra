@@ -1,0 +1,1180 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmirmp-warehouse-risk-register",
+  "title": "A warehouse automation project's risk register: validating, rating, EMV and a trigger before peak season",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rSoft",
+          "label": "R2: the robot control software arrives late",
+          "spokenLabel": "Software delivery risk",
+          "owner": "{reg == \"validated\" ? \"Vendor manager\" : \"Not assigned\"}",
+          "rating": "softLate ? \"critical\" : emv == \"mitigate\" ? \"low\" : quali == \"matrix\" ? \"high\" : \"medium\"",
+          "appetite": "softLate or (p >= 3 and emv != \"mitigate\" and emv != \"transfer\") ? \"above\" : \"within\"",
+          "status": "{softLate ? \"Six weeks late: expedite costs 500 thousand dollars\" : emv == \"mitigate\" ? \"Parallel test environment: probability 0.4 to 0.1, EMV 200 to 50 thousand\" : emv == \"transfer\" ? \"Guaranteed-delivery addendum bought\" : emv == \"accept\" ? \"Accepted without analysis\" : quali == \"matrix\" ? \"Probability 0.4, impact high, urgent before peak\" : \"Not yet analyzed\"}"
+        },
+        {
+          "id": "rPeak",
+          "label": "R5: go-live in the week before peak season",
+          "spokenLabel": "Peak go-live risk",
+          "owner": "{trig == \"documented\" ? \"Warehouse operations manager\" : \"Not assigned\"}",
+          "when": "p >= 2",
+          "rating": "failedGoLive ? \"critical\" : trig == \"documented\" ? \"medium\" : \"high\"",
+          "appetite": "failedGoLive or (p >= 4 and trig != \"documented\") ? \"above\" : \"within\"",
+          "status": "{failedGoLive ? \"Went live at 91% and failed in the peak's first week\" : fallback ? \"Trigger fired at 91%: manual picking for peak, go-live after\" : trig == \"documented\" ? \"Trigger: test pass rate below 95% by week 10; response: manual picking for peak\" : trig == \"vague\" ? \"'Keep an eye on it'\" : \"No trigger\"}"
+        },
+        {
+          "id": "oDisc",
+          "label": "O1: 4% discount for taking the conveyor early (opportunity)",
+          "spokenLabel": "Early conveyor opportunity",
+          "owner": "\"Project manager\"",
+          "when": "reg == \"validated\"",
+          "rating": "\"medium\"",
+          "appetite": "\"within\"",
+          "status": "Classified as an opportunity; enhance by readying the floor a week early"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "COO, the sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "sponsor",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "Warehouse operations manager",
+          "spokenLabel": "the operations manager's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sFin",
+          "label": "Finance controller",
+          "spokenLabel": "the finance controller's support",
+          "value": "finance",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dReg",
+          "kind": "Risk register",
+          "label": "Week 2: thirty lines from the identification workshop",
+          "status": "{reg == \"validated\" ? \"Validated: 14 risks with cause, event and effect, owners, 1 opportunity; issues and assumptions moved to their logs\" : reg == \"asIs\" ? \"All thirty pasted in as written\" : reg == \"top5\" ? \"Five the sponsor mentioned\" : \"Due\"}",
+          "when": "p >= 1"
+        },
+        {
+          "id": "dQual",
+          "kind": "Qualitative analysis",
+          "label": "Week 4: rate and rank the register",
+          "status": "{quali == \"matrix\" ? \"Rated on the plan's probability and impact matrix, urgency added\" : quali == \"medium\" ? \"Everything rated medium\" : quali == \"gut\" ? \"Ranked by feel\" : \"Due\"}",
+          "when": "p >= 2"
+        },
+        {
+          "id": "dEmv",
+          "kind": "Response decision",
+          "label": "Week 6: what to do about R2",
+          "status": "{emv == \"mitigate\" ? \"Mitigation approved by the sponsor (80 thousand)\" : emv == \"transfer\" ? \"Addendum bought (220 thousand)\" : emv == \"accept\" ? \"Accepted\" : \"Due\"}",
+          "when": "p >= 3"
+        },
+        {
+          "id": "dTrig",
+          "kind": "Trigger",
+          "label": "Week 10: integration test pass rate 91% (target 95%)",
+          "status": "{fallback ? \"Fallback executed: manual picking for peak\" : \"Go-live goes ahead\"}",
+          "when": "p >= 5",
+          "flag": "p >= 5 and not fallback"
+        }
+      ],
+      "budget": {
+        "label": "Contingency reserve drawn",
+        "spent": "spent",
+        "total": "400",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mWeek",
+          "label": "Week",
+          "value": "{p * 2} of 12"
+        },
+        {
+          "id": "mEmv",
+          "label": "Expected monetary value of R2",
+          "value": "{emv == \"mitigate\" ? \"50 thousand dollars (after the response)\" : quali == \"matrix\" or emv != \"none\" ? \"200 thousand dollars\" : \"not calculated\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Developing a risk register: validating identified risks, assessing probability/impact/urgency, and classifying threats vs. opportunities",
+  "secondaryObjectives": [
+    "Performing qualitative analysis: classifying risks in an RBS, applying risk matrices, and prioritizing by impact/urgency",
+    "Performing quantitative analysis: sensitivity analysis (Monte Carlo, decision trees, expected monetary value) and risk weighting",
+    "Documenting risk triggers and thresholds based on context, including causes, timing, and consequences"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Risk Strategy and Planning 22%, Risk Identification 23%, Risk Analysis 23%, Risk Response 13%, Monitor and Close Risks 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment' ('Assess and document risk triggers, causes and timing'); Task 4 'Develop risk register' ('Analyze the validity of identified risks and triggers'; 'Examine the risk attributes like probability, impact, urgency'; 'Establish risk origin and ownership'; 'Classify risks as threats or opportunities'); Risk Analysis Task 1 'Perform qualitative analysis' ('Prioritize the risk based on impact, and urgency'; 'Apply the risk matrices'); Task 2 'Perform quantitative analysis' ('Perform sensitivity analysis', with Monte Carlo, decision trees, critical path and expected monetary value as examples). The objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The food distributor, the project, the probabilities, impacts, costs and support gauges are fictional teaching figures for exam practice, not measured values. Expected monetary value is probability times impact: 0.4 x 500 = 200 thousand dollars before the response, 0.1 x 500 = 50 after it."
+    }
+  ],
+  "brief": {
+    "situation": "You are the project risk manager at Harvest Lane Foods, a fictional food distributor, on a 12-week warehouse automation project: a new conveyor, picking robots and their control software, integrated with the warehouse system. Go-live is planned for week 11; the holiday peak starts in week 13. The sponsor holds a 400 thousand dollar contingency reserve.",
+    "handover": [
+      "The risk management plan defines a five-by-five probability and impact matrix, says urgency breaks ties, and says responses that draw on the reserve need the sponsor.",
+      "The identification workshop was last week; its thirty lines are on your desk."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words, the contingency drawn and the docket.",
+      "Move on two weeks at a time. A decision comes to you at each review; before the first you can read the plan or interview the vendor.",
+      "After week 12 you write the risk report and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-08-02T09:00",
+    "tick": "1d",
+    "maxDuration": "130d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 6
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "reg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "validated",
+        "asIs",
+        "top5"
+      ],
+      "init": "none"
+    },
+    "quali": {
+      "type": "enum",
+      "values": [
+        "none",
+        "matrix",
+        "medium",
+        "gut"
+      ],
+      "init": "none"
+    },
+    "emv": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mitigate",
+        "accept",
+        "transfer"
+      ],
+      "init": "none"
+    },
+    "trig": {
+      "type": "enum",
+      "values": [
+        "none",
+        "documented",
+        "vague",
+        "skipped"
+      ],
+      "init": "none"
+    },
+    "softLate": {
+      "type": "bool",
+      "init": false
+    },
+    "failedGoLive": {
+      "type": "bool",
+      "init": false
+    },
+    "fallback": {
+      "type": "bool",
+      "init": false
+    },
+    "sponsor": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "finance": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "vendorAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "spent": {
+      "expr": "(emv == \"mitigate\" ? 80 : emv == \"transfer\" ? 220 : 0) + (softLate ? 500 : 0) + (fallback ? 60 : 0) + (failedGoLive ? 300 : 0)"
+    },
+    "spendPct": {
+      "expr": "spent / 400 * 100"
+    },
+    "aboveCount": {
+      "expr": "(emv == \"mitigate\" or emv == \"transfer\" ? 0 : 1) + (trig == \"documented\" ? 0 : 1)"
+    },
+    "minSupport": {
+      "expr": "min(sponsor, min(ops, finance))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The project",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "vendor"
+      ]
+    },
+    "close": {
+      "label": "Risk report",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "Read the risk management plan's definitions",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the plan's scales.",
+          "kind": "act"
+        },
+        {
+          "finding": "Probability bands 0.1 to 0.9; impact bands by cost and days of delay; risks scoring high and due within 8 weeks are urgent; anything above 100 thousand dollars of exposure gets a quantified response for the sponsor."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "vendor": {
+      "label": "Interview the robot vendor's project lead",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(vendorAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "vendorAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask how the control software is tested.",
+          "kind": "act"
+        },
+        {
+          "finding": "The software has never been tested against this warehouse system's interfaces; the vendor tests against a simulator. Two of its last three deliveries were late."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the risk report",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the risk report says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The register as validated, the ratings and EMV, the responses and the trigger that fired, the reserve drawn, and the risks closed or carried"
+                },
+                {
+                  "value": "summary",
+                  "label": "No major risks occurred"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next risk review",
+      "wait": {
+        "skipLabel": "Go to the next risk review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "emv == \"accept\"",
+              "then": [
+                {
+                  "set": "softLate",
+                  "to": "true"
+                },
+                {
+                  "add": "finance",
+                  "by": "-3"
+                },
+                {
+                  "log": "Week 8: the vendor says the robot control software is six weeks late. Expediting it costs 500 thousand dollars.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "if": "emv == \"mitigate\"",
+              "then": [
+                {
+                  "log": "Week 8: the parallel test environment catches two interface defects early; the software lands on time.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 5",
+          "then": [
+            {
+              "log": "Week 10: integration test pass rate 91% against the 95% threshold.",
+              "kind": "sys"
+            },
+            {
+              "if": "trig == \"documented\"",
+              "then": [
+                {
+                  "set": "fallback",
+                  "to": "true"
+                },
+                {
+                  "add": "sponsor",
+                  "by": "1"
+                },
+                {
+                  "log": "The documented trigger fires: operations runs peak on manual picking with 20 temporary staff (60 thousand dollars); go-live moves to after peak.",
+                  "kind": "good"
+                }
+              ],
+              "else": [
+                {
+                  "set": "failedGoLive",
+                  "to": "true"
+                },
+                {
+                  "add": "sponsor",
+                  "by": "-3"
+                },
+                {
+                  "add": "ops",
+                  "by": "-3"
+                },
+                {
+                  "log": "Go-live goes ahead at 91%. In peak's first week the robots mis-pick 8% of orders; recovery costs 300 thousand dollars.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 6",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Week 12: the project closes its risk log for peak.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_regPrompt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the register is due.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "regPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_qualPrompt",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 4: the register needs ratings.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "qualPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_emvPrompt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 6: the sponsor asks about the robot software.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "emvPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_trigPrompt",
+      "when": "p == 4 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 8: the operations manager asks about go-live.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "trigPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "regPrompt": {
+      "title": "Week 2: the identification workshop's output",
+      "context": "Thirty lines from the workshop, among them: 'integration may be hard', 'the robot vendor is new to us', 'the budget is tight', 'the floor slab was repaired last year', 'the conveyor is already a week late', and 'the conveyor supplier offers 4% off if we take delivery early'.",
+      "choices": [
+        {
+          "id": "validated",
+          "label": "Validate each line: rewrite real risks as cause, event and effect with an owner; move issues (the late conveyor) and assumptions (the floor) to their logs; mark the early-delivery discount as an opportunity",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"validated\""
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "The register holds 14 validated risks and one opportunity, each with an owner.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A register holds validated risks with their attributes and owners, classified as threats or opportunities; issues and assumptions belong elsewhere."
+        },
+        {
+          "id": "asIs",
+          "label": "Paste all thirty lines into the register as written",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"asIs\""
+            },
+            {
+              "add": "sponsor",
+              "by": "-1"
+            },
+            {
+              "log": "Thirty lines, several of them not risks.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Vague lines, issues and constraints in a register hide the real risks."
+        },
+        {
+          "id": "top5",
+          "label": "Keep only the five the sponsor mentioned",
+          "effects": [
+            {
+              "set": "reg",
+              "to": "\"top5\""
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "Five risks remain.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Filtering by who spoke drops risks before they have been validated or rated."
+        }
+      ]
+    },
+    "qualPrompt": {
+      "title": "Week 4: rate and rank the register",
+      "context": "The risk management plan has a five-by-five probability and impact matrix and says urgency (how soon a risk could occur) breaks ties. Peak season starts in week 13.",
+      "choices": [
+        {
+          "id": "matrix",
+          "label": "Rate each risk on the plan's matrix, add urgency, rank them, and group them by the risk breakdown structure",
+          "effects": [
+            {
+              "set": "quali",
+              "to": "\"matrix\""
+            },
+            {
+              "add": "sponsor",
+              "by": "1"
+            },
+            {
+              "log": "Top of the list: R2 software delivery (probability 0.4, high impact, urgent) and R5 go-live before peak.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Qualitative analysis applies the plan's matrix and prioritizes by impact and urgency."
+        },
+        {
+          "id": "medium",
+          "label": "Rate everything medium so the sponsor is not alarmed",
+          "effects": [
+            {
+              "set": "quali",
+              "to": "\"medium\""
+            },
+            {
+              "log": "Every risk is medium.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A flat rating hides the risks that need responses first."
+        },
+        {
+          "id": "gut",
+          "label": "Rank them by feel; the matrix takes too long",
+          "effects": [
+            {
+              "set": "quali",
+              "to": "\"gut\""
+            },
+            {
+              "log": "Ranked by judgment.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Without the plan's definitions, ratings cannot be compared or defended."
+        }
+      ]
+    },
+    "emvPrompt": {
+      "title": "Week 6: what to do about R2",
+      "context": "R2: probability 0.4 that the robot control software is late, costing about 500 thousand dollars to expedite. A parallel test environment (80 thousand) would let the vendor test against the real interfaces and cut the probability to about 0.1. The vendor also offers a guaranteed-delivery addendum for 220 thousand dollars.",
+      "choices": [
+        {
+          "id": "mitigate",
+          "label": "Work out the expected monetary value (0.4 x 500 = 200 before, 0.1 x 500 = 50 after) and recommend the 80 thousand dollar mitigation to the sponsor: it buys 150 thousand of expected value",
+          "effects": [
+            {
+              "set": "emv",
+              "to": "\"mitigate\""
+            },
+            {
+              "add": "finance",
+              "by": "1"
+            },
+            {
+              "log": "The sponsor approves the mitigation from the contingency reserve.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Quantitative analysis such as EMV compares a response's cost with the exposure it removes."
+        },
+        {
+          "id": "accept",
+          "label": "Accept it: the vendor says it will be fine",
+          "effects": [
+            {
+              "set": "emv",
+              "to": "\"accept\""
+            },
+            {
+              "log": "R2 accepted, with no reserve set aside.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Accepting a high, urgent risk without analysis or a reserve leaves the exposure in place."
+        },
+        {
+          "id": "transfer",
+          "label": "Buy the vendor's guaranteed-delivery addendum for 220 thousand dollars",
+          "effects": [
+            {
+              "set": "emv",
+              "to": "\"transfer\""
+            },
+            {
+              "add": "finance",
+              "by": "-1"
+            },
+            {
+              "log": "Addendum bought.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Transfer works, but it costs more than the exposure it removes (EMV 200)."
+        }
+      ]
+    },
+    "trigPrompt": {
+      "title": "Week 8: go-live is the week before peak",
+      "context": "Go-live is planned for week 11; peak season starts in week 13. The operations manager asks what happens if integration testing is not ready.",
+      "choices": [
+        {
+          "id": "documented",
+          "label": "Document R5's trigger and threshold: if the integration test pass rate is below 95% by week 10, run peak on manual picking with temporary staff (60 thousand dollars) and go live after peak; owner, the operations manager",
+          "effects": [
+            {
+              "set": "trig",
+              "to": "\"documented\""
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Trigger, threshold, response and owner recorded.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A trigger states the observable condition, its timing and the threshold that starts the response."
+        },
+        {
+          "id": "vague",
+          "label": "Note 'keep an eye on testing' in the register",
+          "effects": [
+            {
+              "set": "trig",
+              "to": "\"vague\""
+            },
+            {
+              "log": "Noted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "'Keep an eye on it' names no condition, threshold or owner, so nothing starts the response."
+        },
+        {
+          "id": "skipped",
+          "label": "No need: the vendor's test plan covers it",
+          "effects": [
+            {
+              "set": "trig",
+              "to": "\"skipped\""
+            },
+            {
+              "log": "No trigger recorded.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The vendor's plan is not the project's response to its own go-live risk."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the risk report for the sponsor: how the register was built and rated, how R2 was analyzed and treated, and what R5's trigger did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Register and ratings",
+          "criteria": "Validates the lines into risks with cause, event and effect and owners; separates issues and assumptions; classifies the opportunity; rates on the plan's matrix with urgency.",
+          "modelAnswer": "Of thirty lines, 14 were risks, rewritten with cause, event and effect and owners; the late conveyor went to the issue log and the floor to the assumption log; the discount is an opportunity. On the plan's matrix with urgency, R2 and R5 ranked first."
+        },
+        {
+          "label": "Analysis, response and trigger",
+          "criteria": "Calculates R2's EMV before and after the response and compares it with the cost; documents R5's trigger, threshold, response and owner, and says it fired.",
+          "modelAnswer": "R2's EMV was 200 thousand dollars; an 80 thousand test environment brought it to 50, and the software landed on time. R5's trigger was a pass rate below 95% by week 10; it fired at 91%, so peak ran on manual picking and go-live followed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Contingency drawn within the 400 thousand dollar reserve."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a response."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "The sponsor, operations and finance at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and reg == \"top5\" and quali == \"gut\"",
+      "class": "recovered",
+      "rationale": "A thin register is a gap, not harm, unless a risk it missed occurs.",
+      "source": {
+        "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Risk Strategy and Planning 22%, Risk Identification 23%, Risk Analysis 23%, Risk Response 13%, Monitor and Close Risks 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment' ('Assess and document risk triggers, causes and timing'); Task 4 'Develop risk register' ('Analyze the validity of identified risks and triggers'; 'Examine the risk attributes like probability, impact, urgency'; 'Establish risk origin and ownership'; 'Classify risks as threats or opportunities'); Risk Analysis Task 1 'Perform qualitative analysis' ('Prioritize the risk based on impact, and urgency'; 'Apply the risk matrices'); Task 2 'Perform quantitative analysis' ('Perform sensitivity analysis', with Monte Carlo, decision trees, critical path and expected monetary value as examples). The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "materialized": {
+      "label": "Peak-season go-live failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and failedGoLive",
+      "narrative": "The robots went live at a 91% pass rate and mis-picked orders through the first week of peak."
+    },
+    "overspend": {
+      "label": "Contingency overdrawn",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and spendPct > budgetCap",
+      "narrative": "The project drew {spent} thousand dollars against a 400 thousand dollar reserve."
+    },
+    "managed": {
+      "label": "Risks registered, rated and handled",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and reg == \"validated\" and quali == \"matrix\" and emv == \"mitigate\" and trig == \"documented\" and record == \"honest\" and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "Peak ran on manual picking as planned, the software arrived on time and the reserve gave up 140 thousand dollars."
+    },
+    "partly": {
+      "label": "Through peak, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The project got through peak, but the criteria show where the register or the analysis fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "materialized",
+    "overspend",
+    "managed",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "regCrit",
+        "label": "Validated the register: risks with owners, issues and assumptions out, threats and opportunities classified",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reg == \"validated\"",
+            "score": "met",
+            "why": "Fourteen risks and one opportunity."
+          },
+          {
+            "when": "reg == \"top5\"",
+            "score": "partial",
+            "why": "Filtered, not validated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Thirty unvalidated lines."
+          }
+        ]
+      },
+      {
+        "id": "qualCrit",
+        "label": "Rated on the plan's matrix and prioritized by impact and urgency",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "quali == \"matrix\"",
+            "score": "met",
+            "why": "Matrix and urgency."
+          },
+          {
+            "when": "quali == \"gut\"",
+            "score": "partial",
+            "why": "Ranked by feel."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Everything medium."
+          }
+        ]
+      },
+      {
+        "id": "emvCrit",
+        "label": "Quantified R2 and chose the response on its expected value",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "emv == \"mitigate\"",
+            "score": "met",
+            "why": "EMV 200 to 50 for 80."
+          },
+          {
+            "when": "emv == \"transfer\"",
+            "score": "partial",
+            "why": "Treated, at more than the exposure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Accepted without analysis."
+          }
+        ]
+      },
+      {
+        "id": "trigCrit",
+        "label": "Documented R5's trigger, threshold, response and owner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "trig == \"documented\"",
+            "score": "met",
+            "why": "Fired at 91%."
+          },
+          {
+            "when": "trig == \"vague\"",
+            "score": "partial",
+            "why": "No threshold or owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No trigger."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The risk report is complete",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spentK",
+        "label": "Contingency drawn, thousand dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "140"
+      },
+      {
+        "id": "aboveK",
+        "label": "Risks above appetite at close",
+        "value": "aboveCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before week 2",
+        "text": "Read the plan's definitions; interview the vendor."
+      },
+      {
+        "at": "Week 2",
+        "text": "Validate the thirty lines into a register with owners; classify the opportunity."
+      },
+      {
+        "at": "Week 4",
+        "text": "Rate on the plan's matrix with urgency."
+      },
+      {
+        "at": "Week 6",
+        "text": "EMV 200 before, 50 after: recommend the 80 thousand mitigation."
+      },
+      {
+        "at": "Week 8",
+        "text": "Document R5's trigger: below 95% by week 10, manual picking for peak."
+      },
+      {
+        "at": "Week 10-12",
+        "text": "The trigger fires; run the fallback; write the report."
+      }
+    ],
+    "debrief": {
+      "materialized": {
+        "headline": "No trigger, no response",
+        "body": "A documented trigger with a threshold and an owner would have started the fallback at 91%."
+      },
+      "overspend": {
+        "headline": "An accepted risk occurred",
+        "body": "R2 was accepted without analysis; its 500 thousand dollar impact exceeded the whole reserve."
+      },
+      "managed": {
+        "headline": "Good: registered, rated, quantified and triggered",
+        "body": "A validated register, the plan's matrix, EMV for the response decision and a trigger that started the fallback on time."
+      },
+      "partly": {
+        "headline": "Through peak, with gaps",
+        "body": "The criteria show which step was missed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A register holds validated risks: each a cause, an uncertain event and an effect, with probability, impact, urgency and an owner; issues and assumptions go to their own logs and opportunities are classified as such. Qualitative analysis applies the plan's matrix and urgency so the urgent, high risks rise. For a risk with large exposure, expected monetary value (probability times impact) compares the response's cost with the exposure it removes: 200 down to 50 for 80 is worth it; 220 for a 200 exposure is not. A trigger is an observable condition with a threshold and timing that starts a documented response: below 95% by week 10, run peak on manual picking."
+  }
+}
