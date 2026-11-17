@@ -19151,6 +19151,34 @@
       "prevention_rules": [],
       "prevention_notes": "A role=link Pressable without href is not keyboard-operable on react-native-web; use role=button or give it an href. The test pins every link in the sidebar to webLink().",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2442",
+      "date": "2026-11-17",
+      "title": "Home footer and sign-in Terms and Privacy links could be focused but not opened with Enter on the web",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the web, Tab reached the Home footer links (About, FAQ, Disclaimer, Privacy Policy, Cookies & Storage, Terms, Sources) and the sign-in screen's Terms of Service and Privacy Policy links, but Enter did nothing; only a mouse click opened them.",
+      "how_detected": "Code review during the wave/2026-11-17c integration, from the cause of FAIL-2441 (the sidebar's links): a grep for role=\"link\" / accessibilityRole=\"link\" without an href.",
+      "root_cause": "react-native-web leaves Enter on an element with role=link to the browser, and the browser does nothing for an anchor without an href. The footer Pressable and the two login Text links had a link role and onPress but no href.",
+      "requirement": "REQ-328",
+      "affected": [
+        "mobile/app/(app)/index.tsx Footer",
+        "mobile/app/(auth)/login.tsx Terms and Privacy links",
+        "mobile/src/components/Sidebar.tsx (webLink moved, unchanged)"
+      ],
+      "fix_summary": "Each of these links is a real <a href> on the web through linkProps(Platform.OS, path, go) in mobile/src/lib/webLink.ts (the sidebar's webLink, moved there): Enter and clicks arrive as a click, onPress prevents the page load and navigates in the app, Ctrl/Cmd/Shift-click is left to the browser. The native apps get onPress only, as before. No other link-role element without an href was found in app/ or src/.",
+      "fix_commits": [
+        "146b1e59"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/webLink.test.ts::FAIL-2442: every link in the app is a real anchor on the web",
+        "mobile/src/lib/webLink.test.ts::webLink / linkProps"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "webLink.test.ts scans every .tsx file in mobile/app and mobile/src for a tag with role=\"link\" or accessibilityRole=\"link\" and fails if it neither spreads linkProps()/webLink() nor sets href.",
+      "recurrence_of": "FAIL-2441"
     }
   ]
 }
