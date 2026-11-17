@@ -6,6 +6,14 @@
 // body's marks; checks the one switch every reader goes through
 // (lib/unbranded.ts) and the prompt and email paths built on it. Server
 // responses are scanned in lib/unbranded.dbtest.ts.
+//
+// REQ-324 (Nick, 2026-11-17): naming is back on for these courses
+// (UNBRANDED_NAMING_ON false), so the learner-facing scan is gone: the
+// course, its exam card, prompts and emails name the exam. What is checked
+// now: the switch is off and every reader honors it, turning it on still
+// hides everything (so it can be turned on again in one line), the reference
+// line and disclaimer stay, and sims still name none of these bodies
+// (lib/sim/cert-marks.test.ts).
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -22,10 +30,12 @@ import {
   REFERENCE_LINE_ON,
   MARK_EVIDENCE,
   COURSE_REFERENCES,
+  UNBRANDED_NAMING_ON,
   deliveryOf,
   examReferenceForCode,
-  isUnbrandedCode,
   learnerExamNames,
+  namesHiddenForCode,
+  namesHiddenForProvider,
   learnerTrackRow,
   markIn,
   publishedExamFacts,
@@ -35,7 +45,6 @@ import {
 import { currentFactsBlock } from "./current-facts";
 import { domainFraming, goalLine } from "./prompts";
 import { shortCourseName } from "./reminder-plan";
-import { MOCK_EXAM_FACTS } from "./mock-exam-facts";
 
 const byCode = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const ANY_PERMISSION_MARK = new RegExp(UNBRANDED_BODIES.map((b) => b.marks.source).join("|"));
@@ -123,26 +132,45 @@ describe("REQ-319: one list of unbranded bodies", () => {
   });
 });
 
-describe("REQ-319: no learner-facing string of an unbranded course names its body", () => {
-  for (const b of UNBRANDED_BODIES)
-    for (const code of b.codes)
-      test(`${b.name} ${code}`, () => {
-        const strs = learnerStrings(code);
-        assert.ok(strs.length > 50, `${code}: only ${strs.length} strings scanned`);
-        const bad = strs.filter((s) => markIn(code, s.text)).map((s) => `${s.path}: ${markIn(code, s.text)} in "${s.text.slice(0, 120)}"`);
-        assert.deepEqual(bad, []);
-      });
+describe("REQ-324: the switch is off, and on would still hide every name", () => {
+  test("off: names, codes and the current-facts block name the exam", () => {
+    assert.equal(UNBRANDED_NAMING_ON, false);
+    assert.equal(namesHiddenForCode("CISSP"), false);
+    assert.equal(namesHiddenForProvider("isc2"), false);
+    const n = learnerExamNames({ providerSlug: "isc2", providerName: "ISC2", credentialName: "Certified Information Systems Security Professional (CISSP)", examCode: null });
+    assert.deepEqual([n.providerName, n.credentialName, n.unbranded], ["ISC2", "Certified Information Systems Security Professional (CISSP)", false]);
+    assert.deepEqual(learnerTrackRow({ code: "CISSP", user_id: null }), { code: "CISSP", user_id: null });
+    assert.match(currentFactsBlock(byCode.get("CISSP")!) ?? "", /Certified Information Systems Security Professional \(CISSP\)/);
+    assert.match(currentFactsBlock(byCode.get("PCEP")!) ?? "", /PCEP-30-03/);
+  });
 
-  test("the scan catches a mark in a unit title, an objective, a lab and a key value", () => {
+  test("on: every name and code is hidden again, by the same readers", () => {
+    assert.equal(namesHiddenForCode("CISSP", true), true);
+    assert.equal(namesHiddenForCode("SECPLUS", true), false);
+    assert.equal(learnerExamNames({ providerSlug: "isc2", providerName: "ISC2", credentialName: "CISSP" }, true).credentialName, null);
+    assert.equal(learnerTrackRow({ code: "CISSP", user_id: null }, true).code, "INFOSEC-PRO");
+  });
+
+  test("the scan helper still finds a body's mark (kept for the sims and for switching back)", () => {
     const t = structuredClone(byCode.get("CISSP")!) as SeedTrack;
     t.units[0].objectives[0] += " (ISC2)";
     const out: { path: string; text: string }[] = [];
     strings(t, "track", out);
-    assert.ok(out.some((s) => markIn("CISSP", s.text)));
+    assert.ok(out.some((x) => markIn("CISSP", x.text)));
     assert.equal(markIn("ITIL5FND", "the ITIL value system"), "ITIL");
     assert.equal(markIn("FNPANCC", "an ACE inhibitor"), null, "homonym");
     assert.equal(markIn("SECPLUS", "ISC2"), null, "not an unbranded course");
     assert.ok(MARK_HOMONYMS.flags.includes("g"));
+    assert.ok(learnerStrings("CISSP").length > 50);
+  });
+
+  test("objective titles REQ-319 renamed only for marks are the bodies' wording again (REQ-324)", () => {
+    const has = (code: string, o: string) => byCode.get(code)!.units.some((u) => u.objectives.includes(o));
+    assert.ok(has("CISSP", "Apply the ISC2 Code of Professional Ethics and an organizational code of ethics to a professional dilemma"));
+    assert.ok(has("ISC2CC", "Apply the ISC2 Code of Ethics canons, due care and due diligence to a workplace dilemma"));
+    assert.ok(byCode.get("ITIL5FND")!.units.some((u) => u.title === "The ITIL Value System"));
+    const objectives = UNBRANDED_BODIES.flatMap((b) => b.codes).flatMap((c) => byCode.get(c)!.units.flatMap((u) => u.objectives));
+    assert.deepEqual(objectives.filter((o) => /certifying body|the framework\b|phased integrated training model|five-phase ethical hacking methodology/.test(o)), []);
   });
 });
 
@@ -167,7 +195,6 @@ describe("REQ-319: learners still know which exam it is", () => {
         domains: units.map((u) => ({ name: u.title, weightPercent: u.weight ?? null })),
       });
       assert.equal(facts.reference, null);
-      assert.equal(markIn(code, JSON.stringify(facts)), null, code);
     });
 
   test("adaptive exams are the adaptive ones (the two security exams that use CAT), the rest linear", () => {
@@ -182,23 +209,20 @@ describe("REQ-319: learners still know which exam it is", () => {
     assert.equal(timeLabel(255), "255 minutes");
   });
 
-  test("no mock-exam fact entry names an unbranded course's body (there are none today)", () => {
-    for (const f of MOCK_EXAM_FACTS) if (isUnbrandedCode(f.code)) assert.equal(markIn(f.code, `${f.body} ${f.examCode ?? ""} ${f.notReproduced ?? ""}`), null, f.code);
-  });
 });
 
 describe("REQ-319: every reader goes through one switch", () => {
-  test("learnerExamNames nulls the names and code for an unbranded provider only", () => {
-    const n = learnerExamNames({ providerSlug: "isc2", providerName: "ISC2", credentialName: "CISSP", examCode: "X", examRevision: "CISSP v9" });
+  test("learnerExamNames nulls the names and code for an unbranded provider only, when the switch is on", () => {
+    const n = learnerExamNames({ providerSlug: "isc2", providerName: "ISC2", credentialName: "CISSP", examCode: "X", examRevision: "CISSP v9" }, true);
     assert.deepEqual([n.providerName, n.credentialName, n.examCode, n.examRevision, n.unbranded], [null, null, null, null, true]);
-    const c = learnerExamNames({ providerSlug: "comptia", providerName: "CompTIA", credentialName: "CompTIA Security+", examCode: "SY0-701" });
+    const c = learnerExamNames({ providerSlug: "comptia", providerName: "CompTIA", credentialName: "CompTIA Security+", examCode: "SY0-701" }, true);
     assert.deepEqual([c.providerName, c.examCode, c.unbranded], ["CompTIA", "SY0-701", false]);
   });
 
-  test("learnerTrackRow shows the display code for a catalog course only", () => {
-    assert.deepEqual(learnerTrackRow({ code: "CISSP", user_id: null, title: "t" }), { code: "INFOSEC-PRO", user_id: null, title: "t", unbranded: true });
-    assert.deepEqual(learnerTrackRow({ code: "CISSP", user_id: "u1" }), { code: "CISSP", user_id: "u1" }, "a learner's own course keeps its code");
-    assert.deepEqual(learnerTrackRow({ code: "SECPLUS", user_id: null }), { code: "SECPLUS", user_id: null });
+  test("learnerTrackRow shows the display code for a catalog course only, when the switch is on", () => {
+    assert.deepEqual(learnerTrackRow({ code: "CISSP", user_id: null, title: "t" }, true), { code: "INFOSEC-PRO", user_id: null, title: "t", unbranded: true });
+    assert.deepEqual(learnerTrackRow({ code: "CISSP", user_id: "u1" }, true), { code: "CISSP", user_id: "u1" }, "a learner's own course keeps its code");
+    assert.deepEqual(learnerTrackRow({ code: "SECPLUS", user_id: null }, true), { code: "SECPLUS", user_id: null });
   });
 
   test("every source file that reads the exam body's or credential's name passes it through learnerExamNames", () => {
@@ -225,34 +249,24 @@ describe("REQ-319: every reader goes through one switch", () => {
   });
 });
 
-describe("REQ-319: prompts and emails for an unbranded course", () => {
-  test("every prompt carries the rule, and the goal line names no exam", () => {
+describe("REQ-319/REQ-324: prompts and emails for a permission body's course", () => {
+  test("the prompt rule is added only when names are hidden; with the switch off the coach context carries none", () => {
     const ctx = { trackTitle: byCode.get("CISSP")!.title, trackType: "certification", unbranded: true, credentialName: null, providerName: null, examCode: null };
     assert.ok(domainFraming(ctx).includes(unbrandedPromptRule()));
     assert.ok(!domainFraming({ ...ctx, unbranded: false }).includes(unbrandedPromptRule()));
-    assert.equal(markIn("CISSP", goalLine(ctx)), null);
+    assert.equal(markIn("CISSP", goalLine({ ...ctx, trackTitle: "a course" })), null);
+    const names = learnerExamNames({ providerSlug: "isc2", providerName: "ISC2", credentialName: "CISSP", examCode: null });
+    assert.equal(names.unbranded, false, "coach-context passes names.unbranded, so no rule is added");
   });
 
-  test("the current-facts block names no mark outside the cited source titles and URLs", () => {
-    for (const code of UNBRANDED_CODES) {
-      const t = byCode.get(code)!;
-      const citations = t.units.flatMap((u) => (u.sources ?? []).flatMap((s) => [s.title, s.url]));
-      for (const unit of [null, ...t.units.filter((u) => !u.retiredAt).map((u) => u.title)]) {
-        let block = currentFactsBlock(t, unit) ?? "";
-        for (const c of citations) block = block.split(c).join("");
-        assert.equal(markIn(code, block), null, `${code} / ${unit ?? "course"}`);
-      }
-    }
-  });
-
-  test("the reminder and countdown short name falls back to the course title", () => {
-    for (const code of UNBRANDED_CODES) {
+  test("the reminder and countdown short name names the exam", () => {
+    for (const code of ["CISSP", "CISM", "NCE", "PCEP"]) {
       const t = byCode.get(code)!;
       const c = t.credential!;
       const name = shortCourseName(
         learnerExamNames({ providerSlug: c.providerSlug, providerName: c.providerName, credentialName: c.credentialName, examCode: c.examCode ?? null, trackTitle: t.title })
       );
-      assert.equal(markIn(code, name), null, `${code}: ${name}`);
+      assert.ok(markIn(code, name), `${code}: ${name}`);
     }
   });
 });

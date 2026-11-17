@@ -26,8 +26,8 @@ const DOMAINS = [
 describe("REQ-239: Prep for the NCE and Prep for the NCMHCE", () => {
   test("each is in the catalog once, under counseling licensure, as a gated certification course", () => {
     for (const [t, title] of [
-      [NCE_TRACK, "Prep for a counselor licensure and certification knowledge exam"],
-      [NCMHCE_TRACK, "Prep for a case-based clinical mental health counseling licensure exam"],
+      [NCE_TRACK, "Exam Prep for NCE®"],
+      [NCMHCE_TRACK, "Exam Prep for NCMHCE®"],
     ] as const) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1);
       assert.equal(t.title, title);

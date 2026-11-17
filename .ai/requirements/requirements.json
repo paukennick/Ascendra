@@ -11602,6 +11602,46 @@
         "Linear format is inferred from a fixed form",
         "Not legal advice"
       ]
+    },
+    {
+      "id": "REQ-324",
+      "category": "trademarks",
+      "title": "Exam course titles name the exam: 'Exam Prep for <Exam> (<code>)'; unbranded naming off",
+      "description": "Nick 2026-11-17 03:33 PT: 'The current naming is not going to work. Courses that are publicly named the course or exam should remain that way.' Scope: all courses, the 13 permission-only bodies included; 03:40 PT: title form 'Exam Prep for <Exam> (<code>)' for every exam course. Exam names and codes as the body publishes them; parentheses omitted where there is no separate code; ® or ™ only where the owner marks the name so, and on first use where its guideline asks (Linux Foundation, PMI). The exam card, practice exam, emails, prompts, course codes and objective titles name the exam again (lib/unbranded.ts UNBRANDED_NAMING_ON false); the reference line and specific disclaimer stay; sims still name no permission body. App name and icon carry no mark.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "every exam course title matches ^Exam Prep for and names its exam body's mark",
+        "a published exam code is in parentheses (Red Hat numbers aside)",
+        "no Official/Approved/Authorized/Certified by/Master claim outside the exam's own name",
+        "symbols backed by owner evidence (TITLE_SYMBOLS or MARK_EVIDENCE)",
+        "every exam course description still ends with its disclaimer",
+        "permission bodies keep the reference line",
+        "UNBRANDED_NAMING_ON is false and every reader honors it",
+        "objectives REQ-319 renamed only for marks use the body's wording",
+        "sims unchanged (certMarkProblems)"
+      ],
+      "validation_required": [
+        "backend lib/catalog-trademarks.test.ts",
+        "backend lib/unbranded.test.ts",
+        "backend lib/unbranded.dbtest.ts",
+        "backend lib/reminder-plan.test.ts",
+        "backend course tests"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "README.md",
+        "backend/lib/release-notes.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "risk_notes": [
+        "Not legal advice; CompTIA",
+        "AWS",
+        "Microsoft and the Linux Foundation guidelines discourage marks in product names (Nick chose this form knowingly)",
+        "Objective retitles invalidate stored lessons for those objectives (FAIL-893)",
+        "Scrum.org ™ read only from a search result title"
+      ]
     }
   ]
 }

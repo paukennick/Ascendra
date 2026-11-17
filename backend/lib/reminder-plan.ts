@@ -141,7 +141,7 @@ export const COURSE_NAME_MAX = 18;
 export const TOPIC_MAX = 40;
 
 const VENDOR_PREFIX =
-  /^(AWS Certified|Microsoft Certified:|Google Cloud Certified -|Google Cloud|Google|Certified|Prep for|CompTIA|Cisco|PMI|ISC2|\(ISC\)²)\s+/i;
+  /^(AWS Certified|Microsoft Certified:|Google Cloud Certified -|Google Cloud|Google|Certified|Exam Prep for|Prep for|CompTIA|Cisco|PMI|ISC2|\(ISC\)²)\s+/i;
 
 function ellipsize(s: string, max: number): string {
   if (s.length <= max) return s;

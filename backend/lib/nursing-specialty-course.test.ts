@@ -21,7 +21,7 @@ const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 export function commonChecks(t: SeedTrack, title: string, subcategory: string, notAffiliated: RegExp) {
   assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1, `${t.code} once in the catalog`);
   assert.equal(t.title, title);
-  assert.match(t.title, /^Prep for an? [^®™]+ (exam|assessment|test)( \(.+\))?$/); // REQ-309
+  assert.match(t.title, /^Exam Prep for \S.+$/); // REQ-324
   assert.equal(t.subcategorySlug, subcategory);
   assert.equal(t.credential?.subcategorySlug, subcategory);
   assert.equal(t.trackType, "certification");
@@ -55,7 +55,7 @@ export function commonChecks(t: SeedTrack, title: string, subcategory: string, n
 
 describe("REQ-277: Prep for the PCCN Exam", () => {
   test("in the catalog once, as a gated nursing specialty certification in the clinical plan, AACN as provider", () => {
-    commonChecks(PCCN_TRACK, "Prep for a progressive care nursing certification exam", "nursing-specialty-certifications", /not affiliated with or endorsed by AACN Certification Corporation/);
+    commonChecks(PCCN_TRACK, "Exam Prep for PCCN®", "nursing-specialty-certifications", /not affiliated with or endorsed by AACN Certification Corporation/);
     assert.equal(PCCN_TRACK.credential?.providerSlug, "aacn-certification-corp");
     assert.equal(PCCN_TRACK.credential?.basis, "vendor_exam_unpublished_code");
     assert.equal(PCCN_TRACK.credential?.examCode, undefined);
@@ -98,7 +98,7 @@ describe("REQ-277: Prep for the PCCN Exam", () => {
 
 describe("REQ-276: Prep for the Certified Emergency Nurse (CEN) Exam", () => {
   test("in the catalog once, as a gated nursing specialty certification in the clinical plan, BCEN as provider", () => {
-    commonChecks(CEN_TRACK, "Prep for an emergency nursing certification exam", "nursing-specialty-certifications", /not affiliated with or endorsed by the organization that owns or administers this exam/); // REQ-309: BCEN preapproves every third-party use of its marks
+    commonChecks(CEN_TRACK, "Exam Prep for CEN®", "nursing-specialty-certifications", /not affiliated with or endorsed by the organization that owns or administers this exam/); // REQ-309: BCEN preapproves every third-party use of its marks
     assert.equal(CEN_TRACK.credential?.providerSlug, "bcen");
     assert.equal(CEN_TRACK.credential?.basis, "vendor_exam_unpublished_code");
   });
@@ -138,7 +138,7 @@ describe("REQ-276: Prep for the Certified Emergency Nurse (CEN) Exam", () => {
 
 describe("REQ-275: Prep for the CMSRN Exam", () => {
   test("in the catalog once, as a gated nursing specialty certification in the clinical plan, MSNCB as provider", () => {
-    commonChecks(CMSRN_TRACK, "Prep for a medical-surgical nursing certification exam", "nursing-specialty-certifications", /not affiliated with or endorsed by the Medical-Surgical Nursing Certification Board/);
+    commonChecks(CMSRN_TRACK, "Exam Prep for CMSRN®", "nursing-specialty-certifications", /not affiliated with or endorsed by the Medical-Surgical Nursing Certification Board/);
     assert.equal(CMSRN_TRACK.credential?.providerSlug, "msncb");
   });
 
@@ -176,8 +176,8 @@ describe("REQ-275: Prep for the CMSRN Exam", () => {
 
 describe("REQ-278: two FNP courses, one per exam (AANPCB and ANCC)", () => {
   test("both in the catalog once, under advanced practice nursing, gated, in the clinical plan", () => {
-    commonChecks(FNPAANP_TRACK, "Prep for a family nurse practitioner board certification exam (clinical practice focus)", "advanced-practice-nursing", /not affiliated with or endorsed by the organization that owns or administers this exam/);
-    commonChecks(FNPANCC_TRACK, "Prep for a family nurse practitioner board certification exam (with professional role topics)", "advanced-practice-nursing", /not affiliated with or endorsed by the organization that owns or administers this exam/);
+    commonChecks(FNPAANP_TRACK, "Exam Prep for Family Nurse Practitioner (NP-C®) (clinical practice focus)", "advanced-practice-nursing", /not affiliated with or endorsed by the organization that owns or administers this exam/);
+    commonChecks(FNPANCC_TRACK, "Exam Prep for FNP-BC™ (with professional role topics)", "advanced-practice-nursing", /not affiliated with or endorsed by the organization that owns or administers this exam/);
     assert.notEqual(FNPAANP_TRACK.credential!.credentialSlug, FNPANCC_TRACK.credential!.credentialSlug);
   });
 

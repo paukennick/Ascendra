@@ -140,6 +140,9 @@ describe("time estimate", () => {
 describe("short names", () => {
   test("course", () => {
     assert.equal(shortCourseName({ credentialName: "CompTIA Security+", providerName: "CompTIA", examCode: "SY0-701", trackTitle: "Prep for CompTIA Security+" }), "Security+");
+    // REQ-324 (FAIL-2370): a title-only fallback drops the new "Exam Prep for" prefix too.
+    assert.equal(shortCourseName({ credentialName: null, providerName: null, examCode: null, trackTitle: "Exam Prep for CISSP®" }), "CISSP®");
+    assert.doesNotMatch(shortCourseName({ credentialName: null, providerName: null, examCode: null, trackTitle: "Exam Prep for CompTIA Security+ (SY0-701)" }), /^(Exam|Prep|CompTIA)/);
     assert.equal(
       shortCourseName({
         credentialName: "AWS Certified Solutions Architect - Professional",

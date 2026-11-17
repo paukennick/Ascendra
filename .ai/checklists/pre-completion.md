@@ -330,8 +330,14 @@
   credential_providers / credentials / credential_exams passes the names
   through `learnerExamNames`, every route that returns a course code through
   `learnerTrackRow`, model prompts carry `unbrandedPromptRule` (via
-  `CoachContext.unbranded`), and lib/unbranded.test.ts scans the course's
-  strings (citations aside) against the body's marks. A drug the sources call contraindicated
+  `CoachContext.unbranded`). REQ-324 (Nick, 2026-11-17): that naming is OFF
+  (`UNBRANDED_NAMING_ON`), so readers still go through these helpers but
+  names flow; every exam course is titled "Exam Prep for <Exam> (<code>)" as
+  the body publishes it, ® or ™ only with the owner's evidence
+  (catalog-trademarks.test.ts `TITLE_SYMBOLS`, unbranded.ts `MARK_EVIDENCE`),
+  the reference line and disclaimer stay, sims still name no permission body,
+  and a change to the title form updates every reader that parses titles
+  (short names, FAIL-2370). A drug the sources call contraindicated
   for the case's client is a harm ending once its label is read, and a drug
   time constant is derived from the label in its param note (FAIL-2280,
   FAIL-2281).

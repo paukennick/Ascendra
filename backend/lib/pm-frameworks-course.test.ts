@@ -25,8 +25,8 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     for (const t of ALL) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1, t.code);
       assert.equal(t.trackType, "certification");
-      assert.match(t.title, /^Prep for (the|an?) /); // REQ-309
-      assert.doesNotMatch(t.title, /\bCoach\b/, "REQ-194: no '<mark> Coach' title");
+      assert.match(t.title, /^Exam Prep for \S/); // REQ-324
+      assert.doesNotMatch(t.title.replace("Certified Nutrition Coach", ""), /\bCoach\b/, "REQ-194: no '<mark> Coach' title (the exam's own name aside, REQ-324)");
       // REQ-309: Scrum.org's own disclaimer reads "not affiliated with ... and does not constitute an endorsement".
       assert.match(t.description, /not affiliated with or endorsed by|not affiliated with Advanced Development Methods d\/b\/a Scrum\.org \(ADM\) and does not constitute an endorsement/);
     }
@@ -191,11 +191,14 @@ describe("REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 Foundation", () =
     assert.match(lines, /general management practices, and product and service management practices/);
   });
 
-  test("trademark: descriptive title with ® on first use, PeopleCert group notice, no license claim", () => {
-    // REQ-309: PeopleCert grants no descriptive use to non-licensees, so the
-    // course names neither the body nor its marks (catalog-trademarks.test.ts).
-    assert.equal(ITIL5FND_TRACK.title, "Prep for an IT service management foundation exam (version 5)");
-    assert.doesNotMatch(`${ITIL5FND_TRACK.title} ${ITIL5FND_TRACK.description}`, /ITIL|PeopleCert|PRINCE2|AXELOS/);
+  test("trademark: the exam named with ® on first use, the PeopleCert disclaimer, no license claim", () => {
+    // REQ-324 (Nick, 2026-11-17): the title names the exam, with ® as
+    // PeopleCert's acknowledgements page marks ITIL; the seeded description
+    // still names no mark and ends with the generic notice, which the catalog
+    // replaces with the specific disclaimer (lib/unbranded.ts).
+    assert.equal(ITIL5FND_TRACK.title, "Exam Prep for ITIL® Foundation (Version 5)");
+    assert.doesNotMatch(ITIL5FND_TRACK.description, /ITIL|PeopleCert|PRINCE2|AXELOS/);
+    assert.doesNotMatch(ITIL5FND_TRACK.description, /licen[cs]ed|accredited|official/i);
     assert.match(ITIL5FND_TRACK.description, /not affiliated with or endorsed by the organization that owns or administers this exam\.$/);
   });
 });

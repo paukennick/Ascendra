@@ -46,10 +46,12 @@ describe("NREMT EMS courses (REQ-174)", () => {
     }
   });
 
-  test("titles describe the exam rather than brand the course with NREMT's marks, and descriptions say so (NREMT trademark page)", () => {
+  test("titles name the exam rather than brand the course with NREMT's marks, and descriptions say so (NREMT trademark page)", () => {
     for (const t of EMS_TRACKS) {
-      assert.match(t.title, /^Prep for a national .+ certification exam$/, t.code); // REQ-309: the mark is not the course's name
-      assert.doesNotMatch(t.title, /National Registry|NREMT/, t.code);
+      // REQ-324 (Nick, 2026-11-17): the title names the exam in plain words
+      // ("Exam Prep for National Registry EMT"); NREMT's mark is not fused into
+      // a product name and the description keeps its notice.
+      assert.match(t.title, /^Exam Prep for National Registry (EMT|Emergency Medical Responder|Advanced EMT|Paramedic)$/, t.code);
       assert.doesNotMatch(t.title, /\bNREMT\b|\bCoach\b/, t.code);
       assert.match(t.description, /not affiliated with or endorsed by the National Registry/, t.code);
       assert.match(t.description, /NREMT are trademarks of the National Registry of Emergency Medical Technicians/, t.code);

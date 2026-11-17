@@ -18820,6 +18820,29 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2370",
+      "date": "2026-11-17",
+      "title": "Short course name kept the new 'Exam Prep for' title prefix",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
+      "how_detected": "review of title readers during REQ-324",
+      "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/lib/reminder-plan.ts"
+      ],
+      "fix_summary": "'Exam Prep for' added to VENDOR_PREFIX.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/reminder-plan.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A change to the catalog title form greps for readers that parse titles (prefix strips, short names) in the same change.",
+      "recurrence_of": ""
     }
   ]
 }

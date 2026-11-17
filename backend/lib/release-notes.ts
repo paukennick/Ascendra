@@ -99,6 +99,33 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-324 (Nick, 2026-11-17): every exam course is titled for its exam
+    // ("Exam Prep for CISSP®"), the 13 permission bodies' courses included;
+    // the exam card, emails and coach name the exam again. Not gated.
+    id: "2026-11-17-d",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-324"],
+    title: "Courses are named for their exams again",
+    items: [
+      {
+        icon: "book-open",
+        headline: "Find your exam by its name",
+        body: "Each exam course is titled for the exam it prepares for, with its code where the exam has one, such as Exam Prep for CompTIA Security+ (SY0-701) or Exam Prep for CISSP®.",
+      },
+      {
+        icon: "info",
+        headline: "Named everywhere you study",
+        body: "The exam card, practice exams, reminder emails and the coach use the exam's own name, and objectives use the exam body's own wording again.",
+      },
+      {
+        icon: "shield",
+        headline: "Still independent",
+        body: "Each course page still says Ascendra is independent and not endorsed by the organization that runs the exam.",
+      },
+    ],
+  },
+  {
     // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
     // plain reference line with a specific disclaimer, and show its published
     // facts; the six courses REQ-318 hid are listed again. Not gated.

@@ -484,7 +484,7 @@ export const FAQ: LegalDoc = {
     {
       title: "Is Ascendra affiliated with any certification or licensing body?",
       body: [
-        "No. Ascendra is independent and is not endorsed by NCSBN, AACN, FSBPT, CompTIA, AWS, Microsoft, Google, PMI or any other body named in its courses; their names and trademarks belong to them. Most course pages name the body behind the exam, with a disclaimer, and the Disclaimer and Sources & Trademarks pages list those bodies.",
+        "No. Ascendra is independent and is not endorsed by NCSBN, AACN, FSBPT, CompTIA, AWS, Microsoft, Google, PMI, ISC2 or any other body named in its courses; their names and trademarks belong to them. An exam course is named for the exam it prepares for (\"Exam Prep for ...\") only to say what it covers, its description ends with a disclaimer, and the Disclaimer and Sources & Trademarks pages list those bodies.",
       ],
     },
     {
