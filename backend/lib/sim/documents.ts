@@ -217,6 +217,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCNC", "cnc-crash-diet-request"),
   entry("NASMCNC", "cnc-greens-powder-warfarin"),
   // ---- end REQ-282 ----
+  // ---- REQ-314: the client trainer, the facility console and the sandbox
+  // report (docs/sims.md 22.27). Keep these entries together. ----
+  entry("NASMCPT", "cpt-parq-chest-tightness"),
+  // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
   // below). Keep these entries together. ----
