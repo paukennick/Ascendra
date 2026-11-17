@@ -229,6 +229,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("ACSMCPT", "acsm-squat-knees-cave"),
   band("NSCACPT", "nscacpt-squat-knees-cave"),
   band("NCCPTCPT", "nccpt-squat-knees-cave"),
+  entry("NASMCNC", "cnc-ambivalent-food-record"),
   // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
@@ -369,7 +370,28 @@ export { entry as documentEntry, band as bandEntry };
 // REQ-282: the NASM-CNC coaching-session documents and the objective titles
 // they are registered to (active objectives of course NASMCNC; the course
 // seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
-export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC");
+// REQ-314 (docs/sims.md 22.27): the documents on the three new screens, by
+// slug (bands included), for lib/sim/screens-misc.test.ts.
+export const REQ314_SLUGS = {
+  trainer: [
+    "cpt-parq-chest-tightness",
+    "ace-parq-chest-tightness",
+    "acsm-parq-chest-tightness",
+    "nscacpt-parq-chest-tightness",
+    "nccpt-parq-chest-tightness",
+    "cpt-squat-knees-cave",
+    "ace-squat-knees-cave",
+    "acsm-squat-knees-cave",
+    "nscacpt-squat-knees-cave",
+    "nccpt-squat-knees-cave",
+    "cnc-ambivalent-food-record",
+  ],
+  facility: [] as string[],
+  sandbox: [] as string[],
+} as const;
+export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
+
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && e.slug.startsWith("cnc-") && !REQ314_SLUGS.trainer.includes(e.slug));
 export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
   "cnc-crash-diet-request":
     "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
