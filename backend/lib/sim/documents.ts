@@ -263,6 +263,14 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // GOVERNANCE_DOCUMENTS below). Keep these entries together. ----
   entry("CISM", "cism-security-business-case-budget"),
   entry("CISM", "cism-risk-appetite-exception"),
+  entry("CISM", "cism-ransomware-tabletop"),
+  // REQ-313 bands (docs/sims.md 4.7): the same case on another course's
+  // objective that it teaches.
+  band("ISC2CC", "cc-ransomware-tabletop"),
+  band("SECPLUS", "ransomware-tabletop-secplus"),
+  band("SECPLUSV8", "ransomware-tabletop-v8"),
+  band("SECPLUS", "risk-exception-appetite-secplus"),
+  band("SECPLUSV8", "risk-exception-appetite-v8"),
   // ---- end REQ-313 ----
 ];
 

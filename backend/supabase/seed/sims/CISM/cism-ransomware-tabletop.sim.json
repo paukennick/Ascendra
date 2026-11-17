@@ -1,0 +1,1293 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cism-ransomware-tabletop",
+  "title": "A ransomware tabletop exercise",
+  "screen": {
+    "type": "tabletop",
+    "level": 1,
+    "tabletop": {
+      "injects": [
+        {
+          "id": "i1",
+          "title": "06:00 Help desk",
+          "text": "Staff at three branches cannot open shared files. A note on the file server says the files are encrypted and names a group.",
+          "when": "t >= i1At",
+          "at": "i1At",
+          "open": "isNull(declaredAt)"
+        },
+        {
+          "id": "i2",
+          "title": "08:00 Leak site",
+          "text": "The group's leak site lists the company and claims 40 GB of member records, with a sample of names and account numbers.",
+          "when": "t >= i2At",
+          "at": "i2At",
+          "open": "isNull(counselAt)"
+        },
+        {
+          "id": "i3",
+          "title": "11:00 A reporter calls",
+          "text": "A local reporter asks Communications to confirm a breach of member data by 13:00 for an afternoon story.",
+          "when": "t >= i3At",
+          "at": "i3At",
+          "open": "media == \"unset\""
+        },
+        {
+          "id": "i4",
+          "title": "Day 2, 09:00 Backups",
+          "text": "IT reports that the last two weeks of backups were reachable from the domain and are partly encrypted. Older copies are offline and clean.",
+          "when": "t >= i4At",
+          "at": "i4At",
+          "open": "restore == \"unset\""
+        },
+        {
+          "id": "i5",
+          "title": "Day 2, 14:00 The CFO",
+          "text": "The CFO: 'Insurance will cover it. Let's just pay and get the files back.'",
+          "when": "t >= i5At",
+          "at": "i5At",
+          "open": "payDecision == \"unset\""
+        }
+      ],
+      "roles": [
+        {
+          "id": "lead",
+          "label": "Incident manager (you)",
+          "spokenLabel": "Incident manager, you",
+          "status": "{isNull(declaredAt) ? \"Plan not yet activated\" : \"Running the plan\"}",
+          "tone": "\"engaged\""
+        },
+        {
+          "id": "it",
+          "label": "IT operations",
+          "spokenLabel": "IT operations",
+          "status": "{isNull(declaredAt) ? \"Working tickets\" : \"Isolating and restoring\"}",
+          "tone": "isNull(declaredAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "legal",
+          "label": "Legal counsel and privacy",
+          "spokenLabel": "Legal counsel and privacy officer",
+          "status": "{isNull(counselAt) ? \"Not yet called in\" : \"Assessing notice duties and clearing statements\"}",
+          "tone": "isNull(counselAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "comms",
+          "label": "Communications",
+          "spokenLabel": "Communications",
+          "status": "{media == \"unset\" ? \"Waiting for a line\" : \"Handling media\"}",
+          "tone": "media == \"unset\" ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "exec",
+          "label": "COO (executive sponsor)",
+          "spokenLabel": "COO, the executive sponsor",
+          "status": "{isNull(execAt) ? \"Not briefed\" : \"Briefed; owns business decisions\"}",
+          "tone": "isNull(execAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "insurer",
+          "label": "Cyber insurer",
+          "spokenLabel": "Cyber insurer",
+          "status": "{isNull(gapInsAt) ? \"Not yet discussed\" : \"No contact in the plan; the broker's number is two years old\"}",
+          "tone": "isNull(gapInsAt) ? \"waiting\" : \"gap\""
+        }
+      ],
+      "comms": [
+        {
+          "id": "cExec",
+          "label": "Executives",
+          "spokenLabel": "Briefing to executives",
+          "status": "{isNull(execAt) ? \"\" : \"Facts, unknowns and decisions needed\"}",
+          "tone": "isNull(execAt) ? \"none\" : \"sent\""
+        },
+        {
+          "id": "cMedia",
+          "label": "Media",
+          "spokenLabel": "Media statement",
+          "status": "{media == \"cleared\" ? \"Holding statement, reviewed by counsel\" : media == \"detail\" ? \"Detailed statement sent without review\" : media == \"deny\" ? \"Denied any breach\" : media == \"none\" ? \"No comment\" : mediaLate ? \"The story ran: 'did not respond'\" : \"\"}",
+          "tone": "media == \"cleared\" ? \"sent\" : media == \"detail\" or media == \"deny\" ? \"sent\" : mediaLate ? \"late\" : media == \"none\" ? \"sent\" : \"none\""
+        },
+        {
+          "id": "cStaff",
+          "label": "Staff",
+          "spokenLabel": "Staff notice",
+          "status": "{isNull(staffAt) ? \"\" : not isNull(gapOobAt) ? \"By text and phone tree (email is down)\" : \"Sent by email, which is down\"}",
+          "tone": "isNull(staffAt) ? \"none\" : \"sent\""
+        },
+        {
+          "id": "cNotice",
+          "label": "Regulators and members",
+          "spokenLabel": "Notification assessment",
+          "status": "{isNull(counselAt) ? \"\" : \"Counsel is assessing what must be notified, to whom and by when\"}",
+          "tone": "isNull(counselAt) ? \"none\" : \"draft\""
+        }
+      ],
+      "decisions": {
+        "label": "Decision log",
+        "items": [
+          {
+            "label": "Incident declared; plan activated; team convened",
+            "when": "not isNull(declaredAt)"
+          },
+          {
+            "label": "Counsel and privacy engaged; evidence preserved",
+            "when": "not isNull(counselAt)"
+          },
+          {
+            "label": "Executives briefed",
+            "when": "not isNull(execAt)"
+          },
+          {
+            "label": "{media == \"cleared\" ? \"Holding statement cleared by counsel\" : media == \"detail\" ? \"Detailed statement released without review\" : media == \"deny\" ? \"Breach denied to the reporter\" : \"No comment to the reporter\"}",
+            "when": "media != \"unset\""
+          },
+          {
+            "label": "{restore == \"bia\" ? \"Restore in business-impact order from the clean offline copies\" : \"Restore everything at once from the newest backups\"}",
+            "when": "restore != \"unset\""
+          },
+          {
+            "label": "{payDecision == \"refer\" ? \"Payment question to the executive with counsel, law enforcement and a sanctions check\" : payDecision == \"pay\" ? \"Pay the ransom now\" : \"Refuse outright: we never pay\"}",
+            "when": "payDecision != \"unset\""
+          }
+        ]
+      },
+      "meters": [
+        {
+          "id": "mGaps",
+          "label": "Plan gaps found",
+          "value": "{gapsFound} of 3{gapsFound > 0 ? \": \" : \"\"}{not isNull(gapInsAt) ? \"insurer contact; \" : \"\"}{not isNull(gapOobAt) ? \"out-of-band channel; \" : \"\"}{not isNull(gapBiaAt) ? \"stale restore order\" : \"\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Train, test and evaluate incident management with tabletop, walk-through and simulation exercises",
+  "secondaryObjectives": [
+    "Manage incident response communications: reporting, notification and escalation",
+    "Develop an incident response plan aligned with the business continuity and disaster recovery plans"
+  ],
+  "sources": [
+    {
+      "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 1 Information Security Governance; Domain 2 Information Security Risk Management; Domain 3 Information Security Program",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+      "note": "Read as HTML on 2026-11-14 for REQ-272 and not re-read. Domain 1 part B covers the information security strategy and the business case, budget and resources; Domain 2 part B covers risk treatment against the risk appetite; Domain 3 part B covers program metrics reported to senior leadership. The course's objective wording is its own."
+    },
+    {
+      "cite": "CISA, CISA Tabletop Exercise Packages (CTEPs)",
+      "checkedAt": "2026-11-16",
+      "url": "https://cisa.gov/cisa-tabletop-exercises-packages",
+      "note": "Read 2026-11-16 through a summarizing fetch of the CTEP page: the packages include 'template exercise objectives, scenarios, and discussion questions', templates for 'exercise planners, facilitators / evaluators, and participants', 'a feedback form ... and an After Action Report'; scenarios include ransomware. The injects, organization and times in this exercise are the author's."
+    },
+    {
+      "cite": "FEMA, Homeland Security Exercise and Evaluation Program (HSEEP), revised February 2020",
+      "checkedAt": "2026-11-16",
+      "url": "https://fema.gov/hseep",
+      "note": "Read 2026-11-16 through a summarizing fetch of the HSEEP page: 'Exercise evaluation assesses the ability to meet exercise objectives and capabilities'; results are documented in an After-Action Report/Improvement Plan covering 'strengths, areas for improvement, capability performance, and corrective actions'. The page does not itself say corrective actions get owners and dates; that practice is the author's reading of an improvement plan and is marked as such."
+    },
+    {
+      "cite": "NIST SP 800-84, Guide to Test, Training, and Exercise Programs for IT Plans and Capabilities (September 2006)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nist.gov/publications/guide-test-training-and-exercise-programs-it-plans-and-capabilities-0",
+      "note": "Read 2026-11-16 through a summarizing fetch of the NIST publication page, which gave only the title, number and dates (created 2006, page updated May 20, 2023); the guide's text on tabletop exercises was not read. Named as the federal guide for IT plan exercises; to verify."
+    },
+    {
+      "cite": "SEC, Cybersecurity Risk Management, Strategy, Governance, and Incident Disclosure (final rule, July 2023): Form 8-K Item 1.05",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.hunton.com/en/insights/sec-finalizes-cybersecurity-disclosure-requirements.html",
+      "note": "Read 2026-11-16 through a summarizing fetch of Hunton Andrews Kurth's summary of the final rule (not the SEC's own text): a material incident is disclosed within four business days after the company determines it is material, and that determination is made 'without unreasonable delay after discovery'. Cited only for why counsel's materiality assessment starts early; the exercise's company is not assumed to be listed and no deadline is scored."
+    }
+  ],
+  "brief": {
+    "situation": "You lead Harbor Mutual's incident response team, a fictional insurer, through a two-hour tabletop exercise, and you play the incident manager. The facilitator reads a ransomware scenario in injects from Monday 06:00. Make the decisions the plan asks of you in time, bring the right people in, keep what goes outside the company cleared, and find where the plan fails, so the after-action report can fix it.",
+    "handover": [
+      "The response plan names the roles: incident manager, IT operations, legal counsel and privacy, communications, and the COO as executive sponsor.",
+      "This is an exercise: nothing leaves the room. A decision made here is judged as if it were real."
+    ],
+    "howItWorks": [
+      "The clock is the scenario's time. Each discussion takes scenario minutes; the facilitator's next inject arrives on the same clock and stops the wait.",
+      "The table shows each inject (one still waiting for the team's decision is marked), the roles, the communications and the decision log.",
+      "When the exercise ends you write the after-action report and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T06:00",
+    "tick": "10min",
+    "maxDuration": "48h",
+    "calendar": "date"
+  },
+  "params": {
+    "i1At": {
+      "value": 0,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "First inject at the scenario's start, 06:00."
+      },
+      "unit": "s"
+    },
+    "i2At": {
+      "value": 7200,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The leak-site inject at 08:00."
+      },
+      "unit": "s"
+    },
+    "i3At": {
+      "value": 18000,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The reporter's call at 11:00."
+      },
+      "unit": "s"
+    },
+    "i4At": {
+      "value": 97200,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The backup inject on day 2 at 09:00."
+      },
+      "unit": "s"
+    },
+    "i5At": {
+      "value": 115200,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The CFO's question on day 2 at 14:00."
+      },
+      "unit": "s"
+    },
+    "exerciseEnd": {
+      "value": 129600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The facilitator ends the scenario on day 2 at 18:00."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "mediaLate": {
+      "type": "bool",
+      "init": false
+    },
+    "declaredAt": {
+      "type": "time",
+      "init": null
+    },
+    "counselAt": {
+      "type": "time",
+      "init": null
+    },
+    "execAt": {
+      "type": "time",
+      "init": null
+    },
+    "staffAt": {
+      "type": "time",
+      "init": null
+    },
+    "mediaAt": {
+      "type": "time",
+      "init": null
+    },
+    "restoreAt": {
+      "type": "time",
+      "init": null
+    },
+    "payAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapInsAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapOobAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapBiaAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "lateAt": {
+      "type": "time",
+      "init": null
+    },
+    "media": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cleared",
+        "detail",
+        "deny",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "restore": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "bia",
+        "all"
+      ],
+      "init": "unset"
+    },
+    "payDecision": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "refer",
+        "pay",
+        "never"
+      ],
+      "init": "unset"
+    },
+    "aar": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owned",
+        "listed",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "gapsFound": {
+      "expr": "(isNull(gapInsAt) ? 0 : 1) + (isNull(gapOobAt) ? 0 : 1) + (isNull(gapBiaAt) ? 0 : 1)"
+    },
+    "unowned": {
+      "expr": "aar == \"owned\" ? 0 : gapsFound"
+    },
+    "onTime": {
+      "expr": "(not isNull(declaredAt) and timeAt(declaredAt) - i1At <= decisionWindow ? 1 : 0) + (not isNull(counselAt) and timeAt(counselAt) - i2At <= decisionWindow ? 1 : 0) + (not isNull(mediaAt) and timeAt(mediaAt) - i3At <= decisionWindow ? 1 : 0) + (not isNull(restoreAt) and timeAt(restoreAt) - i4At <= decisionWindow ? 1 : 0) + (not isNull(payAt) and timeAt(payAt) - i5At <= decisionWindow ? 1 : 0)"
+    },
+    "rolesIn": {
+      "expr": "not isNull(declaredAt) and not isNull(counselAt) and not isNull(execAt) and media != \"unset\""
+    },
+    "outsidePlan": {
+      "expr": "media == \"detail\" or media == \"deny\" or payDecision == \"pay\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "exercise": {
+      "label": "Exercise in progress",
+      "clock": "turns",
+      "actions": [
+        "declare",
+        "counsel",
+        "brief",
+        "staff",
+        "mediaLine",
+        "restoreOrder",
+        "payment",
+        "askInsurer",
+        "askOob",
+        "askBia",
+        "watch",
+        "endEx"
+      ]
+    },
+    "report": {
+      "label": "Hot wash and after-action",
+      "clock": "stopped",
+      "actions": [
+        "afterAction"
+      ]
+    }
+  },
+  "initialPhase": "exercise",
+  "actions": {
+    "declare": {
+      "label": "Declare an incident, activate the response plan and convene the team",
+      "group": "Decide",
+      "available": "not busy and isNull(declaredAt)",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "declaredAt",
+          "to": "t"
+        },
+        {
+          "log": "You declare the incident and run the plan's first page: convene the team, isolate the affected servers, start the log.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "counsel": {
+      "label": "Call in counsel and the privacy officer; preserve evidence before anything is rebuilt",
+      "group": "Decide",
+      "available": "not busy and isNull(counselAt) and t >= i2At",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "counselAt",
+          "to": "t"
+        },
+        {
+          "log": "Counsel and privacy join. They start the assessment of what must be notified, to whom and by when; IT preserves images and logs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "brief": {
+      "label": "Brief the COO: facts, unknowns, decisions needed",
+      "group": "Decide",
+      "available": "not busy and isNull(execAt) and not isNull(declaredAt)",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "execAt",
+          "to": "t"
+        },
+        {
+          "log": "The COO has what is known, what is not, and the decisions coming.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "staff": {
+      "label": "Send a staff notice",
+      "group": "Decide",
+      "available": "not busy and isNull(staffAt) and not isNull(declaredAt)",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "staffAt",
+          "to": "t"
+        },
+        {
+          "log": "{isNull(gapOobAt) ? \"The notice goes by email, which is down; most staff never see it.\" : \"The notice goes by text message and the phone tree.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "mediaLine": {
+      "label": "Answer the reporter",
+      "group": "Decide",
+      "available": "not busy and media == \"unset\" and t >= i3At",
+      "why": "Decided, or no reporter yet; finish the discussion in progress first.",
+      "params": [
+        {
+          "id": "m",
+          "kind": "choice",
+          "label": "The answer",
+          "options": [
+            {
+              "value": "cleared",
+              "label": "A short holding statement, reviewed by counsel first: what happened, what we are doing, where members can get updates"
+            },
+            {
+              "value": "detail",
+              "label": "Release the full details now, before counsel has seen them, to get ahead of the story"
+            },
+            {
+              "value": "deny",
+              "label": "Deny any breach until it is confirmed"
+            },
+            {
+              "value": "none",
+              "label": "No comment"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "media",
+          "to": "m"
+        },
+        {
+          "set": "mediaAt",
+          "to": "t"
+        },
+        {
+          "if": "m == \"cleared\" and isNull(counselAt)",
+          "then": [
+            {
+              "log": "Counsel is not in the room yet; Communications waits 40 minutes for them.",
+              "kind": "bad"
+            },
+            {
+              "schedule": "work",
+              "after": "60min"
+            }
+          ],
+          "else": [
+            {
+              "log": "Decided: {m}.",
+              "kind": "act"
+            },
+            {
+              "schedule": "work",
+              "after": "20min"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        }
+      ]
+    },
+    "restoreOrder": {
+      "label": "Decide how to restore",
+      "group": "Decide",
+      "available": "not busy and restore == \"unset\" and t >= i4At",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "Restore",
+          "options": [
+            {
+              "value": "bia",
+              "label": "From the clean offline copies, in the business impact analysis's order: member accounts and payments first"
+            },
+            {
+              "value": "all",
+              "label": "Everything at once from the newest backups, to save time"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "restore",
+          "to": "r"
+        },
+        {
+          "set": "restoreAt",
+          "to": "t"
+        },
+        {
+          "log": "Decided: {r == \"bia\" ? \"restore in business-impact order from clean copies\" : \"restore everything from the newest backups\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "payment": {
+      "label": "Answer the CFO about paying",
+      "group": "Decide",
+      "available": "not busy and payDecision == \"unset\" and t >= i5At",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "The answer",
+          "options": [
+            {
+              "value": "refer",
+              "label": "It is an executive decision, taken with counsel: law enforcement, the insurer and a sanctions check come first"
+            },
+            {
+              "value": "pay",
+              "label": "Agree: pay now and get the files back"
+            },
+            {
+              "value": "never",
+              "label": "Refuse outright: we never pay"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "payDecision",
+          "to": "p"
+        },
+        {
+          "set": "payAt",
+          "to": "t"
+        },
+        {
+          "log": "Decided: {p}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "askInsurer": {
+      "label": "Ask the table: who calls the cyber insurer, and on what number?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapInsAt) and (not isNull(declaredAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapInsAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask: who calls the cyber insurer, and on what number?",
+          "kind": "act"
+        },
+        {
+          "finding": "Nobody knows. The plan has no insurer contact, and the broker's number in an old email is two years out of date. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askOob": {
+      "label": "Ask the table: how do we reach each other and staff if email and chat are down?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapOobAt) and (not isNull(declaredAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapOobAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask: how do we reach each other and staff if email and chat are down?",
+          "kind": "act"
+        },
+        {
+          "finding": "The plan assumes email. There is no out-of-band channel or call tree in it. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askBia": {
+      "label": "Ask IT for the restore order in the plan",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapBiaAt) and (not isNull(declaredAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapBiaAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask IT for the restore order in the plan",
+          "kind": "act"
+        },
+        {
+          "finding": "The plan's restore order is two years old and puts a retired loan system first; the business impact analysis was never brought into it. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Move the scenario on (1 hour)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "log": "The facilitator moves the scenario on an hour.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "60min"
+        }
+      ]
+    },
+    "endEx": {
+      "label": "Call the end of the exercise and hold the hot wash",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "You call the end of the exercise and start the hot wash.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "afterAction": {
+      "label": "Write the after-action report",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "plan",
+              "label": "The gaps the exercise found",
+              "options": [
+                {
+                  "value": "owned",
+                  "label": "Each gap with an owner and a date in the improvement plan"
+                },
+                {
+                  "value": "listed",
+                  "label": "Listed; owners to be decided later"
+                },
+                {
+                  "value": "none",
+                  "label": "No report: the exercise went well"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "aar",
+          "to": "plan"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "After-action: {plan}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Discussion in progress",
+      "wait": {
+        "skipLabel": "Let the discussion finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "inject2",
+      "when": "t >= i2At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: the group's leak site lists the company and claims 40 GB of member records.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject3",
+      "when": "t >= i3At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: a reporter wants confirmation by 13:00.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "mediaDeadline",
+      "when": "isNull(lateAt) and media == \"unset\" and t >= i3At + 2 * 3600 and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lateAt",
+          "to": "t"
+        },
+        {
+          "set": "mediaLate",
+          "to": "true"
+        },
+        {
+          "log": "13:00: the story runs, saying the company did not respond.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "inject4",
+      "when": "t >= i4At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: the newest backups are partly encrypted.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject5",
+      "when": "t >= i5At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: the CFO wants to pay.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "exEnd",
+      "when": "t >= exerciseEnd and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The facilitator ends the exercise. Time for the hot wash.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "hotwash"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "hotwash": {
+      "question": "For the after-action report: how the team decided at each inject, what went outside the company and how, and what the exercise showed about the plan.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Decisions in time",
+          "criteria": "Activates the plan at the first inject; brings counsel and privacy in at the leak claim and preserves evidence; restores from clean copies in business-impact order; takes each decision within about an hour of the inject.",
+          "modelAnswer": "We declared at 06:00, had counsel in by 08:20, and chose to restore from the clean offline copies in the business impact analysis's order."
+        },
+        {
+          "label": "Communications and authority",
+          "criteria": "Briefs the executive sponsor; the reporter gets a holding statement reviewed by counsel before it goes out; payment is an executive decision with counsel, law enforcement, the insurer and a sanctions check, not the CFO's or the team's alone.",
+          "modelAnswer": "The COO was briefed early; the reporter got a counsel-reviewed holding statement before 13:00; the payment question went to the executive with counsel, after law enforcement, the insurer and a sanctions check."
+        },
+        {
+          "label": "What the plan lacks",
+          "criteria": "Names the gaps the exercise exposed (no insurer contact, no out-of-band channel, a stale restore order) and gives each an owner and a date in the improvement plan.",
+          "modelAnswer": "Three gaps: no insurer contact, no out-of-band channel, a restore order that ignores the BIA. Each has an owner and a date in the improvement plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "exercise",
+    "thresholds": {
+      "decisionWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Each inject's decision within an hour of scenario time."
+        }
+      },
+      "unownedGaps": {
+        "value": 0,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Every gap found has an owner and a date in the improvement plan."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declaredAt)",
+      "class": "harm",
+      "rationale": "An exercise in which the plan was never activated tested nothing and left the team believing it was ready.",
+      "source": {
+        "cite": "FEMA, Homeland Security Exercise and Evaluation Program (HSEEP), revised February 2020",
+        "checkedAt": "2026-11-16",
+        "url": "https://fema.gov/hseep",
+        "note": "Read 2026-11-16 through a summarizing fetch of the HSEEP page: 'Exercise evaluation assesses the ability to meet exercise objectives and capabilities'; results are documented in an After-Action Report/Improvement Plan covering 'strengths, areas for improvement, capability performance, and corrective actions'. The page does not itself say corrective actions get owners and dates; that practice is the author's reading of an improvement plan and is marked as such."
+      }
+    }
+  },
+  "endings": {
+    "outside": {
+      "label": "A decision outside the plan",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and outsidePlan",
+      "narrative": "In the scenario, the team said something to the press counsel had not seen, denied what it could not deny, or paid without the checks the decision needs. In a real incident that would have done the harm."
+    },
+    "noReport": {
+      "label": "No after-action",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and aar == \"none\"",
+      "narrative": "The exercise found problems, and none of them will be fixed: there is no improvement plan."
+    },
+    "exercised": {
+      "label": "The plan was tested and the gaps owned",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and onTime >= 5 and rolesIn and gapsFound >= 3 and unowned <= unownedGaps and media == \"cleared\" and payDecision == \"refer\" and restore == \"bia\"",
+      "narrative": "Every inject decided in time by the right people, nothing left the room uncleared, and each gap the exercise found has an owner and a date."
+    },
+    "partly": {
+      "label": "Partly tested",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The exercise ran, but decisions came late, someone was left out, or a gap went unfound or unowned."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no after-action report."
+    }
+  },
+  "endingOrder": [
+    "outside",
+    "noReport",
+    "exercised",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "timely",
+        "label": "Each inject decided within an hour of scenario time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "onTime >= 5",
+            "score": "met",
+            "why": "All five in time."
+          },
+          {
+            "when": "onTime >= 3",
+            "score": "partial",
+            "why": "{onTime} of 5 in time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{onTime} of 5 in time."
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "label": "The plan activated and the right people brought in: counsel and privacy, the executive sponsor, communications",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rolesIn",
+            "score": "met",
+            "why": "Everyone the plan names took part."
+          },
+          {
+            "when": "not isNull(declaredAt) and not isNull(counselAt)",
+            "score": "partial",
+            "why": "Some roles never engaged."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(declaredAt) ? \"The plan was never activated.\" : \"Counsel was never brought in.\"}"
+          }
+        ]
+      },
+      {
+        "id": "cleared",
+        "label": "What left the company was cleared and the payment question went to its owner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "media == \"cleared\" and payDecision == \"refer\"",
+            "score": "met",
+            "why": "A reviewed holding statement; payment to the executive with counsel."
+          },
+          {
+            "when": "not outsidePlan",
+            "score": "partial",
+            "why": "Nothing outside the plan, but no comment or a flat refusal where the plan needed a decision."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{payDecision == \"pay\" ? \"Agreed to pay without the checks.\" : \"A statement counsel had not seen.\"}"
+          }
+        ]
+      },
+      {
+        "id": "gaps",
+        "label": "Found the plan's gaps and gave each an owner and a date",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gapsFound >= 3 and unowned <= unownedGaps",
+            "score": "met",
+            "why": "All three found and owned."
+          },
+          {
+            "when": "gapsFound >= 1 and aar != \"none\"",
+            "score": "partial",
+            "why": "{gapsFound} of 3 found; {unowned} without an owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{aar == \"none\" ? \"No after-action report.\" : \"No gap found.\"}"
+          }
+        ]
+      },
+      {
+        "id": "restore",
+        "label": "Restored from clean copies in business-impact order",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restore == \"bia\"",
+            "score": "met",
+            "why": "Clean copies, member accounts first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{restore == \"all\" ? \"Restored from backups that were partly encrypted.\" : \"No restore decision.\"}"
+          }
+        ]
+      },
+      {
+        "id": "staff",
+        "label": "Staff reached by a channel that works",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(staffAt) and not isNull(gapOobAt)",
+            "score": "met",
+            "why": "Text message and the phone tree."
+          },
+          {
+            "when": "not isNull(staffAt)",
+            "score": "partial",
+            "why": "Sent by email, which was down."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Staff were never told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "hotwash",
+        "label": "Written after-action: decisions, communications, gaps",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "onTime",
+        "label": "Injects decided within an hour",
+        "value": "onTime",
+        "format": "number",
+        "expert": "5"
+      },
+      {
+        "id": "gaps",
+        "label": "Plan gaps found",
+        "value": "gapsFound",
+        "format": "number",
+        "expert": "3"
+      },
+      {
+        "id": "unowned",
+        "label": "Gaps left without an owner",
+        "value": "unowned",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:00-07:00",
+        "text": "Declare and activate the plan; brief the COO; ask how the team and staff talk if email is down; notify staff by text and phone tree."
+      },
+      {
+        "at": "08:00-11:00",
+        "text": "Bring counsel and privacy in at the leak claim and preserve evidence; ask who calls the insurer."
+      },
+      {
+        "at": "11:00-12:00",
+        "text": "Give the reporter a holding statement counsel has reviewed."
+      },
+      {
+        "at": "Day 2",
+        "text": "Ask for the restore order, then restore from clean copies in business-impact order; send the payment question to the executive with counsel, law enforcement, the insurer and a sanctions check."
+      },
+      {
+        "at": "After",
+        "text": "In the after-action report, give each gap an owner and a date."
+      }
+    ],
+    "debrief": {
+      "exercised": {
+        "headline": "Good: the exercise did its job",
+        "body": "A tabletop succeeds by finding what the plan lacks while it is cheap to fix. You decided in time, kept what went out cleared, and left each gap with an owner."
+      },
+      "partly": {
+        "headline": "Partly tested",
+        "body": "The criteria show what was missed: a late decision, a role left out, or a gap found but not owned."
+      },
+      "outside": {
+        "headline": "A decision the plan would not allow",
+        "body": "Statements go out after counsel reviews them, and paying is an executive decision with counsel, law enforcement, the insurer and a sanctions check. Saying so in an exercise is how a team learns it."
+      },
+      "noReport": {
+        "headline": "Nothing will change",
+        "body": "Without an improvement plan, the gaps the exercise found will still be there when the real incident comes."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No after-action report was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Activate the plan at the first inject and brief the executive sponsor. At the leak claim, bring counsel and privacy in and preserve evidence: counsel starts the notification and materiality assessment. Give the reporter a holding statement counsel has reviewed. Restore from the clean offline copies in business-impact order. Paying is an executive decision with counsel, law enforcement, the insurer and a sanctions check. Use the exercise to find what the plan lacks: an insurer contact, an out-of-band channel and a current restore order. Give each an owner and a date."
+  }
+}
