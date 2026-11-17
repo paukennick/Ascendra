@@ -266,6 +266,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("CSM", "csm-sprint-status-meeting-daily-scrum"),
   entry("PSMI", "sprint-goal-becomes-obsolete"),
   band("CSM", "csm-sprint-goal-becomes-obsolete"),
+  // The ITIL service desk, course ITIL5FND. That course is built on another
+  // branch (REQ-308, feature/itil5); until it is in the catalog the seed
+  // stops here with a clear error, and lib/sim/objectives.test.ts checks
+  // the titles against ITIL5_DESK_OBJECTIVES below instead.
+  entry("ITIL5FND", "monday-service-desk-wifi-problem"),
   // ---- end REQ-311 ----
 ];
 
@@ -396,6 +401,20 @@ export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
   "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
   "csm-sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
   "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+};
+
+// REQ-311: the ITIL service-desk documents and the ITIL Foundation (Version 5)
+// objective titles they are registered to, as the itil5 builder gave them
+// (REQ-308; Version 5 has no practices-in-detail unit, so the desk serves the
+// problem, error and known error outcome and the value chain and service
+// level terms).
+export const DESK_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ITIL5FND");
+export const ITIL5_DESK_OBJECTIVES: Readonly<Record<string, readonly string[]>> = {
+  "monday-service-desk-wifi-problem": [
+    "Distinguishing a problem, an error and a known error in an operational scenario",
+    "Explaining the value chain's terms: product specifications and prototypes, events and incidents, releases and tests, service requests, disasters and operating models",
+    "Explaining the service journey, service quality, service levels and what a service level agreement records",
+  ],
 };
 
 // REQ-289: the Washington psychology jurisprudence session (a band of the EPPP

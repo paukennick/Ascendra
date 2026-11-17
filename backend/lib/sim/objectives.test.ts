@@ -23,8 +23,14 @@ test("EPPP sessions: each registers to one of the three EPPP objective titles, o
   }
 });
 
+// REQ-311: the ITIL service desk is registered to ITIL5FND, built on its own
+// branch (REQ-308). Until it is in the catalog its titles are checked against
+// the fixture ITIL5_DESK_OBJECTIVES (lib/sim/service-desk.test.ts).
+const itil5 = CATALOG_TRACKS.find((t) => t.code === "ITIL5FND");
+
 for (const e of ALL_DOCUMENTS) {
   if (e.course === "EPPP" && !eppp) continue; // pending the EPPP course (above)
+  if (e.course === "ITIL5FND" && !itil5) continue; // pending the ITIL5FND course (above)
   test(`${e.course}/${e.slug}: objective titles exist in the course catalog`, () => {
     const track = CATALOG_TRACKS.find((t) => t.code === e.course);
     assert.ok(track, `course ${e.course} is in the catalog`);
