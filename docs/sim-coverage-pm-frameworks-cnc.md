@@ -34,12 +34,11 @@ weeks, which a single session cannot show.
 
 ## Not built on an existing screen yet
 
-Two more NASM-CNC objectives fit the session screen (S-C1 motivational
-interviewing with an ambivalent client; S-C2 a food record that does not add
-up). They were not built because their sources (stages of change and
-motivational interviewing; dietary-assessment error such as under-reporting)
-were not read: web page reading was switched off partway through this build,
-and a sim's sources must be read first.
+S-C1 (motivational interviewing with an ambivalent client) and S-C2 (a food
+record that does not add up) are now one case on the client trainer,
+`cnc-ambivalent-food-record` (REQ-314, docs/sims.md 22.27), with the MI,
+stages-of-change and under-reporting sources read on 2026-11-16. S-C2's
+objective is a secondary objective of that case.
 
 ## Proposed screens
 
@@ -68,7 +67,8 @@ control chart and capability read-outs, a measurement system study, and a
 DMAIC project tracker; tampering and late reaction both cost. Unlocks P-Q1 to
 P-Q8 (25 objectives).
 
-**Client trainer** (already planned for fitness in docs/sims.md 20). Weeks of
+**Client trainer** (built in REQ-314 as `trainer@1`, docs/sims.md 22.27; T-C1
+and T-C2 are still to author). Weeks of
 coaching: adherence, lapses, measures beyond the scale, eating out and travel.
 Unlocks T-C1 and T-C2 for NASM-CNC (7 objectives).
 
@@ -289,13 +289,13 @@ CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
 | Nutrition Science | Planning hydration from total water needs, sweat losses and sodium | No: recall or explanation; lessons and labs cover it | none |
 | Nutrition Science | Explaining nutrient timing around training and what the evidence does and does not support | No: recall or explanation; lessons and labs cover it | none |
 | Nutrition Science | Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician | Yes: cues to read (intake form, label); a protective step | Built: `cnc-greens-powder-warfarin` |
-| Behavior Change Strategies | Identifying a client's barriers and readiness to change with the stages-of-change model | Yes: cues to read | Existing screen, not built: S-C1 Ambivalent client, readiness to change (sources not yet read) |
-| Behavior Change Strategies | Using motivational interviewing: open questions, affirmations, reflections and summaries | Yes: cues to read; choices change the client's state | Existing screen, not built: S-C1 Ambivalent client, readiness to change (sources not yet read) |
+| Behavior Change Strategies | Identifying a client's barriers and readiness to change with the stages-of-change model | Yes: cues to read | Secondary: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
+| Behavior Change Strategies | Using motivational interviewing: open questions, affirmations, reflections and summaries | Yes: cues to read; choices change the client's state | Built: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
 | Behavior Change Strategies | Setting SMART goals and choosing behavior goals over outcome goals | Yes: choices with consequences | Built: `cnc-greens-powder-warfarin` (goal criterion) |
 | Behavior Change Strategies | Tracking progress with measures beyond the scale | Yes: delayed consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Behavior Change Strategies | Building habits with cues, small steps and changes to the environment, and planning for lapses | Yes: delayed consequences: lapses | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Behavior Change Strategies | Personalizing strategies to a client's preferences and daily life | Yes: choices with consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
-| Practical Nutrition Coaching | Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits | Yes: cues to read: under-reporting | Existing screen, not built: S-C2 A food record that does not add up (sources not yet read) |
+| Practical Nutrition Coaching | Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits | Yes: cues to read: under-reporting | Secondary: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
 | Practical Nutrition Coaching | Reading a Nutrition Facts label: serving size, percent Daily Value and added sugars | No: recall or explanation; lessons and labs cover it | none |
 | Practical Nutrition Coaching | Reading a Supplement Facts label and spotting claims a supplement may not lawfully make | Yes: cues to read | Built: `cnc-greens-powder-warfarin` (label criterion) |
 | Practical Nutrition Coaching | Comparing popular eating patterns -- Mediterranean, plant-based, low-carbohydrate and time-restricted eating -- against a client's goals and preferences | No: recall or explanation; lessons and labs cover it | none |
@@ -303,4 +303,4 @@ CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
 | Practical Nutrition Coaching | Building a personalized, food-first nutrition plan within the coaching scope | Yes: choices with consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Practical Nutrition Coaching | Coaching weight management with a modest energy deficit, and recognizing when weight change is a referral question | Yes: delayed consequences; cues for referral | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 
-NASMCNC: 29 objectives, 15 fit the rule, 5 covered by a built sim.
+NASMCNC: 29 objectives, 15 fit the rule; 5 were covered by a built sim before REQ-314, which adds one built (motivational interviewing) and two secondary (stages of change, food records).

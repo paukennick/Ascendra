@@ -78,7 +78,8 @@ engine and the practice-lab acknowledgement).
 21. Review resolution
 22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
     CNA cases (REQ-223), the client session (REQ-225), the security console
-    (REQ-231) and the PT treatment session (REQ-232)
+    (REQ-231) and the PT treatment session (REQ-232); later screens and waves
+    to 22.27 (the facility console, sandbox report and client trainer, REQ-314)
 
 ---
 
@@ -5439,9 +5440,9 @@ OAuth consent phishing grant, 6.4 a critical test finding and its
 disclosure, 7.3 privileged account misuse, 7.6 IDS tuning and a honeypot hit,
 7.7 an emergency patch under change management, 8.2 a poisoned CI/CD
 pipeline, 8.4 a vulnerable acquired component. Fits (terminal and network):
-4.2 segmentation. Screen: 1.1 ethics (conversation), 3.7 and 7.11 a facility
-or physical-security console (fire suppression, duress, tailgating), 7.10 a
-tabletop exercise. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
+4.2 segmentation. Screen: 1.1 ethics (conversation), 7.10 a tabletop
+exercise. REQ-314 (22.27): 3.7 built on the facility console
+(`cissp-datahall-tailgate-cooling`), 7.11 and 5.1 secondary in it. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
 4.5, 5.1, 5.2, 5.4, 6.1-6.3, 6.5, 7.4, 8.1, 8.3, 8.5.
 
 ISACA CISM (36): Built 3.11, 4.8. Secondary 2.4, 4.2, 4.7, 4.9. Fits
@@ -5462,8 +5463,8 @@ compromised mobile device under MDM, 7.2 an IoT botnet, 7.3 an OT intrusion,
 8.2 a cloud misconfiguration exploited, 9.2 a PKI or disk-encryption key
 incident. Fits (terminal and network): 2.4, 2.5, 2.6 scanning, scan output
 and enumeration in an authorized engagement (needs the REQ-273 no-payload
-rule applied to terminal commands; a decision for Nick). Screen: 3.5 malware
-analysis (a sandbox report screen). No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
+rule applied to terminal commands; a decision for Nick). REQ-314 (22.27): 3.5
+built on the sandbox report (`ceh-sandbox-invoice-loader`), 3.4 secondary. No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
 8.1, 9.1, 9.3.
 
 Totals over 162 objectives: 8 built; 46 fit an existing screen and are not
@@ -5624,3 +5625,184 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.27 Three more screens: the facility console, the sandbox report and the client trainer (REQ-314)
+
+Nick, 2026-11-16: build all the proposed screens. This section is the design
+of three of them (the 22.19 proposals *facility console* and *sandbox
+report*, and the client trainer of 20 and `docs/sim-coverage-pm-frameworks-cnc.md`)
+and what was built. Each follows how the terminal screen (22.10) and the
+security console (22.7) were added: bindings in `engine/v1/types.ts`, the zod
+schema and `validate.ts`; a renderer and a pure view model in the app; a
+`SIMS_RENDERERS` capability with negotiation; tests and lint rules. **Display
+and lint only**: stepping, the corpus and every existing hash are unchanged,
+and there is no engine minor. An app without a screen's capability is not
+offered its sims and is told to update (5.10).
+
+#### Design
+
+**Screen types and capabilities.** `facility-console@1`, `sandbox-report@1`
+and `trainer@1` (the design's placeholder name `trainer` is used as built, as
+`terminal` was). `SIMS_RENDERERS` now defaults to
+`bedside,board,session,security-console,treatment-session,terminal,facility-console,sandbox-report,trainer`;
+the app's `x-sim-caps` header adds the three at level 1. `parseCaps` already
+takes hyphens (FAIL-1320, FAIL-1340).
+
+**Pacing: learner-paced on all three.** Every phase is `turns` (or `stopped`
+for the write-up), with one `work` wait per task, and outside events
+(an intruder's next step, a cooling unit's breaker, a second-stage download, a
+symptom three minutes into a step test) are triggers on the same sim clock that
+stop the skip early (`interruptsSkip`). What these objectives test is the
+order and choice of actions, not reading speed, as on the console (22.7). The
+trainer is in the fitness family, but with no running phase `pacingEligible`
+is false and the server refuses pace commands, as for the client session.
+
+**Facility console** (`screen.facility`). For physical security, badge and
+door logs, CCTV, visitor control and environmental alarms. Reading order:
+
+- `site`: the building and its state now (a template).
+- `alarms`: the alarm panel, as the console's alerts plus a `kind` (`intrusion`,
+  `door`, `duress`, `fire`, `power`, `hvac`, `water`, `other`); open alarms
+  first, newest first. An open alarm is spoken at once.
+- `zones`: areas with a status in words and a tone (`secure`, `watch`,
+  `alarm`, `locked`: "secure", "under watch", "in alarm", "locked down").
+- `environment`: numeric read-outs (temperature, humidity, UPS, generator
+  fuel) with an optional safe range (`low`, `high`); out of range is spoken at
+  once ("Row C inlet temperature too high").
+- `cameras`: CCTV described in words, never video, so the screen works for a
+  screen reader and costs nothing to ship.
+- `people`: visitors and staff on site; `flag` (needs attention) is spoken at once.
+- `doors`: the badge and door log, newest first, each with a result
+  (`granted`, `denied`, `forced`, `held`, `tailgate`) read in words.
+- `meters` (optional).
+
+Outcome profile **`facility`** (new, 9.2): `responseWindow` 600 s (the first
+alarm acted on within 10 minutes) and `peopleAtRisk` 0. Target: life safety
+first, the alarm acted on in the window, the breach or failure contained and
+the evidence kept; recovered: late or at a cost; harm: a person put in danger,
+a breach left open, or the critical room lost. Safety family general.
+
+**Sandbox report** (`screen.sandbox`). For reading a malware analysis report
+and acting on it: `sample` (name and verdict so far), `static` findings, the
+`processes` tree (`parent` must name an earlier process; the view model gives
+each its depth and the label says the parent and the level), the `network`
+calls, the analyst's `indicators` (type `hash`, `domain`, `ip`, `url`, `file`,
+`registry`, `mutex`, `other`; tone `unreviewed`, `confirmed`, `benign`,
+`actioned`), draft detection `rules` (kind `yara`, `sigma`, `other`; tone
+`draft`, `tested`, `noisy`, `deployed`; the rule body is shown and read as
+text), and the `hosts` in scope with the console's tones (read "infected" for
+`bad`). An infected host is spoken at once; new report lines are polite, a
+burst summarized. It uses the existing `security` profile.
+
+**Defensive only, enforced.** New lint error `sandboxSafetyProblems`
+(`lib/sim/lint.ts`, run by `sims:lint`) on any document with the sandbox
+screen: no `http://` or `https://` outside the sources (defang as `hxxp`,
+`example[.]com`); no run of 40 or more base64 characters (a hex digest of 40
+to 64 characters is allowed); no script-host switches that run encoded or
+downloaded code (`-enc`, `-EncodedCommand`, `DownloadString`,
+`Invoke-Expression`, `FromBase64String`); no script tags or PE header bytes;
+every IPv4 address from the documentation ranges (RFC 5737) or private space;
+every domain in the network calls and the domain and URL indicators a reserved
+name (RFC 2606). Processes are described ("started hidden with an encoded
+command (not shown)"); rules are display text and never run. This also keeps
+the CEH course's REQ-273 rule (no payloads, no tool commands).
+
+**Client trainer** (`screen.trainer`). For a fitness or nutrition coaching
+session, and for coaching across weeks: the `client` and how they present now;
+`gauges` banded into words as on the session (trust, readiness, a stage of
+change); `readings` (heart rate, the symptom now, knee discomfort) with `flag`
+spoken at once; `rules` (scope-of-practice and stop rules, always shown, `met`
+spoken at once, at least one required); `intake` (the PAR-Q+ questions
+paraphrased, with the answers as given; `flag` on a YES); assessment
+`findings`; the current `program`; and the `journal` (check-ins, weeks,
+events), newest first. Weeks pass through one wait (four weeks of training is
+one skip), with `calendar: "date"`.
+
+The **fitness** profile gains `stopWindow` 120 s (exercise stopped or eased
+within 2 minutes of a warning sign; a teaching figure, as for physical
+therapy). Its earlier keys stay. The study notice (REQ-165) and the fitness
+tracks' disclaimer gate (REQ-114) cover these sims; documents carry an
+author-facing `safetyNote` only.
+
+**Accessibility and web keyboard** (13): every alarm, zone, reading, process,
+indicator, rule, person and log line is one accessible element whose label
+says its state in words (a word plus a color, never color alone), at least 48
+dp, and `focusable`, so Tab on web reaches each in screen order
+(react-native-web maps `focusable` to `tabIndex` 0). Each screen has a Read
+button ("Read the facility", "Read the report", "Read the client"); urgent
+items go through the announcer's alarm channel, the rest are polite news at
+most one sentence per 10 s. JavaScript only: **ships over the air; no store
+build is needed.**
+
+**Code.** Types and checks: `ScreenSpec.facility`, `.sandbox`, `.trainer` and
+`facilityCheck`, `sandboxCheck`, `trainerCheck` in `engine/v1/validate.ts`
+(mirrored to the app by `npm run sim:sync-engine`); schema in
+`lib/sim/schema.ts`; lint in `lib/sim/lint.ts` (`sandboxSafetyProblems`, and
+the seconds-unit check for the new `at` fields). App: `src/sim/runtime/bindings.ts`,
+`facilityView.ts`, `sandboxView.ts`, `trainerView.ts`; panels
+`FacilityPanel.tsx`, `SandboxPanel.tsx`, `TrainerPanel.tsx` with `PanelBits.tsx`;
+wired in `app/(app)/course/[trackId]/sim/[simId].tsx`.
+
+#### Cases as built
+
+Golden paths by `npm run sim:golden -- steps <name>`; the bands reuse their
+base's exported `paths()`. Each authored case has one three-part reasoning
+moment, endings in all three classes with `endingOrder` (harm first), three or
+four critical criteria, KPIs, an expert path, a debrief per ending, and five to
+seven golden paths reaching every ending but `time_up`, Good, Mediocre and Bad,
+and every criterion both met and missed (`lib/sim/screens-misc.test.ts`). The
+documents are listed in `REQ314_SLUGS` (`lib/sim/documents.ts`).
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NASMCPT/cpt-parq-chest-tightness | trainer | Preparticipation screening, health history and when to refer | A sedentary 52-year-old, PAR-Q+ YES to blood pressure and its medication, NO to chest pain on paper; asked about stairs he describes exertional chest tightness. Not regularly active with a symptom: medical clearance before any testing (ACSM); a step test brings the tightness back at 3 min: stop and call 911; "some tightness is normal" lets it spread | cpt-parq |
+| bands: ACECPT 1.2, ACSMCPT 1.3, NSCACPT 1.1, NCCPTCPT 3.1 | trainer | the course's screening objective | same case | ace-parq, acsm-parq, nscacpt-parq, nccpt-parq |
+| NASMCPT/cpt-squat-knees-cave | trainer | Static and dynamic postural assessments and the compensations they reveal | Knees move inward on the overhead squat; with heels raised they still do, so the hip, not the ankle; a hip plan, a cue and box squats, no load until the knees track; a 16 kg goblet squat brings a knee ache (stop); naming a condition is out of scope; reassessment four weeks on | cpt-valgus |
+| bands: ACECPT 1.4, ACSMCPT 2.7, NSCACPT 3.3, NCCPTCPT 5.2 | trainer | the course's movement or technique objective | same case | ace-valgus, acsm-valgus, nscacpt-valgus, nccpt-valgus |
+| NASMCNC/cnc-ambivalent-food-record | trainer | Using motivational interviewing (secondary: stages of change; food records and their limits) | Contemplation: she wants change and her evening; OARS and the importance ruler draw change talk, the righting reflex draws sustain talk; a 1,250 kcal record with a steady weight is explored without blame and checked with a 24-hour recall; her own step | cnc-mi |
+| CISSP/cissp-datahall-tailgate-cooling | facility-console | Design site and facility security (secondary: physical security and personnel safety; physical and logical access) | One badge, two people into the data hall; two guards escort (a lone guard is hurt); suspend badge-in but keep exit free (locking both ways traps two technicians); the cage at 15 min, a device at 25; a breaker trips CRAC-2 at 10 min: start the standby unit from the BMS (the engineer takes 30 min; propped doors defeat access control); clips and badge log with custody; police | cissp-facility |
+| band: SECPLUS 1.10 physical security controls | facility-console | | same case | secplus-facility |
+| CEH/ceh-sandbox-invoice-loader | sandbox-report | Analyze malware with static and dynamic analysis, and choose countermeasures | An invoice .docm: an auto-open macro, Word starts PowerShell, updsvc.exe with a Run key, a 60 s beacon; detonate only in the isolated sandbox (opening it on the analyst's laptop is harm); the indicators find WS-131 before its second stage at 30 min; a YARA rule on the family's strings (a "any macro document" rule tests as noisy) and a Sigma rule for Word starting PowerShell, tested then deployed; image, then rebuild rather than delete | ceh-sandbox |
+| band: CYSAPLUS 5.17 file analysis and sandboxing | sandbox-report | | same case | cysa-sandbox |
+
+**Sources**, read 2026-11-16 (each on the documents with how it was read):
+the PAR-Q+ (form dated 01-11-2024, copyright 2025; a municipal copy of the
+official form, summarizing fetch); Riebe et al. 2015, ACSM's preparticipation
+screening algorithm (a hosted copy of the algorithm, summarizing fetch; authors
+and pages not visible); ACSM's "Who Needs a Stress Test Before Exercising?"
+(2017); the AHA's heart attack warning signs; NASM's overhead squat assessment
+blog (undated; NASM's muscle table was not on the page and is not used); the
+Great Lakes ATTC MI handout (citing Miller and Rollnick 2013, 3rd ed.; the book
+was not read); ProChange's Transtheoretical Model page; Mahabir et al. 2006
+(abstract); NIST SP 800-83 Rev. 1 (PDF, two summarizing fetches); YARA 4.4.0
+"Writing YARA rules"; the SigmaHQ conventions; MITRE ATT&CK T1547.001 (v2.1);
+an Allegion I Dig Hardware article on free egress under the IBC and NFPA 101
+(the codes themselves were not read); an Upsite summary of ASHRAE's thermal
+guidelines, 4th edition (the ASHRAE book was not read). Exam outlines are the
+courses' own readings (not re-read). Every timing and effect size is the
+author's teaching figure and says so on its param or source.
+
+**Findings** (recorded, not worked around):
+
+1. **A malformed hash (FAIL-2220).** The sandbox case's sample hash had 65
+   hex characters; `sandboxSafetyProblems` reported it as an encoded blob,
+   because the 40-64 hex exemption is exact. Fixed to 64; a test pins it.
+2. **Console tests selected by course (FAIL-2221, a recurrence of
+   FAIL-2002).** `security-certs-sims.test.ts` and `security-w2.test.ts`
+   counted every CISSP, CEH and CySA+ document as a console case; they now
+   also select by screen.
+3. **A brace in a rule body** is a template slot; YARA bodies write `{{` and
+   `}}` (22.21's note). Caught by the validator while building.
+4. **A peak tracked by an edge trigger** fires once while the value keeps
+   rising; a `process` (`peakTemp: max(peakTemp, temp)`) is the way. Caught
+   by the golden paths.
+5. **`time_up`** stays unreached, as in every earlier case.
+
+**Still open** (candidates on these screens, not built in this round):
+CISSP 7.11 a duress or evacuation case, 3.7 a clean-agent discharge with
+people in the room; ISC2 CC physical access; Security+ 2.13 malware
+indicators (sandbox band candidate); NASM-CPT "Facilitating lifestyle change
+and handling lapses" and NASM-CNC T-C1 (twelve weeks of coaching) and T-C2
+(travel and a tight budget) on the trainer across weeks; NSCA-CSCS needs
+analysis and athlete referral; ACE 3.2 lapses. Coverage tables are in
+`docs/sim-coverage-pm-frameworks-cnc.md` and 22.19.
