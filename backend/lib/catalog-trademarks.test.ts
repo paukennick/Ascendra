@@ -8,8 +8,9 @@
 //   - "permission": the policy allows no use of its marks without written
 //     permission (or says unauthorized use is prohibited). The course names
 //     neither the body nor its marks in its title or description, and its
-//     notice is the generic one. Course content and the exam card still name
-//     the exam; that is a decision for Nick (REQ-309 report).
+//     notice is the generic one. REQ-319 (Nick, 2026-11-16, option A): the
+//     rest of the course names neither either (lib/unbranded.ts; scanned in
+//     lib/unbranded.test.ts), and its page shows the exam's published facts.
 //   - "nominative": the policy allows true, factual reference in plain text
 //     but not the mark in a product's name. The title names no mark; the
 //     description may name the exam and carries the body's notice.
@@ -256,7 +257,10 @@ describe("REQ-309: app copy, README and What's new", () => {
 // REQ-194 (Nick, 2026-11-09; migration 065): the Red Hat and Docker courses
 // are hidden from the catalog, not deleted, so they can come back if the
 // owners agree. Nothing else is hidden by accident.
-const PERMISSION_PENDING = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
+// REQ-319 (Nick, 2026-11-16, option A): the six courses REQ-318 hid pending
+// their exam body's permission (ISC2, EC-Council, NBCC, BCEN) are listed
+// again, unbranded (lib/unbranded.ts, lib/unbranded.test.ts).
+const UNHIDDEN_REQ319 = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
 
 describe("hidden courses", () => {
   // REQ-308: ITIL4FND is hidden too, replaced by ITIL5FND (its reason is
@@ -264,9 +268,9 @@ describe("hidden courses", () => {
   // REQ-318 (Nick, 2026-11-16): the courses of ISC2, EC-Council, NBCC and
   // BCEN, whose policies allow no use of their marks without written
   // permission, are hidden until that permission or legal advice arrives.
-  test("exactly EX188, EX280, DCA, ITIL4FND and the six permission-pending courses are hidden, each with its reason", () => {
+  test("exactly EX188, EX280, DCA and ITIL4FND are hidden, each with its reason", () => {
     const hidden = CATALOG_TRACKS.filter((t) => t.hiddenAt).map((t) => t.code).sort();
-    assert.deepEqual(hidden, ["CEH", "CEN", "CISSP", "DCA", "EX188", "EX280", "ISC2CC", "ITIL4FND", "NCE", "NCMHCE"]);
+    assert.deepEqual(hidden, ["DCA", "EX188", "EX280", "ITIL4FND"]);
     for (const code of ["EX188", "EX280"]) {
       const t = byCode.get(code)!;
       assert.ok(!Number.isNaN(Date.parse(t.hiddenAt!)), code);
@@ -275,18 +279,18 @@ describe("hidden courses", () => {
     assert.match(byCode.get("DCA")!.hiddenReason ?? "", /https:\/\/www\.docker\.com\/legal\/trademark-guidelines/);
   });
 
-  test("REQ-318: the ISC2, EC-Council, NBCC and BCEN courses are hidden pending permission", () => {
-    const pending = BODIES.filter((b) => ["ISC2", "EC-Council", "NBCC", "BCEN"].includes(b.name)).flatMap((b) => b.codes).sort();
-    assert.deepEqual(pending, PERMISSION_PENDING);
-    for (const code of PERMISSION_PENDING) {
+  test("REQ-319: the six courses REQ-318 hid are listed again, with no hidden reason left behind", () => {
+    const six = BODIES.filter((b) => ["ISC2", "EC-Council", "NBCC", "BCEN"].includes(b.name)).flatMap((b) => b.codes).sort();
+    assert.deepEqual(six, UNHIDDEN_REQ319);
+    for (const code of UNHIDDEN_REQ319) {
       const t = byCode.get(code)!;
-      assert.equal(t.hiddenAt, "2026-11-16T00:00:00Z", code);
-      assert.equal(t.hiddenReason, "Hidden pending the exam body's permission to name its exam (REQ-309/REQ-318)", code);
+      assert.equal(t.hiddenAt, undefined, code);
+      assert.equal(t.hiddenReason, undefined, code);
     }
   });
 
   test("their content is kept: units and objectives are still seeded", () => {
-    for (const code of ["EX188", "EX280", "DCA", ...PERMISSION_PENDING]) {
+    for (const code of ["EX188", "EX280", "DCA", ...UNHIDDEN_REQ319]) {
       const t = byCode.get(code)!;
       assert.ok(t.units.length > 0, code);
       assert.ok(t.units.every((u) => u.objectives.length > 0), code);

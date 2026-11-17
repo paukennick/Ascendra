@@ -145,9 +145,10 @@ export function learnerTrackCode(code: string, userId: string | null | undefined
 // A subject_tracks row as the app gets it: the display code for an
 // unbranded catalog course, and `unbranded` so a new app build can show the
 // exam's published facts instead of a provider line.
-export function learnerTrackRow<T extends { code?: unknown; user_id?: unknown }>(row: T): T & { unbranded?: true } {
-  if (typeof row.code !== "string" || row.user_id != null || !isUnbrandedCode(row.code)) return row;
-  return { ...row, code: learnerTrackCode(row.code, null), unbranded: true };
+export function learnerTrackRow<T extends object>(row: T): T & { unbranded?: true } {
+  const r = row as { code?: unknown; user_id?: unknown };
+  if (typeof r.code !== "string" || r.user_id != null || !isUnbrandedCode(r.code)) return row;
+  return { ...row, code: learnerTrackCode(r.code, null), unbranded: true as const };
 }
 
 // REQ-319: the line every model prompt for an unbranded course carries
@@ -177,6 +178,9 @@ export interface PublishedExamFacts {
   passing: string | null;
   eligibility: string | null;
   domains: { name: string; weightPercent: number | null }[];
+  // The "Prepares you for" line and its disclaimer, only while the body's
+  // switch is on (REFERENCE_LINE_ON below); null otherwise.
+  reference: ExamReference | null;
 }
 
 export const PUBLISHED_FACTS_HEADING = "This course follows an exam with these published facts";
@@ -203,6 +207,7 @@ export function publishedExamFacts(x: {
   passingScorePolicy: string | null;
   recommendedExperience: string | null;
   domains: { name: string; weightPercent: number | null }[];
+  reference?: ExamReference | null;
 }): PublishedExamFacts {
   return {
     heading: PUBLISHED_FACTS_HEADING,
@@ -213,5 +218,45 @@ export function publishedExamFacts(x: {
     passing: x.passingScorePolicy,
     eligibility: x.recommendedExperience,
     domains: x.domains.map((d) => ({ name: d.name, weightPercent: d.weightPercent })),
+    reference: x.reference ?? null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// The reference line: a switch per body, all OFF (pending Nick)
+// ---------------------------------------------------------------------------
+// A separate research task (nominative-use options, 2026-11-16) recommends,
+// pending Nick's decision, naming the exam on the course page with a
+// "Prepares you for" line and a specific disclaimer, titles staying
+// descriptive and the app name never carrying a mark. So that either answer
+// is a one-line change, the line is switchable per body here. While a body's
+// switch is off (every body, today) nothing is shown and the generic
+// not-affiliated notice stays. When on, the course page (exam.facts.reference,
+// lib/exam-blueprint.ts) shows exactly these two sentences, built from the
+// seeded credential and provider names; every other screen stays unbranded.
+// The wording below is a placeholder from the memo, to be confirmed with the
+// switch: no "Official", "Approved", "Authorized" or "Master", no logos, and no
+// registered-mark symbol until each mark's registration status is checked.
+export const REFERENCE_LINE_ON: Readonly<Record<string, boolean>> = Object.freeze(
+  Object.fromEntries(UNBRANDED_BODIES.map((b) => [b.name, false]))
+);
+
+export interface ExamReference {
+  line: string;
+  disclaimer: string;
+}
+
+export function examReferenceFor(
+  x: { providerSlug?: string | null; providerName?: string | null; credentialName?: string | null },
+  on: Readonly<Record<string, boolean>> = REFERENCE_LINE_ON
+): ExamReference | null {
+  const body = UNBRANDED_BODIES.find((b) => !!x.providerSlug && b.providerSlugs.includes(x.providerSlug));
+  if (!body || !on[body.name]) return null;
+  const exam = x.credentialName?.trim();
+  const owner = x.providerName?.trim();
+  if (!exam || !owner) return null;
+  return {
+    line: `Prepares you for the ${exam} exam offered by ${owner}.`,
+    disclaimer: `${exam} is a mark of ${owner}. Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${owner}.`,
   };
 }

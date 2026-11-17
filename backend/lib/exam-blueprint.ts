@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { learnerExamNames, publishedExamFacts, type PublishedExamFacts } from "@/lib/unbranded";
+import { examReferenceFor, learnerExamNames, publishedExamFacts, type PublishedExamFacts } from "@/lib/unbranded";
 
 // REQ-102: the vendor exam a track prepares for, as stored by the seed in
 // credential_exams / exam_domains (migration 007). Exposed so later
@@ -123,6 +123,7 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
           passingScorePolicy: row.passing_score_policy,
           recommendedExperience: row.recommended_experience,
           domains: domainList,
+          reference: examReferenceFor({ providerSlug: row.provider_slug, providerName: row.provider_name, credentialName: row.credential_name }),
         })
       : null,
   };
