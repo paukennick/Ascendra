@@ -1,0 +1,1097 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cssgb-capability-tool-wear",
+  "title": "Cpk for the customer by 16:00",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Capability study: shaft OD 12.00 +/- 0.06 mm, Lathe 7, 25 subgroups of 5 (Northgate Machining, fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Customer quality engineer",
+          "text": "We need Cpk >= 1.33 on the OD before PPAP sign-off at 16:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "boss",
+          "label": "Plant manager",
+          "text": "Mika says subgroups 13-20 give 1.87. Send that and let's get the order.",
+          "when": "true",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Customer",
+          "text": "16:00: no capability result; sign-off moved to next week.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "returned",
+          "label": "Customer, three weeks later",
+          "text": "Incoming inspection found shafts over 12.06 mm. Your study said capable.",
+          "when": "overstated",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "xbar",
+          "label": "X-bar chart: subgroup mean OD (mm)",
+          "spokenLabel": "X-bar chart of mean diameter",
+          "kind": "control",
+          "unit": "mm",
+          "min": 11.97,
+          "max": 12.05,
+          "when": "not isNull(chartAt)",
+          "points": [
+            {
+              "id": "s1",
+              "label": "1",
+              "value": "11.987",
+              "flag": "true"
+            },
+            {
+              "id": "s2",
+              "label": "2",
+              "value": "11.992",
+              "flag": "false"
+            },
+            {
+              "id": "s3",
+              "label": "3",
+              "value": "11.996",
+              "flag": "false"
+            },
+            {
+              "id": "s4",
+              "label": "4",
+              "value": "12.0",
+              "flag": "false"
+            },
+            {
+              "id": "s5",
+              "label": "5",
+              "value": "12.004",
+              "flag": "false"
+            },
+            {
+              "id": "s6",
+              "label": "6",
+              "value": "12.008",
+              "flag": "false"
+            },
+            {
+              "id": "s7",
+              "label": "7",
+              "value": "12.012",
+              "flag": "false"
+            },
+            {
+              "id": "s8",
+              "label": "8",
+              "value": "12.016",
+              "flag": "false"
+            },
+            {
+              "id": "s9",
+              "label": "9",
+              "value": "12.02",
+              "flag": "false"
+            },
+            {
+              "id": "s10",
+              "label": "10",
+              "value": "12.024",
+              "flag": "false"
+            },
+            {
+              "id": "s11",
+              "label": "11",
+              "value": "12.027",
+              "flag": "true"
+            },
+            {
+              "id": "s12",
+              "label": "12",
+              "value": "12.031",
+              "flag": "true"
+            },
+            {
+              "id": "s13",
+              "label": "13",
+              "value": "11.986",
+              "flag": "true"
+            },
+            {
+              "id": "s14",
+              "label": "14",
+              "value": "11.991",
+              "flag": "true"
+            },
+            {
+              "id": "s15",
+              "label": "15",
+              "value": "11.995",
+              "flag": "false"
+            },
+            {
+              "id": "s16",
+              "label": "16",
+              "value": "11.999",
+              "flag": "false"
+            },
+            {
+              "id": "s17",
+              "label": "17",
+              "value": "12.003",
+              "flag": "false"
+            },
+            {
+              "id": "s18",
+              "label": "18",
+              "value": "12.007",
+              "flag": "false"
+            },
+            {
+              "id": "s19",
+              "label": "19",
+              "value": "12.011",
+              "flag": "false"
+            },
+            {
+              "id": "s20",
+              "label": "20",
+              "value": "12.015",
+              "flag": "false"
+            },
+            {
+              "id": "s21",
+              "label": "21",
+              "value": "12.019",
+              "flag": "false"
+            },
+            {
+              "id": "s22",
+              "label": "22",
+              "value": "12.023",
+              "flag": "false"
+            },
+            {
+              "id": "s23",
+              "label": "23",
+              "value": "12.026",
+              "flag": "false"
+            },
+            {
+              "id": "s24",
+              "label": "24",
+              "value": "12.03",
+              "flag": "true"
+            },
+            {
+              "id": "s25",
+              "label": "25",
+              "value": "12.033",
+              "flag": "true"
+            }
+          ],
+          "lines": [
+            {
+              "id": "ucl",
+              "label": "UCL",
+              "value": "12.026"
+            },
+            {
+              "id": "cl",
+              "label": "CL",
+              "value": "12.009"
+            },
+            {
+              "id": "lcl",
+              "label": "LCL",
+              "value": "11.992"
+            }
+          ],
+          "note": "Flagged: means beyond a control limit. The spec limits (11.94 and 12.06) apply to single parts, not means, so they are not drawn here."
+        }
+      ],
+      "tables": [
+        {
+          "id": "cap",
+          "label": "Capability indices",
+          "spokenLabel": "the capability indices",
+          "columns": [
+            {
+              "id": "index",
+              "label": "Index"
+            },
+            {
+              "id": "sigma",
+              "label": "Sigma used"
+            },
+            {
+              "id": "value",
+              "label": "Value",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "cp",
+              "cells": [
+                "Cp",
+                "within, 0.0125",
+                "1.60"
+              ]
+            },
+            {
+              "id": "cpk",
+              "cells": [
+                "Cpk",
+                "within, 0.0125",
+                "1.36"
+              ]
+            },
+            {
+              "id": "pp",
+              "cells": [
+                "Pp",
+                "overall, 0.0184",
+                "1.09"
+              ],
+              "flag": "true"
+            },
+            {
+              "id": "ppk",
+              "cells": [
+                "Ppk",
+                "overall, 0.0184",
+                "0.92"
+              ],
+              "flag": "true"
+            }
+          ],
+          "when": "not isNull(statsAt)",
+          "note": "Flagged: below the customer's 1.33. Within-subgroup sigma (R-bar/d2) misses the drift between subgroups; overall sigma includes it."
+        },
+        {
+          "id": "plan",
+          "label": "Control plan, OD",
+          "spokenLabel": "the control plan",
+          "columns": [
+            {
+              "id": "item",
+              "label": "Item"
+            },
+            {
+              "id": "now",
+              "label": "Now"
+            }
+          ],
+          "rows": [
+            {
+              "id": "tool",
+              "cells": [
+                "Insert change",
+                "{toolRule ? \"every 400 parts, gauge check after\" : \"when it looks worn\"}"
+              ],
+              "flag": "not toolRule"
+            },
+            {
+              "id": "gauge",
+              "cells": [
+                "Gauge",
+                "air gauge, 0.001 mm"
+              ]
+            }
+          ]
+        }
+      ],
+      "code": [],
+      "meters": [
+        {
+          "id": "due",
+          "label": "PPAP sign-off",
+          "value": "16:00"
+        },
+        {
+          "id": "spec",
+          "label": "Spec",
+          "value": "11.94 to 12.06 mm"
+        }
+      ]
+    }
+  },
+  "objective": "Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data",
+  "secondaryObjectives": [
+    "Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u"
+  ],
+  "sources": [
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.1.6 What is Process Capability?",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section1/pmc16.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'Process capability compares the output of an in-control process to the specification limits'; Cp = (USL - LSL) / 6 sigma; Cpk = min[(USL - mu) / 3 sigma, (mu - LSL) / 3 sigma]; 'we need n >= 100 for capability studies'; the page's table relates Cp = 1.33 to 64 ppm. Pp and Ppk (the same formulas with the overall standard deviation) and the within-subgroup estimate R-bar/d2 were not on the fetched text; they are the standard definitions the CSSGB objective names. Every number in the case is invented and computed with these formulas."
+    },
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar limits x-double-bar +/- A2 R-bar. The case's limits use A2 = 0.577 for subgroups of 5 (the standard table value, not on the fetched page)."
+    },
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2 What are Variables Control Charts? (WECO rules)",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc32.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: for a point outside the control limits 'we conclude the process has shifted and is unstable'; the trend rule '6 in a row trending up or down'."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Green Belt at Northgate Machining (fictional). A new customer will sign off the shaft at 16:00 if the outside diameter (12.00 +/- 0.06 mm) shows Cpk of at least 1.33. Lathe 7 has run 125 shafts in 25 subgroups of 5. The plant manager wants the order. It is 14:30.",
+    "handover": [
+      "Inserts are changed 'when they look worn'."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shaft diameters, the customer and the deadline are invented. Sign-off is at 16:00, 90 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "chartAt": {
+      "type": "time",
+      "init": null
+    },
+    "statsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "toolRule": {
+      "type": "bool",
+      "init": false
+    },
+    "reported": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cherry",
+        "within",
+        "honest"
+      ],
+      "init": "none"
+    },
+    "reportedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "findingDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "unstable",
+        "capable",
+        "spread"
+      ],
+      "init": "unset"
+    },
+    "actionDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tool",
+        "none",
+        "inspect"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "sent": {
+      "expr": "reported != \"none\""
+    },
+    "sentSec": {
+      "expr": "not isNull(reportedAt) ? timeAt(reportedAt) : -1"
+    },
+    "overstated": {
+      "expr": "reported == \"cherry\" or reported == \"within\""
+    },
+    "stableChecked": {
+      "expr": "not isNull(chartAt) and (not sent or timeAt(chartAt) <= sentSec)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "chart",
+        "stats",
+        "toollog",
+        "rule",
+        "report",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "chart": {
+      "label": "Chart the 25 subgroups on X-bar and R",
+      "group": "Study",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(chartAt)",
+          "then": [
+            {
+              "set": "chartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "X-bar: 4 points above the UCL (11, 12, 24, 25) and 3 below the LCL (1, 13, 14); two rising runs, each reset at a tool change. R chart: in control (R-bar 0.0291 mm)."
+        },
+        {
+          "finding": "The mean climbs as the tool wears and drops at each tool change: the process is not in control, though the spread within subgroups is steady."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "stats": {
+      "label": "Compute Cp, Cpk, Pp and Ppk for all 125 shafts",
+      "group": "Study",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(statsAt)",
+          "then": [
+            {
+              "set": "statsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "n = 125, mean 12.009 mm\nsigma within (R-bar/d2) 0.0125   Cp 1.60   Cpk 1.36\nsigma overall (all parts) 0.0184  Pp 1.09   Ppk 0.92"
+        },
+        {
+          "finding": "Cpk 1.36 but Ppk 0.92: the gap is the drift between subgroups that within-subgroup sigma does not see."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "toollog": {
+      "label": "Read the tool change log",
+      "group": "Study",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(logAt)",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Insert changed after part 300 (between subgroups 12 and 13). Changed on 'when it looks worn'; no fixed interval."
+        },
+        {
+          "finding": "Tool changes are by eye; the drift runs until someone notices."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rule": {
+      "label": "Add 'change the insert every 400 parts' to the control plan",
+      "group": "Act",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "toolRule",
+          "to": "true"
+        },
+        {
+          "log": "Control plan: insert change every 400 parts, gauge check after each change.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "report": {
+      "label": "Send the capability result to the customer's quality engineer",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "Result",
+          "options": [
+            {
+              "value": "cherry",
+              "label": "Cpk 1.87 (subgroups 13-20, right after the tool change): capable"
+            },
+            {
+              "value": "within",
+              "label": "Cpk 1.36 from all 25 subgroups: capable"
+            },
+            {
+              "value": "honest",
+              "label": "Not yet stable: tool wear drifts the mean; Cpk 1.36 (within) but Ppk 0.92 (overall); tool change every 400 parts, new study in two weeks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "reported",
+          "to": "r"
+        },
+        {
+          "set": "reportedAt",
+          "to": "t"
+        },
+        {
+          "output": "Sent to the customer: {r}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 30 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 30 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the finding and the next step",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "finding",
+              "label": "What the study showed",
+              "options": [
+                {
+                  "value": "unstable",
+                  "label": "Tool wear drifts the mean: not in control, so Cpk alone overstates it; Ppk 0.92 is what parts will see"
+                },
+                {
+                  "value": "capable",
+                  "label": "Capable: Cpk above 1.33"
+                },
+                {
+                  "value": "spread",
+                  "label": "The spread within subgroups is too wide"
+                }
+              ]
+            },
+            {
+              "id": "action",
+              "label": "The next step",
+              "options": [
+                {
+                  "value": "tool",
+                  "label": "A tool change every 400 parts in the control plan, then a new 25-subgroup study"
+                },
+                {
+                  "value": "none",
+                  "label": "None needed"
+                },
+                {
+                  "value": "inspect",
+                  "label": "100% inspection forever"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "findingDoc",
+          "to": "finding"
+        },
+        {
+          "set": "actionDoc",
+          "to": "action"
+        },
+        {
+          "log": "Recorded: finding {finding}, action {action}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shaft diameters, the customer and the deadline are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the sign-off passed without a result.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the customer's quality engineer: is the process capable, which index you report and why, and what changes next.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Stability first",
+          "criteria": "Capability assumes an in-control process; the X-bar chart shows a tool-wear drift with points beyond both limits, while the R chart is stable.",
+          "modelAnswer": "Not in control: the mean rises with wear and resets at each insert change; the within-subgroup spread is steady."
+        },
+        {
+          "label": "Which index",
+          "criteria": "Within-subgroup sigma (Cpk 1.36) misses the drift between subgroups; overall sigma (Ppk 0.92) is what shipped parts see; picking the subgroups after a tool change (1.87) is not the process.",
+          "modelAnswer": "Report Ppk 0.92 and explain the gap to Cpk 1.36; 1.87 from subgroups 13-20 is cherry-picked."
+        },
+        {
+          "label": "Next step",
+          "criteria": "Control the cause (a fixed insert change interval in the control plan) and repeat the study.",
+          "modelAnswer": "Insert change every 400 parts with a gauge check, then a new 25-subgroup study."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 5400,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shaft diameters, the customer and the deadline are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing misleads nobody, but the customer has no answer; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shaft diameters, the customer and the deadline are invented."
+      }
+    }
+  },
+  "endings": {
+    "overstated": {
+      "label": "An overstated capability went to the customer",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and overstated",
+      "narrative": "The customer signed off on a process that, as run, makes parts outside the spec: the study left out the drift."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing misleading went out, but the customer got no answer and moved the sign-off."
+    },
+    "right": {
+      "label": "An honest result with a plan, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and reported == \"honest\" and sentSec <= deadline and stableChecked and toolRule",
+      "narrative": "The customer knows the process is not yet stable, why, and what changes before a new study."
+    },
+    "gaps": {
+      "label": "Honest, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result was honest, but late, unchecked against a chart, or without the tool change in the control plan."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "overstated",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stable",
+        "label": "Checked stability on a control chart before reporting capability",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "stableChecked",
+            "score": "met",
+            "why": "Charted first: the drift and the points beyond the limits."
+          },
+          {
+            "when": "not isNull(chartAt)",
+            "score": "partial",
+            "why": "Charted only after sending."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Capability without a control chart."
+          }
+        ]
+      },
+      {
+        "id": "longterm",
+        "label": "Reported long-term performance (Ppk), not a cherry-picked or within-only Cpk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reported == \"honest\"",
+            "score": "met",
+            "why": "Ppk 0.92 with the reason."
+          },
+          {
+            "when": "reported == \"within\"",
+            "score": "missed",
+            "why": "Cpk 1.36 hides the drift between subgroups."
+          },
+          {
+            "when": "reported == \"cherry\"",
+            "score": "missed",
+            "why": "Eight subgroups chosen after a tool change are not the process."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing reported."
+          }
+        ]
+      },
+      {
+        "id": "action",
+        "label": "Put the cause under control (insert change interval)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "toolRule",
+            "score": "met",
+            "why": "Insert change every 400 parts."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The drift is still controlled by eye."
+          }
+        ]
+      },
+      {
+        "id": "onTime",
+        "label": "Answered before 16:00",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "sent and sentSec <= deadline",
+            "score": "met",
+            "why": "Sent {sentSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer by 16:00."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the finding and the next step",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "findingDoc == \"unstable\" and actionDoc == \"tool\"",
+            "score": "met",
+            "why": "Both right."
+          },
+          {
+            "when": "findingDoc == \"unstable\" or actionDoc == \"tool\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "claimed",
+        "label": "Capability index claimed to the customer",
+        "value": "reported == \"cherry\" ? 1.87 : reported == \"within\" ? 1.36 : reported == \"honest\" ? 0.92 : 0",
+        "format": "number",
+        "expert": "0.92 (Ppk), not yet stable"
+      },
+      {
+        "id": "sentMin",
+        "label": "Minutes until the customer had an answer",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 20"
+      },
+      {
+        "id": "beyond",
+        "label": "Subgroup means beyond the control limits",
+        "value": "not isNull(chartAt) ? 7 : 0",
+        "format": "number",
+        "expert": "7"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "X-bar and R: a sawtooth drift with 7 means beyond the limits; R stable."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Cp 1.60, Cpk 1.36 (within) against Pp 1.09, Ppk 0.92 (overall)."
+      },
+      {
+        "at": "9-11 min",
+        "text": "Tool log: inserts changed by eye."
+      },
+      {
+        "at": "11-17 min",
+        "text": "Insert change every 400 parts in the control plan."
+      },
+      {
+        "at": "17-20 min",
+        "text": "Send the honest result: not yet stable, Ppk 0.92, the plan and a new study."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: stability first, the honest index, a plan",
+        "body": "Capability means something only for an in-control process. You showed the drift, reported what parts will see, and put the cause under control."
+      },
+      "gaps": {
+        "headline": "Honest, with gaps",
+        "body": "Nothing overstated went out. The criteria show the gap: no chart, no control plan change, or late."
+      },
+      "overstated": {
+        "headline": "An overstated capability went out",
+        "body": "Within-subgroup sigma misses drift between subgroups, and a chosen stretch after a tool change is not the process. Ppk tells the customer what they will receive."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the customer got no answer. An honest 'not yet, and here is why' keeps the relationship."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Process capability compares an in-control process with its specification. The X-bar chart shows the mean climbing with tool wear and resetting at each insert change, with 7 means beyond the limits, while the R chart is stable: the variation within subgroups is fine and the drift between them is not. Cpk from within-subgroup sigma (1.36) does not see the drift; Ppk from overall sigma (0.92) does, and is what shipped parts will show. Eight subgroups picked after a tool change (1.87) are not the process. Report that it is not yet stable, control the cause with a fixed insert interval, and repeat the study."
+  }
+}
