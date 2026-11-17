@@ -397,6 +397,48 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "head-strike-on-apixaban"),
   entry("NCLEXRN", "oxytocin-tachysystole-late-decels"),
   // ---- end REQ-315 ----
+  // ---- REQ-321 (sims for the PMI and CompTIA courses that had none, round of
+  // 2026-11-17): bands that register a case another course already teaches on
+  // this course's objective (docs/sims.md 4.7, 22.31), launch courses first;
+  // lib/sim/pm-comptia.ts lists them by slug. Keep these entries together. ----
+  band("PMP", "sprint-release-before-review-pmp"),
+  band("PMP", "sprint-goal-becomes-obsolete-pmp"),
+  band("PMP", "sprint-status-meeting-daily-scrum-pmp"),
+  band("CAPM", "sprint-status-meeting-daily-scrum-capm"),
+  band("PMIACP", "sprint-release-before-review-pmiacp"),
+  band("PMIACP", "sprint-status-meeting-daily-scrum-pmiacp"),
+  band("PMIACP", "sprint-goal-becomes-obsolete-pmiacp"),
+  band("PROJECTPLUS", "sprint-status-meeting-daily-scrum-projectplus"),
+  band("PROJECTPLUS", "firewall-change-backout-projectplus"),
+  band("SERVERPLUS", "retired-dns-server-orders-stuck-serverplus"),
+  band("SERVERPLUS", "sale-traffic-third-backend-serverplus"),
+  band("SERVERPLUS", "report-workers-starve-api-serverplus"),
+  band("SERVERPLUS", "service-no-restart-after-update-serverplus"),
+  band("SERVERPLUS", "nightly-backup-missing-serverplus"),
+  band("SERVERPLUS", "shared-folder-permission-denied-serverplus"),
+  band("CLOUDNETX", "sale-traffic-third-backend-cloudnetx"),
+  band("CLOUDNETX", "firewall-change-backout-cloudnetx"),
+  band("CLOUDNETX", "branch-dns-route-typo-cloudnetx"),
+  band("CLOUDNETX", "retired-dns-server-orders-stuck-cloudnetx"),
+  band("CLOUDPLUS", "nat-gateway-bill-spike-cloudplus"),
+  band("CLOUDPLUS", "leaked-access-key-cloudplus"),
+  band("CLOUDPLUS", "rds-update-without-where-pitr-cloudplus"),
+  band("CLOUDPLUS", "cloud-run-bad-revision-rollback-cloudplus"),
+  band("AUTOOPSPLUS", "py-import-crash-traceback-autoopsplus"),
+  band("AUTOOPSPLUS", "web-service-fails-after-edit-autoopsplus"),
+  band("AUTOOPSPLUS", "canary-rollback-dlq-autoopsplus"),
+  band("DATAPLUS", "sql-not-in-null-empty-list-dataplus"),
+  band("DATAPLUS", "stock-on-hand-summed-dataplus"),
+  band("DATAPLUS", "rls-region-manager-dataplus"),
+  band("DATAAI", "loan-data-bias-dataai"),
+  band("DATAAI", "fraud-model-drift-dataai"),
+  band("TECHPLUS", "rogue-dhcp-soho-office-techplus"),
+  band("TECHPLUS", "home-office-laptop-malware-techplus"),
+  band("TECHPLUS", "branch-dns-route-typo-techplus"),
+  band("PMICPMAI", "loan-data-bias-pmicpmai"),
+  band("PMICPMAI", "fraud-model-drift-pmicpmai"),
+  band("CMPCBS", "phish-to-account-takeover-cmpcbs"),
+  // ---- end REQ-321 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

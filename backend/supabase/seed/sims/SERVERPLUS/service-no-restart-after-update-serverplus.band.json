@@ -1,0 +1,33 @@
+{
+  "band": "serverplus",
+  "label": "Server+ (SK0-005)",
+  "base": {
+    "course": "LFCS",
+    "slug": "service-no-restart-after-update"
+  },
+  "slug": "service-no-restart-after-update-serverplus",
+  "patch": {
+    "objective": "Troubleshooting software: OS errors, application issues, and patching failures",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CompTIA Server+ SK0-005 (V5) Exam Objectives, document version 7.0: Hardware 18%, Server Administration 30%, Security and Disaster Recovery 24%, Troubleshooting 28%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1eba6d54bef111ef9480da43816a42bf",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Given a scenario, configure servers to use network infrastructure services' (name resolution, DNS); 'Explain the key concepts of high availability for servers' (load balancing); 'Given a scenario, configure and maintain server functions and features' (monitoring, performance: CPU); 'Given a scenario, troubleshoot common OS and software problems' (service failures; services and processes); 'Explain the importance of backups and restores' (backup validation); 'Explain important concepts pertaining to identity and access management for server administration' (user groups; permissions). The objective wording here is the course seed's."
+      },
+      {
+        "cite": "systemd.service(5) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/systemd.service.5.html",
+        "note": "Relevant text: Restart=, 'If set to no (the default), the service will not be restarted'; 'If set to on-failure, the service will be restarted when the process exits with a non-zero exit code', and on an unclean signal; RestartSec= 'Defaults to 100ms'; 'service restart is subject to unit start rate limiting configured with StartLimitIntervalSec= and StartLimitBurst='. Read through a summarizing fetch 2026-11-14."
+      },
+      {
+        "cite": "systemd.unit(5) and systemctl(1) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/systemd.unit.5.html",
+        "note": "Relevant text: systemd.unit(5), 'Along with a unit file foo.service, a \"drop-in\" directory foo.service.d/ may exist. All files with the suffix \".conf\" from this directory will be merged'; 'Drop-in files in /etc/ take precedence over those in /run/ which in turn take precedence over those in /usr/lib/'; /usr/lib/systemd/system holds 'System units installed by the distribution package manager'. systemctl(1), edit: 'Otherwise, a drop-in file will be created or edited' (default name override.conf) and 'After the editing is finished, configuration is reloaded, equivalent to systemctl daemon-reload'; daemon-reload 'reload all unit files'; cat may not match 'the system manager's understanding' if files changed without daemon-reload. Read through summarizing fetches 2026-11-14. That a package upgrade replaces its own file under /usr/lib is how package managers treat files that are not configuration files (dpkg(1) conffile handling, read 2026-11-14); the warning text after an unreloaded change is authored in systemd's style."
+      }
+    ]
+  }
+}

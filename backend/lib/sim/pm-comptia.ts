@@ -1,0 +1,45 @@
+// REQ-321 (docs/sims.md 22.31): the sims for the PMI and CompTIA courses that
+// had none (round of 2026-11-17), by slug, for lib/sim/pm-comptia.test.ts.
+// Tests select their documents from this list, never by course code
+// (FAIL-2002). Bands register a case another course already teaches on this
+// course's objective; scenarios are new cases.
+export interface PmComptiaEntry { course: string; slug: string; screen: string; profile: string; kind: "scenario" | "band"; steps: string; base?: string }
+export const PM_COMPTIA: readonly PmComptiaEntry[] = [
+  { course: "PMP", slug: "sprint-release-before-review-pmp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmp-sprint-release-before-review-pmp", base: "PSMI/sprint-release-before-review" },
+  { course: "PMP", slug: "sprint-goal-becomes-obsolete-pmp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmp-sprint-goal-becomes-obsolete-pmp", base: "PSMI/sprint-goal-becomes-obsolete" },
+  { course: "PMP", slug: "sprint-status-meeting-daily-scrum-pmp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmp-sprint-status-meeting-daily-scrum-pmp", base: "PSMI/sprint-status-meeting-daily-scrum" },
+  { course: "CAPM", slug: "sprint-status-meeting-daily-scrum-capm", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-capm-sprint-status-meeting-daily-scrum-capm", base: "PSMI/sprint-status-meeting-daily-scrum" },
+  { course: "PMIACP", slug: "sprint-release-before-review-pmiacp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmiacp-sprint-release-before-review-pmiacp", base: "PSMI/sprint-release-before-review" },
+  { course: "PMIACP", slug: "sprint-status-meeting-daily-scrum-pmiacp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmiacp-sprint-status-meeting-daily-scrum-pmiacp", base: "PSMI/sprint-status-meeting-daily-scrum" },
+  { course: "PMIACP", slug: "sprint-goal-becomes-obsolete-pmiacp", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-pmiacp-sprint-goal-becomes-obsolete-pmiacp", base: "PSMI/sprint-goal-becomes-obsolete" },
+  { course: "PROJECTPLUS", slug: "sprint-status-meeting-daily-scrum-projectplus", screen: "project-dashboard", profile: "scrum", kind: "band", steps: "pmc-projectplus-sprint-status-meeting-daily-scrum-projectplus", base: "PSMI/sprint-status-meeting-daily-scrum" },
+  { course: "PROJECTPLUS", slug: "firewall-change-backout-projectplus", screen: "security-console", profile: "security", kind: "band", steps: "pmc-projectplus-firewall-change-backout-projectplus", base: "SECPLUS/firewall-change-backout" },
+  { course: "SERVERPLUS", slug: "retired-dns-server-orders-stuck-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-retired-dns-server-orders-stuck-serverplus", base: "LINUXPLUS/retired-dns-server-orders-stuck" },
+  { course: "SERVERPLUS", slug: "sale-traffic-third-backend-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-sale-traffic-third-backend-serverplus", base: "LFCS/sale-traffic-third-backend" },
+  { course: "SERVERPLUS", slug: "report-workers-starve-api-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-report-workers-starve-api-serverplus", base: "LFCS/report-workers-starve-api" },
+  { course: "SERVERPLUS", slug: "service-no-restart-after-update-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-service-no-restart-after-update-serverplus", base: "LFCS/service-no-restart-after-update" },
+  { course: "SERVERPLUS", slug: "nightly-backup-missing-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-nightly-backup-missing-serverplus", base: "LINUXFUND/nightly-backup-missing" },
+  { course: "SERVERPLUS", slug: "shared-folder-permission-denied-serverplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-serverplus-shared-folder-permission-denied-serverplus", base: "LINUXFUND/shared-folder-permission-denied" },
+  { course: "CLOUDNETX", slug: "sale-traffic-third-backend-cloudnetx", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-cloudnetx-sale-traffic-third-backend-cloudnetx", base: "LFCS/sale-traffic-third-backend" },
+  { course: "CLOUDNETX", slug: "firewall-change-backout-cloudnetx", screen: "security-console", profile: "security", kind: "band", steps: "pmc-cloudnetx-firewall-change-backout-cloudnetx", base: "SECPLUS/firewall-change-backout" },
+  { course: "CLOUDNETX", slug: "branch-dns-route-typo-cloudnetx", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-cloudnetx-branch-dns-route-typo-cloudnetx", base: "NETWORKPLUS/branch-dns-route-typo" },
+  { course: "CLOUDNETX", slug: "retired-dns-server-orders-stuck-cloudnetx", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-cloudnetx-retired-dns-server-orders-stuck-cloudnetx", base: "LINUXPLUS/retired-dns-server-orders-stuck" },
+  { course: "CLOUDPLUS", slug: "nat-gateway-bill-spike-cloudplus", screen: "board", profile: "cloud", kind: "band", steps: "pmc-cloudplus-nat-gateway-bill-spike-cloudplus", base: "AWSSAA/nat-gateway-bill-spike" },
+  { course: "CLOUDPLUS", slug: "leaked-access-key-cloudplus", screen: "board", profile: "cloud", kind: "band", steps: "pmc-cloudplus-leaked-access-key-cloudplus", base: "AWSCLF/leaked-access-key" },
+  { course: "CLOUDPLUS", slug: "rds-update-without-where-pitr-cloudplus", screen: "board", profile: "cloud", kind: "band", steps: "pmc-cloudplus-rds-update-without-where-pitr-cloudplus", base: "AWSSOA/rds-update-without-where-pitr" },
+  { course: "CLOUDPLUS", slug: "cloud-run-bad-revision-rollback-cloudplus", screen: "board", profile: "cloud", kind: "band", steps: "pmc-cloudplus-cloud-run-bad-revision-rollback-cloudplus", base: "GCPACE/cloud-run-bad-revision-rollback" },
+  { course: "AUTOOPSPLUS", slug: "py-import-crash-traceback-autoopsplus", screen: "data", profile: "data", kind: "band", steps: "pmc-autoopsplus-py-import-crash-traceback-autoopsplus", base: "PYTHON/py-import-crash-traceback" },
+  { course: "AUTOOPSPLUS", slug: "web-service-fails-after-edit-autoopsplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-autoopsplus-web-service-fails-after-edit-autoopsplus", base: "LINUXFUND/web-service-fails-after-edit" },
+  { course: "AUTOOPSPLUS", slug: "canary-rollback-dlq-autoopsplus", screen: "board", profile: "cloud", kind: "band", steps: "pmc-autoopsplus-canary-rollback-dlq-autoopsplus", base: "AWSDVA/canary-rollback-dlq" },
+  { course: "DATAPLUS", slug: "sql-not-in-null-empty-list-dataplus", screen: "data", profile: "data", kind: "band", steps: "pmc-dataplus-sql-not-in-null-empty-list-dataplus", base: "SQL/sql-not-in-null-empty-list" },
+  { course: "DATAPLUS", slug: "stock-on-hand-summed-dataplus", screen: "data", profile: "data", kind: "band", steps: "pmc-dataplus-stock-on-hand-summed-dataplus", base: "PL300/pl300-stock-on-hand-summed" },
+  { course: "DATAPLUS", slug: "rls-region-manager-dataplus", screen: "data", profile: "data", kind: "band", steps: "pmc-dataplus-rls-region-manager-dataplus", base: "PL300/pl300-rls-region-manager" },
+  { course: "DATAAI", slug: "loan-data-bias-dataai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-dataai-loan-data-bias-dataai", base: "AWSMLA/loan-data-bias" },
+  { course: "DATAAI", slug: "fraud-model-drift-dataai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-dataai-fraud-model-drift-dataai", base: "AWSMLA/fraud-model-drift" },
+  { course: "TECHPLUS", slug: "rogue-dhcp-soho-office-techplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-techplus-rogue-dhcp-soho-office-techplus", base: "APLUS_CORE1/rogue-dhcp-soho-office" },
+  { course: "TECHPLUS", slug: "home-office-laptop-malware-techplus", screen: "security-console", profile: "security", kind: "band", steps: "pmc-techplus-home-office-laptop-malware-techplus", base: "APLUS_CORE2/home-office-laptop-malware" },
+  { course: "TECHPLUS", slug: "branch-dns-route-typo-techplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "pmc-techplus-branch-dns-route-typo-techplus", base: "NETWORKPLUS/branch-dns-route-typo" },
+  { course: "PMICPMAI", slug: "loan-data-bias-pmicpmai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-pmicpmai-loan-data-bias-pmicpmai", base: "AWSMLA/loan-data-bias" },
+  { course: "PMICPMAI", slug: "fraud-model-drift-pmicpmai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-pmicpmai-fraud-model-drift-pmicpmai", base: "AWSMLA/fraud-model-drift" },
+  { course: "CMPCBS", slug: "phish-to-account-takeover-cmpcbs", screen: "security-console", profile: "security", kind: "band", steps: "pmc-cmpcbs-phish-to-account-takeover-cmpcbs", base: "SECPLUS/phish-to-account-takeover" },
+];

@@ -1,0 +1,920 @@
+{
+  "slug": "sale-traffic-third-backend-cloudnetx",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "error log, ss on app3 (127.0.0.1 only), fix the bind and curl app3; the ticket's line fails nginx -t, drop slow_start, test, reload, curl checkout",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ssApp3",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "fixBind",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "curlApp3",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "addTicket",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "dropSlow",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 9,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "curlShop",
+          "seq": 19,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 10,
+          "seq": 20,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 21,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "capacity",
+            "fix": "added"
+          },
+          "seq": 23,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "app3Serving": "met",
+          "noStop": "met",
+          "fast": "met",
+          "tested": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 8,
+          "untestedK": 0
+        },
+        "stateHash": "c8afc021c3aa25f0"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "restartBroken",
+      "title": "Pastes the ticket's line and restarts nginx: the configuration is invalid and the load balancer stops",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addTicket",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "curlShop",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "nginx",
+            "fix": "restart"
+          },
+          "seq": 11,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "lbStopped",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "evidence": "met",
+          "app3Serving": "missed",
+          "noStop": "missed",
+          "fast": "missed",
+          "tested": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minOk": -1,
+          "untestedK": 1
+        },
+        "stateHash": "743242822d1d9607"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "addNoBind",
+      "title": "Adds app3 cleanly, tests and reloads, but never checks app3 listens on its address",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "errLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addPlain",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "curlShop",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "capacity",
+            "fix": "added"
+          },
+          "seq": 13,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "stillFailing",
+        "class": "harm",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "evidence": "met",
+          "app3Serving": "partial",
+          "noStop": "met",
+          "fast": "missed",
+          "tested": "met",
+          "verified": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": -1,
+          "untestedK": 0
+        },
+        "stateHash": "f79402172d5bf0e4"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "untestedLate",
+      "title": "Adds app3 and reloads untested, waits past the sale email, then finds and fixes app3's bind",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "addPlain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 32,
+          "seq": 16,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 32,
+          "seq": 17,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "errLog",
+          "seq": 18,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 33,
+          "seq": 19,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "ssApp3",
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 34,
+          "seq": 21,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "fixBind",
+          "seq": 22,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 35,
+          "seq": 23,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "curlShop",
+          "seq": 24,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 36,
+          "seq": 25,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 26,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 27,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "capacity",
+            "fix": "added"
+          },
+          "seq": 28,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "evidence": "partial",
+          "app3Serving": "met",
+          "noStop": "met",
+          "fast": "partial",
+          "tested": "missed",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 34,
+          "untestedK": 1
+        },
+        "stateHash": "6558ea556a4ba0a8"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "reloadRefused",
+      "title": "Adds the ticket's line and reloads untested (refused, old configuration kept), then fixes the bind, drops slow_start, tests and reloads",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "showConf",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addTicket",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "errLog",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "ssApp3",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "fixBind",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "dropSlow",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "nginxT",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 8,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 17,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 9,
+          "seq": 18,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "curlShop",
+          "seq": 19,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 10,
+          "seq": 20,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 21,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "capacity",
+            "fix": "added"
+          },
+          "seq": 23,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "evidence": "met",
+          "app3Serving": "met",
+          "noStop": "met",
+          "fast": "met",
+          "tested": "missed",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 8,
+          "untestedK": 1
+        },
+        "stateHash": "60146850dc64feaa"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "givesUp",
+      "title": "Restarts nginx with nothing changed and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "nginx",
+            "fix": "restart"
+          },
+          "seq": 5,
+          "tick": 1
+        }
+      ],
+      "expect": {
+        "ending": "stillFailing",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "evidence": "missed",
+          "app3Serving": "missed",
+          "noStop": "met",
+          "fast": "missed",
+          "tested": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minOk": -1,
+          "untestedK": 1
+        },
+        "stateHash": "e628ed53fcedfe4f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}
