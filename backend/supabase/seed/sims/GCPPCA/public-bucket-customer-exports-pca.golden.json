@@ -1,0 +1,760 @@
+{
+  "slug": "public-bucket-customer-exports-pca",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "IAM policy and prefixes, remove allUsers at once, images to their own bucket, public access prevention, signed URL, lifecycle, logs and privacy",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewIam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "listObjects",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "removePublic",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "makeImageBucket",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "enforcePap",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "signedUrl",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "lifecycle",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "checkLogs",
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 42,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 19,
+          "tick": 42
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "unknown"
+          },
+          "seq": 21,
+          "tick": 42
+        }
+      ],
+      "expect": {
+        "ending": "secured",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fastContain": "met",
+          "separated": "met",
+          "honestScope": "met",
+          "partnerShare": "met",
+          "retention": "met",
+          "imagesUp": "met"
+        },
+        "kpis": {
+          "exposedK": 5,
+          "imgK": 17,
+          "aclK": 0
+        },
+        "stateHash": "f1362d94be40edd7"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "papOnly",
+      "title": "Enforces public access prevention straight away and reports honestly, but leaves the website's images broken and no lifecycle rule",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewIam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "enforcePap",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "signedUrl",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "unknown"
+          },
+          "seq": 11,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "securedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "fastContain": "met",
+          "separated": "partial",
+          "honestScope": "met",
+          "partnerShare": "met",
+          "retention": "missed",
+          "imagesUp": "missed"
+        },
+        "kpis": {
+          "exposedK": 3,
+          "imgK": 12,
+          "aclK": 0
+        },
+        "stateHash": "fcd950f09a7b1c85"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "imagesFirst",
+      "title": "Moves the images before removing the grant (exposure runs past 15 minutes) and records that only the partner read the files",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "listObjects",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "makeImageBucket",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 17,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "removePublic",
+          "seq": 5,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 19,
+          "seq": 6,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "enforcePap",
+          "seq": 7,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "signedUrl",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 26,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "lifecycle",
+          "seq": 11,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "partnerOnly"
+          },
+          "seq": 17,
+          "tick": 34
+        }
+      ],
+      "expect": {
+        "ending": "securedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "fastContain": "partial",
+          "separated": "met",
+          "honestScope": "partial",
+          "partnerShare": "met",
+          "retention": "met",
+          "imagesUp": "met"
+        },
+        "kpis": {
+          "exposedK": 17,
+          "imgK": 0,
+          "aclK": 0
+        },
+        "stateHash": "d942e0bf1d38c2a1"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "aclListed",
+      "title": "Tries object ACLs on a uniform bucket twice, moves images, waits: the bucket is listed publicly before the grant is removed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reviewIam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "objectAcl",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "objectAcl",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "makeImageBucket",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "checkLogs",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 29,
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 39,
+          "seq": 12,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 49,
+          "seq": 14,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 49,
+          "seq": 15,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "removePublic",
+          "seq": 16,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 51,
+          "seq": 17,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 18,
+          "tick": 51
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "noOne"
+          },
+          "seq": 20,
+          "tick": 51
+        }
+      ],
+      "expect": {
+        "ending": "listed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "fastContain": "partial",
+          "separated": "partial",
+          "honestScope": "missed",
+          "partnerShare": "missed",
+          "retention": "missed",
+          "imagesUp": "met"
+        },
+        "kpis": {
+          "exposedK": 49,
+          "imgK": 0,
+          "aclK": 2
+        },
+        "stateHash": "d5935d9e6bd5de6b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "deleteBucket",
+      "title": "Deletes the whole bucket to end the exposure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "deleteBucket",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "unknown"
+          },
+          "seq": 7,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "destroyed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "fastContain": "missed",
+          "separated": "missed",
+          "honestScope": "met",
+          "partnerShare": "missed",
+          "retention": "missed",
+          "imagesUp": "missed"
+        },
+        "kpis": {
+          "exposedK": 0,
+          "imgK": 10,
+          "aclK": 0
+        },
+        "stateHash": "ab7662f7cb484ce6"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "logsAndClose",
+      "title": "Finds no log entries and closes, recording that nobody read the exports, with the bucket still public",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "who": "noOne"
+          },
+          "seq": 5,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "stillPublic",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "fastContain": "missed",
+          "separated": "missed",
+          "honestScope": "missed",
+          "partnerShare": "missed",
+          "retention": "missed",
+          "imagesUp": "met"
+        },
+        "kpis": {
+          "exposedK": 5,
+          "imgK": 0,
+          "aclK": 0
+        },
+        "stateHash": "ab05a0b0221379b6"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

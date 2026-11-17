@@ -397,6 +397,48 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "head-strike-on-apixaban"),
   entry("NCLEXRN", "oxytocin-tachysystole-late-decels"),
   // ---- end REQ-315 ----
+  // ---- REQ-320 (cloud sims, round of 2026-11-17): breadth first for the
+  // Azure, AWS, Google Cloud and CNCF courses that had no sim, then depth.
+  // Bands register a case another course already teaches on this course's
+  // objective (docs/sims.md 22.30; lib/sim/it-cloud.ts). Keep these entries
+  // together. ----
+  band("AZ104", "containerapp-keyvault-revision-az104"),
+  band("AZ900", "backup-vault-sabotage-az900"),
+  band("AZ305", "containerapp-keyvault-revision-az305"),
+  band("CKAD", "crashloop-bad-configmap-ckad"),
+  band("AZ400", "kql-checkout-latency-az400"),
+  band("DP900", "stock-on-hand-summed-dp900"),
+  band("AWSAIF", "agent-indirect-prompt-injection-aif"),
+  band("AWSANS", "alb-health-check-login-redirect-ans"),
+  band("AWSDOP", "canary-rollback-dlq-dop"),
+  band("AWSSCS", "leaked-access-key-scs"),
+  band("GCPDEV", "cloud-run-bad-revision-rollback-pcd"),
+  band("GCPDEVOPS", "cloud-run-bad-revision-rollback-devops"),
+  band("GCPPCA", "bigquery-dashboard-bill-pca"),
+  band("GCPSEC", "public-bucket-customer-exports-sec"),
+  band("KCSA", "etcd-restore-deleted-namespace-kcsa"),
+  band("AZ104", "backup-vault-sabotage-az104"),
+  band("AZ104", "kql-checkout-latency-az104"),
+  band("AZ900", "kql-checkout-latency-az900"),
+  band("AZ305", "kql-checkout-latency-az305"),
+  band("AZ305", "backup-vault-sabotage-az305"),
+  band("AZ400", "containerapp-keyvault-revision-az400"),
+  band("CKAD", "service-selector-no-endpoints-ckad"),
+  band("AWSANS", "waf-login-flood-sqli-ans"),
+  band("AWSANS", "nat-gateway-bill-spike-ans"),
+  band("AWSSCS", "waf-login-flood-sqli-scs"),
+  band("AWSSCS", "phi-in-application-logs-scs"),
+  band("AWSSCS", "guardduty-role-credentials-macie-scs"),
+  band("AWSDOP", "ec2-status-check-recovery-dop"),
+  band("AWSDOP", "alb-health-check-login-redirect-dop"),
+  band("AWSDOP", "stack-update-rollback-failed-dop"),
+  band("AWSAIF", "rag-assistant-data-leak-aif"),
+  band("AWSAIF", "loan-data-bias-aif"),
+  band("GCPDEV", "public-bucket-customer-exports-pcd"),
+  band("GCPPCA", "public-bucket-customer-exports-pca"),
+  band("GCPDEVOPS", "bigquery-dashboard-bill-devops"),
+  band("GCPPDE", "bigquery-dashboard-bill-pde"),
+  // ---- end REQ-320 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
