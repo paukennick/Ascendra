@@ -556,7 +556,7 @@ const unitWith = (base: string[], extra: string[]): string[] => [...base, ...ext
 
 export const NCE_TRACK: SeedTrack = {
   code: "NCE",
-  title: "Prep for a counselor licensure and certification knowledge exam",
+  title: "Exam Prep for NCE®",
   description:
     "Preparation for a national counselor licensure and certification exam: six domains, from professional practice and ethics to counseling skills and interventions, weighted as the exam weights them, with the eight CACREP core areas the questions align to. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
@@ -640,7 +640,7 @@ export const NCE_TRACK: SeedTrack = {
 
 export const NCMHCE_TRACK: SeedTrack = {
   code: "NCMHCE",
-  title: "Prep for a case-based clinical mental health counseling licensure exam",
+  title: "Exam Prep for NCMHCE®",
   description:
     "Preparation for a case-based clinical mental health counseling licensure exam: clinical case studies, each an intake summary and two counseling sessions, testing domains from intake, assessment and diagnosis to counseling skills and interventions, weighted as the exam weights them. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",

@@ -113,7 +113,7 @@ export const CMSRN_SIM_OBJECTIVES = {
 
 export const CMSRN_TRACK: SeedTrack = {
   code: "CMSRN",
-  title: "Prep for a medical-surgical nursing certification exam",
+  title: "Exam Prep for CMSRN®",
   description:
     "MSNCB's medical-surgical nursing specialty certification, built on the 2023 CMSRN Exam Blueprint: patient and care management, holistic care, interprofessional care, professional concepts, and teamwork and collaboration, weighted as MSNCB weights them. Independent exam prep; not affiliated with or endorsed by the Medical-Surgical Nursing Certification Board (MSNCB). CMSRN is a registered mark of MSNCB.",
   trackType: "certification",

@@ -90,7 +90,7 @@ const NREMT_PASSING =
 // ---------------------------------------------------------------------------
 export const NREMT_EMT_TRACK: SeedTrack = {
   code: "NREMTEMT",
-  title: "Prep for a national EMT certification exam",
+  title: "Exam Prep for National Registry EMT",
   description:
     "Preparation for the National Registry EMT Certification Examination, built on the published EMT test plan in force since April 7 2025: scene size-up and safety, primary and secondary assessment, patient treatment and transport, and operations, weighted as the exam weights them, with pediatric care throughout. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
@@ -233,7 +233,7 @@ export const NREMT_EMT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NREMT_EMR_TRACK: SeedTrack = {
   code: "NREMTEMR",
-  title: "Prep for a national emergency medical responder certification exam",
+  title: "Exam Prep for National Registry Emergency Medical Responder",
   description:
     "Preparation for the National Registry Emergency Medical Responder (EMR) Certification Examination, built on the published EMR test plan in force since April 7 2025: the same five domains as the EMT exam at EMR scope -- make the scene safe, find and treat immediate life threats, and hand over to the transporting crew. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
@@ -373,7 +373,7 @@ const ALS_EXPERIENCE =
 // 10 / 12 / 8 / 26 / 10 / 36 (sum 102).
 export const NREMT_PARAMEDIC_TRACK: SeedTrack = {
   code: "NREMTPARAMEDIC",
-  title: "Prep for a national paramedic certification exam",
+  title: "Exam Prep for National Registry Paramedic",
   description:
     "Preparation for the National Registry Paramedic Certification Examination, built on the published test plan in force since July 1 2024: airway, cardiology and resuscitation, trauma, medical and obstetric emergencies, EMS operations, and the Clinical Judgment domain that replaced the separate skills exam, weighted as the exam weights them. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
@@ -527,7 +527,7 @@ export const NREMT_PARAMEDIC_TRACK: SeedTrack = {
 // antiarrhythmics: the AEMT recognises those needs and calls ALS.
 export const NREMT_AEMT_TRACK: SeedTrack = {
   code: "NREMTAEMT",
-  title: "Prep for a national advanced EMT certification exam",
+  title: "Exam Prep for National Registry Advanced EMT",
   description:
     "Preparation for the National Registry Advanced EMT (AEMT) Certification Examination, built on the published test plan in force since July 1 2024: the same six domains as the Paramedic exam at AEMT scope -- supraglottic airways, capnography, IV and IO access and a limited set of IV medications -- including the Clinical Judgment domain. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",

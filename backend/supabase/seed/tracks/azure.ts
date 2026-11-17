@@ -84,7 +84,7 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 
 export const AZURE_AZ900_TRACK: SeedTrack = {
   code: "AZ900",
-  title: "Prep for a cloud fundamentals certification exam",
+  title: "Exam Prep for Azure Fundamentals (AZ-900)",
   description:
     "Microsoft Certified: Azure Fundamentals (AZ-900): core cloud concepts, Azure's architecture and core services, and how cost, compliance, and governance work day to day in Azure. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -201,7 +201,7 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
 
 export const AZURE_AZ104_TRACK: SeedTrack = {
   code: "AZ104",
-  title: "Prep for an associate cloud administrator certification exam",
+  title: "Exam Prep for Azure Administrator Associate (AZ-104)",
   description:
     "Microsoft Certified: Azure Administrator Associate (AZ-104): implementing, managing, and monitoring an Azure environment -- identities and governance, storage, compute, virtual networking, and day-to-day monitoring and recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -366,7 +366,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
 
 export const AZURE_AZ305_TRACK: SeedTrack = {
   code: "AZ305",
-  title: "Prep for an expert cloud solutions architect certification exam",
+  title: "Exam Prep for Azure Solutions Architect Expert (AZ-305)",
   description:
     "Microsoft Certified: Azure Solutions Architect Expert (AZ-305): translating business requirements into Azure designs across identity/governance/monitoring, data storage, business continuity, and infrastructure -- aligned to the Well-Architected Framework and Cloud Adoption Framework. Requires the Azure Administrator Associate certification first. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -494,7 +494,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
 
 export const AZURE_AI901_TRACK: SeedTrack = {
   code: "AI901",
-  title: "Prep for an AI fundamentals certification exam",
+  title: "Exam Prep for Azure AI Fundamentals (AI-901)",
   description:
     "Microsoft Certified: Azure AI Fundamentals (AI-901): core AI/ML concepts and responsible AI principles, then building generative AI, vision, speech, and information-extraction solutions with Microsoft Foundry. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -580,7 +580,7 @@ export const AZURE_AI901_TRACK: SeedTrack = {
 
 export const AZURE_DP900_TRACK: SeedTrack = {
   code: "DP900",
-  title: "Prep for a data fundamentals certification exam",
+  title: "Exam Prep for Azure Data Fundamentals (DP-900)",
   description:
     "Microsoft Certified: Azure Data Fundamentals (DP-900): core relational and non-relational data concepts, Azure's data services for each, and the building blocks of an analytics workload -- ingestion, analytical stores, real-time analytics, and Power BI visualization. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -683,7 +683,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
 
 export const AZURE_AZ700_TRACK: SeedTrack = {
   code: "AZ700",
-  title: "Prep for an associate cloud network engineer certification exam",
+  title: "Exam Prep for Azure Network Engineer Associate (AZ-700)",
   description:
     "Microsoft Certified: Azure Network Engineer Associate (AZ-700): designing and implementing Azure networking end to end -- IP addressing and DNS, VNet routing and monitoring, VPN/ExpressRoute/Virtual WAN connectivity, load balancing and Front Door, private access, and network security (NSGs, Azure Firewall, WAF). Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -890,7 +890,7 @@ export const AZURE_AZ700_TRACK: SeedTrack = {
 
 export const AZURE_AZ140_TRACK: SeedTrack = {
   code: "AZ140",
-  title: "Prep for a cloud virtual desktop specialty certification exam",
+  title: "Exam Prep for Azure Virtual Desktop Specialty (AZ-140)",
   description:
     "Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140): planning and implementing an Azure Virtual Desktop infrastructure -- networking, storage, host pools, and session host images -- plus identity and security, user environments and app delivery (FSLogix, App attach), and ongoing monitoring, backup, and disaster recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -1060,7 +1060,7 @@ const DP300_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 
 export const AZURE_DP300_TRACK: SeedTrack = {
   code: "DP300",
-  title: "Prep for an associate cloud database administrator certification exam",
+  title: "Exam Prep for Azure Database Administrator Associate (DP-300)",
   description:
     "Microsoft Certified: Azure Database Administrator Associate (DP-300): administering Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs -- deployment and migration, authentication and data protection, performance monitoring and tuning, task automation, and high availability/disaster recovery. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -1240,7 +1240,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
 
 export const AZURE_AZ400_TRACK: SeedTrack = {
   code: "AZ400",
-  title: "Prep for an expert DevOps engineer certification exam",
+  title: "Exam Prep for Microsoft DevOps Engineer Expert (AZ-400)",
   description:
     "Microsoft Certified: DevOps Engineer Expert (AZ-400): designing and implementing Microsoft DevOps solutions across GitHub and Azure DevOps -- work-item flow and metrics, source control strategy, build/release pipelines, deployment strategies, infrastructure as code, security and compliance scanning, and instrumentation. Requires the Azure Administrator Associate certification. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",
@@ -1401,7 +1401,7 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
 
 export const AZURE_AZ120_TRACK: SeedTrack = {
   code: "AZ120",
-  title: "Prep for a cloud ERP workloads specialty certification exam",
+  title: "Exam Prep for Azure for SAP Workloads Specialty (AZ-120)",
   description:
     "Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120): planning, migrating, and administering SAP landscapes on Azure -- migration strategy and SAP RISE integration, compute/networking/storage infrastructure for SAP virtual machines, high availability and disaster recovery (clustering, Pacemaker, Site Recovery), and ongoing performance optimization and monitoring. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",

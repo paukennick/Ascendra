@@ -54,7 +54,7 @@
 // Washington psychology jurisprudence exam" as a psychology-licensure course,
 // and lib/mature-content.ts lists it in the wave), so the per-course 18+
 // acknowledgment applies through the category like every mental health
-// course; title "Prep for the Washington Psychology Jurisprudence Exam". Two
+// course; title "Exam Prep for Washington Psychology Jurisprudence Examination" (REQ-324). Two
 // differences from the EPPP, both because the exam publishes no blueprint:
 //   - domainWeights "study_emphasis" (REQ-220, as the CNA course): the unit
 //     weights are our judgment of emphasis, never shown as "% of the exam";
@@ -217,7 +217,7 @@ const S = WA_JP_SOURCES;
 
 export const WA_JP_TRACK: SeedTrack = {
   code: "WAPSYCHJP",
-  title: "Prep for the Washington Psychology Jurisprudence Exam",
+  title: "Exam Prep for Washington Psychology Jurisprudence Examination",
   description:
     "Preparation for Washington's jurisprudence examination for psychologists, which a newly licensed psychologist must pass within their first continuing education cycle: chapter 18.83 RCW and chapter 246-924 WAC, the Uniform Disciplinary Act, health care information and mental health records, mandated reporting of child and vulnerable adult abuse, and the Department of Health's standards of conduct, as the Department lists them. Unit weights are a study emphasis, not an exam blueprint (none is published). Includes frank material on abuse, sexual misconduct and threats of violence where the law covers it, behind an 18+ content notice. Independently developed; not affiliated with or endorsed by the Washington State Department of Health or the Examining Board of Psychology. Not legal advice.",
   trackType: "certification",

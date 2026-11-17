@@ -111,7 +111,7 @@ const PL300_DOCS = {
 
 export const PL300_TRACK: SeedTrack = {
   code: "PL300",
-  title: "Prep for an associate business intelligence analyst certification exam",
+  title: "Exam Prep for Power BI Data Analyst Associate (PL-300)",
   description: `Microsoft Certified: Power BI Data Analyst Associate (PL-300): preparing data with Power Query, modeling it with relationships, date tables and DAX measures, building and enhancing reports (including Copilot features), and managing workspaces, apps, refresh, row-level security and sensitivity labels. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "azure-certifications",
@@ -304,7 +304,7 @@ const SC500_DOCS = {
 
 export const SC500_TRACK: SeedTrack = {
   code: "SC500",
-  title: "Prep for an associate cloud and AI security engineer certification exam",
+  title: "Exam Prep for Microsoft Cloud and AI Security Engineer Associate (SC-500)",
   description: `Microsoft Certified: Cloud and AI Security Engineer Associate (SC-500), the successor to the retired Azure Security Engineer Associate (AZ-500): identity, Key Vault and governance controls; securing storage, databases and networks; securing AI workloads, servers and application platforms; and managing posture with Defender for Cloud, Microsoft Sentinel and Security Copilot. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "azure-certifications",
@@ -507,7 +507,7 @@ const AI200_DOCS = {
 
 export const AI200_TRACK: SeedTrack = {
   code: "AI200",
-  title: "Prep for an associate AI cloud developer certification exam",
+  title: "Exam Prep for Azure AI Cloud Developer Associate (AI-200)",
   description: `Microsoft Certified: Azure AI Cloud Developer Associate (AI-200), the successor to the retired Azure Developer Associate (AZ-204): containerized apps on Container Registry, App Service, Container Apps and AKS; AI data solutions on Cosmos DB, PostgreSQL with pgvector and Azure Managed Redis; Service Bus, Event Grid and Azure Functions; and Key Vault, App Configuration, OpenTelemetry and KQL. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "azure-certifications",

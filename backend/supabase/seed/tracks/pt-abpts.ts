@@ -423,7 +423,7 @@ const COMMON = {
 export const ABPTS_OCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSOCS",
-  title: "Prep for an orthopedic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Orthopedic Clinical Specialist (OCS)",
   description:
     "Board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -543,7 +543,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
 export const ABPTS_GCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSGCS",
-  title: "Prep for a geriatric physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Geriatric Clinical Specialist",
   description:
     "Board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -662,7 +662,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
 export const ABPTS_NCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSNCS",
-  title: "Prep for a neurologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Neurologic Clinical Specialist",
   description:
     "Board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -767,7 +767,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
 export const ABPTS_CCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSCCS",
-  title: "Prep for a cardiovascular and pulmonary physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Cardiovascular and Pulmonary Clinical Specialist",
   description:
     "Board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
@@ -904,7 +904,7 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
 export const ABPTS_PCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPCS",
-  title: "Prep for a pediatric physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Pediatric Clinical Specialist",
   description:
     "Board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -1019,7 +1019,7 @@ export const ABPTS_PCS_TRACK: SeedTrack = {
 export const ABPTS_SCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSSCS",
-  title: "Prep for a sports physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Sports Clinical Specialist",
   description:
     "Board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -1125,7 +1125,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
 export const ABPTS_ONC_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSONC",
-  title: "Prep for an oncologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Oncologic Clinical Specialist",
   description:
     "Board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -1246,7 +1246,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
 export const ABPTS_ECS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSECS",
-  title: "Prep for a clinical electrophysiologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Clinical Electrophysiologic Specialist",
   description:
     "Board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -1361,7 +1361,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
 export const ABPTS_PWCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPWCS",
-  title: "Prep for a pelvic and women's health physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Pelvic and Women's Health Clinical Specialist (PWCS)",
   description:
     "Board certification in pelvic and women's health physical therapy (renamed from women's health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
@@ -1447,7 +1447,7 @@ export const ABPTS_PWCS_TRACK: SeedTrack = {
 export const ABPTS_WMS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSWMS",
-  title: "Prep for a wound management physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Wound Management Clinical Specialist",
   description:
     "Board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:

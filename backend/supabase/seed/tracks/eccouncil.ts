@@ -143,7 +143,7 @@ const cehUnit = (d: number, gate: string, objectives: string[], extra: UnitSourc
 
 export const CEH_TRACK: SeedTrack = {
   code: "CEH",
-  title: "Prep for an ethical hacking knowledge certification exam",
+  title: "Exam Prep for CEH® (312-50)",
   description:
     "Preparation for an ethical hacking knowledge certification exam: the blueprint's nine domains from reconnaissance and system hacking to web, wireless, mobile, IoT, OT, cloud and cryptography, weighted as the exam weights them, each attack paired with how defenders detect and stop it. Every lab is authorized testing in a lab you own. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",

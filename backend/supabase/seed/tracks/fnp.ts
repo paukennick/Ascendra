@@ -177,7 +177,7 @@ const AGE_BANDS = "patient age, scored items: Newborn 3 (2%), Infant 4 (3%), Tod
 
 export const FNPAANP_TRACK: SeedTrack = {
   code: "FNPAANP",
-  title: "Prep for a family nurse practitioner board certification exam (clinical practice focus)",
+  title: "Exam Prep for Family Nurse Practitioner (NP-C®) (clinical practice focus)",
   description:
     "A family nurse practitioner board certification exam, built on its 2024 examination blueprint: assess, diagnose, plan and evaluate across the lifespan, weighted as the blueprint weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
@@ -322,7 +322,7 @@ const ancc = (domain: string, items: number, pct: string, lines: string[]): Unit
 
 export const FNPANCC_TRACK: SeedTrack = {
   code: "FNPANCC",
-  title: "Prep for a family nurse practitioner board certification exam (with professional role topics)",
+  title: "Exam Prep for FNP-BC™ (with professional role topics)",
   description:
     "A family nurse practitioner board certification exam, built on its test content outline effective October 30, 2026: assessment, diagnosis, planning, implementation and evaluation across the lifespan, weighted as the outline weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",

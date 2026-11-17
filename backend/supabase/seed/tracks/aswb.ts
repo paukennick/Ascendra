@@ -590,7 +590,7 @@ const INTERVENTION = [
 
 export const ASWB_CLINICAL_TRACK: SeedTrack = {
   code: "ASWBCLINICAL",
-  title: "Prep for a clinical social work licensure exam",
+  title: "Exam Prep for ASWB Clinical Examination",
   description: `Preparation for the Association of Social Work Boards Clinical exam, the 2026 blueprint in use since August 3, 2026: values and ethics, assessment and planning, and intervention and practice, weighted as the exam weights them, with every applied knowledge statement ASWB lists. ${DESCRIPTION_TAIL}`,
   trackType: "certification",
   subcategorySlug: "social-work-licensure",
@@ -660,7 +660,7 @@ export const ASWB_CLINICAL_TRACK: SeedTrack = {
 
 export const ASWB_MASTERS_TRACK: SeedTrack = {
   code: "ASWBMASTERS",
-  title: "Prep for a master's-level social work licensure exam",
+  title: "Exam Prep for ASWB Masters Examination",
   description: `Preparation for the Association of Social Work Boards Masters exam, the 2026 blueprint in use since August 3, 2026: values and ethics, assessment and planning, and intervention and practice, weighted as the exam weights them, with every applied knowledge statement ASWB lists. ${DESCRIPTION_TAIL}`,
   trackType: "certification",
   subcategorySlug: "social-work-licensure",

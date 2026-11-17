@@ -35,7 +35,7 @@ const MC_PASS = "75% or above to pass (Linux Foundation multiple-choice exam FAQ
 // ---------------------------------------------------------------------------
 export const PCA_TRACK: SeedTrack = {
   code: "PCA",
-  title: "Prep for a metrics monitoring associate certification exam",
+  title: "Exam Prep for Prometheus Certified Associate® (PCA)",
   description:
     "PCA: Prometheus from the data model up. Write PromQL that answers real questions -- rates, aggregations, histograms, binary operators -- understand scraping, service discovery and Prometheus's limits, instrument code and use exporters well, and turn metrics into alerts and dashboards that mean something. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Prometheus Certified Associate is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -136,7 +136,7 @@ export const PCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const OTCA_TRACK: SeedTrack = {
   code: "OTCA",
-  title: "Prep for an observability telemetry associate certification exam",
+  title: "Exam Prep for OpenTelemetry® Certified Associate (OTCA)",
   description:
     "OTCA: OpenTelemetry end to end. Telemetry signals and semantic conventions, instrumenting with the API and SDK -- tracers, meters, loggers, context propagation and SDK pipelines -- and running the Collector: receivers, processors, exporters, deployment patterns and scaling, plus debugging the pipeline when data goes missing. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. OpenTelemetry is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -222,7 +222,7 @@ export const OTCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CGOA_TRACK: SeedTrack = {
   code: "CGOA",
-  title: "Prep for a declarative continuous delivery associate certification exam",
+  title: "Exam Prep for Certified GitOps Associate® (CGOA)",
   description:
     "CGOA: GitOps as the OpenGitOps project defines it. The vocabulary (desired state, drift, reconciliation, state store), the four principles, how GitOps relates to IaC, CI/CD and DevSecOps, the deployment and architecture patterns teams use, and the tooling -- manifests, state stores, reconcilers such as Argo CD and Flux -- that implements it. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified GitOps Associate is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -320,7 +320,7 @@ export const CGOA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CAPA_TRACK: SeedTrack = {
   code: "CAPA",
-  title: "Prep for a container-native workflows and delivery associate certification exam",
+  title: "Exam Prep for Certified Argo Project Associate® (CAPA)",
   description:
     "CAPA: the four Argo projects. Argo Workflows for container-native pipelines and DAGs with artifacts and templates, Argo CD for GitOps delivery with Applications, Helm and Kustomize, Argo Rollouts for canary and blue/green with analysis, and Argo Events for event-driven automation. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Argo Project Associate is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -402,7 +402,7 @@ export const CAPA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CCA_TRACK: SeedTrack = {
   code: "CCA",
-  title: "Prep for a kernel-level container networking associate certification exam",
+  title: "Exam Prep for Cilium Certified Associate® (CCA)",
   description:
     "CCA: Cilium as the Kubernetes network layer. Its eBPF datapath and components, identity-based network policy, Ingress and Gateway API with sidecarless service mesh, Hubble observability, installation with the Cilium CLI, Cluster Mesh across clusters, and BGP for external connectivity. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Cilium Certified Associate is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -522,7 +522,7 @@ export const CCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const ICA_TRACK: SeedTrack = {
   code: "ICA",
-  title: "Prep for a service mesh associate certification exam",
+  title: "Exam Prep for Istio Certified Associate® (ICA)",
   description:
     "ICA: Istio hands-on. Install and upgrade it with istioctl or Helm in sidecar or ambient mode, manage traffic with Gateways, VirtualServices, DestinationRules, shifting, resilience and fault injection, secure workloads with mTLS, JWT and authorization policies, and troubleshoot the control plane and data plane with istioctl. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Istio Certified Associate is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -605,7 +605,7 @@ export const ICA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const KCA_TRACK: SeedTrack = {
   code: "KCA",
-  title: "Prep for a policy-as-code associate certification exam",
+  title: "Exam Prep for Kyverno® Certified Associate (KCA)",
   description:
     "KCA: policy as Kubernetes resources with Kyverno. How admission control and Kyverno's rules work, installing and upgrading it with Helm, writing validate, mutate, generate, verifyImages and cleanup rules with variables, preconditions and CEL, testing with the Kyverno CLI, applying policies safely in Audit and Enforce, and reading policy reports. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Kyverno is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -714,7 +714,7 @@ export const KCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CBA_TRACK: SeedTrack = {
   code: "CBA",
-  title: "Prep for an internal developer portal associate certification exam",
+  title: "Exam Prep for Certified Backstage® Associate (CBA)",
   description:
     "CBA: building and running a Backstage developer portal. The local development workflow with TypeScript, Yarn and Docker, the framework and its client-server architecture and configuration, the Software Catalog and how entities are ingested, and customizing the app with frontend and backend plugins, React and Material UI. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Backstage is a registered trademark of The Linux Foundation.",
   trackType: "certification",
@@ -801,7 +801,7 @@ export const CBA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CNPA_TRACK: SeedTrack = {
   code: "CNPA",
-  title: "Prep for a platform engineering associate certification exam",
+  title: "Exam Prep for Certified Cloud Native Platform Engineering Associate (CNPA)",
   description:
     "CNPA: what a cloud native platform is and how it is built. Declarative resource management, DevOps and CI/CD foundations, platform architecture and goals, observability, secure service communication and policy, GitOps and delivery, Kubernetes APIs and operators as the platform's interface, developer portals and self-service, and how to measure a platform with DORA and productivity metrics. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation.",
   trackType: "certification",
@@ -910,7 +910,7 @@ export const CNPA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CNPE_TRACK: SeedTrack = {
   code: "CNPE",
-  title: "Prep for a hands-on platform engineer certification exam",
+  title: "Exam Prep for Certified Cloud Native Platform Engineer (CNPE)",
   description:
     "CNPE: the hands-on platform engineering exam. Build the platform's foundations and cost controls, implement GitOps and CI/CD with progressive delivery, design CRDs, operators and self-service workflows, run observability and incident diagnosis, and enforce security and policy -- using the CNCF tools the exam names (Argo, Flux, Crossplane, Kyverno, OPA Gatekeeper, Istio, Linkerd, Prometheus, Grafana, OpenTelemetry, Jaeger, Tekton, Flagger, OpenCost) with their documentation open. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation.",
   trackType: "certification",
