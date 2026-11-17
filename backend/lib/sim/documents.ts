@@ -434,6 +434,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CEN", "hallway-head-injury-falling-gcs"),
   band("NCLEXRN", "hallway-head-injury-falling-gcs-nclexrn"),
   entry("PCCN", "pacing-wires-pulled-then-restless"),
+  entry("PCCN", "capnography-alarm-saturation-fine"),
   // ---- end REQ-323 ----
 ];
 
