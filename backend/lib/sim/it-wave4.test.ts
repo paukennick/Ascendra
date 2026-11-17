@@ -162,3 +162,52 @@ describe("IT sims wave 4 (REQ-316)", () => {
     }
   });
 });
+
+describe("what each wave 4 case teaches", () => {
+  test("Security+ email: enforcing before PayrollCo is aligned breaks the payslips; the gateway rule protects only your own staff; the wire leaves at 10:30 unless held", () => {
+    const d = docOf("spoofed-ceo-wire-dmarc");
+    const early = driver(d);
+    early.act("setPolicy", { p: "reject" });
+    assert.equal(early.value("breaksPayroll"), true);
+    const ok = driver(d);
+    ok.act("alignPayroll");
+    ok.act("setPolicy", { p: "quarantine" });
+    assert.equal(ok.value("breaksPayroll"), false);
+    const gw = driver(d);
+    gw.act("gatewayRule");
+    assert.equal(gw.value("policy"), "none", "a gateway rule does not change what other receivers see");
+    while (gw.minutes() < 21) gw.act("watch");
+    assert.equal(gw.value("inboxSpoofs"), 37, "the second wave is quarantined at the gateway");
+    const late = driver(d);
+    while (late.minutes() < 91) late.act("watch");
+    assert.notEqual(late.value("wireSentAt"), null);
+    const held = driver(d);
+    held.act("holdWire");
+    while (held.minutes() < 91) held.act("watch");
+    assert.equal(held.value("wireSentAt"), null);
+  });
+  test("Security+ forensics: shutting down first loses memory; browsing taints; without a hold the 11:00 job deletes the mailbox and, if the laptop is still at the desk, reimages it", () => {
+    const d = docOf("departing-engineer-usb-evidence");
+    const off = driver(d);
+    off.act("shutdown");
+    assert.equal(off.value("memLost"), true);
+    assert.equal(d.actions.memory.available.includes("not memLost"), true);
+    const br = driver(d);
+    br.act("browse");
+    assert.equal(br.value("tainted"), true);
+    const none = driver(d);
+    while (none.minutes() < 61) none.act("watch");
+    assert.equal(none.value("mailLost"), true);
+    assert.equal(none.value("laptopWiped"), true);
+    const seized = driver(d);
+    seized.act("memory");
+    while (seized.minutes() < 61) seized.act("watch");
+    assert.equal(seized.value("mailLost"), true);
+    assert.equal(seized.value("laptopWiped"), false, "a laptop in your custody is off the network job");
+    const held = driver(d);
+    held.act("legalHold");
+    while (held.minutes() < 61) held.act("watch");
+    assert.equal(held.value("mailLost"), false);
+  });
+});
+

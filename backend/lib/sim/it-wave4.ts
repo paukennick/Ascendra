@@ -35,4 +35,6 @@ export const WAVE4: readonly Wave4Entry[] = [
   { course: "GCPACE", slug: "bigquery-dashboard-bill-ace", screen: "board", profile: "cloud", kind: "band", steps: "w4-gcpace-bigquery-dashboard-bill-ace", base: "GCPCDL/bigquery-dashboard-bill" },
   { course: "GCPCDL", slug: "public-bucket-customer-exports-cdl", screen: "board", profile: "security", kind: "band", steps: "w4-gcpcdl-public-bucket-customer-exports-cdl", base: "GCPACE/public-bucket-customer-exports" },
   { course: "GCPCDL", slug: "cloud-run-bad-revision-rollback-cdl", screen: "board", profile: "cloud", kind: "band", steps: "w4-gcpcdl-cloud-run-bad-revision-rollback-cdl", base: "GCPACE/cloud-run-bad-revision-rollback" },
+  { course: "SECPLUS", slug: "spoofed-ceo-wire-dmarc", screen: "security-console", profile: "security", kind: "scenario", steps: "secplus-dmarc" },
+  { course: "SECPLUS", slug: "departing-engineer-usb-evidence", screen: "security-console", profile: "security", kind: "scenario", steps: "secplus-forensics" },
 ];
