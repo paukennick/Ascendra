@@ -99,6 +99,48 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // The 2026-11-17 sims round (REQ-320 cloud, REQ-321 PMI and CompTIA,
+    // REQ-323/325/326 health) and the outline corrections of verify-2
+    // (REQ-310). Gated whole on sims, like every sims round note.
+    id: "2026-11-17-e",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-320", "REQ-321", "REQ-323", "REQ-325", "REQ-326", "REQ-310"],
+    title: "More sims for cloud, projects and health care",
+    requires: "sims",
+    items: [
+      {
+        icon: "compass",
+        headline: "Sims for the remaining cloud courses",
+        body: "Azure, AWS, Google Cloud and cloud native courses that had no sim now have them on the terminal, console and board screens, from a data stream stuck on one bad record to a canary check reading the wrong number.",
+        requires: "sims",
+      },
+      {
+        icon: "flag",
+        headline: "Predictive projects on the dashboard",
+        body: "Every PMI course and eight more CompTIA courses now have sims, including predictive projects on the project dashboard: earned value against a baseline, change control, a risk trigger and a contractor's claim.",
+        requires: "sims",
+      },
+      {
+        icon: "zap",
+        headline: "A sim in every physical therapy course",
+        body: "Every physical therapy specialty course, the PTA course and the strength and conditioning course now has a sim, and PTA sessions practice when to stop and tell the supervising therapist.",
+        requires: "sims",
+      },
+      {
+        icon: "eye",
+        headline: "More bedside cases for nurses",
+        body: "New cases for critical care, emergency, progressive care, med-surg, family nurse practitioner and the RN and PN licensure courses, from heart block that atropine won't fix to thyroid storm.",
+        requires: "sims",
+      },
+      {
+        icon: "check-circle",
+        headline: "Course outlines checked again",
+        body: "More courses were checked against their exam owners' current outlines. One physical therapy objective now follows the current guideline, and a project unit uses the exam owner's name for it.",
+      },
+    ],
+  },
+  {
     // REQ-324 (Nick, 2026-11-17): every exam course is titled for its exam
     // ("Exam Prep for CISSP®"), the 13 permission bodies' courses included;
     // the exam card, emails and coach name the exam again. Not gated.
