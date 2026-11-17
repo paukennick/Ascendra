@@ -1,0 +1,1070 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tearing-pain-heparin-ordered",
+  "title": "The heparin is drawn up",
+  "objective": "Recognize aortic dissection and ruptured aneurysm from sudden tearing pain, pulse or pressure differences and shock",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Cardiovascular Emergencies (18 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Cardiovascular Emergencies is 18 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Isselbacher EM, et al. 2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease, as summarized in the ACC's 'Key Perspectives: Part 2 of 2' (Bach DS, 2022-11-02)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/11/01/12/21/2022-guideline-on-aortic-disease-2-gl-ad",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the ACC summary; the full guideline was not read. Acute aortic syndrome 'treated to a systolic BP <120 mm Hg or to the lowest BP that maintains end-organ perfusion' and 'to a heart rate of 60-80 bpm'; 'Unless contraindicated, intravenous beta-blockers are recommended as initial management', with 'vasodilators if BP is not adequately controlled with beta-blockers'; immediate operative repair for acute type A dissection. No dose is used in the case."
+    },
+    {
+      "cite": "Long DA. Aortic Dissection: Why do we miss it? How to improve? emDocs, 2020-08-17",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.emdocs.net/aortic-dissection-why-do-we-miss-it-how-to-improve/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. 'sudden onset, severe ripping or tearing chest or back pain'; a pulse deficit has a positive likelihood ratio of 5.7, while 'a difference of systolic blood pressure between arms of at least 20 mm Hg is not specific'; 'up to 38% of patients with AD are missed on initial presentation'; ischemic ECG changes can mimic ACS; 'Both anticoagulation and fibrinolysis can lead to worsening aortic dissection and hemorrhagic pericardial effusion', so both are held when dissection is suspected; CT angiography of the aorta is the reference standard."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "19:40 in the emergency department. You take over Ms. Carter, 58, from the triage nurse: sudden severe chest pain at 19:15 while lifting a suitcase. She has high blood pressure and stopped her tablets a month ago.",
+    "handover": [
+      "Triage blood pressure 194/102 in the right arm, heart rate 104, SpO2 97%. Her ECG shows ST depression in the lateral leads.",
+      "The physician, busy with a resuscitation, read the ECG at 19:35 and started the department's NSTEMI pathway: heparin per protocol is ordered, drawn up and in the room.",
+      "The physician can be interrupted at the next bed. Unit practice: any nurse may hold an ordered drug and call the prescriber when a finding makes it unsafe."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide whether the order fits what you find.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "19:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The dissection extends slowly even when controlled. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shearRate": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Extra extension per minute while the systolic pressure is above 120 or the heart rate above 80. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "heparinBump": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Anticoagulation on a dissection: bleeding into the pericardium. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ruptureAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of rupture or tamponade. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician told within 5 minutes of the first finding of dissection (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "ctTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Report to leaving for CT angiography and then the operating room: about 20 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "armsAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pain",
+        "arms",
+        "neuro"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "update"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "aad",
+        "nstemi",
+        "msk"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "heparinAt": {
+      "type": "time",
+      "init": null
+    },
+    "betaAt": {
+      "type": "time",
+      "init": null
+    },
+    "vasoAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round((isNull(betaAt) ? 106 : 106 - 36 * clamp((t - timeAt(betaAt)) / 300, 0, 1)) + (not isNull(vasoAt) and isNull(betaAt) ? 14 : 0) + 20 * max(0, prog - 0.85) + sin(t / 15))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(196 - (isNull(betaAt) ? 0 : 34 * clamp((t - timeAt(betaAt)) / 300, 0, 1)) - (isNull(vasoAt) ? 0 : 46 * clamp((t - timeAt(vasoAt)) / 300, 0, 1)) - 220 * max(0, prog - 0.85), 60, 210))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.53)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "sbpL": {
+      "expr": "round(sbp - 46)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (progRate + (sbp > 120 ? shearRate : 0) + (hr > 80 ? shearRate : 0)) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              80,
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP (right arm)",
+          "spokenLabel": "Blood pressure, right arm",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90,
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              180,
+              120,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Heparin: {not isNull(heparinAt)|yesno}. Beta-blocker infusion: {not isNull(betaAt)|yesno}. Vasodilator infusion: {not isNull(vasoAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"md\" and inClinic",
+          "text": "Suspected aortic dissection: heparin cancelled; CT angiography and cardiothoracic surgery called."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "pain": {
+      "label": "Ask about the pain: onset, character, where it goes",
+      "group": "Assess",
+      "available": "not testPending and isNull(painAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pain\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "arms": {
+      "label": "Blood pressure in both arms; radial and femoral pulses",
+      "group": "Assess",
+      "available": "not testPending and isNull(armsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"arms\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Quick neuro check and abdomen",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "heparin": {
+      "label": "Give the ordered heparin (NSTEMI pathway)",
+      "group": "Treat",
+      "available": "isNull(heparinAt) and route != \"md\" and inClinic",
+      "why": "Given, or cancelled.",
+      "effects": [
+        {
+          "set": "heparinAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + heparinBump"
+        },
+        {
+          "log": "Heparin given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "beta": {
+      "label": "Start the ordered IV beta-blocker infusion",
+      "group": "Treat",
+      "available": "route == \"md\" and isNull(betaAt) and inClinic",
+      "why": "Not ordered yet, or running.",
+      "effects": [
+        {
+          "set": "betaAt",
+          "to": "t"
+        },
+        {
+          "log": "Beta-blocker infusion running; heart rate target 60-80.",
+          "kind": "act"
+        }
+      ]
+    },
+    "vaso": {
+      "label": "Start the ordered IV vasodilator infusion",
+      "group": "Treat",
+      "available": "route == \"md\" and isNull(vasoAt) and inClinic",
+      "why": "Not ordered yet, or running.",
+      "effects": [
+        {
+          "set": "vasoAt",
+          "to": "t"
+        },
+        {
+          "log": "{isNull(betaAt) ? \"Vasodilator running before any beta-blocker: her heart rate climbs as the pressure falls.\" : \"Vasodilator added; systolic target under 120.\"}",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what you suspect",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "aad",
+              "label": "Acute aortic dissection: tearing pain to the back, a weak left pulse and a 46 mm Hg arm difference"
+            },
+            {
+              "value": "nstemi",
+              "label": "NSTEMI, as the ECG suggests"
+            },
+            {
+              "value": "msk",
+              "label": "A muscle strain from lifting the suitcase"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"aad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"aad\""
+                },
+                {
+                  "log": "Impression: suspected aortic dissection.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"nstemi\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"nstemi\""
+                },
+                {
+                  "log": "Impression: NSTEMI.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"msk\""
+                },
+                {
+                  "log": "Impression: muscle strain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you say",
+          "options": [
+            {
+              "value": "md",
+              "label": "Hold the heparin: tearing pain through to the back, a weak left radial and a 46 mm Hg arm difference; I suspect dissection"
+            },
+            {
+              "value": "update",
+              "label": "Her pain is severe; can she have more analgesia with the heparin?"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "ctTime"
+                },
+                {
+                  "log": "The physician comes straight over: 'Cancel the heparin. CT angiography now; IV beta-blocker first to a heart rate of 60-80, then a vasodilator to a systolic under 120. I'm calling cardiothoracic surgery.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"update\""
+                },
+                {
+                  "log": "The physician orders analgesia and says to carry on with the pathway.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off to CT and surgery: onset, both-arm pressures, pulses, heparin not given, infusions and times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: onset 19:15, right {sbp} versus left {sbpL}, weak left radial, heparin {isNull(heparinAt) ? \"never given\" : \"given\"}, infusions running.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Monitored room",
+      "clock": "running",
+      "actions": [
+        "pain",
+        "arms",
+        "neuro",
+        "heparin",
+        "beta",
+        "vaso",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"pain\"",
+              "then": [
+                {
+                  "set": "painAt",
+                  "to": "t"
+                },
+                {
+                  "log": "\"Like something ripped. All at once, the worst ever.\" It went straight through to between her shoulder blades and is moving lower.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"arms\"",
+              "then": [
+                {
+                  "set": "armsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right arm {sbp}/{dbp}, left arm {sbpL}. The left radial pulse is weak; the femoral pulses are equal.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Alert, moving all limbs, speech normal. Abdomen soft.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to CT angiography",
+      "wait": {
+        "skipLabel": "her move to CT"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min from the report to leaving for CT and then theater."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She goes to CT angiography and on to the operating room.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Does the NSTEMI pathway fit Ms. Carter? What do you do with the heparin?",
+      "parts": [
+        {
+          "label": "What fits",
+          "criteria": "Sudden tearing pain through to the back, a pulse deficit and an arm pressure difference in an untreated hypertensive: suspected aortic dissection, which can produce ischemic ECG changes that mimic ACS.",
+          "modelAnswer": "Sudden ripping pain through to her back, a weak left radial and a big difference between the arms in an untreated hypertensive point to aortic dissection. Dissection can cause ST changes that look like ACS."
+        },
+        {
+          "label": "The heparin and what comes next",
+          "criteria": "Holds the heparin (anticoagulation can extend a dissection and cause a hemorrhagic effusion) and tells the physician now; CT angiography; IV beta-blocker first to a heart rate of 60-80, then a vasodilator to a systolic under 120.",
+          "modelAnswer": "I hold the heparin, because anticoagulation can extend a dissection and bleed into the pericardium, and I tell the physician now. Then CT angiography, a beta-blocker first for a heart rate of 60-80 and a vasodilator after it for a systolic under 120."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected dissection still in the department an hour on, uncontrolled and unimaged, is harm here.",
+      "source": {
+        "cite": "Isselbacher EM, et al. 2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease, as summarized in the ACC's 'Key Perspectives: Part 2 of 2' (Bach DS, 2022-11-02)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/11/01/12/21/2022-guideline-on-aortic-disease-2-gl-ad",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the ACC summary; the full guideline was not read. Acute aortic syndrome 'treated to a systolic BP <120 mm Hg or to the lowest BP that maintains end-organ perfusion' and 'to a heart rate of 60-80 bpm'; 'Unless contraindicated, intravenous beta-blockers are recommended as initial management', with 'vasodilators if BP is not adequately controlled with beta-blockers'; immediate operative repair for acute type A dissection. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "tamponade": {
+      "label": "Bleeding into the pericardium after heparin",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(heparinAt) and t >= timeAt(heparinAt) + 120 and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}, neck veins distended, heart sounds muffled: the anticoagulated dissection has bled into the pericardium. She is rushed to theater in extremis."
+    },
+    "rupture": {
+      "label": "Dissection extended: shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= ruptureAt and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}: the dissection has extended under uncontrolled pressure and heart rate. She is in shock."
+    },
+    "toTheater": {
+      "label": "Dissection recognized, heparin held, pressure controlled in order",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and isNull(heparinAt) and not isNull(armsAt) and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(betaAt) and (isNull(vasoAt) or timeAt(betaAt) <= timeAt(vasoAt))",
+      "narrative": "{timeAt(leftAt)|clock}: heart rate {hr}, pressure {sbp}/{dbp} as she leaves for CT and theater. You checked both arms, held the heparin, and the beta-blocker came first."
+    },
+    "toTheaterLate": {
+      "label": "To CT and theater, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches CT, but the call came late, both arms were never compared, or the vasodilator ran before the beta-blocker."
+    },
+    "time_up": {
+      "label": "Still in the department at 20:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "20:40 and Ms. Carter is still in the department."
+    }
+  },
+  "endingOrder": [
+    "tamponade",
+    "rupture",
+    "toTheater",
+    "toTheaterLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noHeparin",
+        "label": "Heparin held for suspected dissection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(heparinAt)",
+            "score": "met",
+            "why": "Never given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given at {timeAt(heparinAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician told within 5 minutes of the first finding of dissection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"update\"",
+            "score": "missed",
+            "why": "Asked for analgesia; the pathway went on."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "betaFirst",
+        "label": "Beta-blocker started before the vasodilator",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(betaAt) and (isNull(vasoAt) or timeAt(betaAt) <= timeAt(vasoAt))",
+            "score": "met",
+            "why": "Beta-blocker first."
+          },
+          {
+            "when": "not isNull(betaAt)",
+            "score": "partial",
+            "why": "Vasodilator first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No beta-blocker."
+          }
+        ]
+      },
+      {
+        "id": "armsC",
+        "label": "Compared both arms and the pulses",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(armsAt)",
+            "score": "met",
+            "why": "Compared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not compared."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named suspected aortic dissection",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"aad\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"nstemi\"",
+            "score": "missed",
+            "why": "Took the ECG at face value."
+          },
+          {
+            "when": "dxEnum == \"msk\"",
+            "score": "missed",
+            "why": "Called it a strain."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the pressures, pulses and drug times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: dissection, not NSTEMI; hold the heparin; beta-blocker first",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toArms",
+        "label": "Takeover to comparing both arms",
+        "value": "isNull(armsAt) ? -1 : timeAt(armsAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toCall",
+        "label": "First finding to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:40",
+        "text": "Before the heparin: the pain story. Sudden, ripping, through to the back."
+      },
+      {
+        "at": "~19:41",
+        "text": "Both arms and the pulses: 46 mm Hg lower on the left, weak left radial."
+      },
+      {
+        "at": "~19:42",
+        "text": "Hold the heparin; tell the physician you suspect dissection."
+      },
+      {
+        "at": "~19:43",
+        "text": "Beta-blocker first, then the vasodilator; CT angiography; hand off."
+      }
+    ],
+    "debrief": {
+      "tamponade": {
+        "headline": "Heparin on a dissection",
+        "body": "Check that an order fits the patient. Tearing pain to the back with a pulse deficit is dissection until imaging says otherwise, and anticoagulation can bleed it into the pericardium."
+      },
+      "rupture": {
+        "headline": "Extension under pressure",
+        "body": "Suspected dissection needs the heart rate and pressure brought down quickly: beta-blocker first, then a vasodilator."
+      },
+      "toTheater": {
+        "headline": "Caught and controlled",
+        "body": "You questioned the pathway, compared both arms, held the heparin and controlled the heart rate before the pressure. That is the expert path."
+      },
+      "toTheaterLate": {
+        "headline": "To theater, with gaps",
+        "body": "Check how long the call took, whether both arms were compared and the order of the infusions."
+      },
+      "time_up": {
+        "headline": "Still in the department",
+        "body": "Suspected dissection needs imaging and control within minutes."
+      }
+    },
+    "modelReasoning": "Sudden ripping pain through to the back, a weak left radial and a 46 mm Hg difference between the arms in an untreated hypertensive is suspected aortic dissection, even with an ECG that looks like ACS: dissection is often missed and can cause ischemic ECG changes. The heparin is held, because anticoagulation can extend the dissection and bleed into the pericardium, and the physician is told at once. Then CT angiography, an IV beta-blocker first to a heart rate of 60-80, and a vasodilator after it to a systolic under 120."
+  },
+  "chapters": [
+    {
+      "id": "held",
+      "label": "The physician told",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "missQ": {
+      "during": "testT",
+      "ask": "While you assess: why is the arm-to-arm comparison worth doing even though a 20 mm Hg difference isn't specific?",
+      "choices": [
+        {
+          "id": "deficit",
+          "label": "A pulse deficit makes dissection much more likely; together with the pain story it changes the plan"
+        },
+        {
+          "id": "rule",
+          "label": "Equal pressures rule dissection out"
+        },
+        {
+          "id": "none",
+          "label": "It isn't worth doing"
+        }
+      ],
+      "expect": "deficit",
+      "explain": "A pulse deficit has a positive likelihood ratio of 5.7; an arm difference alone is not specific, and normal findings don't rule dissection out.",
+      "source": {
+        "cite": "Long DA. Aortic Dissection: Why do we miss it? How to improve? emDocs, 2020-08-17",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.emdocs.net/aortic-dissection-why-do-we-miss-it-how-to-improve/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. 'sudden onset, severe ripping or tearing chest or back pain'; a pulse deficit has a positive likelihood ratio of 5.7, while 'a difference of systolic blood pressure between arms of at least 20 mm Hg is not specific'; 'up to 38% of patients with AD are missed on initial presentation'; ischemic ECG changes can mimic ACS; 'Both anticoagulation and fibrinolysis can lead to worsening aortic dissection and hemorrhagic pericardial effusion', so both are held when dissection is suspected; CT angiography of the aorta is the reference standard."
+      }
+    },
+    "orderQ": {
+      "during": "leaveT",
+      "ask": "While she goes to CT: why does the beta-blocker come before the vasodilator?",
+      "choices": [
+        {
+          "id": "rate",
+          "label": "To control the heart rate first, so the vasodilator doesn't drive a reflex tachycardia"
+        },
+        {
+          "id": "any",
+          "label": "The order doesn't matter"
+        },
+        {
+          "id": "vaso",
+          "label": "The vasodilator should come first"
+        }
+      ],
+      "expect": "rate",
+      "explain": "IV beta-blockers are the initial management, to a heart rate of 60-80, with vasodilators if the pressure isn't controlled.",
+      "source": {
+        "cite": "Isselbacher EM, et al. 2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease, as summarized in the ACC's 'Key Perspectives: Part 2 of 2' (Bach DS, 2022-11-02)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/11/01/12/21/2022-guideline-on-aortic-disease-2-gl-ad",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the ACC summary; the full guideline was not read. Acute aortic syndrome 'treated to a systolic BP <120 mm Hg or to the lowest BP that maintains end-organ perfusion' and 'to a heart rate of 60-80 bpm'; 'Unless contraindicated, intravenous beta-blockers are recommended as initial management', with 'vasodilators if BP is not adequately controlled with beta-blockers'; immediate operative repair for acute type A dissection. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
