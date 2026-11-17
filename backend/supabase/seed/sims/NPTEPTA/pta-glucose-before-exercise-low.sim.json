@@ -1,0 +1,1220 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pta-glucose-before-exercise-low",
+  "title": "Checked before the bike",
+  "objective": "Check glucose around exercise in patients with diabetes as the plan directs: give fast-acting carbohydrate if it falls below 100 mg/dL, and tell the PT",
+  "secondaryObjectives": [
+    "Recognizing and responding to signs of hypo/hyperglycemia during a treatment session"
+  ],
+  "sources": [
+    {
+      "cite": "FSBPT, NPTE-PTA Test Content Outline (Version 2025.02) and the NPTE Candidate Handbook",
+      "checkedAt": "2026-09-27",
+      "url": "https://www.fsbpt.org/Free-Resources/NPTE-Candidate-Handbook/Content-Outline",
+      "note": "Relayed from the NPTE-PTA course seed (backend/supabase/seed/tracks/pt.ts, VERIFIED_AT 2026-09-27), not re-read: Metabolic and endocrine systems is 4-6 of 140 scored items, and the exam assumes entry-level practice under a supervising PT's direction. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra NPTE-PTA course catalog (backend/supabase/seed/tracks/pt.ts, track NPTEPTA)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "House of Delegates policy HOD P06-18-28-35, Direction and Supervision of the Physical Therapist Assistant (last updated 2018-08-30)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apta.org/siteassets/pdfs/policies/direction-supervision-pta.pdf",
+      "note": "Relayed from the PTA case pta-back-pain-new-bladder-symptoms, which read it 2026-11-17 through a summarizing fetch with quotes, not re-read: only the physical therapist performs evaluation, reexamination and modification of the plan of care; the PTA collects selected data and modifies an intervention 'to ensure patient or client safety and comfort'; a PT supervisory visit is made on the PTA's request for a reexamination and 'in response to a change in the patient's or client's medical status'."
+    },
+    {
+      "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+      "checkedAt": "2026-11-16",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+      "note": "Relayed from the FNP case clinic-sulfonylurea-hypoglycemia, which read the primary text on PMC 2026-11-16 through a summarizing fetch with quotes, not re-read: level 1 hypoglycemia is glucose under 70 and at or above 54 mg/dL, level 2 under 54, level 3 a severe event needing assistance; glucose is preferred for the conscious person below 70, rechecked 15 minutes after and repeated if still low. The 100 mg/dL pre-exercise threshold is the plan's (the course objective), not the ADA's treatment threshold."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:15 in an outpatient rehabilitation clinic. You are the physical therapist assistant. Mr. Sato, 59, has type 1 diabetes and is on visit 3 of prosthetic gait training. He skipped breakfast to make the appointment and took his usual morning insulin.",
+    "handover": [
+      "Plan of care (Dr. Wu, PT): check glucose before exercise and every 20 minutes; below 100 mg/dL give fast-acting carbohydrate, recheck in 15 minutes, and tell the PT before exercising; stop at any symptoms of low glucose.",
+      "The clinic keeps glucose tablets and juice at the front desk.",
+      "Dr. Wu is in the clinic."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each question or measure takes the time on its button. Decide what to collect, what it means for today's session and who needs to know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:15",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Insulin without breakfast lowers glucose further, faster with exercise. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fast-acting carbohydrate raises glucose; it still needs rechecking. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The red flag is the pre-exercise reading below the plan's threshold. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of severe hypoglycemia with confusion. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The PT told within 5 minutes of the low reading (the plan)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fast-acting carbohydrate within 5 minutes of the low reading (the plan)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the recheck and the PT's decision; a session finished as planned about 25 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Exercise started below the threshold without carbohydrate: severe hypoglycemia within minutes in this authored course. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "glucose",
+        "check",
+        "skin"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pt",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "data",
+        "fine",
+        "dx"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "seatAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + 25 * max(0, prog - 0.5) + sin(t / 9))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "glu": {
+      "expr": "round(isNull(fixAt) ? 88 - 60 * max(0, prog - 0.35) : 105)",
+      "unit": "mg/dL",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Sato, 59",
+        "presentation": "Visit 3 after a below-knee amputation; type 1 diabetes on insulin."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Glucose, mg/dL",
+          "value": "glu",
+          "unit": "mg/dL",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              70
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "activity": "{not inCare ? \"Gone with the PT's plan.\" : (isNull(fixAt) ? \"Waiting by the parallel bars.\" : \"Seated with juice, waiting for the recheck.\")}",
+      "measures": [
+        {
+          "id": "glucoseResult",
+          "label": "Glucose",
+          "result": "Below the plan's pre-exercise threshold.",
+          "when": "not isNull(glucoseAt)",
+          "flag": "true"
+        },
+        {
+          "id": "checkResult",
+          "label": "Check-in",
+          "result": "Skipped breakfast; usual insulin.",
+          "when": "not isNull(checkAt)"
+        },
+        {
+          "id": "skinResult",
+          "label": "Limb",
+          "result": "Skin intact.",
+          "when": "not isNull(skinAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Fast-acting carbohydrate given",
+            "when": "not isNull(fixAt)"
+          },
+          {
+            "label": "Training held",
+            "when": "not isNull(seatAt)"
+          },
+          {
+            "label": "{route == \"pt\" ? \"Exercise held; PT deciding\" : \"Session went ahead\"}",
+            "when": "not isNull(callAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleRed",
+          "label": "Glucose below 100 mg/dL before exercise, or symptoms of low glucose",
+          "text": "Stop: fast-acting carbohydrate, recheck in 15 minutes, and tell the supervising PT before exercising.",
+          "met": "redSeen and isNull(callAt)"
+        },
+        {
+          "id": "ruleScope",
+          "label": "Your role",
+          "text": "Collect data and report it. Diagnosis, reexamination and changes to the plan are the PT's.",
+          "met": "false"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "glucose": {
+      "label": "Fingerstick glucose before exercise, as the plan directs",
+      "group": "Examine",
+      "available": "not testPending and isNull(glucoseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glucose\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "check": {
+      "label": "Check-in: meals, insulin, how he feels",
+      "group": "Examine",
+      "available": "not testPending and isNull(checkAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"check\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "skin": {
+      "label": "Residual limb skin check",
+      "group": "Examine",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Ask how he feels and look for shakiness, sweating, confusion",
+      "group": "Examine",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "He is sweaty and shaky and answers slowly.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "He feels fine; skin dry.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Give fast-acting carbohydrate (glucose tablets or juice) and recheck in 15 minutes",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Glucose tablets taken; recheck set for 15 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "seat": {
+      "label": "Keep him seated and hold the prosthetic training",
+      "group": "Treat",
+      "available": "isNull(seatAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "seatAt",
+          "to": "t"
+        },
+        {
+          "log": "Seated; training held.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Start the gait training: he feels fine and the glucose is close enough",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Gait training starts.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Write today's note",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "data",
+              "label": "Objective data: pre-exercise glucose below 100, skipped breakfast after insulin; carbohydrate given; recheck pending; PT notified"
+            },
+            {
+              "value": "fine",
+              "label": "Glucose acceptable; proceeded with training"
+            },
+            {
+              "value": "dx",
+              "label": "Assessment: insulin regimen needs changing; plan modified"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"data\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"data\""
+                },
+                {
+                  "log": "Note: the data; carbohydrate; PT notified.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Note: proceeded.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dx\""
+                },
+                {
+                  "log": "Note: a plan change.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide who you tell and what happens to the session",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who you tell",
+          "options": [
+            {
+              "value": "pt",
+              "label": "Tell Dr. Wu now: glucose below 100 before exercise after insulin and no breakfast; carbohydrate given, recheck at 15 minutes"
+            },
+            {
+              "value": "note",
+              "label": "Go ahead at a lighter level and mention it in the note"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"pt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"pt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "Dr. Wu agrees, waits for the recheck and adjusts today's session.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "1500"
+                },
+                {
+                  "log": "You start lighter training.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the hand-off: readings, carbohydrate, who you told, the times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off documented with the times.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Treatment session",
+      "clock": "running",
+      "actions": [
+        "glucose",
+        "check",
+        "skin",
+        "reassess",
+        "fix",
+        "seat",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"glucose\"",
+              "then": [
+                {
+                  "set": "glucoseAt",
+                  "to": "t"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Glucose {glu} mg/dL: below the plan's 100 threshold before exercise.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"check\"",
+              "then": [
+                {
+                  "set": "checkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Skipped breakfast; took his usual insulin at 07:30. Feels fine.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Residual limb skin intact; no redness.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the recheck and the PT's decision",
+      "wait": {
+        "skipLabel": "the PT taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the recheck and the PT's decision; a session finished as planned about 25 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "{route == \"pt\" ? \"The recheck is above the threshold; Dr. Wu adjusts the session.\" : \"He leaves after his session.\"}",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "Mr. Sato's hands tremble and his forehead is damp.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "Mr. Sato's glucose is below 100 before exercise and he took insulin without breakfast. What do you do with today's session, and who decides?",
+      "parts": [
+        {
+          "label": "What the data show",
+          "criteria": "Glucose below the plan's 100 mg/dL pre-exercise threshold after insulin without breakfast; exercise will push it lower; shakiness and sweating are symptoms of hypoglycemia.",
+          "modelAnswer": "He's below the plan's 100 before exercise, after insulin and no breakfast, and exercise will drop it further. Now he's shaky and sweaty."
+        },
+        {
+          "label": "What I do and who decides",
+          "criteria": "Fast-acting carbohydrate, recheck in 15 minutes, hold exercise, tell the PT now; the PT adjusts the session; documents data.",
+          "modelAnswer": "Give glucose tablets or juice, recheck in 15 minutes, hold the training, and tell Dr. Wu now. She decides how today's session goes; I document the readings."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Activity stopped or eased within 2 min of a stopping rule (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "SpO2 floor during activity (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The PT told within 5 minutes of the low reading (the plan)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A low glucose still untreated in a session an hour on is harm here.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-16",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed from the FNP case clinic-sulfonylurea-hypoglycemia, which read the primary text on PMC 2026-11-16 through a summarizing fetch with quotes, not re-read: level 1 hypoglycemia is glucose under 70 and at or above 54 mg/dL, level 2 under 54, level 3 a severe event needing assistance; glucose is preferred for the conscious person below 70, rechecked 15 minutes after and repeated if still low. The 100 mg/dL pre-exercise threshold is the plan's (the course objective), not the ADA's treatment threshold."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Severe hypoglycemia during gait training",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Ten steps into the bars he is sweating and confused and his knee buckles; his glucose is now dangerously low."
+    },
+    "worsened": {
+      "label": "Severe hypoglycemia in the clinic",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Glucose {glu} mg/dL: he is confused and can't follow instructions."
+    },
+    "wrongRoute": {
+      "label": "Trained on a low glucose",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"note\")",
+      "narrative": "Halfway through the lighter session he becomes confused and shaky; his glucose has fallen into the 40s."
+    },
+    "target": {
+      "label": "Checked, treated and reported in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow) and isNull(unsafeAt) and not isNull(glucoseAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the recheck is safe and the PT has adjusted the session. Checked first, treated at once, told within minutes."
+    },
+    "recovered": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"pt\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he recovers, but the carbohydrate or the call to the PT came minutes late."
+    },
+    "time_up": {
+      "label": "Still unresolved at 12:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:15 and the session is unresolved."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Fast-acting carbohydrate within 5 minutes of the low reading",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow)",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Supervising PT told within 5 minutes of the low reading",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"pt\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Went ahead and noted it."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No exercise below the threshold",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Started gait training."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Glucose checked before exercise",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(glucoseAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "seatC",
+        "label": "Seated with training held",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(seatAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Documented objective data, not a plan change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"data\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Recorded a below-threshold glucose as acceptable."
+          },
+          {
+            "when": "dxEnum == \"dx\"",
+            "score": "partial",
+            "why": "Plan changes are the PT's, and insulin is the prescriber's."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the hand-off with times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: below the plan's threshold: carbohydrate, recheck, tell the PT before exercise",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Low reading to carbohydrate",
+        "value": "isNull(fixAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(fixAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Low reading to telling the PT",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:15",
+        "text": "Seated; training held until the check."
+      },
+      {
+        "at": "~11:16",
+        "text": "Glucose below 100: below the threshold."
+      },
+      {
+        "at": "~11:17",
+        "text": "Fast-acting carbohydrate; recheck in 15 minutes."
+      },
+      {
+        "at": "~11:17",
+        "text": "Dr. Wu told; note and hand-off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Exercised below the threshold",
+        "body": "The plan's pre-exercise threshold is a rule: carbohydrate and a recheck first."
+      },
+      "worsened": {
+        "headline": "Severe hypoglycemia",
+        "body": "Insulin without breakfast plus exercise drives glucose down. Treat a low reading at once."
+      },
+      "wrongRoute": {
+        "headline": "Went ahead lighter",
+        "body": "Lighter exercise still lowers glucose. Treat, recheck and tell the PT first."
+      },
+      "target": {
+        "headline": "Checked and treated",
+        "body": "Glucose checked before exercise, carbohydrate at once, the PT told within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon the carbohydrate went in and how long before the PT heard."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "A low glucose is treated within minutes."
+      }
+    },
+    "modelReasoning": "The plan says to check glucose before exercise. After insulin without breakfast it reads in the 80s, below the plan's 100 threshold, and he soon becomes shaky. The PTA holds exercise, gives fast-acting carbohydrate, rechecks in 15 minutes and tells the supervising PT, who adjusts the session; insulin questions go to his prescriber."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "lvlQ": {
+      "during": "leaveT",
+      "ask": "While the recheck runs: below which glucose is hypoglycemia level 1?",
+      "choices": [
+        {
+          "id": "g70",
+          "label": "Under 70 mg/dL"
+        },
+        {
+          "id": "g100",
+          "label": "Under 100 mg/dL"
+        },
+        {
+          "id": "g54",
+          "label": "Under 54 mg/dL"
+        }
+      ],
+      "expect": "g70",
+      "explain": "Level 1 hypoglycemia is glucose under 70 and at or above 54 mg/dL; level 2 is under 54.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-16",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed from the FNP case clinic-sulfonylurea-hypoglycemia, which read the primary text on PMC 2026-11-16 through a summarizing fetch with quotes, not re-read: level 1 hypoglycemia is glucose under 70 and at or above 54 mg/dL, level 2 under 54, level 3 a severe event needing assistance; glucose is preferred for the conscious person below 70, rechecked 15 minutes after and repeated if still low. The 100 mg/dL pre-exercise threshold is the plan's (the course objective), not the ADA's treatment threshold."
+      }
+    },
+    "recQ": {
+      "during": "testT",
+      "ask": "While you check: after fast-acting carbohydrate, when is glucose rechecked?",
+      "choices": [
+        {
+          "id": "m15",
+          "label": "In about 15 minutes"
+        },
+        {
+          "id": "h1",
+          "label": "In an hour"
+        },
+        {
+          "id": "none",
+          "label": "No recheck is needed"
+        }
+      ],
+      "expect": "m15",
+      "explain": "Glucose is rechecked 15 minutes after treatment and treatment repeated if still low.",
+      "source": {
+        "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+        "checkedAt": "2026-11-16",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+        "note": "Relayed from the FNP case clinic-sulfonylurea-hypoglycemia, which read the primary text on PMC 2026-11-16 through a summarizing fetch with quotes, not re-read: level 1 hypoglycemia is glucose under 70 and at or above 54 mg/dL, level 2 under 54, level 3 a severe event needing assistance; glucose is preferred for the conscious person below 70, rechecked 15 minutes after and repeated if still low. The 100 mg/dL pre-exercise threshold is the plan's (the course objective), not the ADA's treatment threshold."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -39,6 +39,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "NPTEPTA", slug: "pta-gaze-exercises-new-double-vision", screen: "treatment-session" },
   { course: "NPTEPTA", slug: "pta-treadmill-pressure-falls-with-grade", screen: "treatment-session" },
   { course: "NPTEPTA", slug: "pta-six-minute-walk-saturation-drops", screen: "treatment-session" },
+  { course: "NPTEPTA", slug: "pta-glucose-before-exercise-low", screen: "treatment-session" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [

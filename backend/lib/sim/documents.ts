@@ -470,6 +470,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NPTEPTA", "pta-gaze-exercises-new-double-vision"),
   entry("NPTEPTA", "pta-treadmill-pressure-falls-with-grade"),
   entry("NPTEPTA", "pta-six-minute-walk-saturation-drops"),
+  entry("NPTEPTA", "pta-glucose-before-exercise-low"),
   // ---- end REQ-326 ----
 ];
 
