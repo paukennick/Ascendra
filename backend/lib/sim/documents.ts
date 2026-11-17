@@ -258,6 +258,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-312: the data and code console (screen type data, data profile;
+  // docs/sims.md 22.25), launch courses first. Keep these entries together. ----
+  entry("PYTHON", "py-report-too-slow-profile"),
+  entry("PL300", "pl300-rls-region-manager"),
+  // ---- end REQ-312 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

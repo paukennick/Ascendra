@@ -11,6 +11,7 @@ import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../en
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
+import { dataView, type DataView } from "./dataView.ts";
 
 type Tile = VitalTile;
 
@@ -371,6 +372,7 @@ export interface RunView {
   console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
+  data: DataView | null; // REQ-312: the data and code console
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -385,6 +387,7 @@ export function runView(run: Run, logLimit = 60): RunView {
   const p = run.state.openPrompt ? (doc.prompts ?? {})[run.state.openPrompt] : null;
   const r = run.state.openReasoning ? doc.reasoning[run.state.openReasoning] : null;
   const banner = (doc.screen.bedside?.banner ?? []).find((b) => value(run, b.when) === true);
+  const actions = actionViews(run);
   const log = run.log
     .map((l, i) => ({ key: `${i}`, time: simTimeText(run, l.tick), kind: l.kind, text: l.text }))
     .slice(-logLimit)
@@ -403,7 +406,8 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
-    groups: groupActions(actionViews(run)),
+    data: dataView(run, actions),
+    groups: groupActions(actions),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
     reasoning: r && run.state.openReasoning ? { id: run.state.openReasoning, question: r.question } : null,
