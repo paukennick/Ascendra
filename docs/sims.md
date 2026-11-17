@@ -6804,3 +6804,128 @@ at triage), nor the progressive care cases to CCRN Adult.
 - Strength and conditioning, Scientific Foundations (25%): no objective there
   fits a timed case on an existing screen; left as round 1 said. A decision
   for Nick if he wants a "trainer" case on, for example, recovery planning.
+
+### 22.33 Nursing depth of the 2026-11-17 round, third builder (REQ-325)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This builder took depth for the three launch nursing
+courses (CCRN Adult, NCLEX-RN, NCLEX-PN) while sims-health-4 took the
+nursing specialty, FNP and NPTE-PTA courses. Highest-weighted categories
+first; every case purpose-written on the bedside screen in the round-2
+shape (22.32): assessments share one timer and one pending slot, a
+red-flag finding sets `redFlagAt`, the escalation is timed against it, and
+leaving for the next level of care (or a reassessment) ends the run. No
+engine, renderer, schema or migration change; engine 1.2; clinical profile.
+No bands this round (see "Bands considered"). `lib/sim/nursing-depth-1117.test.ts`
+pins every case by slug (121 tests).
+
+Each case has `endingOrder`, three or four critical criteria inside the
+`target` condition, a conditional harm ending that is an outcome, a
+reasoning moment, two sourced teaching prompts in jsonb key order, a
+chapter, two KPIs, an expert path, a debrief per ending and five golden
+paths (Good, two Mediocre, two Bad; every ending but `time_up`; every
+criterion met and missed). Drugs appear as "the ordered" drug, with no dose
+number in learner text (the pin test checks for one); lab values and urine
+output criteria are not doses.
+
+| Course / slug | Category (weight) | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|---|
+| CCRNADULT/low-urine-after-contrast-on-vancomycin | Endocrine, Heme, GI, Renal, Integ (21%) | Protect the kidney from nephrotoxins and contrast, keep perfusion (+ AKI/ATN, classify AKI) | intensivist within 5 min; NSAID and ACE inhibitor held; fluid, no diuretic | ccrn-aki |
+| CCRNADULT/oozing-lines-in-septic-shock | 21% | DIC from its lab pattern; treat the trigger; components for bleeding (+ coagulopathies) | call within 5 min; enoxaparin held; components given | ccrn-dic |
+| CCRNADULT/pressor-climbing-home-prednisone-missed | 21% | Adrenal crisis after steroid withdrawal; hydrocortisone without delay | call within 5 min; hydrocortisone within 15 min; low glucose treated | ccrn-adrenal |
+| CCRNADULT/pale-urine-after-pituitary-surgery | 21% | Diabetes insipidus; desmopressin; watch for hyponatremia | call within 5 min; desmopressin and replacement; no restriction | ccrn-di |
+| CCRNADULT/fever-ten-days-after-chemo | 21% | Grade neutropenia; fever in neutropenia as an emergency | call within 5 min; antibiotic within 1 h after cultures; no acetaminophen-and-wait | ccrn-neutro |
+| CCRNADULT/cirrhosis-hematemesis-at-night | 21% | Portal hypertension and variceal bleeding through TIPS (+ upper GI bleeding) | call within 5 min; vasoactive drug within 15 min; airway first | ccrn-varices |
+| CCRNADULT/pressor-arm-cold-and-pale | 21% | IV infiltration: recognition and treatment (norepinephrine extravasation) | stopped within 1 min, no flush or rate rise; restarted through another line; catheter kept for the antidote | ccrn-extrav |
+| CCRNADULT/tight-belly-after-massive-resuscitation | 21% | Measure intra-abdominal pressure; organ effects of ACS | measured by protocol; surgeon within 5 min; no bolus | ccrn-abdcomp |
+| CCRNADULT/pounding-headache-c6-injury | Musculoskeletal, Neuro, Behavioral (18%) | Autonomic dysreflexia; bladder or bowel first | sat up within 2 min, never flat; bladder fixed within 10 min; no acetaminophen-and-wait | ccrn-ad |
+| CCRNADULT/tibial-fracture-pain-out-of-proportion | 18% | Acute compartment syndrome; split dressings, heart level, pressure, fasciotomy (+ early recognition) | orthopedics within 5 min; wrap split and leg level; pressure supported, no more opioid | ccrn-compartment |
+| CCRNADULT/day-six-after-coiling-new-weakness | 18% | Subarachnoid hemorrhage after securing: vasospasm, rebleed, hydrocephalus, seizures | call within 5 min; no labetalol or restriction; euvolemia and augmentation | ccrn-sah |
+| CCRNADULT/fever-stiff-neck-waiting-for-lp | 18% | Bacterial meningitis: antibiotics without delay | antibiotics within 15 min; cultures first; dexamethasone before or with | ccrn-meningitis |
+| CCRNADULT/toothache-tablets-level-above-line | Multisystem (16%) | Acetaminophen overdose: time, nomogram, acetylcysteine early | acetylcysteine within 20 min of plotting; time established; baselines sent | ccrn-apap |
+| CCRNADULT/found-on-floor-tea-colored-urine | 16% | Rhabdomyolysis: early aggressive fluids, watch potassium, kidneys, compartments | call within 5 min; fluid with lungs watched; NSAID and statin held | ccrn-rhabdo |
+| NCLEXPN/aide-feeding-thin-liquids-dysphagia | Coordinated Care (21%) | Monitor assistive personnel; intervene or report (+ accountability, PN delegation) | feeding stopped within 1 min; RN and provider within 5 min; aide redirected | pn-aide |
+| NCLEXPN/warfarin-inr-high-tarry-stool | Pharmacological Therapies (13%) | Warfarin: consistent vitamin K; higher INR, more bleeding | reported within 5 min; warfarin held; consistent intake reinforced, no big salad | pn-warfarin |
+| NCLEXPN/clinic-belly-pain-moved-right | Physiological Adaptation (10%) | Recognize and report appendicitis | provider within 5 min, never sent home; no medication outside the standing order; vital signs | pn-appendix |
+| NCLEXRN/preop-consent-after-opioid | Management of Care (18%) | The nurse's part in informed consent (+ liability and battery) | teach-back before any signature; no invalid signature; surgeon within 5 min | rn-consent |
+| NCLEXRN/digoxin-due-yellow-halos | Pharmacological and Parenteral (16%) | Digoxin toxicity; low potassium raises risk | digoxin held; provider within 5 min; apical pulse first | rn-digoxin |
+| NCLEXRN/insulin-given-to-wrong-bed | 16% | Report a medication error honestly and promptly | provider within 5 min; glucose treated; record kept honest | rn-mederror |
+| NCLEXRN/heparin-aptt-high-pink-urine | 16% | Read anticoagulant monitoring | stopped within 5 min, never increased; provider called; bleeding assessed | rn-heparin |
+| NCLEXRN/postop-fever-150-graves-meds-stopped | Physiological Adaptation (14%) | Thyroid storm as an emergency | rapid response within 5 min; cooling without aspirin; no sedate-and-wait | rn-storm |
+| NCLEXRN/day-two-chemo-potassium-climbing | Safety and Infection Prevention (13%) | Oncologic emergencies: tumor lysis syndrome | reported within 5 min; potassium fluid stopped; telemetry | rn-tls |
+| NCLEXRN/pacu-snoring-then-vomiting | Reduction of Risk Potential (12%) | PACU airway and PONV, clear handover | airway within 1 min; side and suction; no opioid before the airway | rn-pacu |
+
+- **Scope.** The ICU nurse acts on named unit policies and the
+  intensivist's orders; the RN on standing orders and protocols named in the
+  brief; the LPN reads back, checks, holds a dose pending the provider,
+  reinforces teaching the RN or provider started, and reports. Delegation
+  by the LPN is set in a state whose practice act allows it (the brief says
+  so).
+- **Harm endings** are outcomes: emergency dialysis, hemorrhagic shock,
+  refractory shock and arrest, a hypernatremic seizure, septic shock,
+  aspiration, collapse off a vasopressor, tissue necrosis, collapse from
+  abdominal compartment syndrome, a hypertensive brain hemorrhage, muscle
+  necrosis, a completed infarct, raised ICP with septic shock, the 8-hour
+  acetylcysteine window lost, a hyperkalemic dysrhythmia, aspiration with
+  respiratory distress, a GI bleed, perforation, surgery without valid
+  consent, complete heart block, a hypoglycemic seizure, a major
+  hemorrhage, heart failure from thyroid storm.
+- **No mental health content.** The NCLEX and CCRN courses are not behind
+  the 18+ gate, so the acetaminophen case is an accidental single acute
+  ingestion for dental pain, and no case touches self-harm.
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes
+  (direct pages or PDFs unless noted): StatPearls (statpearls.com copies;
+  NCBI refuses automated fetches) on AKI, DIC, adrenal crisis, AVP
+  deficiency, neutropenic fever, abdominal compartment syndrome, thyroid
+  storm, tumor lysis syndrome and appendicitis (nursing); the Guideline
+  Central summary of the 2016 AASLD portal hypertensive bleeding guidance
+  (secondary); the LEVOPHED label (5.1) and the NYU Langone peripheral
+  vasopressor protocol; the ANA/NCSBN National Guidelines for Nursing
+  Delegation (2019); the American Stroke Association page on dysphagia;
+  Open RN Nursing Fundamentals 1.6 and Management and Professional
+  Concepts 5.6; the UAMS autonomic dysreflexia guideline (2018); WikEM on
+  compartment syndrome and rhabdomyolysis (physician-edited, secondary);
+  US Pharmacist 2024 on the 2023 AHA/ASA aSAH guideline (secondary); AFP
+  2005 on the IDSA meningitis guideline (secondary); the LANOXIN label
+  (2018); American Nurse Journal 2011 on error disclosure; the Pfizer
+  heparin label (11/2025); the Merck Manual Professional on acetaminophen
+  poisoning (2026); MedlinePlus on warfarin (2026); the UF anesthesiology
+  postoperative guide. Relayed with their dates: the CCRN handbook and the
+  NCLEX test plans from the course seeds, OpenStax Fundamentals 16.3, and
+  the ADA 2026 Standards and Lilly lispro page from the LPN/VN insulin
+  case. A fetch of the AHA "top things to know" page for aSAH failed at
+  the site. Disease courses, effect sizes and local waits are authored
+  teaching values marked `FLAG`.
+- **Findings while authoring.** A test id makes a `<id>At` state, so a
+  test named `bleed` clashes with a parameter `bleedAt` (the linter refused
+  it, "name already used by params") and a test named `time` would shadow
+  the `timeAt()` function; the builder renamed both. `time_up` is reached
+  by no golden path, and an action that becomes available only after an
+  order draws the linter's "never available" warning although goldens use
+  it, as in 22.32.
+
+**Bands considered and not made.** The emergency neurogenic shock and
+anaphylaxis cases (CEN, at triage) were not banded to CCRN Adult's
+neurogenic shock and anaphylactic shock objectives, and the progressive care
+tamponade case not to CCRN's tamponade objective: the setting is not the
+ICU (the rule 22.32 used). No existing case teaches an open NCLEX-PN
+objective in PN scope.
+
+**Where this builder stopped (24 new cases).** Counted again from the
+seeded catalog: CCRN Adult 72 to 58, NCLEX-RN 97 to 90, NCLEX-PN 38 to 35
+fitting objectives that are no sim's main objective (secondary-only
+included). Next candidates, highest weight first, all bedside:
+- CCRN Adult 21%: acute pancreatitis, acute mesenteric ischemia, hepatic
+  encephalopathy, CRRT complications, ITP bleeding precautions. 18%:
+  Monro-Kellie and a falling level of consciousness, PICS and the ABCDEF
+  bundle. Neurogenic shock needs an ICU case of its own.
+- NCLEX-PN 21%: accepting a delegated task only within scope; consent and
+  battery. NCLEX-RN 18%: someone else giving consent, and refusal of
+  treatment and interpreter services.
+- Not fitting a timed bedside case: CCRN moral agency (20%) and the
+  knowledge-only Management of Care and Coordinated Care objectives
+  (malpractice parts, sentinel events, ethical principles, SMART outcomes,
+  privacy, resource management), which would suit the governance board or
+  tabletop screens; CCRN behavioral emergencies and levetiracetam mood
+  effects, and the NCLEX-RN Psychosocial Integrity objectives (31 at 9%),
+  which need the session screen and the 18+ gate. Decisions for Nick.

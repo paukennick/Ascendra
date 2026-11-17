@@ -11644,6 +11644,44 @@
         "docs/sims-coverage-clinical.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-325",
+      "category": "content",
+      "title": "Nursing depth, round 3 of 2026-11-17: purpose-written bedside cases for CCRN Adult, NCLEX-RN and NCLEX-PN, highest-weighted categories first",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. A third builder adds depth to the launch nursing courses: open fitting objectives in CCRN Adult (72), NCLEX-RN (97) and NCLEX-PN (38), highest-weighted categories first, as purpose-written cases on the bedside screen in the shape of the REQ-323 round-2 cases. Bands only where an existing case truly teaches the objective in the right setting and scope. Drugs only as the ordered drug with no dose; unsafe choices end in harm; sources checked and dated, US sources preferred; no clinician or expert review claim; no permission-only marks. No new screen, engine, schema or migration. Stop at about 25 cases or when the remaining objectives no longer fit, and record where it stopped.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/nursing-depth-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a bedside case on engine 1.2 with endingOrder three or four critical criteria and a conditional harm ending that is an outcome",
+        "goldens reach Good Mediocre and Bad and every ending but time_up with every criterion met and missed",
+        "every document lints with zero errors",
+        "objectives are the course's own and pass the selection screen",
+        "sources are dated and say how they were read",
+        "no dose number and no permission-only mark or specialist letters in learner text",
+        "no claim of clinician or expert review",
+        "each course has a case in its highest-weighted category with a fitting objective"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-325 documents",
+        "lib/sim/nursing-depth-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.33",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

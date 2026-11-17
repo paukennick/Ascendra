@@ -1037,3 +1037,17 @@ nursing facility); **CCRNADULT** +1 case (heparin-induced thrombocytopenia).
 Musculoskeletal). Counted again from the seeded catalog: NCLEX-RN 97,
 NCLEX-PN 38 and CCRN Adult 72 fitting objectives are no sim's main
 objective (secondary-only included).
+
+## REQ-325 round 3 (2026-11-17)
+
+Launch courses, new main objectives (docs/sims.md 22.33): **CCRNADULT**
++14 cases (8 in Endocrine, Hematology/Immunology, GI, Renal/GU,
+Integumentary; 4 in Musculoskeletal, Neurological, Behavioral/Psychosocial;
+2 in Multisystem), **NCLEXRN** +7 cases (Management of Care,
+Pharmacological and Parenteral Therapies x3, Physiological Adaptation,
+Safety and Infection Prevention, Reduction of Risk Potential), **NCLEXPN**
++3 cases (Coordinated Care, Pharmacological Therapies, Physiological
+Adaptation). Counted again from the seeded catalog: CCRN Adult 58,
+NCLEX-RN 90 and NCLEX-PN 35 fitting objectives are no sim's main objective
+(secondary-only included). The next candidates and the objectives that
+don't fit a bedside case are listed in 22.33.
