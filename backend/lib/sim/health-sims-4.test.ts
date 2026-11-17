@@ -23,6 +23,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "CEN", slug: "missed-dialysis-weak-legs", screen: "bedside" },
   { course: "CEN", slug: "chemo-day-ten-fever", screen: "bedside" },
   { course: "PCCN", slug: "af-rate-control-pressure-sliding", screen: "bedside" },
+  { course: "PCCN", slug: "telemetry-st-rising-inferior-leads", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
