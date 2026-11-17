@@ -258,6 +258,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-313: the governance board, the tabletop exercise and the
+  // professional-ethics conversations (docs/sims.md 22.26;
+  // GOVERNANCE_DOCUMENTS below). Keep these entries together. ----
+  entry("CISM", "cism-security-business-case-budget"),
+  // ---- end REQ-313 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
