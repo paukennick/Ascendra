@@ -27,6 +27,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { RELEASE_NOTES } from "./release-notes";
+import { COURSE_REFERENCES, REFERENCE_LINE_ON, examReferenceForCode } from "./unbranded";
 
 const byCode = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const READ = "2026-11-16";
@@ -191,12 +192,34 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     }
   });
 
-  test("'permission' bodies: neither title nor description names the body or its marks, and the notice is generic", () => {
+  // REQ-319 (Nick, 2026-11-16, Option 2): a permission body's course names
+  // no mark in its title; its course page carries one plain reference line
+  // ("Prepares you for the <EXAM> exam offered by <Owner>.") and its
+  // description ends with the specific disclaimer instead of the generic
+  // notice. A body whose marks could not be verified (switched off in
+  // lib/unbranded.ts REFERENCE_LINE_ON) keeps the generic notice.
+  test("'permission' bodies: no mark in the title; a reference line and the specific disclaimer, or the generic notice while switched off", () => {
     for (const b of BODIES.filter((x) => x.policy === "permission"))
       for (const code of b.codes) {
         const t = byCode.get(code)!;
-        assert.doesNotMatch(`${t.title} ${t.description}`, PERMISSION_MARKS, `${b.name} ${code}`);
-        assert.match(t.description, GENERIC_NOTICE, `${b.name} ${code}`);
+        assert.doesNotMatch(t.title, PERMISSION_MARKS, `${b.name} ${code}`);
+        const ref = examReferenceForCode(code);
+        if (REFERENCE_LINE_ON[b.name] !== true) {
+          assert.equal(ref, null, code);
+          assert.doesNotMatch(t.description, PERMISSION_MARKS, `${b.name} ${code}`);
+          assert.match(t.description, GENERIC_NOTICE, `${b.name} ${code}`);
+          continue;
+        }
+        assert.ok(ref, `${b.name} ${code}: no reference line`);
+        assert.match(ref.line, /^Prepares you for the .+ exam offered by .+\.$/, code);
+        assert.match(ref.disclaimer, /^.+ is a (registered (certification )?)?(mark|trademark|certification mark) of .+\. Ascendra is independent and is not affiliated with, sponsored by or endorsed by .+\.$/, code);
+        assert.ok(t.description.endsWith(` ${ref.disclaimer}`), `${code}: the description ends with the specific disclaimer`);
+        assert.doesNotMatch(t.description, GENERIC_NOTICE, code);
+        assert.doesNotMatch(t.description.slice(0, -ref.disclaimer.length), PERMISSION_MARKS, `${code}: a mark outside the disclaimer`);
+        for (const text of [ref.line, ref.disclaimer]) assert.doesNotMatch(text, /\b(Official|Approved|Authorized|Certified by|Master)\b/i, code);
+        // The exam's mark appears once in the line.
+        const exam = COURSE_REFERENCES[code].exam;
+        assert.equal(ref.line.split(exam).length - 1, 1, code);
       }
   });
 
@@ -245,10 +268,15 @@ describe("REQ-309: app copy, README and What's new", () => {
     assert.doesNotMatch(read("README.md"), PERMISSION_MARKS);
   });
 
-  test("the app's trademark owners list and settings notice name no 'permission' body", () => {
+  test("the app's trademark owners list names a 'permission' body only once its reference line is on, and the settings notice names none", () => {
     const vendor = read("mobile/src/lib/vendor.ts");
-    const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS"));
-    assert.doesNotMatch(list.replace(/\/\/.*$/gm, ""), PERMISSION_MARKS);
+    const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS")).replace(/\/\/.*$/gm, "");
+    const entries = [...list.matchAll(/^\s*"([^"]+)",$/gm)].map((m) => m[1]);
+    for (const b of BODIES.filter((x) => x.policy === "permission")) {
+      const named = entries.filter((e) => b.marks.test(e) || b.codes.some((c) => COURSE_REFERENCES[c] && e.includes(COURSE_REFERENCES[c].markSentence.match(/ of (.+)\.$/)![1].replace(/^the /, ""))));
+      if (REFERENCE_LINE_ON[b.name]) assert.ok(named.length >= 1, `${b.name} is missing from TRADEMARK_OWNERS`);
+      else assert.deepEqual(named, [], `${b.name} is listed before its marks are verified`);
+    }
     const settings = read("mobile/app/(app)/settings.tsx");
     assert.doesNotMatch(settings.replace(/\{\/\*.*?\*\/\}|\/\/.*$/gm, ""), PERMISSION_MARKS);
   });

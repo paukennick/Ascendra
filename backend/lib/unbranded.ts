@@ -223,40 +223,162 @@ export function publishedExamFacts(x: {
 }
 
 // ---------------------------------------------------------------------------
-// The reference line: a switch per body, all OFF (pending Nick)
+// The reference line (Nick, 2026-11-16 8:27 PM PT: Option 2 approved)
 // ---------------------------------------------------------------------------
-// A separate research task (nominative-use options, 2026-11-16) recommends,
-// pending Nick's decision, naming the exam on the course page with a
-// "Prepares you for" line and a specific disclaimer, titles staying
-// descriptive and the app name never carrying a mark. So that either answer
-// is a one-line change, the line is switchable per body here. While a body's
-// switch is off (every body, today) nothing is shown and the generic
-// not-affiliated notice stays. When on, the course page (exam.facts.reference,
-// lib/exam-blueprint.ts) shows exactly these two sentences, built from the
-// seeded credential and provider names; every other screen stays unbranded.
-// The wording below is a placeholder from the memo, to be confirmed with the
-// switch: no "Official", "Approved", "Authorized" or "Master", no logos, and no
-// registered-mark symbol until each mark's registration status is checked.
-export const REFERENCE_LINE_ON: Readonly<Record<string, boolean>> = Object.freeze(
-  Object.fromEntries(UNBRANDED_BODIES.map((b) => [b.name, false]))
-);
+// Course titles stay descriptive (no mark in a title, the app name or the
+// icon). Each course of a permission-only body gets, on its course page, one
+// plain reference line naming the exam once:
+//   "Prepares you for the <EXAM> exam offered by <Owner>."
+// and under it a specific disclaimer, which replaces the generic notice at the
+// end of the course description (supabase/seed/catalog.ts):
+//   "<mark sentence> Ascendra is independent and is not affiliated with,
+//    sponsored by or endorsed by <Owner>."
+// ® is used only where the owner's own trademark page shows the mark
+// registered, ™ where the owner marks it so, otherwise no symbol; the owner's
+// legal name is the one its own site gives. Each body's evidence is in
+// MARK_EVIDENCE, read 2026-11-16 (WebFetch of the owner's page). Never a logo,
+// a real exam question, or "Official", "Approved", "Authorized", "Certified
+// by" or "Master" (lib/unbranded.test.ts). Everything else in the course stays
+// unbranded: exam card, prompts, emails, codes, lessons, labs and sims.
+//
+// A body whose marks could not be verified on its own site is switched off
+// and keeps the generic notice until Nick decides (REFERENCE_LINE_ON).
+
+export interface MarkEvidence {
+  url: string;
+  readAt: string; // YYYY-MM-DD
+  via: "page" | "pdf";
+  finding: string; // what the page says, quoted or closely paraphrased
+}
+
+export const MARK_EVIDENCE: Readonly<Record<string, readonly MarkEvidence[]>> = {
+  ISC2: [{ url: "https://www.isc2.org/policies-procedures/copyright-information", readAt: "2026-11-16", via: "page",
+    finding: "\"ISC2, CISSP, SSCP, CCSP, CGRC, CSSLP, HCISPP, ISSAP, ISSEP, ISSMP, CC, and CBK are registered marks of ISC2, Inc.\"" }],
+  "EC-Council": [{ url: "https://www.eccouncil.org/legal/trademarks/", readAt: "2026-11-16", via: "page",
+    finding: "EC-Council International Limited's (\"EC-Council\") trademarks; \"Trademarks followed by the ® symbol are registered trademarks of EC-Council\"; listed as CEH® and Certified Ethical Hacker®." }],
+  ISACA: [{ url: "https://www.isaca.org/credentialing/cism", readAt: "2026-11-16", via: "page",
+    finding: "\"Certified Information Security Manager® (CISM®)\"; © 2026 ISACA. Terms of use (https://www.isaca.org/terms-of-use): the ISACA name and trademarks are the trademarks of ISACA." }],
+  BCEN: [
+    { url: "https://bcen.org/trademark-policy/", readAt: "2026-11-16", via: "page",
+      finding: "\"The CEN®, CFRN®, CPEN®, CTRN®, TCRN®, and CBRN® certification programs are accredited...\"; the marks belong to the Board of Certification for Emergency Nursing (BCEN®)." },
+    { url: "https://bcen.org/wp-content/uploads/2022/11/8.1-Trademark-and-Logo-Usage_2025.pdf", readAt: "2026-11-16", via: "pdf",
+      finding: "\"The Board of Certification for Emergency Nursing (BCEN®)\"; BCEN Marks are \"trademarks or registered trademarks of BCEN\"." },
+  ],
+  NBCC: [{ url: "https://2fwww.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", readAt: "2026-11-16", via: "pdf",
+    finding: "Owner \"National Board for Certified Counselors, Inc.\"; lists \"NCE®\" and \"NCMHCE®\" (and \"National Counselor Examination™\")." }],
+  NASM: [{ url: "https://www.nasm.org/policies/terms-and-conditions", readAt: "2026-11-16", via: "page",
+    finding: "Sites \"owned and operated by the National Academy of Sports Medicine, LLC\"; 19.1: \"NASM/AFAA names and acronyms, including NASM® and AFAA® ... are trademarks or registered trademarks of NASM/AFAA\". NASM-CPT and NASM-CNC appear with no symbol." }],
+  ACE: [{ url: "https://acefitness.org/legal/terms-of-use", readAt: "2026-11-16", via: "page",
+    finding: "Operated by \"the American Council on Exercise\"; Trademark Ownership lists \"ACE®, ACE American Council on Exercise®, ...\". \"ACE Certified Personal Trainer\" does not appear with a symbol." }],
+  ASQ: [
+    { url: "https://asq.org/copyright", readAt: "2026-11-16", via: "page",
+      finding: "\"The ASQ logo, the letters \"ASQ,\" American Society for Quality, ASQ Six Sigma Forum, and other marks are registered trademarks, trademarks, or service marks of the American Society for Quality.\"" },
+    { url: "https://asq.org/cert/six-sigma-green-belt", readAt: "2026-11-16", via: "page",
+      finding: "\"Certified Six Sigma Green Belt\" and \"CSSGB\" appear with no ® or ™." },
+  ],
+  ANCC: [
+    { url: "https://nursingworld.org/our-certifications/family-nurse-practitioner", readAt: "2026-11-16", via: "page",
+      finding: "Page title \"Family Nurse Practitioner Certification (FNP-BC™)\" (read in the search result title)." },
+    { url: "https://www.nursingworld.org/legal", readAt: "2026-11-16", via: "page",
+      finding: "Marks \"owned by the ANA Enterprise\"; \"©American Nurses Credentialing Center\". No legal suffix given." },
+  ],
+  AANPCB: [
+    { url: "https://aanpcert.org/terms/", readAt: "2026-11-16", via: "page",
+      finding: "\"American Academy of Nurse Practitioners Certification Board, Inc., doing business as NPCB\"." },
+    { url: "https://www.aanpcert.org/wp-content/uploads/FNP-Candidate-Handbook-06-04-2026.pdf", readAt: "2026-11-16", via: "pdf",
+      finding: "\"Use of the NP-C® Credential\"; \"The NP-C credential is a registered certification mark owned by NPCB\"; the exam is the \"Family Nurse Practitioner (FNP) certification examination\"." },
+  ],
+  "Python Institute": [{ url: "https://pythoninstitute.org/brand-resources", readAt: "2026-11-16", via: "page",
+    finding: "\"PCEP™ (Entry)\", \"PCAP™ (Associate)\"; \"OpenEDG | Open Education and Development Group, LLC\"." }],
+  "ABPTS (APTA)": [
+    { url: "https://www.apta.org/siteassets/pdfs/policies/apta-name-and-mark-usage.pdf", readAt: "2026-11-16", via: "pdf",
+      finding: "Marks are \"the property of the American Physical Therapy Association (APTA)\"; no list of the specialist designations or their registration." },
+    { url: "https://specialization.apta.org/for-specialists/marketing/Promote-Certification", readAt: "2026-11-16", via: "page",
+      finding: "\"APTA Specialist Certification - Governed by ABPTS\"; no ® or ™ on any designation; no trademark statement. NOT VERIFIED: escalated to Nick." },
+  ],
+  PeopleCert: [{ url: "https://www.peoplecert.org/Acknowledgements", readAt: "2026-11-16", via: "page",
+    finding: "\"ITIL®, ... are registered trademarks of PeopleCert\"; \"PeopleCert International Limited and its affiliates (\"PeopleCert\")\"." }],
+};
+
+// Per body: on, or off pending Nick. ABPTS is off: neither APTA nor ABPTS
+// publishes which specialist designations are marks or registered, so its
+// courses keep the generic notice rather than a guessed mark sentence.
+export const REFERENCE_LINE_ON: Readonly<Record<string, boolean>> = Object.freeze({
+  ISC2: true,
+  "EC-Council": true,
+  ISACA: true,
+  BCEN: true,
+  NBCC: true,
+  NASM: true,
+  ACE: true,
+  ASQ: true,
+  ANCC: true,
+  AANPCB: true,
+  "Python Institute": true,
+  "ABPTS (APTA)": false,
+  PeopleCert: true,
+});
+
+interface CourseReference {
+  exam: string; // the exam as the line names it, with the symbol its owner uses
+  owner: string; // who offers it, as the line and disclaimer name them
+  markSentence: string; // the first sentence of the disclaimer
+}
+
+const ISC2_INC = "ISC2, Inc.";
+const NBCC_INC = "National Board for Certified Counselors, Inc.";
+const NASM_SENTENCE = "NASM® is a registered trademark of National Academy of Sports Medicine, LLC.";
+const PY_SENTENCE = (m: string) => `${m}™ is a trademark of Open Education and Development Group, LLC.`;
+
+export const COURSE_REFERENCES: Readonly<Record<string, CourseReference>> = {
+  ISC2CC: { exam: "CC®", owner: "ISC2", markSentence: `CC® is a registered mark of ${ISC2_INC}` },
+  CISSP: { exam: "CISSP®", owner: "ISC2", markSentence: `CISSP® is a registered mark of ${ISC2_INC}` },
+  CEH: { exam: "CEH®", owner: "EC-Council", markSentence: "CEH® is a registered trademark of EC-Council International Limited." },
+  CISM: { exam: "CISM®", owner: "ISACA", markSentence: "CISM® is a registered mark of ISACA." },
+  CEN: { exam: "CEN®", owner: "BCEN", markSentence: "CEN® is a registered mark of the Board of Certification for Emergency Nursing." },
+  NCE: { exam: "NCE®", owner: "NBCC", markSentence: `NCE® is a registered mark of ${NBCC_INC}` },
+  NCMHCE: { exam: "NCMHCE®", owner: "NBCC", markSentence: `NCMHCE® is a registered mark of ${NBCC_INC}` },
+  NASMCPT: { exam: "NASM® Certified Personal Trainer", owner: "the National Academy of Sports Medicine", markSentence: NASM_SENTENCE },
+  NASMCNC: { exam: "NASM® Certified Nutrition Coach", owner: "the National Academy of Sports Medicine", markSentence: NASM_SENTENCE },
+  ACECPT: { exam: "ACE® Certified Personal Trainer", owner: "the American Council on Exercise", markSentence: "ACE® is a registered mark of the American Council on Exercise." },
+  CSSGB: { exam: "Certified Six Sigma Green Belt (CSSGB)", owner: "ASQ", markSentence: "CSSGB is a mark of the American Society for Quality." },
+  FNPANCC: { exam: "FNP-BC™", owner: "ANCC", markSentence: "FNP-BC™ is a trademark of the American Nurses Credentialing Center." },
+  FNPAANP: { exam: "family nurse practitioner (NP-C®)", owner: "NPCB", markSentence: "NP-C® is a registered certification mark of American Academy of Nurse Practitioners Certification Board, Inc." },
+  PCEP: { exam: "PCEP™", owner: "the Python Institute", markSentence: PY_SENTENCE("PCEP") },
+  PCAP: { exam: "PCAP™", owner: "the Python Institute", markSentence: PY_SENTENCE("PCAP") },
+  ITIL5FND: { exam: "ITIL® Foundation (Version 5)", owner: "PeopleCert", markSentence: "ITIL® is a registered trademark of PeopleCert International Limited." },
+  ITIL4FND: { exam: "ITIL® 4 Foundation", owner: "PeopleCert", markSentence: "ITIL® is a registered trademark of PeopleCert International Limited." },
+};
 
 export interface ExamReference {
   line: string;
   disclaimer: string;
 }
 
-export function examReferenceFor(
-  x: { providerSlug?: string | null; providerName?: string | null; credentialName?: string | null },
+export function examReferenceForCode(
+  code: string | null | undefined,
   on: Readonly<Record<string, boolean>> = REFERENCE_LINE_ON
 ): ExamReference | null {
-  const body = UNBRANDED_BODIES.find((b) => !!x.providerSlug && b.providerSlugs.includes(x.providerSlug));
-  if (!body || !on[body.name]) return null;
-  const exam = x.credentialName?.trim();
-  const owner = x.providerName?.trim();
-  if (!exam || !owner) return null;
+  if (!code) return null;
+  const c = code.toUpperCase();
+  const body = BY_CODE.get(c);
+  const ref = COURSE_REFERENCES[c];
+  if (!body || !ref || !on[body.name]) return null;
   return {
-    line: `Prepares you for the ${exam} exam offered by ${owner}.`,
-    disclaimer: `${exam} is a mark of ${owner}. Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${owner}.`,
+    line: `Prepares you for the ${ref.exam} exam offered by ${ref.owner}.`,
+    disclaimer: `${ref.markSentence} Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.owner}.`,
   };
+}
+
+// The generic notice every other permission-body course still ends with
+// (lib/catalog-trademarks.test.ts GENERIC_NOTICE).
+export const GENERIC_NOTICE_TEXT =
+  "Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.";
+
+// A course description as learners see it: for a course whose reference line
+// is on, the generic notice at its end is replaced by the specific disclaimer.
+export function learnerDescription(code: string, description: string): string {
+  const ref = examReferenceForCode(code);
+  if (!ref || !description.endsWith(GENERIC_NOTICE_TEXT)) return description;
+  return `${description.slice(0, -GENERIC_NOTICE_TEXT.length)}${ref.disclaimer}`;
 }

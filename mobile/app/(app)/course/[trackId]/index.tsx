@@ -6,6 +6,7 @@ import { api } from "@/api/client";
 import type { CourseReadiness, Track, Unit } from "@/types";
 import {
   Badge,
+  Body,
   Button,
   Card,
   EmptyState,
@@ -185,10 +186,12 @@ export default function CourseDashboard() {
     setGoalSheet(false);
     openStep();
   }
-  // REQ-319: an unbranded course gets no names here (providerName is null, so
-  // the line is the generic one), unless its body's reference line is on.
+  // REQ-319: a course of a permission-only exam body names it once, in the
+  // reference line under the title; its description already ends with the
+  // specific disclaimer, so the generic line at the foot is left out.
   const examFacts = examFactsOf(exam);
-  const vendorLine = examFacts?.reference?.disclaimer ?? (track ? vendorDisclaimer(exam, track.track_type) : null);
+  const reference = examFacts?.reference ?? null;
+  const vendorLine = reference ? null : track ? vendorDisclaimer(exam, track.track_type) : null;
 
   // REQ-100: readiness from weighted accuracy across every question type,
   // rolled up by the exam blueprint, with coverage shown apart from accuracy
@@ -217,6 +220,8 @@ export default function CourseDashboard() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>
               <H1>{track.title}</H1>
+              {/* REQ-319: the exam named once, in plain body text, never larger. */}
+              {reference ? <Body>{reference.line}</Body> : null}
               <Muted>{track.description}</Muted>
             </View>
             <FavoriteButton active={!!track.is_favorite} onPress={toggleFavorite} />

@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { examReferenceFor, learnerExamNames, publishedExamFacts, type PublishedExamFacts } from "@/lib/unbranded";
+import { examReferenceForCode, learnerExamNames, publishedExamFacts, type PublishedExamFacts } from "@/lib/unbranded";
 
 // REQ-102: the vendor exam a track prepares for, as stored by the seed in
 // credential_exams / exam_domains (migration 007). Exposed so later
@@ -42,6 +42,7 @@ interface ExamRow {
   credential_name: string;
   provider_name: string;
   provider_slug: string;
+  track_code: string | null;
   exam_code: string | null;
   exam_revision: string | null;
   status: string;
@@ -60,6 +61,7 @@ interface ExamRow {
 export async function examBlueprintForTrack(trackId: string): Promise<ExamBlueprint | null> {
   const row = await queryOne<ExamRow>(
     `select ce.id as exam_id, c.name as credential_name, cp.name as provider_name, cp.slug as provider_slug,
+            case when st.user_id is null then st.code end as track_code,
             ce.exam_code, ce.exam_revision, ce.status::text as status,
             to_char(ce.effective_date, 'YYYY-MM-DD') as effective_date,
             to_char(ce.retirement_date, 'YYYY-MM-DD') as retirement_date,
@@ -123,7 +125,7 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
           passingScorePolicy: row.passing_score_policy,
           recommendedExperience: row.recommended_experience,
           domains: domainList,
-          reference: examReferenceFor({ providerSlug: row.provider_slug, providerName: row.provider_name, credentialName: row.credential_name }),
+          reference: examReferenceForCode(row.track_code),
         })
       : null,
   };

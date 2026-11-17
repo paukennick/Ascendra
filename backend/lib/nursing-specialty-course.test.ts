@@ -185,7 +185,7 @@ describe("REQ-278: two FNP courses, one per exam (AANPCB and ANCC)", () => {
     assert.deepEqual(activeUnits(FNPAANP_TRACK).map((u) => [u.title, u.weight]), [["Assess", 32], ["Diagnose", 26.5], ["Plan", 26.5], ["Evaluate", 15]]);
     const c = FNPAANP_TRACK.credential!;
     assert.equal(c.durationMinutes, 180);
-    assert.match(c.questionFormat!, /150 multiple-choice questions in 3 hours: 135 scored and 15 unscored/);
+    assert.match(c.questionFormat!, /150 multiple-choice questions in 3 hours, linear \(every candidate answers the full form\): 135 scored and 15 unscored/);
     assert.match(c.recommendedExperience!, /500 faculty-supervised/);
     const kv = FNPAANP_TRACK.units[0].sources!.flatMap((x) => x.keyValues ?? []).join("\n");
     assert.match(kv, /Older Adult 40 \(30%\)/);
@@ -200,7 +200,7 @@ describe("REQ-278: two FNP courses, one per exam (AANPCB and ANCC)", () => {
     assert.match(c.publishedWeightsNote!, /total 99/);
     assert.equal(c.effectiveDate, "2026-10-30");
     assert.equal(c.durationMinutes, 210);
-    assert.match(c.questionFormat!, /175 questions in 3.5 hours: 150 scored and 25 unscored/);
+    assert.match(c.questionFormat!, /175 questions in 3.5 hours, linear \(every candidate answers the full form\): 150 scored and 25 unscored/);
     const impl = FNPANCC_TRACK.units[3];
     assert.ok(impl.sources![0].outline!.some((l) => /artificial intelligence/.test(l)), "ANCC's 2026 outline names AI");
   });

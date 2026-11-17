@@ -20,8 +20,10 @@ import {
   UNBRANDED_DISPLAY_CODES,
   MARK_HOMONYMS,
   REFERENCE_LINE_ON,
+  MARK_EVIDENCE,
+  COURSE_REFERENCES,
   deliveryOf,
-  examReferenceFor,
+  examReferenceForCode,
   isUnbrandedCode,
   learnerExamNames,
   learnerTrackRow,
@@ -71,9 +73,16 @@ function strings(x: unknown, path: string, out: { path: string; text: string }[]
   }
 }
 
+// The one place an unbranded course names its body: the reference line and
+// the specific disclaimer that ends its description (REQ-319, Option 2). Taken
+// out before the scan; their own form is checked below and in
+// lib/catalog-trademarks.test.ts.
 function learnerStrings(code: string): { path: string; text: string }[] {
   const out: { path: string; text: string }[] = [];
-  strings(byCode.get(code)!, "track", out);
+  const t = byCode.get(code)!;
+  const ref = examReferenceForCode(code);
+  const description = ref && t.description.endsWith(ref.disclaimer) ? t.description.slice(0, -ref.disclaimer.length) : t.description;
+  strings({ ...t, description }, "track", out);
   for (const set of LAB_SETS.filter((s) => s.trackCode === code)) strings(set, "labs", out);
   for (const e of ALL_DOCUMENTS.filter((d) => d.course === code)) strings(loadDocument(e), `sim:${e.slug}`, out);
   return out;
@@ -247,20 +256,48 @@ describe("REQ-319: prompts and emails for an unbranded course", () => {
   });
 });
 
-describe("REQ-319: the reference line is a per-body switch, off for every body", () => {
-  test("off by default: nothing is shown", () => {
+describe("REQ-319: the reference line (Nick, 2026-11-16, Option 2)", () => {
+  test("every body has dated evidence from its own site, and a switch", () => {
     assert.deepEqual(Object.keys(REFERENCE_LINE_ON).sort(), UNBRANDED_BODIES.map((b) => b.name).sort());
-    assert.ok(Object.values(REFERENCE_LINE_ON).every((on) => on === false), "Nick has not decided (research memo, Option 2)");
-    assert.equal(examReferenceFor({ providerSlug: "isc2", providerName: "ISC2", credentialName: "CISSP" }), null);
+    for (const b of UNBRANDED_BODIES) {
+      const ev = MARK_EVIDENCE[b.name];
+      assert.ok(ev?.length, b.name);
+      for (const e of ev) {
+        assert.match(e.url, /^https:\/\//, b.name);
+        assert.match(e.readAt, /^\d{4}-\d{2}-\d{2}$/, b.name);
+        assert.ok(e.finding.length > 20, b.name);
+      }
+    }
   });
 
-  test("switched on for one body, only that body's courses get the line and its disclaimer", () => {
-    const on = { ...REFERENCE_LINE_ON, ISC2: true };
-    const r = examReferenceFor({ providerSlug: "isc2", providerName: "ISC2", credentialName: "Certified Information Systems Security Professional (CISSP)" }, on)!;
-    assert.equal(r.line, "Prepares you for the Certified Information Systems Security Professional (CISSP) exam offered by ISC2.");
-    assert.match(r.disclaimer, /is not affiliated with, sponsored by or endorsed by ISC2\.$/);
-    assert.doesNotMatch(`${r.line} ${r.disclaimer}`, /Official|Approved|Authorized|Master|®/);
-    assert.equal(examReferenceFor({ providerSlug: "isaca", providerName: "ISACA", credentialName: "CISM" }, on), null);
-    assert.equal(examReferenceFor({ providerSlug: "comptia", providerName: "CompTIA", credentialName: "Security+" }, on), null);
+  test("on for every body whose marks were verified; the physical therapy specialty board is off pending Nick", () => {
+    assert.deepEqual(Object.entries(REFERENCE_LINE_ON).filter(([, on]) => !on).map(([n]) => n), ["ABPTS (APTA)"]);
+    for (const code of UNBRANDED_BODIES.find((b) => b.name === "ABPTS (APTA)")!.codes) assert.equal(examReferenceForCode(code), null, code);
+  });
+
+  test("every course of a body that is on has its line and disclaimer, with the owner's symbol rules", () => {
+    for (const b of UNBRANDED_BODIES.filter((x) => REFERENCE_LINE_ON[x.name]))
+      for (const code of b.codes) {
+        const r = examReferenceForCode(code)!;
+        assert.ok(r, code);
+        const ref = COURSE_REFERENCES[code];
+        assert.equal(r.line, `Prepares you for the ${ref.exam} exam offered by ${ref.owner}.`);
+        assert.equal(r.disclaimer, `${ref.markSentence} Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.owner}.`);
+        // "registered" only with ®, a ™ mark is a "trademark", no symbol no claim of either.
+        if (/registered/.test(ref.markSentence)) assert.match(ref.markSentence, /®/, code);
+        if (/™/.test(ref.markSentence)) assert.doesNotMatch(ref.markSentence, /registered/, code);
+        assert.doesNotMatch(`${r.line} ${r.disclaimer}`, /\b(Official|Approved|Authorized|Certified by|Master)\b/i, code);
+        // The evidence for each symbol the line uses names it.
+        const evidence = MARK_EVIDENCE[b.name].map((e) => e.finding).join(" ");
+        if (ref.exam.includes("®")) assert.ok(evidence.includes("®") || /registered (trade|certification )?marks?/.test(evidence), `${code}: no evidence of registration`);
+        if (ref.exam.includes("™")) assert.ok(evidence.includes("™"), `${code}: no evidence for ™`);
+      }
+  });
+
+  test("a switch can turn one body off without touching the others", () => {
+    const off = { ...REFERENCE_LINE_ON, ISC2: false };
+    assert.equal(examReferenceForCode("CISSP", off), null);
+    assert.ok(examReferenceForCode("CISM", off));
+    assert.equal(examReferenceForCode("SECPLUS"), null, "not a permission body");
   });
 });

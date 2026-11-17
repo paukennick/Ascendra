@@ -2,6 +2,7 @@
 // seed script and the blueprint tests (lib/catalog-blueprints.test.ts) walk
 // exactly the same list and a track added to the seed cannot skip the
 // "every certification track has a credential block" check.
+import { learnerDescription } from "../../lib/unbranded";
 import {
   MSCS_TRACK,
   SECPLUS_TRACK,
@@ -48,7 +49,7 @@ import { PM_FRAMEWORK_TRACKS } from "./tracks/pm-frameworks";
 import { ASWB_TRACKS } from "./tracks/aswb";
 import { WA_JP_TRACKS } from "./tracks/wa-psych-jurisprudence";
 
-export const CATALOG_TRACKS: readonly SeedTrack[] = [
+const SEEDED_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
   SECPLUS_TRACK,
   // REQ-103: after SECPLUS -- its credential marks SECPLUS's SY0-701 exam
@@ -114,6 +115,17 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   // REQ-287: Washington psychology jurisprudence exam (psychology licensure).
   ...WA_JP_TRACKS,
 ];
+
+// REQ-319 (Nick, 2026-11-16, Option 2): a course of a permission-only exam
+// body whose reference line is on ends its description with the specific
+// disclaimer (lib/unbranded.ts learnerDescription) instead of the generic
+// notice. Done here so every track module keeps one notice to maintain and
+// the seed, the tests and the app all read the same text.
+export const CATALOG_TRACKS: readonly SeedTrack[] = SEEDED_TRACKS.map((t) => {
+  const description = learnerDescription(t.code, t.description);
+  return description === t.description ? t : { ...t, description };
+});
+
 
 // Units the learner is still taught: everything not marked retired in the
 // seed. Exam domains and weight checks are computed from these only -- a

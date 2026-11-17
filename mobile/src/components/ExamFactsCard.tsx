@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { Body, Card, H3, Muted } from "@/components/ui";
+import { Card, H3, Muted } from "@/components/ui";
 import { colors, fonts, spacing } from "@/lib/theme";
 import { domainLine, examFactRows, type ExamFactsPayload } from "@/lib/examFacts";
 
@@ -13,7 +13,6 @@ export function ExamFactsCard({ facts }: { facts: ExamFactsPayload }) {
   return (
     <Card>
       <H3>{facts.heading}</H3>
-      {facts.reference ? <Body>{facts.reference.line}</Body> : null}
       {rows.map((r) => (
         <View key={r.label} style={{ gap: 2 }} accessible accessibilityLabel={`${r.label}: ${r.value}`}>
           <Muted style={{ fontSize: 12, color: colors.text, fontFamily: fonts.bodyBold }}>{r.label}</Muted>
