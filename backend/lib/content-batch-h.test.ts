@@ -111,7 +111,8 @@ describe("REQ-235 G5 follow-ups", () => {
     assert.match(sepsis.keyValues!.join(" "), /ideally before antimicrobials/);
     assert.ok(!sepsis.keyValues!.some((v) => /^blood cultures before antimicrobials/.test(v)));
     const stroke = kv("CCRNADULT", /Neurological/)[0];
-    assert.equal(stroke.checkedAt, "2026-11-11");
+    // re-read 2026-11-11; read again in the full guideline text 2026-11-16 (REQ-310)
+    assert.ok(["2026-11-11", "2026-11-16"].includes(stroke.checkedAt), stroke.checkedAt);
     assert.match(stroke.keyValues!.join(" "), /185\/110 mm Hg before IV thrombolysis, and below 180\/105/);
   });
 });

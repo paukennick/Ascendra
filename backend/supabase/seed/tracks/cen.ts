@@ -31,8 +31,8 @@
 //     (HR >100, RR >20, SpO2 <92%). Read in the handbook PDF.
 //   - Surviving Sepsis Campaign adult guidelines 2026 (SCCM page).
 //   - AHA/ASA 2026 acute ischemic stroke guideline (AHA "Top things to know";
-//     the 185/110 and 180/105 limits carried from the CCRN course's
-//     2026-11-11 summary reading).
+//     the 185/110 and 180/105 limits read 2026-11-16 in the full guideline
+//     text, section 4.3, COR 1; REQ-310).
 //   - Anaphylaxis practice parameter 2020 (Shaker et al.), read through the
 //     Cleveland Clinic Journal of Medicine summary (2022): epinephrine 1 mg/mL
 //     0.01 mg/kg IM mid-outer thigh, max 0.5 mg adult and 0.3 mg child.
@@ -100,7 +100,7 @@ const AIS = guide(
   "https://professional.heart.org/en/science-news/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-stroke/top-things-to-know",
   [
     "IV thrombolysis (alteplase or tenecteplase) within 4.5 hours of onset; selected patients to 9 hours or unknown onset with advanced imaging",
-    "blood pressure below 185/110 mm Hg before IV thrombolysis and below 180/105 mm Hg for 24 hours after (carried from a 2026-11-11 summary reading)",
+    "blood pressure below 185/110 mm Hg before IV thrombolysis and below 180/105 mm Hg for at least 24 hours after (section 4.3, COR 1; full text read 2026-11-16)",
   ]
 );
 const NRP = guide(
