@@ -1,0 +1,1553 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "visiting-hours-threat-on-the-unit",
+  "title": "Case: 'If he walks in here...'",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Dale Mercer",
+        "presentation": "{distress >= 6 ? \"Standing by the window, IV pole gripped, voice rising\" : distress >= 3 ? \"Sitting on the bed edge, jaw tight\" : \"Sitting back, voice even\"}; {rapport >= 6 ? \"he answers you straight\" : rapport >= 3 ? \"he answers in bursts\" : \"he talks over you\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Trust",
+          "spokenLabel": "Trust",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What he said",
+          "text": "'If Glen walks in here, I'll kill him.' Glen is due at 18:00. Threat: not yet explored.",
+          "when": "true",
+          "alert": "isNull(siAskedAt)"
+        },
+        {
+          "id": "siNote",
+          "label": "Risk to others",
+          "text": "Thoughts of hurting Glen, his former wife's partner, who is due at 18:00. No thoughts of self-harm.",
+          "when": "siKnown"
+        },
+        {
+          "id": "siDenied",
+          "label": "Risk to others",
+          "text": "Said he was 'just mad' while guarded. The threat still stands.",
+          "when": "siDenied and not siKnown"
+        },
+        {
+          "id": "bvcScoredNote",
+          "label": "Violence checklist",
+          "text": "4 of 6 behaviors present (irritable, boisterous, verbal threats, attacking objects): high risk.",
+          "when": "bvcScored"
+        },
+        {
+          "id": "intentAskedNote",
+          "label": "Intent",
+          "text": "Conditional intent tonight, if Glen comes in.",
+          "when": "intentAsked"
+        },
+        {
+          "id": "planAskedNote",
+          "label": "Plan",
+          "text": "No worked-out plan; did not describe one, and was not asked to.",
+          "when": "planAsked"
+        },
+        {
+          "id": "historyAskedNote",
+          "label": "History",
+          "text": "No history of violence.",
+          "when": "historyAsked"
+        },
+        {
+          "id": "supportsAskedNote",
+          "label": "What matters",
+          "text": "His children; seeing them before they move.",
+          "when": "supportsAsked"
+        }
+      ],
+      "record": {
+        "label": "Nursing note so far",
+        "items": [
+          {
+            "label": "Direct question about the threat asked: {siAsked ? \"yes\" : \"no\"}; follow-up questions: {(bvcScored ? 1 : 0) + (intentAsked ? 1 : 0) + (planAsked ? 1 : 0) + (historyAsked ? 1 : 0) + (supportsAsked ? 1 : 0)} of 5",
+            "when": "siAsked"
+          },
+          {
+            "label": "Observation: {obs == \"constant\" ? \"constant\" : obs == \"checks\" ? \"checks every 15 minutes\" : \"not set\"}; room cleared: {envSafe ? \"yes\" : \"no\"}; security: {securityNear ? \"visit held at the desk\" : \"not called\"}",
+            "when": "obs != \"none\" or envSafe or securityNear"
+          },
+          {
+            "label": "Provider and charge nurse told: {notified ? \"yes\" : \"no\"}; threat reported under the policy: {warnReported ? \"yes\" : \"no\"}",
+            "when": "notified"
+          },
+          {
+            "label": "Documented: risk {riskDoc}, disposition {dispo}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Assessing the potential for violence and using safety precautions",
+  "secondaryObjectives": [
+    "Know that nurses are often first to see signs of anger, abuse and violence, and that abuse occurs in homes and in institutions such as hospitals and nursing homes"
+  ],
+  "sources": [
+    {
+      "cite": "2026 RN licensure test plan: Psychosocial Integrity (9%)",
+      "checkedAt": "2026-09-18",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts), which read it 2026-09-18; the objective title is the course's own."
+    },
+    {
+      "cite": "Abderhalden C, Needham I, Dassen T, et al. Predicting inpatient violence using an extended version of the Broset-Violence-Checklist. BMC Psychiatry 2006;6:17. The checklist's six behaviors: confused, irritable, boisterous, verbally threatening, physically threatening, attacking objects (each present or absent); a total over 2 was the original cut-off",
+      "checkedAt": "2026-11-17",
+      "url": "https://link.springer.com/article/10.1186/1471-244X-6-17",
+      "note": "Read 2026-11-17 (summarizing fetch). The study predicted attacks during the next shift; the sim uses the checklist only to name the behaviors a nurse scores."
+    },
+    {
+      "cite": "Richmond JS, Berlin JS, Fishkind AB, et al. Verbal de-escalation of the agitated patient: consensus statement of the American Association for Emergency Psychiatry Project BETA De-escalation Workgroup. West J Emerg Med 2012;13(1):17-25. Ten domains of verbal de-escalation; restraint 'always as a last resort'",
+      "checkedAt": "2026-11-17",
+      "url": "https://westjem.com/articles/verbal-de-escalation-of-the-agitated-patient-consensus-statement-of-the-american-association-for-emergency-psychiatry-project-beta-de-escalation-workgroup.html",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes). Domains: respect personal space (two arm's lengths); do not be provocative; one person establishes verbal contact; be concise; identify wants and feelings; listen closely; agree or agree to disagree; set clear limits; offer choices and optimism; debrief the patient and staff. The paper names delirium, psychosis and intoxication among the causes of a patient's inability to conform."
+    },
+    {
+      "cite": "RCW 71.05.120(3) (last amended 2020 c 302 s 11): no relief from 'the duty to warn or to take reasonable precautions to provide protection from violent behavior where the patient has communicated an actual threat of physical violence against a reasonably identifiable victim or victims'; the duty is discharged by reasonable efforts to communicate the threat to the victim and to law enforcement",
+      "checkedAt": "2026-11-17",
+      "url": "https://lawfilesext.leg.wa.gov/Law/RCWPDF/RCW%20%2071%20%20TITLE/RCW%20%2071%20.%2005%20%20CHAPTER/RCW%20%2071%20.%2005%20.120.pdf",
+      "note": "Read 2026-11-17 in the Legislature's PDF of the section (certified 2024-07-12; summarizing fetch with short quotes); the full quotation is relayed from the ASWB session's citation (read 2026-11-16). The sim presents it through a fictional Washington hospital's own policy; who makes the warning is that policy's choice, not the statute's."
+    },
+    {
+      "cite": "Chapter 70.02 RCW: 70.02.050(1)(c) a provider may disclose without authorization to a person able to prevent or lessen a serious and imminent threat, including the target",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=70.02",
+      "note": "Relayed from the Washington jurisprudence band (read 2026-11-14 for REQ-287), not re-read here."
+    },
+    {
+      "cite": "HHS, HIPAA FAQ 520 (45 CFR 164.512(j)): disclosure in good faith when necessary to prevent or lessen a serious and imminent threat, to a person reasonably able to prevent or lessen it, including the target",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/faq/520/does-hipaa-permit-a-health-care-provider-to-disclose-information-if-the-patient-is-a-danger/index.html",
+      "note": "Relayed from the ASWB session (read 2026-11-14), not re-read here."
+    }
+  ],
+  "brief": {
+    "situation": "Dale Mercer, 45 (a fictional client), is on day 3 on a medical unit with cellulitis of the leg, on IV antibiotics. At 17:20 his former wife visited and told him she is moving out of state with their two children and her new partner, Glen, who is picking her up at 18:00. Since she left Dale has been pacing, has thrown his dinner tray, and told the nursing assistant, 'If Glen walks in here, I'll kill him.' He has no psychiatric history. You are his registered nurse; you have about 30 minutes before 18:00.",
+    "handover": [
+      "Cellulitis day 3, improving; IV antibiotics; ambulating with a walker.",
+      "Policy of Cascade Valley Hospital (fictional, Washington), which follows RCW 71.05.120(3) and RCW 70.02.050: a client's threat of physical violence against a reasonably identifiable person goes to the provider and the charge nurse at once, with the client's exact words; the provider and risk management make reasonable efforts to warn the person and law enforcement. Security can restrict a visit. Nurses do not promise confidentiality and do not make the warning themselves."
+    ],
+    "howItWorks": [
+      "Choose what to ask and do from the action groups. Dale reacts at once; then let the conversation continue, which moves the clock by the minutes that exchange took.",
+      "His trust, distress and how much he discloses change with what you do. Space, one calm voice and direct questions keep him talking.",
+      "Your time ends at 30 minutes. Afterward you write a short formulation, then document the risk level and what you put in place."
+    ]
+  },
+  "clock": {
+    "start": "17:30",
+    "tick": "1min",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "The 30 minutes before the partner is due at 18:00 (author's scenario timing)."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 7,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "siAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "siDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "bvcScored": {
+      "type": "bool",
+      "init": false
+    },
+    "intentAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "planAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "historyAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "supportsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "envSafe": {
+      "type": "bool",
+      "init": false
+    },
+    "securityNear": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "warnReported": {
+      "type": "bool",
+      "init": false
+    },
+    "secretPromised": {
+      "type": "bool",
+      "init": false
+    },
+    "confronted": {
+      "type": "bool",
+      "init": false
+    },
+    "obs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "constant",
+        "checks"
+      ],
+      "init": "none"
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "high",
+        "moderate",
+        "low"
+      ],
+      "init": "none"
+    },
+    "dispo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "precautions",
+        "routine",
+        "restrain"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In his room",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "normalize",
+        "screen",
+        "scoreBvc",
+        "askIntent",
+        "askPlan",
+        "askHistory",
+        "askSupports",
+        "removeItems",
+        "security",
+        "notifyMd",
+        "reportThreat",
+        "promiseSecret",
+        "confront",
+        "observe",
+        "reassure",
+        "advise",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "From the doorway, two arm's lengths away: 'Dale, I'm here. Tell me what happened.'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You stand inside the doorway at an angle, two arm's lengths away, the exit behind you, and ask what happened.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"She's taking my kids. Three states away. With him.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "He stops pacing. \"Yeah. Like they just got taken.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "normalize": {
+      "label": "Set the frame: 'I need to ask about safety, for you and for others. Some of what you tell me I can't keep private.'",
+      "group": "Respond",
+      "available": "not talking and (not siKnown)",
+      "why": "He has already told you.",
+      "effects": [
+        {
+          "log": "You tell him you need to ask about safety and that some things you cannot keep private.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "He sits on the bed. \"Fine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Ask him directly whether he is thinking of hurting someone, or himself",
+      "group": "Ask about risk",
+      "available": "not talking and (not siKnown)",
+      "why": "He has answered; go on to the follow-up questions.",
+      "effects": [
+        {
+          "log": "You ask directly whether he is thinking of hurting someone, and whether he is thinking of hurting himself.",
+          "kind": "act"
+        },
+        {
+          "if": "not siAsked",
+          "then": [
+            {
+              "set": "siAskedAt",
+              "to": "t"
+            },
+            {
+              "set": "siAsked",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Glen. Yeah. If he shows up here, I'm going to hurt him.\" To hurting himself: \"No. My kids need me.\""
+                },
+                {
+                  "log": "Thoughts of harming an identifiable person, Glen, due at 18:00; no thoughts of self-harm.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "siDenied",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"I'm just mad. Leave me alone.\" (Not yet enough trust to answer honestly.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "scoreBvc": {
+      "label": "Score the Broset Violence Checklist from what you see and hear",
+      "group": "Ask",
+      "available": "not talking and (not bvcScored)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You score the six behaviors of the checklist.",
+          "kind": "act"
+        },
+        {
+          "set": "bvcScored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Irritable, boisterous, verbally threatening, attacking objects (the tray): 4 of 6. High risk."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askIntent": {
+      "label": "Ask about intent and timing",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not intentAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether he intends to act, and when.",
+          "kind": "act"
+        },
+        {
+          "set": "intentAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"If he walks in, yes. Tonight.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPlan": {
+      "label": "Ask whether he has thought about how (do not ask for details)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not planAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether he has thought about how, without asking him to describe it.",
+          "kind": "act"
+        },
+        {
+          "set": "planAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I'll figure it out.\" Nothing more."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askHistory": {
+      "label": "Ask about past violence",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not historyAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether he has hurt anyone before.",
+          "kind": "act"
+        },
+        {
+          "set": "historyAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Never hit anybody in my life.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSupports": {
+      "label": "Ask what matters most to him right now",
+      "group": "Ask",
+      "available": "not talking and (not supportsAsked)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You ask what matters most to him right now.",
+          "kind": "act"
+        },
+        {
+          "set": "supportsAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"My kids. Seeing them before they go.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "removeItems": {
+      "label": "Clear the room of loose heavy objects and keep the exit clear, explaining why",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown and not envSafe)",
+      "why": "Ask first (or done).",
+      "effects": [
+        {
+          "log": "You move the tray table, the spare walker and other loose heavy objects out of the room and keep your exit clear.",
+          "kind": "act"
+        },
+        {
+          "set": "envSafe",
+          "to": "true"
+        },
+        {
+          "finding": "\"What's that for?\" \"Keeping everyone safe while you're this upset.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "security": {
+      "label": "Ask security to stop Glen at the front desk and stand by on the unit",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown and not securityNear)",
+      "why": "Ask first (or done).",
+      "effects": [
+        {
+          "log": "You call security: Glen is to be met at the front desk, not sent to the unit, and an officer stands by out of Dale's sight.",
+          "kind": "act"
+        },
+        {
+          "set": "securityNear",
+          "to": "true"
+        },
+        {
+          "finding": "Security will meet Glen downstairs and hold the visit."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "notifyMd": {
+      "label": "Tell the provider and the charge nurse now, with his exact words (SBAR)",
+      "group": "Escalate",
+      "available": "not talking and (siKnown and not notified)",
+      "why": "Ask first (or done).",
+      "effects": [
+        {
+          "log": "You give the provider and charge nurse an SBAR with his exact words: a named person due at 18:00, conditional intent, checklist 4 of 6.",
+          "kind": "act"
+        },
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "finding": "The provider will see him and asks for a psychiatry consultation; the charge nurse alerts risk management under the policy."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reportThreat": {
+      "label": "Report the threat under the duty-to-warn policy: his exact words to risk management",
+      "group": "Escalate",
+      "available": "not talking and (notified and not warnReported)",
+      "why": "Tell the provider first (or done).",
+      "effects": [
+        {
+          "log": "You write down his exact words and report them to the risk manager on call, as the policy sets out.",
+          "kind": "act"
+        },
+        {
+          "set": "warnReported",
+          "to": "true"
+        },
+        {
+          "finding": "Risk management and the provider take it from here: they will make reasonable efforts to warn Glen and the police, as the policy requires."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "promiseSecret": {
+      "label": "Promise him that what he says stays between the two of you",
+      "group": "Respond",
+      "available": "not talking and (not secretPromised)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You promise him that what he says stays between you.",
+          "kind": "act"
+        },
+        {
+          "set": "secretPromised",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "\"Good.\""
+        },
+        {
+          "log": "A promise you cannot keep: a threat against an identifiable person must be reported under the policy.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "confront": {
+      "label": "Step in close and tell him to sit down or you'll call the police",
+      "group": "Respond",
+      "available": "not talking and (not confronted)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You step in close and tell him to sit down or you will call the police.",
+          "kind": "act"
+        },
+        {
+          "set": "confronted",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "He squares up to you. \"Go ahead.\""
+        },
+        {
+          "log": "Closing the distance and threatening raises the risk to you and to him.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "observe": {
+      "label": "Set the observation level",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown)",
+      "why": "Ask first.",
+      "effects": [
+        {
+          "log": "You set his observation level.",
+          "kind": "act"
+        },
+        {
+          "set": "obs",
+          "to": "level"
+        },
+        {
+          "cases": [
+            {
+              "when": "level == \"constant\"",
+              "then": [
+                {
+                  "finding": "A patient safety attendant sits by the open door."
+                },
+                {
+                  "log": "Constant observation started.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "You will look in every 15 minutes."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "level",
+          "kind": "choice",
+          "label": "Level",
+          "options": [
+            {
+              "value": "constant",
+              "label": "Constant observation until the provider sees him"
+            },
+            {
+              "value": "checks",
+              "label": "Checks every 15 minutes"
+            }
+          ]
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Reassure: 'You don't mean that. It'll all work out.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him he doesn't mean it and that it will all work out.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Don't tell me what I mean.\" He picks up the water jug."
+        },
+        {
+          "log": "False reassurance closes the conversation down.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "advise": {
+      "label": "Advise: 'You need to calm down or you'll make it worse.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him to calm down.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Don't tell me to calm down!\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Finish in the room",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You finish in the room.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the risk level and disposition",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Nursing note",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Risk level (your assessment)",
+              "options": [
+                {
+                  "value": "high",
+                  "label": "High risk of violence: conditional intent toward an identifiable person, 4 of 6 checklist behaviors"
+                },
+                {
+                  "value": "moderate",
+                  "label": "Moderate: angry, no intent"
+                },
+                {
+                  "value": "low",
+                  "label": "Low: venting"
+                }
+              ]
+            },
+            {
+              "id": "disposition",
+              "label": "Disposition",
+              "options": [
+                {
+                  "value": "precautions",
+                  "label": "Precautions in place: visit held, constant observation, room cleared, threat reported under the policy, provider seeing him"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine care; the visit goes ahead"
+                },
+                {
+                  "value": "restrain",
+                  "label": "Restrained until Glen has left"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "dispo",
+          "to": "disposition"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: risk {risk}, disposition {disposition}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "Thirty minutes are up: it is 18:00.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Dale throws the water jug at the wall and heads for the elevator to meet Glen downstairs.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation for Dale: his potential for violence and why, and the precautions you put in place.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Risk and reasons",
+          "criteria": "Names high risk of violence: a named person due on the unit within the hour, conditional intent tonight, 4 of 6 checklist behaviors including attacking objects; a sudden loss; no history of violence and no self-harm thoughts.",
+          "modelAnswer": "High risk: he named Glen, who was due on the unit at 18:00, with conditional intent tonight; irritable, boisterous, threatening and throwing his tray (4 of 6 on the checklist). The trigger is a sudden loss; he has no history of violence and no thoughts of self-harm."
+        },
+        {
+          "label": "Precautions",
+          "criteria": "Names distance and an exit, the room cleared, the visit held by security, constant observation, the provider and charge nurse told with his exact words, the threat reported under the policy, and no promise of secrecy.",
+          "modelAnswer": "Two arm's lengths with the exit clear; loose heavy objects removed; security held the visit at the front desk; constant observation; the provider and charge nurse told with his exact words; risk management notified under the duty-to-warn policy; he was told up front what I could not keep private."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Trust at the close of the conversation."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The threat is a cue present from the first minute; asking about it directly within 15 minutes leaves time to put precautions in place before 18:00 (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siKnown and not (securityNear or obs != \"none\" or envSafe)",
+      "class": "harm",
+      "rationale": "A named person due on the unit within the hour and conditional intent: ending with no precautions leaves that person at foreseeable risk.",
+      "source": {
+        "cite": "RCW 71.05.120(3) (last amended 2020 c 302 s 11): no relief from 'the duty to warn or to take reasonable precautions to provide protection from violent behavior where the patient has communicated an actual threat of physical violence against a reasonably identifiable victim or victims'; the duty is discharged by reasonable efforts to communicate the threat to the victim and to law enforcement",
+        "checkedAt": "2026-11-17",
+        "url": "https://lawfilesext.leg.wa.gov/Law/RCWPDF/RCW%20%2071%20%20TITLE/RCW%20%2071%20.%2005%20%20CHAPTER/RCW%20%2071%20.%2005%20.120.pdf",
+        "note": "Read 2026-11-17 in the Legislature's PDF of the section (certified 2024-07-12; summarizing fetch with short quotes); the full quotation is relayed from the ASWB session's citation (read 2026-11-16). The sim presents it through a fictional Washington hospital's own policy; who makes the warning is that policy's choice, not the statute's."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "It escalated",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Dale left the unit to confront Glen after the conversation broke down. Security stopped him in the lobby; nobody was hurt, but it was close."
+    },
+    "unsafe": {
+      "label": "Risk to another person left open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not walkedOut and (not siKnown or dispo == \"routine\" or not (securityNear or obs != \"none\" or envSafe) or (not notified))",
+      "narrative": "The threat toward Glen was {siKnown ? \"known but\" : \"never\"} {siKnown ? \"not acted on as the policy requires\" : \"explored\"}, and the 18:00 visit could have gone ahead."
+    },
+    "safe": {
+      "label": "Safe, with the threat reported",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and bvcScored and intentAsked and planAsked and historyAsked and supportsAsked and (securityNear and obs == \"constant\" and envSafe) and (notified and warnReported) and not (secretPromised or confronted) and riskDoc == \"high\" and (dispo == \"precautions\") and rapport >= allianceTarget",
+      "narrative": "Glen was met at the front desk and the visit held; Dale stayed in his room with an attendant, the provider saw him, and risk management acted under the policy. The social worker set up a call with his children for the next day."
+    },
+    "safeGaps": {
+      "label": "Safe for now, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not walkedOut",
+      "narrative": "Nobody was hurt, but parts of the assessment, the precautions or the report were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "unsafe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "askedDirect",
+        "label": "Asked directly about harming others and himself, early",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(siAskedAt)",
+            "score": "missed",
+            "why": "Never asked, despite the threat."
+          },
+          {
+            "when": "timeAt(siAskedAt) <= safetyWindow",
+            "score": "met",
+            "why": "Screened {timeAt(siAskedAt) / 60} min in, with the questions asked directly."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Screened, but only {timeAt(siAskedAt) / 60} min in; the cue was there from the start."
+          }
+        ]
+      },
+      {
+        "id": "assessment",
+        "label": "Assessed the potential for violence (checklist, intent, plan, history, what matters)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bvcScored and intentAsked and planAsked and historyAsked and supportsAsked",
+            "score": "met",
+            "why": "Scored the checklist and asked about intent and timing, a plan, past violence and what matters to him."
+          },
+          {
+            "when": "(bvcScored ? 1 : 0) + (intentAsked ? 1 : 0) + (planAsked ? 1 : 0) + (historyAsked ? 1 : 0) + (supportsAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "Asked some of the follow-up questions, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not follow up a positive screen with direct questions."
+          }
+        ]
+      },
+      {
+        "id": "keepSafe",
+        "label": "Safety precautions: the visit held, observation, the room cleared",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "securityNear and obs == \"constant\" and envSafe",
+            "score": "met",
+            "why": "The visit held at the desk, constant observation and a cleared room."
+          },
+          {
+            "when": "securityNear or obs != \"none\" or envSafe",
+            "score": "partial",
+            "why": "Some precautions, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No precautions: the visit could go ahead into his room."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Escalated under the policy: provider, charge nurse, risk management",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified and warnReported",
+            "score": "met",
+            "why": "The provider and charge nurse knew at once and the threat was reported under the policy."
+          },
+          {
+            "when": "notified",
+            "score": "partial",
+            "why": "The provider knew, but the threat was not reported under the policy."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody was told about the threat."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "No promise of secrecy and no confrontation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "secretPromised or confronted",
+            "score": "missed",
+            "why": "{secretPromised ? \"Promised secrecy you could not keep. \" : \"\"}{confronted ? \"Closed the distance and threatened him.\" : \"\"}"
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Honest about confidentiality, and kept your distance."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The conversation broke down."
+          }
+        ]
+      },
+      {
+        "id": "formulation",
+        "label": "Documented a fitting risk level and disposition",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "riskDoc == \"high\" and (dispo == \"precautions\")",
+            "score": "met",
+            "why": "High risk to an identifiable person; precautions in place and the threat reported."
+          },
+          {
+            "when": "dispo == \"restrain\"",
+            "score": "partial",
+            "why": "Restraint was not needed: he never became physically violent once precautions were in place."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Documented risk {riskDoc}, disposition {dispo}."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written risk formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToAsk",
+        "label": "Minutes to the screening questions",
+        "value": "isNull(siAskedAt) ? -1 : timeAt(siAskedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "followUps",
+        "label": "Follow-up questions asked",
+        "value": "(bvcScored ? 1 : 0) + (intentAsked ? 1 : 0) + (planAsked ? 1 : 0) + (historyAsked ? 1 : 0) + (supportsAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "5"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Trust at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Minutes with the patient",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "30 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-8 min",
+        "text": "Two arm's lengths, the exit clear, one calm voice; reflect; set the frame on confidentiality; ask directly."
+      },
+      {
+        "at": "8-18 min",
+        "text": "Score the checklist; intent and timing, a plan without details, past violence, what matters."
+      },
+      {
+        "at": "18-30 min",
+        "text": "The visit held by security, constant observation, the room cleared; the provider and charge nurse; the threat reported under the policy."
+      },
+      {
+        "at": "After",
+        "text": "Document high risk to an identifiable person and the precautions."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Good: safe, with the threat reported",
+        "body": "You read the signs, asked directly, scored the checklist, held the visit and followed the duty-to-warn policy without promising secrecy."
+      },
+      "safeGaps": {
+        "headline": "Safe for now, with gaps",
+        "body": "Nobody was hurt, but the criteria below show what was late or missing."
+      },
+      "unsafe": {
+        "headline": "Risk to another person left open",
+        "body": "A named person on the way and conditional intent call for precautions before that person arrives, and a report under the policy."
+      },
+      "walkout": {
+        "headline": "It escalated",
+        "body": "Telling an angry man to calm down, or what he means, escalates. Space, one voice and direct questions slow things down."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Pacing, a raised voice, a thrown tray and a threat are the cues nurses see first. The nurse keeps distance and an exit, asks directly about harming others and self, scores the behaviors, and puts precautions in place before the named person arrives: the visit held by security, observation, a cleared room. The threat goes to the provider and risk management under the facility's duty-to-warn policy; the nurse neither promises secrecy nor makes the warning alone."
+  }
+}
