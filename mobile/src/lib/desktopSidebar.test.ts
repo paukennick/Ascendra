@@ -217,7 +217,9 @@ describe("wiring", () => {
     assert.equal(links.length, 3, "skip link, destination row and course row; found " + links.length);
     for (const tag of links) assert.match(tag, /\{\.\.\.webLink\(/, tag);
     // onPress stops the browser's page load unless a modifier asks for a new tab.
-    assert.match(src, /if \(e\?\.metaKey \|\| e\?\.ctrlKey \|\| e\?\.shiftKey\) return;\s*e\?\.preventDefault\?\.\(\);/);
+    // (webLink moved to src/lib/webLink.ts for FAIL-2442; same check, new file.)
+    assert.match(src, /import \{ webLink \} from "@\/lib\/webLink";/);
+    assert.match(readFileSync("src/lib/webLink.ts", "utf8"), /if \(e\?\.metaKey \|\| e\?\.ctrlKey \|\| e\?\.shiftKey\) return;\s*e\?\.preventDefault\?\.\(\);/);
   });
 
   test("the signed-in layout draws the sidebar on the web only, before the stack, without remounting it", () => {

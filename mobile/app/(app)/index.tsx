@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
@@ -16,6 +16,7 @@ import { HOME_EMPTY } from "@/lib/emptyStates";
 import { WhatsNewDialog, useWhatsNewOnFocus } from "@/components/WhatsNew";
 import { GridRow, useGridColumns, usePersistentSidebarWidth } from "@/components/WebColumn";
 import { chunkRows } from "@/lib/webColumn";
+import { linkProps } from "@/lib/webLink";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -257,8 +258,9 @@ function Footer() {
         {links.map(([label, path], i) => (
           <React.Fragment key={path}>
             {i > 0 ? <Text style={styles.footerDot}>·</Text> : null}
+            {/* FAIL-2442: a real <a href> on the web so Enter opens it; the apps keep onPress only. */}
             <Pressable
-              onPress={() => router.push(path)}
+              {...linkProps(Platform.OS, path, () => router.push(path))}
               accessibilityRole="link"
               accessibilityLabel={label}
               hitSlop={{ top: 14, bottom: 14, left: 4, right: 4 }}

@@ -22,6 +22,7 @@ import {
 } from "@/lib/sidebarNav";
 import { onCoursesChanged, shouldRefreshCourses } from "@/lib/courseEvents";
 import { SIDEBAR_WIDTH } from "@/lib/webColumn";
+import { webLink } from "@/lib/webLink";
 import { colors, fonts, getCourseIcon, radius, spacing } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
 
@@ -306,24 +307,8 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 // keep the whole window.
 export const APP_CONTENT_ID = "app-content";
 
-// FAIL-2441: react-native-web leaves Enter on an element with role="link" to
-// the browser, which does nothing for an anchor without an href, so the first
-// build's sidebar links could be focused but not opened from the keyboard.
-// Each link is a real <a href> (react-native-web renders one for `href`):
-// Enter and a click both arrive as a click, which calls onPress; onPress stops
-// the browser's own page load and navigates in the app instead. A click with
-// Ctrl, Cmd or Shift is left to the browser (a new tab or window).
-type ClickLike = { preventDefault?: () => void; metaKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean };
-function webLink(href: string, activate: () => void): object {
-  return {
-    href,
-    onPress: (e: ClickLike) => {
-      if (e?.metaKey || e?.ctrlKey || e?.shiftKey) return;
-      e?.preventDefault?.();
-      activate();
-    },
-  };
-}
+// FAIL-2441: each sidebar link is a real <a href>, so Enter opens it
+// (src/lib/webLink.ts, shared with the Home footer and the sign-in links).
 
 export function DesktopSidebar({ hidden }: { hidden: boolean }) {
   const pathname = usePathname();
