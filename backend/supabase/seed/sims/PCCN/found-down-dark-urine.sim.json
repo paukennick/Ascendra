@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "found-down-dark-urine",
+  "title": "Cola-colored urine",
+  "objective": "Recognize rhabdomyolysis from muscle pain, dark urine and a high CK, and give early IV fluid while watching potassium and kidney function",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Multisystem (15% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Multisystem is 15% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Pham D, Chatterjee D. Rhabdomyolysis. OpenAnesthesia (last updated 2025-09-09)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.openanesthesia.org/keywords/rhabdomyolysis/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The classic triad of rhabdomyolysis consists of muscle pain, weakness, and dark urine'; 'Creatine kinase (CK) is the most sensitive and reliable marker', 'typically exceeding 5,000 units/L in non-exertional cases'; 'aggressive intravenous hydration with isotonic saline to maintain a urine output of at least 200-300 mL per hour'; 'Careful monitoring and correction of electrolyte abnormalities, particularly hyperkalemia'; 'Myoglobin is the primary nephrotoxin in rhabdomyolysis.' No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:20 on a progressive care unit. Mr. Hale, 67, was admitted overnight after being found on his kitchen floor, where he had lain for about a day after a fall. His thighs ache and the urine in his catheter bag is dark brown.",
+    "handover": [
+      "CK on admission 38,000; potassium 5.4; creatinine above his baseline. On telemetry.",
+      "Orders: the ordered isotonic IV fluid at the high rate to keep urine output at or above the target in the order, hourly urine, potassium and creatinine every 4 hours, and the provider called for urine below the target, a potassium rising or any ECG change.",
+      "His home list includes a potassium supplement and an ACE inhibitor, both due at 09:00. The provider is on the unit."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:20",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Myoglobin injures the kidneys and potassium rises. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "High-rate fluid slows the injury; this patient's urine still falls and potassium still rises. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point where urine falls below target and the T waves peak. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a dangerous potassium rhythm. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of urine below target or ECG change (the order)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The high-rate IV fluid running within 5 minutes (the order)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the provider to treat the potassium and involve nephrology; a routine plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A potassium supplement given into rising potassium and failing kidneys: a dangerous rhythm within minutes in this authored course. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "legsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "labs",
+        "legs",
+        "ecg"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "now",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rhabdo",
+        "dehyd",
+        "uti"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(88 - 15 * max(0, prog - 0.6) + sin(t / 13))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "uo": {
+      "expr": "round(max(5, (isNull(fixAt) ? 90 : 160) - 150 * max(0, prog - 0.3)))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(118 - 10 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "72",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "k": {
+      "expr": "round((5.3 + 1.6 * prog) * 10) / 10"
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output, mL per hour",
+          "value": "uo",
+          "unit": "mL/h",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              150,
+              100
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "High-rate isotonic IV fluid: {not isNull(fixAt)|yesno}. 09:00 potassium supplement and ACE inhibitor held: {not isNull(holdAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"now\" and inCare",
+          "text": "The provider is at the bedside; nephrology is called."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "labs": {
+      "label": "Point-of-care potassium and the latest creatinine",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "legs": {
+      "label": "Legs: muscle pain, swelling, compartments, pulses",
+      "group": "Assess",
+      "available": "not testPending and isNull(legsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"legs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "Look at the telemetry strip",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: urine output, telemetry, strength",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Urine {uo} mL in the last hour, darker. Telemetry: tall, peaked T waves. Legs weaker.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Urine {uo} mL in the last hour. Telemetry unchanged.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Start the ordered isotonic IV fluid at the high rate",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "High-rate isotonic fluid running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the 09:00 potassium supplement and ACE inhibitor and tell the provider",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Both held; provider told.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Give the 09:00 potassium supplement as scheduled",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium supplement given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "rhabdo",
+              "label": "Rhabdomyolysis with falling urine output and rising potassium: kidney injury and hyperkalemia"
+            },
+            {
+              "value": "dehyd",
+              "label": "Dehydration only; the fluid will sort it"
+            },
+            {
+              "value": "uti",
+              "label": "A urinary infection darkening the urine"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"rhabdo\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"rhabdo\""
+                },
+                {
+                  "log": "Impression: rhabdomyolysis, AKI, hyperkalemia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dehyd\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dehyd\""
+                },
+                {
+                  "log": "Impression: dehydration.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"uti\""
+                },
+                {
+                  "log": "Impression: infection.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the provider",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "now",
+              "label": "To the bedside now: urine below target, potassium rising, peaked T waves on fluid"
+            },
+            {
+              "value": "later",
+              "label": "Wait for the 12:00 labs; keep the fluid going"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"now\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"now\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The provider comes, treats the potassium and calls nephrology.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "You plan to wait for the noon labs.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: time on the floor, CK, urine trend, potassium and ECG with times, held medicines",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: about a day on the floor, CK 38,000, urine trend, potassium and peaked T waves with times, supplement and ACE inhibitor held.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "labs",
+        "legs",
+        "ecg",
+        "reassess",
+        "fix",
+        "hold",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Potassium {k}; creatinine higher than at 04:00.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Potassium {k}; creatinine up a little from admission.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"legs\"",
+              "then": [
+                {
+                  "set": "legsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Tender, firm thighs; calves soft; pedal pulses present; no pain on passive stretch.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sinus rhythm; T waves a little taller than on admission.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the provider and nephrology taking over",
+      "wait": {
+        "skipLabel": "the provider taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the provider to treat the potassium and involve nephrology; a routine plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium treated and nephrology involved; he moves for closer monitoring.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The urine in the bag has barely risen this hour; the telemetry tech calls about peaked T waves.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Mr. Hale's urine is falling and his T waves are peaked. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "A long lie, muscle pain, dark urine and a CK of 38,000 are rhabdomyolysis; falling urine and peaked T waves mean kidney injury and rising potassium.",
+          "modelAnswer": "He has rhabdomyolysis from the long lie: sore muscles, dark urine, a huge CK. Now the urine is falling and the T waves are peaked, so his kidneys are failing and his potassium is climbing."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Keep the high-rate fluid; hold the potassium supplement and ACE inhibitor; provider now for the potassium and nephrology; keep him on telemetry; hand off.",
+          "modelAnswer": "Keep the fluid going, hold the potassium and the ACE inhibitor, call the provider now for the potassium and nephrology, keep him on telemetry, and hand off."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "Rhabdomyolysis with rising potassium still untreated an hour on is harm here.",
+      "source": {
+        "cite": "Pham D, Chatterjee D. Rhabdomyolysis. OpenAnesthesia (last updated 2025-09-09)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.openanesthesia.org/keywords/rhabdomyolysis/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The classic triad of rhabdomyolysis consists of muscle pain, weakness, and dark urine'; 'Creatine kinase (CK) is the most sensitive and reliable marker', 'typically exceeding 5,000 units/L in non-exertional cases'; 'aggressive intravenous hydration with isotonic saline to maintain a urine output of at least 200-300 mL per hour'; 'Careful monitoring and correction of electrolyte abnormalities, particularly hyperkalemia'; 'Myoglobin is the primary nephrotoxin in rhabdomyolysis.' No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "A potassium rhythm after the supplement",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Minutes after the supplement the telemetry shows wide, bizarre complexes; a rapid response is called."
+    },
+    "worsened": {
+      "label": "A dangerous potassium rhythm",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Potassium {k}: the monitor shows a wide, slow rhythm and he becomes drowsy."
+    },
+    "wrongRoute": {
+      "label": "Left for the noon labs",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"later\")",
+      "narrative": "Before noon his rhythm degenerates; a code is called."
+    },
+    "target": {
+      "label": "Fluid early and the warning signs called in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(labsAt)",
+      "narrative": "{timeAt(leftAt)|clock}: fluid early, the supplement held, and the falling urine and peaked T waves called within minutes."
+    },
+    "recovered": {
+      "label": "Treated, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"now\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he is treated, but the fluid started late or the warning signs went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still unresolved at 09:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:20 and Mr. Hale's potassium is still rising."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "High-rate IV fluid running within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Provider called within 5 minutes of low urine or ECG change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"now\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Waited for the noon labs."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No potassium supplement into rising potassium",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Gave the potassium supplement."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Potassium and creatinine checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(labsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Potassium supplement and ACE inhibitor held",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named rhabdomyolysis with kidney injury and hyperkalemia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"rhabdo\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"dehyd\"",
+            "score": "missed",
+            "why": "Missed the kidney injury and potassium."
+          },
+          {
+            "when": "dxEnum == \"uti\"",
+            "score": "missed",
+            "why": "Called it infection."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the CK, urine trend, potassium and held medicines",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: rhabdomyolysis threatens the kidneys and raises potassium; fluid early, hold potassium, call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Start to the high-rate fluid",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Low urine or ECG change to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:20",
+        "text": "High-rate fluid; 09:00 potassium and ACE inhibitor held."
+      },
+      {
+        "at": "~08:21",
+        "text": "Potassium and creatinine. Reassess."
+      },
+      {
+        "at": "~08:30",
+        "text": "Urine below target; peaked T waves."
+      },
+      {
+        "at": "~08:31",
+        "text": "Provider now; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Potassium into rising potassium",
+        "body": "Muscle breakdown releases potassium and the kidneys are failing. A scheduled supplement is held and the prescriber told."
+      },
+      "worsened": {
+        "headline": "Potassium rhythm",
+        "body": "Early high-rate fluid protects the kidneys; watch urine and potassium closely and call at the first warning."
+      },
+      "wrongRoute": {
+        "headline": "Waited for noon",
+        "body": "Peaked T waves with falling urine need the provider now, not the next labs."
+      },
+      "target": {
+        "headline": "Called in time",
+        "body": "Fluid early, the supplement held, labs checked, and the warning called within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Treated, with delays",
+        "body": "Check when the fluid started and how long the warning signs went before the call."
+      },
+      "time_up": {
+        "headline": "Still rising",
+        "body": "Hyperkalemia from rhabdomyolysis needs treatment within minutes."
+      }
+    },
+    "modelReasoning": "A day on the floor, aching thighs, dark urine and a CK of 38,000 are rhabdomyolysis. Early high-rate isotonic fluid protects the kidneys, with hourly urine, and the potassium supplement and ACE inhibitor are held. When the urine falls below target and the T waves peak, the kidneys are failing and potassium is rising: the provider comes now."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "kQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: which electrolyte is the most urgent to watch in rhabdomyolysis?",
+      "choices": [
+        {
+          "id": "k",
+          "label": "Potassium"
+        },
+        {
+          "id": "na",
+          "label": "Sodium"
+        },
+        {
+          "id": "mg",
+          "label": "Magnesium"
+        }
+      ],
+      "expect": "k",
+      "explain": "Careful monitoring and correction of electrolyte abnormalities, particularly hyperkalemia.",
+      "source": {
+        "cite": "Pham D, Chatterjee D. Rhabdomyolysis. OpenAnesthesia (last updated 2025-09-09)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.openanesthesia.org/keywords/rhabdomyolysis/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The classic triad of rhabdomyolysis consists of muscle pain, weakness, and dark urine'; 'Creatine kinase (CK) is the most sensitive and reliable marker', 'typically exceeding 5,000 units/L in non-exertional cases'; 'aggressive intravenous hydration with isotonic saline to maintain a urine output of at least 200-300 mL per hour'; 'Careful monitoring and correction of electrolyte abnormalities, particularly hyperkalemia'; 'Myoglobin is the primary nephrotoxin in rhabdomyolysis.' No dose is used in the case."
+      }
+    },
+    "triQ": {
+      "during": "testT",
+      "ask": "While you assess: what is the classic triad of rhabdomyolysis?",
+      "choices": [
+        {
+          "id": "tri",
+          "label": "Muscle pain, weakness and dark urine"
+        },
+        {
+          "id": "fever",
+          "label": "Fever, rash and joint pain"
+        },
+        {
+          "id": "thirst",
+          "label": "Thirst, polyuria and weight loss"
+        }
+      ],
+      "expect": "tri",
+      "explain": "The classic triad is muscle pain, weakness and dark urine; CK is the most sensitive and reliable marker.",
+      "source": {
+        "cite": "Pham D, Chatterjee D. Rhabdomyolysis. OpenAnesthesia (last updated 2025-09-09)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.openanesthesia.org/keywords/rhabdomyolysis/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'The classic triad of rhabdomyolysis consists of muscle pain, weakness, and dark urine'; 'Creatine kinase (CK) is the most sensitive and reliable marker', 'typically exceeding 5,000 units/L in non-exertional cases'; 'aggressive intravenous hydration with isotonic saline to maintain a urine output of at least 200-300 mL per hour'; 'Careful monitoring and correction of electrolyte abnormalities, particularly hyperkalemia'; 'Myoglobin is the primary nephrotoxin in rhabdomyolysis.' No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

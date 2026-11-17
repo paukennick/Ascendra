@@ -607,6 +607,36 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "pacu-snoring-then-vomiting"),
   entry("NCLEXPN", "clinic-belly-pain-moved-right"),
   // ---- end REQ-325 ----
+  // ---- REQ-326 (docs/sims.md 22.34): specialty nursing and PTA depth, sims-health-4 ----
+  entry("CEN", "dizzy-slow-pulse-atropine-not-working"),
+  entry("CEN", "cold-leg-new-numbness"),
+  entry("CEN", "bike-crash-breath-sounds-gone"),
+  entry("CEN", "copd-drowsy-on-high-flow"),
+  entry("CEN", "house-fire-hoarse-voice"),
+  entry("CEN", "missed-dialysis-weak-legs"),
+  entry("CEN", "chemo-day-ten-fever"),
+  entry("PCCN", "af-rate-control-pressure-sliding"),
+  entry("PCCN", "telemetry-st-rising-inferior-leads"),
+  entry("PCCN", "pressure-crisis-headache-titration"),
+  entry("PCCN", "groin-swelling-after-cath"),
+  entry("PCCN", "day-two-mi-cold-and-wet"),
+  entry("PCCN", "chest-tube-on-the-floor"),
+  entry("PCCN", "found-down-dark-urine"),
+  entry("CMSRN", "bedside-debridement-sedation-quiet-capnograph"),
+  entry("CMSRN", "found-on-floor-on-anticoagulant"),
+  entry("CMSRN", "stroke-day-one-coffee-and-pills"),
+  entry("FNPANCC", "clinic-swollen-lip-years-on-lisinopril"),
+  band("FNPAANP", "clinic-swollen-lip-years-on-lisinopril-fnp-clinical"),
+  entry("FNPAANP", "clinic-calf-ache-after-flight-now-breathless"),
+  band("FNPANCC", "clinic-calf-ache-after-flight-now-breathless-fnp-role"),
+  entry("FNPAANP", "clinic-three-falls-five-new-pills"),
+  band("FNPANCC", "clinic-three-falls-five-new-pills-fnp-role"),
+  entry("NPTEPTA", "pta-knee-replacement-calf-swollen"),
+  entry("NPTEPTA", "pta-gaze-exercises-new-double-vision"),
+  entry("NPTEPTA", "pta-treadmill-pressure-falls-with-grade"),
+  entry("NPTEPTA", "pta-six-minute-walk-saturation-drops"),
+  entry("NPTEPTA", "pta-glucose-before-exercise-low"),
+  // ---- end REQ-326 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

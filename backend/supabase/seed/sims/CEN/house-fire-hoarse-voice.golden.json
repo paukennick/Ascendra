@@ -1,0 +1,434 @@
+{
+  "slug": "house-fire-hoarse-voice",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: oxygen and access, sat up, airway exam, reassess; at the stridor the physician and anesthesia now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "hoarse",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "airway"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "airway"
+          },
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "swell",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "upC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "2ee0d761d76d52c5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Treats well and hears the stridor, but calls more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "hoarse",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "airway"
+          },
+          "seq": 8,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "airway"
+          },
+          "seq": 9,
+          "tick": 138
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "swell",
+          "seq": 10,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 138
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "upC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "adb304786a4024ec"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: oxygen and an airway exam, then calls it anxiety and sends him to the burns ward",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "hoarse",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anxiety"
+          },
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ward"
+          },
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "swell",
+          "seq": 8,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "3da1dd837a0b6b8f"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: asks the history, then sends him to CT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "hoarse",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "eac4c9f533b9ccf4"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: history, burn size and airway exam, calls it carbon monoxide only; no oxygen and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "hoarse",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "burns",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "co"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 168
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "91bf6fd383a0e3ca"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

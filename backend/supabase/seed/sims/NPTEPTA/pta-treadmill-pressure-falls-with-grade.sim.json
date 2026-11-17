@@ -1,0 +1,1260 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pta-treadmill-pressure-falls-with-grade",
+  "title": "Harder work, lower pressure",
+  "objective": "Monitoring vital signs and activity tolerance during a treatment session and responding to abnormal findings",
+  "secondaryObjectives": [
+    "Implementing cardiac and pulmonary rehabilitation activities within established parameters"
+  ],
+  "sources": [
+    {
+      "cite": "FSBPT, NPTE-PTA Test Content Outline (Version 2025.02) and the NPTE Candidate Handbook",
+      "checkedAt": "2026-09-27",
+      "url": "https://www.fsbpt.org/Free-Resources/NPTE-Candidate-Handbook/Content-Outline",
+      "note": "Relayed from the NPTE-PTA course seed (backend/supabase/seed/tracks/pt.ts, VERIFIED_AT 2026-09-27), not re-read: Cardiovascular and pulmonary systems is 20-27 of 140 scored items, and the exam assumes entry-level practice under a supervising PT's direction. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra NPTE-PTA course catalog (backend/supabase/seed/tracks/pt.ts, track NPTEPTA)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "House of Delegates policy HOD P06-18-28-35, Direction and Supervision of the Physical Therapist Assistant (last updated 2018-08-30)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apta.org/siteassets/pdfs/policies/direction-supervision-pta.pdf",
+      "note": "Relayed from the PTA case pta-back-pain-new-bladder-symptoms, which read it 2026-11-17 through a summarizing fetch with quotes, not re-read: only the physical therapist performs evaluation, reexamination and modification of the plan of care; the PTA collects selected data and modifies an intervention 'to ensure patient or client safety and comfort'; a PT supervisory visit is made on the PTA's request for a reexamination and 'in response to a change in the patient's or client's medical status'."
+    },
+    {
+      "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+      "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:30 in an outpatient clinic. You are the physical therapist assistant, carrying out the physical therapist's plan. Mr. Ibrahim, 71, is on visit 6 of a conditioning program after a heart attack. Today's plan steps the treadmill grade up every 2 minutes.",
+    "handover": [
+      "Plan of care (Dr. Moreno, PT): treadmill intervals with the grade increased every 2 minutes, perceived exertion 11-13, blood pressure and heart rate each stage. Takes a beta-blocker.",
+      "The plan's stopping rules: a systolic drop of more than 10 mmHg as the workload rises, chest discomfort, new dysrhythmia, dizziness or SpO2 under 90%; stop, seat the patient, and tell the PT at once.",
+      "Dr. Moreno is in the clinic; the clinic has an automated defibrillator."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each question or measure takes the time on its button. Decide what to collect, what it means for today's session and who needs to know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rising workload on an ischemic heart that can't raise its output. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Stopped and seated, he recovers slowly while the PT reexamines. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point where the systolic falls more than 10 as the grade rises, with lightheadedness. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of collapse on the treadmill. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The PT told within 5 minutes of a stopping rule (the plan)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Exercise stopped and he is seated within 5 minutes of the stopping rule (the plan; the profile's 2-minute stop window is stricter)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the PT to reexamine and arrange medical review; a session finished as planned about 25 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The grade raised to finish the interval: he collapses within minutes in this authored course. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "stageAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stage",
+        "check",
+        "rest"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pt",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "data",
+        "fine",
+        "dx"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "aedAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(88 + 10 * prog + sin(t / 7) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(fixAt) ? 146 + 25 * min(prog, 0.4) - 120 * max(0, prog - 0.4) : 128)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(96 - 8 * max(0, prog - 0.6), 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Ibrahim, 71",
+        "presentation": "Visit 6 of an outpatient conditioning program after a heart attack two months ago."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "sbp",
+          "label": "SBP",
+          "spokenLabel": "Systolic blood pressure",
+          "value": "sbp",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              120,
+              100
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "activity": "{not inCare ? \"Gone with the PT's plan.\" : (isNull(fixAt) ? \"Walking on the treadmill; the grade steps up every 2 minutes.\" : \"Seated, recovering.\")}",
+      "measures": [
+        {
+          "id": "stageResult",
+          "label": "Stage check",
+          "result": "Systolic falling as the grade rises; lightheaded.",
+          "when": "not isNull(stageAt)",
+          "flag": "true"
+        },
+        {
+          "id": "checkResult",
+          "label": "Check-in",
+          "result": "Took his beta-blocker; no chest pain this week.",
+          "when": "not isNull(checkAt)"
+        },
+        {
+          "id": "restResult",
+          "label": "Resting vitals",
+          "result": "Resting pressure and rate within the plan's limits.",
+          "when": "not isNull(restAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Exercise stopped",
+            "when": "not isNull(fixAt)"
+          },
+          {
+            "label": "Defibrillator at the chair",
+            "when": "not isNull(aedAt)"
+          },
+          {
+            "label": "{route == \"pt\" ? \"Session stopped; PT reexamining\" : \"Session finished as planned\"}",
+            "when": "not isNull(callAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleRed",
+          "label": "Systolic falls more than 10 mmHg as the workload rises; chest discomfort; new dysrhythmia; dizziness; SpO2 under 90%",
+          "text": "Stop: seat him, no further exercise, and tell the supervising PT now.",
+          "met": "redSeen and isNull(callAt)"
+        },
+        {
+          "id": "ruleScope",
+          "label": "Your role",
+          "text": "Collect data and report it. Diagnosis, reexamination and changes to the plan are the PT's.",
+          "met": "false"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "stage": {
+      "label": "Stage check: blood pressure, heart rate, rhythm, perceived exertion, symptoms",
+      "group": "Examine",
+      "available": "not testPending and isNull(stageAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"stage\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "check": {
+      "label": "Check-in: symptoms since last visit, medicines taken today",
+      "group": "Examine",
+      "available": "not testPending and isNull(checkAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"check\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "rest": {
+      "label": "Resting vital signs before the session",
+      "group": "Examine",
+      "available": "not testPending and isNull(restAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Ask how he feels and check the pressure at this stage",
+      "group": "Examine",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Systolic {sbp}; he is pale and says the room is 'swimming'.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Systolic {sbp}; talking comfortably.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Stop the treadmill and seat him; stay with him",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Treadmill stopped; seated; you stay with him.",
+          "kind": "act"
+        }
+      ]
+    },
+    "aed": {
+      "label": "Bring the defibrillator to the chair and recheck the rhythm",
+      "group": "Treat",
+      "available": "isNull(aedAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "aedAt",
+          "to": "t"
+        },
+        {
+          "log": "Defibrillator at the chair; rhythm regular.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Raise the grade once more to finish the interval",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Grade raised to finish the interval.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Write today's note",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "data",
+              "label": "Objective data: systolic fell from 156 to the value recorded as the grade rose, lightheaded; exercise stopped; PT notified"
+            },
+            {
+              "value": "fine",
+              "label": "Tolerated well; progress the grade next visit"
+            },
+            {
+              "value": "dx",
+              "label": "Assessment: exertional ischemia; plan changed to cardiology referral"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"data\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"data\""
+                },
+                {
+                  "log": "Note: the data; exercise stopped; PT notified.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Note: tolerated well.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dx\""
+                },
+                {
+                  "log": "Note: a diagnosis and a plan change.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide who you tell and what happens to the session",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who you tell",
+          "options": [
+            {
+              "value": "pt",
+              "label": "Stop the session and get Dr. Moreno now with the data: systolic falling with workload, lightheaded"
+            },
+            {
+              "value": "note",
+              "label": "Let him rest and finish at a lower grade; mention it next visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"pt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"pt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "Dr. Moreno comes, reexamines and arranges same-day medical review.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "1500"
+                },
+                {
+                  "log": "You carry on at a lower grade.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the hand-off: what you found, who you told, the time",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off documented with the times.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Treatment session",
+      "clock": "running",
+      "actions": [
+        "stage",
+        "check",
+        "rest",
+        "reassess",
+        "fix",
+        "aed",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"stage\"",
+              "then": [
+                {
+                  "set": "stageAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Systolic {sbp}, down from 156 two stages ago; heart rate {hr}; perceived exertion 15; 'a bit lightheaded'.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Systolic {sbp}, up from rest; heart rate {hr}; perceived exertion 12; no symptoms.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"check\"",
+              "then": [
+                {
+                  "set": "checkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "'Feeling stronger.' Took his beta-blocker this morning. No chest pain this week.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "restAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Resting blood pressure 142/80, heart rate 64, SpO2 97%.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving the clinic",
+      "wait": {
+        "skipLabel": "his departure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the PT to reexamine and arrange medical review; a session finished as planned about 25 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "{route == \"pt\" ? \"He leaves for same-day medical review with the PT's findings.\" : \"He leaves after his session.\"}",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The cuff reads lower than the last stage, and Mr. Ibrahim grips the treadmill rail.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "Mr. Ibrahim's systolic is falling as the grade goes up, and he is lightheaded. What does it mean, and who decides?",
+      "parts": [
+        {
+          "label": "What the data show",
+          "criteria": "Systolic pressure should rise with workload (about 10 per MET); a fall of more than 10 as work rises, with lightheadedness, two months after a heart attack, is an abnormal response and a stopping rule; the beta-blocker blunts heart rate, so pressure matters more.",
+          "modelAnswer": "His systolic should rise with the work, but it has dropped by more than 10 and he's lightheaded. After a heart attack that's an abnormal response and one of the plan's stopping rules."
+        },
+        {
+          "label": "What I do and who decides",
+          "criteria": "Stops and seats him; defibrillator at hand; tells the PT now with the data; the PT reexamines and decides; documents data.",
+          "modelAnswer": "I stop the treadmill, sit him down, bring the defibrillator, and get Dr. Moreno now. The reexamination and plan change are hers; I document the numbers and times."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Activity stopped or eased within 2 min of a stopping rule (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "SpO2 floor during activity (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The PT told within 5 minutes of a stopping rule (the plan)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "An abnormal exercise response still unreported an hour on is harm here.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Collapse on the treadmill",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Halfway up the next stage he goes gray and his legs buckle; you hit the stop and call for help."
+    },
+    "worsened": {
+      "label": "Collapse during the session",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Systolic {sbp}, heart rate {hr}: he sags against the rail and slides down."
+    },
+    "wrongRoute": {
+      "label": "Sent home with an exertional drop unreported",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"note\")",
+      "narrative": "Two days later he collapses while climbing stairs at home and is admitted with a new ischemic event."
+    },
+    "target": {
+      "label": "Stopped and reported in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow) and isNull(unsafeAt) and not isNull(stageAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves for medical review. You checked each stage, stopped at the rule and told the PT within minutes."
+    },
+    "recovered": {
+      "label": "Reviewed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"pt\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he gets his review, but exercise went on past the rule or the PT heard minutes late."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 11:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:30 and Mr. Ibrahim is still in the clinic."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Exercise stopped within 5 minutes of the stopping rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow)",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Supervising PT told within 5 minutes of the stopping rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"pt\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Finished at a lower grade, mention next visit."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Workload not raised after the stopping rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Raised the grade."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Stage-by-stage vital signs taken",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(stageAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "aedC",
+        "label": "Defibrillator brought and rhythm rechecked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(aedAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Documented objective data, not a diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"data\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Recorded an exertional drop as tolerated."
+          },
+          {
+            "when": "dxEnum == \"dx\"",
+            "score": "partial",
+            "why": "A diagnosis and a plan change are the PT's to make."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the hand-off with times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: a falling systolic with rising work is a stopping rule; stop and tell the PT",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Stopping rule to stopping",
+        "value": "isNull(fixAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(fixAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Stopping rule to telling the PT",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:30",
+        "text": "Resting vitals; defibrillator checked; stage checks begin."
+      },
+      {
+        "at": "~10:32",
+        "text": "Stage check: pressure rising. Reassess each stage."
+      },
+      {
+        "at": "~10:35",
+        "text": "Systolic falling with the grade, lightheaded: stop and seat."
+      },
+      {
+        "at": "~10:35",
+        "text": "Dr. Moreno now with the data; note and hand-off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Pushed past a stopping rule",
+        "body": "A falling systolic as workload rises is a stopping rule. Finishing the interval is never the priority."
+      },
+      "worsened": {
+        "headline": "Collapse",
+        "body": "Check pressure at each stage; stop at the first rule broken."
+      },
+      "wrongRoute": {
+        "headline": "Not reported",
+        "body": "An abnormal exercise response is a change in medical status; the PT needs it now."
+      },
+      "target": {
+        "headline": "Stopped and reported",
+        "body": "Each stage checked, stopped at the rule, the PT told within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Reviewed, with gaps",
+        "body": "Check how long exercise went on after the drop and how long before the PT heard."
+      },
+      "time_up": {
+        "headline": "Still in the clinic",
+        "body": "An abnormal response is reported within minutes."
+      }
+    },
+    "modelReasoning": "During graded exercise systolic pressure should rise, about 10 mmHg per MET. Two months after a heart attack, on a beta-blocker that blunts heart rate, a systolic that falls more than 10 as the grade rises, with lightheadedness, is a stopping rule. The PTA stops and seats him, brings the defibrillator and tells the supervising PT at once with the numbers; the PT reexamines and decides."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "sbpQ": {
+      "during": "testT",
+      "ask": "While you check the stage: how should systolic pressure respond as workload rises?",
+      "choices": [
+        {
+          "id": "up",
+          "label": "It rises, about 10 mmHg per MET"
+        },
+        {
+          "id": "down",
+          "label": "It falls a little"
+        },
+        {
+          "id": "same",
+          "label": "It stays the same"
+        }
+      ],
+      "expect": "up",
+      "explain": "Normal exercise response: SBP rises about 10 mmHg per MET; a drop over 10 mmHg with increasing workload is a stop criterion.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+      }
+    },
+    "stopQ": {
+      "during": "leaveT",
+      "ask": "While he leaves: which of these is a reason to stop exercise?",
+      "choices": [
+        {
+          "id": "spo2",
+          "label": "SpO2 under 90% or a drop of 4% or more"
+        },
+        {
+          "id": "rpe",
+          "label": "Perceived exertion of 12"
+        },
+        {
+          "id": "hr",
+          "label": "A heart rate rise of 10 per MET"
+        }
+      ],
+      "expect": "spo2",
+      "explain": "Stop criteria include an SBP drop over 10 with increasing workload, new or worsening dysrhythmia, inability to speak comfortably, and SpO2 under 90% or a drop of 4% or more.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,434 @@
+{
+  "slug": "clinic-swollen-lip-years-on-lisinopril-fnp-clinical",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: drug stopped, sitting up with oxygen, airway exam, reassess; at the voice change 911 now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "mechQ",
+          "choice": "brady",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "acei"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "whenQ",
+          "choice": "yes",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "upC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "d91d499cda062b1d"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Stops the drug and watches well, but calls 911 more than 5 minutes after the voice change",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mechQ",
+          "choice": "brady",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "acei"
+          },
+          "seq": 8,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 9,
+          "tick": 158
+        },
+        {
+          "type": "teach",
+          "prompt": "whenQ",
+          "choice": "yes",
+          "seq": 10,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 158
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "upC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "82375a1195a7f156"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: stops the drug and looks in the mouth, then calls it an allergy and sends him home",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mechQ",
+          "choice": "brady",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "allergy"
+          },
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "home"
+          },
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "whenQ",
+          "choice": "yes",
+          "seq": 8,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "f1a96184bea4ea88"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: checks the skin, then gives an antihistamine and sends him to work",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mechQ",
+          "choice": "brady",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "90bcd49028a73f16"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: skin, medicines and airway exam, calls it dental; the drug isn't stopped and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "mechQ",
+          "choice": "brady",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dental"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "upC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "faebd0dde0ec8c7e"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

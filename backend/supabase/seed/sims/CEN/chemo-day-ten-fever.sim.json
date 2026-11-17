@@ -1,0 +1,1223 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "chemo-day-ten-fever",
+  "title": "Day ten after chemo",
+  "objective": "Recognize fever in an immunocompromised or neutropenic patient as an emergency",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Medical Emergencies (15 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Medical Emergencies is 15 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "UCSF Hospitalist Handbook, 19. Neutropenic Fever (undated web page)",
+      "checkedAt": "2026-11-17",
+      "url": "https://hospitalhandbook.ucsf.edu/node/1066",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: neutropenic fever is 'Fever occurring in a patient with ANC <500' with 'a single temperature value of ≥38.3 or ≥38.0 for ≥1 hour'; 'guidelines recommend starting antibiotics within 60 minutes of ED triage'; 'Obtain blood culture x 2 (include central line if present)'; 'Routine digital rectal examinations should be avoided.' The page is undated; its references run to 2015."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "19:50 in the emergency department. You are the nurse in a single room. Ms. Novak, 44, is ten days after her second cycle of chemotherapy for breast cancer. She has felt shivery since the afternoon. Triage was at 19:30.",
+    "handover": [
+      "Triage: ESI 2. Temperature 38.4 C, heart rate 108, blood pressure 112/70, SpO2 97%. Implanted port in the right chest.",
+      "The department's neutropenic fever pathway: a single room, two sets of blood cultures (one from the port), the ordered broad-spectrum IV antibiotic within 60 minutes of triage without waiting for the blood count, no rectal temperatures, and the physician called at once for hypotension or confusion.",
+      "The physician has seen her and is in the department."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and treat as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "19:50",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.035,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Infection advances in a patient with no neutrophils. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The antibiotic slows the course; she still becomes hypotensive and needs the physician. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypotension and confusion: sepsis with shock developing. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of refractory septic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician called within 5 minutes of hypotension or confusion (department pathway)."
+      }
+    },
+    "fixWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The ordered antibiotic within 60 minutes of triage, 30 minutes after she reaches the room (department pathway)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the physician to start fluids and vasopressor planning and move her to intensive care; a ward bed about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Antibiotics held to wait for the count: shock develops within about 10 minutes in this authored course. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "portAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "perf",
+        "hx",
+        "port"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "now",
+        "ward"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "nf",
+        "chemo",
+        "viral"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "fluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(106 + 25 * prog + sin(t / 9))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(97 - 4 * max(0, prog - 0.5))",
+      "unit": "%",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.3 + 0.8 * prog) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "sbp": {
+      "expr": "round(116 - 50 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(70 - 25 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "high": 39.5
+          },
+          "announce": {
+            "bands": [
+              38.5,
+              39.5
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Blood cultures and the ordered antibiotic: {not isNull(fixAt)|yesno}. IV fluid running: {not isNull(fluidAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"now\" and inCare",
+          "text": "The physician is at the bedside; intensive care is called."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "perf": {
+      "label": "Perfusion: blood pressure, mental status, skin, capillary refill, urine",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): chemotherapy date, symptoms, sources",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "port": {
+      "label": "Inspect the port site",
+      "group": "Assess",
+      "available": "not testPending and isNull(portAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"port\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: blood pressure, alertness, skin",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, heart rate {hr}. She doesn't know where she is. Mottled knees.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, alert, shivering.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Draw two sets of blood cultures (one from the port), then give the ordered IV antibiotic",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Cultures drawn; the ordered antibiotic is running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "fluid": {
+      "label": "Start the ordered IV fluid",
+      "group": "Treat",
+      "available": "isNull(fluidAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fluidAt",
+          "to": "t"
+        },
+        {
+          "log": "IV fluid running as ordered.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Hold the antibiotic until her neutrophil count comes back",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Antibiotic held pending the blood count.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "nf",
+              "label": "Neutropenic fever, now with septic shock developing: an emergency"
+            },
+            {
+              "value": "chemo",
+              "label": "A chemotherapy reaction; fever expected"
+            },
+            {
+              "value": "viral",
+              "label": "A viral illness; recheck in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"nf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"nf\""
+                },
+                {
+                  "log": "Impression: neutropenic sepsis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"chemo\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"chemo\""
+                },
+                {
+                  "log": "Impression: chemotherapy reaction.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"viral\""
+                },
+                {
+                  "log": "Impression: viral.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "now",
+              "label": "To the bedside now: neutropenic fever, now hypotensive and confused"
+            },
+            {
+              "value": "ward",
+              "label": "Admit to the oncology ward; review in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"now\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"now\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The physician comes at once, widens fluids and calls intensive care.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ward\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "An oncology ward bed is requested.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: chemotherapy date, culture and antibiotic times, the port, hypotension and its time",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: chemotherapy day 10, culture and antibiotic times, the red port, hypotension and confusion from its time.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Single room",
+      "clock": "running",
+      "actions": [
+        "perf",
+        "hx",
+        "port",
+        "reassess",
+        "fix",
+        "fluid",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"perf\"",
+              "then": [
+                {
+                  "set": "perfAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Blood pressure {sbp}/{dbp}; slow to answer and muddled about the date; skin mottled; capillary refill 4 seconds.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Blood pressure {sbp}/{dbp}; alert; warm hands; capillary refill 2 seconds.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Chemotherapy ten days ago. Shivers since 15:00, a sore mouth, no cough, no diarrhea. The port site is a little red.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "portAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Faint redness around the port, no pus.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "moving to intensive care",
+      "wait": {
+        "skipLabel": "intensive care taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the physician to start fluids and vasopressor planning and move her to intensive care; a ward bed about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She goes to intensive care with the antibiotic running.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The monitor alarms: her blood pressure has dropped and she is confused.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 1020",
+      "question": "Ms. Novak is hypotensive and confused. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Fever ten days after chemotherapy is neutropenic fever until shown otherwise; hypotension, confusion and mottling are septic shock developing.",
+          "modelAnswer": "Fever ten days after chemotherapy is neutropenic fever. Now she's hypotensive, confused and mottled: septic shock is setting in."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Cultures and the antibiotic without waiting for the count (within 60 minutes of triage); fluid; physician now; no rectal temperatures; hand off.",
+          "modelAnswer": "Cultures and the antibiotic are in without waiting for the count, fluid is running, and I call the physician now and hand off the times."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "Neutropenic fever with shock still in a department room an hour on is harm here.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, 19. Neutropenic Fever (undated web page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/1066",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: neutropenic fever is 'Fever occurring in a patient with ANC <500' with 'a single temperature value of ≥38.3 or ≥38.0 for ≥1 hour'; 'guidelines recommend starting antibiotics within 60 minutes of ED triage'; 'Obtain blood culture x 2 (include central line if present)'; 'Routine digital rectal examinations should be avoided.' The page is undated; its references run to 2015."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Shock while waiting for the count",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "While the antibiotic waits on a blood count, her pressure falls and she becomes confused: septic shock."
+    },
+    "worsened": {
+      "label": "Refractory septic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Blood pressure {sbp}/{dbp}: she barely responds. Septic shock has set in."
+    },
+    "wrongRoute": {
+      "label": "To a ward in shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"ward\")",
+      "narrative": "On the ward she is found grey and unresponsive an hour later; a rapid response is called."
+    },
+    "target": {
+      "label": "Neutropenic fever treated as an emergency",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(perfAt)",
+      "narrative": "{timeAt(leftAt)|clock}: cultures and antibiotic inside the hour, and the shock called within minutes."
+    },
+    "recovered": {
+      "label": "To intensive care, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"now\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches intensive care, but the antibiotic was late or the hypotension went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still in the room at 20:50",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "20:50 and Ms. Novak is still in the room."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Cultures and the ordered antibiotic within 60 minutes of triage",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician called within 5 minutes of hypotension or confusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"now\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sent to a ward for review in the morning."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Antibiotic not held for the blood count",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Antibiotic held pending the count."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Perfusion assessed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(perfAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "fluidC",
+        "label": "IV fluid started",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fluidAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named neutropenic fever with septic shock developing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"nf\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"chemo\"",
+            "score": "missed",
+            "why": "Called fever after chemotherapy expected."
+          },
+          {
+            "when": "dxEnum == \"viral\"",
+            "score": "missed",
+            "why": "Called it viral."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the chemotherapy date, culture and antibiotic times and the shock",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: neutropenic fever is an emergency; antibiotics within the hour; shock called at once",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Arrival in the room to the antibiotic",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Hypotension to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:50",
+        "text": "Two sets of cultures, then the ordered antibiotic; IV fluid."
+      },
+      {
+        "at": "~19:51",
+        "text": "Perfusion: alert, warm. Reassess."
+      },
+      {
+        "at": "~20:00",
+        "text": "Hypotensive and confused."
+      },
+      {
+        "at": "~20:01",
+        "text": "Physician now; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Waited for the count",
+        "body": "The antibiotic starts within 60 minutes of triage without waiting for the neutrophil count."
+      },
+      "worsened": {
+        "headline": "Septic shock",
+        "body": "A patient without neutrophils can deteriorate fast. Antibiotic early and reassess often."
+      },
+      "wrongRoute": {
+        "headline": "To a ward",
+        "body": "Hypotension and confusion in neutropenic fever need the physician now, not a morning review."
+      },
+      "target": {
+        "headline": "Treated as an emergency",
+        "body": "Cultures and the antibiotic early, and the shock called within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Treated, with delays",
+        "body": "Check the time from triage to the antibiotic and how long the hypotension went before the call."
+      },
+      "time_up": {
+        "headline": "Still in the room",
+        "body": "Neutropenic fever is an emergency measured in minutes."
+      }
+    },
+    "modelReasoning": "Fever ten days after chemotherapy is neutropenic fever until proven otherwise. Cultures (one from the port) and the ordered antibiotic go in within an hour of triage without waiting for the count; no rectal temperatures. When she becomes hypotensive and confused, septic shock is developing: the physician comes now."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "abxQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: when should the antibiotic start in neutropenic fever?",
+      "choices": [
+        {
+          "id": "hour",
+          "label": "Within 60 minutes of triage"
+        },
+        {
+          "id": "count",
+          "label": "After the neutrophil count confirms neutropenia"
+        },
+        {
+          "id": "cult",
+          "label": "After the cultures grow something"
+        }
+      ],
+      "expect": "hour",
+      "explain": "Guidelines recommend starting antibiotics within 60 minutes of ED triage.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, 19. Neutropenic Fever (undated web page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/1066",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: neutropenic fever is 'Fever occurring in a patient with ANC <500' with 'a single temperature value of ≥38.3 or ≥38.0 for ≥1 hour'; 'guidelines recommend starting antibiotics within 60 minutes of ED triage'; 'Obtain blood culture x 2 (include central line if present)'; 'Routine digital rectal examinations should be avoided.' The page is undated; its references run to 2015."
+      }
+    },
+    "tempQ": {
+      "during": "testT",
+      "ask": "While you assess: which is avoided in a neutropenic patient?",
+      "choices": [
+        {
+          "id": "rectal",
+          "label": "Rectal temperatures and digital rectal examinations"
+        },
+        {
+          "id": "oral",
+          "label": "Oral temperatures"
+        },
+        {
+          "id": "cult",
+          "label": "Blood cultures from the port"
+        }
+      ],
+      "expect": "rectal",
+      "explain": "Routine digital rectal examinations should be avoided in neutropenic fever.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, 19. Neutropenic Fever (undated web page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/1066",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: neutropenic fever is 'Fever occurring in a patient with ANC <500' with 'a single temperature value of ≥38.3 or ≥38.0 for ≥1 hour'; 'guidelines recommend starting antibiotics within 60 minutes of ED triage'; 'Obtain blood culture x 2 (include central line if present)'; 'Routine digital rectal examinations should be avoided.' The page is undated; its references run to 2015."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

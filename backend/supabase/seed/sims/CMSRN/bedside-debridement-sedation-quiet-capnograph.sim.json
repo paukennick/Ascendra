@@ -1,0 +1,1249 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "bedside-debridement-sedation-quiet-capnograph",
+  "title": "The flat line on the capnograph",
+  "objective": "Monitor a patient during and after moderate sedation within the nurse's scope",
+  "secondaryObjectives": [
+    "Apply pre- and post-procedure standards: consent, timeout and monitoring"
+  ],
+  "sources": [
+    {
+      "cite": "MSNCB, 2023 CMSRN Exam Blueprint: Patient/Care Management (32%)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf",
+      "note": "Relayed from the CMSRN course seed (backend/supabase/seed/tracks/cmsrn.ts), which read the blueprint 2026-11-14, not re-read: Patient/Care Management is 32% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra CMSRN course catalog (backend/supabase/seed/tracks/cmsrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "American Society of Anesthesiologists. Practice Guidelines for Moderate Procedural Sedation and Analgesia 2018, as summarized by Guideline Central (published 2018-03-01; page updated 2024-01-22)",
+      "checkedAt": "2026-11-17",
+      "url": "https://guidelinecentral.com/guideline/9061",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the summary (the guideline itself was not read): 'Continually monitor ventilatory function with capnography unless precluded or invalidated by the nature of the patient'; 'Continuously monitor all patients by pulse oximetry with appropriate alarms'; 'Assure that a designated individual other than the practitioner performing the procedure is present to monitor the patient'; blood pressure 'at 5-min intervals' and heart rate during the procedure; 'Use supplemental oxygen during moderate procedural sedation/analgesia unless specifically contraindicated'; 'Assure that specific antagonists are immediately available in the procedure room'. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 on a medical-surgical unit. Dr. Lee, the surgeon, is debriding a leg wound at the bedside of Mr. Brandt, 63, under moderate sedation. You are the nurse assigned only to monitor him and give the ordered sedation. He has obstructive sleep apnea.",
+    "handover": [
+      "Consent signed; time-out done. The provider has ordered the sedative and the opioid in small increments by the nurse, titrated to moderate sedation, with the reversal agents at the bedside.",
+      "Unit sedation policy: capnography and pulse oximetry continuously, blood pressure every 5 minutes, supplemental oxygen, and stop further doses, support the airway and call rapid response for loss of the capnography waveform, a respiratory rate under 8 or a patient who rouses only to pain.",
+      "The rapid response team is two minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.035,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The drug effect deepens with sleep apnea. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Monitoring finds it; it does not reverse it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of deep sedation: rousable only to pain, apneic pauses, a flat capnograph. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypoxic arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Further doses stopped and rapid response called within 5 minutes of deep sedation (unit policy)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Capnography, pulse oximetry and oxygen on before the first increment (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team to support his breathing and the reversal to work; a routine recovery about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Another sedative increment into deep sedation with sleep apnea: apnea within minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "rassAt": {
+      "type": "time",
+      "init": null
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rass",
+        "airway",
+        "hx"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stop",
+        "finish"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "deep",
+        "asleep",
+        "artifact"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "airway2At": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 - 10 * max(0, prog - 0.5) + sin(t / 11))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(max(2, 16 - 14 * max(0, prog - 0.3)))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp((isNull(fixAt) ? 95 : 98) - 30 * max(0, prog - 0.55), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "round(prog >= 0.5 ? 8 : 38 + 20 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(132 - 20 * max(0, prog - 0.4))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "78",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28,
+            "low": 8
+          },
+          "announce": {
+            "bands": [
+              10,
+              8
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 50,
+            "low": 15
+          },
+          "announce": {
+            "bands": [
+              45,
+              50
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Capnography, oximetry and oxygen: {not isNull(fixAt)|yesno}. Airway support: {not isNull(airwayAt)|yesno}. Reversal agents at the bedside.",
+      "banner": [
+        {
+          "when": "route == \"stop\" and inCare",
+          "text": "Rapid response is at the bedside; further doses stopped."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "rass": {
+      "label": "Sedation level: response to voice, then light touch",
+      "group": "Assess",
+      "available": "not testPending and isNull(rassAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rass\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "airway": {
+      "label": "Airway: snoring, chest movement, jaw",
+      "group": "Assess",
+      "available": "not testPending and isNull(airwayAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"airway\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Check the chart: sleep apnea device, last opioid, allergies",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: capnography waveform, breathing, response to voice",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Capnograph waveform flat for long pauses, EtCO2 {etco2}; breathing {rr} a minute; SpO2 {spo2}%; no response to voice.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Capnograph waveform regular, EtCO2 {etco2}; breathing {rr} a minute; rousable to voice.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Capnography, continuous pulse oximetry and supplemental oxygen on before the first increment",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Capnography, oximetry and oxygen on.",
+          "kind": "act"
+        }
+      ]
+    },
+    "airway2": {
+      "label": "Jaw thrust and head tilt; ready the bag-valve mask",
+      "group": "Treat",
+      "available": "isNull(airway2At) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "airway2At",
+          "to": "t"
+        },
+        {
+          "log": "Jaw thrust; bag-valve mask ready.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Give another sedative increment: he grimaced when the surgeon cut",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Another sedative increment given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "deep",
+              "label": "Deep sedation with hypoventilation: beyond moderate, stop and rescue"
+            },
+            {
+              "value": "asleep",
+              "label": "Comfortably asleep; the procedure is going well"
+            },
+            {
+              "value": "artifact",
+              "label": "The capnography line has come loose"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"deep\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"deep\""
+                },
+                {
+                  "log": "Impression: deep sedation, hypoventilation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"asleep\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"asleep\""
+                },
+                {
+                  "log": "Impression: asleep.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"artifact\""
+                },
+                {
+                  "log": "Impression: artifact.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Act on the change",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "stop",
+              "label": "Stop further doses, ask the surgeon to pause, call rapid response and ready the ordered reversal agent"
+            },
+            {
+              "value": "finish",
+              "label": "Let the surgeon finish; he'll wake up afterwards"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"stop\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"stop\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The surgeon pauses. Rapid response comes; the ordered reversal is given by order.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"finish\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "The procedure continues.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: increments and times, the sleep apnea, the capnography and sedation level with times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: each increment and time, sleep apnea on CPAP, flat capnograph and unresponsiveness from its time.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Bedside procedure",
+      "clock": "running",
+      "actions": [
+        "rass",
+        "airway",
+        "hx",
+        "reassess",
+        "fix",
+        "airway2",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"rass\"",
+              "then": [
+                {
+                  "set": "rassAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "No response to his name or a shoulder shake; he groans only to a sternal rub.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Drowsy; opens his eyes to his name and answers.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"airway\"",
+              "then": [
+                {
+                  "set": "airwayAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Loud snoring with pauses; chest rising unevenly.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Uses a CPAP machine at night. Last opioid at 08:00. No allergies.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "rescue and recovery",
+      "wait": {
+        "skipLabel": "the rapid response team taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team to support his breathing and the reversal to work; a routine recovery about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He breathes on his own again and goes into monitored recovery.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The capnography alarm sounds: no waveform. The surgeon keeps working.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 1020",
+      "question": "The capnograph has gone flat and Mr. Brandt won't answer. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "A flat capnograph with pauses, slow breathing and response only to pain is deep sedation with hypoventilation; capnography shows it before the saturation falls; sleep apnea raises the risk.",
+          "modelAnswer": "He's gone past moderate into deep sedation and is hypoventilating: the capnograph is flat during pauses and he responds only to pain. His sleep apnea makes this likelier, and capnography shows it before the saturation drops."
+        },
+        {
+          "label": "What I do",
+          "criteria": "No more doses; surgeon pauses; jaw thrust and bag-mask ready; oxygen; rapid response; the ordered reversal agent by order; hand off.",
+          "modelAnswer": "Stop the doses, ask the surgeon to pause, open his airway with a jaw thrust, bag-mask ready, call rapid response and get the ordered reversal agent."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A deeply sedated patient still unrescued an hour on is harm here.",
+      "source": {
+        "cite": "American Society of Anesthesiologists. Practice Guidelines for Moderate Procedural Sedation and Analgesia 2018, as summarized by Guideline Central (published 2018-03-01; page updated 2024-01-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://guidelinecentral.com/guideline/9061",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the summary (the guideline itself was not read): 'Continually monitor ventilatory function with capnography unless precluded or invalidated by the nature of the patient'; 'Continuously monitor all patients by pulse oximetry with appropriate alarms'; 'Assure that a designated individual other than the practitioner performing the procedure is present to monitor the patient'; blood pressure 'at 5-min intervals' and heart rate during the procedure; 'Use supplemental oxygen during moderate procedural sedation/analgesia unless specifically contraindicated'; 'Assure that specific antagonists are immediately available in the procedure room'. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Apnea after another increment",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Within minutes of the extra dose he stops breathing; his saturation plunges and he needs bag-mask ventilation in crisis."
+    },
+    "worsened": {
+      "label": "Hypoxic arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "SpO2 {spo2}%, breathing {rr} a minute: his heart slows and stops. A code is called."
+    },
+    "wrongRoute": {
+      "label": "Left to sleep it off",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"finish\")",
+      "narrative": "By the end of the debridement his lips are blue and he has no pulse."
+    },
+    "target": {
+      "label": "Deep sedation caught and rescued in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"stop\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(rassAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he is breathing and rousable in recovery. Capnography from the start and the flat waveform acted on within minutes."
+    },
+    "recovered": {
+      "label": "Rescued, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"stop\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he recovers, but monitoring started late or the flat waveform went minutes before you acted."
+    },
+    "time_up": {
+      "label": "Still sedated at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and Mr. Brandt is still deeply sedated."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Capnography, oximetry and oxygen on before the first increment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Doses stopped and rapid response called within 5 minutes of deep sedation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"stop\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"stop\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Let the surgeon finish."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No further sedative into deep sedation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Gave another increment."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Sedation level checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(rassAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "airway2C",
+        "label": "Airway supported",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(airway2At)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named deep sedation with hypoventilation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"deep\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"asleep\"",
+            "score": "missed",
+            "why": "Read deep sedation as comfortable sleep."
+          },
+          {
+            "when": "dxEnum == \"artifact\"",
+            "score": "missed",
+            "why": "Blamed the monitor."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the increments, the sleep apnea and the change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: beyond moderate sedation; stop, support the airway, rescue, call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Start to capnography and oximetry",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Deep sedation to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Capnography, oximetry and oxygen on; airway equipment ready."
+      },
+      {
+        "at": "~14:01",
+        "text": "Sedation level: rousable to voice. Reassess."
+      },
+      {
+        "at": "~14:06",
+        "text": "Flat capnograph, unresponsive to voice."
+      },
+      {
+        "at": "~14:07",
+        "text": "Stop doses; pause; rapid response; reversal ready; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Another increment",
+        "body": "Grimacing is not a reason to deepen sedation in a patient already slipping. Reassess before every increment."
+      },
+      "worsened": {
+        "headline": "Hypoxic arrest",
+        "body": "Capnography warns minutes before the saturation falls. Act on a flat waveform at once."
+      },
+      "wrongRoute": {
+        "headline": "Let the procedure finish",
+        "body": "The monitoring nurse can stop the procedure. A patient past moderate sedation is rescued first."
+      },
+      "target": {
+        "headline": "Rescued in time",
+        "body": "Monitoring before the first dose, the sedation level checked, and the change acted on within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Rescued, with delays",
+        "body": "Check how soon monitoring started and how long the flat waveform went before you acted."
+      },
+      "time_up": {
+        "headline": "Still sedated",
+        "body": "Over-sedation is rescued within minutes."
+      }
+    },
+    "modelReasoning": "Moderate sedation means a designated nurse monitors with capnography, pulse oximetry and oxygen from before the first increment, with blood pressure every 5 minutes and reversal agents at hand. Sleep apnea raises the risk. A flat capnograph with pauses and response only to pain is deep sedation with hypoventilation: no more doses, the surgeon pauses, the airway is supported, rapid response comes and the ordered reversal agent is given by order."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "capQ": {
+      "during": "testT",
+      "ask": "While you assess: what shows hypoventilation earliest during moderate sedation?",
+      "choices": [
+        {
+          "id": "cap",
+          "label": "Capnography"
+        },
+        {
+          "id": "spo2",
+          "label": "Pulse oximetry"
+        },
+        {
+          "id": "bp",
+          "label": "Blood pressure"
+        }
+      ],
+      "expect": "cap",
+      "explain": "Continually monitor ventilatory function with capnography; pulse oximetry falls later, especially on supplemental oxygen.",
+      "source": {
+        "cite": "American Society of Anesthesiologists. Practice Guidelines for Moderate Procedural Sedation and Analgesia 2018, as summarized by Guideline Central (published 2018-03-01; page updated 2024-01-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://guidelinecentral.com/guideline/9061",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the summary (the guideline itself was not read): 'Continually monitor ventilatory function with capnography unless precluded or invalidated by the nature of the patient'; 'Continuously monitor all patients by pulse oximetry with appropriate alarms'; 'Assure that a designated individual other than the practitioner performing the procedure is present to monitor the patient'; blood pressure 'at 5-min intervals' and heart rate during the procedure; 'Use supplemental oxygen during moderate procedural sedation/analgesia unless specifically contraindicated'; 'Assure that specific antagonists are immediately available in the procedure room'. No dose is used in the case."
+      }
+    },
+    "whoQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: who monitors the patient during moderate sedation?",
+      "choices": [
+        {
+          "id": "des",
+          "label": "A designated individual other than the practitioner doing the procedure"
+        },
+        {
+          "id": "surg",
+          "label": "The surgeon, between steps"
+        },
+        {
+          "id": "none",
+          "label": "No one; the monitors alarm"
+        }
+      ],
+      "expect": "des",
+      "explain": "Assure that a designated individual other than the practitioner performing the procedure is present to monitor the patient.",
+      "source": {
+        "cite": "American Society of Anesthesiologists. Practice Guidelines for Moderate Procedural Sedation and Analgesia 2018, as summarized by Guideline Central (published 2018-03-01; page updated 2024-01-22)",
+        "checkedAt": "2026-11-17",
+        "url": "https://guidelinecentral.com/guideline/9061",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the summary (the guideline itself was not read): 'Continually monitor ventilatory function with capnography unless precluded or invalidated by the nature of the patient'; 'Continuously monitor all patients by pulse oximetry with appropriate alarms'; 'Assure that a designated individual other than the practitioner performing the procedure is present to monitor the patient'; blood pressure 'at 5-min intervals' and heart rate during the procedure; 'Use supplemental oxygen during moderate procedural sedation/analgesia unless specifically contraindicated'; 'Assure that specific antagonists are immediately available in the procedure room'. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

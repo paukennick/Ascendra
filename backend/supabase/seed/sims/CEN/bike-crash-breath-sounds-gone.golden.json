@@ -1,0 +1,434 @@
+{
+  "slug": "bike-crash-breath-sounds-gone",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: oxygen and access, kit open, chest assessed, reassess; at the signs of tension the physician now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "kit",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "dxQ",
+          "choice": "clin",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tension"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "set",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "kitC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "feda3f1010b75755"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Treats well and sees the signs, but calls more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "kit",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dxQ",
+          "choice": "clin",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tension"
+          },
+          "seq": 8,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 9,
+          "tick": 158
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "set",
+          "seq": 10,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 158
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "kitC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "a853c8b76cae282c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: oxygen and the chest exam, then calls it a contusion and waits for the film",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dxQ",
+          "choice": "clin",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ribs"
+          },
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "film"
+          },
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "set",
+          "seq": 8,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "kitC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "a3f97a797e23a9fa"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: asks the history, then takes him to radiology to confirm",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dxQ",
+          "choice": "clin",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "kitC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "2df7a04c7ffa4498"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: history, chest wall and chest exam, calls it rib pain; no oxygen and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dxQ",
+          "choice": "clin",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "contusion"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "kitC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "a6f931d917c11ff3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

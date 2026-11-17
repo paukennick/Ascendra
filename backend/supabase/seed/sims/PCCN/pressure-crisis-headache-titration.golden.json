@@ -1,0 +1,434 @@
+{
+  "slug": "pressure-crisis-headache-titration",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: titrated infusion, arterial line, neuro check, reassess; at the confusion the provider now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "aline",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "rateQ",
+          "choice": "q",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "enceph"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "perf",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "alineC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "543218ce0ca439ee"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Titrates well and sees the confusion, but calls more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aline",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rateQ",
+          "choice": "q",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 121
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 121
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "enceph"
+          },
+          "seq": 8,
+          "tick": 199
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 9,
+          "tick": 199
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "perf",
+          "seq": 10,
+          "tick": 199
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 199
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "alineC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "9e3ee7178db28518"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: infusion and a neuro check, then calls it a migraine and waits for the next check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rateQ",
+          "choice": "q",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 121
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 121
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "migraine"
+          },
+          "seq": 6,
+          "tick": 121
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 7,
+          "tick": 121
+        },
+        {
+          "type": "teach",
+          "prompt": "whyQ",
+          "choice": "perf",
+          "seq": 8,
+          "tick": 121
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "alineC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "dc059bbfcaeddc00"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: asks the history, then pushes the pressure toward normal",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rateQ",
+          "choice": "q",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "alineC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "f654188584fd9254"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: history, urine and neuro check, calls it anxiety; no infusion and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rateQ",
+          "choice": "q",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anxious"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 204
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "alineC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "16af284c65ea45e3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

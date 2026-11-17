@@ -1,0 +1,434 @@
+{
+  "slug": "chest-tube-on-the-floor",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: three-sided dressing, back to bed on oxygen, breathing assessed, reassess; provider now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bed",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "dressQ",
+          "choice": "vent",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "out"
+          },
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "discQ",
+          "choice": "water",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "bedC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "45d0f24ef8e50d32"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Dresses the site at once, but notifies the provider more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bed",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dressQ",
+          "choice": "vent",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "out"
+          },
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "teach",
+          "prompt": "discQ",
+          "choice": "water",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "bedC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "190636bae849f27f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: dresses the site and checks breathing, then calls it non-urgent and leaves it for the round",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dressQ",
+          "choice": "vent",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fine"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "round"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "discQ",
+          "choice": "water",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "bedC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "eee6e203fb6fe6c0"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: looks at the site, then pushes the tube back in",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dressQ",
+          "choice": "vent",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "bedC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "0f0efd7f8dae52f6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: looks at the site, asks about pain and checks breathing, treats the pain; no dressing and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "site",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dressQ",
+          "choice": "vent",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "resp",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pain"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "bedC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "d0ec59fb3c27a6ae"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

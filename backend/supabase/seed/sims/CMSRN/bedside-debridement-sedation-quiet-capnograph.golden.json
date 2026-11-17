@@ -1,0 +1,434 @@
+{
+  "slug": "bedside-debridement-sedation-quiet-capnograph",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: capnography, oximetry, oxygen, airway ready, sedation level, reassess; at the flat waveform stop and call; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "airway2",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "rass",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "capQ",
+          "choice": "cap",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "deep"
+          },
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "stop"
+          },
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "des",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "airway2C": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "d8f9f453dd401e6f"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Monitors well and sees the flat waveform, but acts more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rass",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "capQ",
+          "choice": "cap",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "deep"
+          },
+          "seq": 8,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "stop"
+          },
+          "seq": 9,
+          "tick": 158
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "des",
+          "seq": 10,
+          "tick": 158
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 158
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "airway2C": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "57748ae21808d5da"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: monitors and checks the level, then reads deep sedation as sleep and lets the surgeon finish",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rass",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "capQ",
+          "choice": "cap",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 80
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "asleep"
+          },
+          "seq": 6,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "finish"
+          },
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "des",
+          "seq": 8,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "airway2C": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "d5174680b66b07e5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: checks the airway, then gives another increment",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "capQ",
+          "choice": "cap",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "airway2C": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "3a09a0d7ccfae8ba"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: airway, chart and sedation level, blames the monitor; no capnography and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "capQ",
+          "choice": "cap",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "rass",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "artifact"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 204
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "airway2C": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "a2e9e79e661ab9cf"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
