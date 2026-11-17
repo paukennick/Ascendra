@@ -174,6 +174,14 @@ CSM: 44 objectives, 23 fit the rule, 0 covered by a built sim.
 
 ### ITIL4FND
 
+**REQ-308 (2026-11-16):** ITIL4FND is hidden; the ITIL course is now
+ITIL5FND, ITIL Foundation (Version 5). Its syllabus v5.0 has no "practices in
+detail" category, so the incident, change, problem, request, service desk and
+service level objectives below do not carry over; Version 5 tests incidents,
+problems, errors, known errors and service requests only as value chain terms
+(unit "The ITIL Value System") and service levels and SLAs as key terms. The
+table below is kept as the record for the hidden course.
+
 | Unit | Objective | Fits the rule? | Sim |
 |---|---|---|---|
 | Key Concepts of Service Management | Telling apart the customer, the user and the sponsor of a service in a scenario | No: recall or explanation; lessons and labs cover it | none |

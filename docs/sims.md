@@ -5496,7 +5496,7 @@ seal, the question sent to her prescriber; NIH ODS and FDA). Same profile
 paths by `npm run sim:golden -- steps cnc-crash-diet|cnc-greens-warfarin`,
 checked by `lib/sim/cnc-session.test.ts`.
 
-Coverage per objective for PSM I, CSM, ITIL 4 Foundation, CSSGB and NASM-CNC,
+Coverage per objective for PSM I, CSM, ITIL 4 Foundation (hidden since 2026-11-16 and replaced by ITIL Foundation (Version 5), ITIL5FND, REQ-308), CSSGB and NASM-CNC,
 and the screens proposed for the families no existing screen fits (project
 dashboard in Sprint mode, a service operations desk, a process and data
 console, the client trainer), are in `docs/sim-coverage-pm-frameworks-cnc.md`.
