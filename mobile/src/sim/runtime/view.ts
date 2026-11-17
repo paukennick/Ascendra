@@ -11,6 +11,8 @@ import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../en
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
+import { governanceView, type GovernanceView } from "./governanceView.ts";
+import { tabletopView, type TabletopView } from "./tabletopView.ts";
 
 type Tile = VitalTile;
 
@@ -161,6 +163,8 @@ export interface SessionView {
   gauges: GaugeView[];
   notes: NoteView[];
   record: { label: string; items: string[] } | null;
+  // REQ-313: the read-aloud button's label (session@2); "Read the client" when unset.
+  readLabel: string;
 }
 
 type Gauge = NonNullable<ScreenSpec["session"]>["gauges"][number];
@@ -198,7 +202,7 @@ export function sessionView(run: Run): SessionView | null {
       return { id: n.id, label: n.label, text: t, alert, a11y: `${alert ? "Alert. " : ""}${n.label}: ${t}` };
     });
   const record = se.record ? { label: se.record.label, items: se.record.items.filter((it) => value(run, it.when) === true).map((it) => text(run, it.label)) } : null;
-  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record };
+  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record, readLabel: se.readLabel?.trim() || "Read the client" };
 }
 
 // Alert notes join the tile alarms: spoken at once on entering and leaving.
@@ -371,6 +375,8 @@ export interface RunView {
   console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
+  governance: GovernanceView | null; // REQ-313: the governance board
+  tabletop: TabletopView | null; // REQ-313: the tabletop exercise
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -403,6 +409,8 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
+    governance: governanceView(run),
+    tabletop: tabletopView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
