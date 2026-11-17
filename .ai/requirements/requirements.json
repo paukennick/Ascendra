@@ -12010,6 +12010,45 @@
         "The sidebar keeps its own copy of the course list; it reloads when a course is starred or opened (courseEvents) and at most every 10 s on screen changes",
         "The stack is read from the root navigation state (appStackPaths); if expo-router changes that shape the sidebar falls back to push"
       ]
+    },
+    {
+      "id": "REQ-329",
+      "category": "content",
+      "title": "Sims on sensitive objectives behind the per-sim 18+ gate (sims-sensitive): suicide and homicide risk, behavioral emergencies, in CEN, PCCN, the FNP courses, CCRN Adult, NCLEX-RN and NCLEX-PN",
+      "description": "Nick (2026-11-17, 09:18 PT): 'The gate should work across sensitive sims regardless of profession.' With the per-sim 18+ gate built (REQ-327), build the sims on sensitive objectives that were held back: CEN suicide and homicide risk first, then the PCCN and FNP suicide-risk objectives, CCRN Adult behavioral emergencies and levetiracetam mood effects, then the highest-weighted NCLEX-RN and NCLEX-PN Psychosocial Integrity objectives that fit a timed case, stopping at about 15 cases. Every case is on the session screen (clinical-session profile) and marked mature: true. Pattern level only: screening with a validated tool named with its source, direct questions about ideation, plan and intent, means safety without naming any means, observation level, safety planning, handoff and escalation; no method, means or lethality detail anywhere a learner reads; harm endings are clinical outcomes; duty-to-warn follows Washington law presented as a fictional facility's policy. No new screen, engine, schema or migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/sensitive-sims.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every case and band is marked mature: true",
+        "each case is a fitting objective's main sim on the session screen with endingOrder three critical criteria and harm endings for an unsafe disposition and a walk-out",
+        "Good Mediocre and Bad golden paths reach every ending but time_up with every criterion met and missed",
+        "a behavior test shows the expert path safe skipping the screen harm and a rupture a walk-out",
+        "no method means or lethality words no dose and no permission-only mark in learner text",
+        "sources dated and say how they were read and name a validated tool",
+        "the REQ-327 check that every suicide or homicide objective sim outside mental health is mature still passes"
+      ],
+      "validation_required": [
+        "lint of the REQ-329 documents",
+        "lib/sim/sensitive-sims.test.ts",
+        "lib/sim/health-sims-4.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.36",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "content on suicide and violence reaches adults only through the REQ-327 gate",
+        "a case that names a method would breach the content rule: sensitive-sims.test.ts checks a word list"
+      ]
     }
   ]
 }

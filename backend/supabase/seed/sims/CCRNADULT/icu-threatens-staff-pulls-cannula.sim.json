@@ -1,0 +1,1537 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "icu-threatens-staff-pulls-cannula",
+  "title": "Case: 'The next one who touches me...'",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Raymond Kowalski",
+        "presentation": "{distress >= 6 ? \"Sitting bolt upright, shouting, gripping the bed rail\" : distress >= 3 ? \"Restless, muttering\" : \"Lying back, breathing easier\"}; {rapport >= 6 ? \"he follows what you say\" : rapport >= 3 ? \"he listens in bursts\" : \"he shouts over everyone\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Trust",
+          "spokenLabel": "Trust",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What he said",
+          "text": "'The next one who touches me, I'll kill him.' Oxygen saturation alarming. Threat: not yet explored.",
+          "when": "true",
+          "alert": "isNull(siAskedAt)"
+        },
+        {
+          "id": "siNote",
+          "label": "Threat explored",
+          "text": "No intent toward anyone; said it out of pain and fear of being grabbed. No thoughts of self-harm.",
+          "when": "siKnown"
+        },
+        {
+          "id": "siDenied",
+          "label": "Threat explored",
+          "text": "Too agitated to answer. The threat still stands.",
+          "when": "siDenied and not siKnown"
+        },
+        {
+          "id": "bvcScoredNote",
+          "label": "Violence checklist",
+          "text": "4 of 6 behaviors present (confused, irritable, boisterous, verbal threats): high risk.",
+          "when": "bvcScored"
+        },
+        {
+          "id": "oxygenCheckedNote",
+          "label": "Oxygen",
+          "text": "Saturation 86%; cannula off his face.",
+          "when": "oxygenChecked"
+        },
+        {
+          "id": "painAskedNote",
+          "label": "Pain",
+          "text": "Pain 9 of 10; last dose five hours ago.",
+          "when": "painAsked"
+        },
+        {
+          "id": "camDoneNote",
+          "label": "Delirium",
+          "text": "Delirium screen positive.",
+          "when": "camDone"
+        },
+        {
+          "id": "wantsAskedNote",
+          "label": "What he wants",
+          "text": "Sleep, pain relief, his wife.",
+          "when": "wantsAsked"
+        }
+      ],
+      "record": {
+        "label": "Nursing note so far",
+        "items": [
+          {
+            "label": "Direct question about the threat asked: {siAsked ? \"yes\" : \"no\"}; follow-up questions: {(bvcScored ? 1 : 0) + (oxygenChecked ? 1 : 0) + (painAsked ? 1 : 0) + (camDone ? 1 : 0) + (wantsAsked ? 1 : 0)} of 5",
+            "when": "siAsked"
+          },
+          {
+            "label": "Space and one voice: {spaceSet ? \"yes\" : \"no\"}; security standing by: {securityNear ? \"yes\" : \"no\"}; oxygen back on: {o2Fixed ? \"yes\" : \"no\"}",
+            "when": "spaceSet or securityNear or o2Fixed"
+          },
+          {
+            "label": "Pain medicine given: {painGiven ? \"yes\" : \"no\"}; provider called: {notified ? \"yes\" : \"no\"}",
+            "when": "painGiven or notified"
+          },
+          {
+            "label": "Restraint used: yes",
+            "when": "restrainedEarly"
+          },
+          {
+            "label": "Documented: risk {riskDoc}, disposition {dispo}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Anti-social behavior, aggression and violence, and responding to behavioral emergencies with de-escalation and nonviolent crisis intervention",
+  "secondaryObjectives": [
+    "Agitation",
+    "Delirium, and using behavioral assessment tools for delirium, alcohol withdrawal and mental status"
+  ],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook: Behavioral/Psychosocial within Musculoskeletal, Neurological, Behavioral/Psychosocial (18%)",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ccrn.ts), which read it 2026-10-31; the objective title is the course's own."
+    },
+    {
+      "cite": "Richmond JS, Berlin JS, Fishkind AB, et al. Verbal de-escalation of the agitated patient: consensus statement of the American Association for Emergency Psychiatry Project BETA De-escalation Workgroup. West J Emerg Med 2012;13(1):17-25. Ten domains of verbal de-escalation; restraint 'always as a last resort'",
+      "checkedAt": "2026-11-17",
+      "url": "https://westjem.com/articles/verbal-de-escalation-of-the-agitated-patient-consensus-statement-of-the-american-association-for-emergency-psychiatry-project-beta-de-escalation-workgroup.html",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes). Domains: respect personal space (two arm's lengths); do not be provocative; one person establishes verbal contact; be concise; identify wants and feelings; listen closely; agree or agree to disagree; set clear limits; offer choices and optimism; debrief the patient and staff. The paper names delirium, psychosis and intoxication among the causes of a patient's inability to conform."
+    },
+    {
+      "cite": "Abderhalden C, Needham I, Dassen T, et al. Predicting inpatient violence using an extended version of the Broset-Violence-Checklist. BMC Psychiatry 2006;6:17. The checklist's six behaviors: confused, irritable, boisterous, verbally threatening, physically threatening, attacking objects (each present or absent); a total over 2 was the original cut-off",
+      "checkedAt": "2026-11-17",
+      "url": "https://link.springer.com/article/10.1186/1471-244X-6-17",
+      "note": "Read 2026-11-17 (summarizing fetch). The study predicted attacks during the next shift; the sim uses the checklist only to name the behaviors a nurse scores."
+    },
+    {
+      "cite": "42 CFR 482.13(e): restraint only when less restrictive interventions have been ineffective, on an order, for the shortest time; for violent or self-destructive behavior, a face-to-face evaluation within 1 hour and an order of no more than 4 hours for an adult",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-482/subpart-B/section-482.13",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read it 2026-11-14; not re-read here."
+    },
+    {
+      "cite": "The Joint Commission, R3 Report Issue 18: National Patient Safety Goal for suicide prevention, NPSG.15.01.01 (effective 2019-07-01): EP1 environmental risk assessment; EP2 screen 'using a validated screening tool'; EP3 an assessment that 'directly asks about suicidal ideation, plan, intent, suicidal or self-harm behaviors'; EP4 document the risk level and the mitigation plan; EP5-EP7 policies for monitoring, discharge counseling and follow-up",
+      "checkedAt": "2026-11-17",
+      "url": "https://digitalassets.jointcommission.org/api/public/content/459bbe2be1ab4e5082b8a8d49d0c94e0",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes; issue dated 2019-11-20, updated 2025-12-03). The report names one-to-one monitoring as a key protocol on nonpsychiatric units; it does not itself require it, so the observation level in each sim is the facility's policy."
+    }
+  ],
+  "brief": {
+    "situation": "Raymond Kowalski, 64 (a fictional patient), is on day 2 in the surgical ICU after a bowel resection. At 03:10 the alarm sounds: his oxygen saturation is falling and he is sitting up, shouting. He has knocked the tray table over and told the nursing assistant, 'The next one who touches me, I'll kill him.' Two staff members are crowding the doorway. He has no psychiatric history and no record of violence. You are his critical care nurse; the provider is in another unit. You have about 30 minutes before the morning labs.",
+    "handover": [
+      "Bowel resection day 2; oxygen by nasal cannula; pain medicine ordered as needed, last given five hours ago.",
+      "Unit policy: restraint only on a time-limited order after less restrictive measures fail, with a face-to-face evaluation within one hour; security can stand by."
+    ],
+    "howItWorks": [
+      "Choose what to say and do from the action groups. Raymond reacts at once; then let the situation continue, which moves the clock by the minutes that exchange took.",
+      "His trust and distress change with what you do. Space, one calm voice and finding the cause bring him down.",
+      "Your time ends at 30 minutes. Afterward you write a short formulation, then document the risk level and what happened."
+    ]
+  },
+  "clock": {
+    "start": "03:10",
+    "tick": "1min",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 minutes before the morning labs, one nurse with two ICU patients (author's scenario timing)."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 2,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 8,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "siAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "siDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "bvcScored": {
+      "type": "bool",
+      "init": false
+    },
+    "oxygenChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "painAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "camDone": {
+      "type": "bool",
+      "init": false
+    },
+    "wantsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "spaceSet": {
+      "type": "bool",
+      "init": false
+    },
+    "securityNear": {
+      "type": "bool",
+      "init": false
+    },
+    "o2Fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "painGiven": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "restrainedEarly": {
+      "type": "bool",
+      "init": false
+    },
+    "grabbed": {
+      "type": "bool",
+      "init": false
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "high",
+        "moderate",
+        "low"
+      ],
+      "init": "none"
+    },
+    "dispo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "calmed",
+        "sedated",
+        "restrained"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "At the bedside",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "normalize",
+        "screen",
+        "scoreBvc",
+        "checkOxygen",
+        "askPain",
+        "camIcu",
+        "askWants",
+        "space",
+        "security",
+        "oxygenOn",
+        "painDose",
+        "notifyMd",
+        "restrain",
+        "handsOn",
+        "reassure",
+        "advise",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "From the doorway, alone and calm: 'Mr. Kowalski, I'm your nurse. I'm here to help.'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You ask the others to step back, stand two arm's lengths away at an angle, hands open, and introduce yourself in a calm, low voice.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Get them out of here. Everybody keeps grabbing me.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "He drops his voice a little. \"Yeah. Nobody listens.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "normalize": {
+      "label": "Set limits and offer a choice: 'I need you to stay in bed. Pain first, or the oxygen first?'",
+      "group": "Respond",
+      "available": "not talking and (not siKnown)",
+      "why": "He has already told you.",
+      "effects": [
+        {
+          "log": "You set one clear limit and offer him a choice.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Pain. Then the oxygen.\" He lets go of the rail."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Ask him directly whether he is thinking of hurting someone, or himself",
+      "group": "Ask about risk",
+      "available": "not talking and (not siKnown)",
+      "why": "He has answered; go on to the follow-up questions.",
+      "effects": [
+        {
+          "log": "You ask him directly whether he is thinking of hurting someone, or himself.",
+          "kind": "act"
+        },
+        {
+          "if": "not siAsked",
+          "then": [
+            {
+              "set": "siAskedAt",
+              "to": "t"
+            },
+            {
+              "set": "siAsked",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"I'm not going to kill anybody. I want the pain to stop and nobody grabbing me.\" No thoughts of harming himself."
+                },
+                {
+                  "log": "No intent toward anyone; the threat came from pain and fear. No thoughts of self-harm.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "siDenied",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Just stay away from me!\" (Not calm enough to answer yet.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "scoreBvc": {
+      "label": "Score the Broset Violence Checklist from what you see",
+      "group": "Look for causes",
+      "available": "not talking and (not bvcScored)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You score the six behaviors of the checklist from what you see.",
+          "kind": "act"
+        },
+        {
+          "set": "bvcScored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Confused, irritable, boisterous and verbally threatening: 4 of 6. High risk of violence."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkOxygen": {
+      "label": "Look for a medical cause: oxygen saturation and the cannula",
+      "group": "Look for causes",
+      "available": "not talking and (not oxygenChecked)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You look at the monitor and his face.",
+          "kind": "act"
+        },
+        {
+          "set": "oxygenChecked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Saturation 86%. His nasal cannula is under his chin."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPain": {
+      "label": "Ask about his pain on the 0-10 scale",
+      "group": "Look for causes",
+      "available": "not talking and (not painAsked)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You ask him to rate his pain.",
+          "kind": "act"
+        },
+        {
+          "set": "painAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Nine. Ten. It's on fire.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "camIcu": {
+      "label": "Screen for delirium (CAM-ICU)",
+      "group": "Look for causes",
+      "available": "not talking and (not camDone)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You run the delirium screen.",
+          "kind": "act"
+        },
+        {
+          "set": "camDone",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "Acute change and fluctuation, inattention, disorganized thinking: delirium screen positive."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWants": {
+      "label": "Ask what he wants right now",
+      "group": "Ask",
+      "available": "not talking and (siKnown and not wantsAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask what he needs most right now.",
+          "kind": "act"
+        },
+        {
+          "set": "wantsAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Sleep. The pain gone. My wife.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "space": {
+      "label": "Clear the doorway to one calm voice and keep two arm's lengths, with an exit behind you",
+      "group": "Keep safe",
+      "available": "not talking and (not spaceSet)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You send the extra staff away, keep two arm's lengths and leave the door clear behind you.",
+          "kind": "act"
+        },
+        {
+          "set": "spaceSet",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "With fewer people in the doorway, his shoulders drop."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "security": {
+      "label": "Ask security to stand by outside the room, out of his sight",
+      "group": "Keep safe",
+      "available": "not talking and (not securityNear)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You ask security to stand by in the hall, out of his line of sight.",
+          "kind": "act"
+        },
+        {
+          "set": "securityNear",
+          "to": "true"
+        },
+        {
+          "finding": "An officer waits by the nurses' station."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "oxygenOn": {
+      "label": "Explain, then put his oxygen back on with his permission",
+      "group": "Treat",
+      "available": "not talking and (oxygenChecked and not o2Fixed)",
+      "why": "Look at the oxygen first (or done).",
+      "effects": [
+        {
+          "log": "You tell him what you are going to do and ask before you touch him, then replace the cannula.",
+          "kind": "act"
+        },
+        {
+          "set": "o2Fixed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "He lets you. Saturation climbs to 94% over the next minutes."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "painDose": {
+      "label": "Give the ordered as-needed pain medicine",
+      "group": "Treat",
+      "available": "not talking and (painAsked and not painGiven)",
+      "why": "Ask about pain first (or done).",
+      "effects": [
+        {
+          "log": "You give the ordered as-needed pain medicine and tell him what it is.",
+          "kind": "act"
+        },
+        {
+          "set": "painGiven",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-1.5"
+        },
+        {
+          "finding": "Twenty minutes later his pain is 5 of 10 and he is dozing between sentences."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "notifyMd": {
+      "label": "Call the provider: threats, low oxygen, uncontrolled pain, delirium (SBAR)",
+      "group": "Escalate",
+      "available": "not talking and (not notified)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You call the provider with an SBAR: threats toward staff, saturation 86% with the cannula off, pain 9 of 10, delirium screen positive.",
+          "kind": "act"
+        },
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "finding": "The provider will see him within the hour, orders a chest X-ray and asks for the delirium bundle; no restraint order is needed."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "restrain": {
+      "label": "Call for four-point restraints now",
+      "group": "Keep safe",
+      "available": "not talking and (not restrainedEarly)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You call for restraints before trying anything else.",
+          "kind": "act"
+        },
+        {
+          "set": "restrainedEarly",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "It takes four staff; he struggles against the restraints and his saturation drops to 80%."
+        },
+        {
+          "log": "Restraint before less restrictive measures: a last resort used first.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "handsOn": {
+      "label": "Hold his arm and push the cannula back on",
+      "group": "Treat",
+      "available": "not talking and (not grabbed)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You hold his arm and push the cannula back on without explaining.",
+          "kind": "act"
+        },
+        {
+          "set": "grabbed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "He jerks away, shouting."
+        },
+        {
+          "log": "Hands on without warning to a frightened, delirious patient.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Tell him to calm down: 'Calm down, nobody's going to hurt you.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him to calm down.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Don't tell me to calm down!\" He swings his legs over the side of the bed."
+        },
+        {
+          "log": "False reassurance closes the conversation down.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "advise": {
+      "label": "Argue: 'You can't threaten staff. That's not acceptable.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him threatening staff is unacceptable.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Then get away from me!\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Finish at the bedside",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You finish at the bedside.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the risk level and disposition",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Nursing note",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Risk level (your assessment)",
+              "options": [
+                {
+                  "value": "high",
+                  "label": "High risk of violence when it started: four of the checklist's six behaviors"
+                },
+                {
+                  "value": "moderate",
+                  "label": "Moderate"
+                },
+                {
+                  "value": "low",
+                  "label": "Low"
+                }
+              ]
+            },
+            {
+              "id": "disposition",
+              "label": "Disposition",
+              "options": [
+                {
+                  "value": "calmed",
+                  "label": "De-escalated without restraint: oxygen back on, pain treated, delirium reported, security standing by"
+                },
+                {
+                  "value": "sedated",
+                  "label": "Sedated on a one-time order to stop the shouting"
+                },
+                {
+                  "value": "restrained",
+                  "label": "Restrained to keep staff safe"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "dispo",
+          "to": "disposition"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: risk {risk}, disposition {disposition}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "Thirty minutes are up: the morning labs are due.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Raymond pulls off his monitor leads and climbs out of bed, heading for the door.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation for Raymond: why he became aggressive, the risk, and what you did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Risk and causes",
+          "criteria": "Names a high risk of violence at the start (four checklist behaviors) driven by medical causes: hypoxia with the cannula off, uncontrolled pain, delirium; no intent toward anyone on direct questioning.",
+          "modelAnswer": "High risk at the start: confused, irritable, boisterous and threatening. The causes were medical: saturation 86% with the cannula off, pain 9 of 10 five hours after his last dose, and delirium. Asked directly, he had no intent toward anyone."
+        },
+        {
+          "label": "What was done",
+          "criteria": "Names space and one calm voice, a limit and a choice, security standing by out of sight, oxygen replaced with permission, the ordered pain medicine, the provider called, and no restraint.",
+          "modelAnswer": "One calm voice at two arm's lengths with the door clear; a limit and a choice; security out of sight; the cannula back on with his permission; the ordered pain medicine; the provider called about the oxygen, pain and delirium. Restraint was never needed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Trust at the close of the conversation."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The threat is a cue present from the first minute; asking about it directly within 15 minutes leaves time to find and treat the cause (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siKnown and not (spaceSet or securityNear)",
+      "class": "harm",
+      "rationale": "A delirious, hypoxic patient threatening staff: leaving without space, backup or treatment of the cause invites injury to him or to staff.",
+      "source": {
+        "cite": "Richmond JS, Berlin JS, Fishkind AB, et al. Verbal de-escalation of the agitated patient: consensus statement of the American Association for Emergency Psychiatry Project BETA De-escalation Workgroup. West J Emerg Med 2012;13(1):17-25. Ten domains of verbal de-escalation; restraint 'always as a last resort'",
+        "checkedAt": "2026-11-17",
+        "url": "https://westjem.com/articles/verbal-de-escalation-of-the-agitated-patient-consensus-statement-of-the-american-association-for-emergency-psychiatry-project-beta-de-escalation-workgroup.html",
+        "note": "Read 2026-11-17 (summarizing fetch with quotes). Domains: respect personal space (two arm's lengths); do not be provocative; one person establishes verbal contact; be concise; identify wants and feelings; listen closely; agree or agree to disagree; set clear limits; offer choices and optimism; debrief the patient and staff. The paper names delirium, psychosis and intoxication among the causes of a patient's inability to conform."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He tried to leave",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Raymond climbed out of bed and headed for the door with his saturation falling; it took four staff and an emergency call to get him back to bed."
+    },
+    "unsafe": {
+      "label": "Restrained or left unsafe",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not walkedOut and (not siKnown or dispo == \"restrained\" or not (spaceSet or securityNear) or (restrainedEarly))",
+      "narrative": "Raymond was {restrainedEarly ? \"restrained before anything less restrictive was tried\" : \"left without space, backup or treatment of the cause\"}, and the low oxygen and pain went on longer than they needed to."
+    },
+    "safe": {
+      "label": "Calm, with the cause treated",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and bvcScored and oxygenChecked and painAsked and camDone and wantsAsked and (spaceSet and securityNear and o2Fixed and not restrainedEarly) and (notified and painGiven) and not (restrainedEarly or grabbed) and riskDoc == \"high\" and (dispo == \"calmed\") and rapport >= allianceTarget",
+      "narrative": "Raymond fell asleep with his oxygen back on, his pain down to 5 of 10 and security never needed; the provider saw him and started the delirium bundle."
+    },
+    "safeGaps": {
+      "label": "Calm, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not walkedOut",
+      "narrative": "Raymond settled, but parts of the de-escalation, the search for the cause or the report were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "unsafe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "askedDirect",
+        "label": "Explored the threat directly, early",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(siAskedAt)",
+            "score": "missed",
+            "why": "Never asked what he meant by the threat."
+          },
+          {
+            "when": "timeAt(siAskedAt) <= safetyWindow",
+            "score": "met",
+            "why": "Screened {timeAt(siAskedAt) / 60} min in, with the questions asked directly."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Screened, but only {timeAt(siAskedAt) / 60} min in; the cue was there from the start."
+          }
+        ]
+      },
+      {
+        "id": "assessment",
+        "label": "Looked for the cause (checklist, oxygen, pain, delirium) and what he wants",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bvcScored and oxygenChecked and painAsked and camDone and wantsAsked",
+            "score": "met",
+            "why": "Scored the checklist, found the low oxygen, the pain and the delirium, and asked what he wants."
+          },
+          {
+            "when": "(bvcScored ? 1 : 0) + (oxygenChecked ? 1 : 0) + (painAsked ? 1 : 0) + (camDone ? 1 : 0) + (wantsAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "Asked some of the follow-up questions, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not follow up a positive screen with direct questions."
+          }
+        ]
+      },
+      {
+        "id": "keepSafe",
+        "label": "De-escalated safely: space and one voice, security nearby, oxygen back on with permission",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "spaceSet and securityNear and o2Fixed and not restrainedEarly",
+            "score": "met",
+            "why": "Space, one voice, security out of sight and the oxygen back on with his permission."
+          },
+          {
+            "when": "spaceSet or securityNear",
+            "score": "partial",
+            "why": "Some of the de-escalation steps, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No space, no backup and the cause left untreated."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Treated the cause and called the provider",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified and painGiven",
+            "score": "met",
+            "why": "Pain treated and the provider told about the oxygen and the delirium."
+          },
+          {
+            "when": "notified or painGiven",
+            "score": "partial",
+            "why": "{notified ? \"The provider was told\" : \"Pain was treated\"}, but not both."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the pain treated nor the provider called."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "Restraint only as a last resort; no hands on without warning",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restrainedEarly or grabbed",
+            "score": "missed",
+            "why": "{restrainedEarly ? \"Restraint used first. \" : \"\"}{grabbed ? \"Hands on without warning.\" : \"\"}"
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No restraint, no force."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The conversation broke down."
+          }
+        ]
+      },
+      {
+        "id": "formulation",
+        "label": "Documented a fitting risk level and disposition",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "riskDoc == \"high\" and (dispo == \"calmed\")",
+            "score": "met",
+            "why": "High risk at the start; de-escalated without restraint once the causes were treated."
+          },
+          {
+            "when": "dispo == \"sedated\"",
+            "score": "partial",
+            "why": "Sedation to stop shouting adds to delirium; the causes needed treating instead."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Documented risk {riskDoc}, disposition {dispo}."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written risk formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToAsk",
+        "label": "Minutes to the screening questions",
+        "value": "isNull(siAskedAt) ? -1 : timeAt(siAskedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "followUps",
+        "label": "Follow-up questions asked",
+        "value": "(bvcScored ? 1 : 0) + (oxygenChecked ? 1 : 0) + (painAsked ? 1 : 0) + (camDone ? 1 : 0) + (wantsAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "5"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Trust at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Minutes with the patient",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "30 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "One calm voice at two arm's lengths; reflect; a limit and a choice."
+      },
+      {
+        "at": "6-14 min",
+        "text": "Ask directly about the threat; score the checklist; look at the oxygen; ask about pain; screen for delirium; ask what he wants."
+      },
+      {
+        "at": "14-30 min",
+        "text": "Clear the doorway, security out of sight, oxygen back on with permission, the ordered pain medicine, the provider."
+      },
+      {
+        "at": "After",
+        "text": "Document high risk at the start and de-escalation without restraint."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Good: calm, with the cause treated",
+        "body": "You led with space and one voice, explored the threat, found the hypoxia, pain and delirium behind it and treated them without restraint."
+      },
+      "safeGaps": {
+        "headline": "Calm, with gaps",
+        "body": "Raymond settled, but the criteria below show what was late or missing."
+      },
+      "unsafe": {
+        "headline": "Restrained or left unsafe",
+        "body": "Restraint is a last resort after less restrictive measures fail. Most ICU aggression has a medical cause worth finding first."
+      },
+      "walkout": {
+        "headline": "It escalated",
+        "body": "'Calm down' and arguing push a frightened, delirious patient further. One calm voice, a limit and a choice bring him down."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "In the ICU, sudden aggression is a symptom until proven otherwise: hypoxia, pain and delirium come first. Verbal de-escalation (space, one voice, a limit and a choice) buys time to find and treat them, a direct question tells you whether there is real intent, and restraint stays a last resort on a time-limited order."
+  }
+}

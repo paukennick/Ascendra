@@ -7587,3 +7587,86 @@ export const doc: ScenarioDoc = {
   unchanged.
 - No new kind of data is collected.
 - No lawyer has reviewed the text.
+
+### 22.36 Sensitive objectives behind the 18+ gate (REQ-329)
+
+Nick (2026-11-17, 09:18 PT): "The gate should work across sensitive sims regardless of profession." With the
+per-sim 18+ gate in place (22.35, REQ-327), the objectives on suicide and homicide risk and behavioral
+emergencies that were held back now have sims. **Every case and band here is marked `mature: true`**, so the
+server withholds the brief and the run until the learner has acknowledged the course's 18+ sims.
+
+**Screen.** All on the session screen (`clinical-session` profile), modeled on the NCMHCE suicide session
+(22.12): Trust, Distress and Disclosure gauges, a cue note that alerts until the learner screens, the follow-up
+questions as notes, a running record, then a written formulation and a documented risk level and disposition.
+No new screen, engine, schema or migration.
+
+**Content rules.** Pattern level only:
+
+- Screening with a validated tool named with its source: the NIMH Ask Suicide-Screening Questions (named in
+  full; its acronym is a permission-only mark, REQ-309), the Columbia questions, or the Broset Violence
+  Checklist and the Project BETA de-escalation domains for the violence cases.
+- Direct questions about ideation, a plan and intent, always "without asking for details". A client may say
+  he has a plan; no sim says what it is.
+- Means safety without naming any means ("what she has thought of is at home"; her brother keeps it at his
+  place). "Lethal means counseling" is the only use of "lethal".
+- Observation level, an environmental check under the facility's policy, safety planning (Stanley-Brown, six
+  steps, in the outpatient case), handoff and escalation.
+- Harm endings are clinical outcomes (left at risk, an unsafe discharge, a walk-out before evaluation). No
+  ending describes an act.
+- Duty to warn (the two homicide-risk cases) is a fictional Washington hospital's policy that follows
+  RCW 71.05.120(3) and RCW 70.02.050: the nurse reports the client's exact words to the physician or provider
+  and risk management; the warning is made through the policy; the nurse never promises secrecy and never
+  makes the warning alone.
+- No dose, no permission-only mark, no claim of a review by anyone.
+
+`lib/sim/sensitive-sims.test.ts` enforces these: a word list of methods and means (and "lethal" outside
+"lethal means") over everything a learner reads, the marks and the screening tool's acronym, doses, dated
+sources that say how they were read and name a validated tool, `mature: true` on every case and band, and a
+behavior test per case (the expert path is safe, the path that never screens is harm, a rupture is a walk-out,
+and documenting the right disposition without ever screening is still harm). The REQ-327 check in
+`lib/sim/health-sims-4.test.ts` (an unmarked suicide, homicide or self-harm objective outside mental health
+fails) still passes.
+
+**The cases** (highest weight first; each a fitting objective's main sim):
+
+| Course | Slug | Objective (short) | What it teaches |
+|---|---|---|---|
+| CEN | ed-screen-positive-wants-to-go-home | Screen for suicide and homicide risk (8.67%) | Universal screen, acute positive, constant observation, safe room, belongings, physician and evaluator |
+| CEN | ed-threat-against-former-supervisor | the same | Homicidal ideation toward an identifiable person; the duty-to-warn policy; no secrecy |
+| PCCN | new-heart-failure-better-off-without-me | Assess and manage suicidal ideation | "Better off without me" is the screen's own question; non-acute positive; attendant and room check |
+| FNPAANP | clinic-depression-follow-up-item-nine | Screen for depression, assess suicide risk, treat or refer | PHQ-9 item 9, Columbia questions, Stanley-Brown plan with means safety, treatment, warm handoff |
+| FNPANCC | clinic-widower-thoughts-right-now | the same (and the red-flags objective) | Acute positive in clinic: in sight, ambulance or crisis team, never driving, call ahead |
+| CCRNADULT | sah-day-six-not-herself-on-levetiracetam | Levetiracetam adverse effects incl. suicidal ideation | Mood change after the drug; screen, safety, report the labeled effect, never hold a dose |
+| CCRNADULT | icu-threatens-staff-pulls-cannula | Behavioral emergencies and de-escalation | Hypoxia, pain and delirium behind aggression; BETA de-escalation; restraint last |
+| NCLEXRN | after-amputation-im-done | Assess suicide risk directly | Plan, access, past attempt, mental state, supports; acute positive; discharge on hold |
+| NCLEXRN | visiting-hours-threat-on-the-unit | Potential for violence and safety precautions | Checklist behaviors, a visit held by security, the duty-to-warn policy |
+| NCLEXRN | crash-survivor-wishes-she-had-died-too | Crisis intervention | Grounding, a passive wish to be dead, one next step, supports |
+| NCLEXRN | voices-say-he-should-die | Signs of acute and chronic mental illness | Command hallucinations, reality presented gently, acute positive |
+| NCLEXPN | rehab-resident-no-use-to-anyone | Suicide risk factors; report to the RN at once | Data within the PN role, never leaving him, a bedside handoff |
+| NCLEXPN | day-room-threat-then-emergency-medicine | De-escalate; stay near after an emergency medication | One voice, the trigger met, the RN, checks every 15 minutes |
+| NCLEXPN | clinic-eviction-no-way-out | Crisis intervention within the PN role | Screen, kept with staff, the RN, social work, 988 |
+
+Bands (4.7): `FNPANCC/clinic-depression-follow-up-item-nine-fnp-role` and
+`FNPAANP/clinic-widower-thoughts-right-now-fnp-clinical` register each FNP case to the other FNP course's
+identical objective (objective, secondary objectives and sources only; `mature` comes from the base).
+
+Each case has four golden paths (`scripts/sim-golden/sens-*.steps.ts`): expert (target, Good), gaps
+(recovered, Mediocre), a harm path that never screens and takes the unsafe shortcuts (Bad), and a rupture
+(walk-out, Bad). Every ending but `time_up` is reached and every criterion is met and missed.
+
+**Where this stopped.** 14 authored cases and 2 bands (16 documents), as briefed ("about 15"). Not built:
+the remaining NCLEX-RN and NCLEX-PN Psychosocial Integrity objectives that fit the selection rule (for
+example RN: opioid use disorder, manic episode, alcohol overdose, client rights and HIPAA, religious and
+spiritual influences, stress management; PN: abuse or neglect reporting, mental health concepts, opioid use
+disorder, substance misuse and overdose), the PCCN restraint objective, and the CEN de-escalation and
+workplace-violence objectives (which do not pass the selection screen as mains). CCRN's "Self-harm and
+suicidal ideation or behavior" does not pass the selection screen as a main objective, so it is a secondary
+objective of the levetiracetam case.
+
+**Sources** (read 2026-11-17 unless noted; each sim's `sources` say how): NIMH ASQ information sheet and
+adult toolkit; the Columbia Protocol triage page; the Joint Commission R3 Report on NPSG.15.01.01 (updated
+2025-12-03); SPRC's summary of Stanley, Brown et al., JAMA Psychiatry 2018; SPRC on safe care transitions;
+SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF); Project BETA (West J Emerg
+Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
+Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
+(2026-11-14), and the exam outlines from the course seeds.
