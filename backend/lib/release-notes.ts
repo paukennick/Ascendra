@@ -99,6 +99,33 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-328 (Nick, 2026-11-17 08:59 PT): desktop web step 3, a sidebar
+    // that stays open on wide browser windows. Web only; phones and the apps
+    // are unchanged. Not gated.
+    id: "2026-11-17-f",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-328"],
+    title: "A sidebar for big screens",
+    items: [
+      {
+        icon: "compass",
+        headline: "Your menu stays open",
+        body: "In a browser window wider than 900px, the menu now sits on the left side of every screen: Home, Explore, Review and Release notes, with Settings and Support at the bottom.",
+      },
+      {
+        icon: "star",
+        headline: "Your courses one click away",
+        body: "The sidebar lists the courses you studied recently and the ones you starred, so you can jump between them without going back to Home.",
+      },
+      {
+        icon: "eye",
+        headline: "Room to work, and easy with a keyboard",
+        body: "Simulations, practice exams, labs and the PBQ simulator hide the sidebar and keep the whole window. The sidebar marks the page you are on, and Tab reaches it first, with a link to skip ahead.",
+      },
+    ],
+  },
+  {
     // REQ-322 (Nick, 2026-11-17: "start the desktop web updates"): step 2 of
     // the desktop sizing work. Web only, wide windows only; phones and the
     // apps are unchanged. Not gated.
