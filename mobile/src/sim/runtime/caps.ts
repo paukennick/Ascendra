@@ -14,6 +14,10 @@
 // REQ-313: the session at level 2 (screen.session.readLabel), the governance
 // board (screen.governance) and the tabletop exercise (screen.tabletop), level 1.
 // REQ-314: the facility console, the sandbox report and the client trainer, level 1.
+// REQ-327: `features=mature`: this build shows the 18+ notice for a course's
+// sims (a 403 mature_content_required with scope "sims") and retries. A build
+// without it is offered no sim marked mature ("Update the app") and is never
+// sent its brief.
 import { ENGINE_MAJOR, ENGINE_MINOR } from "../engine/v1/engine.ts";
 
 export const SIM_RENDERERS = [
@@ -33,10 +37,12 @@ export const SIM_RENDERERS = [
   { type: "trainer", level: 1 }, // REQ-314 (screen.trainer bindings)
 ] as const;
 
+export const SIM_FEATURES = ["mature"] as const;
+
 export const SIM_CAPS_HEADER = "x-sim-caps";
 
 export function simCaps(): string {
-  return `protocol=1;engine=${ENGINE_MAJOR}.${ENGINE_MINOR};renderers=${SIM_RENDERERS.map((r) => `${r.type}@${r.level}`).join(",")}`;
+  return `protocol=1;engine=${ENGINE_MAJOR}.${ENGINE_MINOR};renderers=${SIM_RENDERERS.map((r) => `${r.type}@${r.level}`).join(",")};features=${SIM_FEATURES.join(",")}`;
 }
 
 export function capsHeaders(): Record<string, string> {

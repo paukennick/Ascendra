@@ -137,7 +137,7 @@ describe("client trainer view", () => {
 describe("capabilities and goldens", () => {
   test("the app advertises the three screens at level 1", () => {
     for (const t of ["facility-console", "sandbox-report", "trainer"]) assert.ok(SIM_RENDERERS.some((r) => r.type === t && r.level === 1), t);
-    assert.match(simCaps(), /facility-console@1,sandbox-report@1,trainer@1$/);
+    assert.match(simCaps(), /facility-console@1,sandbox-report@1,trainer@1(;|$)/);
   });
 
   test("every golden path replays through the app's engine copy", () => {

@@ -10,12 +10,10 @@ import {
   MATURE_CONFIRM_LABEL,
   MATURE_DECLINE_LABEL,
   MATURE_DOB_INTRO,
-  MATURE_NOTICE_LINES,
-  MATURE_NOTICE_TITLE,
   MATURE_UNDERAGE_CLOSE_LABEL,
-  MATURE_UNDERAGE_LINES,
-  MATURE_UNDERAGE_TITLE,
+  noticeText,
   validateMatureForm,
+  type MatureScope,
   type NoticeMode,
 } from "@/lib/matureContent";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -32,9 +30,11 @@ export type MatureSheetSubmit = { attested: true; dateOfBirth?: string };
 // every time it has the attestation checkbox. "Not now" sends nothing. When
 // the account's date of birth makes it under 18 there is no form, only a kind
 // message. A SheetModal, so it hides under the app lock (REQ-192).
+// REQ-327: `scope` "sims" shows the words for a course's 18+ simulations.
 export function MatureContentSheet({
   visible,
   mode,
+  scope,
   courseTitle,
   busy,
   error,
@@ -43,6 +43,7 @@ export function MatureContentSheet({
 }: {
   visible: boolean;
   mode: NoticeMode;
+  scope?: MatureScope;
   courseTitle?: string;
   busy: boolean;
   error: string | null;
@@ -75,6 +76,7 @@ export function MatureContentSheet({
   };
 
   const blocked = mode === "blocked";
+  const text = noticeText(scope);
   return (
     <SheetModal transparent visible animationType={reduced ? "none" : "slide"} onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -82,10 +84,10 @@ export function MatureContentSheet({
         <View style={[styles.sheet, { paddingBottom: spacing.xl + insets.bottom }]} accessibilityViewIsModal>
           <ScrollView contentContainerStyle={{ gap: spacing.sm }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <Text style={styles.title} accessibilityRole="header">
-              {blocked ? MATURE_UNDERAGE_TITLE : MATURE_NOTICE_TITLE}
+              {blocked ? text.underageTitle : text.title}
             </Text>
             {blocked ? (
-              MATURE_UNDERAGE_LINES(OWNER.contactEmail).map((line) => (
+              text.underageLines(OWNER.contactEmail).map((line) => (
                 <Body key={line} style={{ fontSize: 15, lineHeight: 22 }}>
                   {line}
                 </Body>
@@ -93,7 +95,7 @@ export function MatureContentSheet({
             ) : (
               <>
                 {courseTitle ? <Muted>{courseTitle}</Muted> : null}
-                {MATURE_NOTICE_LINES.map((line) => (
+                {text.lines.map((line) => (
                   <Body key={line} style={{ fontSize: 15, lineHeight: 22 }}>
                     {line}
                   </Body>
