@@ -25,9 +25,10 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     for (const t of ALL) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1, t.code);
       assert.equal(t.trackType, "certification");
-      assert.match(t.title, /^Prep for the /);
+      assert.match(t.title, /^Prep for (the|an?) /); // REQ-309
       assert.doesNotMatch(t.title, /\bCoach\b/, "REQ-194: no '<mark> Coach' title");
-      assert.match(t.description, /not affiliated with or endorsed by/);
+      // REQ-309: Scrum.org's own disclaimer reads "not affiliated with ... and does not constitute an endorsement".
+      assert.match(t.description, /not affiliated with or endorsed by|not affiliated with Advanced Development Methods d\/b\/a Scrum\.org \(ADM\) and does not constitute an endorsement/);
     }
   });
 
@@ -191,10 +192,10 @@ describe("REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 Foundation", () =
   });
 
   test("trademark: descriptive title with ® on first use, PeopleCert group notice, no license claim", () => {
-    assert.equal(ITIL5FND_TRACK.title, "Prep for the ITIL® Foundation (Version 5) Exam");
-    assert.match(ITIL5FND_TRACK.description, /not affiliated with or endorsed by PeopleCert\./);
-    assert.match(ITIL5FND_TRACK.description, /ITIL® and PRINCE2® are registered trademarks of the PeopleCert group\.$/);
-    assert.doesNotMatch(ITIL5FND_TRACK.description, /under licen[cs]e/i);
-    assert.doesNotMatch(ITIL5FND_TRACK.description, /\bITILs\b|\bITIL's\b/, "mark used as an adjective only");
+    // REQ-309: PeopleCert grants no descriptive use to non-licensees, so the
+    // course names neither the body nor its marks (catalog-trademarks.test.ts).
+    assert.equal(ITIL5FND_TRACK.title, "Prep for an IT service management foundation exam (version 5)");
+    assert.doesNotMatch(`${ITIL5FND_TRACK.title} ${ITIL5FND_TRACK.description}`, /ITIL|PeopleCert|PRINCE2|AXELOS/);
+    assert.match(ITIL5FND_TRACK.description, /not affiliated with or endorsed by the organization that owns or administers this exam\.$/);
   });
 });

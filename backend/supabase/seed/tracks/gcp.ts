@@ -53,9 +53,9 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const GCP_CDL_TRACK: SeedTrack = {
   code: "GCPCDL",
-  title: "Prep for the Google Cloud Digital Leader Exam",
+  title: "Prep for a foundational cloud business leader certification exam",
   description:
-    "Google Cloud Digital Leader: a working, non-technical fluency in Google Cloud -- digital and data transformation, AI, modern infrastructure, trust and security, and how organizations actually run and pay for cloud operations.",
+    "Google Cloud Digital Leader: a working, non-technical fluency in Google Cloud -- digital and data transformation, AI, modern infrastructure, trust and security, and how organizations actually run and pay for cloud operations. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -200,9 +200,9 @@ export const GCP_CDL_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_ACE_TRACK: SeedTrack = {
   code: "GCPACE",
-  title: "Prep for the Google Cloud Associate Cloud Engineer Exam",
+  title: "Prep for an associate cloud engineer certification exam",
   description:
-    "Google Cloud Associate Cloud Engineer: deploying, securing, and operating applications and infrastructure on Google Cloud -- environment setup, compute/storage/networking implementation, day-2 operations, and access/security configuration.",
+    "Google Cloud Associate Cloud Engineer: deploying, securing, and operating applications and infrastructure on Google Cloud -- environment setup, compute/storage/networking implementation, day-2 operations, and access/security configuration. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -357,9 +357,9 @@ export const GCP_ACE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_PCA_TRACK: SeedTrack = {
   code: "GCPPCA",
-  title: "Prep for the Google Cloud Professional Cloud Architect Exam",
+  title: "Prep for a professional cloud architect certification exam",
   description:
-    "Google Cloud Professional Cloud Architect: designing, building, and managing secure, scalable, cost-effective solutions on Google Cloud, anchored in the Well-Architected Framework's six pillars, plus the exam's own recurring case studies (Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive).",
+    "Google Cloud Professional Cloud Architect: designing, building, and managing secure, scalable, cost-effective solutions on Google Cloud, anchored in the Well-Architected Framework's six pillars, plus the exam's own recurring case studies (Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive). Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -540,9 +540,9 @@ export const GCP_PCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_PDE_TRACK: SeedTrack = {
   code: "GCPPDE",
-  title: "Prep for the Google Cloud Professional Data Engineer Exam",
+  title: "Prep for a professional data engineer certification exam",
   description:
-    "Google Cloud Professional Data Engineer: designing, building, and securing data processing systems on Google Cloud -- ingestion pipelines, storage system selection, data warehouses and lakes, preparing data for analysis and AI/ML, and keeping data workloads running reliably.",
+    "Google Cloud Professional Data Engineer: designing, building, and securing data processing systems on Google Cloud -- ingestion pipelines, storage system selection, data warehouses and lakes, preparing data for analysis and AI/ML, and keeping data workloads running reliably. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -723,9 +723,9 @@ const GCP_DEVOPS_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 
 export const GCP_DEVOPS_TRACK: SeedTrack = {
   code: "GCPDEVOPS",
-  title: "Prep for the Google Cloud Professional Cloud DevOps Engineer Exam",
+  title: "Prep for a professional cloud DevOps and site reliability certification exam",
   description:
-    "Google Cloud Professional Cloud DevOps Engineer: bootstrapping a Google Cloud organization, building CI/CD pipelines for applications/infrastructure/ML workloads, applying SRE practices, implementing observability, and optimizing performance and cost.",
+    "Google Cloud Professional Cloud DevOps Engineer: bootstrapping a Google Cloud organization, building CI/CD pipelines for applications/infrastructure/ML workloads, applying SRE practices, implementing observability, and optimizing performance and cost. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1014,9 +1014,9 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_SEC_TRACK: SeedTrack = {
   code: "GCPSEC",
-  title: "Prep for the Google Cloud Professional Cloud Security Engineer Exam",
+  title: "Prep for a professional cloud security engineer certification exam",
   description:
-    "Google Cloud Professional Cloud Security Engineer: configuring identity and access, securing communications and network boundaries, protecting data at rest/in transit/in use, automating security operations, and supporting regulatory compliance on Google Cloud.",
+    "Google Cloud Professional Cloud Security Engineer: configuring identity and access, securing communications and network boundaries, protecting data at rest/in transit/in use, automating security operations, and supporting regulatory compliance on Google Cloud. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1159,9 +1159,9 @@ export const GCP_SEC_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_NET_TRACK: SeedTrack = {
   code: "GCPNET",
-  title: "Prep for the Google Cloud Professional Cloud Network Engineer Exam",
+  title: "Prep for a professional cloud network engineer certification exam",
   description:
-    "Google Cloud Professional Cloud Network Engineer: designing, implementing, and troubleshooting VPC networks, hybrid/multicloud interconnectivity, managed network services, and cloud network security on Google Cloud.",
+    "Google Cloud Professional Cloud Network Engineer: designing, implementing, and troubleshooting VPC networks, hybrid/multicloud interconnectivity, managed network services, and cloud network security on Google Cloud. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1371,9 +1371,9 @@ export const GCP_NET_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DBE_TRACK: SeedTrack = {
   code: "GCPDBE",
-  title: "Prep for the Google Cloud Professional Cloud Database Engineer Exam",
+  title: "Prep for a professional cloud database engineer certification exam",
   description:
-    "Google Cloud Professional Cloud Database Engineer: designing scalable, highly available database solutions, managing solutions across multiple database technologies, migrating data into Google Cloud, and deploying and scaling databases in production.",
+    "Google Cloud Professional Cloud Database Engineer: designing scalable, highly available database solutions, managing solutions across multiple database technologies, migrating data into Google Cloud, and deploying and scaling databases in production. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1484,9 +1484,9 @@ export const GCP_DBE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DEV_TRACK: SeedTrack = {
   code: "GCPDEV",
-  title: "Prep for the Google Cloud Professional Cloud Developer Exam",
+  title: "Prep for a professional cloud developer certification exam",
   description:
-    "Google Cloud Professional Cloud Developer: designing scalable, secure cloud-native applications, building and testing them with Google-recommended tools, configuring deployment to Cloud Run/GKE, and integrating applications with Google Cloud data and API services.",
+    "Google Cloud Professional Cloud Developer: designing scalable, secure cloud-native applications, building and testing them with Google-recommended tools, configuring deployment to Cloud Run/GKE, and integrating applications with Google Cloud data and API services. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1613,9 +1613,9 @@ export const GCP_DEV_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_MLE_TRACK: SeedTrack = {
   code: "GCPMLE",
-  title: "Prep for the Google Cloud Professional Machine Learning Engineer Exam",
+  title: "Prep for a professional machine learning engineer certification exam",
   description:
-    "Google Cloud Professional Machine Learning Engineer: architecting low-code AI solutions, managing data and models with a team, scaling prototypes into production ML models, serving and scaling models, automating ML pipelines, and monitoring AI solutions.",
+    "Google Cloud Professional Machine Learning Engineer: architecting low-code AI solutions, managing data and models with a team, scaling prototypes into production ML models, serving and scaling models, automating ML pipelines, and monitoring AI solutions. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
@@ -1755,9 +1755,9 @@ export const GCP_MLE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_GAIL_TRACK: SeedTrack = {
   code: "GCPGAIL",
-  title: "Prep for the Google Cloud Generative AI Leader Exam",
+  title: "Prep for a generative AI leader certification exam",
   description:
-    "Google Cloud Generative AI Leader: a business-level, no-code fluency in generative AI -- core concepts, Google Cloud's gen AI product landscape, techniques that improve model output, and the business strategy and security/responsible-AI considerations behind a successful gen AI initiative.",
+    "Google Cloud Generative AI Leader: a business-level, no-code fluency in generative AI -- core concepts, Google Cloud's gen AI product landscape, techniques that improve model output, and the business strategy and security/responsible-AI considerations behind a successful gen AI initiative. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",

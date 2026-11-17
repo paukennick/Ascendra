@@ -128,9 +128,9 @@ const label = (n: number) => `${n} of 150 scored items`;
 
 export const CEN_TRACK: SeedTrack = {
   code: "CEN",
-  title: "Prep for the Certified Emergency Nurse (CEN) Exam",
+  title: "Prep for an emergency nursing certification exam",
   description:
-    "BCEN's emergency nursing specialty certification, built on the CEN Examination Content Outline effective July 2026: ten clinical categories from cardiovascular to environment, toxicology and communicable disease, plus professional issues, weighted by BCEN's published item counts. Independent exam prep; not affiliated with or endorsed by the Board of Certification for Emergency Nursing (BCEN). CEN is a registered mark of BCEN.",
+    "An emergency nursing specialty certification, built on the examination content outline effective July 2026: ten clinical categories from cardiovascular to environment, toxicology and communicable disease, plus professional issues, weighted by the published item counts. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "nursing-specialty-certifications",
   freshnessModel: "certification_aligned",

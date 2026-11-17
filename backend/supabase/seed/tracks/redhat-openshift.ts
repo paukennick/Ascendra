@@ -56,7 +56,7 @@ export const EX188_TRACK: SeedTrack = {
   code: "EX188",
   hiddenAt: RH_HIDDEN_AT,
   hiddenReason: RH_HIDDEN_REASON,
-  title: "Prep for the Red Hat® Certified Developer in Cloud-native Applications Exam",
+  title: "Prep for a containerized application developer certification exam",
   description:
     "Red Hat's hands-on Podman exam. Build images from Containerfiles, manage images and registries, run and inspect containers locally, run multi-container applications with pods and Compose-style definitions, and troubleshoot containerized applications -- on RHEL 10 with Podman v5, the versions the exam is based on. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and RHEL trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and RHEL are trademarks of Red Hat, LLC, registered in the United States and other countries.",
   trackType: "certification",
@@ -153,7 +153,7 @@ export const EX280_TRACK: SeedTrack = {
   code: "EX280",
   hiddenAt: RH_HIDDEN_AT,
   hiddenReason: RH_HIDDEN_REASON,
-  title: "Prep for the Red Hat® Certified System Administrator in OpenShift Exam",
+  title: "Prep for an enterprise container platform administrator certification exam",
   description:
     "Red Hat's hands-on OpenShift administration exam on OpenShift Container Platform 4.22. Manage the cluster from the console and oc, work declaratively with manifests, Kustomize, Helm and templates, configure HTPasswd authentication and RBAC, secure routes and networking, enable developer self-service with quotas and templates, manage operators, and secure applications with service accounts, security context constraints, secrets, jobs and cron jobs. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and OpenShift trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and OpenShift are trademarks of Red Hat, LLC, registered in the United States and other countries.",
   trackType: "certification",

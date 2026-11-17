@@ -24,8 +24,8 @@ const AREAS = ["Values and Ethics", "Assessment and Planning", "Intervention and
 describe("REQ-286: Prep for the ASWB Clinical Exam and Prep for the ASWB Masters Exam", () => {
   test("each is in the catalog once, under social work licensure, gated, with the independence statement", () => {
     for (const [t, title] of [
-      [ASWB_CLINICAL_TRACK, "Prep for the ASWB Clinical Exam"],
-      [ASWB_MASTERS_TRACK, "Prep for the ASWB Masters Exam"],
+      [ASWB_CLINICAL_TRACK, "Prep for a clinical social work licensure exam"],
+      [ASWB_MASTERS_TRACK, "Prep for a master's-level social work licensure exam"],
     ] as const) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1);
       assert.equal(t.title, title);

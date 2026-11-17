@@ -193,9 +193,9 @@ const ADD = (base: string[], extra: string[]) => [...base, ...extra];
 
 export const PSMI_TRACK: SeedTrack = {
   code: "PSMI",
-  title: "Prep for the Professional Scrum Master I (PSM I) Assessment",
+  title: "Prep for an entry-level Scrum Master assessment",
   description:
-    "Preparation for Scrum.org's PSM I assessment, built on the 2020 Scrum Guide: empiricism and the Scrum values, the Scrum Team's accountabilities, the events, the artifacts and their commitments, then coaching self-managing teams and managing products with agility. Scrum.org publishes no domain weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by Scrum.org. Professional Scrum Master and PSM are marks of Scrum.org.",
+    "Preparation for Scrum.org's PSM I assessment, built on the 2020 Scrum Guide: empiricism and the Scrum values, the Scrum Team's accountabilities, the events, the artifacts and their commitments, then coaching self-managing teams and managing products with agility. Scrum.org publishes no domain weights, so the unit weights are our study emphasis. This course is not affiliated with Advanced Development Methods d/b/a Scrum.org (ADM) and does not constitute an endorsement of any product, service or point of view by ADM. Professional Scrum Master and PSM are trademarks and/or registered trademarks of Advanced Development Methods, Inc., d/b/a Scrum.org.",
   trackType: "certification",
   subcategorySlug: "agile-scrum-certifications",
   freshnessModel: "certification_aligned",
@@ -306,7 +306,7 @@ const CSM_FORMAT = src("Scrum Alliance, Certified ScrumMaster: how to earn it", 
 
 export const CSM_TRACK: SeedTrack = {
   code: "CSM",
-  title: "Prep for the Certified ScrumMaster (CSM) Test",
+  title: "Prep for a course-based Scrum Master certification test",
   description:
     "Preparation for Scrum Alliance's CSM test and the work behind it, built on Scrum Alliance's Scrum Foundations and CSM learning objectives and the 2020 Scrum Guide: Scrum theory, the team, the events, the artifacts and commitments, facilitation and coaching, and the Scrum Master's service to the team, the Product Owner and the organization. The CSM is earned by attending a 16-hour course with a Certified Scrum Trainer and then passing the test; this course helps you prepare and practice, and does not replace that course. Weights are our study emphasis. Independently developed; not affiliated with or endorsed by Scrum Alliance. Certified ScrumMaster and CSM are marks of Scrum Alliance, Inc.",
   trackType: "certification",
@@ -455,9 +455,9 @@ export const ITIL4FND_TRACK: SeedTrack = {
   hiddenAt: "2026-11-16T00:00:00Z",
   hiddenReason:
     "Replaced by ITIL5FND (Nick, 2026-11-16). PeopleCert sells ITIL Foundation (Version 5) and plans to sunset all ITIL 4 modules on 2027-12-31 (https://peoplecert.org/help-and-support/faq-itil, read 2026-11-16).",
-  title: "Prep for the ITIL 4 Foundation Exam",
+  title: "Prep for an IT service management foundation exam (version 4)",
   description:
-    "Preparation for PeopleCert's ITIL 4 Foundation exam, weighted by the syllabus's marks: the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, the purpose of 15 practices and seven of them in depth. PeopleCert plans to sunset ITIL 4 at the end of 2027 and already offers ITIL Foundation (Version 5). Independently developed exam prep; not affiliated with or endorsed by PeopleCert or Axelos. ITIL is a registered trademark of PeopleCert.",
+    "Preparation for an IT service management foundation exam (version 4): the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, and the purpose of the management practices, with seven in depth. Replaced by the version 5 course. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
@@ -681,9 +681,9 @@ const ITIL5_FORMAT = itil5Src("PeopleCert, ITIL Foundation (Version 5) exam page
 
 export const ITIL5FND_TRACK: SeedTrack = {
   code: "ITIL5FND",
-  title: "Prep for the ITIL® Foundation (Version 5) Exam",
+  title: "Prep for an IT service management foundation exam (version 5)",
   description:
-    "Preparation for PeopleCert's ITIL® Foundation (Version 5) exam, weighted as the syllabus publishes: the key terms of digital product and service management, the four dimensions, the product and service lifecycle, the ITIL value system (guiding principles, governance, value chain, management practices and continual improvement), value streams, ITIL and AI, and how ITIL works with DevOps and PRINCE2®. PeopleCert plans to sunset ITIL 4 at the end of 2027. Independently developed exam prep; not affiliated with or endorsed by PeopleCert. ITIL® and PRINCE2® are registered trademarks of the PeopleCert group.",
+    "Preparation for an IT service management foundation exam (version 5), weighted as the syllabus publishes: the key terms of digital product and service management, the four dimensions, the product and service lifecycle, the value system (guiding principles, governance, value chain, management practices and continual improvement), value streams, AI in service management, and how the framework works with DevOps and project management methods. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
@@ -881,9 +881,9 @@ const CSSGB_FORMAT = src("ASQ, Six Sigma Green Belt certification: exam and pass
 
 export const CSSGB_TRACK: SeedTrack = {
   code: "CSSGB",
-  title: "Prep for the ASQ Certified Six Sigma Green Belt (CSSGB) Exam",
+  title: "Prep for a process improvement green belt certification exam",
   description:
-    "Preparation for ASQ's Six Sigma Green Belt exam on the 2022 Body of Knowledge, weighted by its question counts: Six Sigma and the organization, then Define, Measure, Analyze, Improve and Control, with the statistics worked through -- capability indices, hypothesis tests, control charts and the yield and defect metrics. Independently developed exam prep; not affiliated with or endorsed by ASQ. ASQ and CSSGB are marks of the American Society for Quality.",
+    "Preparation for a process improvement green belt certification exam on the 2022 body of knowledge, weighted by its question counts: the method and the organization, then Define, Measure, Analyze, Improve and Control, with the statistics worked through -- capability indices, hypothesis tests, control charts and the yield and defect metrics. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "quality-six-sigma-certifications",
   freshnessModel: "certification_aligned",
