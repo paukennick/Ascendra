@@ -18832,14 +18832,13 @@
       "root_cause": "REQ-224/REQ-259 put the course gate on the routes that open, start or teach a course (startableTrack, requireAcknowledgementFor*); the sim detail route only checked visibility and tier (gateSim 'view'), because it was read as a preview rather than as opening content. The app reaches it only after the gated course page, so no app flow showed the gap; a direct API call did.",
       "requirement": "REQ-327",
       "affected": [
-        "backend/lib/sims.ts simView",
+        "backend/lib/sims.ts",
         "backend/app/api/sims/[id]/route.ts"
       ],
       "fix_summary": "simView checks matureContentNeededSql for the sim's course and throws MatureContentError (403 mature_content_required naming the course) before reading the brief; the per-sim gate follows it",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mature-sims.dbtest.ts: existing counseling-course gates are unchanged (detail route 403 without the course acknowledgment",
-        "200 after)"
+        "backend/lib/mature-sims.dbtest.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
