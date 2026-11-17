@@ -18513,6 +18513,54 @@
       "prevention_rules": [],
       "prevention_notes": "When resolving same-point insertions by concatenation, check that each side's insertion is self-contained (a call plus a closed function, entries before the array's own bracket); screen-checks.test.ts fails if a screen's check is not reached for a document of that type alone.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2123",
+      "date": "2026-11-16",
+      "title": "Data profile threshold shared its name with the SQL case's state counter",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The data outcome profile's threshold rowsAlteredOutsideFix had the same name as the SQL case's state counter; because thresholds are bound as names, the case could not use both and left the threshold out (docs/sims.md 22.25 note 3).",
+      "how_detected": "REQ-312 build notes; rename approved by Nick 2026-11-16",
+      "root_cause": "docs/sims.md 20.1 suggested the same name for the counter and the threshold.",
+      "requirement": "REQ-312",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "mobile/src/sim/engine/v1/validate.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "The threshold is now alteredRowsMax; the counter keeps its name.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/data-console.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "data-console.test.ts asserts the old name is not a data threshold.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2124",
+      "date": "2026-11-16",
+      "title": "EPPP lab test still expected the 2017 PTSD guideline citation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs-aplus-eppp.test.ts 'the EPPP labs that quote a drug level, a statute or a guideline cite it' failed on the wave branch: eppp-match-ebt no longer cites PubMed 31305099.",
+      "how_detected": "backend lib suite on wave/2026-11-17",
+      "root_cause": "REQ-310 moved the lab to the 2025 APA PTSD guideline's page and the test asserting the old URL was not run in that pass.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/lib/labs-aplus-eppp.test.ts"
+      ],
+      "fix_summary": "The test checks for the APA PTSD guideline page instead.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-aplus-eppp.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full lib suite (in parts) after a source verification pass, not only targeted tests.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -152,7 +152,9 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
   // request; altered rows are a state counter written at command time (20.1).
   data: {
     deliverWindow: { value: 7200, tighter: "lower", note: "right result delivered <= 2 h after the request" },
-    rowsAlteredOutsideFix: { value: 0, tighter: "lower", note: "rows changed beyond the fix; none is the target" },
+    // Renamed from rowsAlteredOutsideFix (Nick, 2026-11-16) so a case can keep
+    // a state counter of that name: thresholds are bound as names (22.25).
+    alteredRowsMax: { value: 0, tighter: "lower", note: "rows changed beyond the fix; none is the target" },
   },
   // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
   // session's safety or diagnostic task done within its window with the

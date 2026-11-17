@@ -126,7 +126,9 @@ describe("REQ-234: every new lab names its value sources or says why not", () =>
     const urls = (slug: string) => (set.labs.find((l) => l.slug === slug)!.sources ?? []).map((s) => s.url).join(" ");
     assert.match(urls("eppp-lithium-toxicity-case"), /dailymed/);
     assert.match(urls("eppp-mandated-report-washington"), /26\.44\.030/);
-    assert.match(urls("eppp-match-ebt"), /31305099/);
+    // FAIL-2124: REQ-310 moved this lab to the 2025 APA PTSD guideline's own
+    // page (the 2017 guideline's PubMed entry, 31305099, is no longer cited).
+    assert.match(urls("eppp-match-ebt"), /apa\.org\/ptsd-guideline/);
     assert.match(urls("eppp-ethics-rural-multiple-relationship"), /apa\.org\/ethics\/code/);
   });
 });

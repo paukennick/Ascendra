@@ -5900,15 +5900,16 @@ general family is not pace-eligible.
 
 **Outcome profile `data`** (9.2, the 20.1 drafts now defaults):
 `deliverWindow` 7200 s (the right result delivered within two hours of the
-request) and `rowsAlteredOutsideFix` 0. Target: the right root cause found
+request) and `alteredRowsMax` 0 (named `rowsAlteredOutsideFix` until
+2026-11-17). Target: the right root cause found
 and the right result delivered in the window, checked, with no data altered
 beyond the fix; recovered: late, unchecked, held back, or with a safe but
 costly side effect; harm: a wrong result shipped to the stakeholder (a
 report, a deployed change, a release on a misleading number) or data deleted
 beyond recovery. Each case tightens `deliverWindow` to its own deadline (45
-to 90 minutes). A case that counts altered rows names its state counter
-differently from the threshold or leaves the threshold out, because
-thresholds are bound as names (SQL case).
+to 90 minutes). Thresholds are bound as names, so a state counter cannot
+share a threshold's name; the profile's `alteredRowsMax` leaves the name
+`rowsAlteredOutsideFix` free for the SQL case's counter.
 
 **Cases** (golden paths by `npm run sim:golden -- steps <name>`, shared
 driver `scripts/sim-golden/data-helpers.ts`; checked by
@@ -5977,9 +5978,9 @@ tool's style, and the facts they carry are the sources'.
    of the engine; recorded as an authoring note.
 3. **Thresholds are bound as names**, so a state counter cannot share a
    threshold's name (`rowsAlteredOutsideFix`); 20.1 suggested both. The SQL
-   case keeps the counter and leaves the threshold out. A decision for later:
-   rename the profile threshold (for example `alteredRowsMax`) before a case
-   needs both.
+   case keeps the counter. Nick approved the rename on 2026-11-16: the
+   profile threshold is now `alteredRowsMax` (FAIL-2123), so a case can bind
+   both the counter and the threshold.
 4. **`time_up`** stays unreached in every case, as on the other learner-paced
    screens.
 5. **Literal braces in code** are why code lines are not templates; a brace

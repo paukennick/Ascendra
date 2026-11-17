@@ -123,7 +123,9 @@ describe("REQ-312 screen.data bindings", () => {
 
   test("the data profile's default thresholds; authors may tighten, never loosen", () => {
     assert.equal(PROFILE_THRESHOLDS.data.deliverWindow.value, 7200);
-    assert.equal(PROFILE_THRESHOLDS.data.rowsAlteredOutsideFix.value, 0);
+    assert.equal(PROFILE_THRESHOLDS.data.alteredRowsMax.value, 0);
+    // FAIL-2123: the threshold no longer shares the SQL case's state counter name.
+    assert.equal("rowsAlteredOutsideFix" in PROFILE_THRESHOLDS.data, false);
     const d = base();
     d.outcome.thresholds.deliverWindow = { value: 9000, source: d.sources[0] };
     assert.ok(errors(d).some((e) => e.includes("looser than the data default")));
