@@ -264,6 +264,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // together. ----
   entry("PSMI", "sprint-status-meeting-daily-scrum"),
   band("CSM", "csm-sprint-status-meeting-daily-scrum"),
+  entry("PSMI", "sprint-goal-becomes-obsolete"),
+  band("CSM", "csm-sprint-goal-becomes-obsolete"),
   // ---- end REQ-311 ----
 ];
 
@@ -391,6 +393,8 @@ export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
 export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "PSMI" || e.course === "CSM");
 export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
   "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+  "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "csm-sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
   "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
 };
 
