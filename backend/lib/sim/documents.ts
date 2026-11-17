@@ -417,6 +417,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("FNPAANP", "clinic-sulfonylurea-hypoglycemia-fnp-clinical"),
   entry("ABPTSPWCS", "prenatal-exercise-severe-bp-headache"),
   entry("ABPTSSCS", "preseason-collapse-heat-stroke"),
+  entry("ABPTSWMS", "leg-ulcer-calcified-abi-compression"),
   // ---- end REQ-323 ----
 ];
 
