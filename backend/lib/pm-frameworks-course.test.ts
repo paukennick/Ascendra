@@ -193,11 +193,15 @@ describe("REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 Foundation", () =
 
   test("trademark: the exam named with ® on first use, the PeopleCert disclaimer, no license claim", () => {
     // REQ-324 (Nick, 2026-11-17): the title names the exam, with ® as
-    // PeopleCert's acknowledgements page marks ITIL; the seeded description
-    // still names no mark and ends with the generic notice, which the catalog
-    // replaces with the specific disclaimer (lib/unbranded.ts).
+    // PeopleCert's acknowledgements page marks ITIL. REQ-324 follow-up (Nick,
+    // 2026-11-17 08:59 PT): the seeded description names the exam the same
+    // way, once, and names no other mark or the body; it ends with the generic
+    // notice, which the catalog replaces with the specific disclaimer
+    // (lib/unbranded.ts).
     assert.equal(ITIL5FND_TRACK.title, "Exam Prep for ITIL® Foundation (Version 5)");
-    assert.doesNotMatch(ITIL5FND_TRACK.description, /ITIL|PeopleCert|PRINCE2|AXELOS/);
+    assert.match(ITIL5FND_TRACK.description, /^Preparation for the ITIL® Foundation \(Version 5\) exam,/);
+    assert.equal(ITIL5FND_TRACK.description.split("ITIL").length - 1, 1, "ITIL named once");
+    assert.doesNotMatch(ITIL5FND_TRACK.description, /PeopleCert|PRINCE2|AXELOS/);
     assert.doesNotMatch(ITIL5FND_TRACK.description, /licen[cs]ed|accredited|official/i);
     assert.match(ITIL5FND_TRACK.description, /not affiliated with or endorsed by the organization that owns or administers this exam\.$/);
   });

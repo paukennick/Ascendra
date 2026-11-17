@@ -39,7 +39,12 @@ describe("REQ-270..274: ISC2, ISACA and EC-Council security courses", () => {
       assert.equal(t.title, want[t.code][0]);
       assert.match(t.title, /^Exam Prep for \S.+$/);
       assert.match(t.description, want[t.code][1], t.code);
-      assert.doesNotMatch(t.description, /ISC2|CISSP|\bCC\b|ISACA|CISM|EC-Council|\bCEH\b|Ethical Hacker/, t.code);
+      // REQ-324 follow-up (Nick, 2026-11-17 08:59 PT): the description names
+      // the exam as the title does, once; the body itself is named only in
+      // the disclaimer the catalog appends.
+      const exam = want[t.code][0].replace(/^Exam Prep for /, "");
+      assert.equal(t.description.split(exam).length - 1, 1, `${t.code}: names ${exam} once`);
+      assert.doesNotMatch(t.description.replace(exam, ""), /ISC2|CISSP|\bCC\b|ISACA|CISM|EC-Council|\bCEH\b|Ethical Hacker/, t.code);
       assert.equal(t.subcategorySlug, "it-certifications");
       assert.equal(t.credential?.subcategorySlug, "it-certifications");
       assert.equal(t.freshnessModel, "certification_aligned");
