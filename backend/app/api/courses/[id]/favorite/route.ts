@@ -1,6 +1,7 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { learnerTrackRow } from "@/lib/unbranded";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export async function PATCH(
       `select st.*, $2::boolean as is_favorite from subject_tracks st where st.id = $1`,
       [id, favorite]
     );
-    return ok({ track: rows[0] });
+    return ok({ track: rows[0] ? learnerTrackRow(rows[0]) : rows[0] }); // REQ-319
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

@@ -137,7 +137,7 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Read a five-movement observation",
       brief:
-        "A fictional 33-year-old client, cleared to exercise and pain-free, completes your observation of ACE's five primary movements. Bend-and-lift (bodyweight squat): heels lift and the trunk leans well forward. Single-leg (step-up): the opposite hip drops and the knee drifts inward. Push (push-up): the low back sags after four reps. Pull (standing band row): the shoulders shrug toward the ears. Rotation (half-kneeling cable chop): good control. The client sits at a desk all day and wants to \"feel athletic again\".",
+        "A fictional 33-year-old client, cleared to exercise and pain-free, completes your observation of the five primary movements. Bend-and-lift (bodyweight squat): heels lift and the trunk leans well forward. Single-leg (step-up): the opposite hip drops and the knee drifts inward. Push (push-up): the low back sags after four reps. Pull (standing band row): the shoulders shrug toward the ears. Rotation (half-kneeling cable chop): good control. The client sits at a desk all day and wants to \"feel athletic again\".",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
@@ -155,7 +155,7 @@ export const ACECPT_LABS: SeedLabSet = {
               "Possibly limited ankle mobility, weak hip abductors, low core endurance and poor scapular depression -- things to train and re-check, not a diagnosis. Pain would mean referring to a health professional."
             ),
             part(
-              "ACE IFT phase",
+              "Training model phase",
               "Places the client in Functional Training (stability and mobility, core and posture) moving into Movement Training for the five patterns, before Load/Speed Training, and explains why.",
               "Start in Functional Training -- core endurance, hip and scapular stability, ankle and thoracic mobility -- and progress into Movement Training of the five patterns; Load/Speed Training waits until the patterns are controlled."
             ),
@@ -173,16 +173,16 @@ export const ACECPT_LABS: SeedLabSet = {
     // -----------------------------------------------------------------------
     {
       slug: "ace-ift-phase-placement",
-      objective: "ACE's Integrated Fitness Training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
+      objective: "The phased integrated training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
       kind: "build",
-      title: "Place a client in the ACE IFT Model",
+      title: "Place a client in the phased training model",
       brief:
         "A fictional 29-year-old client, cleared to exercise, jogs twice a week but has never done resistance training. A VT1 talk test on the treadmill put VT1 at a heart rate of 152 beats per minute; no VT2 test has been done. A movement observation found good control in all five primary movements with light loads. The client wants to run a 10 km race in four months and \"get stronger\". They can train four days a week.",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the client's ACE IFT placement and the first month's plan.",
+          ask: "Write the client's placement in the phased training model and the first month's plan.",
           parts: [
             part(
               "Cardiorespiratory phase and intensity",
@@ -214,7 +214,7 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "build",
       title: "One program, four settings",
       brief:
-        "A fictional client, cleared to exercise and in ACE IFT Movement Training, now travels for work every other week. Each week they can do one in-club session with you, one virtual session from a hotel room (a resistance band and their bodyweight only), and one session on their own in a public park near home. Their program centers on the five primary movements and moderate-intensity cardio.",
+        "A fictional client, cleared to exercise and in the Movement Training phase, now travels for work every other week. Each week they can do one in-club session with you, one virtual session from a hotel room (a resistance band and their bodyweight only), and one session on their own in a public park near home. Their program centers on the five primary movements and moderate-intensity cardio.",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
@@ -296,7 +296,7 @@ export const ACECPT_LABS: SeedLabSet = {
       steps: [
         {
           text: "Sam messages: \"I keep letting you down. I don't think I can keep this up.\"",
-          ask: "How do you respond, using the ACE ABC approach?",
+          ask: "How do you respond, using the ask, break down, collaborate (ABC) approach?",
           parts: [
             part(
               "Ask",
@@ -339,7 +339,7 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Week 8 reassessment: progress and regress",
       brief:
-        "A fictional client in ACE IFT Base Training and Movement Training, cleared to exercise, is reassessed after eight weeks. Results: steady 30-minute runs below VT1 now feel easy (talk test: full sentences throughout); goblet squat 3 x 12 at 12 kg with clean technique and RPE about 5 of 10; push-ups improved from 4 to 12 good reps. New today: the client says the front of their right knee aches during walking lunges (2 of 10, gone afterwards) but not during squats or step-ups.",
+        "A fictional client in the Base Training and Movement Training phases, cleared to exercise, is reassessed after eight weeks. Results: steady 30-minute runs below VT1 now feel easy (talk test: full sentences throughout); goblet squat 3 x 12 at 12 kg with clean technique and RPE about 5 of 10; push-ups improved from 4 to 12 good reps. New today: the client says the front of their right knee aches during walking lunges (2 of 10, gone afterwards) but not during squats or step-ups.",
       safetyNote: FITNESS_SAFETY,
       steps: [
         {
@@ -495,13 +495,13 @@ export const ACECPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Auditing a new trainer's launch plan",
       brief:
-        "You are a fictional ACE Certified Personal Trainer and a mentor at Riverbend Fitness (fictional). Dani, a fictional newly certified trainer, shows you her launch plan for her own client list and asks what to fix before she starts next month, and which ACE principle each problem breaks so she can explain it to her manager. Her plan's lines are below.",
+        "You are a fictional certified personal trainer and a mentor at Riverbend Fitness (fictional). Dani, a fictional newly certified trainer, shows you her launch plan for her own client list and asks what to fix before she starts next month, and which code of ethics principle each problem breaks so she can explain it to her manager. Her plan's lines are below.",
       safetyNote: FITNESS_SAFETY,
       sources: [source("https://www.acefitness.org/fitness-certifications/certified-code-of-ethics/", "reference", "2026-11-14")],
       steps: [
         {
           text: "",
-          ask: "Tap the lines that conflict with the ACE Code of Ethics. Then: match each problem to the ACE principle it breaks, then rewrite the before-and-after post plan so it is ethical.",
+          ask: "Tap the lines that conflict with the certifying body's code of ethics. Then: match each problem to the principle it breaks, then rewrite the before-and-after post plan so it is ethical.",
           parts: [
             selectPart(
               "Lines that conflict with the Code",
@@ -545,7 +545,7 @@ export const ACECPT_LABS: SeedLabSet = {
                 ],
                 pairs: [0, 1, 2, 3, 4],
                 leftHeading: "Problem",
-                rightHeading: "ACE principle",
+                rightHeading: "Code of ethics principle",
               }
             ),
             part(

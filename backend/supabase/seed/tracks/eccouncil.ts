@@ -41,7 +41,6 @@
 
 import type { SeedTrack, UnitSource } from "../data";
 import { source } from "../sources";
-import { PERMISSION_PENDING_HIDDEN_AT, PERMISSION_PENDING_REASON } from "./permission-pending";
 
 const CHECKED = "2026-11-14";
 const VERIFIED_AT = "2026-11-14T00:00:00Z";
@@ -115,11 +114,11 @@ export const CEH_DOMAIN_QUESTIONS = CEH_DOMAINS.map((d) => d.questions);
 export const CEH_SOURCES = {
   format: src("EC-Council, CEH certification page (exam 312-50) and CEH v13 course page", CEH_CERT_URL, "exam_outline", {
     keyValues: [
-      "exam 312-50: 125 multiple-choice questions in 4 hours, through EC-Council's own exam portal (remote proctoring) or Pearson VUE",
-      "EC-Council sets a cut score per exam form; passing scores range from 60% to 85% depending on the form",
-      "CEH is currently on version 13 (20 learning modules, AI-driven ethical hacking added); versions are released every 12-18 months",
-      "the optional CEH (Practical) is a separate 6-hour exam of 20 challenges in EC-Council's cyber range; passing both earns CEH Master",
-      "eligibility: official EC-Council training, or two years of information security work experience and an approved application (USD 100 fee)",
+      "125 multiple-choice questions in 4 hours, through the certifying body's own exam portal (remote proctoring) or Pearson VUE",
+      "the certifying body sets a cut score per exam form; passing scores range from 60% to 85% depending on the form",
+      "the certification is currently on version 13 (20 learning modules, AI-driven ethical hacking added); versions are released every 12-18 months",
+      "an optional practical exam is a separate 6-hour exam of 20 challenges in the certifying body's cyber range; passing both earns a master-level designation",
+      "eligibility: the certifying body's official training, or two years of information security work experience and an approved application (USD 100 fee)",
     ],
   }),
   course: src("EC-Council, Certified Ethical Hacker v13 course page (module outline)", CEH_COURSE_URL, "reference"),
@@ -144,8 +143,6 @@ const cehUnit = (d: number, gate: string, objectives: string[], extra: UnitSourc
 
 export const CEH_TRACK: SeedTrack = {
   code: "CEH",
-  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
-  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for an ethical hacking knowledge certification exam",
   description:
     "Preparation for an ethical hacking knowledge certification exam: the blueprint's nine domains from reconnaissance and system hacking to web, wireless, mobile, IoT, OT, cloud and cryptography, weighted as the exam weights them, each attack paired with how defenders detect and stop it. Every lab is authorized testing in a lab you own. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
@@ -174,22 +171,22 @@ export const CEH_TRACK: SeedTrack = {
     officialObjectivesUrl: CEH_BLUEPRINT_URL,
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "Official EC-Council training, or at least two years of work experience in information security with an approved eligibility application (USD 100, non-refundable).",
+      "The certifying body's official training, or at least two years of work experience in information security with an approved eligibility application (USD 100, non-refundable).",
     durationMinutes: 240,
     questionFormat:
-      "125 multiple-choice questions in 4 hours, through EC-Council's own exam portal with remote proctoring, or at Pearson VUE. (EC-Council CEH certification page and Exam Blueprint v5.0, read 2026-11-14.) The 6-hour, 20-challenge CEH (Practical) is a separate exam.",
+      "125 multiple-choice questions in 4 hours, fixed length (every candidate answers the same number of questions), through the certifying body's own exam portal with remote proctoring, or at Pearson VUE. (The certification page and the exam blueprint v5.0, read 2026-11-14.) A 6-hour, 20-challenge practical exam is separate.",
     passingScorePolicy:
-      "EC-Council sets the cut score per exam form from each question's rated difficulty; depending on the form, passing ranges from 60% to 85%.",
+      "The certifying body sets the cut score per exam form from each question's rated difficulty; depending on the form, passing ranges from 60% to 85%.",
     publishedWeightsNote:
       "EC-Council's CEH Exam Blueprint v5.0 prints domain weights 6, 17, 15, 24, 14, 5, 10, 5 and 5 percent, which add to 101: each is the domain's question count over 125 (7, 21, 19, 30, 18, 6, 12, 6, 6), rounded. Kept exactly as printed.",
   },
   units: [
     cehUnit(
       1,
-      "Given a request to test an organization, say what makes the work ethical hacking rather than an attack -- written authorization, scope and rules of engagement -- place the planned steps on the CEH framework, the Cyber Kill Chain and MITRE ATT&CK, and name the laws and standards the client must meet.",
+      "Given a request to test an organization, say what makes the work ethical hacking rather than an attack -- written authorization, scope and rules of engagement -- place the planned steps on a five-phase ethical hacking methodology, the Cyber Kill Chain and MITRE ATT&CK, and name the laws and standards the client must meet.",
       [
         "Explain the elements of information security, the classes of attacks and the classes of hackers",
-        "Apply hacking methodologies and frameworks -- the CEH ethical hacking framework, the Cyber Kill Chain and MITRE ATT&CK -- to plan an engagement",
+        "Apply hacking methodologies and frameworks -- a five-phase ethical hacking methodology, the Cyber Kill Chain and MITRE ATT&CK -- to plan an engagement",
         "Distinguish ethical hacking from attacking: written authorization, scope, rules of engagement and reporting",
         "Map information security controls, laws and standards -- PCI DSS, HIPAA, SOX and the GDPR -- to an organization",
         "Evaluate AI-driven tools in ethical hacking: where they speed up the work and where their output must be checked",

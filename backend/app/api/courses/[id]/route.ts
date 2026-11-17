@@ -8,6 +8,7 @@ import { featureLock } from "@/lib/entitlements";
 import { READINESS_LOCKED_TEXT } from "@/lib/billing-config";
 import { studyNoticeAcceptedSql } from "@/lib/study-notice";
 import { isMatureCategory, matureContentNeededSql, matureContentRequiredBody, MATURE_CONTENT_REQUIRED_MESSAGE } from "@/lib/mature-content";
+import { learnerTrackRow } from "@/lib/unbranded";
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +122,9 @@ export async function GET(
     // mock-exam and readiness features to read. null for non-exam tracks.
     const exam = await cachedExamBlueprint(id, (tracks[0] as { credential_exam_id?: unknown }).credential_exam_id);
 
-    return ok({ track: trackOut, units: unitsWithObjectives, acknowledgement, readiness, exam, ...(readinessLocked ? { readinessLocked } : {}) });
+    // REQ-319: the display code for an unbranded course; its exam (above) carries
+    // no names or codes and adds the published facts the page shows instead.
+    return ok({ track: learnerTrackRow(trackOut), units: unitsWithObjectives, acknowledgement, readiness, exam, ...(readinessLocked ? { readinessLocked } : {}) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

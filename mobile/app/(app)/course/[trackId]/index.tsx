@@ -6,6 +6,7 @@ import { api } from "@/api/client";
 import type { CourseReadiness, Track, Unit } from "@/types";
 import {
   Badge,
+  Body,
   Button,
   Card,
   EmptyState,
@@ -27,6 +28,8 @@ import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
 import { nextCourseStep } from "@/lib/nextStep";
 import { vendorDisclaimer } from "@/lib/vendor";
+import { examFactsOf } from "@/lib/examFacts";
+import { ExamFactsCard } from "@/components/ExamFactsCard";
 import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
@@ -63,7 +66,8 @@ export default function CourseDashboard() {
   // doesn't include the readiness score; one quiet line, not a lock.
   const [readinessLocked, setReadinessLocked] = useState<string | null>(null);
   // REQ-119 (M6): the exam's provider, for the "not affiliated" line.
-  const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
+  // REQ-319: plus, for an unbranded course, the exam's published facts.
+  const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null; facts?: unknown } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // REQ-123: verifiable labs per unit; empty (and nothing shown) for a
@@ -105,7 +109,7 @@ export default function CourseDashboard() {
     setError(null);
     setNotFound(false);
     api
-      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; readinessLocked?: { message: string } | null; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; readinessLocked?: { message: string } | null; exam?: { providerName?: string | null; credentialName?: string | null; facts?: unknown } | null }>(
         `/api/courses/${trackId}`
       )
       .then((res) => {
@@ -182,7 +186,12 @@ export default function CourseDashboard() {
     setGoalSheet(false);
     openStep();
   }
-  const vendorLine = track ? vendorDisclaimer(exam, track.track_type) : null;
+  // REQ-319: a course of a permission-only exam body names it once, in the
+  // reference line under the title; its description already ends with the
+  // specific disclaimer, so the generic line at the foot is left out.
+  const examFacts = examFactsOf(exam);
+  const reference = examFacts?.reference ?? null;
+  const vendorLine = reference ? null : track ? vendorDisclaimer(exam, track.track_type) : null;
 
   // REQ-100: readiness from weighted accuracy across every question type,
   // rolled up by the exam blueprint, with coverage shown apart from accuracy
@@ -211,10 +220,15 @@ export default function CourseDashboard() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>
               <H1>{track.title}</H1>
+              {/* REQ-319: the exam named once, in plain body text, never larger. */}
+              {reference ? <Body>{reference.line}</Body> : null}
               <Muted>{track.description}</Muted>
             </View>
             <FavoriteButton active={!!track.is_favorite} onPress={toggleFavorite} />
           </View>
+
+          {/* REQ-319: what exam this is, by its published facts, for a course that names no exam body. */}
+          {examFacts ? <ExamFactsCard facts={examFacts} /> : null}
 
           {/* REQ-252 / REQ-255: why they're taking it with "Change", the level chip, and level notices. */}
           <CourseLevelPanel trackId={trackId} state={level.state} setState={level.setState} />

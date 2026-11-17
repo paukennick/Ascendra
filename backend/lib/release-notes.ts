@@ -99,6 +99,33 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
+    // plain reference line with a specific disclaimer, and show its published
+    // facts; the six courses REQ-318 hid are listed again. Not gated.
+    id: "2026-11-17-b",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-319"],
+    title: "Course pages now say which exam each course prepares for",
+    items: [
+      {
+        icon: "info",
+        headline: "The exam, named once, with its facts",
+        body: "The top of a course page shows the exam's published facts: questions, time, format, passing standard, eligibility and the domains with their weights.",
+      },
+      {
+        icon: "book-open",
+        headline: "Six courses are back",
+        body: "Entry-level cybersecurity, advanced information security, ethical hacking, emergency nursing and the two counselor licensure courses are listed again.",
+      },
+      {
+        icon: "shield",
+        headline: "Clear about who we are",
+        body: "Next to the exam's name, the course says that Ascendra is independent and not endorsed by the organization that runs the exam.",
+      },
+    ],
+  },
+  {
     // 2026-11-17: new sim screens (REQ-311..314) and the sims on them, more
     // sims on existing screens (REQ-315, REQ-316), source corrections (REQ-310).
     // Every item is gated like every sims mention.
@@ -144,18 +171,18 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // 2026-11-16: the checkpoint and wave ships (#193, #199), desktop web
     // column (REQ-304), biometric unlock fix (REQ-305), one session per device
-    // (REQ-306). The sims item is gated like every sims mention. REQ-318: the
-    // count leaves out the four hidden pending their exam body's permission.
+    // (REQ-306). The sims item is gated like every sims mention. REQ-319: the
+    // count is 28 again; REQ-318 had hidden four of them, REQ-319 lists them.
     id: "2026-11-16",
     date: "2026-11-16",
     appVersion: "2.0.0",
     covers: ["REQ-304", "REQ-305", "REQ-306"],
-    title: "24 new courses, and sign-in fixes",
+    title: "28 new courses, and sign-in fixes",
     items: [
       {
         icon: "book-open",
-        headline: "24 new courses",
-        body: "Python and Linux, SQL, TypeScript, Power BI, security management, nursing specialties and FNP, Scrum, IT service, Six Sigma, nutrition coaching, and social work licensure.",
+        headline: "28 new courses",
+        body: "Python and Linux, SQL, TypeScript, Power BI, security management and ethical hacking, nursing specialties and FNP, Scrum, IT service, Six Sigma, nutrition coaching, and social work licensure.",
       },
       {
         icon: "compass",
@@ -302,15 +329,14 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     // Wave 2 (2026-11-12 UTC): REQ-237 terminal screen, REQ-238 security,
     // REQ-239 NCE/NCMHCE, REQ-240 nursing, REQ-241 EMS, REQ-242 AWS. Gated
-    // whole on sims: all its items are sims (FAIL-1271 rule).
-    // REQ-318: the counseling courses item was taken out when those courses
-    // were hidden pending their exam body's permission.
+    // whole on sims: four of its five items are sims (FAIL-1271 rule).
+    // REQ-319: the counseling courses item is back with the courses.
     id: "2026-11-12-b",
     date: "2026-11-12",
     appVersion: "2.0.0",
     covers: ["REQ-237", "REQ-238", "REQ-239", "REQ-240", "REQ-241", "REQ-242"],
     requires: "sims",
-    title: "Outages, incidents and new cases",
+    title: "Outages, incidents and two counseling courses",
     items: [
       {
         icon: "tool",
@@ -325,6 +351,13 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         body:
           "CySA+, PenTest+, SecurityX and SecAI+ each get two incidents on the security console. " +
           "The attacker keeps moving while you work.",
+      },
+      {
+        icon: "book-open",
+        headline: "Two counselor licensure courses",
+        body:
+          "Two new counseling courses built on the current exam outlines, with 12 labs each and five client " +
+          "sessions, from a first intake to a substance use assessment. For learners 18 and over.",
       },
       {
         icon: "zap",

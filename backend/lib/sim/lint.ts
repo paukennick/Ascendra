@@ -4,6 +4,7 @@
 // golden file); layers 2-3 are the engine's lintScenario with the golden
 // paths replayed, the bounded path search and the source re-check dates.
 import { readFileSync } from "node:fs";
+import { UNBRANDED_BODIES, MARK_HOMONYMS as UNBRANDED_MARK_HOMONYMS } from "../unbranded.ts";
 import { compileEntry } from "./documents.ts";
 import type { DocumentEntry } from "./documents.ts";
 import { goldenFileSchema, schemaProblems } from "./schema.ts";
@@ -225,22 +226,14 @@ const NOT_LEARNER_TEXT = new Set(["objective", "secondaryObjectives", "sources",
 // Infrastructure Security Agency). "ACE inhibitor" is a drug class, not the
 // American Council on Exercise. Sources stay out of the check: whether a
 // citation may name a publisher's document is Nick's decision (REQ-309).
-export const PERMISSION_BODY_MARKS: readonly { body: string; marks: RegExp }[] = [
-  { body: "ISC2", marks: /ISC2|\(ISC\)|CISSP|Certified in Cybersecurity|Certified Information Systems Security Professional|\bCC\b|\bCBK\b/ },
-  { body: "EC-Council", marks: /EC-Council|\bC\|?EH\b|Certified Ethical Hacker|312-50/ },
-  { body: "ISACA", marks: /ISACA|\bCISM\b|Certified Information Security Manager|COBIT/ },
-  { body: "BCEN", marks: /BCEN|\bCEN\b|Certified Emergency Nurse|Board of Certification for Emergency Nursing/ },
-  { body: "NBCC", marks: /NBCC|\bNCE\b|NCMHCE|National Counselor Examination|National Clinical Mental Health Counseling Examination|\bNCC\b/ },
-  { body: "NASM", marks: /NASM|AFAA|Certified Nutrition Coach|\bCNC\b/ },
-  { body: "ACE", marks: /\bACE\b|American Council on Exercise/ },
-  { body: "ASQ", marks: /\bASQ\b|American Society for Quality|CSSGB|Certified Six Sigma/ },
-  { body: "ANCC", marks: /ANCC|American Nurses Credentialing Center|FNP-BC|\bANA\b/ },
-  { body: "AANPCB", marks: /AANPCB|\bNPCB\b|\bAANP\b|American Academy of Nurse Practitioners|\bFNP-C\b|\bNP-C\b/ },
-  { body: "Python Institute", marks: /Python Institute|OpenEDG|PCEP|PCAP|PCPP/ },
-  { body: "ABPTS (APTA)", marks: /ABPTS|American Board of Physical Therapy Specialties|\bAPTA\b|\b(OCS|NCS|CCS|PCS|SCS|WCS|PWCS)\b/ },
-  { body: "PeopleCert", marks: /ITIL|PeopleCert|PRINCE2|AXELOS/ },
-];
-const MARK_HOMONYMS = /\bACE inhibitors?\b/g;
+// REQ-319: derived from lib/unbranded.ts (one list for the app, the prompts
+// and the sims), less the three homonyms a sim may use in their other sense:
+// CISA (the US agency), GCS (the Glasgow Coma Scale) and ECS (Amazon ECS).
+export const PERMISSION_BODY_MARKS: readonly { body: string; marks: RegExp }[] = UNBRANDED_BODIES.map((b) => ({
+  body: b.name,
+  marks: new RegExp(b.marks.source.replace("|\\bCISA\\b", "").replace("GCS|", "").replace("|ECS", "")),
+}));
+const MARK_HOMONYMS = UNBRANDED_MARK_HOMONYMS;
 
 export function certMarkProblems(doc: ScenarioDoc): Problem[] {
   const strict = MARK_PROFILES.has(doc.outcome?.profile);

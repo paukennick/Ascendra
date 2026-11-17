@@ -113,7 +113,7 @@ export const TERMS: LegalDoc = {
     {
       title: "3. Not affiliated with any certification or licensing body",
       body: [
-        "Ascendra is independent. It is not produced, endorsed or sponsored by, or affiliated with, any certification, licensing, examination or accrediting body named in its courses. Exam and credential names and trademarks belong to their owners and are used only to describe what a course covers. Each course page names the body behind its exam, and the Disclaimer and Sources & Trademarks pages list them all.",
+        "Ascendra is independent. It is not produced, endorsed or sponsored by, or affiliated with, any certification, licensing, examination or accrediting body named in its courses. Exam and credential names and trademarks belong to their owners and are used only to describe what a course covers. Most course pages name the body behind the exam, with a disclaimer, and the Disclaimer and Sources & Trademarks pages list those bodies.",
         "Completing a course, reaching a mastery level or answering practice questions correctly does not guarantee that you will pass an exam, earn a credential or get any grade. Practice questions are written to resemble an exam's style and coverage; they are not taken from any real exam.",
       ],
     },
@@ -378,8 +378,8 @@ function termsSection(heading: string): LegalSection {
 
 export const DISCLAIMER: LegalDoc = {
   title: "Disclaimer",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-16",
+  updated: "November 16, 2026",
   intro: "A summary of terms already in the Terms of Service, kept here so it is easy to find. It is not a separate agreement.",
   sections: [
     termsSection("Not affiliated"),
@@ -410,8 +410,8 @@ export const DISCLAIMER: LegalDoc = {
 // since the 2026-11-07 merge; line B's CREDENTIAL_OWNERS was folded into it).
 export const SOURCES: LegalDoc = {
   title: "Sources & Trademarks",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-16",
+  updated: "November 16, 2026",
   sections: [
     {
       title: "How courses are built",
@@ -472,8 +472,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-14",
-  updated: "November 14, 2026",
+  version: "2026-11-16",
+  updated: "November 16, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -484,7 +484,7 @@ export const FAQ: LegalDoc = {
     {
       title: "Is Ascendra affiliated with any certification or licensing body?",
       body: [
-        "No. Ascendra is independent and is not endorsed by NCSBN, AACN, FSBPT, CompTIA, AWS, Microsoft, Google, PMI or any other body named in its courses; their names and trademarks belong to them. Each course page names the body behind its exam, and the Disclaimer and Sources & Trademarks pages list them all.",
+        "No. Ascendra is independent and is not endorsed by NCSBN, AACN, FSBPT, CompTIA, AWS, Microsoft, Google, PMI or any other body named in its courses; their names and trademarks belong to them. Most course pages name the body behind the exam, with a disclaimer, and the Disclaimer and Sources & Trademarks pages list those bodies.",
       ],
     },
     {

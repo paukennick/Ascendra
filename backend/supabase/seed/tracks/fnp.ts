@@ -208,7 +208,7 @@ export const FNPAANP_TRACK: SeedTrack = {
     recommendedExperience:
       "Completion of an accredited graduate, postgraduate or doctoral FNP program with three separate graduate courses in advanced physical assessment, advanced pharmacology and advanced pathophysiology, at least 500 faculty-supervised direct patient care clinical hours, and a current, active US RN license (FNP Candidate Handbook, updated 06/2026).",
     durationMinutes: 180,
-    questionFormat: "150 multiple-choice questions in 3 hours: 135 scored and 15 unscored pretest questions, spread across eight patient-age bands.",
+    questionFormat: "150 multiple-choice questions in 3 hours, fixed length (every candidate answers the same number of questions): 135 scored and 15 unscored pretest questions, spread across eight patient-age bands.",
     passingScorePolicy:
       "A passing score set by recognized standard-setting methodology; scores are not reported as a percentage correct. A preliminary pass/fail result is given at the end of the exam. Candidates may test up to three times per calendar year.",
   },
@@ -354,8 +354,8 @@ export const FNPANCC_TRACK: SeedTrack = {
       "A current, active RN license; an FNP master's, post-graduate certificate or DNP from a CCNE-, ACEN- or CNEA-accredited program with at least 500 faculty-supervised clinical hours; and three separate graduate APRN core courses in advanced physiology/pathophysiology, health assessment and pharmacology. The credential is valid for 5 years.",
     durationMinutes: 210,
     questionFormat:
-      "175 questions in 3.5 hours: 150 scored and 25 unscored pretest questions, also classified by body system, drug agent and eight age groups.",
-    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. ANCC's FNP page reports a 2025 pass rate of 82%.",
+      "175 questions in 3.5 hours, fixed length (every candidate answers the same number of questions): 150 scored and 25 unscored pretest questions, also classified by body system, drug agent and eight age groups.",
+    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. The certifying body's page for this exam reports a 2025 pass rate of 82%.",
     publishedWeightsNote:
       "ANCC's printed percentages are 17/17/19/33/13, which total 99; the outline says the total does not come to 100 because of rounding (the item counts 26/25/29/50/20 total 150). Kept as printed.",
   },

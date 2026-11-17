@@ -1,4 +1,5 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
+import { learnerExamNames } from "@/lib/unbranded";
 import { isActive } from "@/lib/progress-sql";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { sendServiceEmail } from "@/lib/email";
@@ -378,10 +379,11 @@ export async function countdownRecipients(today: string): Promise<CountdownRecip
     exam_date: string;
     credential_name: string | null;
     provider_name: string | null;
+    provider_slug: string | null;
     exam_code: string | null;
   }>(
     `select u.id as user_id, u.email, st.id as track_id, st.title, to_char(sp.exam_date, 'YYYY-MM-DD') as exam_date,
-            c.name as credential_name, cp.name as provider_name, ce.exam_code
+            c.name as credential_name, cp.name as provider_name, cp.slug as provider_slug, ce.exam_code
        from study_plans sp
        join app_users u on u.id = sp.user_id
        join subject_tracks st on st.id = sp.track_id
@@ -406,12 +408,13 @@ export async function countdownRecipients(today: string): Promise<CountdownRecip
       email: r.email,
       trackId: r.track_id,
       courseTitle: r.title,
-      shortName: shortCourseName({
+      shortName: shortCourseName(learnerExamNames({
+        providerSlug: r.provider_slug,
         credentialName: r.credential_name,
         providerName: r.provider_name,
         examCode: r.exam_code,
         trackTitle: r.title,
-      }),
+      })),
       examDate: r.exam_date,
       daysLeft,
       periodKey: `${r.track_id}:${r.exam_date}:${w.label}`,

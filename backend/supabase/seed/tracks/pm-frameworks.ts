@@ -434,7 +434,7 @@ const ITIL_FORMAT = src("PeopleCert, ITIL 4 Foundation exam and ITIL FAQ", ITIL_
   keyValues: [
     "40 multiple-choice questions, 60 minutes, closed book, 65% to pass (26 of 40); 12 languages",
     "questions are at Bloom's levels 1 and 2 (recall and understanding); one mark each, no negative marking (syllabus copy)",
-    "PeopleCert's FAQ: the current plan is to sunset all ITIL 4 modules on 2027-12-31; ITIL 4 and ITIL (Version 5) run in parallel until then",
+    "the certifying body's FAQ: the current plan is to sunset all version 4 modules on 2027-12-31; versions 4 and 5 run in parallel until then",
     "renew every three years with 60 CPD points",
   ],
 });
@@ -489,7 +489,7 @@ export const ITIL4FND_TRACK: SeedTrack = {
     recommendedExperience: "None required. Training with an accredited training organization is common but not mandatory.",
     durationMinutes: 60,
     questionFormat:
-      "40 multiple-choice questions in 60 minutes, closed book, one mark each, no negative marking; questions test recall and understanding. Available in 12 languages (25% extra time when not taken in your first language, per the syllabus copy).",
+      "40 multiple-choice questions in 60 minutes, fixed length (every candidate answers the same number of questions), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 12 languages (25% extra time when not taken in your first language, per the syllabus copy).",
     passingScorePolicy: "65%: 26 of 40 correct. Renew every three years with 60 CPD points.",
   },
   units: [
@@ -509,11 +509,11 @@ export const ITIL4FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "The ITIL Guiding Principles",
+      title: "The Guiding Principles",
       rangeLabel: "6 of 40 marks",
       weight: 15,
       gate: "Given an improvement initiative, choose the guiding principle it most needs, explain how applying it changes the next step, and how the other principles bear on it.",
-      sources: [itilSyllabus("2. Understand how the ITIL guiding principles can help an organization adopt and adapt service management", ["2.1 Describe the nature, use and interaction of the guiding principles", "2.2 Explain the use of the guiding principles: focus on value; start where you are; progress iteratively with feedback; collaborate and promote visibility; think and work holistically; keep it simple and practical; optimize and automate"]), src("ITIL 4 structure as listed in the syllabus", ITIL_SYLLABUS_COPY_URL, "exam_outline", "2027-06-01", { keyValues: ITIL_STRUCTURE.slice(0, 1) })],
+      sources: [itilSyllabus("2. Understand how the guiding principles can help an organization adopt and adapt service management", ["2.1 Describe the nature, use and interaction of the guiding principles", "2.2 Explain the use of the guiding principles: focus on value; start where you are; progress iteratively with feedback; collaborate and promote visibility; think and work holistically; keep it simple and practical; optimize and automate"]), src("ITIL 4 structure as listed in the syllabus", ITIL_SYLLABUS_COPY_URL, "exam_outline", "2027-06-01", { keyValues: ITIL_STRUCTURE.slice(0, 1) })],
       objectives: [
         "Applying focus on value and start where you are to an improvement initiative",
         "Applying progress iteratively with feedback and collaborate and promote visibility",
@@ -539,11 +539,11 @@ export const ITIL4FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "The ITIL Service Value System",
+      title: "The Service Value System",
       rangeLabel: "1 of 40 marks",
       weight: 2.5,
       gate: "Given an organization's demand and opportunity, trace how the service value system's components turn them into value.",
-      sources: [itilSyllabus("4. Understand the purpose and components of the ITIL service value system", ["4.1 Describe the ITIL service value system"])],
+      sources: [itilSyllabus("4. Understand the purpose and components of the service value system", ["4.1 Describe the service value system"])],
       objectives: [
         "Describing the components of the service value system: guiding principles, governance, the service value chain, practices and continual improvement",
         "Explaining how opportunity and demand enter the service value system and value comes out",
@@ -565,11 +565,11 @@ export const ITIL4FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Purpose and Key Terms of 15 ITIL Practices",
+      title: "Purpose and Key Terms of 15 Management Practices",
       rangeLabel: "7 of 40 marks",
       weight: 17.5,
-      gate: "Given a scenario, name the practice whose purpose it serves and the ITIL term for what happened -- an incident, a problem, a known error, an event or a change.",
-      sources: [itilSyllabus("6. Know the purpose and key terms of 15 ITIL practices", ["6.1 Recall the purpose of the following ITIL practices: information security management; relationship management; supplier management; IT asset management; monitoring and event management; release management; service configuration management; deployment management; continual improvement; change enablement; incident management; problem management; service request management; service desk; service level management", "6.2 Recall definitions of the following ITIL terms: IT asset; event; configuration item; change; incident; problem; known error"])],
+      gate: "Given a scenario, name the practice whose purpose it serves and the service management term for what happened -- an incident, a problem, a known error, an event or a change.",
+      sources: [itilSyllabus("6. Know the purpose and key terms of 15 management practices", ["6.1 Recall the purpose of the following practices: information security management; relationship management; supplier management; IT asset management; monitoring and event management; release management; service configuration management; deployment management; continual improvement; change enablement; incident management; problem management; service request management; service desk; service level management", "6.2 Recall definitions of the following terms: IT asset; event; configuration item; change; incident; problem; known error"])],
       objectives: [
         "Recalling the purpose of information security management, relationship management and supplier management",
         "Recalling the purpose of IT asset management, monitoring and event management, and service configuration management",
@@ -580,11 +580,11 @@ export const ITIL4FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Seven ITIL Practices in Detail",
+      title: "Seven Management Practices in Detail",
       rangeLabel: "17 of 40 marks",
       weight: 42.5,
       gate: "Given an operational scenario, explain how the right practice handles it -- the change type and authority, the incident priority and route, the problem phase, the request workflow, the service desk channel or the service level measure.",
-      sources: [itilSyllabus("7. Understand 7 ITIL practices", ["7.1 Explain the following ITIL practices in detail, excluding how they fit within the service value chain: continual improvement, including the continual improvement model; change enablement; incident management; problem management; service request management; service desk; service level management"])],
+      sources: [itilSyllabus("7. Understand 7 management practices", ["7.1 Explain the following practices in detail, excluding how they fit within the service value chain: continual improvement, including the continual improvement model; change enablement; incident management; problem management; service request management; service desk; service level management"])],
       objectives: [
         "Applying the continual improvement model step by step to an improvement initiative",
         "Using a continual improvement register and explaining who owns continual improvement",
@@ -673,9 +673,9 @@ const ITIL5_FORMAT = itil5Src("PeopleCert, ITIL Foundation (Version 5) exam page
   keyValues: [
     "40 multiple-choice questions, 60 minutes, closed book, 65% to pass (26 of 40); 9 languages",
     "one mark per question, no negative marking; questions at Bloom's levels 1 and 2 (recall and understanding); 75 minutes when not taken in the candidate's native language (syllabus v5.0)",
-    "category weights: key terms 30%, four dimensions 10%, lifecycle 10%, ITIL value system 40%, value streams 5%, ITIL and AI 2.5%, ITIL and other frameworks 2.5%",
+    "category weights: key terms 30%, four dimensions 10%, lifecycle 10%, value system 40%, value streams 5%, the framework and AI 2.5%, the framework and other frameworks 2.5%",
     "renew every 3 years with 60 CPD points, or by passing another exam in the same product suite",
-    "PeopleCert's FAQ: the current plan is to sunset all ITIL 4 modules on 2027-12-31; ITIL 4 Foundation holders need not retake Foundation and may take the ITIL Foundation Bridge (Version 5) instead",
+    "the certifying body's FAQ: the current plan is to sunset all version 4 modules on 2027-12-31; version 4 foundation holders need not retake the foundation exam and may take the shorter bridge exam to version 5 instead",
   ],
 });
 
@@ -710,20 +710,20 @@ export const ITIL5FND_TRACK: SeedTrack = {
       "PeopleCert does not publish the ITIL Foundation (Version 5) syllabus; v5.0 (February 2026) was read on 2026-11-16 as reproduced in Van Haren's ITIL 5 Foundation Courseware. Version 5.0 is the first syllabus of the edition, so the course is due for review by 2027-05-16.",
     officialObjectivesUrl: ITIL5_PRODUCT_URL,
     lastVendorVerifiedAt: "2026-11-16T00:00:00Z",
-    recommendedExperience: "None required. PeopleCert does not mandate training for Foundation; ITIL 4 Foundation holders can take the shorter Bridge exam instead.",
+    recommendedExperience: "None required. The certifying body does not mandate training for the foundation exam; version 4 foundation holders can take a shorter bridge exam instead.",
     durationMinutes: 60,
     questionFormat:
-      "40 multiple-choice questions in 60 minutes, closed book, one mark each, no negative marking; questions test recall and understanding. Available in 9 languages (75 minutes when not taken in your native language, per the syllabus).",
+      "40 multiple-choice questions in 60 minutes, fixed length (every candidate answers the same number of questions), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 9 languages (75 minutes when not taken in your native language, per the syllabus).",
     passingScorePolicy: "65%: 26 of 40 correct. Renew every three years with 60 CPD points or by passing another exam in the same product suite.",
   },
   units: [
     {
-      title: "Key ITIL Terms and Definitions",
+      title: "Key Service Management Terms and Definitions",
       rangeLabel: "30% of the exam (12 of 40 questions)",
       weight: 30,
       gate: "Given a service description, name the provider, consumer, vendor, sponsor, customer and user, split the offering into goods, access to resources and service actions, and say which outcomes, costs and risks it changes for the consumer.",
       sources: [
-        itil5Syllabus("1. Key ITIL terms and definitions", [
+        itil5Syllabus("1. Key service management terms and definitions", [
           "1.1 Product and service management",
           "1.2 Experience, Strategy and Transformation",
           "1.3 Service offerings",
@@ -735,14 +735,14 @@ export const ITIL5FND_TRACK: SeedTrack = {
       objectives: [
         "Explaining what digital product and service management covers, and how products, services, digital products and digital services differ",
         "Analyzing a service description for its utility, warranty, user experience and sustainability",
-        "Recognizing the basic terms of ITIL's experience, strategy and transformation guidance",
+        "Recognizing the basic terms of the framework's experience, strategy and transformation guidance",
         "Decomposing a service offering into goods transferred, access to resources and service actions, and the interactions around them",
         "Explaining value co-creation: how outcomes, costs, risks and feedback shape the value a consumer gets",
         "Telling an output from an outcome in a scenario",
         "Identifying the service provider, service consumer, digital product vendor, sponsor, customer and user in a scenario",
         "Choosing whether a service relationship is basic, cooperative or collaborative",
         "Explaining the service journey, service quality, service levels and what a service level agreement records",
-        "Explaining why enterprises, managed service providers and digital product vendors adopt ITIL",
+        "Explaining why enterprises, managed service providers and digital product vendors adopt the framework",
       ],
     },
     {
@@ -751,7 +751,7 @@ export const ITIL5FND_TRACK: SeedTrack = {
       weight: 10,
       gate: "Given a rollout that went wrong, say which of the four dimensions was neglected, which external factors acted on it, and what a holistic plan would have changed.",
       sources: [
-        itil5Syllabus("2. The ITIL Four Dimensions of Product and Service Management", ["2.1 Introduction", "2.2 Internal and external factors"], [
+        itil5Syllabus("2. The Four Dimensions of Product and Service Management", ["2.1 Introduction", "2.2 Internal and external factors"], [
           "four dimensions: organizations and people; partners and suppliers; information and technology; value streams and processes",
           "external factors acting on the dimensions are summarized as PESTLE: political, economic, social, technological, legal and environmental",
         ]),
@@ -766,19 +766,19 @@ export const ITIL5FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "The ITIL Product and Service Lifecycle",
+      title: "The Product and Service Lifecycle",
       rangeLabel: "10% of the exam (4 of 40 questions)",
       weight: 10,
       gate: "Given a new digital service, name the lifecycle activity each piece of work belongs to, state that activity's purpose, and show where the activities repeat or overlap instead of running in sequence.",
       sources: [
-        itil5Syllabus("3. The ITIL Product and Service Lifecycle", ["3.1 Introduction", "3.2 Purpose of lifecycle activities"], [
+        itil5Syllabus("3. The Product and Service Lifecycle", ["3.1 Introduction", "3.2 Purpose of lifecycle activities"], [
           "eight lifecycle activities: discover; design; acquire; build; transition; operate; deliver; support",
           "the lifecycle activities are not sequential or linear and can be used iteratively",
         ]),
         ITIL5_FORMAT,
       ],
       objectives: [
-        "Naming the eight lifecycle activities in the order ITIL lists them",
+        "Naming the eight lifecycle activities in the order the framework lists them",
         "Explaining the purpose of each lifecycle activity",
         "Explaining why lifecycle activities are not a fixed sequence and can repeat or overlap",
         "Recognizing which lifecycle activity a piece of work belongs to",
@@ -786,13 +786,13 @@ export const ITIL5FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "The ITIL Value System",
+      title: "The Value System",
       rangeLabel: "40% of the exam (16 of 40 questions)",
       weight: 40,
       gate: "Given an improvement initiative or an operational event, choose the guiding principle it most needs, say what governance and the value chain do with it, tell a problem from an error and a known error, and walk it through the continual improvement model.",
       sources: [
         itil5Syllabus(
-          "4. The ITIL Value System",
+          "4. The Value System",
           ["4.1 Components", "4.2 Guiding Principles", "4.3 Governance", "4.4 Value chain", "4.5 Management practices", "4.6 Continual Improvement Model"],
           [
             "seven guiding principles: focus on value; start where you are; progress iteratively with feedback; collaborate and promote visibility; think and work holistically; keep it simple and practical; optimize and automate",
@@ -814,7 +814,7 @@ export const ITIL5FND_TRACK: SeedTrack = {
         "Telling continuous integration, delivery and deployment apart, and explaining reliability, site reliability engineering and observability",
         "Distinguishing a problem, an error and a known error in an operational scenario",
         "Explaining how value chain activities and practices serve the organization's purpose and operating model, and how their success is measured",
-        "Explaining management practices, the two practice groups and how the ITIL Practice Guides are structured and why they help",
+        "Explaining management practices, the two practice groups and how the framework's practice guides are structured and why they help",
         "Selecting metrics and critical success factors for a practice",
         "Applying the steps of the continual improvement model to an improvement initiative",
         "Explaining continual improvement's place in the value system and in the organization",
@@ -834,29 +834,29 @@ export const ITIL5FND_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "ITIL and AI",
+      title: "Service Management and AI",
       rangeLabel: "2.5% of the exam (1 of 40 questions)",
       weight: 2.5,
       gate: "Given a service team's plan to use AI, say which lifecycle and value chain activities it assists or automates, and what AI governance asks of the plan.",
-      sources: [itil5Syllabus("6. ITIL and AI", ["6.1 Introduction to AI", "6.2 ITIL AI Governance"]), ITIL5_FORMAT],
+      sources: [itil5Syllabus("6. Service management and AI", ["6.1 Introduction to AI", "6.2 AI governance"]), ITIL5_FORMAT],
       objectives: [
         "Explaining AI, AI maturity, generative AI and agentic AI in service management terms",
         "Identifying where AI can assist product and service development and automate work across lifecycle activities",
         "Explaining how AI can support the value chain activities",
-        "Explaining AI governance and the ITIL AI capability model",
+        "Explaining AI governance and the framework's AI capability model",
       ],
     },
     {
-      title: "ITIL and Other Frameworks",
+      title: "Working with Other Frameworks",
       rangeLabel: "2.5% of the exam (1 of 40 questions)",
       weight: 2.5,
-      gate: "Given a team running DevOps pipelines and a PRINCE2 project, explain where ITIL complements each across the lifecycle and why project management matters to service management.",
-      sources: [itil5Syllabus("7. ITIL and other frameworks", ["7.1 ITIL and DevOps", "7.2 ITIL and PRINCE2"]), ITIL5_FORMAT],
+      gate: "Given a team running DevOps pipelines and a project run with a structured project management method, explain where the framework complements each across the lifecycle and why project management matters to service management.",
+      sources: [itil5Syllabus("7. The framework and other frameworks", ["7.1 The framework and DevOps", "7.2 The framework and a structured project management method"]), ITIL5_FORMAT],
       objectives: [
-        "Explaining how ITIL works alongside DevOps practices",
-        "Explaining where ITIL and DevOps complement each other across the lifecycle",
-        "Explaining why project management matters to ITIL",
-        "Explaining where ITIL and PRINCE2 complement each other across the lifecycle",
+        "Explaining how the framework works alongside DevOps practices",
+        "Explaining where the framework and DevOps complement each other across the lifecycle",
+        "Explaining why project management matters to service management",
+        "Explaining where the framework and a structured project management method complement each other across the lifecycle",
       ],
     },
   ],
@@ -906,10 +906,10 @@ export const CSSGB_TRACK: SeedTrack = {
     officialObjectivesUrl: CSSGB_BOK_URL,
     lastVendorVerifiedAt: PM_FRAMEWORKS_VERIFIED_AT,
     recommendedExperience:
-      "Three years of full-time, paid work experience in one or more areas of the Green Belt Body of Knowledge; ASQ grants no educational waivers.",
+      "Three years of full-time, paid work experience in one or more areas of the green belt body of knowledge; the certifying body grants no educational waivers.",
     durationMinutes: 258,
     questionFormat:
-      "Computer-delivered (Prometric, or online with a remote proctor): 110 multiple-choice questions, 100 scored and 10 unscored, in 4 hours 18 minutes within a 4.5-hour appointment; open book with bound references; English. A 100-question, 4-hour paper exam is offered in Mandarin in some locations.",
+      "Computer-delivered (Prometric, or online with a remote proctor), fixed length (every candidate answers the same number of questions): 110 multiple-choice questions, 100 scored and 10 unscored, in 4 hours 18 minutes within a 4.5-hour appointment; open book with bound references; English. A 100-question, 4-hour paper exam is offered in Mandarin in some locations.",
     passingScorePolicy: "550 of 750 points, against a fixed standard rather than other candidates. Exam fee $483 ($100 less for members); retake $283.",
   },
   units: [

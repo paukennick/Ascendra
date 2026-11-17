@@ -11567,6 +11567,41 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-319",
+      "category": "trademarks",
+      "title": "Unbranded courses for permission-only exam bodies: one reference line and disclaimer, published exam facts, six courses unhidden",
+      "description": "Nick 2026-11-16 (option A, then Option 2 at 8:27 PM PT): courses of exam bodies whose trademark policy is 'permission' show learners no body name or mark except one plain reference line on the course page ('Prepares you for the <EXAM> exam offered by <Owner>.') and a specific disclaimer replacing the generic notice; ® only where the owner shows registration; learners recognize the exam by its published facts; the six courses REQ-318 hid are listed again.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "lib/unbranded.ts is the one switch; every credential reader uses learnerExamNames",
+        "course codes shown through learnerTrackRow",
+        "prompts carry unbrandedPromptRule",
+        "lib/unbranded.test.ts scans every learner-facing string of the 27 courses",
+        "course page shows published facts and the reference line",
+        "catalog-trademarks.test.ts enforces titles and disclaimers",
+        "ABPTS stays generic until its marks are verified",
+        "ISC2CC CISSP CEH NCE NCMHCE CEN are listed again and the 18+ gate holds"
+      ],
+      "validation_required": [
+        "backend lib/unbranded.test.ts",
+        "backend lib/unbranded.dbtest.ts",
+        "backend lib/catalog-trademarks.test.ts",
+        "mobile src/lib/examFacts.test.ts"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "README.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "risk_notes": [
+        "Generated lessons already stored for these courses may name marks",
+        "Linear format is inferred from a fixed form",
+        "Not legal advice"
+      ]
     }
   ]
 }

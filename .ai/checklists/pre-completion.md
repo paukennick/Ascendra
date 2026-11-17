@@ -324,7 +324,14 @@
 - Hiding a catalog course (REQ-194 `hiddenAt`; REQ-318, FAIL-2282): README counts,
   the sims list and What's new items that name or count it are updated in the
   same change, and the hidden lists in catalog-trademarks.test.ts and
-  catalog-hidden.dbtest.ts name it. A drug the sources call contraindicated
+  catalog-hidden.dbtest.ts name it; unhiding one reverses each of these
+  (REQ-319). A course of an exam body whose trademark policy is "permission"
+  is unbranded (REQ-319, lib/unbranded.ts): every reader of
+  credential_providers / credentials / credential_exams passes the names
+  through `learnerExamNames`, every route that returns a course code through
+  `learnerTrackRow`, model prompts carry `unbrandedPromptRule` (via
+  `CoachContext.unbranded`), and lib/unbranded.test.ts scans the course's
+  strings (citations aside) against the body's marks. A drug the sources call contraindicated
   for the case's client is a harm ending once its label is read, and a drug
   time constant is derived from the label in its param note (FAIL-2280,
   FAIL-2281).

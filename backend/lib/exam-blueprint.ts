@@ -1,4 +1,5 @@
 import { query, queryOne } from "@/lib/db";
+import { examReferenceForCode, learnerExamNames, publishedExamFacts, type PublishedExamFacts } from "@/lib/unbranded";
 
 // REQ-102: the vendor exam a track prepares for, as stored by the seed in
 // credential_exams / exam_domains (migration 007). Exposed so later
@@ -13,8 +14,11 @@ import { query, queryOne } from "@/lib/db";
 // vendors state them too differently for a parser to be trusted.
 export interface ExamBlueprint {
   examId: string;
-  credentialName: string;
-  providerName: string;
+  // REQ-319: null for an unbranded course (lib/unbranded.ts), whose body's
+  // names and codes are never shown; `unbranded` is then true and `facts`
+  // carries the exam's published facts for the course page instead.
+  credentialName: string | null;
+  providerName: string | null;
   examCode: string | null;
   examRevision: string | null;
   status: string;
@@ -29,12 +33,16 @@ export interface ExamBlueprint {
   // The exam that replaces this one, when the vendor has announced it.
   supersededBy: { examId: string; examCode: string | null } | null;
   domains: { name: string; weightPercent: number | null; sortOrder: number }[];
+  unbranded: boolean;
+  facts: PublishedExamFacts | null;
 }
 
 interface ExamRow {
   exam_id: string;
   credential_name: string;
   provider_name: string;
+  provider_slug: string;
+  track_code: string | null;
   exam_code: string | null;
   exam_revision: string | null;
   status: string;
@@ -52,7 +60,8 @@ interface ExamRow {
 
 export async function examBlueprintForTrack(trackId: string): Promise<ExamBlueprint | null> {
   const row = await queryOne<ExamRow>(
-    `select ce.id as exam_id, c.name as credential_name, cp.name as provider_name,
+    `select ce.id as exam_id, c.name as credential_name, cp.name as provider_name, cp.slug as provider_slug,
+            case when st.user_id is null then st.code end as track_code,
             ce.exam_code, ce.exam_revision, ce.status::text as status,
             to_char(ce.effective_date, 'YYYY-MM-DD') as effective_date,
             to_char(ce.retirement_date, 'YYYY-MM-DD') as retirement_date,
@@ -75,12 +84,26 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
   );
 
   const verified = row.last_vendor_verified_at;
-  return {
-    examId: row.exam_id,
-    credentialName: row.credential_name,
+  // REQ-319: one place decides what a learner may see of the exam's identity.
+  const names = learnerExamNames({
+    providerSlug: row.provider_slug,
     providerName: row.provider_name,
+    credentialName: row.credential_name,
     examCode: row.exam_code,
     examRevision: row.exam_revision,
+  });
+  const domainList = domains.map((d) => ({
+    name: d.name,
+    // numeric(5,2) arrives as a string from pg
+    weightPercent: d.weight_percent == null ? null : Number(d.weight_percent),
+    sortOrder: d.sort_order,
+  }));
+  return {
+    examId: row.exam_id,
+    credentialName: names.credentialName,
+    providerName: names.providerName,
+    examCode: names.examCode,
+    examRevision: names.examRevision,
     status: row.status,
     effectiveDate: row.effective_date,
     retirementDate: row.retirement_date,
@@ -91,13 +114,19 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
     officialObjectivesUrl: row.official_objectives_url,
     lastVendorVerifiedAt: verified == null ? null : new Date(verified).toISOString(),
     supersededBy: row.superseded_by_exam_id
-      ? { examId: row.superseded_by_exam_id, examCode: row.superseded_by_exam_code }
+      ? { examId: row.superseded_by_exam_id, examCode: names.unbranded ? null : row.superseded_by_exam_code }
       : null,
-    domains: domains.map((d) => ({
-      name: d.name,
-      // numeric(5,2) arrives as a string from pg
-      weightPercent: d.weight_percent == null ? null : Number(d.weight_percent),
-      sortOrder: d.sort_order,
-    })),
+    domains: domainList,
+    unbranded: names.unbranded,
+    facts: names.unbranded
+      ? publishedExamFacts({
+          questionFormat: row.question_format,
+          durationMinutes: row.duration_minutes,
+          passingScorePolicy: row.passing_score_policy,
+          recommendedExperience: row.recommended_experience,
+          domains: domainList,
+          reference: examReferenceForCode(row.track_code),
+        })
+      : null,
   };
 }

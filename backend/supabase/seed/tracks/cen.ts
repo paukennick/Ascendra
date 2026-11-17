@@ -47,7 +47,6 @@
 
 import type { SeedTrack, UnitSource } from "../data";
 import { source } from "../sources";
-import { PERMISSION_PENDING_HIDDEN_AT, PERMISSION_PENDING_REASON } from "./permission-pending";
 
 const CHECKED = "2026-11-14";
 const VERIFIED_AT = "2026-11-14T00:00:00Z";
@@ -129,8 +128,6 @@ const label = (n: number) => `${n} of 150 scored items`;
 
 export const CEN_TRACK: SeedTrack = {
   code: "CEN",
-  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
-  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for an emergency nursing certification exam",
   description:
     "An emergency nursing specialty certification, built on the examination content outline effective July 2026: ten clinical categories from cardiovascular to environment, toxicology and communicable disease, plus professional issues, weighted by the published item counts. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
@@ -161,11 +158,11 @@ export const CEN_TRACK: SeedTrack = {
     officialObjectivesUrl: CEN_OUTLINE_URL,
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "A current, unencumbered RN license. BCEN recommends at least two years in emergency nursing before testing but does not require it.",
+      "A current, unencumbered RN license. The certifying body recommends at least two years in emergency nursing before testing but does not require it.",
     durationMinutes: 180,
-    questionFormat: "175 multiple-choice items in 180 minutes of seat time: 150 scored and 25 unscored pretest items.",
+    questionFormat: "175 multiple-choice items in 180 minutes of seat time, fixed length (every candidate answers the same number of questions): 150 scored and 25 unscored pretest items.",
     passingScorePolicy:
-      "Criterion-referenced, not curved: BCEN's FAQ (read 2026-11-14) says a candidate must answer 99 of the 150 scored items correctly, a standard BCEN reviews every few years. Retest after a 90-day wait.",
+      "Criterion-referenced, not curved: the certifying body's FAQ (read 2026-11-14) says a candidate must answer 99 of the 150 scored items correctly, a standard it reviews every few years. Retest after a 90-day wait.",
   },
   units: [
     {

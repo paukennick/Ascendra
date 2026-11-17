@@ -8,8 +8,9 @@
 //   - "permission": the policy allows no use of its marks without written
 //     permission (or says unauthorized use is prohibited). The course names
 //     neither the body nor its marks in its title or description, and its
-//     notice is the generic one. Course content and the exam card still name
-//     the exam; that is a decision for Nick (REQ-309 report).
+//     notice is the generic one. REQ-319 (Nick, 2026-11-16, option A): the
+//     rest of the course names neither either (lib/unbranded.ts; scanned in
+//     lib/unbranded.test.ts), and its page shows the exam's published facts.
 //   - "nominative": the policy allows true, factual reference in plain text
 //     but not the mark in a product's name. The title names no mark; the
 //     description may name the exam and carries the body's notice.
@@ -26,6 +27,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { RELEASE_NOTES } from "./release-notes";
+import { COURSE_REFERENCES, REFERENCE_LINE_ON, examReferenceForCode } from "./unbranded";
 
 const byCode = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const READ = "2026-11-16";
@@ -68,7 +70,7 @@ const BODIES: Body[] = [
     marks: /ISACA|\bCISM\b|\bCISA\b|Certified Information Security Manager|COBIT/ },
   { name: "BCEN", policy: "permission", url: "https://bcen.org/wp-content/uploads/2022/11/8.1-Trademark-and-Logo-Usage_2025.pdf", codes: ["CEN"],
     marks: /BCEN|\bCEN\b|Certified Emergency Nurse|Board of Certification for Emergency Nursing/ },
-  { name: "NBCC", policy: "permission", url: "https://2fwww.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", codes: ["NCE", "NCMHCE"],
+  { name: "NBCC", policy: "permission", url: "https://www.nbcc.org/assets/policies/nbcctrademarkusepolicy.pdf", codes: ["NCE", "NCMHCE"],
     marks: /NBCC|\bNCE\b|NCMHCE|National Counselor Examination|National Clinical Mental Health Counseling Examination|\bNCC\b/ },
   { name: "NASM", policy: "permission", url: "https://www.nasm.org/policies/terms-and-conditions", codes: ["NASMCPT", "NASMCNC"],
     marks: /NASM|AFAA|Certified Nutrition Coach|\bCNC\b/ },
@@ -190,12 +192,34 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     }
   });
 
-  test("'permission' bodies: neither title nor description names the body or its marks, and the notice is generic", () => {
+  // REQ-319 (Nick, 2026-11-16, Option 2): a permission body's course names
+  // no mark in its title; its course page carries one plain reference line
+  // ("Prepares you for the <EXAM> exam offered by <Owner>.") and its
+  // description ends with the specific disclaimer instead of the generic
+  // notice. A body whose marks could not be verified (switched off in
+  // lib/unbranded.ts REFERENCE_LINE_ON) keeps the generic notice.
+  test("'permission' bodies: no mark in the title; a reference line and the specific disclaimer, or the generic notice while switched off", () => {
     for (const b of BODIES.filter((x) => x.policy === "permission"))
       for (const code of b.codes) {
         const t = byCode.get(code)!;
-        assert.doesNotMatch(`${t.title} ${t.description}`, PERMISSION_MARKS, `${b.name} ${code}`);
-        assert.match(t.description, GENERIC_NOTICE, `${b.name} ${code}`);
+        assert.doesNotMatch(t.title, PERMISSION_MARKS, `${b.name} ${code}`);
+        const ref = examReferenceForCode(code);
+        if (REFERENCE_LINE_ON[b.name] !== true) {
+          assert.equal(ref, null, code);
+          assert.doesNotMatch(t.description, PERMISSION_MARKS, `${b.name} ${code}`);
+          assert.match(t.description, GENERIC_NOTICE, `${b.name} ${code}`);
+          continue;
+        }
+        assert.ok(ref, `${b.name} ${code}: no reference line`);
+        assert.match(ref.line, /^Prepares you for the .+ exam offered by .+\.$/, code);
+        assert.match(ref.disclaimer, /^(.+ is a (registered (certification )?)?(mark|trademark|certification mark) of .+\. )?Ascendra is independent and is not affiliated with, sponsored by or endorsed by .+\.$/, code);
+        assert.ok(t.description.endsWith(` ${ref.disclaimer}`), `${code}: the description ends with the specific disclaimer`);
+        assert.doesNotMatch(t.description, GENERIC_NOTICE, code);
+        assert.doesNotMatch(t.description.slice(0, -ref.disclaimer.length), PERMISSION_MARKS, `${code}: a mark outside the disclaimer`);
+        for (const text of [ref.line, ref.disclaimer]) assert.doesNotMatch(text, /\b(Official|Approved|Authorized|Certified by|Master)\b/i, code);
+        // The exam's mark appears once in the line.
+        const exam = COURSE_REFERENCES[code].exam;
+        assert.equal(ref.line.split(exam).length - 1, 1, code);
       }
   });
 
@@ -244,10 +268,15 @@ describe("REQ-309: app copy, README and What's new", () => {
     assert.doesNotMatch(read("README.md"), PERMISSION_MARKS);
   });
 
-  test("the app's trademark owners list and settings notice name no 'permission' body", () => {
+  test("the app's trademark owners list names a 'permission' body only once its reference line is on, and the settings notice names none", () => {
     const vendor = read("mobile/src/lib/vendor.ts");
-    const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS"));
-    assert.doesNotMatch(list.replace(/\/\/.*$/gm, ""), PERMISSION_MARKS);
+    const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS")).replace(/\/\/.*$/gm, "");
+    const entries = [...list.matchAll(/^\s*"([^"]+)",$/gm)].map((m) => m[1]);
+    for (const b of BODIES.filter((x) => x.policy === "permission")) {
+      const named = entries.filter((e) => b.marks.test(e) || b.codes.some((c) => COURSE_REFERENCES[c] && e.includes((COURSE_REFERENCES[c].markSentence.match(/ of (.+)\.$/)?.[1] ?? COURSE_REFERENCES[c].owner).replace(/^the /, ""))));
+      if (REFERENCE_LINE_ON[b.name]) assert.ok(named.length >= 1, `${b.name} is missing from TRADEMARK_OWNERS`);
+      else assert.deepEqual(named, [], `${b.name} is listed before its marks are verified`);
+    }
     const settings = read("mobile/app/(app)/settings.tsx");
     assert.doesNotMatch(settings.replace(/\{\/\*.*?\*\/\}|\/\/.*$/gm, ""), PERMISSION_MARKS);
   });
@@ -256,7 +285,10 @@ describe("REQ-309: app copy, README and What's new", () => {
 // REQ-194 (Nick, 2026-11-09; migration 065): the Red Hat and Docker courses
 // are hidden from the catalog, not deleted, so they can come back if the
 // owners agree. Nothing else is hidden by accident.
-const PERMISSION_PENDING = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
+// REQ-319 (Nick, 2026-11-16, option A): the six courses REQ-318 hid pending
+// their exam body's permission (ISC2, EC-Council, NBCC, BCEN) are listed
+// again, unbranded (lib/unbranded.ts, lib/unbranded.test.ts).
+const UNHIDDEN_REQ319 = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
 
 describe("hidden courses", () => {
   // REQ-308: ITIL4FND is hidden too, replaced by ITIL5FND (its reason is
@@ -264,9 +296,9 @@ describe("hidden courses", () => {
   // REQ-318 (Nick, 2026-11-16): the courses of ISC2, EC-Council, NBCC and
   // BCEN, whose policies allow no use of their marks without written
   // permission, are hidden until that permission or legal advice arrives.
-  test("exactly EX188, EX280, DCA, ITIL4FND and the six permission-pending courses are hidden, each with its reason", () => {
+  test("exactly EX188, EX280, DCA and ITIL4FND are hidden, each with its reason", () => {
     const hidden = CATALOG_TRACKS.filter((t) => t.hiddenAt).map((t) => t.code).sort();
-    assert.deepEqual(hidden, ["CEH", "CEN", "CISSP", "DCA", "EX188", "EX280", "ISC2CC", "ITIL4FND", "NCE", "NCMHCE"]);
+    assert.deepEqual(hidden, ["DCA", "EX188", "EX280", "ITIL4FND"]);
     for (const code of ["EX188", "EX280"]) {
       const t = byCode.get(code)!;
       assert.ok(!Number.isNaN(Date.parse(t.hiddenAt!)), code);
@@ -275,18 +307,18 @@ describe("hidden courses", () => {
     assert.match(byCode.get("DCA")!.hiddenReason ?? "", /https:\/\/www\.docker\.com\/legal\/trademark-guidelines/);
   });
 
-  test("REQ-318: the ISC2, EC-Council, NBCC and BCEN courses are hidden pending permission", () => {
-    const pending = BODIES.filter((b) => ["ISC2", "EC-Council", "NBCC", "BCEN"].includes(b.name)).flatMap((b) => b.codes).sort();
-    assert.deepEqual(pending, PERMISSION_PENDING);
-    for (const code of PERMISSION_PENDING) {
+  test("REQ-319: the six courses REQ-318 hid are listed again, with no hidden reason left behind", () => {
+    const six = BODIES.filter((b) => ["ISC2", "EC-Council", "NBCC", "BCEN"].includes(b.name)).flatMap((b) => b.codes).sort();
+    assert.deepEqual(six, UNHIDDEN_REQ319);
+    for (const code of UNHIDDEN_REQ319) {
       const t = byCode.get(code)!;
-      assert.equal(t.hiddenAt, "2026-11-16T00:00:00Z", code);
-      assert.equal(t.hiddenReason, "Hidden pending the exam body's permission to name its exam (REQ-309/REQ-318)", code);
+      assert.equal(t.hiddenAt, undefined, code);
+      assert.equal(t.hiddenReason, undefined, code);
     }
   });
 
   test("their content is kept: units and objectives are still seeded", () => {
-    for (const code of ["EX188", "EX280", "DCA", ...PERMISSION_PENDING]) {
+    for (const code of ["EX188", "EX280", "DCA", ...UNHIDDEN_REQ319]) {
       const t = byCode.get(code)!;
       assert.ok(t.units.length > 0, code);
       assert.ok(t.units.every((u) => u.objectives.length > 0), code);

@@ -103,7 +103,6 @@
 
 import type { SeedTrack, UnitSource } from "../data";
 import { source } from "../sources";
-import { PERMISSION_PENDING_HIDDEN_AT, PERMISSION_PENDING_REASON } from "./permission-pending";
 
 const CHECKED = "2026-11-11";
 const VERIFIED_AT = "2026-11-11T00:00:00Z";
@@ -149,7 +148,7 @@ const OUTLINE = {
     "S. Provide information to third parties",
     "T. Provide referral sources if counseling services are inadequate/inappropriate",
     "U. Advocate for professional and client issues",
-    "V. Seek supervision/consultation (NCMHCE: Supervision)",
+    "V. Seek supervision/consultation (case-based clinical exam: Supervision)",
     "W. Create and maintain documentation appropriate for each aspect of the counseling process",
     "X. Awareness and practice of self-care",
   ],
@@ -177,7 +176,7 @@ const OUTLINE = {
     "U. Evaluate counseling effectiveness",
   ],
   focus: [
-    "A. Adjustment related to physical loss/injury/medical condition (NCMHCE: illness)",
+    "A. Adjustment related to physical loss/injury/medical condition (case-based clinical exam: illness)",
     "B. Aging/geriatric concerns",
     "C. Behavioral problems",
     "D. Bullying",
@@ -400,7 +399,7 @@ const nbccCredential = (o: {
   officialObjectivesUrl: o.outlineUrl,
   lastVendorVerifiedAt: VERIFIED_AT,
   recommendedExperience:
-    "Eligibility is decided by the counseling licensing board where you apply, which approves you to test (a test authorization window of up to six months); NBCC's minimally qualified candidate has graduated from, or is well advanced in, a counseling graduate program accredited by CACREP or housed in an institutionally accredited university. In Washington, a mental health counselor applicant must pass the NCE or the NCMHCE, and the Department of Health accepts NBCC's passing score (WAC 246-809-240). Check which exam your state requires.",
+    "Eligibility is decided by the counseling licensing board where you apply, which approves you to test (a test authorization window of up to six months); the certifying body's minimally qualified candidate has graduated from, or is well advanced in, a counseling graduate program accredited by CACREP or housed in an institutionally accredited university. In Washington, a mental health counselor applicant must pass either the national counselor knowledge exam or the case-based clinical mental health counseling exam, and the Department of Health accepts the certifying body's passing score (WAC 246-809-240). Check which exam your state requires.",
   durationMinutes: 255,
   questionFormat: o.format,
   passingScorePolicy: o.passing,
@@ -557,8 +556,6 @@ const unitWith = (base: string[], extra: string[]): string[] => [...base, ...ext
 
 export const NCE_TRACK: SeedTrack = {
   code: "NCE",
-  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
-  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for a counselor licensure and certification knowledge exam",
   description:
     "Preparation for a national counselor licensure and certification exam: six domains, from professional practice and ethics to counseling skills and interventions, weighted as the exam weights them, with the eight CACREP core areas the questions align to. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
@@ -581,9 +578,9 @@ export const NCE_TRACK: SeedTrack = {
     objectivesRevision: "Six domains, tasks lettered A-X / A-U / A-AX / A-P / A-AW / A-M",
     versionNote: NCE_VERSION_NOTE,
     format:
-      "200 multiple-choice items with four answer choices, of which 160 are scored and 40 are unscored field-test items you cannot tell apart, in one non-sectioned exam: 225 minutes of testing in a 255-minute session, with one 15-minute break after question 100. Computer-based at Pearson VUE or online (OnVUE). (NBCC NCE content outline, 2023; candidate handbook, revised 2024-09-24.) A new blueprint with 170 three-option items takes effect 2027-07-01.",
+      "200 multiple-choice items with four answer choices, of which 160 are scored and 40 are unscored field-test items you cannot tell apart, in one non-sectioned, fixed-length exam (every candidate answers the same number of questions): 225 minutes of testing in a 255-minute session, with one 15-minute break after question 100. Computer-based at Pearson VUE or online (OnVUE). (The exam's content outline, 2023, and candidate handbook, revised 2024-09-24.) A new blueprint with 170 three-option items takes effect 2027-07-01.",
     passing:
-      "Each scored item is one point (160 in all). NBCC sets the cut score with a modified Angoff method and equates it across forms, so it can differ slightly from form to form; your score report shows it. A candidate who does not pass may retest after 30 days, within the state board's limits. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
+      "Each scored item is one point (160 in all). The certifying body sets the cut score with a modified Angoff method and equates it across forms, so it can differ slightly from form to form; your score report shows it. A candidate who does not pass may retest after 30 days, within the state board's limits. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
   }),
   units: [
     {
@@ -643,8 +640,6 @@ export const NCE_TRACK: SeedTrack = {
 
 export const NCMHCE_TRACK: SeedTrack = {
   code: "NCMHCE",
-  hiddenAt: PERMISSION_PENDING_HIDDEN_AT,
-  hiddenReason: PERMISSION_PENDING_REASON,
   title: "Prep for a case-based clinical mental health counseling licensure exam",
   description:
     "Preparation for a case-based clinical mental health counseling licensure exam: clinical case studies, each an intake summary and two counseling sessions, testing domains from intake, assessment and diagnosis to counseling skills and interventions, weighted as the exam weights them. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
@@ -667,9 +662,9 @@ export const NCMHCE_TRACK: SeedTrack = {
     objectivesRevision: "Six domains, tasks lettered A-X / A-U / A-AX / A-P / A-AW / A-M",
     versionNote: NCMHCE_VERSION_NOTE,
     format:
-      "11 clinical case studies, one of them unscored. Each case is one narrative told in three sections -- an initial intake summary and two later counseling sessions -- and each section is followed by multiple-choice questions about it: 9 to 15 per case, each with four options and one correct answer, most asking you to apply or evaluate rather than recall. 130-150 items in all, 100 scored. 225 minutes of testing in a 255-minute session, with one 15-minute break after the fifth case. (NBCC NCMHCE content outline, revised 2025-10-08; candidate handbook, 2025.) From 2027-07-01 the exam has 10 case studies.",
+      "11 clinical case studies, one of them unscored. Each case is one narrative told in three sections -- an initial intake summary and two later counseling sessions -- and each section is followed by multiple-choice questions about it: 9 to 15 per case, each with four options and one correct answer, most asking you to apply or evaluate rather than recall. 130-150 items in all, 100 scored. 225 minutes of testing in a 255-minute session, with one 15-minute break after the fifth case; fixed length (every candidate works every case). (The exam's content outline, revised 2025-10-08, and candidate handbook, 2025.) From 2027-07-01 the exam has 10 case studies.",
     passing:
-      "Each of the 100 scored items is one point. NBCC sets the cut score by standard setting and equates it across forms, so it can differ slightly from form to form. A candidate who does not pass may retest after 30 days, within the state board's approval window. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
+      "Each of the 100 scored items is one point. The certifying body sets the cut score by standard setting and equates it across forms, so it can differ slightly from form to form. A candidate who does not pass may retest after 30 days, within the state board's approval window. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
   }),
   units: [
     {

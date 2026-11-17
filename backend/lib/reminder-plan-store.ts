@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { learnerExamNames } from "@/lib/unbranded";
 import { isActive } from "@/lib/progress-sql";
 import { addDays, MIN_REVIEW_GAP_HOURS } from "@/lib/review-scheduler";
 import { wasRough } from "@/lib/review-plan";
@@ -95,10 +96,11 @@ export async function courseInfo(userId: string, trackIds: string[]): Promise<Ma
     title: string;
     credential_name: string | null;
     provider_name: string | null;
+    provider_slug: string | null;
     exam_code: string | null;
     exam_date: string | null;
   }>(
-    `select st.id, st.title, c.name as credential_name, cp.name as provider_name, ce.exam_code,
+    `select st.id, st.title, c.name as credential_name, cp.name as provider_name, cp.slug as provider_slug, ce.exam_code,
             to_char(sp.exam_date, 'YYYY-MM-DD') as exam_date
        from subject_tracks st
        left join credential_exams ce on ce.id = st.credential_exam_id
@@ -113,12 +115,13 @@ export async function courseInfo(userId: string, trackIds: string[]): Promise<Ma
       r.id,
       {
         trackId: r.id,
-        shortName: shortCourseName({
+        shortName: shortCourseName(learnerExamNames({
+          providerSlug: r.provider_slug,
           credentialName: r.credential_name,
           providerName: r.provider_name,
           examCode: r.exam_code,
           trackTitle: r.title,
-        }),
+        })),
         examDate: r.exam_date,
       },
     ])
