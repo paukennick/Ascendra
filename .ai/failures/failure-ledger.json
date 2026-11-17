@@ -18193,6 +18193,35 @@
       "prevention_rules": [],
       "prevention_notes": "Tests select sim documents by slug or screen, never by course alone (FAIL-2002); REQ-314's own test selects by slug lists (REQ314_SLUGS)",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2222",
+      "date": "2026-11-16",
+      "title": "time_up debrief text equal to the ending narrative leaked as server-only text",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: server-only text reaches the client: The case ran out without a record. (and two more cases)",
+      "how_detected": "lib/sim/documents.test.ts",
+      "root_cause": "Three cases used the same sentence for the time_up ending's narrative (sent to the app) and its debrief body (server-only), so the leak test saw debrief text in the client document",
+      "requirement": "REQ-314",
+      "affected": [
+        "NASMCPT/cpt-squat-knees-cave",
+        "NASMCNC/cnc-ambivalent-food-record",
+        "CEH/ceh-sandbox-invoice-loader"
+      ],
+      "fix_summary": "Debrief bodies rewritten as advice, distinct from the narrative",
+      "fix_commits": [
+        "a0820ee1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/screens-misc.test.ts::no debrief",
+        "model answer or expert path text appears in what the app receives",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-314 test runs the leak check on its own documents, so it fails fast without the heavy documents test",
+      "recurrence_of": ""
     }
   ]
 }
