@@ -446,6 +446,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "low-urine-after-contrast-on-vancomycin"),
   entry("CCRNADULT", "oozing-lines-in-septic-shock"),
   entry("CCRNADULT", "pressor-climbing-home-prednisone-missed"),
+  entry("CCRNADULT", "pale-urine-after-pituitary-surgery"),
   // ---- end REQ-325 ----
 ];
 
