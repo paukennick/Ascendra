@@ -35,6 +35,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "FNPANCC", slug: "clinic-swollen-lip-years-on-lisinopril", screen: "bedside" },
   { course: "FNPAANP", slug: "clinic-calf-ache-after-flight-now-breathless", screen: "bedside" },
   { course: "FNPAANP", slug: "clinic-three-falls-five-new-pills", screen: "bedside" },
+  { course: "NPTEPTA", slug: "pta-knee-replacement-calf-swollen", screen: "treatment-session" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [

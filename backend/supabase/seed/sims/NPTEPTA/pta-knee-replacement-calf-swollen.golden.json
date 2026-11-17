@@ -1,0 +1,434 @@
+{
+  "slug": "pta-knee-replacement-calf-swollen",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: check-in, breathing screen, calf data, reassess; at the findings stop and tell the PT; data in the note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "breath",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "calf",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "dvtQ",
+          "choice": "signs",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 52
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 8,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "data"
+          },
+          "seq": 9,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pt"
+          },
+          "seq": 10,
+          "tick": 52
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "pt",
+          "seq": 11,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 52
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "breathC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "6a4ceac8fb10abde"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Stops at once, but tells the PT more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "breath",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "calf",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dvtQ",
+          "choice": "signs",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 52
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 7,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "data"
+          },
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pt"
+          },
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "pt",
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "breathC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "9f2c6cb7b3a10d5f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: collects the calf data, stops, then notes a cramp and leaves it for the next visit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "calf",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dvtQ",
+          "choice": "signs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 3,
+          "tick": 52
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 5,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cramp"
+          },
+          "seq": 6,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "note"
+          },
+          "seq": 7,
+          "tick": 52
+        },
+        {
+          "type": "teach",
+          "prompt": "whoQ",
+          "choice": "pt",
+          "seq": 8,
+          "tick": 52
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "breathC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "a4c908b5e6b871a9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: checks in, then massages the calf",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dvtQ",
+          "choice": "signs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "breathC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "00b9b76e94f848bf"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: check-in, motion and calf data, notes 'tolerated well'; keeps cycling and tells no one",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dvtQ",
+          "choice": "signs",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rom",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "calf",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dx"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 192
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 28,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "breathC": "missed",
+          "impression": "partial",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "5479f2b9f4d935ba"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
