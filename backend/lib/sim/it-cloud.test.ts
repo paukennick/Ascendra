@@ -185,4 +185,18 @@ describe("what each new cloud case teaches (REQ-320)", () => {
     roll.act("harden");
     assert.equal(roll.value("evidenceLost"), true, "a rollout replaces the compromised pod too");
   });
+  test("DP-300 blocking: killing the waiting sessions leaves invoicing blocked; KILL on the head blocker ends it; a restart drops everyone", () => {
+    const d = docOf("sleeping-session-blocks-orders");
+    const v = driver(d);
+    v.act("killVictims");
+    until(v, 31);
+    assert.notEqual(v.value("invMissAt"), null);
+    const k = driver(d);
+    k.act("kill");
+    until(k, 31);
+    assert.equal(k.value("invMissAt"), null);
+    const r = driver(d);
+    r.act("restart");
+    assert.ok(r.minutes() >= 30, "the restart's recovery runs past the deadline");
+  });
 });
