@@ -1,0 +1,918 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cluster-pool-exhausted-new-nodes",
+  "title": "Outage: three new nodes join the cluster and never become usable",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "ops@k8s-admin:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:10 scanners: 50 of 90 replicas Pending; loading peak at 10:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "10:00: peak, scanners Pending",
+          "when": "not isNull(peakMissAt)",
+          "at": "timeAt(peakMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "10:00: peak, scanners all running",
+          "when": "not isNull(peakOkAt)",
+          "at": "timeAt(peakOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "op",
+          "label": "cilium-operator",
+          "spokenLabel": "the operator",
+          "kind": "allocates per-node pod CIDRs",
+          "status": "{appended ? \"pool 10.0.0.0/22, 10.0.8.0/21\" : changed ? \"pool changed in place\" : \"pool 10.0.0.0/22: 4 of 4 /24s allocated\"}",
+          "tone": "appended and not changed ? \"up\" : \"down\""
+        },
+        {
+          "id": "old",
+          "label": "Nodes w1-w4",
+          "spokenLabel": "the original nodes",
+          "kind": "10.0.0.0/24 to 10.0.3.0/24",
+          "status": "{changed ? \"routes to existing Pods broken\" : \"healthy, full\"}",
+          "tone": "changed ? \"down\" : \"up\""
+        },
+        {
+          "id": "new",
+          "label": "Nodes w5-w7",
+          "spokenLabel": "the new nodes",
+          "kind": "joined 09:00",
+          "status": "{ready ? \"10.0.8.0/24 to 10.0.10.0/24, agents ready\" : \"no pod CIDR; agent waiting\"}",
+          "tone": "ready ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "op",
+          "to": "new",
+          "label": "CiliumNode spec.ipam.podCIDRs",
+          "status": "{ready ? \"assigned\" : \"empty\"}",
+          "tone": "ready ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configure IP address management (IPAM) with Cilium: cluster-scope and Kubernetes host-scope modes, pod CIDRs per node, and cloud-native IPAM (ENI, Azure, GKE)",
+  "secondaryObjectives": [
+    "Cilium component roles: what the agent, operator and proxy each own, and how they interact with the Kubernetes API"
+  ],
+  "sources": [
+    {
+      "cite": "Isovalent, Cilium Certified Associate (CCA) exam page: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%",
+      "checkedAt": "2026-11-17",
+      "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page from the project's main contributor, not the CNCF curriculum; to verify against cncf/curriculum). The objective wording is the course seed's."
+    },
+    {
+      "cite": "Cilium documentation, IP Address Management: Cluster Scope (Default)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cilium.io/en/latest/network/concepts/ipam/cluster-pool/",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the Cilium operator, not Kubernetes, manages per-node PodCIDRs through the v2.CiliumNode resource, and the agent waits at start-up until spec.ipam.podCIDRs is populated; clusterPoolIPv4MaskSize cannot be changed; 'Don't change any existing elements of the clusterPoolIPv4PodCIDRList list'; 'If the pool is exhausted, add a new element to the list instead'; check the Error field under status.ipam.operator-status on each CiliumNode. The operator's error text, the agent-not-ready taint and the cilium-dbg output in the scenario are authored in Cilium's style (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You run the Kubernetes platform for Kestrel Logistics, a fictional freight company, on self-managed nodes with Cilium in cluster-pool IPAM mode. For the 10:00 loading peak, three nodes were added at 09:00 and the warehouse scanners' Deployment scaled from 40 to 90 replicas. The new nodes show as Ready to the cloud provider, but nothing is scheduled on them and 50 Pods are Pending.",
+    "handover": [
+      "The cluster was installed with the Helm chart's IPAM settings copied from a lab: one /22 pool, /24 per node.",
+      "There were four nodes until this morning."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the operator's pool, the CiliumNode resources and the nodes.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "peakAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The loading peak starts at 10:00, 50 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "pendAt": {
+      "type": "time",
+      "init": null
+    },
+    "dbgAt": {
+      "type": "time",
+      "init": null
+    },
+    "cnAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "appendAt": {
+      "type": "time",
+      "init": null
+    },
+    "changed": {
+      "type": "bool",
+      "init": false
+    },
+    "maskTried": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "peakOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pool",
+        "agent",
+        "capacity"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "appended": {
+      "expr": "not isNull(appendAt)"
+    },
+    "ready": {
+      "expr": "not isNull(appendAt) and since(appendAt) >= 180 and not changed"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "pending",
+        "dbg",
+        "ciliumNodes",
+        "config",
+        "plan",
+        "append",
+        "changeCidr",
+        "mask",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "pending": {
+      "label": "kubectl describe pod scanner-... (a Pending replica)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pendAt)",
+          "then": [
+            {
+              "set": "pendAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl -n warehouse describe pod scanner-7c9d-zq4m | tail -2\n{ready ? \"Normal  Scheduled  assigned warehouse/scanner-7c9d-zq4m to w6\" : \"Warning FailedScheduling  0/7 nodes are available: 3 node(s) had untolerated taint node.cilium.io/agent-not-ready, 4 Insufficient cpu.\"}"
+        },
+        {
+          "finding": "The new nodes carry Cilium's agent-not-ready taint: their agents never finished starting."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dbg": {
+      "label": "kubectl -n kube-system exec ds/cilium (on w5) -- cilium-dbg status",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(dbgAt)",
+          "then": [
+            {
+              "set": "dbgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl -n kube-system exec cilium-8k2lq -- cilium-dbg status --brief; kubectl -n kube-system logs cilium-8k2lq --tail 1\n{ready ? \"OK\" : \"Waiting for the operator to allocate a pod CIDR to this node (CiliumNode w5: spec.ipam.podCIDRs empty)\"}"
+        },
+        {
+          "finding": "The agent on w5 is waiting for the operator to give its CiliumNode a pod CIDR."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ciliumNodes": {
+      "label": "kubectl get ciliumnodes (pod CIDRs and operator status)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(cnAt)",
+          "then": [
+            {
+              "set": "cnAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl get ciliumnodes -o custom-columns=NODE:.metadata.name,PODCIDRS:.spec.ipam.podCIDRs,ERROR:.status.ipam.operator-status.error\nNODE  PODCIDRS          ERROR\nw1    [10.0.0.0/24]     <none>\nw2    [10.0.1.0/24]     <none>\nw3    [10.0.2.0/24]     <none>\nw4    [10.0.3.0/24]     <none>\n{ready ? \"w5    [10.0.8.0/24]     <none>\nw6    [10.0.9.0/24]     <none>\nw7    [10.0.10.0/24]    <none>\" : \"w5    <none>            unable to allocate a pod CIDR: all pool CIDRs are exhausted\nw6    <none>            unable to allocate a pod CIDR: all pool CIDRs are exhausted\nw7    <none>            unable to allocate a pod CIDR: all pool CIDRs are exhausted\"}"
+        },
+        {
+          "finding": "The operator's pool is exhausted: four nodes used the four /24s a /22 holds."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "config": {
+      "label": "kubectl -n kube-system get cm cilium-config | grep cluster-pool",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(cfgAt)",
+          "then": [
+            {
+              "set": "cfgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl -n kube-system get cm cilium-config -o yaml | grep -E 'ipam|cluster-pool'\n  ipam: cluster-pool\n  cluster-pool-ipv4-cidr: {appended ? \"10.0.0.0/22 10.0.8.0/21\" : changed ? \"10.0.0.0/16\" : \"10.0.0.0/22\"}\n  cluster-pool-ipv4-mask-size: \"24\""
+        },
+        {
+          "finding": "A /22 split into /24s is four node CIDRs; the mask size cannot be changed, so the pool needs another element."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Check the address plan for a free range (nodes, Services, peers)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ cat netplan/kestrel-ipam.md | grep -E 'nodes|services|vpn|free'\nnodes:     172.20.0.0/24\nservices:  10.96.0.0/12\nvpn peers: 10.0.4.0/22, 192.168.0.0/16\nfree:      10.0.8.0/21 (reserved for pods)"
+        },
+        {
+          "finding": "10.0.8.0/21 is free and reserved for pods; 10.0.4.0/22 next door belongs to the VPN peers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "append": {
+      "label": "helm upgrade cilium --reuse-values --set ipam.operator.clusterPoolIPv4PodCIDRList=... (add 10.0.8.0/21)",
+      "group": "Fix",
+      "available": "not busy and (isNull(appendAt) and not changed)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "appendAt",
+          "to": "t"
+        },
+        {
+          "output": "ops@k8s-admin:~$ helm upgrade cilium cilium/cilium -n kube-system --reuse-values --set ipam.operator.clusterPoolIPv4PodCIDRList='{{10.0.0.0/22,10.0.8.0/21}}' && kubectl -n kube-system rollout restart deploy/cilium-operator\nRelease \"cilium\" has been upgraded.\ndeployment.apps/cilium-operator restarted"
+        },
+        {
+          "log": "The existing element stays as it is; the new /21 gives the operator eight more /24s.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "changeCidr": {
+      "label": "Replace the pool with 10.0.0.0/16 (helm --set ...PodCIDRList=10.0.0.0/16)",
+      "group": "Fix",
+      "available": "not busy and (not changed)",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "set": "changed",
+          "to": "true"
+        },
+        {
+          "output": "ops@k8s-admin:~$ helm upgrade cilium cilium/cilium -n kube-system --reuse-values --set ipam.operator.clusterPoolIPv4PodCIDRList='{{10.0.0.0/16}}' && kubectl -n kube-system rollout restart deploy/cilium-operator ds/cilium\nRelease \"cilium\" has been upgraded."
+        },
+        {
+          "log": "Changing an existing element of the pool leaves the nodes' allocations inconsistent with it, and the /16 now overlaps the VPN peers' 10.0.4.0/22: traffic to running Pods and to the peers breaks.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "mask": {
+      "label": "Set clusterPoolIPv4MaskSize to 26 so the /22 holds more nodes",
+      "group": "Fix",
+      "available": "not busy and (not maskTried)",
+      "why": "Already tried.",
+      "effects": [
+        {
+          "set": "maskTried",
+          "to": "true"
+        },
+        {
+          "output": "ops@k8s-admin:~$ helm upgrade cilium cilium/cilium -n kube-system --reuse-values --set ipam.operator.clusterPoolIPv4MaskSize=26\nRelease \"cilium\" has been upgraded.\n(the operator keeps the existing /24 allocations; w5 to w7 still have no pod CIDR)"
+        },
+        {
+          "log": "The mask size cannot be changed on a running pool: nothing moves.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "kubectl -n kube-system rollout restart ds/cilium",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl -n kube-system rollout restart ds/cilium\ndaemonset.apps/cilium restarted"
+        },
+        {
+          "log": "The agents restart one by one, briefly disturbing the healthy nodes; the new ones still wait for a CIDR the pool does not have.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "kubectl get ciliumnodes; kubectl -n warehouse get pods | grep -c Running",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "ready",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "ops@k8s-admin:~$ kubectl -n warehouse get deploy scanner\nNAME      READY   UP-TO-DATE   AVAILABLE\nscanner   {ready ? \"90/90\" : changed ? \"12/90\" : \"40/90\"}   90           {ready ? \"90\" : changed ? \"12\" : \"40\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "pool",
+                  "label": "The cluster pool 10.0.0.0/22 at /24 per node held only 4 node CIDRs; added 10.0.8.0/21 as a new element"
+                },
+                {
+                  "value": "agent",
+                  "label": "The Cilium agents on the new nodes were broken"
+                },
+                {
+                  "value": "capacity",
+                  "label": "The cluster ran out of CPU"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= peakAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "ready and not changed",
+          "then": [
+            {
+              "set": "peakOkAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: all 90 scanner replicas are running for the peak.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "peakMissAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: the peak starts with scanner replicas Pending.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the new nodes never became usable, what you changed in the pool, and what you left alone.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Traces the taint to the agent waiting on the operator's exhausted pool.",
+          "modelAnswer": "The new nodes kept the agent-not-ready taint because their agents waited for a pod CIDR; their CiliumNodes showed the operator's pool exhausted. A /22 at /24 per node is four node CIDRs, and four nodes already had them."
+        },
+        {
+          "label": "Change",
+          "criteria": "Adds a free range as a new element, checked against the plan.",
+          "modelAnswer": "Added 10.0.8.0/21, free and reserved for pods in the address plan, as a second element of clusterPoolIPv4PodCIDRList, and restarted the operator; the new nodes got /24s from it."
+        },
+        {
+          "label": "Left alone",
+          "criteria": "Explains why the existing element and the mask stay.",
+          "modelAnswer": "The existing element and the mask size cannot be changed safely; replacing the pool with a /16 would have broken running Pods' routes and overlapped the VPN peers' range."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 50 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The loading peak starts at 10:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a pool changed in place, or agents restarted for nothing."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not ready",
+      "class": "harm",
+      "rationale": "Closing with the pool still exhausted leaves the new nodes unusable at the peak.",
+      "source": {
+        "cite": "Cilium documentation, IP Address Management: Cluster Scope (Default)",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cilium.io/en/latest/network/concepts/ipam/cluster-pool/",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the Cilium operator, not Kubernetes, manages per-node PodCIDRs through the v2.CiliumNode resource, and the agent waits at start-up until spec.ipam.podCIDRs is populated; clusterPoolIPv4MaskSize cannot be changed; 'Don't change any existing elements of the clusterPoolIPv4PodCIDRList list'; 'If the pool is exhausted, add a new element to the list instead'; check the Error field under status.ipam.operator-status on each CiliumNode. The operator's error text, the agent-not-ready taint and the cilium-dbg output in the scenario are authored in Cilium's style (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "brokeExisting": {
+      "label": "Existing Pods and peers cut off",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and changed",
+      "narrative": "Replacing the pool's existing element with a /16 broke routing to running Pods and overlapped the VPN peers."
+    },
+    "peakMissed": {
+      "label": "Scanners Pending at the peak",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(peakMissAt)",
+      "narrative": "At 10:00 the new nodes still had no pod CIDR."
+    },
+    "fixed": {
+      "label": "Pool extended with a free range, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and ready and not changed and not restarted and isNull(peakMissAt) and not isNull(cnAt) and not isNull(cfgAt) and not isNull(planAt) and not isNull(verifiedAt) and causeDoc == \"pool\"",
+      "narrative": "The taint led to the agent, the agent to the CiliumNode, and the CiliumNode to an exhausted pool; a free /21 was added as a new element."
+    },
+    "gaps": {
+      "label": "Extended, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The new nodes work, but the range was not checked against the plan, a check was skipped, or the agents were restarted for nothing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "brokeExisting",
+    "peakMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the exhausted pool through the CiliumNodes and the config",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(cnAt) and not isNull(cfgAt)",
+            "score": "met",
+            "why": "The operator's error and the pool's size."
+          },
+          {
+            "when": "not isNull(cnAt) or not isNull(dbgAt) or not isNull(pendAt)",
+            "score": "partial",
+            "why": "Part of the chain."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the chain."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "New element added before 10:00, existing pool unchanged",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ready and isNull(peakMissAt)",
+            "score": "met",
+            "why": "Extended, in time."
+          },
+          {
+            "when": "appended or changed",
+            "score": "partial",
+            "why": "{changed ? \"By changing the existing pool.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The pool is still exhausted."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "Range checked against the plan, no needless restart, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not restarted and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Checked, minimal, confirmed."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Confirmed, without the plan check or with a restart."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not confirmed."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"pool\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the agents or CPU."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (pool edited, mask, agent restart)",
+        "value": "(changed ? 1 : 0) + (maskTried ? 1 : 0) + (restarted ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:10-09:15",
+        "text": "Pending: agent-not-ready taint on w5-w7; the agent waits for a pod CIDR; CiliumNodes: pool exhausted; config: one /22 at /24 per node; the plan: 10.0.8.0/21 free."
+      },
+      {
+        "at": "09:15-09:17",
+        "text": "Add 10.0.8.0/21 as a second element and restart the operator."
+      },
+      {
+        "at": "09:17-09:21",
+        "text": "w5-w7 get /24s; 90 of 90 scanners running."
+      }
+    ],
+    "debrief": {
+      "brokeExisting": {
+        "headline": "A bigger pool, a broken one",
+        "body": "Existing elements of the cluster pool must not change. Add a new, free range as another element instead."
+      },
+      "peakMissed": {
+        "headline": "Three idle nodes at the peak",
+        "body": "Restarting agents and changing the mask do not create CIDRs. The CiliumNode error and the pool's size showed the pool had none left."
+      },
+      "fixed": {
+        "headline": "Good: extend, don't edit",
+        "body": "You followed the chain from Pending Pods to the operator's pool, checked the address plan for a free range, added it without touching the existing element or the mask, and confirmed all 90 replicas ran."
+      },
+      "gaps": {
+        "headline": "Extended, with gaps",
+        "body": "The criteria show what was left: reading the CiliumNodes and the config, checking the plan, verifying, or a needless restart."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The new nodes carry Cilium's agent-not-ready taint because their agents wait for the operator to put a pod CIDR on their CiliumNode, and the CiliumNodes show the operator's pool exhausted: a /22 split into /24s is four node CIDRs, all used. The mask size cannot be changed and existing elements of the pool must not be edited, so add a new element from free address space, checked against the plan so it does not overlap nodes, Services or the VPN peers, and restart the operator. Restarting the agents changes nothing and disturbs healthy nodes. Confirm the new nodes get CIDRs and the replicas run before 10:00."
+  }
+}

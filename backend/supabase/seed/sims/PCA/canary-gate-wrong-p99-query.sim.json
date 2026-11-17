@@ -1,0 +1,984 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "canary-gate-wrong-p99-query",
+  "title": "Release: the canary gate reads a p99 that is not a p99, and promotion is at 14:00",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "sre@obs:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:30 support: buyers on some sessions wait 2-3 s at payment; gate p99 = 0.25 s (limit 0.3 s); auto-promote 14:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:00: v2 promoted to 100% of traffic",
+          "when": "not isNull(promotedAt)",
+          "at": "timeAt(promotedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:00: v2 was not promoted",
+          "when": "not isNull(heldAt)",
+          "at": "timeAt(heldAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "v1",
+          "label": "checkout v1",
+          "spokenLabel": "version 1",
+          "kind": "stable",
+          "status": "{aborted ? \"100% of traffic\" : promoted ? \"scaled down\" : \"80% of traffic\"}",
+          "tone": "\"up\""
+        },
+        {
+          "id": "v2",
+          "label": "checkout v2",
+          "spokenLabel": "version 2",
+          "kind": "canary",
+          "status": "{aborted ? \"aborted\" : promoted ? \"100% of traffic, p99 about 1.8 s\" : \"20% of traffic, p99 about 1.8 s\"}",
+          "tone": "aborted ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "gate",
+          "label": "Analysis gate",
+          "spokenLabel": "the canary gate",
+          "kind": "PromQL p99 < 0.3 s",
+          "status": "{gateFixed ? \"correct query: failing at 1.8 s\" : paused ? \"rollout paused\" : \"wrong query: passing at 0.25 s\"}",
+          "tone": "gateFixed ? \"up\" : paused ? \"degraded\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "gate",
+          "to": "v2",
+          "label": "Decides promotion",
+          "status": "{aborted ? \"rolled back\" : paused ? \"paused\" : \"14:00 auto-promote\"}",
+          "tone": "aborted or paused ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Histograms: _bucket, _sum and _count series, histogram_quantile over rate of buckets, and what a quantile estimate can and cannot tell you",
+  "secondaryObjectives": [
+    "Writing readable queries: subqueries, recording-rule naming (level:metric:operations), and avoiding common PromQL mistakes"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/pca",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Prometheus documentation, Histograms and summaries (next.prometheus.io/docs/practices/histograms)",
+      "checkedAt": "2026-11-17",
+      "url": "https://next.prometheus.io/docs/practices/histograms/",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the example 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) // GOOD.'; the _sum and _count series give the average of the observed values, not a quantile; with histograms 'the aggregation is perfectly possible', while aggregating summary quantiles 'rarely makes sense'. That a rate window needs at least two samples is general PromQL behavior not quoted from this page (to verify against the rate() function reference)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call SRE for Larkspur Tickets, a fictional ticketing site. Checkout v2 is in a canary at 20% of traffic. At 13:30 support says some buyers wait seconds to pay, but the canary gate, a PromQL query in the rollout's analysis, reports p99 at 0.25 s against its 0.3 s limit. The rollout promotes v2 to 100% automatically at 14:00 if the gate passes.",
+    "handover": [
+      "Prometheus scrapes checkout every 30 s; the latency metric is the histogram http_request_duration_seconds with a version label.",
+      "The gate query was written last week by copying a dashboard panel."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the canary, the gate and the traffic split.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "promoteAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The rollout's next step promotes at 14:00, 30 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "gateAt": {
+      "type": "time",
+      "init": null
+    },
+    "scrapeAt": {
+      "type": "time",
+      "init": null
+    },
+    "rightAt": {
+      "type": "time",
+      "init": null
+    },
+    "triedWrong": {
+      "type": "enum",
+      "values": [
+        "none",
+        "short",
+        "mean"
+      ],
+      "init": "none"
+    },
+    "paused": {
+      "type": "bool",
+      "init": false
+    },
+    "gateFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "aborted": {
+      "type": "bool",
+      "init": false
+    },
+    "promoted": {
+      "type": "bool",
+      "init": false
+    },
+    "recorded": {
+      "type": "bool",
+      "init": false
+    },
+    "silenced": {
+      "type": "bool",
+      "init": false
+    },
+    "heldAt": {
+      "type": "time",
+      "init": null
+    },
+    "promotedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "query",
+        "traffic",
+        "v1"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Release in progress",
+      "clock": "turns",
+      "actions": [
+        "gateQuery",
+        "scrape",
+        "query",
+        "pause",
+        "fixGate",
+        "abort",
+        "promote",
+        "silence",
+        "rule",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "gateQuery": {
+      "label": "kubectl get analysistemplate checkout-p99 -o jsonpath='.spec.metrics[0].provider.prometheus.query'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(gateAt)",
+          "then": [
+            {
+              "set": "gateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@obs:~$ kubectl get analysistemplate checkout-p99 -o yaml | grep query\n    query: histogram_quantile(0.99, http_request_duration_seconds_bucket{{job=\"checkout\",version=\"v2\"}})\nsre@obs:~$ promtool query instant http://prometheus:9090 '<that query>'\n{{le=\"+Inf\"}} ... 0.25 (one value per series, from cumulative counts since start)"
+        },
+        {
+          "finding": "The gate runs histogram_quantile on raw cumulative bucket counters: no rate over a window and no sum by le. It reads counts since each pod started, not recent latency."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "scrape": {
+      "label": "grep -A3 'job_name: checkout' /etc/prometheus/prometheus.yml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(scrapeAt)",
+          "then": [
+            {
+              "set": "scrapeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "sre@obs:~$ grep -A3 'job_name: checkout' /etc/prometheus/prometheus.yml\n  - job_name: checkout\n    scrape_interval: 30s"
+        },
+        {
+          "finding": "A 30 s scrape gives one sample per 30 s: a rate window must hold at least two samples, so [30s] is often empty and [5m] holds about ten."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "query": {
+      "label": "promtool query instant: try a p99 query",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "q == \"right\"",
+              "then": [
+                {
+                  "if": "isNull(rightAt)",
+                  "then": [
+                    {
+                      "set": "rightAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "sre@obs:~$ promtool query instant http://prometheus:9090 'histogram_quantile(0.99, sum by (le, version) (rate(http_request_duration_seconds_bucket{{job=\"checkout\"}}[5m])))'\n{{version=\"v1\"}} => 0.21\n{{version=\"v2\"}} => 1.84"
+                },
+                {
+                  "log": "Summing the per-second rate of buckets by le, per version, gives v2's p99 over the last 5 minutes: 1.84 s.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "q == \"short\"",
+              "then": [
+                {
+                  "set": "triedWrong",
+                  "to": "\"short\""
+                },
+                {
+                  "output": "sre@obs:~$ promtool query instant http://prometheus:9090 'histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[30s]))'\nEmpty query result (most series) / NaN"
+                },
+                {
+                  "log": "A 30 s window over a 30 s scrape rarely holds two samples, and without sum by le each pod's buckets stand alone.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "triedWrong",
+                  "to": "\"mean\""
+                },
+                {
+                  "output": "sre@obs:~$ promtool query instant http://prometheus:9090 'sum(rate(http_request_duration_seconds_sum[5m])) / sum(rate(http_request_duration_seconds_count[5m]))'\n0.19"
+                },
+                {
+                  "log": "That is the mean. The slow 1-2% of requests hardly move it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "q",
+          "kind": "choice",
+          "label": "Query",
+          "options": [
+            {
+              "value": "right",
+              "label": "histogram_quantile(0.99, sum by (le, version) (rate(http_request_duration_seconds_bucket[5m])))"
+            },
+            {
+              "value": "short",
+              "label": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[30s]))"
+            },
+            {
+              "value": "mean",
+              "label": "sum(rate(..._sum[5m])) / sum(rate(..._count[5m]))"
+            }
+          ]
+        }
+      ]
+    },
+    "pause": {
+      "label": "kubectl argo rollouts pause checkout",
+      "group": "Fix",
+      "available": "not busy and (not paused and not aborted and not promoted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "paused",
+          "to": "true"
+        },
+        {
+          "output": "sre@obs:~$ kubectl argo rollouts pause checkout\nrollout 'checkout' paused"
+        },
+        {
+          "log": "Nothing promotes until someone resumes it; v2 still serves 20%.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixGate": {
+      "label": "Change the AnalysisTemplate query",
+      "group": "Fix",
+      "available": "not busy and (not gateFixed and not promoted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "g == \"right\"",
+              "then": [
+                {
+                  "set": "gateFixed",
+                  "to": "true"
+                },
+                {
+                  "output": "sre@obs:~$ kubectl apply -f checkout-p99.yaml   # query: p99 from sum by (le) of the rate of v2's buckets over 5m\nanalysistemplate.argoproj.io/checkout-p99 configured"
+                },
+                {
+                  "log": "The gate now measures v2's recent p99 and fails at 1.84 s.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "sre@obs:~$ kubectl apply -f checkout-p99.yaml   # mean of _sum/_count\nanalysistemplate.argoproj.io/checkout-p99 configured"
+                },
+                {
+                  "log": "The gate now checks the mean, 0.19 s, and still passes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "g",
+          "kind": "choice",
+          "label": "New gate query",
+          "options": [
+            {
+              "value": "right",
+              "label": "p99 from sum by (le) of rate of v2's buckets over 5m"
+            },
+            {
+              "value": "mean",
+              "label": "mean latency from _sum and _count"
+            }
+          ]
+        }
+      ]
+    },
+    "abort": {
+      "label": "kubectl argo rollouts abort checkout",
+      "group": "Fix",
+      "available": "not busy and (not aborted and not promoted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "aborted",
+          "to": "true"
+        },
+        {
+          "output": "sre@obs:~$ kubectl argo rollouts abort checkout\nrollout 'checkout' aborted"
+        },
+        {
+          "log": "All traffic goes back to v1.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "promote": {
+      "label": "kubectl argo rollouts promote checkout (the gate passes anyway)",
+      "group": "Fix",
+      "available": "not busy and (not promoted and not aborted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "promoted",
+          "to": "true"
+        },
+        {
+          "output": "sre@obs:~$ kubectl argo rollouts promote checkout\nrollout 'checkout' promoted"
+        },
+        {
+          "log": "v2 takes all traffic.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "silence": {
+      "label": "amtool silence add alertname=CheckoutLatencyHigh --duration 2h",
+      "group": "Fix",
+      "available": "not busy and (not silenced)",
+      "why": "Already silenced.",
+      "effects": [
+        {
+          "set": "silenced",
+          "to": "true"
+        },
+        {
+          "output": "sre@obs:~$ amtool silence add alertname=CheckoutLatencyHigh --duration 2h\n7f3c2a1e"
+        },
+        {
+          "log": "Latency alerts are silenced for two hours.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rule": {
+      "label": "Add recording rule job_version:http_request_duration_seconds:p99_rate5m and point the dashboard and gate at it",
+      "group": "Prevent",
+      "available": "not busy and (not recorded)",
+      "why": "Already added.",
+      "effects": [
+        {
+          "set": "recorded",
+          "to": "true"
+        },
+        {
+          "output": "sre@obs:~$ promtool check rules checkout-rules.yml\nChecking checkout-rules.yml\n  SUCCESS: 1 rules found"
+        },
+        {
+          "log": "One named, reviewed p99 that the dashboard and the gate share.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the release review and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the review.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "query",
+                  "label": "The gate ran histogram_quantile on raw cumulative buckets (no rate, no sum by le); v2's real p99 was 1.84 s"
+                },
+                {
+                  "value": "traffic",
+                  "label": "A traffic spike"
+                },
+                {
+                  "value": "v1",
+                  "label": "A regression in v1"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= promoteAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "aborted or paused or gateFixed",
+          "then": [
+            {
+              "set": "heldAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: the rollout does not promote v2.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "promotedAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: the gate passes and v2 takes all traffic.",
+              "kind": "alarm"
+            },
+            {
+              "set": "promoted",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the gate passed, what v2's p99 really was, and what you did about the release.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it passed",
+          "criteria": "Names what is wrong with the gate's query.",
+          "modelAnswer": "histogram_quantile needs the per-second rate of each bucket over a window, summed by le: the gate fed it raw cumulative counters per series, so it read history since the pods started, not current latency."
+        },
+        {
+          "label": "Real p99",
+          "criteria": "Writes the correct query with a window that fits the 30 s scrape, and does not settle for a mean.",
+          "modelAnswer": "histogram_quantile(0.99, sum by (le, version)(rate(..._bucket[5m]))) gave v1 0.21 s and v2 1.84 s; the mean was 0.19 s and hides the tail; a [30s] window is too short for a 30 s scrape."
+        },
+        {
+          "label": "Release",
+          "criteria": "Stops the promotion before 14:00 and fixes the gate for next time.",
+          "modelAnswer": "Aborted the rollout so v1 took all traffic, fixed the gate's query and added a recording rule the dashboard and gate share."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Auto-promotion at 14:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a promoted slow release or silenced latency alerts."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and promoted",
+      "class": "harm",
+      "rationale": "Closing after v2 took all traffic leaves every buyer on the slow version.",
+      "source": {
+        "cite": "Prometheus documentation, Histograms and summaries (next.prometheus.io/docs/practices/histograms)",
+        "checkedAt": "2026-11-17",
+        "url": "https://next.prometheus.io/docs/practices/histograms/",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the example 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) // GOOD.'; the _sum and _count series give the average of the observed values, not a quantile; with histograms 'the aggregation is perfectly possible', while aggregating summary quantiles 'rarely makes sense'. That a rate window needs at least two samples is general PromQL behavior not quoted from this page (to verify against the rate() function reference)."
+      }
+    }
+  },
+  "endings": {
+    "promotedSlow": {
+      "label": "The slow version took all traffic",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and promoted",
+      "narrative": "v2 was promoted with a p99 near 1.8 s."
+    },
+    "blind": {
+      "label": "Held, with alerts silenced",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and silenced and not aborted",
+      "narrative": "The release was held, but latency alerts were silenced while v2 still served buyers."
+    },
+    "held": {
+      "label": "Real p99 found, canary aborted, gate fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and aborted and gateFixed and recorded and not silenced and not isNull(rightAt) and not isNull(gateAt) and causeDoc == \"query\"",
+      "narrative": "The gate's query read, the real p99 measured, v2 aborted before 14:00, the gate fixed and a shared recording rule added."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "v2 was not promoted, but the gate, the rule or the rollback was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "promotedSlow",
+    "blind",
+    "held",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "measure",
+        "label": "Measured p99 correctly from the buckets",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(rightAt) and not isNull(gateAt)",
+            "score": "met",
+            "why": "Gate query read; rate of buckets summed by le."
+          },
+          {
+            "when": "not isNull(rightAt) or not isNull(gateAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{triedWrong == \"mean\" ? \"A mean, not a quantile.\" : triedWrong == \"short\" ? \"A window shorter than two scrapes.\" : \"Never measured.\"}"
+          }
+        ]
+      },
+      {
+        "id": "release",
+        "label": "v2 not promoted; rolled back",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "aborted and not promoted",
+            "score": "met",
+            "why": "Aborted before 14:00."
+          },
+          {
+            "when": "not promoted",
+            "score": "partial",
+            "why": "Held, but v2 still serves 20%."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Promoted."
+          }
+        ]
+      },
+      {
+        "id": "gate",
+        "label": "Gate fixed with a shared recording rule, alerts left on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gateFixed and recorded and not silenced",
+            "score": "met",
+            "why": "Fixed and shared."
+          },
+          {
+            "when": "gateFixed or recorded",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The gate still reads the wrong number."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"query\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record misses the query."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "p99",
+        "label": "Measured v2 p99 (s)",
+        "value": "isNull(rightAt) ? -1 : 1.84",
+        "format": "number",
+        "expert": "1.84"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:30-13:32",
+        "text": "The gate's query: histogram_quantile on raw buckets; the scrape interval is 30 s."
+      },
+      {
+        "at": "13:32-13:33",
+        "text": "histogram_quantile(0.99, sum by (le, version)(rate(..._bucket[5m]))): v1 0.21 s, v2 1.84 s."
+      },
+      {
+        "at": "13:33-13:36",
+        "text": "Abort the rollout; fix the gate's query; add a recording rule the dashboard and gate share."
+      }
+    ],
+    "debrief": {
+      "promotedSlow": {
+        "headline": "Promoted on a number that was not a p99",
+        "body": "histogram_quantile over raw cumulative buckets reads history, not recent latency, and without sum by le each series stands alone. The correct query showed v2 at 1.84 s."
+      },
+      "blind": {
+        "headline": "Held, but blind",
+        "body": "Silencing the latency alert hides the one signal that was right. Abort the canary instead."
+      },
+      "held": {
+        "headline": "Good: the right quantile, the right call",
+        "body": "You read the gate's query, measured p99 from the rate of buckets summed by le over a window that suits the scrape, aborted the canary, and fixed the gate with a shared recording rule."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the real p99, the gate's query, the rollback, or the recording rule."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The gate runs histogram_quantile on the raw bucket counters: they are cumulative since each pod started, there is no rate over a window, and without sum by le each series is estimated alone, so it reports an old, flattering number. The right p99 is histogram_quantile(0.99, sum by (le, version)(rate(http_request_duration_seconds_bucket[5m]))): v2 is at 1.84 s. A [30s] window over a 30 s scrape rarely holds the two samples rate needs, and _sum over _count is the mean, which hides the tail. Abort the canary so v1 serves everyone, fix the gate's query, and add a recording rule named level:metric:operations that the dashboard and the gate share. Silencing the alert only hides the one true signal."
+  }
+}

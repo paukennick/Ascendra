@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "retry-storm-one-bad-ratings-pod",
+  "title": "Outage risk: mesh retries multiply load on one failing ratings pod before the noon sale",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "mesh@ops:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "11:20 alert: productpage p99 9.4 s; ratings 5xx 31%; sale opens 12:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "12:00: ratings overwhelmed; product pages failing",
+          "when": "not isNull(saleDownAt)",
+          "at": "timeAt(saleDownAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "12:00: sale opened, ratings keeping up",
+          "when": "not isNull(saleOkAt)",
+          "at": "timeAt(saleOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "pp",
+          "label": "productpage",
+          "spokenLabel": "the product page",
+          "kind": "calls ratings through the mesh",
+          "status": "{healthy ? \"p99 0.4 s\" : retriesSane ? \"p99 1.3 s, a few errors\" : \"p99 9.4 s, retrying\"}",
+          "tone": "healthy ? \"up\" : retriesSane ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "a",
+          "label": "ratings-v1-a and -b",
+          "spokenLabel": "the two healthy ratings pods",
+          "kind": "nodes w1, w2",
+          "status": "{retriesSane ? \"normal load\" : \"load x4 from retries\"}",
+          "tone": "retriesSane ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "c",
+          "label": "ratings-v1-c",
+          "spokenLabel": "the failing ratings pod",
+          "kind": "node w3, failing disk",
+          "status": "{outlierOk ? \"ejected by outlier detection\" : podDeleted ? \"recreated, still on w3\" : \"503 after 8 s\"}",
+          "tone": "outlierOk ? \"degraded\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "pp",
+          "to": "a",
+          "label": "VirtualService ratings",
+          "status": "{retryPolicy == \"sane\" ? \"timeout 3s, 2 retries, 1s per try\" : retryPolicy == \"more\" ? \"20 retries, 30s per try\" : retryPolicy == \"none\" ? \"no retries\" : \"10 retries, 30s per try, no timeout\"}",
+          "tone": "retriesSane ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Use resilience features: circuit breaking and outlier detection, failover and locality load balancing, timeouts and retries",
+  "secondaryObjectives": [
+    "Define traffic policies with DestinationRules: subsets by labels, load balancing, connection pools and TLS settings"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Istio Certified Associate (ICA) curriculum: Installation, Upgrades, and Configuration 20%, Traffic Management 35%, Securing Workloads 25%, Troubleshooting 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The weights and objective wording are the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts, read from the official curriculum by the course builder); on 2026-11-17 only the cncf/curriculum README was fetched, which names ICA but gives no file or version. Not re-read; to verify."
+    },
+    {
+      "cite": "Istio Traffic Management: Routing, Retries, and Circuit Breaking (DevOps Daily article)",
+      "checkedAt": "2026-11-17",
+      "url": "https://f77280db.devops-daily.pages.dev/posts/istio-traffic-management-routing-retries-circuit-breaking",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party article, undated; Istio's own reference pages were not read). Relevant text: 'attempts: 3 is the number of retries, not total tries'; 'perTryTimeout is per attempt'; the route timeout is 'the total timeout for the whole request including all retries'; 'Retries multiply load. That's how outages get worse instead of better'; outlier detection fields consecutive5xxErrors, interval, baseEjectionTime ('Doubles on repeat offenses') and maxEjectionPercent ('never eject more than half the hosts'); a high limit 'can cause Istio to eject every backend pod, leaving you with zero capacity'. To verify against istio.io's VirtualService and DestinationRule references."
+    }
+  ],
+  "brief": {
+    "situation": "You run the service mesh for Fernvale Market, a fictional online grocer on Kubernetes with Istio. At 11:20 product pages are slow and ratings calls fail about a third of the time. One of the three ratings pods, ratings-v1-c, sits on node w3, which has a failing disk, and answers 503 after about 8 seconds. The weekly sale opens at 12:00 and triples traffic.",
+    "handover": [
+      "A VirtualService for ratings was changed last month to 'make it more reliable'.",
+      "Node w3 is cordoned for disk replacement tomorrow; ratings-v1-c was scheduled there before the cordon."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the product page, the ratings pods and the mesh policy between them.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "saleAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The sale opens at 12:00, 40 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "vsAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "drAt": {
+      "type": "time",
+      "init": null
+    },
+    "retryPolicy": {
+      "type": "enum",
+      "values": [
+        "storm",
+        "sane",
+        "none",
+        "more"
+      ],
+      "init": "storm"
+    },
+    "ejection": {
+      "type": "enum",
+      "values": [
+        "off",
+        "half",
+        "all"
+      ],
+      "init": "off"
+    },
+    "podDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "ingressRestarted": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "saleOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "saleDownAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "retries",
+        "ingress",
+        "capacity"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "retriesSane": {
+      "expr": "retryPolicy == \"sane\" or retryPolicy == \"none\""
+    },
+    "outlierOk": {
+      "expr": "ejection == \"half\""
+    },
+    "healthy": {
+      "expr": "retriesSane and outlierOk"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "getVs",
+        "metrics",
+        "getDr",
+        "setRetries",
+        "setOutlier",
+        "deletePod",
+        "restartIngress",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "getVs": {
+      "label": "kubectl get virtualservice ratings -n shop -o yaml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(vsAt)",
+          "then": [
+            {
+              "set": "vsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mesh@ops:~$ kubectl get virtualservice ratings -n shop -o yaml | sed -n '/http:/,$p'\n  http:\n  - route:\n    - destination: {{host: ratings}}\n    retries:\n      attempts: {retryPolicy == \"more\" ? \"20\" : retryPolicy == \"sane\" ? \"2\" : retryPolicy == \"none\" ? \"0\" : \"10\"}\n      perTryTimeout: {retryPolicy == \"sane\" ? \"1s\" : \"30s\"}\n      retryOn: 5xx,connect-failure\n    {retryPolicy == \"sane\" ? \"timeout: 3s\" : \"# no timeout\"}"
+        },
+        {
+          "finding": "Ten retries at up to 30 s each and no overall timeout: every call that lands on the failing pod is retried, and each retry adds load to the other two."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "metrics": {
+      "label": "PromQL: sum by (destination_pod, response_code) (rate(istio_requests_total[1m]))",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mesh@ops:~$ promtool query instant http://prometheus:9090 'sum by (destination_pod, response_code) (rate(istio_requests_total{{destination_workload=\"ratings-v1\"}}[1m]))'\nratings-v1-a 200  {retriesSane ? \"41\" : \"118\"}\nratings-v1-b 200  {retriesSane ? \"40\" : \"121\"}\nratings-v1-c 503  {outlierOk ? \"0.2\" : retriesSane ? \"38\" : \"112\"}"
+        },
+        {
+          "finding": "Every 503 comes from ratings-v1-c; a and b answer 200 but carry about three times their normal request rate from retries."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "getDr": {
+      "label": "kubectl get destinationrule ratings -n shop -o yaml",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(drAt)",
+          "then": [
+            {
+              "set": "drAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mesh@ops:~$ kubectl get destinationrule ratings -n shop -o yaml | sed -n '/trafficPolicy:/,$p'\n  trafficPolicy:\n    loadBalancer: {{simple: ROUND_ROBIN}}\n{ejection == \"off\" ? \"    # no outlierDetection\" : ejection == \"half\" ? \"    outlierDetection: consecutive5xxErrors 3, interval 10s, baseEjectionTime 30s, maxEjectionPercent 50\" : \"    outlierDetection: consecutive5xxErrors 1, interval 10s, baseEjectionTime 300s, maxEjectionPercent 100\"}"
+        },
+        {
+          "finding": "Round robin with no outlier detection: the mesh keeps sending a third of the calls to the pod that fails them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setRetries": {
+      "label": "kubectl apply: change the ratings VirtualService's retries and timeout",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "r == \"sane\"",
+              "then": [
+                {
+                  "set": "retryPolicy",
+                  "to": "\"sane\""
+                },
+                {
+                  "output": "mesh@ops:~$ kubectl apply -f ratings-vs.yaml   # timeout: 3s; retries: attempts 2, perTryTimeout 1s, retryOn 5xx,connect-failure\nvirtualservice.networking.istio.io/ratings configured"
+                },
+                {
+                  "log": "A failed try is cut at 1 s and retried at most twice within a 3 s budget: load on a and b falls back.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "r == \"none\"",
+              "then": [
+                {
+                  "set": "retryPolicy",
+                  "to": "\"none\""
+                },
+                {
+                  "output": "mesh@ops:~$ kubectl apply -f ratings-vs.yaml   # retries: attempts 0\nvirtualservice.networking.istio.io/ratings configured"
+                },
+                {
+                  "log": "No retry storm, but a third of ratings calls now fail outright.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "retryPolicy",
+                  "to": "\"more\""
+                },
+                {
+                  "output": "mesh@ops:~$ kubectl apply -f ratings-vs.yaml   # retries: attempts 20, perTryTimeout 30s\nvirtualservice.networking.istio.io/ratings configured"
+                },
+                {
+                  "log": "More retries mean more load on the two pods that work.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "Retry policy",
+          "options": [
+            {
+              "value": "sane",
+              "label": "timeout 3s; attempts 2; perTryTimeout 1s; retryOn 5xx,connect-failure"
+            },
+            {
+              "value": "none",
+              "label": "attempts 0 (no retries)"
+            },
+            {
+              "value": "more",
+              "label": "attempts 20; perTryTimeout 30s"
+            }
+          ]
+        }
+      ]
+    },
+    "setOutlier": {
+      "label": "kubectl apply: add outlierDetection to the ratings DestinationRule",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "e == \"half\"",
+              "then": [
+                {
+                  "set": "ejection",
+                  "to": "\"half\""
+                },
+                {
+                  "output": "mesh@ops:~$ kubectl apply -f ratings-dr.yaml   # consecutive5xxErrors 3, interval 10s, baseEjectionTime 30s, maxEjectionPercent 50\ndestinationrule.networking.istio.io/ratings configured"
+                },
+                {
+                  "log": "ratings-v1-c is ejected after three 5xx in a row and re-checked later; at most half the pods can be ejected.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ejection",
+                  "to": "\"all\""
+                },
+                {
+                  "output": "mesh@ops:~$ kubectl apply -f ratings-dr.yaml   # consecutive5xxErrors 1, baseEjectionTime 300s, maxEjectionPercent 100\ndestinationrule.networking.istio.io/ratings configured"
+                },
+                {
+                  "log": "One error ejects a pod for five minutes and every pod may be ejected: under sale load a brief blip on a and b can leave ratings with nothing.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "e",
+          "kind": "choice",
+          "label": "Outlier detection",
+          "options": [
+            {
+              "value": "half",
+              "label": "consecutive5xxErrors 3, interval 10s, baseEjectionTime 30s, maxEjectionPercent 50"
+            },
+            {
+              "value": "all",
+              "label": "consecutive5xxErrors 1, baseEjectionTime 300s, maxEjectionPercent 100"
+            }
+          ]
+        }
+      ]
+    },
+    "deletePod": {
+      "label": "kubectl delete pod ratings-v1-c -n shop",
+      "group": "Fix",
+      "available": "not busy and (not podDeleted)",
+      "why": "Already deleted.",
+      "effects": [
+        {
+          "set": "podDeleted",
+          "to": "true"
+        },
+        {
+          "output": "mesh@ops:~$ kubectl delete pod ratings-v1-c -n shop\npod \"ratings-v1-c\" deleted\nmesh@ops:~$ kubectl get pod -n shop -l app=ratings -o wide | tail -1\nratings-v1-c2   2/2   Running   w3"
+        },
+        {
+          "log": "The replacement lands on w3 again (its local volume pins it there) and fails the same way.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restartIngress": {
+      "label": "kubectl rollout restart deploy/istio-ingressgateway -n istio-system",
+      "group": "Fix",
+      "available": "not busy and (not ingressRestarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "ingressRestarted",
+          "to": "true"
+        },
+        {
+          "output": "mesh@ops:~$ kubectl rollout restart deploy/istio-ingressgateway -n istio-system\ndeployment.apps/istio-ingressgateway restarted"
+        },
+        {
+          "log": "The gateway restarts; the retries happen in productpage's sidecar, so nothing changes.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "PromQL: productpage p99 and ratings 5xx over the last 2 minutes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "healthy",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "mesh@ops:~$ promtool query instant http://prometheus:9090 'histogram_quantile(0.99, sum by (le) (rate(istio_request_duration_milliseconds_bucket{{destination_workload=\"productpage-v1\"}}[2m])))'\n{healthy ? \"412\" : retriesSane ? \"1310\" : \"9400\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "retries",
+                  "label": "Ten 30 s retries with no timeout multiplied load on the healthy pods while round robin kept sending calls to the failing ratings-v1-c"
+                },
+                {
+                  "value": "ingress",
+                  "label": "The ingress gateway"
+                },
+                {
+                  "value": "capacity",
+                  "label": "Too few ratings replicas"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= saleAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "retriesSane",
+          "then": [
+            {
+              "set": "saleOkAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: the sale opens and ratings keep up.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "saleDownAt",
+              "to": "t"
+            },
+            {
+              "log": "12:00: sale traffic times retries overwhelms ratings-v1-a and -b; product pages fail.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what the mesh was doing, what you changed, and why those settings.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Ties the 503s to one pod and the slowness to the retry policy.",
+          "modelAnswer": "istio_requests_total put every 503 on ratings-v1-c; the VirtualService retried ten times at up to 30 s each with no timeout, tripling load on a and b."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Bounds retries with a per-try timeout inside an overall timeout, and ejects the bad pod with outlier detection.",
+          "modelAnswer": "timeout 3s with 2 retries at 1s per try on 5xx and connect failures; outlierDetection consecutive5xxErrors 3, interval 10s, baseEjectionTime 30s, maxEjectionPercent 50."
+        },
+        {
+          "label": "Why",
+          "criteria": "Explains why more retries, deleting the pod or ejecting everything would not help.",
+          "modelAnswer": "Retries multiply load; the replacement pod lands on w3 again; a 100% ejection limit can leave no pods at all under load. p99 back near 0.4 s before 12:00."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 40 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The sale opens at 12:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: more retries or an ejection limit that can remove every pod."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not retriesSane",
+      "class": "harm",
+      "rationale": "Closing with the retry storm in place leaves the sale to overwhelm ratings.",
+      "source": {
+        "cite": "Istio Traffic Management: Routing, Retries, and Circuit Breaking (DevOps Daily article)",
+        "checkedAt": "2026-11-17",
+        "url": "https://f77280db.devops-daily.pages.dev/posts/istio-traffic-management-routing-retries-circuit-breaking",
+        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party article, undated; Istio's own reference pages were not read). Relevant text: 'attempts: 3 is the number of retries, not total tries'; 'perTryTimeout is per attempt'; the route timeout is 'the total timeout for the whole request including all retries'; 'Retries multiply load. That's how outages get worse instead of better'; outlier detection fields consecutive5xxErrors, interval, baseEjectionTime ('Doubles on repeat offenses') and maxEjectionPercent ('never eject more than half the hosts'); a high limit 'can cause Istio to eject every backend pod, leaving you with zero capacity'. To verify against istio.io's VirtualService and DestinationRule references."
+      }
+    }
+  },
+  "endings": {
+    "saleDown": {
+      "label": "Ratings overwhelmed at the sale",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(saleDownAt)",
+      "narrative": "At 12:00 the retry policy still multiplied every failed call."
+    },
+    "ejectAll": {
+      "label": "Ejection could empty the pool",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and ejection == \"all\"",
+      "narrative": "Outlier detection was set to eject on one error with no limit."
+    },
+    "healthy": {
+      "label": "Retries bounded, bad pod ejected, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and retryPolicy == \"sane\" and outlierOk and isNull(saleDownAt) and not isNull(vsAt) and not isNull(metricsAt) and not podDeleted and not ingressRestarted and not isNull(verifiedAt) and causeDoc == \"retries\"",
+      "narrative": "The 503s traced to one pod and the slowness to the retry policy; retries bounded, outlier detection ejecting the bad pod, p99 checked before noon."
+    },
+    "gaps": {
+      "label": "Sale held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The sale ran, but the failing pod still served, retries were removed outright, or a change was not needed."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "saleDown",
+    "ejectAll",
+    "healthy",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Tied the 503s to one pod and the slowness to the retry policy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vsAt) and not isNull(metricsAt)",
+            "score": "met",
+            "why": "Policy and per-pod metrics read."
+          },
+          {
+            "when": "not isNull(vsAt) or not isNull(metricsAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without looking."
+          }
+        ]
+      },
+      {
+        "id": "retries",
+        "label": "Retries bounded inside a timeout before 12:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "retryPolicy == \"sane\" and isNull(saleDownAt)",
+            "score": "met",
+            "why": "2 retries, 1 s per try, 3 s budget."
+          },
+          {
+            "when": "retriesSane and isNull(saleDownAt)",
+            "score": "partial",
+            "why": "Retries removed: no storm, but transient failures now reach users."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The storm reached the sale."
+          }
+        ]
+      },
+      {
+        "id": "outlier",
+        "label": "Outlier detection with a safe ejection limit",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "outlierOk",
+            "score": "met",
+            "why": "Ejects the bad pod, never more than half."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{ejection == \"all\" ? \"A limit of 100% can eject every pod.\" : \"The bad pod still gets a third of the calls.\"}"
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "No changes that do not help, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not podDeleted and not ingressRestarted and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Only the policy changed, and checked."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Checked, with an extra change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"retries\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record misses the retry policy."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "storm",
+        "label": "Retry policy at noon (0 storm, 1 bounded)",
+        "value": "retriesSane ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:20-11:23",
+        "text": "The VirtualService: 10 retries, 30 s per try, no timeout; per-pod metrics: every 503 from ratings-v1-c, a and b at three times their load; the DestinationRule: no outlier detection."
+      },
+      {
+        "at": "11:23-11:25",
+        "text": "timeout 3s, attempts 2, perTryTimeout 1s; outlierDetection consecutive5xxErrors 3, maxEjectionPercent 50."
+      },
+      {
+        "at": "11:25-11:27",
+        "text": "p99 back near 0.4 s, ratings-v1-c ejected."
+      }
+    ],
+    "debrief": {
+      "saleDown": {
+        "headline": "The retries took the healthy pods down",
+        "body": "Every call to the failing pod was retried up to ten times at 30 s each. Under sale traffic that load landed on the two pods that worked. Bound retries with a per-try timeout inside a route timeout."
+      },
+      "ejectAll": {
+        "headline": "An ejection policy that can remove every pod",
+        "body": "One 5xx and a 100% limit means a short blip during the sale can eject a and b too, leaving ratings with no endpoints for five minutes. Keep maxEjectionPercent below 100."
+      },
+      "healthy": {
+        "headline": "Good: bounded retries and outlier detection",
+        "body": "You read the policy and the per-pod metrics, bounded retries inside a timeout, let the mesh eject the failing pod with a safe limit, and checked p99 before the sale."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: outlier detection, the diagnosis, a sane retry policy rather than none, or the check."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The per-pod request metrics put every 503 on ratings-v1-c, the pod on the failing node, and show the other two pods carrying about three times their normal rate. The VirtualService retries 5xx ten times at up to 30 s per try with no route timeout, so each call that meets the bad pod turns into up to ten slow calls spread over the good ones. Bound it: a 3 s route timeout, 2 retries at 1 s per try. Then let the mesh stop sending to the bad pod: outlier detection with consecutive5xxErrors 3 and maxEjectionPercent 50, so it is ejected but the pool can never be emptied. Deleting the pod brings it back on the same node, restarting the gateway changes nothing because retries happen in productpage's sidecar, and more retries add load. Check p99 before the sale."
+  }
+}

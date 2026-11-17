@@ -1,0 +1,922 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "fslogix-share-missing-share-permission",
+  "title": "Outage: everyone signs in to a temporary profile after the profile share moved",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "PS C:\\ops>",
+      "lines": [
+        {
+          "id": "page",
+          "text": "07:45 helpdesk: 38 calls, 'my desktop is empty'; branch shift signs in at 08:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "08:30: branch shift on temporary profiles",
+          "when": "not isNull(shiftMissAt)",
+          "at": "timeAt(shiftMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "08:30: branch shift on their own profiles",
+          "when": "not isNull(shiftOkAt)",
+          "at": "timeAt(shiftOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "hosts",
+          "label": "Host pool hp-branch (12 session hosts)",
+          "spokenLabel": "the session hosts",
+          "kind": "FSLogix profile containers",
+          "status": "{lockedOut ? \"sign-ins refused\" : working ? \"profiles attach\" : \"temporary profiles\"}",
+          "tone": "working and not lockedOut ? \"up\" : \"down\""
+        },
+        {
+          "id": "rbac",
+          "label": "Share-level access on stavdprof01/profiles",
+          "spokenLabel": "the share-level permissions",
+          "kind": "Azure RBAC",
+          "status": "{who == \"users\" ? \"AVD-Users: SMB Share Contributor\" : who == \"default\" ? \"default: SMB Share Contributor for authenticated identities\" : who == \"elevated\" ? \"AVD-Users: SMB Share Elevated Contributor\" : \"AVD-Admins only; no default permission\"}",
+          "tone": "who == \"users\" or who == \"default\" ? \"up\" : who == \"elevated\" ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "share",
+          "label": "Share profiles (NTFS)",
+          "spokenLabel": "the profile share",
+          "kind": "ACLs copied with the data",
+          "status": "CREATOR OWNER, Admins, AVD-Users this folder only",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "hosts",
+          "to": "share",
+          "label": "SMB 445",
+          "status": "{working ? \"attaching\" : \"Access is denied\"}",
+          "tone": "working ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Implementing storage for FSLogix components",
+  "secondaryObjectives": [
+    "Implementing file shares for Azure Virtual Desktop",
+    "Configuring FSLogix Profile Containers"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. The az storage account update --default-share-permission flag is from memory of the CLI reference (to verify)."
+    },
+    {
+      "cite": "Microsoft Learn, FSLogix: Configure SMB storage permissions",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/fslogix/fslogix-storage-config-ht",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: it is 'recommended to configure the default share-level permission using Storage File Data SMB Share Contributor', assigned to all authenticated identities; 'Storage File Data SMB Share Elevated Contributor' for specific admin users or groups who set Windows ACLs; only Elevated Contributors can assign permissions on the share root or other files and directories without the storage account key; NTFS: CREATOR OWNER Modify on subfolders and files only, Domain Admins Full Control, Domain Users Modify on this folder only, so each profile directory has permissions only for its user."
+    },
+    {
+      "cite": "Microsoft Learn, FSLogix: Troubleshooting issues with old, temporary, or local profiles",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/fslogix/fslogix-trouble-shooting-ht",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: storage permissions are 'one of the most common misconfigured settings for an FSLogix solution'; the profile log shows '[ERROR:00000005] Failed to attach VHD. (Access is denied.)' and 'LoadProfile failed ... FrxStatus: 31 (Access is denied.)'; PreventLoginWithFailure replaces the shell to prevent a user's sign-in when their profile fails to attach. The log folder path in the scenario is from memory of FSLogix's default (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Azure Virtual Desktop administrator for Harbor Lane Credit Union, a fictional credit union. Last night CHG-7730 moved the FSLogix profile containers to a new storage account, stavdprof01, using identity-based access with Microsoft Entra Kerberos, and pointed VHDLocations at the new share. Since 07:30 every user signs in to a temporary profile with no mail signature, no drive mappings and an empty desktop. The 400-person branch shift signs in at 08:30.",
+    "handover": [
+      "The containers were copied with robocopy /COPYALL, so the folders and their ACLs came across.",
+      "Session hosts reach the new share over a private endpoint."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the session hosts, the storage account's share-level access and the profile share.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "07:45",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "shiftAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The branch shift signs in at 08:30, 45 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "portAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbacAt": {
+      "type": "time",
+      "init": null
+    },
+    "ntfsAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "loggedOffAt": {
+      "type": "time",
+      "init": null
+    },
+    "who": {
+      "type": "enum",
+      "values": [
+        "none",
+        "users",
+        "default",
+        "elevated"
+      ],
+      "init": "none"
+    },
+    "grantAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "shiftOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "shiftMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rbac",
+        "network",
+        "ntfs"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "working": {
+      "expr": "who != \"none\" and not isNull(grantAt) and since(grantAt) >= 300"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "fslogixLog",
+        "port",
+        "rbac",
+        "ntfs",
+        "grant",
+        "preventLogin",
+        "restart",
+        "logoff",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "fslogixLog": {
+      "label": "Get-Content C:\\ProgramData\\FSLogix\\Logs\\Profile\\Profile-20261117.log | Select-String ERROR (avd-br-03)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logAt)",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> Invoke-Command avd-br-03 {{ Select-String ERROR C:\\ProgramData\\FSLogix\\Logs\\Profile\\Profile-20261117.log | Select -Last 2 }}\n{working ? \"(no errors since the change)\" : \"[ERROR:00000005] Failed to attach VHD. (Access is denied.)\n[ERROR:00000005] LoadProfile failed. User: mdiaz. FrxStatus: 31 (Access is denied.)\"}"
+        },
+        {
+          "finding": "FSLogix reaches the share but is refused: Access is denied, for every user."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "port": {
+      "label": "Test-NetConnection stavdprof01.file.core.windows.net -Port 445",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(portAt)",
+          "then": [
+            {
+              "set": "portAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> Invoke-Command avd-br-03 {{ Test-NetConnection stavdprof01.file.core.windows.net -Port 445 | Select RemoteAddress,TcpTestSucceeded }}\nRemoteAddress  TcpTestSucceeded\n10.40.8.5      True"
+        },
+        {
+          "finding": "The private endpoint answers on 445: the network is fine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rbac": {
+      "label": "az role assignment list --scope .../fileServices/default/fileshares/profiles; default share permission",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rbacAt)",
+          "then": [
+            {
+              "set": "rbacAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> az storage account show -n stavdprof01 --query 'azureFilesIdentityBasedAuthentication.[directoryServiceOptions,defaultSharePermission]' -o tsv\nAADKERB  {who == \"default\" ? \"StorageFileDataSmbShareContributor\" : \"None\"}\nPS C:\\ops> az role assignment list --scope $share --query '[].[principalName,roleDefinitionName]' -o tsv\nAVD-Admins  Storage File Data SMB Share Elevated Contributor{who == \"users\" ? \"\nAVD-Users   Storage File Data SMB Share Contributor\" : who == \"elevated\" ? \"\nAVD-Users   Storage File Data SMB Share Elevated Contributor\" : \"\"}"
+        },
+        {
+          "finding": "On the new account only the admins have share-level access, and there is no default share permission: users are refused at the share before NTFS is even checked."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ntfs": {
+      "label": "icacls on the profile share root (mapped as P:)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ntfsAt)",
+          "then": [
+            {
+              "set": "ntfsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> icacls P:\\  (P: is the profiles share on stavdprof01)\nCREATOR OWNER:(OI)(CI)(IO)(M)\nHARBORLANE\\AVD-Admins:(OI)(CI)(F)\nHARBORLANE\\AVD-Users:(M)\nSuccessfully processed 1 files"
+        },
+        {
+          "finding": "The NTFS permissions came across intact and match the recommended pattern."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "grant": {
+      "label": "Give the users share-level access",
+      "group": "Fix",
+      "available": "not busy and (who == \"none\")",
+      "why": "Access already granted.",
+      "effects": [
+        {
+          "set": "who",
+          "to": "w"
+        },
+        {
+          "set": "grantAt",
+          "to": "t"
+        },
+        {
+          "output": "PS C:\\ops> {w == \"users\" ? \"az role assignment create --role 'Storage File Data SMB Share Contributor' --assignee-object-id $avdUsers --scope $share\" : w == \"default\" ? \"az storage account update -n stavdprof01 --default-share-permission StorageFileDataSmbShareContributor\" : \"az role assignment create --role 'Storage File Data SMB Share Elevated Contributor' --assignee-object-id $avdUsers --scope $share\"}\n\"provisioningState\": \"Succeeded\""
+        },
+        {
+          "log": "{w == \"elevated\" ? \"Users can now also change Windows ACLs on the share, a right only admins need.\" : \"Share-level access for users; NTFS still gives each user only their own folder. Allow a few minutes to take effect.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "w",
+          "kind": "choice",
+          "label": "Grant",
+          "options": [
+            {
+              "value": "users",
+              "label": "AVD-Users: Storage File Data SMB Share Contributor"
+            },
+            {
+              "value": "default",
+              "label": "Default share permission: SMB Share Contributor for all authenticated identities"
+            },
+            {
+              "value": "elevated",
+              "label": "AVD-Users: Storage File Data SMB Share Elevated Contributor"
+            }
+          ]
+        }
+      ]
+    },
+    "preventLogin": {
+      "label": "Set PreventLoginWithFailure=1 on the host pool",
+      "group": "Fix",
+      "available": "not busy and (not lockedOut)",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "lockedOut",
+          "to": "true"
+        },
+        {
+          "output": "PS C:\\ops> Invoke-Command (Get-AvdHosts) {{ Set-ItemProperty HKLM:\\SOFTWARE\\FSLogix\\Profiles -Name PreventLoginWithFailure -Value 1 }}\n(12 hosts updated)"
+        },
+        {
+          "log": "No more temporary profiles, because nobody can sign in at all while the container fails to attach.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Drain and restart all session hosts",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "output": "PS C:\\ops> Get-AvdHosts | Restart-AvdHostDrained\n(12 hosts restarting; 120 users signed out)"
+        },
+        {
+          "log": "The hosts come back and get the same Access is denied from the share.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "logoff": {
+      "label": "Sign out the sessions running on temporary profiles, with a message",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "working",
+          "then": [
+            {
+              "set": "loggedOffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> Get-AvdSessions | ? ProfileType -eq Temporary | Invoke-AvdUserLogoff -Message 'Please sign in again to get your own desktop'\n{working ? \"(118 sessions signed out)\" : \"(signed out; they come back to temporary profiles: access is still denied)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Sign in as test user avd-test01 and check the profile type",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "working and not lockedOut",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "PS C:\\ops> Invoke-Command avd-br-03 {{ frx list-redirects; (Get-ItemProperty HKLM:\\SOFTWARE\\FSLogix\\Profiles\\Sessions\\*).ProfileType }}\n{lockedOut ? \"sign-in refused: profile failed to attach\" : working ? \"Profile_avd-test01.vhdx attached; ProfileType 0 (container)\" : \"Access is denied; temporary profile\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "rbac",
+                  "label": "The new storage account had no share-level permission for users (no default, no Contributor role); granted SMB Share Contributor"
+                },
+                {
+                  "value": "network",
+                  "label": "Session hosts could not reach the share"
+                },
+                {
+                  "value": "ntfs",
+                  "label": "The NTFS permissions were lost in the copy"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= shiftAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "working and not lockedOut",
+          "then": [
+            {
+              "set": "shiftOkAt",
+              "to": "t"
+            },
+            {
+              "log": "08:30: the branch shift signs in to their own profiles.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "shiftMissAt",
+              "to": "t"
+            },
+            {
+              "log": "08:30: the branch shift signs in to temporary profiles.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why profiles failed to attach, what access you granted and why that much, and how users got back to their own desktops.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates network, share-level and NTFS access.",
+          "modelAnswer": "FSLogix logged Access is denied; port 445 to the private endpoint answered and the NTFS ACLs came across intact, but the new storage account had no share-level permission for users: no default and only the admins' role."
+        },
+        {
+          "label": "Access",
+          "criteria": "Grants Contributor, not Elevated Contributor, at the share level.",
+          "modelAnswer": "Granted Storage File Data SMB Share Contributor to AVD-Users; NTFS's CREATOR OWNER pattern still limits each user to their own folder. Elevated Contributor would let users change ACLs, which only admins need."
+        },
+        {
+          "label": "Back",
+          "criteria": "Gets the temporary sessions back to containers and checks one.",
+          "modelAnswer": "Signed out the sessions on temporary profiles with a message after the role took effect, and a test sign-in attached its container before 08:30."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The branch shift signs in at 08:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: users locked out, or more access than they need."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not working",
+      "class": "harm",
+      "rationale": "Closing with users still denied leaves the branch shift on temporary profiles.",
+      "source": {
+        "cite": "Microsoft Learn, FSLogix: Troubleshooting issues with old, temporary, or local profiles",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/fslogix/fslogix-trouble-shooting-ht",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: storage permissions are 'one of the most common misconfigured settings for an FSLogix solution'; the profile log shows '[ERROR:00000005] Failed to attach VHD. (Access is denied.)' and 'LoadProfile failed ... FrxStatus: 31 (Access is denied.)'; PreventLoginWithFailure replaces the shell to prevent a user's sign-in when their profile fails to attach. The log folder path in the scenario is from memory of FSLogix's default (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "lockedOut": {
+      "label": "Nobody can sign in",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and lockedOut",
+      "narrative": "PreventLoginWithFailure stopped temporary profiles by refusing every sign-in while the share still denied access."
+    },
+    "shiftMissed": {
+      "label": "Branch shift on temporary profiles",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(shiftMissAt)",
+      "narrative": "At 08:30 the share still refused users."
+    },
+    "fixed": {
+      "label": "Share access granted at the right level, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and (who == \"users\" or who == \"default\") and working and not lockedOut and not restarted and isNull(shiftMissAt) and not isNull(logAt) and not isNull(rbacAt) and not isNull(verifiedAt) and not isNull(loggedOffAt) and causeDoc == \"rbac\"",
+      "narrative": "The log, the network test and the role assignments found the missing share-level permission; Contributor restored it and the temporary sessions came back to containers."
+    },
+    "gaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Profiles attach, but users got more access than they need, the temporary sessions were left, or a check was skipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "lockedOut",
+    "shiftMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the share-level permission gap",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and not isNull(rbacAt)",
+            "score": "met",
+            "why": "Access denied, and why."
+          },
+          {
+            "when": "not isNull(logAt) or not isNull(rbacAt) or not isNull(portAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the log or the access."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Least-privilege share access working before 08:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(who == \"users\" or who == \"default\") and working and not lockedOut and isNull(shiftMissAt)",
+            "score": "met",
+            "why": "Contributor, in time."
+          },
+          {
+            "when": "working",
+            "score": "partial",
+            "why": "{who == \"elevated\" ? \"With Elevated Contributor for every user.\" : lockedOut ? \"With sign-ins blocked.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Users are still denied."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "Temporary sessions handled, no needless restarts, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(loggedOffAt) and not restarted and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Sessions moved over and a sign-in tested."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Tested, with sessions left on temporary profiles or a needless restart."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not tested."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"rbac\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the network or NTFS."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (lockout, restarts, Elevated Contributor)",
+        "value": "(lockedOut ? 1 : 0) + (restarted ? 1 : 0) + (who == \"elevated\" ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:45-07:49",
+        "text": "FSLogix log: Access is denied; port 445 answers; no share-level permission for users on stavdprof01; NTFS intact."
+      },
+      {
+        "at": "07:49-07:50",
+        "text": "Grant AVD-Users Storage File Data SMB Share Contributor on the share."
+      },
+      {
+        "at": "07:55-07:58",
+        "text": "Sign out the temporary sessions with a message; a test sign-in attaches its container."
+      }
+    ],
+    "debrief": {
+      "lockedOut": {
+        "headline": "A safeguard turned into an outage",
+        "body": "PreventLoginWithFailure is right once containers attach reliably; while access is broken it turns temporary profiles into no sign-in. Fix the access first."
+      },
+      "shiftMissed": {
+        "headline": "The shift started without their desktops",
+        "body": "Restarts do not change who the share admits. FSLogix's log said Access is denied; the share-level assignments on the new account showed why."
+      },
+      "fixed": {
+        "headline": "Good: the right layer, the right role",
+        "body": "You checked network, share-level and NTFS access in turn, granted users Contributor rather than Elevated Contributor, signed out the temporary sessions once it took effect, and tested a sign-in."
+      },
+      "gaps": {
+        "headline": "Restored, with gaps",
+        "body": "The criteria show what was left: the diagnosis, the least-privilege role, signing out the temporary sessions, or the test sign-in."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "FSLogix logs Access is denied for every user, yet port 445 to the share answers and the NTFS ACLs came across intact, so the refusal is at the share level. The new storage account has identity-based access but no default share permission and only the admins' Elevated Contributor role. Grant users Storage File Data SMB Share Contributor (to the group or as the default for authenticated identities), not Elevated Contributor, which lets users change ACLs; NTFS's CREATOR OWNER pattern still keeps each user in their own folder. Restarts change nothing, and PreventLoginWithFailure now would turn temporary profiles into no sign-in. Once the role takes effect, sign out the temporary sessions with a message and test a sign-in before 08:30."
+  }
+}

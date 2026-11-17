@@ -11733,6 +11733,48 @@
       "risk_notes": [
         "sims-pm-2 (2026-11-17): the acceptance criterion's exceptions (PMI-RMP and the six open courses) are closed; every course of the round now has a sim on its highest-weighted domain, checked by pm-comptia.test.ts."
       ]
+    },
+    {
+      "id": "REQ-320",
+      "category": "content",
+      "title": "Cloud sims: breadth first for the Azure, AWS, Google Cloud and CNCF courses that had none, then depth",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Every Azure (AI901, AZ104, AZ120, AZ140, AZ305, AZ400, AZ700, AZ900, DP300, DP900), AWS (AWSAIF, AWSANS, AWSDEA, AWSDOP, AWSSCS), Google Cloud (GCPDBE, GCPDEV, GCPDEVOPS, GCPGAIL, GCPMLE, GCPNET, GCPPCA, GCPPDE, GCPSEC) and CNCF/Linux Foundation course (KCA, KCSA, CKAD, CKS, CNPA, CNPE, CGOA, CCA, ICA, OTCA, PCA, CBA) gets at least one sim on its highest-weighted domain, highest-demand exams first (AZ-104, AZ-900, AZ-305, CKAD, CKS), then depth highest weight first for objectives that fit the selection rule. Reuse before authoring: where another course's sim teaches the same objective, register a band. Existing screens only; no engine, schema or migration change. Course outlines read 2026-11-17 and dated; teaching timings flagged; no permission-only body's marks in sim text. Second pass (sims-cloud-2): a new top-domain case for each course the first pass left without one (AWSDEA, GCPNET, GCPDBE, GCPMLE, AZ120, AZ140, KCA, CCA, CBA) or below its top domain (AI901, GCPPDE), then depth bands of those cases in the first pass's courses.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-cloud.ts",
+        "backend/lib/sim/it-cloud.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each document carries its course outline read 2026-11-17 as its first source",
+        "a band keeps its base's actions endings ending order and golden outcomes",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug",
+        "a behavior test per new case checks the decision it teaches"
+      ],
+      "validation_required": [
+        "lib/sim/it-cloud.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "backend sim tests in parts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.30",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "bands across certification levels (security-analyst cases on leader and fundamentals courses)",
+        "third-party summaries used where official outline pages did not load"
+      ]
     }
   ]
 }

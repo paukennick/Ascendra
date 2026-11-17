@@ -1,0 +1,990 @@
+{
+  "slug": "bigquery-dashboard-bill-pde",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Billing reports and job history, find and call the owner, owner's fix, quota and owner alerts, labels and a monthly review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "billingReport",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "jobsHistory",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 40,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "findOwner",
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 50,
+          "seq": 6,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "meetOwner",
+          "seq": 7,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 80,
+          "seq": 8,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "ownerFix",
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 95,
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "setQuota",
+          "seq": 11,
+          "tick": 95
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 110,
+          "seq": 12,
+          "tick": 95
+        },
+        {
+          "type": "act",
+          "action": "ownerBudgetA",
+          "seq": 13,
+          "tick": 110
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 125,
+          "seq": 14,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "labelsA",
+          "seq": 15,
+          "tick": 125
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 145,
+          "seq": 16,
+          "tick": 125
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 145,
+          "seq": 17,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "costReview",
+          "seq": 18,
+          "tick": 145
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 160,
+          "seq": 19,
+          "tick": 145
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 20,
+          "tick": 160
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 160
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "shared"
+          },
+          "seq": 22,
+          "tick": 160
+        }
+      ],
+      "expect": {
+        "ending": "governed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "traced": "met",
+          "ownerOwns": "met",
+          "fixedByNoon": "met",
+          "guardrails": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "spendK": 4917,
+          "fixK": 140
+        },
+        "stateHash": "3a1d0a0518762007"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "platformFix",
+      "title": "Traces the cost and fixes the dashboard without its owner; quota only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "billingReport",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "jobsHistory",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 40,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "platformFix",
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 55,
+          "seq": 6,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "setQuota",
+          "seq": 7,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 70,
+          "seq": 8,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 100,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 11,
+          "tick": 100
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "platform"
+          },
+          "seq": 13,
+          "tick": 100
+        }
+      ],
+      "expect": {
+        "ending": "governedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "traced": "met",
+          "ownerOwns": "partial",
+          "fixedByNoon": "met",
+          "guardrails": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "spendK": 4883,
+          "fixK": 100
+        },
+        "stateHash": "a95b9ee500bb1c67"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "revokeLate",
+      "title": "Cuts off the dashboard first, then engages the owner slowly: the fix lands after the 14:00 review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "revokeDash",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "billingReport",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 30,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "findOwner",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 40,
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 70,
+          "seq": 8,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 100,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 100
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 130,
+          "seq": 12,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 130
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 160,
+          "seq": 14,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 160
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 190,
+          "seq": 16,
+          "tick": 160
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 190
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 220,
+          "seq": 18,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 220
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 250,
+          "seq": 20,
+          "tick": 220
+        },
+        {
+          "type": "act",
+          "action": "meetOwner",
+          "seq": 21,
+          "tick": 250
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 280,
+          "seq": 22,
+          "tick": 250
+        },
+        {
+          "type": "act",
+          "action": "ownerFix",
+          "seq": 23,
+          "tick": 280
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 295,
+          "seq": 24,
+          "tick": 280
+        },
+        {
+          "type": "act",
+          "action": "setQuota",
+          "seq": 25,
+          "tick": 295
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 310,
+          "seq": 26,
+          "tick": 295
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 310,
+          "seq": 27,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "ownerBudgetA",
+          "seq": 28,
+          "tick": 310
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 325,
+          "seq": 29,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 30,
+          "tick": 325
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 355,
+          "seq": 31,
+          "tick": 325
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 355,
+          "seq": 32,
+          "tick": 340
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 33,
+          "tick": 355
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 34,
+          "tick": 355
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "shared"
+          },
+          "seq": 35,
+          "tick": 355
+        }
+      ],
+      "expect": {
+        "ending": "reviewFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "traced": "partial",
+          "ownerOwns": "met",
+          "fixedByNoon": "partial",
+          "guardrails": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "spendK": 4800,
+          "fixK": 340
+        },
+        "stateHash": "592827d8859314c1"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "disableBilling",
+      "title": "Disables billing on the project to stop the spend",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "billingReport",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disableBilling",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 25,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "finance"
+          },
+          "seq": 7,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "billingOff",
+        "class": "harm",
+        "rating": "bad",
+        "score": 8,
+        "criteria": {
+          "traced": "partial",
+          "ownerOwns": "missed",
+          "fixedByNoon": "missed",
+          "guardrails": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "spendK": 4817,
+          "fixK": -1
+        },
+        "stateHash": "327c9cd8a87eb3eb"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "budgetOnly",
+      "title": "Adds a budget alert for the owner and closes: the dashboard keeps scanning the whole table",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ownerBudgetA",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 15,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 3,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "finance"
+          },
+          "seq": 5,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "stillBurning",
+        "class": "harm",
+        "rating": "bad",
+        "score": 8,
+        "criteria": {
+          "traced": "missed",
+          "ownerOwns": "missed",
+          "fixedByNoon": "missed",
+          "guardrails": "partial",
+          "record": "missed"
+        },
+        "kpis": {
+          "spendK": 4812,
+          "fixK": -1
+        },
+        "stateHash": "54415973139fd21e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "slowOwner",
+      "title": "Owner engaged and fixes it, but only in the afternoon; all guardrails added",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "billingReport",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 20,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "findOwner",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 30,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 60,
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 90,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 120,
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 150,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 150
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 180,
+          "seq": 14,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "meetOwner",
+          "seq": 15,
+          "tick": 180
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 210,
+          "seq": 16,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "ownerFix",
+          "seq": 17,
+          "tick": 210
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 225,
+          "seq": 18,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "setQuota",
+          "seq": 19,
+          "tick": 225
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 240,
+          "seq": 20,
+          "tick": 225
+        },
+        {
+          "type": "act",
+          "action": "ownerBudgetA",
+          "seq": 21,
+          "tick": 240
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 255,
+          "seq": 22,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "labelsA",
+          "seq": 23,
+          "tick": 255
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 275,
+          "seq": 24,
+          "tick": 255
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 275,
+          "seq": 25,
+          "tick": 270
+        },
+        {
+          "type": "act",
+          "action": "costReview",
+          "seq": 26,
+          "tick": 275
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 290,
+          "seq": 27,
+          "tick": 275
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 28,
+          "tick": 290
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 320,
+          "seq": 29,
+          "tick": 290
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 320,
+          "seq": 30,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 31,
+          "tick": 320
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 32,
+          "tick": 320
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "owner": "shared"
+          },
+          "seq": 33,
+          "tick": 320
+        }
+      ],
+      "expect": {
+        "ending": "governedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "traced": "met",
+          "ownerOwns": "met",
+          "fixedByNoon": "partial",
+          "guardrails": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "spendK": 5026,
+          "fixK": 270
+        },
+        "stateHash": "c79a11904619ae45"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

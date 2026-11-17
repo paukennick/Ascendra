@@ -1,0 +1,33 @@
+{
+  "band": "dop",
+  "label": "AWS DevOps Engineer Professional (DOP-C02)",
+  "base": {
+    "course": "AWSDEA",
+    "slug": "kinesis-poison-record-blocks-shard"
+  },
+  "slug": "kinesis-poison-record-blocks-shard-dop",
+  "patch": {
+    "objective": "Building event processing workflows with Amazon SQS, Amazon Kinesis, Amazon SNS, AWS Lambda, and AWS Step Functions",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified DevOps Engineer - Professional (DOP-C02) exam guide: SDLC Automation 22%, Configuration Management and IaC 17%, Resilient Cloud Solutions 15%, Monitoring and Logging 15%, Incident and Event Response 14%, Security and Compliance 17%",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/userguide/devops-engineer-professional-02-domain1.html",
+        "note": "Domain 1 page read through a summarizing fetch on 2026-11-17: 'This domain accounts for 22% of the exam content'; Task 1.4 skills 'Troubleshooting deployment issues' and 'Using different deployment methods (for example, blue/green, canary)'. The other domains' weights and wording are the course seed's (backend/supabase/seed/tracks/aws.ts); their pages were not re-read."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Lambda parameters for Amazon Kinesis Data Streams event source mappings",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-kinesis-parameters.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: MaximumRetryAttempts default -1, '-1 means infinite: failed records are retried until the record expires'; MaximumRecordAgeInSeconds default -1; BisectBatchOnFunctionError default false; StartingPosition AT_TIMESTAMP, TRIM_HORIZON or LATEST; FunctionResponseTypes ReportBatchItemFailures. That LATEST reads only new records is general knowledge (to verify)."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Retaining discarded batch records for a Kinesis Data Streams event source in Lambda",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/de_de/lambda/latest/dg/kinesis-on-failure-destination.md",
+        "note": "Read directly on 2026-11-17 (German machine translation of the English page). Relevant text: when the function returns an error Lambda retries until the records expire, exceed MaximumRecordAgeInSeconds or reach MaximumRetryAttempts; BisectBatchOnFunctionError splits a failed batch in two to isolate bad records and splitting does not use up retries; 'with the default settings a bad record can block processing on the affected shard for up to one week'; an on-failure destination can be an SNS topic, SQS queue, S3 bucket or Kafka; for SQS and SNS Lambda sends only metadata (shardId, start and end sequence numbers), so the records must be read from the stream before they expire; for S3 it also sends the whole invocation record as payload."
+      }
+    ]
+  }
+}

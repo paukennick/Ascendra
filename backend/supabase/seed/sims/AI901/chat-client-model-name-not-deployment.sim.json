@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "chat-client-model-name-not-deployment",
+  "title": "Demo prep: a chat client gets 404 from a model that is deployed",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@laptop:~/helpdesk-chat$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:15 python chat.py: 404 on every request; demo at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: demo, 404",
+          "when": "not isNull(demoMissAt)",
+          "at": "timeAt(demoMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: demo, client answers",
+          "when": "not isNull(demoOkAt)",
+          "at": "timeAt(demoOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "client",
+          "label": "chat.py",
+          "spokenLabel": "the chat client",
+          "kind": "Python, OpenAI-compatible client",
+          "status": "{keyCommitted ? \"key pasted into the code\" : working ? \"answers\" : \"404 on every request\"}",
+          "tone": "keyCommitted ? \"down\" : working ? \"up\" : \"down\""
+        },
+        {
+          "id": "dep",
+          "label": "Deployment helpdesk-chat",
+          "spokenLabel": "the model deployment",
+          "kind": "model gpt-4.1-mini",
+          "status": "{secondDep ? \"plus a second deployment named gpt-4.1-mini\" : \"one deployment, named helpdesk-chat\"}",
+          "tone": "secondDep ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "sys",
+          "label": "System message",
+          "spokenLabel": "the system message",
+          "kind": "instructions to the model",
+          "status": "{systemSet ? \"helpdesk scope, short answers, policy text\" : \"none\"}",
+          "tone": "systemSet ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "client",
+          "to": "dep",
+          "label": "model parameter",
+          "status": "{depFixed ? \"helpdesk-chat\" : \"gpt-4.1-mini (the model, not the deployment)\"}",
+          "tone": "working ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Building a lightweight chat client application with the Foundry SDK",
+  "secondaryObjectives": [
+    "Deploying a model and interacting with it in the Foundry portal",
+    "Writing effective system and user prompts for generative AI models"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AI-901: Microsoft Azure AI Fundamentals (page last updated 2026-07-13; skills as of April 15, 2026): identify AI concepts and capabilities 40-45%, implement AI solutions by using Microsoft Foundry 55-60%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Create effective system and user prompts for generative AI models', 'Deploy a model and interact with it in the Foundry portal', 'Create a lightweight chat client application by using the Foundry SDK'. The az cognitiveservices commands in the scenario are from memory of the CLI (to verify)."
+    },
+    {
+      "cite": "Microsoft Learn, Microsoft Foundry Models: frequently asked questions (classic)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/foundry-classic/foundry-models/faq",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: for a 404 when calling a model, 'Ensure you created a deployment for the given model and that the deployment name matches exactly the value you're passing in model parameter. Although routing isn't case sensitive, ensure there's no special punctuation or spaces as these are common mistakes.' The DeploymentNotFound code in the scenario's error is from Microsoft Q&A threads seen as search results on 2026-11-17 (to verify). Keeping keys out of source code is general secure-development practice."
+    }
+  ],
+  "brief": {
+    "situation": "You work on the staff helpdesk team at Tamsin Rail, a fictional train operator. Yesterday you deployed a chat model in the Microsoft Foundry portal and it answered in the playground. This morning you wrote a small Python chat client for a demo to the operations manager at 11:00. Every request fails with a 404.",
+    "handover": [
+      "The endpoint and key are read from environment variables; the repository is shared with the whole team.",
+      "The demo question is 'Can I take a bicycle on the 07:12 to Harrowgate?'; the helpdesk's bicycle policy is in the brief you were given."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows your client, the Foundry project's endpoint and the model deployment.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "demoAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The demo is at 11:00, 45 minutes after the first failure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "runAt": {
+      "type": "time",
+      "init": null
+    },
+    "depAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "depFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "secondDep": {
+      "type": "bool",
+      "init": false
+    },
+    "keyCommitted": {
+      "type": "bool",
+      "init": false
+    },
+    "reinstalled": {
+      "type": "bool",
+      "init": false
+    },
+    "systemSet": {
+      "type": "bool",
+      "init": false
+    },
+    "demoOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "demoMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "deployment",
+        "auth",
+        "sdk"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "working": {
+      "expr": "depFixed or secondDep"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "run",
+        "deployments",
+        "code",
+        "setDeployment",
+        "secondDeploy",
+        "keyInCode",
+        "reinstall",
+        "systemPrompt",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "run": {
+      "label": "python chat.py \"Can I take a bicycle on the 07:12?\"",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(runAt)",
+          "then": [
+            {
+              "set": "runAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ python chat.py \"Can I take a bicycle on the 07:12 to Harrowgate?\"\n{working ? \"200 OK\" : \"openai.NotFoundError: Error code: 404 - code DeploymentNotFound: The API deployment for this resource does not exist.\"}"
+        },
+        {
+          "finding": "The endpoint and key are accepted (a bad key would be 401); the service cannot find the deployment named in the request."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deployments": {
+      "label": "az cognitiveservices account deployment list -n tamsin-foundry -g rg-helpdesk -o table",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(depAt)",
+          "then": [
+            {
+              "set": "depAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ az cognitiveservices account deployment list -n tamsin-foundry -g rg-helpdesk --query '[].[name,properties.model.name]' -o tsv\nhelpdesk-chat  gpt-4.1-mini{secondDep ? \"\ngpt-4.1-mini   gpt-4.1-mini\" : \"\"}"
+        },
+        {
+          "finding": "The deployment you created is named helpdesk-chat; gpt-4.1-mini is the model it runs."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "code": {
+      "label": "grep -n 'model=\\|getenv' chat.py",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codeAt)",
+          "then": [
+            {
+              "set": "codeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ grep -n 'model=' chat.py; grep -n getenv chat.py\n12:    model={depFixed ? \"os.environ['AZURE_AI_DEPLOYMENT']\" : \"'gpt-4.1-mini'\"},\n4: endpoint = os.environ[\"AZURE_AI_ENDPOINT\"]\n5: key = os.environ[\"AZURE_AI_KEY\"]"
+        },
+        {
+          "finding": "The client passes the model's name where the service expects the deployment's name."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setDeployment": {
+      "label": "Pass the deployment name: model=os.environ['AZURE_AI_DEPLOYMENT'] with AZURE_AI_DEPLOYMENT=helpdesk-chat",
+      "group": "Fix",
+      "available": "not busy and (not depFixed)",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "set": "depFixed",
+          "to": "true"
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ sed -i \"s/model='gpt-4.1-mini'/model=os.environ['AZURE_AI_DEPLOYMENT']/\" chat.py && export AZURE_AI_DEPLOYMENT=helpdesk-chat\n(chat.py updated)"
+        },
+        {
+          "log": "The request now names the deployment the portal created.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "secondDeploy": {
+      "label": "Create a second deployment named gpt-4.1-mini so the code matches",
+      "group": "Fix",
+      "available": "not busy and (not secondDep and not depFixed)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "secondDep",
+          "to": "true"
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ az cognitiveservices account deployment create -n tamsin-foundry -g rg-helpdesk --deployment-name gpt-4.1-mini --model-name gpt-4.1-mini --model-format OpenAI --sku-name GlobalStandard --sku-capacity 10\n\"provisioningState\": \"Succeeded\""
+        },
+        {
+          "log": "It works, with two deployments of one model sharing your quota, and a client that still confuses model and deployment.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "keyInCode": {
+      "label": "Paste the key into chat.py and push, in case it is an authentication problem",
+      "group": "Fix",
+      "available": "not busy and (not keyCommitted)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "keyCommitted",
+          "to": "true"
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ sed -i 's/os.environ\\[\"AZURE_AI_KEY\"\\]/\"8c1f...\"/' chat.py && git commit -am 'hardcode key' && git push\n[main 4e1a7b2] hardcode key"
+        },
+        {
+          "log": "The 404 is unchanged, and the key is now in the team's repository history.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "reinstall": {
+      "label": "pip install --upgrade openai azure-ai-projects",
+      "group": "Fix",
+      "available": "not busy and (not reinstalled)",
+      "why": "Already upgraded.",
+      "effects": [
+        {
+          "set": "reinstalled",
+          "to": "true"
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ pip install --upgrade openai azure-ai-projects\nSuccessfully installed ..."
+        },
+        {
+          "log": "New packages send the same model name: still 404.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "systemPrompt": {
+      "label": "Add a system message: helpdesk scope, two-sentence answers, the bicycle policy, say when unsure",
+      "group": "Fix",
+      "available": "not busy and (not systemSet)",
+      "why": "Already added.",
+      "effects": [
+        {
+          "set": "systemSet",
+          "to": "true"
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ (chat.py) messages=[{{\"role\": \"system\", \"content\": \"You answer Tamsin Rail staff helpdesk questions. Use only the policy text below. Answer in at most two sentences. If the policy does not cover it, say so and give the helpdesk number. Policy: folding bicycles anytime; full-size bicycles off-peak only, not 07:00-09:30 on weekdays.\"}}, {{\"role\": \"user\", \"content\": question}}]"
+        },
+        {
+          "log": "The system message sets the role, the rules and the facts; the user message carries only the question.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run the demo question and one off-topic question",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "working",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@laptop:~/helpdesk-chat$ python chat.py \"Can I take a bicycle on the 07:12 to Harrowgate?\"; python chat.py \"Write me a poem\"\n{not working ? \"404 DeploymentNotFound\" : systemSet ? \"Folding bicycles are allowed at any time; full-size bicycles are not allowed on weekday trains between 07:00 and 09:30, so not on the 07:12.\nThat is outside the helpdesk's scope; please call the helpdesk on 4400.\" : \"Many train operators allow bicycles... (310 words of general advice, no answer for the 07:12)\nHere is a poem about trains...\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "deployment",
+                  "label": "The client passed the model name gpt-4.1-mini where the service needs the deployment name helpdesk-chat"
+                },
+                {
+                  "value": "auth",
+                  "label": "The key was wrong or expired"
+                },
+                {
+                  "value": "sdk",
+                  "label": "The SDK version was too old"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= demoAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "working",
+          "then": [
+            {
+              "set": "demoOkAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the chat client answers in the demo.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "demoMissAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the chat client fails in the demo.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the client got a 404, what you changed, and how you made the answers fit the helpdesk.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the error code and compares the request with the deployment list.",
+          "modelAnswer": "404 DeploymentNotFound with a valid key: the client sent model=\"gpt-4.1-mini\", the model's name, but requests are routed by deployment name, and the portal deployment is called helpdesk-chat."
+        },
+        {
+          "label": "Change",
+          "criteria": "Uses the deployment name from configuration and keeps the key out of the code.",
+          "modelAnswer": "The client now reads the deployment name from AZURE_AI_DEPLOYMENT (helpdesk-chat); the endpoint and key stay in environment variables, not in the shared repository. A second deployment named after the model was not needed."
+        },
+        {
+          "label": "Answers",
+          "criteria": "Shapes the answers with a system message and tests on and off topic.",
+          "modelAnswer": "A system message sets the helpdesk role, the policy text, a two-sentence limit and what to do when unsure; the demo question now gets the right short answer and an off-topic request is declined."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The demo is at 11:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a key in the repository, or a duplicate deployment."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not working",
+      "class": "harm",
+      "rationale": "Closing with the client still failing leaves the demo broken.",
+      "source": {
+        "cite": "Microsoft Learn, Microsoft Foundry Models: frequently asked questions (classic)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/foundry-classic/foundry-models/faq",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: for a 404 when calling a model, 'Ensure you created a deployment for the given model and that the deployment name matches exactly the value you're passing in model parameter. Although routing isn't case sensitive, ensure there's no special punctuation or spaces as these are common mistakes.' The DeploymentNotFound code in the scenario's error is from Microsoft Q&A threads seen as search results on 2026-11-17 (to verify). Keeping keys out of source code is general secure-development practice."
+      }
+    }
+  },
+  "endings": {
+    "keyCommitted": {
+      "label": "Key pushed to the shared repository",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and keyCommitted",
+      "narrative": "Pasting the key into chat.py did not fix the 404 and put the key in the team's repository history."
+    },
+    "demoFailed": {
+      "label": "404 at the demo",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(demoMissAt)",
+      "narrative": "At 11:00 the client still asked for a deployment that does not exist."
+    },
+    "ready": {
+      "label": "Deployment name fixed, system message added, tested",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and depFixed and not secondDep and not keyCommitted and isNull(demoMissAt) and not isNull(runAt) and not isNull(depAt) and systemSet and not isNull(verifiedAt) and causeDoc == \"deployment\"",
+      "narrative": "The 404 and the deployment list showed the mismatch; the client now names the deployment, and a system message keeps answers short and on policy."
+    },
+    "gaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The client answers, but through a duplicate deployment, without a system message, or untested."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "keyCommitted",
+    "demoFailed",
+    "ready",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Matched the error to the deployment name",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(runAt) and not isNull(depAt)",
+            "score": "met",
+            "why": "The error and the deployment list."
+          },
+          {
+            "when": "not isNull(runAt) or not isNull(depAt) or not isNull(codeAt)",
+            "score": "partial",
+            "why": "Part of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the error."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Client names the deployment before 11:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "depFixed and isNull(demoMissAt)",
+            "score": "met",
+            "why": "Deployment name from configuration, in time."
+          },
+          {
+            "when": "working",
+            "score": "partial",
+            "why": "{secondDep ? \"Through a duplicate deployment.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still 404."
+          }
+        ]
+      },
+      {
+        "id": "prompt",
+        "label": "System message added and tested on and off topic",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "systemSet and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Instructions added and checked."
+          },
+          {
+            "when": "systemSet or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"deployment\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the key or the SDK."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (key in code, duplicate deployment)",
+        "value": "(keyCommitted ? 1 : 0) + (secondDep ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:15-10:18",
+        "text": "404 DeploymentNotFound with a valid key; the deployment is named helpdesk-chat; the code passes gpt-4.1-mini."
+      },
+      {
+        "at": "10:18-10:21",
+        "text": "Read the deployment name from AZURE_AI_DEPLOYMENT; add a system message with scope, policy and length."
+      },
+      {
+        "at": "10:21-10:22",
+        "text": "The demo question gets the right two-sentence answer; an off-topic request is declined."
+      }
+    ],
+    "debrief": {
+      "keyCommitted": {
+        "headline": "A secret in the history",
+        "body": "A 404 is not an authentication error; a wrong key gives 401. Keys belong in environment variables or Microsoft Entra ID authentication; a pushed key has to be regenerated."
+      },
+      "demoFailed": {
+        "headline": "The demo hit a 404",
+        "body": "New packages send the same request. The error said DeploymentNotFound; the deployment list shows the name to use."
+      },
+      "ready": {
+        "headline": "Good: the right name, the right instructions",
+        "body": "You read the error code, compared the request with what the portal deployed, fixed the name through configuration, kept the key out of the code, and used a system message to make the answers fit the helpdesk, then tested both kinds of question."
+      },
+      "gaps": {
+        "headline": "Working, with gaps",
+        "body": "The criteria show what was left: the diagnosis, the deployment name in the client, the system message, or the test."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The request is accepted by the endpoint, so the key works; the 404 says the deployment named in the request does not exist. The deployment list shows the portal deployment is helpdesk-chat, while the code passes the model's name, gpt-4.1-mini, and requests are routed by deployment name. Read the deployment name from configuration rather than creating a duplicate deployment, and keep the key in the environment, never in a shared repository. Then add a system message that sets the helpdesk role, gives the policy text, limits length and says what to do when unsure, and test both the demo question and an off-topic one before 11:00."
+  }
+}

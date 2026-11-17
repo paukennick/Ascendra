@@ -1,0 +1,895 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "plugin-token-marked-frontend",
+  "title": "Pull request: a plugin tab 'fixed' by sending its API token to every browser",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@portal-repo:~/portal$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "14:10 PR #88 'fix code quality tab (401)' awaiting review; leadership demo at 15:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "15:00: demo, tab fails",
+          "when": "not isNull(demoMissAt)",
+          "at": "timeAt(demoMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "15:00: demo, tab loads",
+          "when": "not isNull(demoOkAt)",
+          "at": "timeAt(demoOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "browser",
+          "label": "Browser (frontend plugin)",
+          "spokenLabel": "the browser",
+          "kind": "React, runs on every user's machine",
+          "status": "{merged ? \"holds the quality token\" : proxyLive ? \"calls /api/proxy/quality\" : \"calls the quality server directly: 401\"}",
+          "tone": "merged ? \"down\" : proxyLive ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "backend",
+          "label": "Backstage backend (Node)",
+          "spokenLabel": "the backend",
+          "kind": "proxy plugin, holds QUALITY_TOKEN",
+          "status": "{proxyLive ? \"proxy /quality adds the Authorization header\" : not isNull(proxyAt) ? \"deploying\" : \"no quality route\"}",
+          "tone": "proxyLive ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "quality",
+          "label": "quality.northvale.internal",
+          "spokenLabel": "the quality server",
+          "kind": "API requires a bearer token",
+          "status": "{rotated ? \"token rotated\" : \"token unchanged since the preview\"}",
+          "tone": "rotated ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "browser",
+          "to": "backend",
+          "label": "Same origin",
+          "status": "{proxyLive ? \"200\" : \"not used\"}",
+          "tone": "proxyLive ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "l2",
+          "from": "backend",
+          "to": "quality",
+          "label": "With the token",
+          "status": "{proxyLive ? \"200\" : \"none\"}",
+          "tone": "proxyLive ? \"up\" : \"degraded\""
+        }
+      ]
+    }
+  },
+  "objective": "Understand frontend versus backend plugins: what runs in the browser, what runs in Node, and how a plugin's frontend talks to its backend",
+  "secondaryObjectives": [
+    "Customize Backstage plugins: installing community plugins, configuring them in app-config, and adding routes and tabs to the entity page"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Backstage Associate (CBA) certification page: Customizing Backstage 32%, Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cncf.io/training/certification/cba",
+      "note": "Read through a summarizing fetch on 2026-11-17 (domain weights only). The objective wording is the course seed's; the cncf/curriculum PDF was not re-read (to verify)."
+    },
+    {
+      "cite": "Backstage documentation, Call an existing API",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/plugins/call-existing-api",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: direct requests from the plugin frontend suit APIs where 'the requests do not require secrets to be passed'; 'Backstage has an optional proxy plugin for the backend, that can be used to easily add proxy routes to downstream APIs', for example to add an Authorization header; a backend plugin when you 'need to inject secrets'."
+    },
+    {
+      "cite": "Backstage documentation, Proxying",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/plugins/proxying",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the proxy config in app-config.yaml with a target and headers such as 'Authorization: Bearer ${EXAMPLE_AUTH_TOKEN}', the value interpolated from an environment variable; with the proxy mounted at /proxy, requests to /api/proxy/<path>/... go to the target; by default only safe request headers are forwarded, and allowedHeaders must list Authorization to forward the caller's."
+    },
+    {
+      "cite": "Backstage documentation, Defining Configuration for your Plugin",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/conf/defining",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the @visibility values are frontend ('Visible in frontend and backend'), backend ('(Default) Only in backend') and secret ('Only in backend and may be excluded from logs'). That frontend-visible values reach every user's browser follows from 'visible in frontend' (the page does not say 'bundle'); the PR preview's config view in the scenario is authored."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the Backstage developer portal at Northvale Insurance, a fictional insurer. A team installed a community frontend plugin that adds a Code quality tab to each service's entity page, reading the internal quality server's API. The tab shows 'Failed to load: 401'. Pull request #88 makes it work and is waiting for your approval; the portal is demonstrated to engineering leadership at 15:00.",
+    "handover": [
+      "The quality server needs a bearer token; QUALITY_TOKEN is already set in the backend's environment.",
+      "PR #88 has been deployed to a preview environment since yesterday for testing."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the browser, the Backstage backend and its proxy, and the quality server.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "demoAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The leadership demo is at 15:00, 50 minutes after the review request."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "netAt": {
+      "type": "time",
+      "init": null
+    },
+    "readmeAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "proxyAt": {
+      "type": "time",
+      "init": null
+    },
+    "merged": {
+      "type": "bool",
+      "init": false
+    },
+    "rotated": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "demoOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "demoMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "frontend",
+        "network",
+        "cache"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "proxyLive": {
+      "expr": "not isNull(proxyAt) and since(proxyAt) >= 480"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "network",
+        "readme",
+        "prDiff",
+        "previewCfg",
+        "proxy",
+        "merge",
+        "restart",
+        "rotate",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "network": {
+      "label": "Browser DevTools, Network tab, on the Code quality tab",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(netAt)",
+          "then": [
+            {
+              "set": "netAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ (DevTools, Network)\n{proxyLive ? \"GET https://portal.northvale.internal/api/proxy/quality/measures?component=claims-api  200\" : \"GET https://quality.northvale.internal/api/measures?component=claims-api  401 Unauthorized (no Authorization header)\"}"
+        },
+        {
+          "finding": "The plugin's code runs in the browser and calls the quality server directly; the browser has no token to send."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "readme": {
+      "label": "cat node_modules/@community/plugin-code-quality/README.md | grep -A8 Configuration",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(readmeAt)",
+          "then": [
+            {
+              "set": "readmeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ grep -A8 Configuration node_modules/@community/plugin-code-quality/README.md\n## Configuration\nThe plugin calls the quality server through the Backstage proxy.\nAdd to app-config.yaml:\n  proxy:\n    endpoints:\n      '/quality':\n        target: https://quality.example.com/api\n        headers:\n          Authorization: Bearer ${{QUALITY_TOKEN}}\nand set codeQuality.baseUrl to the proxy path."
+        },
+        {
+          "finding": "The plugin expects the backend's proxy to add the token, so the browser never holds it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "prDiff": {
+      "label": "gh pr diff 88",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(diffAt)",
+          "then": [
+            {
+              "set": "diffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ gh pr diff 88\n+ // packages/app/config.d.ts\n+ qualityServer: {{\n+   /** @visibility frontend */\n+   token: string;\n+ }};\n+ # app-config.yaml\n+ qualityServer:\n+   token: ${{QUALITY_TOKEN}}\n+ // plugins/code-quality-wrapper/src/api.ts\n+ headers: {{ Authorization: `Bearer ${{config.getString('qualityServer.token')}}` }}"
+        },
+        {
+          "finding": "The PR marks the token visible to the frontend and has the browser send it: every portal user would receive it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "previewCfg": {
+      "label": "Open the PR #88 preview as an ordinary user: DevTools, the app's loaded config",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(cfgAt)",
+          "then": [
+            {
+              "set": "cfgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ (preview portal-pr88, signed in as an intern account; DevTools console)\n> the app's frontend config, key qualityServer.token\n'sqp_8f3c...e21a' (full value shown)"
+        },
+        {
+          "finding": "In the preview, any signed-in user can read the token in their own browser; it has been there since yesterday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "proxy": {
+      "label": "Add proxy endpoint /quality with the Authorization header from QUALITY_TOKEN, point the plugin at it, close PR #88, deploy",
+      "group": "Fix",
+      "available": "not busy and (isNull(proxyAt) and not merged)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "proxyAt",
+          "to": "t"
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ git diff --stat && gh pr close 88 -c 'Replaced by #91: the token stays in the backend proxy'\n app-config.yaml | 7 +++++++\n  proxy.endpoints['/quality']: target https://quality.northvale.internal/api, headers.Authorization: Bearer ${{QUALITY_TOKEN}}\n  codeQuality.baseUrl: /api/proxy/quality\nDeploying portal (backend build about 8 minutes)..."
+        },
+        {
+          "log": "The browser calls the backend; the backend's proxy adds the token. Nothing secret reaches the frontend.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "merge": {
+      "label": "Approve and merge PR #88",
+      "group": "Fix",
+      "available": "not busy and (not merged and isNull(proxyAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "merged",
+          "to": "true"
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ gh pr merge 88 --squash\nMerged. Deploying portal..."
+        },
+        {
+          "log": "The tab works, and every employee who opens the portal can copy the quality server's token from their browser.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the backend pods and clear the CDN cache",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ kubectl -n portal rollout restart deploy/backstage && ./scripts/purge-cdn.sh\ndeployment.apps/backstage restarted"
+        },
+        {
+          "log": "The browser still calls the quality server directly with no token: 401.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rotate": {
+      "label": "Rotate the quality server token (it sat in the PR preview since yesterday) and update QUALITY_TOKEN",
+      "group": "Fix",
+      "available": "not busy and (not rotated)",
+      "why": "Already rotated.",
+      "effects": [
+        {
+          "set": "rotated",
+          "to": "true"
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ quality-admin token revoke sqp_8f3c...e21a && quality-admin token create --name backstage-proxy --scope read | kubectl -n portal create secret generic quality-token --from-file=QUALITY_TOKEN=/dev/stdin --dry-run=client -o yaml | kubectl apply -f -\nsecret/quality-token configured"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Reload the Code quality tab; check Network and the loaded config",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "proxyLive and not merged",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@portal-repo:~/portal$ (DevTools)\n{proxyLive and not merged ? \"GET /api/proxy/quality/measures?component=claims-api  200; frontend config has no qualityServer.token\" : merged ? \"GET https://quality.northvale.internal/api/measures  200 (Authorization: Bearer sqp_... sent from the browser)\" : not isNull(proxyAt) ? \"portal still deploying\" : \"401 Unauthorized\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "frontend",
+                  "label": "A frontend plugin called an authenticated API from the browser; the token belongs in the backend proxy, not in frontend-visible config"
+                },
+                {
+                  "value": "network",
+                  "label": "The quality server was unreachable from the portal"
+                },
+                {
+                  "value": "cache",
+                  "label": "A stale build was cached"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= demoAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "proxyLive or merged",
+          "then": [
+            {
+              "set": "demoOkAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the Code quality tab loads in the demo.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "demoMissAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the Code quality tab fails in the demo.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the tab got a 401, why PR #88 is the wrong fix, and what you did instead.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Places the plugin's code in the browser and the token in the backend.",
+          "modelAnswer": "The community plugin is a frontend plugin: its requests run in each user's browser, which has no token, so the quality server answered 401. QUALITY_TOKEN lives only in the backend's environment."
+        },
+        {
+          "label": "PR #88",
+          "criteria": "Explains what frontend visibility does with a secret.",
+          "modelAnswer": "PR #88 marked the token @visibility frontend and sent it from the browser, so every portal user receives it; the preview already showed it to any signed-in user."
+        },
+        {
+          "label": "Instead",
+          "criteria": "Routes through the backend proxy, rotates the exposed token and checks.",
+          "modelAnswer": "Added a /quality proxy endpoint whose Authorization header the backend fills from QUALITY_TOKEN, pointed the plugin at /api/proxy/quality, closed #88, rotated the token the preview exposed, and confirmed a 200 with no token in the frontend config before 15:00."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 50 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The demo is at 15:00; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-17",
+          "note": "No further exposure: the token is not shipped to every browser."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not proxyLive and not merged",
+      "class": "harm",
+      "rationale": "Closing with the tab still failing leaves the demo broken.",
+      "source": {
+        "cite": "Backstage documentation, Proxying",
+        "checkedAt": "2026-11-17",
+        "url": "https://backstage.io/docs/plugins/proxying",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: the proxy config in app-config.yaml with a target and headers such as 'Authorization: Bearer ${EXAMPLE_AUTH_TOKEN}', the value interpolated from an environment variable; with the proxy mounted at /proxy, requests to /api/proxy/<path>/... go to the target; by default only safe request headers are forwarded, and allowedHeaders must list Authorization to forward the caller's."
+      }
+    }
+  },
+  "endings": {
+    "tokenExposed": {
+      "label": "Token shipped to every browser",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and merged",
+      "narrative": "Merging PR #88 made the tab work by giving the quality server's token to everyone who opens the portal."
+    },
+    "demoBroken": {
+      "label": "Tab failing at the demo",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(demoMissAt)",
+      "narrative": "At 15:00 the browser still called the quality server without a token."
+    },
+    "proxied": {
+      "label": "Proxied through the backend, token rotated, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and proxyLive and not merged and not restarted and isNull(demoMissAt) and not isNull(netAt) and not isNull(diffAt) and rotated and not isNull(verifiedAt) and causeDoc == \"frontend\"",
+      "narrative": "The Network tab and the diff showed the browser was the wrong place for the token; the backend proxy now adds it, and the exposed token was rotated."
+    },
+    "gaps": {
+      "label": "Proxied, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The tab works through the proxy, but the exposed token was not rotated, a check was skipped, or the backend was restarted for nothing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "tokenExposed",
+    "demoBroken",
+    "proxied",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Saw where the request runs and what PR #88 does",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(netAt) and not isNull(diffAt)",
+            "score": "met",
+            "why": "The direct browser call and the frontend-visible token."
+          },
+          {
+            "when": "not isNull(netAt) or not isNull(diffAt) or not isNull(readmeAt)",
+            "score": "partial",
+            "why": "Part of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Acted without looking."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Tab working through the backend by 15:00, no secret in the frontend",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proxyLive and not merged and isNull(demoMissAt)",
+            "score": "met",
+            "why": "Through the proxy, in time."
+          },
+          {
+            "when": "proxyLive or merged",
+            "score": "partial",
+            "why": "{merged ? \"By shipping the token to browsers.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still 401."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "Exposed token rotated; result verified; no needless restarts",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rotated and not isNull(verifiedAt) and not restarted",
+            "score": "met",
+            "why": "Rotated and checked."
+          },
+          {
+            "when": "rotated or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"frontend\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the network or a cache."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "exposure",
+        "label": "Secrets sent to browsers",
+        "value": "merged ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:10-14:14",
+        "text": "Network: a direct browser call, 401; README: use the proxy; PR #88: token marked @visibility frontend; preview: any user can read it."
+      },
+      {
+        "at": "14:14-14:19",
+        "text": "Add the /quality proxy endpoint with the header from QUALITY_TOKEN, point the plugin at it, close #88; rotate the exposed token."
+      },
+      {
+        "at": "14:19-14:30",
+        "text": "The backend deploys; the tab loads through /api/proxy/quality with no token in the frontend config."
+      }
+    ],
+    "debrief": {
+      "tokenExposed": {
+        "headline": "It works for everyone, including attackers",
+        "body": "Config marked visible to the frontend is delivered to the browser. A secret belongs in the backend; the proxy adds it to requests the browser makes through Backstage."
+      },
+      "demoBroken": {
+        "headline": "401 in front of leadership",
+        "body": "Restarts and cache purges do not give a browser a token. The Network tab showed the direct call; the plugin's README showed the proxy it expects."
+      },
+      "proxied": {
+        "headline": "Good: secrets stay in Node",
+        "body": "You saw where the plugin's code runs, read why the PR worked and what it cost, used the proxy the plugin was built for, rotated a token the preview had exposed, and checked that no secret reaches the frontend."
+      },
+      "gaps": {
+        "headline": "Proxied, with gaps",
+        "body": "The criteria show what was left: reading the PR and the Network tab, rotating the token the preview exposed, or the final check."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A frontend plugin's code runs in each user's browser, so its request to the quality server carries no token and gets a 401; the token exists only in the backend's environment. PR #88 makes it work by marking the token visible to the frontend, which delivers it to every portal user, and the preview has already shown it to anyone signed in. The plugin is built to call the quality server through the Backstage backend's proxy, which adds the Authorization header from QUALITY_TOKEN on the server side. Add that endpoint, point the plugin at /api/proxy/quality, close the PR, rotate the exposed token, and check that the tab loads and the frontend config holds no secret before the demo."
+  }
+}

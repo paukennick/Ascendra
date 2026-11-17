@@ -1,0 +1,51 @@
+{
+  "band": "cnpa",
+  "label": "CNPA",
+  "base": {
+    "course": "KCNA",
+    "slug": "service-selector-no-endpoints"
+  },
+  "slug": "service-selector-no-endpoints-cnpa",
+  "patch": {
+    "objective": "Choose continuous delivery and GitOps approaches: deployment pipelines, environments promoted through Git, and the role of reconcilers",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cnpa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's."
+      },
+      {
+        "cite": "Kubernetes documentation, Debug Services: 'Does the Service have any EndpointSlices?'",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14 (the kubernetes.io page itself did not answer the fetch). Relevant text: 'Inside the Kubernetes system is a control loop which evaluates the selector of every Service and saves the results into one or more EndpointSlice objects'; 'If the ENDPOINTS column is <none>, you should check that the spec.selector field of your Service actually selects for metadata.labels values on your Pods. A common mistake is to have a typo or other error'."
+      },
+      {
+        "cite": "Kubernetes documentation, Service",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'The controller for that Service continuously scans for Pods that match its selector, and then makes any necessary updates to the set of EndpointSlices for the Service.'"
+      },
+      {
+        "cite": "Kubernetes documentation, Resource metrics pipeline",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: HPA and VPA 'use data from the metrics API'; 'You can also view the resource metrics using the kubectl top command'; 'The Metrics API, and the metrics pipeline that it enables, only offers the minimum CPU and memory metrics to enable automatic scaling'."
+      },
+      {
+        "cite": "Argo CD documentation, Automated Sync Policy (argoproj/argo-cd master, docs/user-guide/auto_sync.md)",
+        "checkedAt": "2026-11-14",
+        "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+        "note": "Read in primary text from the repository source on 2026-11-14. Relevant text: with 'selfHeal: true' Argo CD syncs 'when the live cluster's state deviates from the state defined in Git'; 'The automatic sync interval is determined by the timeout.reconciliation value in the argocd-cm ConfigMap, which defaults to 120s with added jitter of 60s for a maximum period of 3 minutes.' How soon self-heal reverts a live edit is not stated as a number there; the scenario's 3 minutes is the author's."
+      },
+      {
+        "cite": "Kubernetes documentation, ReplicaSet: Isolating Pods from a ReplicaSet",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/",
+        "note": "Read in primary text from kubernetes/website main branch at commit 1bee6f03 (raw Markdown source of kubernetes.io) on 2026-11-14. Relevant text: 'You can remove Pods from a ReplicaSet by changing their labels... Pods that are removed in this way will be replaced automatically'."
+      }
+    ]
+  }
+}

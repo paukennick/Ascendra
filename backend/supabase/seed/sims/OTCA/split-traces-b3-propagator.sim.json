@@ -1,0 +1,944 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "split-traces-b3-propagator",
+  "title": "Incident: payment traces start from nowhere, and the fix has to make the 15:00 release",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "obs@ops:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "14:15 payments: 4% of POST /pay time out; traces for payments have no parent; release train 15:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "15:00: release train left without the fix",
+          "when": "not isNull(trainMissAt)",
+          "at": "timeAt(trainMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "15:00: fix on the release train",
+          "when": "not isNull(shippedAt)",
+          "at": "timeAt(shippedAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "co",
+          "label": "checkout",
+          "spokenLabel": "checkout",
+          "kind": "W3C Trace Context client",
+          "status": "{checkoutProp == \"b3\" ? \"sends b3 only\" : \"sends traceparent\"}",
+          "tone": "checkoutProp == \"b3\" ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "pay",
+          "label": "payments",
+          "spokenLabel": "payments",
+          "kind": "SDK set by environment variables",
+          "status": "{linked ? \"joins checkout's traces\" : \"starts a new trace for every request\"}",
+          "tone": "linked ? \"up\" : \"down\""
+        },
+        {
+          "id": "inv",
+          "label": "inventory",
+          "spokenLabel": "inventory",
+          "kind": "OTEL_PROPAGATORS=tracecontext,baggage",
+          "status": "{checkoutProp == \"b3\" ? \"now split from checkout\" : \"joins checkout's traces\"}",
+          "tone": "checkoutProp == \"b3\" ? \"down\" : \"up\""
+        },
+        {
+          "id": "col",
+          "label": "OTel Collector",
+          "spokenLabel": "the collector",
+          "kind": "OTLP receiver, tail sampling",
+          "status": "{sampleAll ? \"receiving every span (cost x5)\" : \"receiving\"}",
+          "tone": "sampleAll ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "co",
+          "to": "pay",
+          "label": "HTTP POST /pay",
+          "status": "{linked ? \"context carried\" : \"context dropped\"}",
+          "tone": "linked ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "co",
+          "to": "inv",
+          "label": "HTTP GET /stock",
+          "status": "{checkoutProp == \"b3\" ? \"context dropped\" : \"context carried\"}",
+          "tone": "checkoutProp == \"b3\" ? \"down\" : \"up\""
+        }
+      ]
+    }
+  },
+  "objective": "Implement context propagation: the context API, baggage, the W3C Trace Context and Baggage propagators, and propagating across threads and services",
+  "secondaryObjectives": [
+    "Configure the SDK with environment variables (OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_TRACES_SAMPLER and others), resource detection and declarative configuration"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+      "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenTelemetry documentation, General SDK Configuration (opentelemetry.io/docs/languages/sdk-configuration/general)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/languages/sdk-configuration/general/index.md",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: OTEL_PROPAGATORS 'Default value: tracecontext,baggage'; accepted values include 'tracecontext: W3C Trace Context', 'baggage: W3C Baggage', 'b3: B3 Single'; OTEL_TRACES_SAMPLER default 'parentbased_always_on'. That a service configured for B3 only does not extract a W3C traceparent follows from the propagator definitions (to verify against the propagators API page)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the observability engineer for Corrie Lane Books, a fictional online bookshop. About 4% of payments fail with a timeout. To find which downstream call is slow you need one trace from checkout through payments, but every payments trace starts as a new root with no parent. The last release train of the week leaves at 15:00; the fix for the failing call has to be on it.",
+    "handover": [
+      "checkout, inventory and payments use the OpenTelemetry SDK configured by environment variables and export OTLP to the collector.",
+      "payments was moved last week from an old deployment template."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the services, the trace context between them and the collector.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "trainAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The release train leaves at 15:00, 45 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "searchAt": {
+      "type": "time",
+      "init": null
+    },
+    "payEnvAt": {
+      "type": "time",
+      "init": null
+    },
+    "coEnvAt": {
+      "type": "time",
+      "init": null
+    },
+    "headersAt": {
+      "type": "time",
+      "init": null
+    },
+    "payProp": {
+      "type": "enum",
+      "values": [
+        "b3",
+        "tracecontext,baggage"
+      ],
+      "init": "b3"
+    },
+    "checkoutProp": {
+      "type": "enum",
+      "values": [
+        "tracecontext,baggage",
+        "b3"
+      ],
+      "init": "tracecontext,baggage"
+    },
+    "sampleAll": {
+      "type": "bool",
+      "init": false
+    },
+    "collectorRestarted": {
+      "type": "bool",
+      "init": false
+    },
+    "foundAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "shippedAt": {
+      "type": "time",
+      "init": null
+    },
+    "trainMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "propagator",
+        "sampling",
+        "collector"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "linked": {
+      "expr": "payProp == checkoutProp"
+    },
+    "faults": {
+      "expr": "(checkoutProp == \"b3\" ? 1 : 0) + (sampleAll ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "search",
+        "headers",
+        "payEnv",
+        "coEnv",
+        "setPay",
+        "setCheckout",
+        "sampleAll",
+        "restartCollector",
+        "readTrace",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "search": {
+      "label": "Trace search: service=payments operation='POST /pay' status=error, last 30m",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(searchAt)",
+          "then": [
+            {
+              "set": "searchAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ tempo-cli query 'service.name=\"payments\" && name=\"POST /pay\" && status=error' --since 30m | head -3\n{linked ? \"trace 4bf92f35...  root=checkout POST /checkout  spans=14  duration=3.2s\" : \"trace 9a1c7e02...  root=payments POST /pay  parent=none  spans=6\ntrace 0d55b913...  root=payments POST /pay  parent=none  spans=6\"}"
+        },
+        {
+          "finding": "Each payments request starts its own root span: the trace context from checkout is not being picked up."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "headers": {
+      "label": "kubectl logs deploy/payments | grep 'incoming headers' | tail -1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(headersAt)",
+          "then": [
+            {
+              "set": "headersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ kubectl logs deploy/payments | grep 'incoming headers' | tail -1\nincoming headers: traceparent=00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01 tracestate= baggage=cart.size=3 {checkoutProp == \"b3\" ? \"b3=4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-1\" : \"(no b3 header)\"}"
+        },
+        {
+          "finding": "checkout sends a W3C traceparent header; nothing in the request carries B3."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "payEnv": {
+      "label": "kubectl get deploy payments -o jsonpath env OTEL_*",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(payEnvAt)",
+          "then": [
+            {
+              "set": "payEnvAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ kubectl set env deploy/payments --list | grep OTEL_\nOTEL_SERVICE_NAME=payments\nOTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317\nOTEL_PROPAGATORS={payProp}\nOTEL_TRACES_SAMPLER=parentbased_always_on"
+        },
+        {
+          "finding": "payments extracts only B3 headers, a setting carried over from the old deployment template."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "coEnv": {
+      "label": "kubectl set env deploy/checkout --list | grep OTEL_",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(coEnvAt)",
+          "then": [
+            {
+              "set": "coEnvAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ kubectl set env deploy/checkout --list | grep OTEL_\nOTEL_SERVICE_NAME=checkout\nOTEL_PROPAGATORS={checkoutProp}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "setPay": {
+      "label": "kubectl set env deploy/payments OTEL_PROPAGATORS=tracecontext,baggage",
+      "group": "Fix",
+      "available": "not busy and (payProp == \"b3\")",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "set": "payProp",
+          "to": "\"tracecontext,baggage\""
+        },
+        {
+          "output": "obs@ops:~$ kubectl set env deploy/payments OTEL_PROPAGATORS=tracecontext,baggage\ndeployment.apps/payments env updated\ndeployment \"payments\" successfully rolled out"
+        },
+        {
+          "log": "payments now extracts the W3C traceparent and baggage that checkout sends, the SDK's default propagators.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "setCheckout": {
+      "label": "kubectl set env deploy/checkout OTEL_PROPAGATORS=b3",
+      "group": "Fix",
+      "available": "not busy and (checkoutProp != \"b3\")",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "set": "checkoutProp",
+          "to": "\"b3\""
+        },
+        {
+          "output": "obs@ops:~$ kubectl set env deploy/checkout OTEL_PROPAGATORS=b3\ndeployment.apps/checkout env updated"
+        },
+        {
+          "log": "checkout and payments now agree, and checkout's calls to inventory and every other W3C service lose their context.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "sampleAll": {
+      "label": "Set OTEL_TRACES_SAMPLER=always_on everywhere and turn off tail sampling",
+      "group": "Fix",
+      "available": "not busy and (not sampleAll)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sampleAll",
+          "to": "true"
+        },
+        {
+          "output": "obs@ops:~$ kubectl set env deploy --all OTEL_TRACES_SAMPLER=always_on\n(6 deployments updated)"
+        },
+        {
+          "log": "Five times the spans and the bill. Payments traces are still roots: sampling decides what is kept, not how traces join.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "restartCollector": {
+      "label": "kubectl rollout restart deploy/otel-collector",
+      "group": "Fix",
+      "available": "not busy and (not collectorRestarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "collectorRestarted",
+          "to": "true"
+        },
+        {
+          "output": "obs@ops:~$ kubectl rollout restart deploy/otel-collector\ndeployment.apps/otel-collector restarted"
+        },
+        {
+          "log": "The collector restarts. Trace context is joined in the services, before the collector ever sees the spans.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "readTrace": {
+      "label": "Open the newest failing trace end to end",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "linked",
+          "then": [
+            {
+              "if": "isNull(foundAt)",
+              "then": [
+                {
+                  "set": "foundAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ tempo-cli trace 4bf92f3577b34da6a3ce929d0e0e4736 --tree\n{linked ? \"POST /checkout 3.2s\n  POST /pay 3.1s ERROR\n    POST fraud-check.partner.example/score 3.0s ERROR deadline exceeded\" : \"POST /checkout 3.2s\n  POST /pay (client span) 3.1s ERROR\n  (no child spans: the server side is in another trace)\"}"
+        },
+        {
+          "finding": "Once payments joins the trace, the time is in the fraud-check partner call, which hits its 3 s deadline: the fix for the train."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Count payments root spans in the last 5 minutes",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "linked and checkoutProp != \"b3\"",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "obs@ops:~$ tempo-cli query 'service.name=\"payments\" && nestedSetParent<0' --since 5m --count\n{linked ? \"0\" : \"212\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause of the split traces",
+              "options": [
+                {
+                  "value": "propagator",
+                  "label": "payments was configured with OTEL_PROPAGATORS=b3 and ignored checkout's W3C traceparent; set to tracecontext,baggage"
+                },
+                {
+                  "value": "sampling",
+                  "label": "Tail sampling dropped the parent spans"
+                },
+                {
+                  "value": "collector",
+                  "label": "The collector lost spans"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= trainAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "not isNull(foundAt)",
+          "then": [
+            {
+              "set": "shippedAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the fraud-check timeout fix is on the release train.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "trainMissAt",
+              "to": "t"
+            },
+            {
+              "log": "15:00: the train leaves without a fix; payments keep failing until next week's release.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the traces split, what you changed, and what the joined trace showed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Compares what checkout injects with what payments extracts.",
+          "modelAnswer": "checkout injects a W3C traceparent; payments' OTEL_PROPAGATORS was b3 from an old template, so it extracted nothing and started a new root for every request."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Fixes the receiving service to the shared propagators, not the sender.",
+          "modelAnswer": "Set payments to tracecontext,baggage, the SDK default the other services use; switching checkout to b3 would split it from inventory and the rest."
+        },
+        {
+          "label": "Showed",
+          "criteria": "Reads the joined trace to the slow call before 15:00.",
+          "modelAnswer": "The joined trace put 3.0 of 3.2 s in the fraud-check partner call hitting its deadline; that fix went on the 15:00 train."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The release train leaves at 15:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: other services split from checkout, or sampling every span."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not linked",
+      "class": "harm",
+      "rationale": "Closing with payments still starting new traces leaves the failing call unfound.",
+      "source": {
+        "cite": "OpenTelemetry documentation, General SDK Configuration (opentelemetry.io/docs/languages/sdk-configuration/general)",
+        "checkedAt": "2026-11-17",
+        "url": "https://opentelemetry.io/docs/languages/sdk-configuration/general/index.md",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: OTEL_PROPAGATORS 'Default value: tracecontext,baggage'; accepted values include 'tracecontext: W3C Trace Context', 'baggage: W3C Baggage', 'b3: B3 Single'; OTEL_TRACES_SAMPLER default 'parentbased_always_on'. That a service configured for B3 only does not extract a W3C traceparent follows from the propagator definitions (to verify against the propagators API page)."
+      }
+    }
+  },
+  "endings": {
+    "trainMissed": {
+      "label": "The fix missed the train",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(trainMissAt)",
+      "narrative": "At 15:00 nobody had seen the slow call."
+    },
+    "splitOthers": {
+      "label": "Other services split",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and checkoutProp == \"b3\"",
+      "narrative": "checkout was switched to B3, so every other W3C service lost its context."
+    },
+    "joined": {
+      "label": "Traces joined, slow call found, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and linked and checkoutProp != \"b3\" and not sampleAll and not collectorRestarted and not isNull(foundAt) and isNull(trainMissAt) and not isNull(payEnvAt) and not isNull(headersAt) and not isNull(verifiedAt) and causeDoc == \"propagator\"",
+      "narrative": "The mismatch found from the headers and the environment, payments set to the shared propagators, the joined trace read to the fraud-check call, the fix on the train."
+    },
+    "gaps": {
+      "label": "Joined, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The traces join and the fix shipped, but a step was skipped or an unneeded change was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "trainMissed",
+    "splitOthers",
+    "joined",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared what checkout sends with what payments extracts",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(headersAt) and not isNull(payEnvAt)",
+            "score": "met",
+            "why": "Headers and propagator setting read."
+          },
+          {
+            "when": "not isNull(headersAt) or not isNull(payEnvAt)",
+            "score": "partial",
+            "why": "One side."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at propagation."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "payments joined to checkout without splitting others, slow call found before 15:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "linked and checkoutProp != \"b3\" and not isNull(foundAt) and isNull(trainMissAt)",
+            "score": "met",
+            "why": "Joined and found in time."
+          },
+          {
+            "when": "linked",
+            "score": "partial",
+            "why": "{checkoutProp == \"b3\" ? \"Joined by splitting checkout from the rest.\" : \"Joined too late, or the trace not read.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still split."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "No sampling or collector changes, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not sampleAll and not collectorRestarted and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Only the propagator changed, and checked."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Checked, with extra changes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"propagator\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames sampling or the collector."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Unneeded or harmful changes",
+        "value": "faults + (collectorRestarted ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:15-14:18",
+        "text": "Payments traces are roots; payments' log shows a W3C traceparent arriving; its OTEL_PROPAGATORS is b3."
+      },
+      {
+        "at": "14:18-14:21",
+        "text": "Set payments to tracecontext,baggage; open the newest failing trace: 3.0 s in the fraud-check partner call."
+      },
+      {
+        "at": "14:21-14:22",
+        "text": "No payments roots in the last 5 minutes."
+      }
+    ],
+    "debrief": {
+      "trainMissed": {
+        "headline": "No joined trace, no fix",
+        "body": "Sampling and the collector decide which spans are kept and where they go. Whether payments joins checkout's trace is decided in payments, by the propagator it extracts with."
+      },
+      "splitOthers": {
+        "headline": "Fixed one link by breaking the rest",
+        "body": "inventory and the other services extract W3C traceparent. Change the one service that differs, payments, to the shared propagators."
+      },
+      "joined": {
+        "headline": "Good: one propagator, one trace",
+        "body": "You compared what checkout sends with what payments extracts, changed only payments, read the joined trace to the slow call and checked no payments roots remained."
+      },
+      "gaps": {
+        "headline": "Joined, with gaps",
+        "body": "The criteria show what was left: the headers or environment, the check, or a sampling or collector change that did not help."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A trace joins across a call only if the caller injects context in a format the callee extracts. payments' log shows checkout sending a W3C traceparent, and payments is configured with OTEL_PROPAGATORS=b3, left from an old template, so it extracts nothing and starts a root span for every request. Set payments to tracecontext,baggage, the SDK default the other services use; switching checkout to b3 would join this pair and split checkout from inventory and everything else. Sampling decides which traces are kept and the collector only receives spans, so neither joins them. The joined trace puts the time in the fraud-check partner call, which is the fix for the 15:00 train; confirm no payments roots remain."
+  }
+}
