@@ -298,6 +298,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AWSSOA", "alb-health-check-login-redirect"),
   entry("AWSSAA", "guardduty-role-credentials-macie"),
   entry("LINUXPLUS", "retired-dns-server-orders-stuck"),
+  entry("CKA", "etcd-restore-deleted-namespace"),
   // ---- end REQ-316 ----
 ];
 
