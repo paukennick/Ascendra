@@ -62,4 +62,5 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "PROJECTPLUS", slug: "contact-center-move-procurement-projectplus", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-projectplus-contact-center-move-procurement-projectplus", base: "PMP/pmp-contact-center-move-procurement" },
   { course: "PMICP", slug: "contact-center-move-contracts-pmicp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmicp-contact-center-move-contracts-pmicp", base: "PMP/pmp-contact-center-move-procurement" },
   { course: "PROJECTPLUS", slug: "warehouse-risk-register-projectplus", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-projectplus-warehouse-risk-register-projectplus", base: "PMIRMP/pmirmp-warehouse-risk-register" },
+  { course: "PMP", slug: "pmp-permit-portal-hybrid-plan", screen: "project-dashboard", profile: "project", kind: "scenario", steps: "pmp-permits" },
 ];

@@ -460,6 +460,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("PROJECTPLUS", "contact-center-move-procurement-projectplus"),
   band("PMICP", "contact-center-move-contracts-pmicp"),
   band("PROJECTPLUS", "warehouse-risk-register-projectplus"),
+  entry("PMP", "pmp-permit-portal-hybrid-plan"),
   // ---- end REQ-321 ----
 ];
 
