@@ -1,0 +1,1137 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "oozing-lines-in-septic-shock",
+  "title": "Every line is oozing",
+  "objective": "Recognize DIC from its laboratory pattern -- prolonged clotting times, low fibrinogen, falling platelets -- treat the trigger, and give blood components for bleeding",
+  "secondaryObjectives": [
+    "Coagulopathies such as ITP, DIC and HIT, and managing bleeding and clotting disorders"
+  ],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: hematology and coagulopathies such as DIC, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: hematology and coagulopathies such as DIC, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Disseminated Intravascular Coagulation, editor Sara M. Nehring, last updated 2023-01-20",
+      "checkedAt": "2026-11-17",
+      "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20610",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): schistocytes on the smear; 'Prolonged PT and PTT, low fibrinogen, and reduced platelet count and hematocrit are also typical'; no single test confirms DIC; causes include sepsis, trauma, obstetric emergencies and malignancy; 'The treatment for DIC centers on addressing the underlying disorder'; blood products are reserved for active bleeding, high bleeding risk or procedures, with platelets for 'less than 50 x 10^9 platelets per liter for actively hemorrhaging patients'; plasma and cryoprecipitate replace clotting factors; patients who are not bleeding receive prophylactic heparin or LMWH; an ISTH score 'over five' indicates overt DIC."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "16:00 in a medical ICU. You are Mrs. Delgado's nurse. She is 58, admitted at 04:00 in septic shock from a urinary source, on the ordered norepinephrine and antibiotics. The aide says her gums are bleeding.",
+    "handover": [
+      "Lines: a right internal jugular central line and a radial arterial line, both placed this morning.",
+      "A CT this morning showed an obstructing ureteral stone with hydronephrosis; the radiology report posted at noon. Urology has not been called.",
+      "Scheduled: the ordered enoxaparin for VTE prophylaxis at 17:00. Unit policy: blood components only on the intensivist's order; bleeding precautions (no IM injections, pressure at sites, soft toothbrush) for any patient who is bleeding."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Consumptive bleeding worsens while the trigger is untreated and no components are given. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It barely progresses with components given and source control arranged. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "enoxBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An anticoagulant dose while actively bleeding. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shockAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hemorrhagic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of the coagulation results (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist reviews and the blood bank issues components: about 5 min."
+      }
+    },
+    "orTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Urology arrives and takes her for a drainage procedure: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "coagsAt": {
+      "type": "time",
+      "init": null
+    },
+    "bleedAt": {
+      "type": "time",
+      "init": null
+    },
+    "sourceAt": {
+      "type": "time",
+      "init": null
+    },
+    "marAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "coags",
+        "bleed",
+        "source",
+        "mar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "recheck"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dic",
+        "hit",
+        "dilution"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "enoxAt": {
+      "type": "time",
+      "init": null
+    },
+    "precAt": {
+      "type": "time",
+      "init": null
+    },
+    "productsAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"icu\" and t >= timeAt(callAt) + orderTime"
+    },
+    "hr": {
+      "expr": "round(108 + 22 * prog + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(104 - 22 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(productsAt) ? progRate : treatedRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              100,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Norepinephrine and antibiotics running. Enoxaparin held: {not isNull(holdAt)|yesno}. Blood components: {not isNull(productsAt)|yesno}. Bleeding precautions: {not isNull(precAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(productsAt)",
+          "text": "Platelets, plasma and cryoprecipitate are ready from the blood bank; urology is coming."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "coags": {
+      "label": "Read the afternoon platelets and coagulation panel against this morning's",
+      "group": "Assess",
+      "available": "not testPending and isNull(coagsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"coags\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bleed": {
+      "label": "Look for bleeding: line sites, gums, urine, skin, neuro check",
+      "group": "Assess",
+      "available": "not testPending and isNull(bleedAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bleed\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "source": {
+      "label": "Review the sepsis source and what has been done about it",
+      "group": "Assess",
+      "available": "not testPending and isNull(sourceAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"source\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mar": {
+      "label": "Review her scheduled medications",
+      "group": "Assess",
+      "available": "not testPending and isNull(marAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the 17:00 enoxaparin pending the intensivist",
+      "group": "Treat",
+      "available": "isNull(holdAt) and isNull(enoxAt) and inClinic",
+      "why": "Already held, or given.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Enoxaparin held and flagged for the intensivist.",
+          "kind": "act"
+        }
+      ]
+    },
+    "enox": {
+      "label": "Give the ordered enoxaparin early: septic patients clot",
+      "group": "Treat",
+      "available": "isNull(enoxAt) and isNull(holdAt) and inClinic",
+      "why": "Held, or already given.",
+      "effects": [
+        {
+          "set": "enoxAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + enoxBump"
+        },
+        {
+          "log": "Enoxaparin given. The line sites bleed faster.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "prec": {
+      "label": "Start bleeding precautions: pressure dressings at the sites, no IM injections, soft swabs for her mouth",
+      "group": "Treat",
+      "available": "isNull(precAt) and inClinic",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "precAt",
+          "to": "t"
+        },
+        {
+          "log": "Pressure dressings on both sites; bleeding precautions posted.",
+          "kind": "act"
+        }
+      ]
+    },
+    "products": {
+      "label": "Give the ordered platelets, plasma and cryoprecipitate with the blood bank checks",
+      "group": "Treat",
+      "available": "ordered and isNull(productsAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "productsAt",
+          "to": "t"
+        },
+        {
+          "log": "Components checked at the bedside and running; you watch for a reaction.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "dic",
+              "label": "Overt DIC triggered by sepsis: falling platelets, long clotting times, low fibrinogen, high D-dimer, bleeding"
+            },
+            {
+              "value": "hit",
+              "label": "HIT from the enoxaparin: stop heparin and anticoagulate"
+            },
+            {
+              "value": "dilution",
+              "label": "Dilution from fluids; it will settle"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"dic\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dic\""
+                },
+                {
+                  "log": "Overt DIC from sepsis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"hit\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hit\""
+                },
+                {
+                  "log": "Impression: HIT.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dilution\""
+                },
+                {
+                  "log": "Impression: dilution.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Bleeding from every line, platelets 38, INR 2.4, fibrinogen 90, D-dimer high in septic shock: overt DIC. Enoxaparin held. Ask for components for the bleeding and urgent drainage of the obstructed kidney"
+            },
+            {
+              "value": "recheck",
+              "label": "Repeat the coagulation panel at 18:00 before calling"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "orTime"
+                },
+                {
+                  "log": "The intensivist agrees: platelets, plasma and cryoprecipitate ordered, enoxaparin stopped, urology called for urgent drainage of the kidney.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"recheck\""
+                },
+                {
+                  "log": "A repeat panel is booked for 18:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and hand off: the lab trend, bleeding sites, components given, enoxaparin held, drainage planned",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: platelets 162 to 38, INR 2.4, fibrinogen 90, D-dimer high; bleeding sites; components given; enoxaparin held; urology drainage planned.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "coags",
+        "bleed",
+        "source",
+        "mar",
+        "hold",
+        "enox",
+        "prec",
+        "products",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"coags\"",
+              "then": [
+                {
+                  "set": "coagsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Platelets 38 (162 at 04:00); INR 2.4 and aPTT 61 s, both up; fibrinogen low at 90 mg/dL; D-dimer markedly high; schistocytes on the smear. Hemoglobin 8.1 from 10.4.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bleed\"",
+              "then": [
+                {
+                  "set": "bleedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Blood oozing through both line dressings; gums bleeding; urine pink; petechiae on her arms; pupils equal, she follows commands.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"source\"",
+              "then": [
+                {
+                  "set": "sourceAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The CT shows an obstructing ureteral stone with hydronephrosis: an undrained infected kidney. Antibiotics running; no drainage arranged.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Enoxaparin for VTE prophylaxis due at 17:00; no other anticoagulant or antiplatelet.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going for drainage",
+      "wait": {
+        "skipLabel": "her move to the procedure room"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for urology to arrive and take her."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Urology takes her for drainage of the obstructed kidney.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "What is happening to her clotting, why, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Overt DIC: falling platelets, prolonged PT/INR and aPTT, low fibrinogen, high D-dimer and schistocytes, with bleeding; triggered by sepsis from an undrained obstructed kidney.",
+          "modelAnswer": "This is DIC. Her platelets fell from 162 to 38, her INR and aPTT are up, her fibrinogen is low and her D-dimer is high, and she's bleeding from every site. Sepsis from the blocked, infected kidney is driving it."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Treats the trigger (source control of the obstructed kidney, antibiotics continue); components for active bleeding (platelets, plasma, cryoprecipitate) on order; holds the prophylactic anticoagulant while bleeding; bleeding precautions; calls now, not after a repeat panel.",
+          "modelAnswer": "Call the intensivist now: she needs the kidney drained, because the trigger has to be treated, and platelets, plasma and cryo for the bleeding. Hold the enoxaparin, put pressure on the sites and start bleeding precautions."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Bleeding DIC left without components or source control for an hour is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Disseminated Intravascular Coagulation, editor Sara M. Nehring, last updated 2023-01-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20610",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): schistocytes on the smear; 'Prolonged PT and PTT, low fibrinogen, and reduced platelet count and hematocrit are also typical'; no single test confirms DIC; causes include sepsis, trauma, obstetric emergencies and malignancy; 'The treatment for DIC centers on addressing the underlying disorder'; blood products are reserved for active bleeding, high bleeding risk or procedures, with platelets for 'less than 50 x 10^9 platelets per liter for actively hemorrhaging patients'; plasma and cryoprecipitate replace clotting factors; patients who are not bleeding receive prophylactic heparin or LMWH; an ISTH score 'over five' indicates overt DIC."
+      }
+    }
+  },
+  "endings": {
+    "hemorrhage": {
+      "label": "Hemorrhagic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= shockAt and inClinic",
+      "narrative": "Her pressure falls despite the norepinephrine; the dressings are soaked and her hemoglobin is 6. She is in hemorrhagic shock on top of septic shock."
+    },
+    "controlled": {
+      "label": "DIC recognized: trigger and bleeding treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(productsAt) and isNull(enoxAt) and not isNull(holdAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the oozing has slowed after the components, the enoxaparin is held, and she goes to have the infected kidney drained."
+    },
+    "controlledGaps": {
+      "label": "To drainage, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she goes for drainage, but the call came late, the components never ran, or the enoxaparin went in."
+    },
+    "time_up": {
+      "label": "No plan at 17:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "17:00 and she is still bleeding without a plan."
+    }
+  },
+  "endingOrder": [
+    "hemorrhage",
+    "controlled",
+    "controlledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Called the intensivist within 5 minutes of the coagulation results",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"icu\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"recheck\"",
+            "score": "missed",
+            "why": "Waited for a repeat panel."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "enoxC",
+        "label": "Held the prophylactic anticoagulant while bleeding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(enoxAt)",
+            "score": "missed",
+            "why": "Given."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "productsC",
+        "label": "Gave the ordered blood components for the bleeding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(productsAt)",
+            "score": "met",
+            "why": "At {timeAt(productsAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None given."
+          }
+        ]
+      },
+      {
+        "id": "bleedC",
+        "label": "Examined her for bleeding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bleedAt)",
+            "score": "met",
+            "why": "Examined."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "precC",
+        "label": "Started bleeding precautions",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(precAt)",
+            "score": "met",
+            "why": "In place."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized DIC from sepsis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"dic\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"hit\"",
+            "score": "missed",
+            "why": "Called it HIT."
+          },
+          {
+            "when": "dxEnum == \"dilution\"",
+            "score": "missed",
+            "why": "Called it dilution."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the trend and plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: overt DIC from sepsis; treat the trigger; components for bleeding; hold the anticoagulant",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Coagulation results to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toProducts",
+        "label": "16:00 to blood components",
+        "value": "isNull(productsAt) ? -1 : timeAt(productsAt)",
+        "format": "duration",
+        "expert": "under 12 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:00",
+        "text": "Platelets 38, INR 2.4, fibrinogen 90, D-dimer high, schistocytes. Oozing from both lines, gums, urine."
+      },
+      {
+        "at": "~16:02",
+        "text": "Hold the 17:00 enoxaparin; pressure dressings and bleeding precautions."
+      },
+      {
+        "at": "~16:03",
+        "text": "Overt DIC from sepsis. Call the intensivist: components and urgent drainage of the kidney."
+      },
+      {
+        "at": "~16:09",
+        "text": "Give the components with the bedside checks; document; urology takes her."
+      }
+    ],
+    "debrief": {
+      "hemorrhage": {
+        "headline": "Hemorrhagic shock",
+        "body": "Falling platelets, long clotting times, low fibrinogen and a high D-dimer with bleeding is DIC. Treat the trigger, give components for the bleeding and hold anticoagulants."
+      },
+      "controlled": {
+        "headline": "Recognized and treated",
+        "body": "You recognized overt DIC from the lab pattern, held the enoxaparin, called within minutes for components and source control, and protected the bleeding sites. That is the expert path."
+      },
+      "controlledGaps": {
+        "headline": "To drainage, with gaps",
+        "body": "Check how soon you called, whether the components ran, and whether the enoxaparin went in."
+      },
+      "time_up": {
+        "headline": "No plan",
+        "body": "Bleeding DIC needs the trigger treated and components given within the hour."
+      }
+    },
+    "modelReasoning": "Platelets falling from 162 to 38, a prolonged INR and aPTT, low fibrinogen, a high D-dimer and schistocytes with bleeding from every site is overt DIC. Sepsis from an undrained obstructed kidney is the trigger, so treatment starts there: antibiotics continue and the kidney is drained urgently. Because she is actively bleeding, she gets platelets, plasma and cryoprecipitate on order, the prophylactic enoxaparin is held, and bleeding precautions protect the sites. The call goes now, not after a repeat panel."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Intensivist called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "labsQ": {
+      "during": "testT",
+      "ask": "While you assess: which laboratory pattern fits DIC?",
+      "choices": [
+        {
+          "id": "pattern",
+          "label": "Low platelets, prolonged PT and aPTT, low fibrinogen, schistocytes"
+        },
+        {
+          "id": "plateletsOnly",
+          "label": "Low platelets with a normal PT, aPTT and fibrinogen"
+        },
+        {
+          "id": "highFib",
+          "label": "High fibrinogen and a short PT"
+        }
+      ],
+      "expect": "pattern",
+      "explain": "Prolonged PT and PTT, low fibrinogen, a reduced platelet count and schistocytes are typical; no single test confirms DIC.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Disseminated Intravascular Coagulation, editor Sara M. Nehring, last updated 2023-01-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20610",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): schistocytes on the smear; 'Prolonged PT and PTT, low fibrinogen, and reduced platelet count and hematocrit are also typical'; no single test confirms DIC; causes include sepsis, trauma, obstetric emergencies and malignancy; 'The treatment for DIC centers on addressing the underlying disorder'; blood products are reserved for active bleeding, high bleeding risk or procedures, with platelets for 'less than 50 x 10^9 platelets per liter for actively hemorrhaging patients'; plasma and cryoprecipitate replace clotting factors; patients who are not bleeding receive prophylactic heparin or LMWH; an ISTH score 'over five' indicates overt DIC."
+      }
+    },
+    "productsQ": {
+      "during": "leaveT",
+      "ask": "While she goes for drainage: when are platelets given in DIC?",
+      "choices": [
+        {
+          "id": "bleeding",
+          "label": "For active bleeding (below 50 in a hemorrhaging patient), a high bleeding risk or a procedure"
+        },
+        {
+          "id": "always",
+          "label": "Whenever the count is low, bleeding or not"
+        },
+        {
+          "id": "never",
+          "label": "Never; they feed the clotting"
+        }
+      ],
+      "expect": "bleeding",
+      "explain": "Components are reserved for active bleeding, high bleeding risk or procedures; the underlying disorder is the core of treatment.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Disseminated Intravascular Coagulation, editor Sara M. Nehring, last updated 2023-01-20",
+        "checkedAt": "2026-11-17",
+        "url": "https://dev2.statpearls.com/articlelibrary/viewarticle/20610",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): schistocytes on the smear; 'Prolonged PT and PTT, low fibrinogen, and reduced platelet count and hematocrit are also typical'; no single test confirms DIC; causes include sepsis, trauma, obstetric emergencies and malignancy; 'The treatment for DIC centers on addressing the underlying disorder'; blood products are reserved for active bleeding, high bleeding risk or procedures, with platelets for 'less than 50 x 10^9 platelets per liter for actively hemorrhaging patients'; plasma and cryoprecipitate replace clotting factors; patients who are not bleeding receive prophylactic heparin or LMWH; an ISTH score 'over five' indicates overt DIC."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
