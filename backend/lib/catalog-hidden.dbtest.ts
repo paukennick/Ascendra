@@ -131,10 +131,12 @@ describe("learners already on a hidden course keep access", () => {
 
 // The seeded rows (the DB test run seeds the catalog first): exactly the
 // listed courses are hidden, and their content is still there. REQ-308:
-// ITIL4FND is hidden since ITIL Foundation (Version 5) replaced it.
+// ITIL4FND is hidden since ITIL Foundation (Version 5) replaced it. REQ-318:
+// the ISC2, EC-Council, NBCC and BCEN courses are hidden pending each body's
+// permission, with their units, labs and sims kept.
 describe("the seeded catalog", () => {
-  const CODES = ["DCA", "EX188", "EX280", "ITIL4FND"];
-  test("EX188, EX280, DCA and ITIL4FND are hidden with their units kept; no other shared course is", async (t) => {
+  const CODES = ["CEH", "CEN", "CISSP", "DCA", "EX188", "EX280", "ISC2CC", "ITIL4FND", "NCE", "NCMHCE"];
+  test("EX188, EX280, DCA, ITIL4FND and the six permission-pending courses are hidden with their units kept; no other shared course is", async (t) => {
     const seeded = await query<{ n: number }>(`select count(*)::int as n from subject_tracks where user_id is null and code = 'EX188'`);
     if (seeded[0].n === 0) return t.skip("catalog not seeded in this database");
     const rows = await query<{ code: string; units: number }>(
@@ -145,5 +147,26 @@ describe("the seeded catalog", () => {
     );
     assert.deepEqual(rows.map((r) => r.code), CODES);
     for (const r of rows) assert.ok(r.units > 0, r.code);
+  });
+
+  test("REQ-318: the six permission-pending courses keep their sims, labs and objectives, and a newcomer doesn't get them listed", async (t) => {
+    const pending = ["CEH", "CEN", "CISSP", "ISC2CC", "NCE", "NCMHCE"];
+    const seeded = await query<{ n: number }>(`select count(*)::int as n from subject_tracks where user_id is null and code = 'NCE'`);
+    if (seeded[0].n === 0) return t.skip("catalog not seeded in this database");
+    const rows = await query<{ id: string; code: string; objectives: number; labs: number; sims: number }>(
+      `select st.id, st.code,
+              (select count(*)::int from objectives o join course_units cu on cu.id = o.unit_id where cu.track_id = st.id) as objectives,
+              (select count(*)::int from labs l join objectives o on o.id = l.objective_id join course_units cu on cu.id = o.unit_id where cu.track_id = st.id) as labs,
+              (select count(*)::int from sims s join objectives o on o.id = s.objective_id join course_units cu on cu.id = o.unit_id
+                where cu.track_id = st.id and s.retired_at is null) as sims
+         from subject_tracks st where st.user_id is null and st.code = any($1::text[]) order by st.code`,
+      [pending]
+    );
+    assert.deepEqual(rows.map((r) => r.code), pending);
+    for (const r of rows) {
+      assert.ok(r.objectives > 0 && r.labs > 0 && r.sims > 0, `${r.code}: ${JSON.stringify(r)}`);
+    }
+    const listedNow = await listedIds(newcomer);
+    for (const r of rows) assert.ok(!listedNow.has(r.id), `${r.code} listed to a newcomer`);
   });
 });

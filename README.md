@@ -26,16 +26,18 @@ Ascendra runs on iPhone, Android and the web.
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **149 courses**:
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog lists **140 courses**:
 
-- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications (entry-level cybersecurity, advanced information security professional, information security management and ethical hacking); Linux Fundamentals and the Linux Foundation LFCS; an IT service management foundation exam (version 5); Red Hat (2) and Docker (1) container certifications
+- **IT and cloud (72):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; an information security management certification; Linux Fundamentals and the Linux Foundation LFCS; an IT service management foundation exam (version 5)
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, 10 physical therapy specialist board certifications and a PT school prerequisites refresher
 - **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and a process improvement green belt certification
-- **Nursing and critical care (15):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, emergency nursing, PCCN, the two family nurse practitioner board exams, and MS Health Informatics
+- **Nursing and critical care (14):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, PCCN, the two family nurse practitioner board exams, and MS Health Informatics
 - **Fitness (7):** five personal trainer certifications (including the ACSM, NSCA and NCCPT exams), the NSCA strength and conditioning exam, and a nutrition coaching certification
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
 - **Software development (10):** Python, Python for Automation and Scripting, Python for Data Analysis, JavaScript, TypeScript and Node.js, SQL, entry-level and associate Python programmer certification exams, Computer Science Degree Foundations and MSCS foundations
-- **Mental health (6):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), two counselor licensure exams, and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
+- **Mental health (4):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
+
+Ten more courses are hidden from the catalog but not deleted, so learners who already studied one keep it: three container certifications whose owners require a training partnership or permission (REQ-194), the earlier version of the IT service management exam (REQ-308), and six courses whose exam bodies allow no use of their exam names without written permission, until that permission or legal advice arrives (REQ-318).
 
 Exam-prep courses have descriptive names ("Prep for an associate cloud solutions architect certification exam") that use no exam body's trademark (REQ-309); where a body's policy allows it, the course description names the exam, and Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
 
@@ -57,12 +59,11 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 
 **Hands-on labs.** Build labs ask you to produce something real, such as an IAM policy, a work breakdown structure or an SBAR handoff. Case labs walk a fictional case through two to four steps. Every part is scored met, partly there or not yet, with the model answer beside yours. Some parts are graded on the spot: put steps in order, match pairs, tap the problem lines in a log or config, type a command, or give a number within a tolerance. There are 1,287 labs across the catalog.
 
-**Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in seven courses:
+**Simulations.** Some courses have sims: a scenario that runs on a clock, reacts to what you do, and ends with a score for the outcome and your process plus a debrief. Today there are sims in many courses, including:
 
 - **CCRN (Adult):** five bedside cases on a patient monitor, including tamponade after heart surgery, sepsis, diabetic ketoacidosis, stroke and bleeding after surgery
 - **Certified Nursing Assistant:** a resident who chokes at lunch and a resident found on the floor
 - **EPPP:** three sessions where you lead a fictional client through a suicide risk assessment, a duty-to-protect decision and a diagnostic intake
-- **The two counselor licensure courses:** five counseling sessions: boundaries in a small town and a court-referred substance use assessment; a diagnostic intake, a suicide risk assessment with a safety plan, and a trauma-informed treatment plan built and then revised over two sessions, as case-based licensure exams run
 - **AWS Solutions Architect Associate, and Professional:** TicketBurst launch day on a design board, with a harder version in the Professional course
 - **CompTIA Security+ (SY0-701 and V8):** three incidents on a security operations console: a phished account, ransomware on a file server and a leaked cloud key
 - **CompTIA Linux+, CompTIA Network+ and CKA:** two outages each on a terminal and network screen, where you run commands from a fixed set and watch a map of hosts, switches or cluster nodes: a full disk that stops a database, an SELinux denial after a move, a VLAN missing from a trunk, a DNS failure worked with the troubleshooting method, a crash-looping rollout and a NotReady node with a drain
