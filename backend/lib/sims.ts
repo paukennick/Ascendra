@@ -6,8 +6,8 @@ import { isActive } from "@/lib/progress-sql";
 import { isUuid, normUuid } from "@/lib/visibility";
 import { serverError, unauthorized, forbidden } from "@/lib/http";
 import { AuthError } from "@/lib/auth/requireUser";
-import { AcknowledgementError, MatureSimError, requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
-import { matureSimAckMissingSql, matureSimSql } from "@/lib/mature-content";
+import { AcknowledgementError, MatureContentError, MatureSimError, requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
+import { isMatureCategory, matureContentNeededSql, matureSimAckMissingSql, matureSimSql } from "@/lib/mature-content";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { findClientAttempt, recordAttemptTx } from "@/lib/grading-service";
@@ -388,6 +388,15 @@ export async function simView(userId: string, simId: string, caps: SimCaps | nul
   // he wants to die), so a build that can show the notice gets the 403 that
   // asks for it before any of the sim; an older build gets the sim's title
   // with the brief withheld and "Update the app", never the content.
+  // FAIL-2430: the detail route never checked the mental health course gate,
+  // so a counseling session's brief (a client at risk of suicide) was
+  // readable without the course's 18+ acknowledgment. Only that gate here:
+  // the study notice still comes at start, as before.
+  const course = await queryOne<{ needed: string | null }>(
+    `select ${matureContentNeededSql("st", "$2")} as needed from subject_tracks st where st.id = $1`,
+    [sim.track_id, userId]
+  );
+  if (isMatureCategory(course?.needed)) throw new MatureContentError(course.needed, sim.track_id);
   const olderBuild = sim.mature && !matureCapable(caps);
   if (sim.mature && !olderBuild) await requireMatureSimAck(sim, userId);
   const open = await queryOne<RunRow>(`select * from sim_runs where user_id = $1 and sim_id = $2 and status = 'open'`, [userId, sim.id]);

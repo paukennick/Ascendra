@@ -162,7 +162,12 @@
   (lib/age-review.ts, OWNER_EMAILS); a new mature
   category is added to `MATURE_CATEGORIES`, 077's check and the app's list
   together. A 403 the learner can act on carries a stable `code` (pass
-  `err.extra` to `forbidden`).
+  `err.extra` to `forbidden`). A route that returns a sim's brief or runs it
+  opens content: it checks the course gate too (FAIL-2430). REQ-327: a sim
+  document marked `mature: true` (any course) is gated per course's sims
+  (`requireNotice` in lib/sims.ts, scope "sims"), and a build without
+  `x-sim-caps` `features=mature` is told to update, never sent the brief;
+  a new route that serves a sim goes through the same checks.
 - A 401 that means "what you typed is wrong" (a reauth refusal) carries
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens

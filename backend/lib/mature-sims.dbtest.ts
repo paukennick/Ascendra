@@ -321,11 +321,21 @@ describe("REQ-327: the per-sim 18+ gate", () => {
       assert.equal("scope" in r.body, false, "the course refusal, not the sims one");
     }
     assert.equal((await json(await courseGet(req(u, `/api/courses/${MH}`), idCtx(MH)))).status, 403);
+    // FAIL-2430: the detail route (the brief) is behind the course gate too.
+    for (const sim of [MH_PLAIN, MH_MATURE]) {
+      const v = await view(u, sim);
+      assert.equal(v.status, 403);
+      assert.equal(v.body.code, "mature_content_required");
+      assert.equal(v.body.trackId, MH);
+      assert.equal("scope" in v.body, false);
+      assert.equal(JSON.stringify(v.body).includes(BASE.brief.situation.slice(0, 40)), false);
+    }
     const ack = await json(await acceptPost(req(u, "/api/mature-content/accept", "POST", { trackId: MH, version: MATURE_CONTENT_NOTICE_VERSION, attested: true, dateOfBirth: ADULT })));
     assert.equal(ack.status, 200, JSON.stringify(ack.body));
     assert.deepEqual(ack.body.acknowledgedTrackIds, [MH]);
     assert.equal((await start(u, MH_PLAIN)).status, 200);
     assert.equal((await start(u, MH_MATURE)).status, 200, "the course acknowledgment covers its sims");
+    assert.equal((await view(u, MH_PLAIN)).status, 200);
     assert.equal((await json(await courseGet(req(u, `/api/courses/${MH}`), idCtx(MH)))).status, 200);
   });
 
