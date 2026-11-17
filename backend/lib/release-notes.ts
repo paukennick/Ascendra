@@ -99,6 +99,49 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // 2026-11-17: new sim screens (REQ-311..314) and the sims on them, more
+    // sims on existing screens (REQ-315, REQ-316), source corrections (REQ-310).
+    // Every item is gated like every sims mention.
+    id: "2026-11-17",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-311", "REQ-312", "REQ-313", "REQ-314", "REQ-315", "REQ-316", "REQ-310"],
+    title: "New kinds of simulations",
+    requires: "sims",
+    items: [
+      {
+        icon: "flag",
+        headline: "Run a Sprint or a service desk",
+        body: "A project dashboard with a Sprint mode for the Scrum courses, and a service desk for IT service management.",
+        requires: "sims",
+      },
+      {
+        icon: "trending-up",
+        headline: "Read the data, not just the question",
+        body: "A data and code console with tables, charts and code to read, for Python, JavaScript, SQL, Power BI and Six Sigma. You choose the fix; nothing runs.",
+        requires: "sims",
+      },
+      {
+        icon: "shield",
+        headline: "Boardrooms, tabletops and facilities",
+        body: "Risk decisions on a governance board, incident tabletop exercises, a facility console for physical security, and malware sandbox reports to read.",
+        requires: "sims",
+      },
+      {
+        icon: "zap",
+        headline: "Train a client",
+        body: "A client-trainer screen for the fitness and nutrition coaching courses: screening, assessment, cueing and when to refer.",
+        requires: "sims",
+      },
+      {
+        icon: "compass",
+        headline: "More cases on familiar screens",
+        body: "New bedside, terminal, console and cloud cases across the nursing, IT and cloud courses, and corrected sources in several clinical cases.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // 2026-11-16: the checkpoint and wave ships (#193, #199), desktop web
     // column (REQ-304), biometric unlock fix (REQ-305), one session per device
     // (REQ-306). The sims item is gated like every sims mention.
