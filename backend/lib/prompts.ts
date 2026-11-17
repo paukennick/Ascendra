@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { unbrandedPromptRule } from "@/lib/unbranded";
 import type { CoachContext } from "@/lib/coach-context";
 import { ABSOLUTE_WORDS, KEY_LENGTH_RATIO, KEY_LENGTH_SLACK_CHARS } from "@/lib/item-style";
 
@@ -149,6 +150,9 @@ export function domainFraming(ctx?: CoachContext): string {
   if (ctx.categoryName) {
     lines.push(`Subject area: ${ctx.categoryName}${ctx.subcategoryName ? ` / ${ctx.subcategoryName}` : ""}.`);
   }
+  // REQ-319: an unbranded course (lib/unbranded.ts) names neither its exam
+  // body nor any of its marks, in anything the model writes for it.
+  if (ctx.unbranded) lines.push(unbrandedPromptRule());
   if (ctx.trackType === "certification") {
     lines.push(
       "Frame every explanation the way this exam tests it: use the certifying body's own terminology, stay " +

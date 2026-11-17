@@ -811,7 +811,7 @@ Screened out by hand (recall only, no time, cue or consequence in the task):
 - Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; treat lymphedema as no contraindication to needle EMG, weighing the risk against what the study adds; and avoid testing with external temporary pacemakers (none)
 - Lower bleeding risk in needle EMG for patients on anticoagulants or with bleeding tendencies: use the smallest-gauge needle, limit needle insertions, and skip deep muscles that can't be compressed or that lie near large vessels (none)
 - Interpreting abnormal findings: axonal versus demyelinating, focal versus diffuse, acute versus chronic (none)
-- Recognize demyelinating patterns on NCS: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies (none)
+- Recognize demyelinating patterns on nerve conduction studies: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies (none)
 - Recognize myopathic needle EMG: early (rapid) recruitment and polyphasic units, with spontaneous fibrillations, positive sharp waves, complex repetitive discharges or 'dive bomber' myotonic discharges in some disorders (none)
 
 ### ABPTSGCS
@@ -918,7 +918,7 @@ Screened out by hand (recall only, no time, cue or consequence in the task):
 ### ABPTSWMS
 
 - Pressure injuries: etiology, staging and risk assessment (none)
-- Apply the APTA diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (none)
+- Apply the physical therapy diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading (none)
 - Assess risk with the Braden scale's six areas (sensory perception, moisture, activity, mobility, nutrition, friction and shear), plus nutrition, hydration, cognition and mobility (none)
 - Use toe-brachial index and pedal Doppler waveforms with the ABI when vessels may be calcified, and treat ankle pressure below 50 mm Hg or ABI below 0.5 as a sign of poor healing and higher amputation risk (none)
 - Dressing selection matched to wound characteristics and moisture balance (none)

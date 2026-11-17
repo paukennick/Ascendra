@@ -1,5 +1,6 @@
 import type { SeedTrack } from "../supabase/seed/data";
 import { dayOf } from "@/lib/content-currency";
+import { isUnbrandedCode } from "@/lib/unbranded";
 
 // REQ-187 (audit 2026-11-09 R10): a short, dated "current facts" block per
 // course, added to every prompt's course framing (lib/prompts.ts
@@ -23,17 +24,20 @@ export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): 
   const c = track.credential;
   let checked: string | null = null;
   if (c) {
-    const name = c.standardName ?? c.credentialName;
-    const code = c.examCode ? ` ${c.examCode}` : "";
-    const rev = c.examRevision ?? c.standardRevision;
+    // REQ-319: an unbranded course's exam is not named, coded or versioned by
+    // its marks here either; the dates and status still pin the version.
+    const unbranded = isUnbrandedCode(track.code);
+    const name = unbranded ? "The exam this course follows (its name is not used; see the rule above)" : (c.standardName ?? c.credentialName);
+    const code = !unbranded && c.examCode ? ` ${c.examCode}` : "";
+    const rev = unbranded ? null : (c.examRevision ?? c.standardRevision);
     const parts = [`${name}${code}${rev ? ` (${rev})` : ""}`];
-    if (c.objectivesRevision) parts.push(`objectives revision ${c.objectivesRevision}`);
+    if (c.objectivesRevision && !unbranded) parts.push(`objectives revision ${c.objectivesRevision}`);
     if (c.status) parts.push(`status ${c.status}`);
     const eff = dayOf(c.effectiveDate);
     const ret = dayOf(c.retirementDate);
     if (eff) parts.push(`in effect from ${eff}`);
     if (ret) parts.push(`retires ${ret}`);
-    lines.push(`- ${c.examCode ? "Exam" : "Standard"}: ${parts.join("; ")}.`);
+    lines.push(`- ${unbranded || c.examCode ? "Exam" : "Standard"}: ${parts.join("; ")}.`);
     checked = dayOf(track.sourceVerifiedAt) ?? dayOf(c.lastVendorVerifiedAt);
   }
   const k = track.curriculum;

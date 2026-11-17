@@ -646,7 +646,7 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "macronutrient-label-math": { none: "4/4/9 kcal per gram (Atwater factors); the official source (21 CFR 101.9) was not reachable this pass." },
     "smart-goals-from-a-wish": { none: CASE_DATA },
     "adherence-lapse-case": { none: CASE_DATA },
-    "overhead-squat-interpretation": { none: "Muscle lists from NASM's overhead squat tables; no number quoted." },
+    "overhead-squat-interpretation": { none: "Muscle lists from the certifying body's overhead squat tables; no number quoted." },
     "refer-out-screening-case": { none: NO_VALUE },
     "phase-one-program": [NASM_OPT_MODEL],
     "older-adult-balance-program": { none: NO_VALUE },
@@ -658,11 +658,11 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
   // courses. Sources are the ones each lab file's header names.
   ACECPT: {
     "ace-clearance-insulin-case": [ACSM_SCREENING_2015],
-    "ace-five-movement-screen": { none: "Reads movement compensations in ACE's five primary movements; the rep count is the client's own." },
+    "ace-five-movement-screen": { none: "Reads movement compensations in the five primary movements; the rep count is the client's own." },
     "ace-ift-phase-placement": [ACE_IFT],
     "ace-multi-setting-week": { none: "Adapts one program across settings; no threshold or dose." },
     "ace-hip-hinge-cueing": { none: "Coaching cues for a hip hinge; no threshold or dose." },
-    "ace-lapse-sdoh-case": { none: "A behavior-change conversation (ACE ABC approach); the session lengths are the client's plan." },
+    "ace-lapse-sdoh-case": { none: "A behavior-change conversation (ask, break down, collaborate); the session lengths are the client's plan." },
     "ace-reassessment-progression": [ACE_IFT],
     "ace-pregnancy-modification-case": [ACOG_CO804],
     "ace-park-bootcamp-risk-case": [NATA_HEAT_2015],

@@ -199,7 +199,7 @@ export const CISM_TRACK: SeedTrack = {
       "To be certified after passing: five or more years of information security management experience, with waivers available for at most two years, applied for within five years of passing.",
     durationMinutes: 240,
     questionFormat:
-      "150 multiple-choice questions in 4 hours (240 minutes), at a PSI testing center or remotely proctored. Scored and unscored pretest items are mixed. (ISACA Exam Candidate Guide, 2026; CISM exam content outline page, read 2026-11-14.)",
+      "150 multiple-choice questions in 4 hours (240 minutes), linear (every candidate answers the full form), at a PSI testing center or remotely proctored. Scored and unscored pretest items are mixed. (The exam candidate guide, 2026, and the exam content outline page, read 2026-11-14.)",
     passingScorePolicy:
       "Scaled score from 200 to 800; 450 or higher passes, and 800 means every scored question was answered correctly. Domain-level results are informational only; the result is based on the total.",
   },
@@ -215,7 +215,7 @@ export const CISM_TRACK: SeedTrack = {
         // 1B
         "Develop an information security strategy aligned with organizational goals, from current state to desired state",
         "Align information security with the enterprise architecture",
-        "Select information governance frameworks and standards such as COBIT, ISO/IEC 27001 and the NIST Cybersecurity Framework",
+        "Select information governance frameworks and standards such as an enterprise IT governance framework, ISO/IEC 27001 and the NIST Cybersecurity Framework",
         "Build a business case, budget and resource plan that gains senior leadership's commitment",
       ]
     ),

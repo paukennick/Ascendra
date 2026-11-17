@@ -5,6 +5,7 @@ import { isCalendarDate, textField } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isFavoriteSelect, listedOrStarted, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
 import { simCountsByTrack } from "@/lib/sim-count";
+import { learnerTrackRow } from "@/lib/unbranded";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,8 @@ export async function GET(req: Request) {
     // now (lib/sims.ts simCountsByTrack: one query for the whole list, none
     // while sims are off), for the card's sims badge and Explore's filter.
     const sims = await simCountsByTrack(user.id, rows.map((r) => r.id));
-    return ok({ tracks: rows.map((r) => ({ ...r, sim_count: sims.get(r.id) ?? 0 })) });
+    // REQ-319: an unbranded course shows its neutral display code (lib/unbranded.ts).
+    return ok({ tracks: rows.map((r) => ({ ...learnerTrackRow(r), sim_count: sims.get(r.id) ?? 0 })) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

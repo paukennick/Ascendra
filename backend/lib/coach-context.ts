@@ -1,6 +1,7 @@
 import { STUDY_EMPHASIS_WEIGHTS_SQL } from "@/lib/readiness";
 import { queryOne } from "@/lib/db";
 import { currentFactsFor } from "@/lib/current-facts";
+import { learnerExamNames } from "@/lib/unbranded";
 
 // REQ-076: what the coach needs to know about WHERE a learner is in the
 // catalog, so every prompt (lesson, guess feedback, grading, PBQ, chat)
@@ -31,6 +32,10 @@ export interface CoachContext {
   // from the seed for it (lib/current-facts.ts); null for a learner's track.
   trackCode?: string | null;
   currentFacts?: string | null;
+  // REQ-319: the exam body allows no use of its marks without permission
+  // (lib/unbranded.ts). Its names and code are null here, and every prompt
+  // carries the rule not to name them (lib/prompts.ts domainFraming).
+  unbranded?: boolean;
 }
 
 interface ContextRow {
@@ -42,6 +47,7 @@ interface ContextRow {
   subcategory_slug: string | null;
   credential_name: string | null;
   provider_name: string | null;
+  provider_slug: string | null;
   exam_code: string | null;
   unit_title: string | null;
   unit_weight: string | number | null;
@@ -49,6 +55,12 @@ interface ContextRow {
 }
 
 function rowToContext(row: ContextRow): CoachContext {
+  const names = learnerExamNames({
+    providerSlug: row.provider_slug,
+    providerName: row.provider_name,
+    credentialName: row.credential_name,
+    examCode: row.exam_code,
+  });
   return {
     trackTitle: row.track_title,
     trackType: row.track_type,
@@ -56,9 +68,10 @@ function rowToContext(row: ContextRow): CoachContext {
     categoryName: row.category_name,
     subcategoryName: row.subcategory_name,
     subcategorySlug: row.subcategory_slug,
-    credentialName: row.credential_name,
-    providerName: row.provider_name,
-    examCode: row.exam_code,
+    credentialName: names.credentialName,
+    providerName: names.providerName,
+    examCode: names.examCode,
+    unbranded: names.unbranded,
     unitTitle: row.unit_title,
     unitWeight: row.unit_weight == null ? null : Number(row.unit_weight),
     trackCode: row.track_code,
@@ -83,7 +96,7 @@ const TRACK_FIELDS = `
   st.title as track_title, st.track_type::text as track_type,
   case when st.user_id is null then st.code end as track_code,
   ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name, esc.slug as subcategory_slug,
-  c.name as credential_name, cp.name as provider_name, ce.exam_code`;
+  c.name as credential_name, cp.name as provider_name, cp.slug as provider_slug, ce.exam_code`;
 
 export async function coachContextForTrack(trackId: string): Promise<CoachContext | null> {
   const row = await queryOne<ContextRow>(
