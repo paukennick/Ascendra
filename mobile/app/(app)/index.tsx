@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { coursesChanged } from "@/lib/courseEvents"; // REQ-328: the sidebar's Favorites and Recent follow
 import { useAuth } from "@/auth/AuthContext";
 import type { ReviewToday, Track } from "@/types";
 import { Card, EmptyState, ErrorBanner, FavoriteButton, H1, H2, IconButton, Loading, Muted, ProgressBar } from "@/components/ui";
@@ -13,8 +14,9 @@ import { colors, fonts, spacing } from "@/lib/theme";
 import { homeReviewCard } from "@/lib/homeReview";
 import { HOME_EMPTY } from "@/lib/emptyStates";
 import { WhatsNewDialog, useWhatsNewOnFocus } from "@/components/WhatsNew";
-import { GridRow, useGridColumns } from "@/components/WebColumn";
+import { GridRow, useGridColumns, usePersistentSidebarWidth } from "@/components/WebColumn";
 import { chunkRows } from "@/lib/webColumn";
+import { linkProps } from "@/lib/webLink";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -54,11 +56,12 @@ export default function Home() {
   const whatsNew = useWhatsNewOnFocus();
   // REQ-322: two cards per row on a wide web window; one everywhere else.
   const columns = useGridColumns();
+  const persistentSidebar = usePersistentSidebarWidth() > 0;
 
   const toggleFavorite = useCallback((track: Track) => {
     const next = !track.is_favorite;
     setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: next } : t)) ?? prev);
-    api.patch(`/api/courses/${track.id}/favorite`, { favorite: next }).catch(() => {
+    api.patch(`/api/courses/${track.id}/favorite`, { favorite: next }).then(coursesChanged).catch(() => {
       setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: !next } : t)) ?? prev);
     });
   }, []);
@@ -144,7 +147,10 @@ export default function Home() {
     <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
       <Stack.Screen
         options={{
-          headerLeft: () => <IconButton icon="menu" accessibilityLabel="Open menu" onPress={() => setSidebarOpen(true)} size={34} />,
+          // REQ-328: the persistent sidebar replaces the menu button on wide web windows.
+          headerLeft: persistentSidebar
+            ? undefined
+            : () => <IconButton icon="menu" accessibilityLabel="Open menu" onPress={() => setSidebarOpen(true)} size={34} />,
           headerRight: () => (
             <IconButton icon="settings" accessibilityLabel="Settings" onPress={() => router.push("/settings")} size={34} />
           ),
@@ -252,8 +258,9 @@ function Footer() {
         {links.map(([label, path], i) => (
           <React.Fragment key={path}>
             {i > 0 ? <Text style={styles.footerDot}>·</Text> : null}
+            {/* FAIL-2442: a real <a href> on the web so Enter opens it; the apps keep onPress only. */}
             <Pressable
-              onPress={() => router.push(path)}
+              {...linkProps(Platform.OS, path, () => router.push(path))}
               accessibilityRole="link"
               accessibilityLabel={label}
               hitSlop={{ top: 14, bottom: 14, left: 4, right: 4 }}

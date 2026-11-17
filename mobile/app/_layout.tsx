@@ -42,6 +42,7 @@ import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
 import { installDesktopWebStyles } from "@/lib/webDesktopStyles";
 import { bottomBannerInsets } from "@/lib/webColumn";
+import { usePersistentSidebarWidth } from "@/components/WebColumn";
 import { startWebAnalytics } from "@/lib/webAnalytics";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
@@ -64,7 +65,8 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
   // REQ-322: over the column on a wide web window, not across the monitor.
   const { width } = useWindowDimensions();
-  const sides = bottomBannerInsets(Platform.OS, width, spacing.lg);
+  // REQ-328: beside the persistent sidebar where it shows.
+  const sides = bottomBannerInsets(Platform.OS, width, spacing.lg, usePersistentSidebarWidth());
   return (
     <View
       style={{

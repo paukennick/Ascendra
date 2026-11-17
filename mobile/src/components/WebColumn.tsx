@@ -1,7 +1,16 @@
 import type { ReactElement, ReactNode } from "react";
 import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { colors, spacing } from "@/lib/theme";
-import { gridColumns, isWideWeb, usesWebColumn, webHeaderInsets, WEB_COLUMN_MAX_WIDTH } from "@/lib/webColumn";
+import { useSegments } from "expo-router";
+import {
+  appRouteName,
+  gridColumns,
+  isWideWeb,
+  persistentSidebarWidth,
+  usesWebColumn,
+  webHeaderInsets,
+  WEB_COLUMN_MAX_WIDTH,
+} from "@/lib/webColumn";
 
 // The navigator's screenLayout: wraps each screen's content (below the header)
 // in a centered column on wide web windows. Everywhere else it returns the
@@ -29,16 +38,33 @@ export function useWideWeb(): boolean {
 // REQ-322: cards per row for course lists (1 except on wide web windows).
 export function useGridColumns(): number {
   const { width } = useWindowDimensions();
-  return gridColumns(Platform.OS, width);
+  return gridColumns(Platform.OS, width, usePersistentSidebarWidth());
+}
+
+// REQ-328: the persistent sidebar's width for the screen showing (0 on
+// native, narrow web, outside the signed-in group and on the full-width and
+// first-run screens).
+export function usePersistentSidebarWidth(): number {
+  const { width } = useWindowDimensions();
+  const segments = useSegments();
+  return persistentSidebarWidth(Platform.OS, width, appRouteName(segments));
 }
 
 // REQ-322: a stack's screenOptions with the header lined up with the column.
 // The header background still spans the window; only its buttons and title
 // move in. Screens with no column (sims, exams, labs, PBQ, narrow, native)
 // get the options unchanged.
-export function useColumnScreenOptions<T extends object>(base: T): (props: { route: { name: string } }) => T {
+// REQ-328: `sidebar` (the signed-in stack only) lines the header up with the
+// column beside the persistent sidebar on the screens that show it.
+export function useColumnScreenOptions<T extends object>(
+  base: T,
+  opts: { sidebar?: boolean } = {}
+): (props: { route: { name: string } }) => T {
   const { width } = useWindowDimensions();
-  return ({ route }) => ({ ...base, ...webHeaderInsets(Platform.OS, width, route.name) });
+  return ({ route }) => {
+    const side = opts.sidebar ? persistentSidebarWidth(Platform.OS, width, route.name) : 0;
+    return { ...base, ...webHeaderInsets(Platform.OS, width, route.name, side) };
+  };
 }
 
 // REQ-322: one row of a course grid on a wide web window. Each cell takes an

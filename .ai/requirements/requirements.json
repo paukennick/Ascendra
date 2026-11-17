@@ -11963,6 +11963,92 @@
         "To unmark a sim it must be retired and re-registered (any marked version keeps it 18+)",
         "Everyone is asked to accept the 2026-11-18 Terms and Privacy Policy once"
       ]
+    },
+    {
+      "id": "REQ-328",
+      "category": "ux",
+      "title": "Desktop web step 3: persistent sidebar on wide web windows",
+      "description": "Nick 2026-11-17 08:59 PT: build desktop web step 3, the persistent sidebar the step 2 builder proposed (REQ-322 mockup). On the web in a window wider than 900px a sidebar stays on the left of every signed-in screen: Home, Explore, Review, Release notes; then Recent and Favorites; Settings and Support pinned at the bottom. It replaces the menu button on Home and the course page. It is hidden (not collapsed) on sims, exams, labs and the PBQ simulator so they keep the whole window, and on the first-run screens (agree, notice, welcome). The current page is marked with aria-current, Tab reaches a Skip to content link and then the sidebar before the header, and the step 2 focus ring applies. Both menus read one route list (src/lib/sidebarNav.ts) and navigate by the same rules (navPlan). Phones, the native apps and windows 900px or narrower are unchanged.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/sidebarNav.ts",
+        "mobile/src/lib/courseEvents.ts",
+        "mobile/src/lib/webColumn.ts",
+        "mobile/src/lib/navPlan.ts",
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/components/WebColumn.tsx",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "The sidebar shows only on the web above 900px and never on native",
+        "It is hidden on sims/exams/labs/PBQ and first-run screens and those screens keep the full window width",
+        "Exactly one destination carries aria-current on each screen (page or true for screens inside it)",
+        "Tab order: Skip to content then the sidebar then the header and screen; Enter on a sidebar link navigates",
+        "The menu buttons on Home and the course page are gone where the sidebar shows",
+        "Header insets grids and banners are computed beside the sidebar",
+        "Narrow screenshots (390x844 and 800x900) before and after differ by at most 2 intensity levels",
+        "What's new 2026-11-17-f covers REQ-328"
+      ],
+      "validation_required": [
+        "cd mobile && node --test src/lib/desktopSidebar.test.ts src/lib/desktopWeb.test.ts src/lib/webColumn.test.ts",
+        "cd mobile && npx tsc --noEmit",
+        "Playwright screenshots at 1440x900 1920x1080 800x900 390x844 against production API from a local export",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "The sidebar keeps its own copy of the course list; it reloads when a course is starred or opened (courseEvents) and at most every 10 s on screen changes",
+        "The stack is read from the root navigation state (appStackPaths); if expo-router changes that shape the sidebar falls back to push"
+      ]
+    },
+    {
+      "id": "REQ-329",
+      "category": "content",
+      "title": "Sims on sensitive objectives behind the per-sim 18+ gate (sims-sensitive): suicide and homicide risk, behavioral emergencies, in CEN, PCCN, the FNP courses, CCRN Adult, NCLEX-RN and NCLEX-PN",
+      "description": "Nick (2026-11-17, 09:18 PT): 'The gate should work across sensitive sims regardless of profession.' With the per-sim 18+ gate built (REQ-327), build the sims on sensitive objectives that were held back: CEN suicide and homicide risk first, then the PCCN and FNP suicide-risk objectives, CCRN Adult behavioral emergencies and levetiracetam mood effects, then the highest-weighted NCLEX-RN and NCLEX-PN Psychosocial Integrity objectives that fit a timed case, stopping at about 15 cases. Every case is on the session screen (clinical-session profile) and marked mature: true. Pattern level only: screening with a validated tool named with its source, direct questions about ideation, plan and intent, means safety without naming any means, observation level, safety planning, handoff and escalation; no method, means or lethality detail anywhere a learner reads; harm endings are clinical outcomes; duty-to-warn follows Washington law presented as a fictional facility's policy. No new screen, engine, schema or migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/sensitive-sims.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every case and band is marked mature: true",
+        "each case is a fitting objective's main sim on the session screen with endingOrder three critical criteria and harm endings for an unsafe disposition and a walk-out",
+        "Good Mediocre and Bad golden paths reach every ending but time_up with every criterion met and missed",
+        "a behavior test shows the expert path safe skipping the screen harm and a rupture a walk-out",
+        "no method means or lethality words no dose and no permission-only mark in learner text",
+        "sources dated and say how they were read and name a validated tool",
+        "the REQ-327 check that every suicide or homicide objective sim outside mental health is mature still passes"
+      ],
+      "validation_required": [
+        "lint of the REQ-329 documents",
+        "lib/sim/sensitive-sims.test.ts",
+        "lib/sim/health-sims-4.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.36",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "content on suicide and violence reaches adults only through the REQ-327 gate",
+        "a case that names a method would breach the content rule: sensitive-sims.test.ts checks a word list"
+      ]
     }
   ]
 }

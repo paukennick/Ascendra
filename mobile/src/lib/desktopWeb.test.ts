@@ -68,7 +68,11 @@ describe("nothing changes on phones, native apps or narrow windows", () => {
     for (const q of queries) assert.match(q, new RegExp(`min-width: ${WEB_COLUMN_BREAKPOINT + 1}px`));
     const media = css.slice(css.indexOf("@media"));
     assert.match(media, /:hover/);
-    assert.doesNotMatch(media, /:focus-visible/);
+    // The ring is not repeated inside a query. The only :focus-visible
+    // selectors there are the sidebar's skip link and its target (REQ-328).
+    assert.doesNotMatch(media, /outline: 2px solid/);
+    const mediaFocus = [...media.matchAll(/^\s*([^{}\n]*:focus-visible[^{}\n]*?)\s*\{/gm)].map((m) => m[1].trim());
+    assert.deepEqual(mediaFocus, ["[data-skip-link]:not(:focus-visible)", "#app-content[tabindex]:focus-visible"]);
   });
 });
 

@@ -637,6 +637,26 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NPTEPTA", "pta-six-minute-walk-saturation-drops"),
   entry("NPTEPTA", "pta-glucose-before-exercise-low"),
   // ---- end REQ-326 ----
+  // ---- REQ-329 (docs/sims.md 22.36): sensitive objectives held back until the
+  // per-sim 18+ gate (REQ-327). Session screen, clinical-session profile; every
+  // one is marked `mature: true`. Keep these entries together. ----
+  entry("CEN", "ed-screen-positive-wants-to-go-home"),
+  entry("CEN", "ed-threat-against-former-supervisor"),
+  entry("PCCN", "new-heart-failure-better-off-without-me"),
+  entry("FNPAANP", "clinic-depression-follow-up-item-nine"),
+  band("FNPANCC", "clinic-depression-follow-up-item-nine-fnp-role"),
+  entry("FNPANCC", "clinic-widower-thoughts-right-now"),
+  band("FNPAANP", "clinic-widower-thoughts-right-now-fnp-clinical"),
+  entry("CCRNADULT", "sah-day-six-not-herself-on-levetiracetam"),
+  entry("CCRNADULT", "icu-threatens-staff-pulls-cannula"),
+  entry("NCLEXRN", "after-amputation-im-done"),
+  entry("NCLEXRN", "visiting-hours-threat-on-the-unit"),
+  entry("NCLEXRN", "crash-survivor-wishes-she-had-died-too"),
+  entry("NCLEXPN", "rehab-resident-no-use-to-anyone"),
+  entry("NCLEXPN", "day-room-threat-then-emergency-medicine"),
+  entry("NCLEXPN", "clinic-eviction-no-way-out"),
+  entry("NCLEXRN", "voices-say-he-should-die"),
+  // ---- end REQ-329 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

@@ -99,6 +99,44 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-329 (Nick, 2026-11-17 09:18 PT): the sims on sensitive objectives
+    // held back until the per-sim 18+ gate (REQ-327). Gated whole on sims.
+    // Pattern level only, like the sims themselves: no method, means or
+    // lethality detail (lib/sim/sensitive-sims.test.ts's rule).
+    id: "2026-11-17-h",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-329"],
+    title: "18+ simulations on mental health safety",
+    requires: "sims",
+    items: [
+      {
+        icon: "shield",
+        headline: "Suicide-risk screening and safety planning",
+        body: "New cases practice asking directly about suicide risk with a screening tool, keeping the patient safe and in view, safety planning together, and handing off clearly.",
+        requires: "sims",
+      },
+      {
+        icon: "eye",
+        headline: "Behavioral emergencies",
+        body: "Other cases cover a patient who is agitated or may harm someone else: calm de-escalation first, close observation, and following policy when another person may be at risk.",
+        requires: "sims",
+      },
+      {
+        icon: "book-open",
+        headline: "In your nursing courses",
+        body: "They are in the emergency, progressive care, critical care, family nurse practitioner and NCLEX courses.",
+        requires: "sims",
+      },
+      {
+        icon: "info",
+        headline: "For adults only",
+        body: "These simulations show an Adults (18+) badge and ask you to confirm you're 18 or older once per course before you start.",
+        requires: "sims",
+      },
+    ],
+  },
+  {
     // REQ-327 (Nick, 2026-11-17): the per-sim 18+ gate, in any course, and the
     // Terms and Privacy Policy 2026-11-18 that disclose it. Not gated as a
     // whole (everyone is asked to accept the new Terms and Privacy Policy);
@@ -129,6 +167,33 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "check-circle",
         headline: "Your date of birth is asked only once",
         body: "If you already gave it for a mental health course, you won't be asked again. It can't be changed in the app; if it's wrong, contact Support.",
+      },
+    ],
+  },
+  {
+    // REQ-328 (Nick, 2026-11-17 08:59 PT): desktop web step 3, a sidebar
+    // that stays open on wide browser windows. Web only; phones and the apps
+    // are unchanged. Not gated.
+    id: "2026-11-17-f",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-328"],
+    title: "A sidebar for big screens",
+    items: [
+      {
+        icon: "compass",
+        headline: "Your menu stays open",
+        body: "In a browser window wider than 900px, the menu now sits on the left side of every screen: Home, Explore, Review and Release notes, with Settings and Support at the bottom.",
+      },
+      {
+        icon: "star",
+        headline: "Your courses one click away",
+        body: "The sidebar lists the courses you studied recently and the ones you starred, so you can jump between them without going back to Home.",
+      },
+      {
+        icon: "eye",
+        headline: "Room to work, and easy with a keyboard",
+        body: "Simulations, practice exams, labs and the PBQ simulator hide the sidebar and keep the whole window. The sidebar marks the page you are on, and Tab reaches it first, with a link to skip ahead.",
       },
     ],
   },

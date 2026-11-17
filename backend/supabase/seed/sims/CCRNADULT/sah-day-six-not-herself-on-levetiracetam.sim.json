@@ -1,0 +1,1546 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sah-day-six-not-herself-on-levetiracetam",
+  "title": "Case: 'What's the point of any of this?'",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Joanne Pike",
+        "presentation": "{distress >= 6 ? \"Snapping at the call light, eyes wet\" : distress >= 3 ? \"Irritable, picking at the blanket\" : \"Calmer, hands still\"}; {rapport >= 6 ? \"she holds your eye\" : rapport >= 3 ? \"she glances at you\" : \"she turns her face away\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Trust",
+          "spokenLabel": "Trust",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What she said",
+          "text": "'What's the point of any of this? I'd be better off dead.' Husband: 'This isn't her.' Screen: not done.",
+          "when": "true",
+          "alert": "isNull(siAskedAt)"
+        },
+        {
+          "id": "siNote",
+          "label": "Suicide risk screen",
+          "text": "Positive: wish to be dead, feels a burden, suicidal thoughts in the last few days; no past attempt.",
+          "when": "siKnown"
+        },
+        {
+          "id": "siDenied",
+          "label": "Suicide risk screen",
+          "text": "Said she did not mean it, while guarded. Her words and the mood change still stand.",
+          "when": "siDenied and not siKnown"
+        },
+        {
+          "id": "acuteAskedNote",
+          "label": "Acuity",
+          "text": "No thoughts right now: a non-acute positive screen. She needs a brief suicide safety assessment.",
+          "when": "acuteAsked"
+        },
+        {
+          "id": "planAskedNote",
+          "label": "Plan",
+          "text": "No plan.",
+          "when": "planAsked"
+        },
+        {
+          "id": "intentAskedNote",
+          "label": "Intent",
+          "text": "No intent; frightened by the thoughts.",
+          "when": "intentAsked"
+        },
+        {
+          "id": "onsetAskedNote",
+          "label": "Onset",
+          "text": "Began a few days after admission, after levetiracetam was started; no mood history before.",
+          "when": "onsetAsked"
+        },
+        {
+          "id": "supportsAskedNote",
+          "label": "Supports",
+          "text": "Her husband Mike; her sister; two sons.",
+          "when": "supportsAsked"
+        }
+      ],
+      "record": {
+        "label": "Nursing note so far",
+        "items": [
+          {
+            "label": "Screening questions asked: {siAsked ? \"yes\" : \"no\"}; follow-up questions: {(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (intentAsked ? 1 : 0) + (onsetAsked ? 1 : 0) + (supportsAsked ? 1 : 0)} of 5",
+            "when": "siAsked"
+          },
+          {
+            "label": "Observation: {obs == \"constant\" ? \"constant, attendant\" : obs == \"checks\" ? \"checks every 15 minutes\" : \"not set\"}; room checked: {envSafe ? \"yes\" : \"no\"}",
+            "when": "obs != \"none\" or envSafe"
+          },
+          {
+            "label": "Provider called: {notified ? \"yes\" : \"no\"}; levetiracetam named as a possible cause: {drugFlagged ? \"yes\" : \"no\"}",
+            "when": "notified"
+          },
+          {
+            "label": "Documented: risk {riskDoc}, disposition {dispo}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Monitor patients on levetiracetam for its adverse effects, including mood change and suicidal ideation",
+  "secondaryObjectives": [
+    "Self-harm and suicidal ideation or behavior",
+    "Mood disorders, depression and anxiety"
+  ],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook: Behavioral/Psychosocial within Musculoskeletal, Neurological, Behavioral/Psychosocial (18%)",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ccrn.ts), which read it 2026-10-31; the objective title is the course's own."
+    },
+    {
+      "cite": "Keppra (levetiracetam) prescribing information, revised 8/2023: 5.1 'may cause behavioral abnormalities and psychotic symptoms'; patients 'should be monitored for psychiatric signs and symptoms'; 5.2 antiepileptic drugs 'increase the risk of suicidal thoughts or behavior', so patients should be monitored for 'the emergence or worsening of depression, suicidal thoughts or behavior, and/or any unusual changes in mood or behavior'; 17: report behaviors of concern at once",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/021035s112,021505s051lbl.pdf",
+      "note": "Read 2026-11-17 in the FDA label PDF (summarizing fetch with quotes). The sim names no dose and changes no order: the nurse reports the effect and the prescriber decides."
+    },
+    {
+      "cite": "NIMH, Ask Suicide-Screening Questions (ASQ) Toolkit, information sheet: four questions and a fifth acuity question asked after any yes; a yes to it is an acute positive, 'imminent risk', that needs a STAT safety and full mental health evaluation, and the patient 'cannot leave until evaluated for safety'; a non-acute positive needs a brief suicide safety assessment; refusing to answer counts as positive",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nimh.nih.gov/sites/default/files/documents/research/research-conducted-at-nimh/asq-toolkit-materials/asq-tool/information_sheet_asq_nimh_toolkit.pdf",
+      "note": "Read 2026-11-17 in NIMH's PDF (summarizing fetch with short quotes). The four questions: a wish to be dead, feeling others would be better off, thoughts of suicide in the past week, any attempt ever. 'Clinical judgment can always override a negative screen.' Validated for youth and adult medical patients, including adult medical inpatients (Horowitz et al., Psychosomatics 2020); the toolkit has emergency department, inpatient and outpatient pathways (NIMH adult toolkit page, read the same day). The questions are paraphrased in the sim."
+    },
+    {
+      "cite": "NIMH, Adult ASQ Toolkit: Brief Suicide Safety Assessment guides, nursing scripts and suicide risk screening pathways for the emergency department, the inpatient medical/surgical unit and outpatient primary care and specialty clinics",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials/adults-asq-toolkit",
+      "note": "Read 2026-11-17 (summarizing fetch): an index page; the pathways themselves were not opened, so what each setting does after a positive screen is taken from the information sheet."
+    },
+    {
+      "cite": "The Joint Commission, R3 Report Issue 18: National Patient Safety Goal for suicide prevention, NPSG.15.01.01 (effective 2019-07-01): EP1 environmental risk assessment; EP2 screen 'using a validated screening tool'; EP3 an assessment that 'directly asks about suicidal ideation, plan, intent, suicidal or self-harm behaviors'; EP4 document the risk level and the mitigation plan; EP5-EP7 policies for monitoring, discharge counseling and follow-up",
+      "checkedAt": "2026-11-17",
+      "url": "https://digitalassets.jointcommission.org/api/public/content/459bbe2be1ab4e5082b8a8d49d0c94e0",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes; issue dated 2019-11-20, updated 2025-12-03). The report names one-to-one monitoring as a key protocol on nonpsychiatric units; it does not itself require it, so the observation level in each sim is the facility's policy."
+    },
+    {
+      "cite": "The Columbia Lighthouse Project, Columbia Protocol (C-SSRS) triage page: 'the most worrisome answers are a recent (past month) yes to items 4 or 5' (intent, intent with a plan) 'and/or any recent (3 months) behavior'; next steps 'are setting specific', and 'interventions should be changed to reflect your individual resources and policies'",
+      "checkedAt": "2026-11-17",
+      "url": "https://cssrs.columbia.edu/the-columbia-scale-c-ssrs/triage-c-ssrs/",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes; page last modified 2024-03-22). The screener's items, relayed from the NCMHCE session (read 2026-11-11): wish to be dead; suicidal thoughts; thoughts with method; intent without plan; intent with plan; suicidal behavior."
+    }
+  ],
+  "brief": {
+    "situation": "Joanne Pike, 52 (a fictional patient), is on day 6 in the neuro ICU after a subarachnoid hemorrhage; her aneurysm was coiled on day 1. She is awake and oriented, her neuro checks are stable and she has had no seizures. She has been on levetiracetam since admission. Her husband told you this morning, 'This isn't her. She's never been like this.' At 14:00 she has snapped at two staff members, and as you reposition her she says, 'What's the point of any of this? I'd be better off dead.' She has no psychiatric history. You are her critical care nurse, with one other patient; you have about 30 minutes.",
+    "handover": [
+      "SAH day 6, aneurysm coiled; neuro checks stable; no seizures; on levetiracetam since admission.",
+      "Husband: 'This isn't her.' Unit policy: a positive suicide screen gets constant observation and a room check until the provider's assessment."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Joanne answers at once; then let the conversation continue, which moves the clock by the minutes that exchange took.",
+      "Her trust, distress and how much she discloses change with what you say.",
+      "Your time ends at 30 minutes. Afterward you write a short risk formulation, then document the risk level and disposition."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 minutes with one patient in a two-patient ICU assignment (author's scenario timing)."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "siAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "siDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "acuteAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "planAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "intentAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "onsetAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "supportsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "envSafe": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "drugFlagged": {
+      "type": "bool",
+      "init": false
+    },
+    "familyIn": {
+      "type": "bool",
+      "init": false
+    },
+    "heldDose": {
+      "type": "bool",
+      "init": false
+    },
+    "dismissed": {
+      "type": "bool",
+      "init": false
+    },
+    "obs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "constant",
+        "checks"
+      ],
+      "init": "none"
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nonacute",
+        "acute",
+        "negative"
+      ],
+      "init": "none"
+    },
+    "dispo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "observeReview",
+        "transfer",
+        "routine"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "At the bedside",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "normalize",
+        "screen",
+        "askNow",
+        "askPlan",
+        "askIntent",
+        "askOnset",
+        "askSupports",
+        "roomCheck",
+        "notifyMd",
+        "flagDrug",
+        "husband",
+        "holdDose",
+        "expected",
+        "observe",
+        "reassure",
+        "advise",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Pull up a chair: 'That sounded hard to say. What's been going on?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You pull up a chair at eye level and ask what has been going on.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Everything makes me furious. Then I cry. I don't know who I am this week.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "She nods. \"Yes. Like I'm not in charge of my own head.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "normalize": {
+      "label": "Normalize: 'After what you've been through, I ask some direct questions. It's safe to answer.'",
+      "group": "Respond",
+      "available": "not talking and (not siKnown)",
+      "why": "She has already told you.",
+      "effects": [
+        {
+          "log": "You explain that you ask everyone some direct questions about safety, and that it is safe to answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Fine. Ask.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Screen with the NIMH Ask Suicide-Screening Questions (the four questions)",
+      "group": "Ask about risk",
+      "available": "not talking and (not siKnown)",
+      "why": "She has answered; go on to the follow-up questions.",
+      "effects": [
+        {
+          "log": "You ask the four screening questions directly.",
+          "kind": "act"
+        },
+        {
+          "if": "not siAsked",
+          "then": [
+            {
+              "set": "siAskedAt",
+              "to": "t"
+            },
+            {
+              "set": "siAsked",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Yes, I've wished I were dead. Yes, Mike would be better off. Yes, I've thought about killing myself these last few days.\" No past attempt."
+                },
+                {
+                  "log": "Positive screen: a wish to be dead, feeling a burden, suicidal thoughts in the last few days; no past attempt.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "siDenied",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"I didn't mean it. Leave it.\" (Not yet enough trust to answer honestly.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askNow": {
+      "label": "Ask the acuity question: thoughts of killing herself right now?",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not acuteAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether she is having thoughts of killing herself right now.",
+          "kind": "act"
+        },
+        {
+          "set": "acuteAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Not this minute. They come and go.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPlan": {
+      "label": "Ask whether she has made a plan (do not ask for details)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not planAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether she has made a plan, without asking her to describe it.",
+          "kind": "act"
+        },
+        {
+          "set": "planAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"No. Nothing like that.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askIntent": {
+      "label": "Ask about intent to act",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not intentAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether she intends to act on the thoughts.",
+          "kind": "act"
+        },
+        {
+          "set": "intentAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"No. It scares me that I think it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askOnset": {
+      "label": "Ask when the mood change started, and what came before",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not onsetAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask when the irritability and low mood started.",
+          "kind": "act"
+        },
+        {
+          "set": "onsetAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Two, three days after I got here. Before that I was fine. I've never been depressed.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSupports": {
+      "label": "Ask who she leans on",
+      "group": "Ask",
+      "available": "not talking and (not supportsAsked)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You ask who she leans on.",
+          "kind": "act"
+        },
+        {
+          "set": "supportsAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Mike. My sister. Our two boys.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "roomCheck": {
+      "label": "Check the room under the environmental risk policy and remove what is not needed",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown and not envSafe)",
+      "why": "Screen first (or done).",
+      "effects": [
+        {
+          "log": "You check the room under the policy and remove anything not needed for her care that could be used for self-harm.",
+          "kind": "act"
+        },
+        {
+          "set": "envSafe",
+          "to": "true"
+        },
+        {
+          "finding": "\"What are you doing?\" \"Keeping the room safe while we sort this out.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "notifyMd": {
+      "label": "Call the provider now: positive screen and a new mood change (SBAR)",
+      "group": "Escalate",
+      "available": "not talking and (siKnown and not notified)",
+      "why": "Screen first (or done).",
+      "effects": [
+        {
+          "log": "You call the neurocritical care provider with an SBAR: a non-acute positive screen, irritability and low mood since a few days after admission, no history.",
+          "kind": "act"
+        },
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "finding": "The provider will come to do the brief suicide safety assessment and asks for a psychiatry consult."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "flagDrug": {
+      "label": "Name the drug: ask the provider to review levetiracetam for its labeled behavioral and mood effects",
+      "group": "Escalate",
+      "available": "not talking and (notified and not drugFlagged)",
+      "why": "Call the provider first (or done).",
+      "effects": [
+        {
+          "log": "You point out that the mood change began after levetiracetam started, and that its label warns of behavioral changes and suicidal thoughts.",
+          "kind": "act"
+        },
+        {
+          "set": "drugFlagged",
+          "to": "true"
+        },
+        {
+          "finding": "The provider reviews the seizure prophylaxis with pharmacy and decides on a change; you do not change any dose yourself."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "husband": {
+      "label": "With her consent, talk with her husband Mike",
+      "group": "Keep safe",
+      "available": "not talking and (supportsAsked and not familyIn)",
+      "why": "Ask who she leans on first (or done).",
+      "effects": [
+        {
+          "log": "You ask whether she wants Mike to know; she agrees, and you talk with them together.",
+          "kind": "act"
+        },
+        {
+          "set": "familyIn",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "Mike exhales. \"So it might be the medicine. Okay. We'll get through it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "holdDose": {
+      "label": "Hold her next levetiracetam dose yourself",
+      "group": "Escalate",
+      "available": "not talking and (not heldDose)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You decide to hold her next levetiracetam dose without an order.",
+          "kind": "act"
+        },
+        {
+          "set": "heldDose",
+          "to": "true"
+        },
+        {
+          "finding": "Pharmacy calls about the missed dose. Stopping an antiseizure drug without a plan is the prescriber's decision, not yours."
+        },
+        {
+          "log": "A medication held without an order, in a patient on seizure prophylaxis.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "expected": {
+      "label": "Chart it as expected mood change after a brain bleed",
+      "group": "Respond",
+      "available": "not talking and (not dismissed)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You chart the mood change as expected after a subarachnoid hemorrhage.",
+          "kind": "act"
+        },
+        {
+          "set": "dismissed",
+          "to": "true"
+        },
+        {
+          "finding": "Nobody else hears about it."
+        },
+        {
+          "log": "A mood change with suicidal thoughts written off, with a known drug effect unexamined.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "observe": {
+      "label": "Set the observation level",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown)",
+      "why": "Screen first.",
+      "effects": [
+        {
+          "log": "You set her observation level.",
+          "kind": "act"
+        },
+        {
+          "set": "obs",
+          "to": "level"
+        },
+        {
+          "cases": [
+            {
+              "when": "level == \"constant\"",
+              "then": [
+                {
+                  "finding": "An attendant arrives and sits where she can see her."
+                },
+                {
+                  "log": "Constant observation started.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "You will look in every 15 minutes."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "level",
+          "kind": "choice",
+          "label": "Level",
+          "options": [
+            {
+              "value": "constant",
+              "label": "Constant observation: a patient safety attendant keeps her in sight, as the policy sets out"
+            },
+            {
+              "value": "checks",
+              "label": "Checks every 15 minutes"
+            }
+          ]
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Reassure: 'You're doing great. You'll feel like yourself soon.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell her she is doing great and will feel like herself soon.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"Stop saying that.\" She turns away."
+        },
+        {
+          "log": "False reassurance closes the conversation down.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "advise": {
+      "label": "Advise: 'Try to stay positive for your family.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell her to stay positive for her family.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Right.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Finish at the bedside",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You finish at the bedside.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the risk level and disposition",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Nursing note",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Risk level (your assessment)",
+              "options": [
+                {
+                  "value": "nonacute",
+                  "label": "Non-acute positive screen: potential risk, with a possible drug adverse effect"
+                },
+                {
+                  "value": "acute",
+                  "label": "Acute positive screen: imminent risk"
+                },
+                {
+                  "value": "negative",
+                  "label": "Negative screen: expected mood change"
+                }
+              ]
+            },
+            {
+              "id": "disposition",
+              "label": "Disposition",
+              "options": [
+                {
+                  "value": "observeReview",
+                  "label": "Constant observation and a room check; provider's safety assessment, psychiatry consult, and the drug under review"
+                },
+                {
+                  "value": "transfer",
+                  "label": "Transfer to inpatient psychiatry today"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine care; mood change expected"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "dispo",
+          "to": "disposition"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: risk {risk}, disposition {disposition}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "Thirty minutes are up: your other patient needs you.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Joanne tells you to leave her alone and will not answer any more questions.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation for Joanne: her risk level, what may be causing the change, and what you put in place.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Risk level and likely cause",
+          "criteria": "Names a non-acute positive screen (thoughts in the last few days, none right now, no plan or intent, no attempt) and a new mood change starting after levetiracetam was begun, with no prior history, which the label warns of.",
+          "modelAnswer": "Non-acute positive: suicidal thoughts in the last few days, none right now, no plan, no intent and no past attempt. The irritability and low mood began a few days after levetiracetam was started, with no history before; the label warns of behavioral changes and suicidal thoughts, so the drug is a likely contributor."
+        },
+        {
+          "label": "What was put in place",
+          "criteria": "Names constant observation, a room check, the provider called for the safety assessment, the drug raised for review without changing it herself, psychiatry, and her husband told with consent.",
+          "modelAnswer": "Constant observation and a checked room under the policy; the provider called for the brief suicide safety assessment and psychiatry; levetiracetam raised for review by the provider and pharmacy, with no dose held by me; Mike involved with her consent."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Trust at the close of the conversation."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Her statement is a cue present from the first minute; screening within 15 minutes leaves time to report and put safety in place (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siKnown and not (obs != \"none\" or envSafe)",
+      "class": "harm",
+      "rationale": "Suicidal thoughts after a new mood change on a drug labeled for that effect: leaving her with no observation and no report leaves her at foreseeable risk.",
+      "source": {
+        "cite": "Keppra (levetiracetam) prescribing information, revised 8/2023: 5.1 'may cause behavioral abnormalities and psychotic symptoms'; patients 'should be monitored for psychiatric signs and symptoms'; 5.2 antiepileptic drugs 'increase the risk of suicidal thoughts or behavior', so patients should be monitored for 'the emergence or worsening of depression, suicidal thoughts or behavior, and/or any unusual changes in mood or behavior'; 17: report behaviors of concern at once",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/021035s112,021505s051lbl.pdf",
+        "note": "Read 2026-11-17 in the FDA label PDF (summarizing fetch with quotes). The sim names no dose and changes no order: the nurse reports the effect and the prescriber decides."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She shut down",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Joanne stopped talking after the conversation broke down. Her suicidal thoughts were never assessed, and nobody looked at the drug."
+    },
+    "unsafe": {
+      "label": "Left at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not walkedOut and (not siKnown or dispo == \"routine\" or not (obs != \"none\" or envSafe) or (dismissed))",
+      "narrative": "Joanne's risk was {siKnown ? \"known but\" : \"never\"} {siKnown ? \"not acted on\" : \"screened\"}: no observation or room check, or the change written off as expected."
+    },
+    "safe": {
+      "label": "Safe, with the drug under review",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and acuteAsked and planAsked and intentAsked and onsetAsked and supportsAsked and (obs == \"constant\" and envSafe) and (notified and drugFlagged) and not (heldDose or dismissed) and riskDoc == \"nonacute\" and (dispo == \"observeReview\") and rapport >= allianceTarget",
+      "narrative": "Joanne rested with an attendant in sight; the provider did the safety assessment, psychiatry was consulted and pharmacy and the provider changed her seizure prophylaxis. Two days later, Mike said she was 'back'."
+    },
+    "safeGaps": {
+      "label": "Safe for now, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not walkedOut",
+      "narrative": "Joanne was protected, but parts of the screen, the follow-up or the report were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "unsafe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "askedDirect",
+        "label": "Screened with a validated tool, early",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(siAskedAt)",
+            "score": "missed",
+            "why": "Never screened, despite what she said."
+          },
+          {
+            "when": "timeAt(siAskedAt) <= safetyWindow",
+            "score": "met",
+            "why": "Screened {timeAt(siAskedAt) / 60} min in, with the questions asked directly."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Screened, but only {timeAt(siAskedAt) / 60} min in; the cue was there from the start."
+          }
+        ]
+      },
+      {
+        "id": "assessment",
+        "label": "Followed the positive screen with direct questions (now, plan, intent, onset, supports)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "acuteAsked and planAsked and intentAsked and onsetAsked and supportsAsked",
+            "score": "met",
+            "why": "Asked about thoughts right now, a plan, intent, when it started and her supports."
+          },
+          {
+            "when": "(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (intentAsked ? 1 : 0) + (onsetAsked ? 1 : 0) + (supportsAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "Asked some of the follow-up questions, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not follow up a positive screen with direct questions."
+          }
+        ]
+      },
+      {
+        "id": "keepSafe",
+        "label": "Kept her safe: constant observation and a room check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "obs == \"constant\" and envSafe",
+            "score": "met",
+            "why": "In sight of an attendant, in a checked room."
+          },
+          {
+            "when": "obs != \"none\" or envSafe",
+            "score": "partial",
+            "why": "Some safety steps, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No observation and no room check."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Reported to the provider, with levetiracetam named as a possible cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified and drugFlagged",
+            "score": "met",
+            "why": "The provider knew at once and is reviewing the drug."
+          },
+          {
+            "when": "notified",
+            "score": "partial",
+            "why": "The provider knew, but the drug was not raised."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody was told."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "No unsafe shortcut (a dose held without an order, the change written off)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "heldDose or dismissed",
+            "score": "missed",
+            "why": "{heldDose ? \"Held a dose without an order. \" : \"\"}{dismissed ? \"Wrote the change off as expected.\" : \"\"}"
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Reported, not acted on alone; not written off."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The conversation broke down."
+          }
+        ]
+      },
+      {
+        "id": "formulation",
+        "label": "Documented a fitting risk level and disposition",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "riskDoc == \"nonacute\" and (dispo == \"observeReview\")",
+            "score": "met",
+            "why": "Non-acute positive with a possible drug effect; observation, assessment and drug review."
+          },
+          {
+            "when": "dispo == \"transfer\"",
+            "score": "partial",
+            "why": "Psychiatric transfer is more restrictive than her risk calls for, and she still needs neurocritical care."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Documented risk {riskDoc}, disposition {dispo}."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written risk formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToAsk",
+        "label": "Minutes to the screening questions",
+        "value": "isNull(siAskedAt) ? -1 : timeAt(siAskedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "followUps",
+        "label": "Follow-up questions asked",
+        "value": "(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (intentAsked ? 1 : 0) + (onsetAsked ? 1 : 0) + (supportsAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "5"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Trust at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Minutes with the patient",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "30 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-8 min",
+        "text": "Eye level, reflect, normalize, then screen."
+      },
+      {
+        "at": "8-18 min",
+        "text": "The acuity question, plan and intent without details, when the change began, her supports."
+      },
+      {
+        "at": "18-30 min",
+        "text": "Constant observation and a room check; the provider, with levetiracetam named; Mike, with her consent."
+      },
+      {
+        "at": "After",
+        "text": "Document a non-acute positive screen with a possible drug effect, and observation while it is reviewed."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Good: safe, with the drug under review",
+        "body": "You took the words seriously, screened, kept her safe and connected the timing to a labeled adverse effect without acting on the drug yourself."
+      },
+      "safeGaps": {
+        "headline": "Safe for now, with gaps",
+        "body": "Joanne was protected, but the criteria below show what was late or missing."
+      },
+      "unsafe": {
+        "headline": "Left at foreseeable risk",
+        "body": "A new mood change with suicidal thoughts on an antiseizure drug labeled for that effect needs a screen, safety and a report, not a note that it is expected."
+      },
+      "walkout": {
+        "headline": "The conversation broke",
+        "body": "Cheerful reassurance tells her the feeling is not welcome. Reflection and direct questions keep her talking."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Levetiracetam's label warns of behavioral abnormalities and, like other antiepileptic drugs, of suicidal thoughts. A mood change that starts after the drug, in someone with no history, is reported as a possible adverse effect, and suicidal words are screened at once. The nurse keeps her safe, tells the provider and names the drug; changing or holding it is the prescriber's decision."
+  }
+}

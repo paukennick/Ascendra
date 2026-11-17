@@ -3,10 +3,11 @@ import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, Divider, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
-import { Text } from "react-native";
+import { Platform, Text } from "react-native";
 import { ageCheckError, isAgeConfirmationRequired } from "@/lib/ageConfirmation";
 import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { colors } from "@/lib/theme";
+import { linkProps } from "@/lib/webLink";
 import { mfaHandoffFrom, setMfaHandoff, setVerifyEmailHandoff } from "@/lib/handoff";
 import { messageOr } from "@/lib/errorMessage";
 
@@ -187,14 +188,15 @@ export default function Login() {
             ) : null}
             {/* REQ-119 (H5): Google sign-up used to create an account without
                 the Terms ever being shown. A new account made here records
-                this agreement (version and time). */}
+                this agreement (version and time). FAIL-2442: both links are
+                real <a href> on the web, so Enter opens them. */}
             <Muted style={{ fontSize: 13, textAlign: "center" }}>
               By continuing with Google you agree to the{" "}
-              <Text style={{ color: colors.link }} accessibilityRole="link" onPress={() => router.push("/terms")}>
+              <Text style={{ color: colors.link }} accessibilityRole="link" {...linkProps(Platform.OS, "/terms", () => router.push("/terms"))}>
                 Terms of Service
               </Text>{" "}
               and{" "}
-              <Text style={{ color: colors.link }} accessibilityRole="link" onPress={() => router.push("/privacy")}>
+              <Text style={{ color: colors.link }} accessibilityRole="link" {...linkProps(Platform.OS, "/privacy", () => router.push("/privacy"))}>
                 Privacy Policy
               </Text>
               .

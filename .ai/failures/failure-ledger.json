@@ -19101,6 +19101,84 @@
       "prevention_rules": [],
       "prevention_notes": "docs/sims.md 22.35 lists the detail route among the gated routes; the pre-completion Mature content rule names routes that open, start or teach a course, and a route that returns a sim's brief opens content",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2440",
+      "date": "2026-11-17",
+      "title": "Web export for screenshots reused another worktree's app screens from Metro's cache",
+      "status": "mitigated",
+      "severity": "medium",
+      "symptom": "The first local web export of feature/desktop-sidebar showed no sidebar at 1440px; the bundle had the new Sidebar.tsx code but app/(app)/_layout.tsx from feature/desktop-web-2 (step 2), so the screenshots would have shown the wrong build.",
+      "how_detected": "Playwright probe during REQ-328: no nav element and no skip link; grep of the exported bundle",
+      "root_cause": "Worktrees symlink one shared mobile/node_modules. Metro's transform cache keys node_modules files by their real path and content, not by the project root, so expo-router's route context module (which embeds the app/ directory path) was reused from the step 2 export made from /home/claude/wt-desktop, and that build's screens were bundled.",
+      "requirement": "REQ-328",
+      "affected": [
+        "scratchpad export for screenshots",
+        "mobile/node_modules (shared symlink)"
+      ],
+      "fix_summary": "Every export for screenshots runs expo export --platform web --clear (as backend/scripts/build-webapp.sh already does for production), and the shot script reports sidebar=true/false per screen so a stale bundle shows at once.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Tooling only: production builds already pass --clear (backend/scripts/build-webapp.sh) and CI installs its own node_modules; the risk is local screenshot builds from worktrees sharing node_modules.",
+      "prevention_rules": [],
+      "prevention_notes": "Builders exporting the web app from a worktree with symlinked node_modules pass --clear and check the bundle carries their branch (grep a string only their branch has) before taking screenshots.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2441",
+      "date": "2026-11-17",
+      "title": "Sidebar links could be focused but not opened with Enter",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the first build, Tab reached the sidebar's links and showed the focus ring, but Enter did nothing (Playwright: Enter on Explore stayed on /), and Enter on Skip to content did not move focus.",
+      "how_detected": "Playwright keyboard check during REQ-328 (step3-shoot.js keys)",
+      "root_cause": "react-native-web's PressResponder leaves Enter on an element with role=link to the browser (it treats links as native interactive elements and skips onPress on keyup), and the browser does nothing for an anchor without an href.",
+      "requirement": "REQ-328",
+      "affected": [
+        "mobile/src/components/Sidebar.tsx DesktopSidebar",
+        "PaneRow",
+        "PaneCourseRow"
+      ],
+      "fix_summary": "Each sidebar link is a real <a href> (react-native-web renders one for href). Enter and clicks arrive as a click, which calls onPress; onPress prevents the browser's page load and navigates in the app, except with Ctrl, Cmd or Shift, which open a new tab or window.",
+      "fix_commits": [
+        "747b4ab9"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopSidebar.test.ts::FAIL-2441: every sidebar link is a real anchor",
+        "so Enter opens it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A role=link Pressable without href is not keyboard-operable on react-native-web; use role=button or give it an href. The test pins every link in the sidebar to webLink().",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2442",
+      "date": "2026-11-17",
+      "title": "Home footer and sign-in Terms and Privacy links could be focused but not opened with Enter on the web",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the web, Tab reached the Home footer links (About, FAQ, Disclaimer, Privacy Policy, Cookies & Storage, Terms, Sources) and the sign-in screen's Terms of Service and Privacy Policy links, but Enter did nothing; only a mouse click opened them.",
+      "how_detected": "Code review during the wave/2026-11-17c integration, from the cause of FAIL-2441 (the sidebar's links): a grep for role=\"link\" / accessibilityRole=\"link\" without an href.",
+      "root_cause": "react-native-web leaves Enter on an element with role=link to the browser, and the browser does nothing for an anchor without an href. The footer Pressable and the two login Text links had a link role and onPress but no href.",
+      "requirement": "REQ-328",
+      "affected": [
+        "mobile/app/(app)/index.tsx Footer",
+        "mobile/app/(auth)/login.tsx Terms and Privacy links",
+        "mobile/src/components/Sidebar.tsx (webLink moved, unchanged)"
+      ],
+      "fix_summary": "Each of these links is a real <a href> on the web through linkProps(Platform.OS, path, go) in mobile/src/lib/webLink.ts (the sidebar's webLink, moved there): Enter and clicks arrive as a click, onPress prevents the page load and navigates in the app, Ctrl/Cmd/Shift-click is left to the browser. The native apps get onPress only, as before. No other link-role element without an href was found in app/ or src/.",
+      "fix_commits": [
+        "146b1e59"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/webLink.test.ts::FAIL-2442: every link in the app is a real anchor on the web",
+        "mobile/src/lib/webLink.test.ts::webLink / linkProps"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "webLink.test.ts scans every .tsx file in mobile/app and mobile/src for a tag with role=\"link\" or accessibilityRole=\"link\" and fails if it neither spreads linkProps()/webLink() nor sets href.",
+      "recurrence_of": "FAIL-2441"
     }
   ]
 }

@@ -37,6 +37,22 @@ a[href]:focus-visible,
   outline: 2px solid ${ring} !important;
   outline-offset: 2px;
 }
+@media (min-width: ${min}px) {
+  /* REQ-328: the sidebar's "Skip to content" link shows only while it has
+     keyboard focus, and the area it jumps to draws no ring of its own. */
+  [data-skip-link]:not(:focus-visible) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  #app-content[tabindex]:focus-visible {
+    outline: none !important;
+  }
+}
 @media (min-width: ${min}px) and (hover: hover) and (pointer: fine) {
   [role="button"]:not([aria-disabled="true"]):hover,
   [role="link"]:hover,

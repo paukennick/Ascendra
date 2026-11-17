@@ -1,0 +1,1560 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "after-amputation-im-done",
+  "title": "Case: 'I'm done. I mean it.'",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Frank Delgado",
+        "presentation": "{distress >= 6 ? \"Staring at the blanket where his foot was, jaw set\" : distress >= 3 ? \"Quiet, answering in a word or two\" : \"Calmer, looking at you\"}; {rapport >= 6 ? \"he talks to you directly\" : rapport >= 3 ? \"he glances at you now and then\" : \"he looks at the wall\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Trust",
+          "spokenLabel": "Trust",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "cue",
+          "label": "What he said",
+          "text": "'I'm done. I mean it. I'm not living like this.' Screen: not done.",
+          "when": "true",
+          "alert": "isNull(siAskedAt)"
+        },
+        {
+          "id": "siNote",
+          "label": "Suicide risk screen",
+          "text": "Positive: wish to be dead, feels a burden, suicidal thoughts since the amputation was planned; a past attempt ten years ago.",
+          "when": "siKnown"
+        },
+        {
+          "id": "siDenied",
+          "label": "Suicide risk screen",
+          "text": "Said 'forget I said it' while guarded. His words still stand, and clinical judgment can override a negative screen.",
+          "when": "siDenied and not siKnown"
+        },
+        {
+          "id": "acuteAskedNote",
+          "label": "Acuity",
+          "text": "Yes, right now: an acute positive screen (imminent risk).",
+          "when": "acuteAsked"
+        },
+        {
+          "id": "planAskedNote",
+          "label": "Plan",
+          "text": "Has a plan for after discharge; not described.",
+          "when": "planAsked"
+        },
+        {
+          "id": "accessAskedNote",
+          "label": "Access",
+          "text": "Access at home.",
+          "when": "accessAsked"
+        },
+        {
+          "id": "pastAskedNote",
+          "label": "Past attempt",
+          "text": "One attempt ten years ago, hospitalized; no treatment since.",
+          "when": "pastAsked"
+        },
+        {
+          "id": "stateAskedNote",
+          "label": "Mental state",
+          "text": "Low mood for months, poor sleep, drinking more lately.",
+          "when": "stateAsked"
+        },
+        {
+          "id": "supportsAskedNote",
+          "label": "Supports",
+          "text": "His daughter Rosa; a friend, Lenny. Lives alone.",
+          "when": "supportsAsked"
+        }
+      ],
+      "record": {
+        "label": "Nursing note so far",
+        "items": [
+          {
+            "label": "Screening questions asked: {siAsked ? \"yes\" : \"no\"}; follow-up questions: {(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (accessAsked ? 1 : 0) + (pastAsked ? 1 : 0) + (stateAsked ? 1 : 0) + (supportsAsked ? 1 : 0)} of 6",
+            "when": "siAsked"
+          },
+          {
+            "label": "Observation: {obs == \"constant\" ? \"constant\" : obs == \"checks\" ? \"checks every 15 minutes\" : \"not set\"}; room checked: {envSafe ? \"yes\" : \"no\"}",
+            "when": "obs != \"none\" or envSafe"
+          },
+          {
+            "label": "Provider called: {notified ? \"yes\" : \"no\"}; handoff written: {evalPaged ? \"yes\" : \"no\"}",
+            "when": "notified"
+          },
+          {
+            "label": "Documented: risk {riskDoc}, disposition {dispo}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Assess suicide risk directly when ideation is present, including lethality: whether there is a detailed plan, access to means, past attempts, current mental state and social support",
+  "secondaryObjectives": [
+    "Know that suicidal ideation ranges from fleeting passive thoughts to a detailed plan with timing and method, and that depression and substance use are its most common drivers",
+    "Supporting the client with an unexpected altered body image"
+  ],
+  "sources": [
+    {
+      "cite": "2026 RN licensure test plan: Psychosocial Integrity (9%)",
+      "checkedAt": "2026-09-18",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/nursing.ts), which read it 2026-09-18; the objective title is the course's own."
+    },
+    {
+      "cite": "NIMH, Ask Suicide-Screening Questions (ASQ) Toolkit, information sheet: four questions and a fifth acuity question asked after any yes; a yes to it is an acute positive, 'imminent risk', that needs a STAT safety and full mental health evaluation, and the patient 'cannot leave until evaluated for safety'; a non-acute positive needs a brief suicide safety assessment; refusing to answer counts as positive",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nimh.nih.gov/sites/default/files/documents/research/research-conducted-at-nimh/asq-toolkit-materials/asq-tool/information_sheet_asq_nimh_toolkit.pdf",
+      "note": "Read 2026-11-17 in NIMH's PDF (summarizing fetch with short quotes). The four questions: a wish to be dead, feeling others would be better off, thoughts of suicide in the past week, any attempt ever. 'Clinical judgment can always override a negative screen.' Validated for youth and adult medical patients, including adult medical inpatients (Horowitz et al., Psychosomatics 2020); the toolkit has emergency department, inpatient and outpatient pathways (NIMH adult toolkit page, read the same day). The questions are paraphrased in the sim."
+    },
+    {
+      "cite": "NIMH, Adult ASQ Toolkit: Brief Suicide Safety Assessment guides, nursing scripts and suicide risk screening pathways for the emergency department, the inpatient medical/surgical unit and outpatient primary care and specialty clinics",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials/adults-asq-toolkit",
+      "note": "Read 2026-11-17 (summarizing fetch): an index page; the pathways themselves were not opened, so what each setting does after a positive screen is taken from the information sheet."
+    },
+    {
+      "cite": "The Columbia Lighthouse Project, Columbia Protocol (C-SSRS) triage page: 'the most worrisome answers are a recent (past month) yes to items 4 or 5' (intent, intent with a plan) 'and/or any recent (3 months) behavior'; next steps 'are setting specific', and 'interventions should be changed to reflect your individual resources and policies'",
+      "checkedAt": "2026-11-17",
+      "url": "https://cssrs.columbia.edu/the-columbia-scale-c-ssrs/triage-c-ssrs/",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes; page last modified 2024-03-22). The screener's items, relayed from the NCMHCE session (read 2026-11-11): wish to be dead; suicidal thoughts; thoughts with method; intent without plan; intent with plan; suicidal behavior."
+    },
+    {
+      "cite": "The Joint Commission, R3 Report Issue 18: National Patient Safety Goal for suicide prevention, NPSG.15.01.01 (effective 2019-07-01): EP1 environmental risk assessment; EP2 screen 'using a validated screening tool'; EP3 an assessment that 'directly asks about suicidal ideation, plan, intent, suicidal or self-harm behaviors'; EP4 document the risk level and the mitigation plan; EP5-EP7 policies for monitoring, discharge counseling and follow-up",
+      "checkedAt": "2026-11-17",
+      "url": "https://digitalassets.jointcommission.org/api/public/content/459bbe2be1ab4e5082b8a8d49d0c94e0",
+      "note": "Read 2026-11-17 (summarizing fetch with quotes; issue dated 2019-11-20, updated 2025-12-03). The report names one-to-one monitoring as a key protocol on nonpsychiatric units; it does not itself require it, so the observation level in each sim is the facility's policy."
+    },
+    {
+      "cite": "SAMHSA, SAFE-T: Suicide Assessment Five-Step Evaluation and Triage (PEP24-01-036): identify risk and protective factors, conduct a suicide inquiry, determine the risk level and interventions, and document a treatment plan",
+      "checkedAt": "2026-11-17",
+      "url": "https://library.samhsa.gov/product/safe-t-suicide-assessment-five-step-evaluation-and-triage/pep24-01-036",
+      "note": "Read 2026-11-17 on SAMHSA's product page (summarizing fetch). The page names the activities without the card's risk-level table, which was not read."
+    }
+  ],
+  "brief": {
+    "situation": "Frank Delgado, 58 (a fictional client), is on a medical-surgical unit on day 2 after a below-knee amputation for a diabetic foot infection. He was a long-haul truck driver and lives alone since his divorce. He drinks 'a few beers most nights'. At 19:30 he refuses his dinner and says, 'I'm done. I mean it. I'm not living like this.' The hospital screens clients with a validated suicide screening tool when there is a cue. You are his registered nurse, with four other clients; you have about 30 minutes.",
+    "handover": [
+      "Day 2 after a below-knee amputation; incision clean; pain controlled; glucose in range.",
+      "Unit policy: a positive screen gets constant observation and a room check until the provider's brief suicide safety assessment."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond from the action groups. Frank answers at once; then let the conversation continue, which moves the clock by the minutes that exchange took.",
+      "His trust, distress and how much he discloses change with what you say.",
+      "Your time ends at 30 minutes. Afterward you write a short risk formulation, then document the risk level and disposition."
+    ]
+  },
+  "clock": {
+    "start": "19:30",
+    "tick": "1min",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 minutes with one client in a five-client medical-surgical assignment (author's scenario timing)."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How trust and distress move with each response is a teaching simplification for exam practice, not a validated model of a patient."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "siAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "siDenied": {
+      "type": "bool",
+      "init": false
+    },
+    "acuteAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "planAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "accessAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "pastAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "stateAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "supportsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "envSafe": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "evalPaged": {
+      "type": "bool",
+      "init": false
+    },
+    "leftAlone": {
+      "type": "bool",
+      "init": false
+    },
+    "contractUsed": {
+      "type": "bool",
+      "init": false
+    },
+    "obs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "constant",
+        "checks"
+      ],
+      "init": "none"
+    },
+    "riskDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "acute",
+        "nonacute",
+        "negative"
+      ],
+      "init": "none"
+    },
+    "dispo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "observeHold",
+        "dischargePlan",
+        "routine"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "At the bedside",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "normalize",
+        "screen",
+        "askNow",
+        "askPlan",
+        "askAccess",
+        "askPast",
+        "askState",
+        "askSupports",
+        "roomCheck",
+        "notifyMd",
+        "handoff",
+        "leaveAlone",
+        "contract",
+        "observe",
+        "reassure",
+        "advise",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Sit down: 'You said you're done. Tell me what you mean.'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You sit at eye level and ask him what he means.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Thirty years driving. Who hires a trucker with one foot?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "He nods once. \"Yeah. Everything I was.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "normalize": {
+      "label": "Normalize: 'When someone says that, I always ask some direct questions. It's safe to answer.'",
+      "group": "Respond",
+      "available": "not talking and (not siKnown)",
+      "why": "He has already told you.",
+      "effects": [
+        {
+          "log": "You explain that you ask direct questions whenever someone says that, and that it is safe to answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Go ahead.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "screen": {
+      "label": "Screen with the NIMH Ask Suicide-Screening Questions (the four questions)",
+      "group": "Ask about risk",
+      "available": "not talking and (not siKnown)",
+      "why": "He has answered; go on to the follow-up questions.",
+      "effects": [
+        {
+          "log": "You ask the four screening questions directly.",
+          "kind": "act"
+        },
+        {
+          "if": "not siAsked",
+          "then": [
+            {
+              "set": "siAskedAt",
+              "to": "t"
+            },
+            {
+              "set": "siAsked",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "\"Yes. Yes. Yes, since they told me about the foot.\" And, quietly: \"Once, after the divorce. Ten years ago.\""
+                },
+                {
+                  "log": "Positive screen: a wish to be dead, feeling a burden, suicidal thoughts this week, and a past attempt ten years ago.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "siDenied",
+                  "to": "true"
+                },
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Forget I said it.\" (Not yet enough trust to answer honestly.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askNow": {
+      "label": "Ask the acuity question: thoughts of killing himself right now?",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not acuteAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether he is having thoughts of killing himself right now.",
+          "kind": "act"
+        },
+        {
+          "set": "acuteAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Right now? Yeah.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPlan": {
+      "label": "Ask whether he has a plan (do not ask for details)",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not planAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether he has made a plan, without asking him to describe it.",
+          "kind": "act"
+        },
+        {
+          "set": "planAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"For when I get home. I'm not saying more.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAccess": {
+      "label": "Ask whether what he has thought of is within reach at home",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not accessAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask whether what he has thought of is within reach at home.",
+          "kind": "act"
+        },
+        {
+          "set": "accessAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"At home. Yes.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPast": {
+      "label": "Ask about the past attempt: when, and what happened after",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not pastAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask about the past attempt and what happened afterward.",
+          "kind": "act"
+        },
+        {
+          "set": "pastAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"After the divorce. Three days in the hospital. Never told anyone since.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askState": {
+      "label": "Ask about his mood, sleep and drinking",
+      "group": "Ask about risk",
+      "available": "not talking and (siKnown and not stateAsked)",
+      "why": "Screen first (or you have asked this).",
+      "effects": [
+        {
+          "log": "You ask about his mood, sleep and drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "stateAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Low for months. Don't sleep. Beer every night, more lately.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSupports": {
+      "label": "Ask who he is close to",
+      "group": "Ask",
+      "available": "not talking and (not supportsAsked)",
+      "why": "You have asked this.",
+      "effects": [
+        {
+          "log": "You ask who he is close to.",
+          "kind": "act"
+        },
+        {
+          "set": "supportsAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"My daughter, Rosa. And my buddy from the yard, Lenny.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "roomCheck": {
+      "label": "Check the room under the environmental risk policy and remove what is not needed",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown and not envSafe)",
+      "why": "Screen first (or done).",
+      "effects": [
+        {
+          "log": "You check the room under the policy and remove anything not needed for his care that could be used for self-harm, explaining why.",
+          "kind": "act"
+        },
+        {
+          "set": "envSafe",
+          "to": "true"
+        },
+        {
+          "finding": "\"You think I'd do it here?\" \"I want you safe while we work this out.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "notifyMd": {
+      "label": "Call the provider now: acute positive screen (SBAR)",
+      "group": "Escalate",
+      "available": "not talking and (siKnown and not notified)",
+      "why": "Screen first (or done).",
+      "effects": [
+        {
+          "log": "You call the provider with an SBAR: an acute positive screen, a plan for after discharge, access at home, a past attempt, heavy drinking.",
+          "kind": "act"
+        },
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "finding": "The provider will come for the safety assessment now, orders a psychiatry consultation and holds discharge."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Tell the charge nurse and write the handoff",
+      "group": "Escalate",
+      "available": "not talking and (notified and not evalPaged)",
+      "why": "Call the provider first (or done).",
+      "effects": [
+        {
+          "log": "You tell the charge nurse and write the handoff: screen result, observation level, consult pending, discharge on hold.",
+          "kind": "act"
+        },
+        {
+          "set": "evalPaged",
+          "to": "true"
+        },
+        {
+          "finding": "The charge nurse arranges an attendant for the night."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "leaveAlone": {
+      "label": "Go to the station to call the provider, leaving him alone",
+      "group": "Escalate",
+      "available": "not talking and (not leftAlone)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You go to the station to call, and he is alone and out of sight.",
+          "kind": "act"
+        },
+        {
+          "set": "leftAlone",
+          "to": "true"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "When you come back, he has his phone out and the call light off."
+        },
+        {
+          "log": "A client with an acute positive screen left alone and out of sight.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "contract": {
+      "label": "Ask him to promise he will not hurt himself",
+      "group": "Keep safe",
+      "available": "not talking and (not contractUsed)",
+      "why": "Done, or not yet possible.",
+      "effects": [
+        {
+          "log": "You ask him to promise he will not hurt himself.",
+          "kind": "act"
+        },
+        {
+          "set": "contractUsed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Sure.\" He does not look at you."
+        },
+        {
+          "log": "A promise is not a safety measure and has no evidence of protecting anyone.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "observe": {
+      "label": "Set the observation level",
+      "group": "Keep safe",
+      "available": "not talking and (siKnown)",
+      "why": "Screen first.",
+      "effects": [
+        {
+          "log": "You set his observation level.",
+          "kind": "act"
+        },
+        {
+          "set": "obs",
+          "to": "level"
+        },
+        {
+          "cases": [
+            {
+              "when": "level == \"constant\"",
+              "then": [
+                {
+                  "finding": "A patient safety attendant sits where he can be seen at all times."
+                },
+                {
+                  "log": "Constant observation started.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "You will look in every 15 minutes."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ],
+      "params": [
+        {
+          "id": "level",
+          "kind": "choice",
+          "label": "Level",
+          "options": [
+            {
+              "value": "constant",
+              "label": "Constant observation: a staff member keeps him in sight at all times"
+            },
+            {
+              "value": "checks",
+              "label": "Checks every 15 minutes"
+            }
+          ]
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Reassure: 'Lots of people do great with a prosthesis. You'll be back on the road.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him lots of people do great with a prosthesis.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"You don't know that.\" He turns to the wall."
+        },
+        {
+          "log": "False reassurance closes the conversation down.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "advise": {
+      "label": "Advise: 'You need to eat to heal. Stay positive.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell him he needs to eat and stay positive.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Right.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Finish at the bedside",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You finish at the bedside.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the risk level and disposition",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Nursing note",
+          "fields": [
+            {
+              "id": "risk",
+              "label": "Risk level (your assessment)",
+              "options": [
+                {
+                  "value": "acute",
+                  "label": "Acute positive screen: imminent risk"
+                },
+                {
+                  "value": "nonacute",
+                  "label": "Non-acute positive screen: potential risk"
+                },
+                {
+                  "value": "negative",
+                  "label": "Negative screen"
+                }
+              ]
+            },
+            {
+              "id": "disposition",
+              "label": "Disposition",
+              "options": [
+                {
+                  "value": "observeHold",
+                  "label": "Constant observation and a room check; provider's safety assessment now, psychiatry consult, discharge on hold"
+                },
+                {
+                  "value": "dischargePlan",
+                  "label": "Discharge as planned tomorrow with a clinic referral"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine care; recheck in the morning"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "riskDoc",
+          "to": "risk"
+        },
+        {
+          "set": "dispo",
+          "to": "disposition"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: risk {risk}, disposition {disposition}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "Thirty minutes are up: your other clients need you.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Frank pulls the curtain and says he is done talking.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "formulation": {
+      "question": "Write your risk formulation for Frank: his risk level and why, and what you put in place.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Risk level and reasons",
+          "criteria": "Names an acute positive screen: thoughts right now, a plan for after discharge, access at home, a past attempt, low mood, poor sleep and heavier drinking, sudden loss of work and body image, living alone; protective: his daughter and friend.",
+          "modelAnswer": "Acute positive: thoughts of killing himself right now, a plan for after discharge and access at home. A past attempt, months of low mood, poor sleep and heavier drinking, a sudden loss of his work and body image, and living alone all raise the risk. His daughter and friend are protective."
+        },
+        {
+          "label": "What was put in place",
+          "criteria": "Names constant observation, a room check, the provider called now with discharge held, a psychiatry consult and the handoff.",
+          "modelAnswer": "Constant observation and a checked room under the policy; the provider called now for the safety assessment; discharge on hold; psychiatry consulted; the charge nurse told and the handoff written."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Trust at the close of the conversation."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 900,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "His statement is a cue present from the first minute; screening within 15 minutes leaves time to assess and act (author's scenario timing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siKnown and not (obs != \"none\" or envSafe)",
+      "class": "harm",
+      "rationale": "An acute positive screen with a plan, access and a past attempt: ending with no observation or room check leaves him at foreseeable risk.",
+      "source": {
+        "cite": "NIMH, Ask Suicide-Screening Questions (ASQ) Toolkit, information sheet: four questions and a fifth acuity question asked after any yes; a yes to it is an acute positive, 'imminent risk', that needs a STAT safety and full mental health evaluation, and the patient 'cannot leave until evaluated for safety'; a non-acute positive needs a brief suicide safety assessment; refusing to answer counts as positive",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.nimh.nih.gov/sites/default/files/documents/research/research-conducted-at-nimh/asq-toolkit-materials/asq-tool/information_sheet_asq_nimh_toolkit.pdf",
+        "note": "Read 2026-11-17 in NIMH's PDF (summarizing fetch with short quotes). The four questions: a wish to be dead, feeling others would be better off, thoughts of suicide in the past week, any attempt ever. 'Clinical judgment can always override a negative screen.' Validated for youth and adult medical patients, including adult medical inpatients (Horowitz et al., Psychosomatics 2020); the toolkit has emergency department, inpatient and outpatient pathways (NIMH adult toolkit page, read the same day). The questions are paraphrased in the sim."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He shut down",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Frank stopped talking after the conversation broke down; his risk was never assessed and nothing was put in place before night."
+    },
+    "unsafe": {
+      "label": "Left at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not walkedOut and (not siKnown or dispo == \"dischargePlan\" or dispo == \"routine\" or not (obs != \"none\" or envSafe) or (leftAlone))",
+      "narrative": "Frank's risk was {siKnown ? \"known but\" : \"never\"} {siKnown ? \"not acted on\" : \"screened\"}: out of sight, unprotected or headed for discharge without an assessment."
+    },
+    "safe": {
+      "label": "Safe, with discharge on hold",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and siKnown and timeAt(siAskedAt) <= safetyWindow and acuteAsked and planAsked and accessAsked and pastAsked and stateAsked and supportsAsked and (obs == \"constant\" and envSafe) and (notified and evalPaged) and not (leftAlone or contractUsed) and riskDoc == \"acute\" and (dispo == \"observeHold\") and rapport >= allianceTarget",
+      "narrative": "Frank was kept in sight in a checked room; the provider assessed him that evening, psychiatry saw him the next morning, and his discharge waited until a plan was in place."
+    },
+    "safeGaps": {
+      "label": "Safe for now, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not walkedOut",
+      "narrative": "Frank was protected, but parts of the screen, the assessment or the handoff were late or missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "unsafe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "askedDirect",
+        "label": "Screened with a validated tool, early",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(siAskedAt)",
+            "score": "missed",
+            "why": "Never screened, despite what he said."
+          },
+          {
+            "when": "timeAt(siAskedAt) <= safetyWindow",
+            "score": "met",
+            "why": "Screened {timeAt(siAskedAt) / 60} min in, with the questions asked directly."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Screened, but only {timeAt(siAskedAt) / 60} min in; the cue was there from the start."
+          }
+        ]
+      },
+      {
+        "id": "assessment",
+        "label": "Assessed directly: now, a plan, access, the past attempt, mental state and supports",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "acuteAsked and planAsked and accessAsked and pastAsked and stateAsked and supportsAsked",
+            "score": "met",
+            "why": "Asked about thoughts right now, a plan, access, the past attempt, his mood and drinking, and his supports."
+          },
+          {
+            "when": "(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (accessAsked ? 1 : 0) + (pastAsked ? 1 : 0) + (stateAsked ? 1 : 0) + (supportsAsked ? 1 : 0) >= 3",
+            "score": "partial",
+            "why": "Asked some of the follow-up questions, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not follow up a positive screen with direct questions."
+          }
+        ]
+      },
+      {
+        "id": "keepSafe",
+        "label": "Kept him safe: constant observation and a room check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "obs == \"constant\" and envSafe",
+            "score": "met",
+            "why": "In sight at all times, in a checked room."
+          },
+          {
+            "when": "obs != \"none\" or envSafe",
+            "score": "partial",
+            "why": "Some safety steps, not all."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No observation and no room check."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Escalated: the provider called, the charge nurse and handoff",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified and evalPaged",
+            "score": "met",
+            "why": "The provider came now and the handoff was written."
+          },
+          {
+            "when": "notified",
+            "score": "partial",
+            "why": "The provider knew, but no handoff was written."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody was told."
+          }
+        ]
+      },
+      {
+        "id": "noHarm",
+        "label": "No unsafe shortcut (left alone, a promise in place of safety)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "leftAlone or contractUsed",
+            "score": "missed",
+            "why": "{leftAlone ? \"Left alone and out of sight. \" : \"\"}{contractUsed ? \"Used a promise as a safety measure.\" : \"\"}"
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Never left alone; no promise used as a safety measure."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working relationship",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Trust at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The conversation broke down."
+          }
+        ]
+      },
+      {
+        "id": "formulation",
+        "label": "Documented a fitting risk level and disposition",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "riskDoc == \"acute\" and (dispo == \"observeHold\")",
+            "score": "met",
+            "why": "Acute positive; constant observation, the provider now, discharge on hold."
+          },
+          {
+            "when": "false",
+            "score": "partial",
+            "why": "More restrictive than the risk called for."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Documented risk {riskDoc}, disposition {dispo}."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written risk formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToAsk",
+        "label": "Minutes to the screening questions",
+        "value": "isNull(siAskedAt) ? -1 : timeAt(siAskedAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "followUps",
+        "label": "Follow-up questions asked",
+        "value": "(acuteAsked ? 1 : 0) + (planAsked ? 1 : 0) + (accessAsked ? 1 : 0) + (pastAsked ? 1 : 0) + (stateAsked ? 1 : 0) + (supportsAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "6"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Trust at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Minutes with the patient",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "30 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-8 min",
+        "text": "Ask what he means, reflect, normalize, then screen."
+      },
+      {
+        "at": "8-20 min",
+        "text": "The acuity question, a plan without details, access, the past attempt, his mood and drinking, his supports."
+      },
+      {
+        "at": "20-30 min",
+        "text": "Constant observation and a room check; the provider and the handoff."
+      },
+      {
+        "at": "After",
+        "text": "Document an acute positive screen; observation and an assessment before any discharge."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Good: safe, with discharge on hold",
+        "body": "You screened at once, covered what a risk assessment looks for without asking for details, kept him in sight and got the provider there."
+      },
+      "safeGaps": {
+        "headline": "Safe for now, with gaps",
+        "body": "Frank was protected, but the criteria below show what was late or missing."
+      },
+      "unsafe": {
+        "headline": "Left at foreseeable risk",
+        "body": "Ideation with a plan, access and a past attempt needs observation and an assessment before discharge, not a referral."
+      },
+      "walkout": {
+        "headline": "The conversation broke",
+        "body": "Cheerful predictions about a prosthesis tell him his loss is not heard. Ask what he means, then ask directly."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Ideation is on a range from passive thoughts to a plan with timing. When it is present, the nurse asks directly about thoughts right now, a plan, access, past attempts, mental state and supports, never asking for a description of a method. A plan with access and a past attempt makes this imminent risk: constant observation, a room check, the provider now and discharge held."
+  }
+}

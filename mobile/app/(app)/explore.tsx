@@ -3,6 +3,7 @@ import { SectionList, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { coursesChanged } from "@/lib/courseEvents"; // REQ-328: the sidebar's Favorites and Recent follow
 import type { Track } from "@/types";
 import { Button, Card, Chip, EmptyState, ErrorBanner, Loading, Muted, SectionHeader, TextField } from "@/components/ui";
 import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
@@ -95,7 +96,7 @@ export default function Explore() {
   const toggleFavorite = useCallback((track: Track) => {
     const next = !track.is_favorite;
     setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: next } : t)) ?? prev);
-    api.patch(`/api/courses/${track.id}/favorite`, { favorite: next }).catch(() => {
+    api.patch(`/api/courses/${track.id}/favorite`, { favorite: next }).then(coursesChanged).catch(() => {
       setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: !next } : t)) ?? prev);
     });
   }, []);
