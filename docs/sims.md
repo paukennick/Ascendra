@@ -6592,3 +6592,111 @@ The CKA case reuses the CKA curriculum read on 2026-11-14.
    backout plan; the band teaches both (the base case calls it a backout
    plan).
 5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").
+
+### 22.32 Health breadth and nursing depth of the 2026-11-17 round (REQ-323)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." Breadth first: the ten physical therapy specialty courses,
+NPTE-PTA and the strength and conditioning course had no sims. Each now has
+at least one. Then depth: nursing bands, launch courses first. No engine,
+renderer, schema or migration change; engine 1.2 throughout; every case on
+an existing screen (treatment session, bedside, trainer).
+`lib/sim/health-sims-1117.test.ts` pins every document by slug.
+
+**Bands (16).** Each registers an existing case to a fitting catalog
+objective of another course; the patch changes only `objective`,
+`secondaryObjectives`, `sources` and, for three, `brief`. Scoring, outcome
+thresholds and endings are the base's (the test compares them). Golden paths
+are the base's steps rebuilt against the band (`scripts/sim-golden/*-band-*.steps.ts`).
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| ABPTSGCS/stroke-balance-fall-risk-geri | DPT | Fall-risk and balance examination with standardized measures and cut-offs (Examination, 25%) |
+| ABPTSNCS/dizziness-central-red-flags-neuro | DPT | Recognizing medical instability and emergencies, new neurologic signs (30%) |
+| ABPTSNCS/parkinson-freezing-session-neuro | DPT | External cueing for freezing of gait in Parkinson disease (30%) |
+| ABPTSCCS/icu-early-mobility-cardiopulm | DPT | Recognizing decompensation that requires stopping activity or escalating care (Evaluation, 30%) |
+| ABPTSOCS/tka-gait-dvt-red-flag-ortho | DPT | After knee arthroplasty: early progressive strength, NMES, except with DVT (19%) |
+| NPTEPTA/icu-early-mobility-pta | DPT | Cardiopulmonary distress that requires stopping treatment and notifying the supervising PT (17%); brief: the PTA carries out the PT's plan |
+| NSCACSCS/cscs-squat-knees-cave | NASMCPT | Assessing, cueing and modifying technique (15%); brief: a strength and conditioning coach |
+| CMSRN/post-op-transfusion-reaction-cmsrn | NCLEXRN | Restrictive threshold; stop at once for a suspected reaction |
+| CMSRN/pca-oversedation-naloxone-cmsrn | ADNRN | Opioid-induced oversedation on a sedation scale |
+| CMSRN/med-surg-deterioration-sbar-cmsrn | NCLEXRN | The nursing process applied to a changing med-surg patient |
+| PCCN/postop-hemorrhage-early-signs-pccn | CMSRN | Urgent situations and procedural or surgical complications |
+| PCCN/sepsis-to-septic-shock-pccn | CCRNADULT | Screen for sepsis and recognize shock |
+| PCCN/status-epilepticus-after-craniotomy-pccn | CCRNADULT | Status epilepticus; brief: a neuroscience progressive care unit |
+| NCLEXRN/femoral-access-retroperitoneal-bleed-nclexrn | PCCN | Prioritize hypotheses and revisit them as data arrive |
+| FNPANCC/clinic-severe-bp-stroke-signs-fnp-role | FNPAANP | Red flags that need emergency referral |
+| FNPAANP/clinic-sulfonylurea-hypoglycemia-fnp-clinical | FNPANCC | Hypoglycemia from diabetes treatment and the regimen |
+
+Band slugs use plain words, not the specialist letters (REQ-309/319).
+
+**New treatment-session cases (7)**, built in the shape of
+DPT/dizziness-central-red-flags: examine (tests share one timer and one
+pending slot), find the red flag, act on it by the right route. Each has
+`endingOrder`, a conditional harm ending that is an outcome, three critical
+criteria inside the `target` condition, a reasoning moment, one or two
+sourced teaching prompts in jsonb key order, a chapter, KPIs, an expert path,
+a debrief per ending, and five or six golden paths (Good, Mediocre, Bad;
+every ending but `time_up`; every criterion met and missed).
+
+| Course / slug | Objective (domain weight) | Critical criteria | Steps name |
+|---|---|---|---|
+| ABPTSPWCS/prenatal-exercise-severe-bp-headache | Stop exercise in pregnancy for warning signs; preeclampsia is a contraindication (55%) | warning symptoms asked and a severe-range BP confirmed on a repeat; no exercise after a warning sign; labor and delivery called and 911 within 10 min | pwcs-preeclampsia |
+| ABPTSSCS/preseason-collapse-heat-stroke | Exertional heat stroke: ice-water immersion, rectal temperature, stop at 38-39 C (35%) | rectal temperature; immersion within 5 min of the first sign; out at 38-39.2 C and cooled before transport | scs-heatstroke |
+| ABPTSWMS/leg-ulcer-calcified-abi-compression | Toe pressure, TBI and pedal Doppler when the ABI is unreliable (25%) | toe pressure and waveforms, not the ABI alone; no compression; vascular surgery the same visit within 15 min | wms-abi |
+| ABPTSPCS/knee-pain-limp-hip-slip | Suspect a slipped capital femoral epiphysis behind knee pain and a limp (20%) | hip examined; no hop test, squats or treadmill; emergency department the same day within 15 min | pcs-scfe |
+| ABPTSOCS/acute-back-pain-mri-request-cauda-equina | Classify low back pain by duration and hold back routine imaging (30%); cauda equina as the exception | bladder, bowel, saddle and sexual questions; no thrust manipulation; emergency MRI the same hour within 10 min | ocs-ces |
+| ABPTSONC/post-mastectomy-strength-start-back-pain | Supervised progressive resistance training after breast cancer surgery (27%); suspected cord compression first | back and leg questions before loading; no loading; emergency department within 10 min | onc-mscc |
+| ABPTSECS/carpal-tunnel-referral-demyelinating-gbs | Interpreting abnormal findings: axonal or demyelinating, focal or diffuse, acute or chronic (25%) | single breath count; studies read as diffuse, acute, demyelinating; 911 within 15 min | ecs-gbs |
+
+- **Harm endings** are outcomes: an eclamptic seizure, organ injury from
+  prolonged hyperthermia or transport before cooling, an ischemic injury
+  under a wrap, an unstable slip, retention, legs giving way, respiratory
+  distress; and, for a route that sends the patient away with the condition
+  unrecognized, its course after leaving (as the FNP stroke case does).
+- **Scope.** The physical therapist acts within the clinic's named policy
+  (911, labor and delivery triage, the vascular service, the emergency
+  department) and tells the referrer. No drug is given in any new case; no
+  dose appears.
+- **Breadth by highest domain.** Every physical therapy specialty course
+  has a sim whose main objective sits in its highest-weighted domain, or in
+  a tied highest one (pediatrics, neurology, geriatrics). Two courses do
+  not: NPTE-PTA's band is on Cardiovascular and Pulmonary (17%), not
+  Musculoskeletal (26%), and the strength and conditioning band is on
+  exercise technique (15%), not Scientific Foundations (25%). See "Open".
+- **Sources** are on each document with the date read and how. Read
+  2026-11-17 through summarizing fetches with quotes: the MSD Manual on
+  preeclampsia and eclampsia, Table 1 of the 2017 Pregnancy Hypertension
+  definitions (PMC5435450), a perinatology.com summary of the 2019 Canadian
+  pregnancy activity guideline (secondary), the ACOG Committee Opinion 804
+  abstract only, the NATA exertional heat illness executive summary (2014),
+  the IWGDF/ESVS/SVS 2023 PAD guideline (first 100,000 characters), a
+  Wound Practice and Research review summary on ABPI and compression, REBEL
+  EM on SCFE (2020), the GIRFT national suspected cauda equina pathway
+  (February 2023), NICE NG234 recommendations (2023) and the EAN/PNS 2023
+  Guillain-Barre guideline (a repository copy, first 100,000 characters).
+  Relayed from the course seed's 2026-11-04 reading: the StatPearls chapters
+  tagged SP-PREG, SP-HS, SP-VLU, SP-PAD, SP-SCFE, SP-LBP, SP-SCC, SP-NCS,
+  SP-GBS, and the 2020 breast cancer lymphedema guideline. Measured values,
+  disease courses, rates and local waits are authored teaching values marked
+  `FLAG`.
+- **Findings while authoring.** A measure id equal to a vital tile id is
+  refused by the validator ("duplicate id"); the builder names measures
+  `<test>Result`. The vital tile colour set has no temperature colour
+  (`neutral` is used) and a KPI format is `duration`, `number` or `usd`.
+  `time_up` is reached by no golden path in the new cases (the linter's
+  warning, as in the other clinical waves); `actions.bp2` in the pregnancy
+  case draws an availability warning although two goldens use it.
+
+**Open.**
+- NPTE-PTA Musculoskeletal (26%) needs a PTA-specific case: the DPT knee
+  case's right call is to the surgeon, not to the supervising PT, so it was
+  not banded to "report back to the supervising PT".
+- Strength and conditioning, Scientific Foundations (25%): its objectives
+  (biomechanics, physiology planning, research literacy) did not fit a timed
+  case on an existing screen. The heat stroke case was not banded to the
+  course's heat-illness objective (8%): rectal temperature and immersion are
+  led by the athletic trainer or clinician, not the coach.
+- Nursing depth: 9 bands this round. The remaining fitting objectives and
+  the next candidates are in docs/sims-coverage-nursing-specialty.md
+  ("REQ-323 progress").

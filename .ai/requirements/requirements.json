@@ -11602,6 +11602,47 @@
         "Linear format is inferred from a fixed form",
         "Not legal advice"
       ]
+    },
+    {
+      "id": "REQ-323",
+      "category": "content",
+      "title": "Health sims of the 2026-11-17 round: a sim for every physical therapy specialty course, NPTE-PTA and strength and conditioning, then nursing depth by bands",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Breadth first: each of the ten physical therapy specialty courses, NPTE-PTA and the strength and conditioning course gets at least one sim on its highest-weighted domain where an objective there fits an existing screen, by a band of a DPT, NPTE or trainer case where the objective is the same and a new treatment-session case where none is. Then depth: nursing objectives that fit the selection rule, launch courses first, by bands of existing bedside cases. No new screen, engine, schema or migration. Sims name no permission-only body or specialist letters (REQ-309/319).",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-sims-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every breadth course has at least one sim",
+        "each band registers another course's case to a fitting catalog objective and changes only objective secondary objectives sources and brief",
+        "each new scenario has endingOrder three or four critical criteria harm endings that are outcomes and Good Mediocre and Bad golden paths reaching every ending but time_up",
+        "every document lints with zero errors and replays its goldens",
+        "sources are dated and say how they were read",
+        "no learner text names a permission-only mark or specialist letters",
+        "no claim of clinician or expert review"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-323 documents",
+        "lib/sim/health-sims-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.32",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
     }
   ]
 }
