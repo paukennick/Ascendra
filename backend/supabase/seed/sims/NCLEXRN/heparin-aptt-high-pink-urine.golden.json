@@ -1,0 +1,479 @@
+{
+  "slug": "heparin-aptt-high-pink-urine",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: aPTT read; heparin stopped; bleeding check; pump checked and double-checked; over-anticoagulated; provider; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aptt",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "x15",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "pump",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "over"
+          },
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "bleeding",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopC": "met",
+          "callC": "met",
+          "bleedC": "met",
+          "pumpC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "toCall": 185
+        },
+        "stateHash": "0bb1b1cf9ad26faa"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateStop",
+      "title": "Reads the blood count and checks for bleeding first, then stops the heparin more than 5 minutes after the aPTT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cbc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "x15",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "aptt",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 6,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "pump",
+          "seq": 7,
+          "tick": 100
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 112
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 9,
+          "tick": 112
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "over"
+          },
+          "seq": 10,
+          "tick": 112
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 11,
+          "tick": 112
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "bleeding",
+          "seq": 12,
+          "tick": 112
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 112
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "stopC": "partial",
+          "callC": "met",
+          "bleedC": "met",
+          "pumpC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 320,
+          "toCall": 560
+        },
+        "stateHash": "7aa51b0d6b435c2b"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noPumpCheck",
+      "title": "Stops it and calls at once, but never checks the pump, so the programming error goes unfound",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "aptt",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "x15",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "signQ",
+          "choice": "bleeding",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "over"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "stopC": "met",
+          "callC": "met",
+          "bleedC": "met",
+          "pumpC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "toCall": 120
+        },
+        "stateHash": "6485a5e188a792ef"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "turnedUp",
+      "title": "Failure: reads a high aPTT as clotting, increases the rate and waits for the next draw",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "aptt",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "x15",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "under"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "up",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "hemorrhage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopC": "missed",
+          "callC": "missed",
+          "bleedC": "missed",
+          "pumpC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toCall": 60
+        },
+        "stateHash": "06b109f4d5cda736"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "nearTarget",
+      "title": "Failure: calls the result close enough and waits 6 hours",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "aptt",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "x15",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ok"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "hemorrhage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopC": "missed",
+          "callC": "missed",
+          "bleedC": "missed",
+          "pumpC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toCall": 60
+        },
+        "stateHash": "43a1241ff5a9bd06"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
