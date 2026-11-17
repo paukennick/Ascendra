@@ -84,6 +84,13 @@ export function bottomBannerInsets(platform: string, windowWidth: number, edge: 
   return { left: side, right: side };
 }
 
+// Overlays the root layout draws outside every stack, so the column never
+// wraps them; each needs its own wide-window rule (REQ-322):
+//   - SessionRetry ("We couldn't reach Ascendra"): sessionRetryLayout
+//   - IdleWarningBanner, UpdateBanner: bottomBannerInsets
+//   - AppLock, UpdateRequired: already cap their content at 360px
+//   - lock screen (native only) and +not-found: cap themselves (360px, Screen)
+
 /** Width of the "We couldn't reach Ascendra" screen's content on a wide web window. */
 export const SESSION_RETRY_MAX_WIDTH = 440;
 
