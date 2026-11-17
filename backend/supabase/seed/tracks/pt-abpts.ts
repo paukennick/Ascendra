@@ -128,6 +128,14 @@
 //             Guideline", JNPT 2022, doi:10.1097/NPT.0000000000000382,
 //             PMC8920012
 //             (https://pmc.ncbi.nlm.nih.gov/articles/PMC8920012/). CC BY-NC-ND 4.0. Supersedes the 2016 edition.
+//   EAN-PNS-GBS van Doorn et al., "European Academy of Neurology/Peripheral
+//             Nerve Society Guideline on diagnosis and treatment of
+//             Guillain-Barre syndrome", J Peripher Nerv Syst 2023;28:535-563,
+//             doi:10.1111/jns.12594 (also Eur J Neurol 2023;30(12):3646-3674,
+//             doi:10.1111/ene.16073, PMID 37814552). Read 2026-11-17 (REQ-310,
+//             FAIL-2390) in full text, the JPNS copy in the UAB repository
+//             (https://ddd.uab.cat/pub/artpub/2023/300094/300094_1.pdf),
+//             section 4.2.8, diagnostic PICO 4 "Electrodiagnosis".
 //
 // Tier 2: StatPearls (StatPearls Publishing, NCBI Bookshelf), CC BY-NC-ND
 // 4.0, so facts and topic scope only, no wording. Graded against the five
@@ -192,6 +200,12 @@
 //     as screening prompts, not diagnostic tests, consistent with that.
 //   - Patellofemoral pain and hip abductor weakness: the chapter reports
 //     mixed evidence; the objective says so instead of stating a cause.
+//   - Electrodiagnosis timing in suspected GBS/AIDP: the AIDP chapter
+//     (SP-EDX-AIDP, 2022) advised waiting at least 3 weeks after onset. The
+//     EAN/PNS 2023 guideline (Tier 1) advises electrodiagnosis to support the
+//     EARLY diagnosis, says a normal study in the first week does not exclude
+//     GBS, and says a second study later can help because abnormalities may
+//     take several weeks to develop. Followed the guideline (FAIL-2390).
 //   - Mononucleosis return to contact sport: the chapter says 4 weeks after
 //     symptom onset if recovered; no Tier 1 sports-medicine source was
 //     opened, and no number from another source conflicts.
@@ -1305,7 +1319,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Control limb temperature during nerve conduction studies (about 30 to 36 C for arm and leg); cold raises amplitude, lengthens latency, slows conduction and hides an RNS decrement", // SP-NCS; SP-EDX-NMJ
         "Perform repetitive nerve stimulation at a slow rate (about 3 Hz, 5 to 10 stimuli) and treat a CMAP decrement over 10% as significant; add brief exercise and repeat to show post-exercise facilitation or exhaustion", // SP-EDX-NMJ; SP-RNS
         "Time a study around nerve injury: fibrillation potentials usually show on EMG at 3 to 4 weeks, and no sign of reinnervation by 3 to 4 months raises concern for neurotmesis and surgical exploration", // SP-PNI
-        "For suspected AIDP, delay NCS and EMG until at least 3 weeks after onset and include F-waves, which can pick up early proximal root involvement", // SP-EDX-AIDP
+        "For suspected Guillain-Barre syndrome (including AIDP), use electrodiagnosis early to support the diagnosis: in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop", // EAN-PNS-GBS (REQ-310, FAIL-2390: replaced "delay NCS and EMG until at least 3 weeks after onset", SP-EDX-AIDP 2022)
       ],
     },
     {
