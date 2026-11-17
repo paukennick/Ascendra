@@ -266,6 +266,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CSSGB", "cssgb-fill-weight-chart"),
   entry("JAVASCRIPT", "js-rate-board-zero-percent"),
   band("TSNODE", "js-rate-board-zero-percent-tsnode"),
+  entry("PYTHON", "py-import-crash-traceback"),
+  band("PCAP", "py-import-crash-traceback-pcap"),
+  band("PCEP", "py-import-crash-traceback-pcep"),
   // ---- end REQ-312 ----
 ];
 
@@ -278,6 +281,9 @@ export const DATA_CONSOLE_SLUGS: readonly string[] = [
   "cssgb-fill-weight-chart",
   "js-rate-board-zero-percent",
   "js-rate-board-zero-percent-tsnode",
+  "py-import-crash-traceback",
+  "py-import-crash-traceback-pcap",
+  "py-import-crash-traceback-pcep",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

@@ -1,0 +1,760 @@
+{
+  "slug": "py-import-crash-traceback-pcap",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Read the traceback; pdb at the frame and a count of separators; strip the separator with a test; the dry run matches; post",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trace",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pdb",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "fixSep",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 14,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "dry",
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 17,
+          "seq": 12,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 22,
+          "seq": 14,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 15,
+          "tick": 22
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sep",
+            "check": "control"
+          },
+          "seq": 17,
+          "tick": 22
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "readTrace": "met",
+          "rightFix": "met",
+          "reconciled": "met",
+          "onTime": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "missing": 0,
+          "postAt": 17,
+          "short": 0
+        },
+        "stateHash": "76f32822a63cd12c"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "bareExcept",
+      "title": "Follows the channel: a bare except, rerun, post",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixBare",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "file",
+            "check": "noerror"
+          },
+          "seq": 9,
+          "tick": 9
+        }
+      ],
+      "expect": {
+        "ending": "wrongPosted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "readTrace": "missed",
+          "rightFix": "missed",
+          "reconciled": "missed",
+          "onTime": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "missing": 37,
+          "postAt": 4,
+          "short": 83410
+        },
+        "stateHash": "132859e1bbd9d7a3"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "zeroIgnored",
+      "title": "Reads the traceback, uses 0 for bad amounts, sees the dry run short, and posts anyway",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trace",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixZero",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "dry",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sep",
+            "check": "noerror"
+          },
+          "seq": 11,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "wrongPosted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "readTrace": "met",
+          "rightFix": "missed",
+          "reconciled": "partial",
+          "onTime": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "missing": 37,
+          "postAt": 7,
+          "short": 83410
+        },
+        "stateHash": "051d3d63b5d72b5c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "rejects",
+      "title": "Reads the traceback, sends bad rows to a rejects file, reconciles the shortfall, and posts the rest",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trace",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pdb",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "fixRejects",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "dry",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sep",
+            "check": "control"
+          },
+          "seq": 13,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "readTrace": "met",
+          "rightFix": "partial",
+          "reconciled": "partial",
+          "onTime": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "missing": 37,
+          "postAt": 12,
+          "short": 83410
+        },
+        "stateHash": "e78beb05ebb21ee1"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateRight",
+      "title": "Fixes the separator first, then reads the traceback and reconciles, and posts after 08:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixSep",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "trace",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "dry",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 24,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 39,
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 54,
+          "seq": 12,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 69,
+          "seq": 14,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 84,
+          "seq": 16,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 17,
+          "tick": 84
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 99,
+          "seq": 18,
+          "tick": 84
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 99,
+          "seq": 19,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 20,
+          "tick": 99
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 104,
+          "seq": 21,
+          "tick": 99
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 22,
+          "tick": 104
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 104
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sep",
+            "check": "control"
+          },
+          "seq": 24,
+          "tick": 104
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "readTrace": "partial",
+          "rightFix": "met",
+          "reconciled": "met",
+          "onTime": "missed",
+          "note": "met"
+        },
+        "kpis": {
+          "missing": 0,
+          "postAt": 99,
+          "short": 0
+        },
+        "stateHash": "f167786159db28a0"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "holdBack",
+      "title": "Reads the traceback and the row, and stops without posting",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "trace",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pdb",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "sep",
+            "check": "none"
+          },
+          "seq": 7,
+          "tick": 6
+        }
+      ],
+      "expect": {
+        "ending": "notPosted",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "readTrace": "met",
+          "rightFix": "missed",
+          "reconciled": "missed",
+          "onTime": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "missing": 0,
+          "postAt": 0,
+          "short": 0
+        },
+        "stateHash": "e58ba7e55b15d33b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}
