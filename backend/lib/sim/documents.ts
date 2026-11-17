@@ -419,6 +419,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSSCS", "preseason-collapse-heat-stroke"),
   entry("ABPTSWMS", "leg-ulcer-calcified-abi-compression"),
   entry("ABPTSPCS", "knee-pain-limp-hip-slip"),
+  entry("ABPTSOCS", "acute-back-pain-mri-request-cauda-equina"),
   // ---- end REQ-323 ----
 ];
 

@@ -1,0 +1,544 @@
+{
+  "slug": "acute-back-pain-mri-request-cauda-equina",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, red flags, the cauda equina questions, a neurologic exam; emergency department now; physician told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "flags",
+          "seq": 4,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 5,
+          "tick": 49
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ces"
+          },
+          "seq": 8,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 9,
+          "tick": 73
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "four",
+          "seq": 10,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 73
+        }
+      ],
+      "expect": {
+        "ending": "sentNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "cesScreen": "met",
+          "noManip": "met",
+          "refer": "met",
+          "flagsC": "met",
+          "neuroC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCes": 305,
+          "toCall": 60
+        },
+        "stateHash": "5c97d14a4e82b642"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateDecision",
+      "title": "Reassures and starts exercise, then asks the cauda equina questions and examines, but decides more than 10 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "flags",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "slr",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "noImaging",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "exercise",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "act",
+          "action": "saddle",
+          "seq": 10,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ces"
+          },
+          "seq": 11,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 12,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "four",
+          "seq": 13,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 300
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "cesScreen": "met",
+          "noManip": "met",
+          "refer": "partial",
+          "flagsC": "met",
+          "neuroC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCes": 360,
+          "toCall": 1140
+        },
+        "stateHash": "017e41a80efb8b9c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "manipulatedFirst",
+      "title": "Manipulates on the history alone, then asks the cauda equina questions and sends him promptly",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "manip",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ces"
+          },
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "four",
+          "seq": 9,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "cesScreen": "met",
+          "noManip": "missed",
+          "refer": "met",
+          "flagsC": "missed",
+          "neuroC": "met",
+          "impression": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCes": 240,
+          "toCall": 60
+        },
+        "stateHash": "51ae32419a0ca517"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "outpatientMri",
+      "title": "Failure: hears the bladder symptoms, records sciatica and asks for an outpatient MRI in two weeks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sciatica"
+          },
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "gp"
+          },
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "four",
+          "seq": 7,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "delayed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "cesScreen": "met",
+          "noManip": "met",
+          "refer": "missed",
+          "flagsC": "missed",
+          "neuroC": "missed",
+          "impression": "partial",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCes": 240,
+          "toCall": 0
+        },
+        "stateHash": "c35c9dce58ee5b9b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "reassured",
+      "title": "Failure: no bladder or saddle questions, calls it chronic and sends him home with exercise",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "noImaging",
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "exercise",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "chronic"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "home"
+          },
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "four",
+          "seq": 7,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "delayed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "cesScreen": "missed",
+          "noManip": "met",
+          "refer": "missed",
+          "flagsC": "missed",
+          "neuroC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCes": -1,
+          "toCall": -1
+        },
+        "stateHash": "fad7ae7d5ce3758c"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "manipulatedOnly",
+      "title": "Failure: manipulation and a straight leg raise, no screen, no decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "manip",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "slr",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "imgQ",
+          "choice": "common",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "retention",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "cesScreen": "missed",
+          "noManip": "missed",
+          "refer": "missed",
+          "flagsC": "missed",
+          "neuroC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCes": -1,
+          "toCall": -1
+        },
+        "stateHash": "686ecbe8c75b7dd9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
