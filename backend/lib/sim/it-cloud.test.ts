@@ -199,4 +199,19 @@ describe("what each new cloud case teaches (REQ-320)", () => {
     r.act("restart");
     assert.ok(r.minutes() >= 30, "the restart's recovery runs past the deadline");
   });
+  test("AZ-700 routing: an NSG rule or a restart changes nothing; deleting the route restores traffic around the firewall; pointing it at the firewall fixes it", () => {
+    const d = docOf("stale-udr-to-retired-nva");
+    const s = driver(d);
+    s.act("nsgAllow");
+    s.act("restartVm");
+    assert.equal(s.value("egressOk"), false);
+    const b = driver(d);
+    b.act("deleteRoute");
+    assert.equal(b.value("egressOk"), true);
+    assert.equal(b.value("bypass"), true);
+    const f = driver(d);
+    f.act("fixRoute");
+    until(f, 46);
+    assert.equal(f.value("batchMissAt"), null);
+  });
 });

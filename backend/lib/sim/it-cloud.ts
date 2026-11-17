@@ -42,4 +42,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "GCPPDE", slug: "bigquery-dashboard-bill-pde", screen: "board", profile: "cloud", kind: "band", steps: "c20-gcppde-bigquery-dashboard-bill-pde", base: "GCPCDL/bigquery-dashboard-bill" },
   { course: "CKS", slug: "falco-shell-in-catalog-pod", screen: "terminal", profile: "security", kind: "scenario", steps: "cks-falco" },
   { course: "DP300", slug: "sleeping-session-blocks-orders", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-blocking" },
+  { course: "AZ700", slug: "stale-udr-to-retired-nva", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az700-udr" },
 ];

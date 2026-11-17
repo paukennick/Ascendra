@@ -440,6 +440,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("GCPPDE", "bigquery-dashboard-bill-pde"),
   entry("CKS", "falco-shell-in-catalog-pod"),
   entry("DP300", "sleeping-session-blocks-orders"),
+  entry("AZ700", "stale-udr-to-retired-nva"),
   // ---- end REQ-320 ----
 ];
 
