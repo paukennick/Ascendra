@@ -455,6 +455,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("PMP", "warehouse-risk-register-pmp"),
   band("CAPM", "warehouse-risk-register-capm"),
   entry("CAPA", "argo-nightly-dag-region-failure"),
+  entry("PMIPBA", "pmipba-claims-portal-baseline-signoff"),
   // ---- end REQ-321 ----
 ];
 
