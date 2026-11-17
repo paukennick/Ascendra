@@ -20,6 +20,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "CEN", slug: "bike-crash-breath-sounds-gone", screen: "bedside" },
   { course: "CEN", slug: "copd-drowsy-on-high-flow", screen: "bedside" },
   { course: "CEN", slug: "house-fire-hoarse-voice", screen: "bedside" },
+  { course: "CEN", slug: "missed-dialysis-weak-legs", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];

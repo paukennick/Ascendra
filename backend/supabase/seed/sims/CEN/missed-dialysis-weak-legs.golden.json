@@ -1,0 +1,434 @@
+{
+  "slug": "missed-dialysis-weak-legs",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: monitor and IV, pads, 12-lead, reassess; at the widening QRS the physician now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "order",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hyperk"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "caQ",
+          "choice": "prot",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "padsC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "af4d6718ff97d499"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Monitors well and sees the change, but calls more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "order",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hyperk"
+          },
+          "seq": 8,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "now"
+          },
+          "seq": 9,
+          "tick": 138
+        },
+        {
+          "type": "teach",
+          "prompt": "caQ",
+          "choice": "prot",
+          "seq": 10,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 138
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "padsC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "f792fa217c09cb90"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: monitored with a 12-lead, then calls it deconditioning and books dialysis for tomorrow",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "order",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "weak"
+          },
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "tomorrow"
+          },
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "caQ",
+          "choice": "prot",
+          "seq": 8,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "padsC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "95bdda1615de5e91"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: checks the potassium, then sends him off the monitor to radiology",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "kpoc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "order",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "padsC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "2944025ea1510e66"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: potassium, history and ECG, calls it a stroke; no monitor and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "kpoc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "order",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stroke"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 168
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "padsC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "7d88e7ac4076e360"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
