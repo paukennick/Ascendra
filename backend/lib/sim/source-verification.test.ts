@@ -39,6 +39,14 @@ export const VERIFIED_20261116: readonly (readonly [string, string])[] = [
   ["postpartum-hemorrhage-atony", "Methylergonovine maleate injection"],
   ["parkinson-freezing-session", "Osborne JA"],
   ["clinic-sulfonylurea-hypoglycemia", "American Diabetes Association Professional Practice Committee. 6."],
+  ["postop-hemorrhage-early-signs", "Rossaint R"],
+  ["femoral-access-retroperitoneal-bleed", "Rossaint R"],
+  ["copd-exacerbation-niv", "Davidson AC"],
+  ["sepsis-to-septic-shock", "Levy MM"],
+  ["acute-ischemic-stroke-lvo", "Labetalol hydrochloride injection"],
+  ["acute-ischemic-stroke-lvo", "Cardene IV (nicardipine)"],
+  ["inferior-stemi-cath-alert", "Rao SV"],
+  ["ncmhce-trauma-treatment-plan", "APA Clinical Practice Guideline for the Treatment of PTSD"],
 ];
 
 for (const [slug, prefix] of VERIFIED_20261116) {
@@ -59,4 +67,16 @@ test("FAIL-2130: the Parkinson model reasoning does not call behavior change a s
   // Osborne et al. 2022, Table 1: behavior-change approaches are a moderate-strength recommendation.
   assert.doesNotMatch(mr, /strong recommendations are[^.]*behavior-change/);
   assert.match(mr, /behavior-change approaches \(a moderate-strength recommendation\)/);
+});
+
+test("FAIL-2131: PTSD content follows the 2025 APA guideline, not the 2017 strength ranking", async () => {
+  const doc = rawOf("ncmhce-trauma-treatment-plan");
+  const text = JSON.stringify(doc);
+  assert.doesNotMatch(text, /cognitive processing therapy, a strongly recommended treatment/);
+  assert.doesNotMatch(text, /Describe the recommended trauma-focused therapies \(CPT, PE, EMDR\)/);
+  const eppp = readFileSync(new URL("../../supabase/seed/labs/eppp.ts", import.meta.url), "utf8");
+  // 2025 update: cognitive therapy is suggested (second line); brief eclectic psychotherapy is not listed.
+  assert.doesNotMatch(eppp, /strongly recommends[^.]*cognitive therapy/);
+  assert.doesNotMatch(eppp, /brief eclectic psychotherapy/);
+  assert.match(eppp, /suggests cognitive therapy, EMDR and narrative exposure therapy/);
 });

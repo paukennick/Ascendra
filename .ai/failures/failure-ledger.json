@@ -18164,6 +18164,31 @@
       "prevention_rules": [],
       "prevention_notes": "Strength-of-recommendation claims are checked against the guideline's own table, not a relayed summary.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2131",
+      "date": "2026-11-16",
+      "title": "PTSD content taught the 2017 APA guideline's strength ranking after the 2025 update",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP lab eppp-match-ebt said the APA PTSD guideline 'strongly recommends CBT, cognitive processing therapy, cognitive therapy and prolonged exposure' and conditionally brief eclectic psychotherapy; the NCMHCE trauma sim called CPT 'a strongly recommended treatment' and EMDR one of 'the recommended' therapies, citing the 2019 panel summary.",
+      "how_detected": "REQ-310 source verification pass (apa.org guideline page read 2026-11-16)",
+      "root_cause": "The source was read only as a PubMed abstract of the 2019 summary (2026-11-11); nobody checked for a newer edition. APA Council approved an update in February 2025: CBT, CPT and PE are recommended; cognitive therapy, EMDR and NET are suggested; brief eclectic psychotherapy is no longer listed.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/labs/eppp.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/sims/NCMHCE/ncmhce-trauma-treatment-plan.sim.json"
+      ],
+      "fix_summary": "Lab rubric and model answer follow the 2025 tiers; the lab source and the sim source cite the 2025 guideline page (checked 2026-11-16); sim wording no longer calls EMDR recommended or CPT strongly recommended.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2131"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A verification pass checks the publisher's page for a newer edition, not only the cited abstract.",
+      "recurrence_of": ""
     }
   ]
 }
