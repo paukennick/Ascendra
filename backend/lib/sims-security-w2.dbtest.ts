@@ -40,7 +40,14 @@ let simIds: Record<string, string> = {};
 const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1";
 const NO_CONSOLE = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1";
 
-const SOURCES = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
+// FAIL-2127 (a recurrence of FAIL-2002): REQ-314 registered a sandbox-report
+// band on CYSAPLUS, so the course no longer selects the eight REQ-238
+// console incidents; select them by slug.
+const SLUGS = [
+  "alert-triage-lolbin-hunt", "vuln-prioritization-kev-edge", "pentest-third-party-webshell", "pentest-scope-boundary",
+  "federation-token-forgery", "ot-segmentation-breach", "agent-indirect-prompt-injection", "rag-assistant-data-leak",
+];
+const SOURCES = ALL_DOCUMENTS.filter((e) => SLUGS.includes(e.slug) && (COURSES as readonly string[]).includes(e.course));
 const entries = (): DocumentEntry[] => SOURCES.map((e) => ({ ...e, course: standIn(e.course) }));
 const entryOf = (slug: string) => SOURCES.find((e) => e.slug === slug)!;
 const docOf = (slug: string): ScenarioDoc => loadDocument(entryOf(slug));

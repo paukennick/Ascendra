@@ -18607,6 +18607,29 @@
       "prevention_rules": [],
       "prevention_notes": "Run the full lib/sim suite in chunks after a verification pass that re-dates sources.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2127",
+      "date": "2026-11-16",
+      "title": "REQ-238 DB test selected its sims by course after a band joined CYSAPLUS",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims-security-w2.dbtest.ts expected eight seeded sims and got nine on the wave branch: REQ-314's sandbox-invoice-loader-cysa band is also on CYSAPLUS.",
+      "how_detected": "sims DB tests on a throwaway Postgres, wave/2026-11-17",
+      "root_cause": "The test filtered ALL_DOCUMENTS by course, which FAIL-2002 already said not to do; the screens-misc branch did not run the DB suite.",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/lib/sims-security-w2.dbtest.ts"
+      ],
+      "fix_summary": "Select the eight REQ-238 incidents by slug.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims-security-w2.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug (round rule, FAIL-2002); run the sims DB tests when a branch adds sims to a course another suite seeds.",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }
