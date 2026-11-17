@@ -10,6 +10,9 @@ import { parseCached } from "../engine/v1/parser.ts";
 import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
+import { facilityView, type FacilityView } from "./facilityView.ts";
+import { sandboxView, type SandboxView } from "./sandboxView.ts";
+import { trainerView, type TrainerView } from "./trainerView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
 
 type Tile = VitalTile;
@@ -371,6 +374,9 @@ export interface RunView {
   console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
+  facility: FacilityView | null; // REQ-314: the facility console
+  sandbox: SandboxView | null; // REQ-314: the sandbox report
+  trainer: TrainerView | null; // REQ-314: the client trainer
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -403,6 +409,9 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
+    facility: facilityView(run),
+    sandbox: sandboxView(run),
+    trainer: trainerView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
