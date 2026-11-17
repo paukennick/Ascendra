@@ -111,7 +111,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         icon: "book-open",
         headline: "28 new courses",
-        body: "Python and Linux, SQL, TypeScript, Power BI and Microsoft security, security management and ethical hacking, nursing specialties and FNP, Scrum, ITIL, Six Sigma, nutrition coaching, and social work licensure.",
+        body: "Python and Linux, SQL, TypeScript, Power BI, security management and ethical hacking, nursing specialties and FNP, Scrum, IT service, Six Sigma, nutrition coaching, and social work licensure.",
       },
       {
         icon: "compass",

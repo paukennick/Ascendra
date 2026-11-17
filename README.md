@@ -28,7 +28,7 @@ Ascendra runs on iPhone, Android and the web.
 
 Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **149 courses**:
 
-- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications (entry-level cybersecurity, advanced information security professional, information security management and ethical hacking); Linux Fundamentals and the Linux Foundation LFCS; ITIL 4 Foundation; Red Hat (2) and Docker (1) container certifications
+- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications (entry-level cybersecurity, advanced information security professional, information security management and ethical hacking); Linux Fundamentals and the Linux Foundation LFCS; an IT service management foundation exam (version 5); Red Hat (2) and Docker (1) container certifications
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, 10 physical therapy specialist board certifications and a PT school prerequisites refresher
 - **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and a process improvement green belt certification
 - **Nursing and critical care (15):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, emergency nursing, PCCN, the two family nurse practitioner board exams, and MS Health Informatics

@@ -142,7 +142,10 @@ const BODIES: Body[] = [
     notice: /not affiliated with or endorsed by NCCPT or ISSA\. NCCPT is a mark of the National Council for Certified Personal Trainers\./, marks: /NCCPT|ISSA/ },
   { name: "Scrum Alliance", policy: "unstated", url: "https://www.scrumalliance.org/certification-and-license-terms-and-conditions", codes: ["CSM"],
     notice: /not affiliated with or endorsed by Scrum Alliance\. Certified ScrumMaster and CSM are marks of Scrum Alliance, Inc\./, marks: /Scrum Alliance|ScrumMaster|\bCSM\b/ },
-  // PeopleCert (ITIL) is handled on the ITIL Foundation (Version 5) branch, not here.
+  // REQ-308/REQ-309: PeopleCert's Marks Usage Policy v4.0 covers licensees only
+  // and grants no descriptive use to others, so it is treated as permission-only.
+  { name: "PeopleCert", policy: "permission", url: "https://www.peoplecert.org/-/media/folders-reorganized/legal-documents/marks-usage-policy.pdf", codes: ["ITIL5FND", "ITIL4FND"],
+    marks: /ITIL|PeopleCert|PRINCE2|AXELOS/ },
 ];
 
 const ALL_CODES = BODIES.flatMap((b) => b.codes);
@@ -154,12 +157,12 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     const missing = ALL_CODES.filter((c) => !byCode.has(c));
     assert.deepEqual(missing, []);
     assert.equal(new Set(ALL_CODES).size, ALL_CODES.length, "a code is listed under two bodies");
-    assert.equal(ALL_CODES.length, 131);
+    assert.equal(ALL_CODES.length, 133);
   });
 
   test("every certification course of an exam body is covered here", () => {
     const uncovered = CATALOG_TRACKS.filter(
-      (t) => t.trackType === "certification" && !COACH_ALLOWED.has(t.code) && !ALL_CODES.includes(t.code) && t.code !== "WAPSYCHJP" && t.credential?.providerSlug !== "peoplecert"
+      (t) => t.trackType === "certification" && !COACH_ALLOWED.has(t.code) && !ALL_CODES.includes(t.code) && t.code !== "WAPSYCHJP"
     ).map((t) => t.code);
     assert.deepEqual(uncovered, [], "add the course's body (and its policy) to BODIES");
   });
