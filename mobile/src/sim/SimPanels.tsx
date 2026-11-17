@@ -193,7 +193,7 @@ export function SessionPanel({ v, said, onRead }: { v: SessionView | null; said:
           {v.record.items.map((it) => <Muted key={it}>{it}</Muted>)}
         </View>
       ) : null}
-      <Button label="Read the client" icon="volume-2" variant="ghost" size="sm" onPress={onRead} accessibilityLabel="Read the client's presentation and state aloud" />
+      <Button label={v.readLabel} icon="volume-2" variant="ghost" size="sm" onPress={onRead} accessibilityLabel={v.readLabel === "Read the client" ? "Read the client's presentation and state aloud" : `${v.readLabel}: who you are talking with, how it stands and what you know, aloud`} />
     </Card>
   );
 }

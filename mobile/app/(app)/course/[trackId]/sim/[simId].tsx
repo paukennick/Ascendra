@@ -22,6 +22,10 @@ import { DeskPanel } from "@/sim/DeskPanel";
 import { deskAlarmTexts, deskNews, deskSentence, type DeskView } from "@/sim/runtime/deskView.ts";
 import { DataPanel } from "@/sim/DataPanel";
 import { dataAlarmTexts, dataNews, dataSentence, type DataView } from "@/sim/runtime/dataView.ts";
+import { GovernancePanel } from "@/sim/GovernancePanel";
+import { governanceAlarmTexts, governanceNews, governanceSentence, type GovernanceView } from "@/sim/runtime/governanceView.ts";
+import { TabletopPanel } from "@/sim/TabletopPanel";
+import { tabletopAlarmTexts, tabletopNews, tabletopSentence, type TabletopView } from "@/sim/runtime/tabletopView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
 import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { localHash } from "@/sim/runtime/session.ts";
@@ -44,6 +48,9 @@ import { LoadError } from "@/components/LoadError";
 // the ITIL service desk (DeskPanel) take the same place.
 // REQ-312: a data and code console shows the workspace, flags, charts,
 // tables, code and results (DataPanel); its output is the results block.
+// REQ-313: a governance board shows the register, support, budget and docket
+// (GovernancePanel); a tabletop shows the injects, roles and communications
+// (TabletopPanel).
 // Content is served under the one study notice (REQ-165): the server refuses
 // a clinical sim until it is accepted, and its message is shown as is.
 
@@ -83,6 +90,9 @@ export default function SimScreen() {
   const lastDesk = useRef<DeskView | null>(null);
   // REQ-312: the data console as last announced, likewise.
   const lastData = useRef<DataView | null>(null);
+  // REQ-313: the governance board and the tabletop as last announced.
+  const lastGovernance = useRef<GovernanceView | null>(null);
+  const lastTabletop = useRef<TabletopView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
 
@@ -105,7 +115,7 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const news = [...sessionNews(lastSession.current, view.session), ...consoleNews(lastConsole.current, view.console), ...treatmentNews(lastTreatment.current, view.treatment), ...terminalNews(lastTerminal.current, view.terminal), ...dashboardNews(lastDashboard.current, view.dashboard), ...deskNews(lastDesk.current, view.desk), ...dataNews(lastData.current, view.data)];
+    const news = [...sessionNews(lastSession.current, view.session), ...consoleNews(lastConsole.current, view.console), ...treatmentNews(lastTreatment.current, view.treatment), ...terminalNews(lastTerminal.current, view.terminal), ...dashboardNews(lastDashboard.current, view.dashboard), ...deskNews(lastDesk.current, view.desk), ...dataNews(lastData.current, view.data), ...governanceNews(lastGovernance.current, view.governance), ...tabletopNews(lastTabletop.current, view.tabletop)];
     const urgent = terminalErrors(lastTerminal.current, view.terminal);
     lastTerminal.current = view.terminal;
     lastDashboard.current = view.dashboard;
@@ -114,7 +124,9 @@ export default function SimScreen() {
     lastSession.current = view.session;
     lastConsole.current = view.console;
     lastTreatment.current = view.treatment;
-    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...consoleAlarmTexts(view.console), ...treatmentAlarmTexts(view.treatment), ...terminalAlarmTexts(view.terminal), ...dashboardAlarmTexts(view.dashboard), ...deskAlarmTexts(view.desk), ...dataAlarmTexts(view.data)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news, urgent });
+    lastGovernance.current = view.governance;
+    lastTabletop.current = view.tabletop;
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...consoleAlarmTexts(view.console), ...treatmentAlarmTexts(view.treatment), ...terminalAlarmTexts(view.terminal), ...dashboardAlarmTexts(view.dashboard), ...deskAlarmTexts(view.desk), ...dataAlarmTexts(view.data), ...governanceAlarmTexts(view.governance), ...tabletopAlarmTexts(view.tabletop)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news, urgent });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -252,6 +264,8 @@ export default function SimScreen() {
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}
           <TopologyPanel zones={view.board.zones} meters={view.board.meters} />
           <ConsolePanel v={view.console} onRead={() => view.console && AccessibilityInfo.announceForAccessibility(consoleSentence(view.console))} />
+          <GovernancePanel v={view.governance} onRead={() => view.governance && AccessibilityInfo.announceForAccessibility(governanceSentence(view.governance))} />
+          <TabletopPanel v={view.tabletop} onRead={() => view.tabletop && AccessibilityInfo.announceForAccessibility(tabletopSentence(view.tabletop))} />
           <TerminalPanel
             v={view.terminal}
             commands={view.terminal ? terminalCommands(view.groups.flatMap((g) => g.actions)) : []}
@@ -283,7 +297,7 @@ export default function SimScreen() {
 
           {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
           {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session || !!view.console || !!view.terminal || !!view.dashboard || !!view.desk || !!view.data} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session || !!view.console || !!view.terminal || !!view.dashboard || !!view.desk || !!view.data || !!view.governance || !!view.tabletop} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
           <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
           {view.terminal || view.data ? null : view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}

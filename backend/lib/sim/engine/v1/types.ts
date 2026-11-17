@@ -271,7 +271,13 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // service desk's profile: incidents restored within their service level,
 // changes authorized by the right change authority, repeat incidents raised as
 // a problem.
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy" | "scrum" | "service";
+// REQ-313 (docs/sims.md 9.2, 22.26): "governance" is a quarter of security
+// governance decisions on the governance board (budget, risk appetite,
+// stakeholders); "exercise" is a tabletop exercise (injects decided in time,
+// roles engaged, communications cleared, gaps owned); "professional-ethics"
+// is a dilemma conversation on the session screen (the duty acted on in
+// time, no canon breached).
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy" | "scrum" | "service" | "governance" | "exercise" | "professional-ethics";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -318,7 +324,9 @@ export interface ScreenSpec {
   // design's "dashboard" placeholder stays unused), with a predictive mode and
   // a Sprint mode (screen.dashboard); "service-desk" is the ITIL service desk
   // (screen.desk).
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session" | "project-dashboard" | "service-desk";
+  // REQ-313: "governance-board" (screen.governance) and "tabletop"
+  // (screen.tabletop), docs/sims.md 22.26.
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session" | "project-dashboard" | "service-desk" | "governance-board" | "tabletop";
   level?: number;
   bedside?: {
     tiles: VitalTile[];
@@ -347,6 +355,12 @@ export interface ScreenSpec {
     gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
     notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
     record?: { label: string; items: { label: Template; when: Expr }[] };
+    // REQ-313 (docs/sims.md 22.26): the read-aloud button's label when the
+    // person across the table is not a client ("Read the conversation" for a
+    // professional-ethics dilemma with a manager or colleague). Renderer
+    // level 2: a document that sets it declares screen.level 2, so an app
+    // that draws "Read the client" (session@1) is told to update instead.
+    readLabel?: string;
   };
   // REQ-231: the security operations console (docs/sims.md 20, 20.1, 22.7),
   // display-only like the board and the session. The alert queue lists the
@@ -473,6 +487,38 @@ export interface ScreenSpec {
     code: { id: Id; label: string; language: string; when?: Expr; lines: { id: Id; text: string; when?: Expr; mark?: Expr }[] }[];
     meters?: { id: Id; label: string; value: Template }[];
   };
+  // REQ-313: the governance board (docs/sims.md 22.19 proposal, 22.26),
+  // display-only like the console. A quarter of security governance: the
+  // risk register (each risk with an owner, a rating and where it sits
+  // against the risk appetite: within, above, or above under an approved,
+  // time-limited exception), the stakeholders' support read in words like
+  // the session's gauges, the docket (policies, exceptions, business cases,
+  // board papers and decisions, each shown while `when` holds; `flag` marks
+  // one the screen reader must hear at once, such as a deadline), and the
+  // budget (spent against total, in `unit`). A risk above appetite and a
+  // budget overrun are spoken at once, like alarms.
+  governance?: {
+    risks: { id: Id; label: string; spokenLabel: string; owner: Template; rating: Expr; appetite: Expr; status: Template; when?: Expr }[];
+    stakeholders: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
+    docket: { id: Id; kind: string; label: Template; status: Template; when: Expr; flag?: Expr }[];
+    budget?: { label: string; spent: Expr; total: Expr; unit: string };
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-313: the tabletop exercise (docs/sims.md 22.19 proposal, 22.26),
+  // display-only. The injects are the facilitator's timeline, oldest first,
+  // each shown once `when` holds at `at` (sim seconds of scenario time);
+  // `open` marks one still waiting for the team's decision (spoken at once).
+  // Roles are the people around the table (engaged, waiting, or a gap the
+  // plan does not cover); communications are the audiences (legal, public,
+  // executives, regulators, staff), each with a state from not started to
+  // sent or late; the decision log is what the team has decided so far.
+  tabletop?: {
+    injects: { id: Id; title: Template; text: Template; when: Expr; at: Expr; open: Expr }[];
+    roles: { id: Id; label: string; spokenLabel: string; status: Template; tone: Expr }[];
+    comms: { id: Id; label: string; spokenLabel: string; status: Template; tone: Expr }[];
+    decisions?: { label: string; items: { label: Template; when: Expr }[] };
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
 
 // REQ-312: the data and code console's parts (ScreenSpec.data).
@@ -510,6 +556,12 @@ export type DeskKind = "incident" | "request" | "problem" | "change";
 export type DeskTone = "ok" | "degraded" | "down" | "maintenance";
 
 export type ConsoleSeverity = "critical" | "high" | "medium" | "low";
+// REQ-313: the governance board's risk ratings and appetite positions, and
+// the tabletop's role and communication tones.
+export type RiskRating = "critical" | "high" | "medium" | "low";
+export type AppetiteTone = "within" | "above" | "excepted";
+export type RoleTone = "engaged" | "waiting" | "gap";
+export type CommsTone = "none" | "draft" | "cleared" | "sent" | "late";
 export type ConsoleTone = "ok" | "watch" | "bad" | "held";
 // REQ-237: the terminal screen's node and link tones. "out" is out of service
 // on purpose (cordoned, drained, shut for maintenance), not a fault.

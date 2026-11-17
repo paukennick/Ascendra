@@ -38,12 +38,14 @@ const golden = (course: string, slug: string) => read(join(seeds, course, `${slu
 describe("capabilities", () => {
   test("the header names the engine, bedside and board at level 3, the client session (REQ-225), the security console (REQ-231) and the PT treatment session (REQ-232) at level 1", async () => {
     // The server's parser must take the hyphen (FAIL-1320, FAIL-1340); the loop below checks it does.
-    assert.equal(simCaps(), "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1,treatment-session@1,terminal@1,project-dashboard@1,service-desk@1,data@1");
+    assert.equal(simCaps(), "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@2,security-console@1,treatment-session@1,terminal@1,project-dashboard@1,service-desk@1,data@1,governance-board@1,tabletop@1");
     const { parseCaps, runnable } = await import("../../../backend/lib/sim/server-run.ts");
     const caps = parseCaps(simCaps());
     for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: r.level, screen_type: r.type }, caps), true);
-    // A session version that needs a later session renderer is not offered.
-    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 2, screen_type: "session" }, caps), false);
+    // REQ-313: the session is at level 2 now; a session version that needs a
+    // later session renderer is still not offered.
+    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 2, screen_type: "session" }, caps), true);
+    assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 3, screen_type: "session" }, caps), false);
   });
 });
 

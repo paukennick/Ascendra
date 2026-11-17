@@ -138,7 +138,7 @@ export const reasoningMomentSchema = z.object({
 export const outcomeClassSchema = z.enum(["target", "recovered", "harm"]);
 
 export const outcomeSpecSchema = z.object({
-  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session", "physical-therapy", "scrum", "service"]),
+  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session", "physical-therapy", "scrum", "service", "governance", "exercise", "professional-ethics"]),
   thresholds: z.record(id, z.object({ value: z.number(), source: sourceSchema })),
   noProgress: z.object({ when: expr, class: outcomeClassSchema, rationale: z.string(), source: sourceSchema }),
 });
@@ -168,7 +168,7 @@ const vitalTileSchema = z.object({
 });
 
 export const screenSpecSchema = z.object({
-  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console", "treatment-session", "project-dashboard", "service-desk"]),
+  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console", "treatment-session", "project-dashboard", "service-desk", "governance-board", "tabletop"]),
   level: z.number().optional(),
   bedside: z
     .object({
@@ -192,6 +192,8 @@ export const screenSpecSchema = z.object({
       ),
       notes: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional(), alert: expr.optional() })).optional(),
       record: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
+      // REQ-313: needs screen.level 2 (session@2), checked by the validator.
+      readLabel: z.string().max(60).optional(),
     })
     .optional(),
   // REQ-231: the security operations console (engine types.ts ScreenSpec.console).
@@ -329,6 +331,30 @@ export const screenSpecSchema = z.object({
           lines: z.array(z.object({ id, text: z.string().max(160), when: expr.optional(), mark: expr.optional() })),
         }),
       ),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
+  // REQ-313: the governance board (engine types.ts ScreenSpec.governance).
+  governance: z
+    .object({
+      risks: z.array(
+        z.object({ id, label: z.string(), spokenLabel: z.string(), owner: template, rating: expr, appetite: expr, status: template, when: expr.optional() }),
+      ),
+      stakeholders: z.array(
+        z.object({ id, label: z.string(), spokenLabel: z.string(), value: expr, max: z.number(), bands: z.array(z.number()), words: z.array(z.string()) }),
+      ),
+      docket: z.array(z.object({ id, kind: z.string(), label: template, status: template, when: expr, flag: expr.optional() })),
+      budget: z.object({ label: z.string(), spent: expr, total: expr, unit: z.string() }).optional(),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
+  // REQ-313: the tabletop exercise (engine types.ts ScreenSpec.tabletop).
+  tabletop: z
+    .object({
+      injects: z.array(z.object({ id, title: template, text: template, when: expr, at: expr, open: expr })),
+      roles: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), status: template, tone: expr })),
+      comms: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), status: template, tone: expr })),
+      decisions: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
       meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
     })
     .optional(),

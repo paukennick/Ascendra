@@ -38,8 +38,10 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // REQ-237 adds the terminal and network screen ("terminal").
 // REQ-311 adds the project dashboard ("project-dashboard") and the ITIL
 // service desk ("service-desk").
-// REQ-312 adds the data and code console ("data").
-export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "project-dashboard", "service-desk", "data"] as const;
+// REQ-312 adds the data and code console ("data"). REQ-313 adds the
+// governance board ("governance-board") and the tabletop exercise
+// ("tabletop"); the session's level 2 needs no switch of its own.
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "project-dashboard", "service-desk", "data", "governance-board", "tabletop"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];

@@ -18165,6 +18165,54 @@
       "prevention_rules": [],
       "prevention_notes": "Sim tests select documents by slug from their own requirement's list (FAIL-2002); a new sim on an existing course is checked against every test that filters by that course code",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2200",
+      "date": "2026-11-16",
+      "title": "A critical criterion of the CISM exception case was never missed by any golden path",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: ERROR scoring.criteria.governed: missed by no golden path (cism-risk-appetite-exception)",
+      "how_detected": "npm run sims:lint (scratch runner over the REQ-313 documents)",
+      "root_cause": "The no-conditions path still recorded the exception in the register, so 'governed' scored partial, never missed; the golden set could not show the criterion separates a governed exception from an ungoverned one. Same class as FAIL-1823.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/scripts/sim-golden/cism-exception.steps.ts"
+      ],
+      "fix_summary": "The asAsked path no longer records the exception, so governed is missed there; goldens rebuilt",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/governance-screens.test.ts (every criterion met and missed in every REQ-313 golden file)",
+        "sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-313 test checks met-and-missed per criterion for every document, so a path change that hides a criterion fails npm test, not only sims:lint",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2201",
+      "date": "2026-11-16",
+      "title": "The REQ-274 security-console test selected documents by course code and failed once REQ-313 added sims to the same courses",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/security-certs-sims.test.ts: not ok 'at least two per course, each valid, on the console ...' (the governance board, tabletop and session documents in ISC2CC, CISSP and CISM are not security-console)",
+      "how_detected": "backend sim tests run for the changed area",
+      "root_cause": "The test (and lib/sims-security-certs.dbtest.ts, which expected exactly eight seeded sims) took every document of the four courses instead of naming its own slugs, the selection FAIL-2002 already ruled out; any new sim in those courses breaks it.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sims-security-certs.dbtest.ts"
+      ],
+      "fix_summary": "Both select the eight REQ-274 documents by slug",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Round rule: sim tests select documents by slug, never by course code",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

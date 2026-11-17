@@ -11340,6 +11340,52 @@
         "Control chart factor tables (A2 D3 D4) and Pp/Ppk definitions are standard values not on the fetched NIST pages",
         "The PCAP PCEP and TSNODE bands rest on the course seeds' objective wording; the vendors' syllabi were not re-read"
       ]
+    },
+    {
+      "id": "REQ-313",
+      "category": "feature",
+      "title": "Sims: governance board and tabletop screens, ethics conversations on the session screen at level 2, and their CISM, CISSP, CC and Security+ sims",
+      "description": "The security builder's screen proposals (docs/sims.md 22.19), approved by Nick on 2026-11-16 ('build all the proposed screens'). A governance board (screen type governance-board) and a tabletop exercise (screen type tabletop) behind SIMS_RENDERERS and on by default, each with its bindings, validator checks, outcome profile (governance, exercise), renderer, view model, announcements and capability. Professional-ethics dilemmas run on the existing client session screen with a new profile (professional-ethics) and an optional read-button label that needs session renderer level 2. Sims for every objective that fits, CISM first, then CISSP, CC and Security+, with bands where another course's objective is taught by the same case. Learner-facing sim text names no certifying body's mark.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/CISM",
+        "backend/supabase/seed/sims/CISSP",
+        "backend/supabase/seed/sims/ISC2CC",
+        "backend/supabase/seed/sims/SECPLUS",
+        "backend/supabase/seed/sims/SECPLUSV8",
+        "backend/scripts/sim-golden",
+        "backend/lib/sims-governance.dbtest.ts",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "governance-board@1 and tabletop@1 renderers behind SIMS_RENDERERS; session@2 for readLabel and older apps told to update",
+        "accessibility to the console standard: every element labeled in words and 48 dp and alarms at once and changes polite and rate-limited and a Read button and web keyboard order",
+        "profiles governance and exercise and professional-ethics with defaults and lint direction",
+        "each authored sim: endings in all three classes and 3-4 critical criteria and endingOrder and 6 golden paths with Good Mediocre Bad and every criterion met and missed",
+        "learner-paced",
+        "no engine stepping change and no engine minor",
+        "no certifying body mark in learner-facing sim text (lint rule)"
+      ],
+      "validation_required": [
+        "backend lib/sim tests for the changed files",
+        "npm run sims:lint",
+        "sims DB test",
+        "mobile tsc and sim tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.26",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "The objective titles of CC 1.8 and CISSP 1.1 name the certifying body; the trademark builder may retitle them and the sims' objective field must follow",
+        "Sources name publishers in citations (not learner text in the sim body); whether citations count as using a mark is for Nick",
+        "NIST SP 800-84 and CSWP 29 themselves were not opened; read through NIST pages and the CSF 2.0 Implementation Examples PDF"
+      ]
     }
   ]
 }

@@ -14,6 +14,8 @@ import { terminalView, type TerminalView } from "./terminalView.ts";
 import { dashboardView, type DashboardView } from "./dashboardView.ts";
 import { deskView, type DeskView } from "./deskView.ts";
 import { dataView, type DataView } from "./dataView.ts";
+import { governanceView, type GovernanceView } from "./governanceView.ts";
+import { tabletopView, type TabletopView } from "./tabletopView.ts";
 
 type Tile = VitalTile;
 
@@ -164,6 +166,8 @@ export interface SessionView {
   gauges: GaugeView[];
   notes: NoteView[];
   record: { label: string; items: string[] } | null;
+  // REQ-313: the read-aloud button's label (session@2); "Read the client" when unset.
+  readLabel: string;
 }
 
 type Gauge = NonNullable<ScreenSpec["session"]>["gauges"][number];
@@ -201,7 +205,7 @@ export function sessionView(run: Run): SessionView | null {
       return { id: n.id, label: n.label, text: t, alert, a11y: `${alert ? "Alert. " : ""}${n.label}: ${t}` };
     });
   const record = se.record ? { label: se.record.label, items: se.record.items.filter((it) => value(run, it.when) === true).map((it) => text(run, it.label)) } : null;
-  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record };
+  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record, readLabel: se.readLabel?.trim() || "Read the client" };
 }
 
 // Alert notes join the tile alarms: spoken at once on entering and leaving.
@@ -377,6 +381,8 @@ export interface RunView {
   dashboard: DashboardView | null; // REQ-311: the project dashboard (predictive or Sprint mode)
   desk: DeskView | null; // REQ-311: the ITIL service desk
   data: DataView | null; // REQ-312: the data and code console
+  governance: GovernanceView | null; // REQ-313: the governance board
+  tabletop: TabletopView | null; // REQ-313: the tabletop exercise
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -410,6 +416,8 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
+    governance: governanceView(run),
+    tabletop: tabletopView(run),
     dashboard: dashboardView(run),
     desk: deskView(run),
     data: dataView(run, actions),

@@ -289,6 +289,26 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CSSGB", "cssgb-capability-tool-wear"),
   entry("JAVASCRIPT", "js-checkout-shipping-concatenated"),
   // ---- end REQ-312 ----
+  // ---- REQ-313: the governance board, the tabletop exercise and the
+  // professional-ethics conversations (docs/sims.md 22.26;
+  // GOVERNANCE_DOCUMENTS below). Keep these entries together. ----
+  entry("CISM", "cism-security-business-case-budget"),
+  entry("CISM", "cism-risk-appetite-exception"),
+  entry("CISM", "cism-ransomware-tabletop"),
+  entry("ISC2CC", "cc-ethics-shared-credentials"),
+  entry("CISSP", "cissp-ethics-audit-finding-pressure"),
+  entry("CISSP", "cissp-flood-continuity-tabletop"),
+  // REQ-313 bands (docs/sims.md 4.7): the same case on another course's
+  // objective that it teaches.
+  band("ISC2CC", "cc-ransomware-tabletop"),
+  band("SECPLUS", "ransomware-tabletop-secplus"),
+  band("SECPLUSV8", "ransomware-tabletop-v8"),
+  band("SECPLUS", "risk-exception-appetite-secplus"),
+  band("SECPLUSV8", "risk-exception-appetite-v8"),
+  band("ISC2CC", "cc-flood-continuity-tabletop"),
+  band("SECPLUS", "flood-continuity-tabletop-secplus"),
+  band("SECPLUSV8", "flood-continuity-tabletop-v8"),
+  // ---- end REQ-313 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
@@ -459,3 +479,24 @@ export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.fi
 export const WAJP_OBJECTIVES: Readonly<Record<string, string>> = {
   "wajp-duty-to-protect-threat": "Apply the duty to warn or protect when a client threatens an identifiable person",
 };
+
+// REQ-313 (docs/sims.md 22.26): the governance board, tabletop and
+// professional-ethics documents (authored and bands), by profile.
+export const GOVERNANCE_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) =>
+  [
+    "cism-security-business-case-budget",
+    "cism-risk-appetite-exception",
+    "cism-ransomware-tabletop",
+    "cc-ethics-shared-credentials",
+    "cissp-ethics-audit-finding-pressure",
+    "cissp-flood-continuity-tabletop",
+    "cc-ransomware-tabletop",
+    "ransomware-tabletop-secplus",
+    "ransomware-tabletop-v8",
+    "risk-exception-appetite-secplus",
+    "risk-exception-appetite-v8",
+    "cc-flood-continuity-tabletop",
+    "flood-continuity-tabletop-secplus",
+    "flood-continuity-tabletop-v8",
+  ].includes(e.slug),
+);

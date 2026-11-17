@@ -1,0 +1,1503 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cism-security-business-case-budget",
+  "title": "A security business case the board will fund",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRansom",
+          "label": "Ransomware takes member services down for more than a day",
+          "spokenLabel": "Ransomware outage risk",
+          "owner": "{isNull(cooAt) ? \"Not assigned\" : \"COO (operations)\"}",
+          "rating": "ransomAbove ? \"critical\" : \"medium\"",
+          "appetite": "ransomAbove ? \"above\" : \"within\"",
+          "status": "{ransomHit ? \"Happened: restore failed, services down 3 days\" : not isNull(ransomAt) ? \"Attack in week 11: restored from immutable backups in 9 hours\" : approved and incBackups and incMfa ? \"Treated: immutable backups and phishing-resistant MFA funded\" : approved ? \"Partly treated\" : \"Untreated\"}"
+        },
+        {
+          "id": "rBec",
+          "label": "A fraudulent wire after business email compromise",
+          "spokenLabel": "Wire fraud risk",
+          "owner": "{isNull(cooAt) ? \"Not assigned\" : \"COO (payments)\"}",
+          "rating": "becAbove ? \"high\" : \"medium\"",
+          "appetite": "approved and incCallback ? \"within\" : not isNull(ownerAcceptAt) ? \"excepted\" : \"above\"",
+          "status": "{approved and incCallback ? \"Treated: call-back control funded\" : not isNull(ownerAcceptAt) ? \"COO accepted until the call-back control is live (90 days)\" : not isNull(cisoAcceptAt) ? \"Accepted by you, not by its owner\" : \"Untreated\"}"
+        },
+        {
+          "id": "rVendor",
+          "label": "Core banking vendor outage",
+          "spokenLabel": "Core vendor risk",
+          "owner": "\"CIO\"",
+          "rating": "\"medium\"",
+          "appetite": "\"within\"",
+          "status": "Contract SLA and exit plan in place"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sCfo",
+          "label": "CFO",
+          "spokenLabel": "CFO's support",
+          "value": "cfo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCoo",
+          "label": "COO",
+          "spokenLabel": "COO's support",
+          "value": "coo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sChair",
+          "label": "Board risk chair",
+          "spokenLabel": "Board risk committee chair's support",
+          "value": "chair",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dPkg",
+          "kind": "Business case",
+          "label": "Security investment, next fiscal year",
+          "status": "{isNull(packageAt) ? \"Not drafted\" : \"Drafted\"}: {pkg} thousand dollars{not isNull(submittedAt) ? \"; submitted for the week-7 board meeting\" : \"\"}{approved ? \"; approved\" : not isNull(boardAt) ? \"; not approved\" : \"\"}",
+          "when": "true"
+        },
+        {
+          "id": "dBoard",
+          "kind": "Board meeting",
+          "label": "Week 7: budget approval",
+          "status": "{isNull(boardAt) ? \"Scheduled\" : approved ? \"Held: the security case was approved\" : \"Held: no security case approved\"}",
+          "when": "true"
+        },
+        {
+          "id": "dChair",
+          "kind": "Board request",
+          "label": "Risk chair: 'A peer credit union lost three days to ransomware. Are we exposed?'",
+          "status": "{not isNull(chairAnsweredAt) ? \"Answered\" : \"Waiting for your answer\"}",
+          "when": "not isNull(chairAskAt)",
+          "flag": "isNull(chairAnsweredAt)"
+        },
+        {
+          "id": "dSiem",
+          "kind": "Vendor offer",
+          "label": "SIEM premium tier, 350 thousand dollars, 'quarter-end discount if you sign this week'",
+          "status": "{isNull(siemSignedAt) ? \"Open\" : \"Signed outside the budget process\"}",
+          "when": "t >= offerDay"
+        },
+        {
+          "id": "dAccept",
+          "kind": "Risk acceptance",
+          "label": "Wire fraud risk: residual risk until the call-back control is live",
+          "status": "{not isNull(ownerAcceptAt) ? \"Signed by the COO, expires in 90 days\" : \"Signed by you\"}",
+          "when": "not isNull(ownerAcceptAt) or not isNull(cisoAcceptAt)"
+        }
+      ],
+      "budget": {
+        "label": "Security budget committed",
+        "spent": "spent",
+        "total": "budget",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mQuant",
+          "label": "Risk in money",
+          "value": "{isNull(quantifiedAt) ? \"not quantified\" : \"ransomware about 2.4 million dollars a year, wire fraud about 600 thousand (with Finance)\"}"
+        },
+        {
+          "id": "mStrategy",
+          "label": "Strategy map",
+          "value": "{isNull(mappedAt) ? \"proposals not mapped\" : \"each proposal tied to a strategic goal and the risk it treats\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Build a business case, budget and resource plan that gains senior leadership's commitment",
+  "secondaryObjectives": [
+    "Develop an information security strategy aligned with organizational goals, from current state to desired state",
+    "Choose a risk treatment -- mitigate, transfer, avoid or accept -- based on risk appetite",
+    "Communicate and report program metrics to senior leadership and other stakeholders"
+  ],
+  "sources": [
+    {
+      "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 1 Information Security Governance; Domain 2 Information Security Risk Management; Domain 3 Information Security Program",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+      "note": "Read as HTML on 2026-11-14 for REQ-272 and not re-read. Domain 1 part B covers the information security strategy and the business case, budget and resources; Domain 2 part B covers risk treatment against the risk appetite; Domain 3 part B covers program metrics reported to senior leadership. The course's objective wording is its own."
+    },
+    {
+      "cite": "NIST Cybersecurity Framework (CSF) 2.0 (NIST CSWP 29, February 26, 2024), GOVERN function: GV.RM-01, GV.RM-02, GV.RR-02, GV.OV",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nist.gov/system/files/documents/2024/02/21/CSF%202.0%20Implementation%20Examples.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch of NIST's 'CSF 2.0 Implementation Examples' PDF (dated February 26, 2024), which restates the Core outcomes: GV.RM-02 'Risk appetite and risk tolerance statements are established, communicated, and maintained'; GV.RR-02 'Roles, responsibilities, and authorities related to cybersecurity risk management are established, communicated, understood, and enforced'; GV.OV 'Results of organization-wide cybersecurity risk management activities and performance are used to inform, improve, and adjust the risk management strategy'. The CSWP 29 document itself was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "You are the information security manager at Tidewater Credit Union, a fictional credit union. It is the first week of the quarter. Two risks in the register sit above the board's appetite: ransomware that would take member services down for more than a day, and wire fraud after a compromised mailbox. Your security budget for next year is 600 thousand dollars, approved at the board meeting in week 7. Build a case the board will fund, put each risk with its owner, and keep the board informed.",
+    "handover": [
+      "The appetite statement: no outage of member services longer than 24 hours; no unrecovered fraud loss above 100 thousand dollars in a year.",
+      "The CFO endorses anything that goes to the board with money attached. The COO runs member services and payments.",
+      "Five proposals are on your desk: immutable backups (180), phishing-resistant MFA (120), a call-back control on wire changes (10), managed detection and response (240) and a SIEM premium tier (350), in thousand dollars."
+    ],
+    "howItWorks": [
+      "The clock is the quarter: each task takes days. Choose it, then let it finish, which moves the calendar on. The board, the business and the threat work on the same calendar.",
+      "The board shows the risk register against the appetite, each stakeholder's support in words, the budget committed and the docket.",
+      "When you close the quarter you write the governance record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-04T09:00",
+    "tick": "1d",
+    "maxDuration": "100d",
+    "calendar": "week"
+  },
+  "params": {
+    "budget": {
+      "value": 600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The fictional credit union's security budget, thousand dollars."
+      }
+    },
+    "chairDay": {
+      "value": 1814400,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The board chair's question arrives in week 4."
+      },
+      "unit": "s"
+    },
+    "offerDay": {
+      "value": 1209600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The vendor's quarter-end offer arrives in week 3."
+      },
+      "unit": "s"
+    },
+    "boardDay": {
+      "value": 3628800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The budget board meeting is in week 7."
+      },
+      "unit": "s"
+    },
+    "ransomDay": {
+      "value": 6048000,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The ransomware attack is in week 11."
+      },
+      "unit": "s"
+    },
+    "quarterDays": {
+      "value": 7862400,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Thirteen weeks in the quarter."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "approved": {
+      "type": "bool",
+      "init": false
+    },
+    "ransomHit": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "incBackups": {
+      "type": "bool",
+      "init": false
+    },
+    "incMfa": {
+      "type": "bool",
+      "init": false
+    },
+    "incCallback": {
+      "type": "bool",
+      "init": false
+    },
+    "incMdr": {
+      "type": "bool",
+      "init": false
+    },
+    "incSiem": {
+      "type": "bool",
+      "init": false
+    },
+    "vanityBrief": {
+      "type": "bool",
+      "init": false
+    },
+    "quantifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "mappedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfoAt": {
+      "type": "time",
+      "init": null
+    },
+    "cooAt": {
+      "type": "time",
+      "init": null
+    },
+    "packageAt": {
+      "type": "time",
+      "init": null
+    },
+    "submittedAt": {
+      "type": "time",
+      "init": null
+    },
+    "boardAt": {
+      "type": "time",
+      "init": null
+    },
+    "chairAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "chairAnsweredAt": {
+      "type": "time",
+      "init": null
+    },
+    "chairLateAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerAcceptAt": {
+      "type": "time",
+      "init": null
+    },
+    "cisoAcceptAt": {
+      "type": "time",
+      "init": null
+    },
+    "siemSignedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ransomAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfo": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "coo": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "chair": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "treatDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owners",
+        "ciso",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "reportDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "risk",
+        "activity"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "pkg": {
+      "expr": "(incBackups ? 180 : 0) + (incMfa ? 120 : 0) + (incCallback ? 10 : 0) + (incMdr ? 240 : 0) + (incSiem ? 350 : 0)"
+    },
+    "spent": {
+      "expr": "(approved ? pkg : 0) + (isNull(siemSignedAt) ? 0 : 350)"
+    },
+    "spendPct": {
+      "expr": "spent / budget * 100"
+    },
+    "ransomAbove": {
+      "expr": "not (approved and incBackups and incMfa)"
+    },
+    "becAbove": {
+      "expr": "not ((approved and incCallback) or not isNull(ownerAcceptAt))"
+    },
+    "aboveCount": {
+      "expr": "(ransomAbove ? 1 : 0) + (becAbove ? 1 : 0)"
+    },
+    "minSupport": {
+      "expr": "min(cfo, min(coo, chair))"
+    },
+    "caseFirst": {
+      "expr": "not isNull(submittedAt) and not isNull(quantifiedAt) and not isNull(mappedAt) and timeAt(quantifiedAt) <= timeAt(submittedAt) and timeAt(mappedAt) <= timeAt(submittedAt)"
+    },
+    "owned": {
+      "expr": "isNull(cisoAcceptAt) and not isNull(cooAt)"
+    },
+    "chairWell": {
+      "expr": "not isNull(chairAnsweredAt) and not vanityBrief and timeAt(chairAnsweredAt) - timeAt(chairAskAt) <= 7 * 86400"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "quarter": {
+      "label": "The quarter",
+      "clock": "turns",
+      "actions": [
+        "quantify",
+        "mapStrategy",
+        "meetCfo",
+        "meetCoo",
+        "package",
+        "submit",
+        "ownerAccept",
+        "cisoAccept",
+        "signSiem",
+        "briefChair",
+        "dashChair",
+        "watch",
+        "closeQuarter"
+      ]
+    },
+    "report": {
+      "label": "Governance record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "quarter",
+  "actions": {
+    "quantify": {
+      "label": "Quantify the two above-appetite risks in money with Finance (annualized loss)",
+      "group": "Analyze",
+      "available": "not busy and isNull(quantifiedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "quantifiedAt",
+          "to": "t"
+        },
+        {
+          "log": "You and Finance put both risks in money: likely frequency times the cost of a loss, from the credit union's own figures and industry loss data.",
+          "kind": "act"
+        },
+        {
+          "finding": "Ransomware: about 2.4 million dollars a year at today's controls (three days of member services down, recovery and fines). Wire fraud: about 600 thousand a year. The appetite statement allows no outage of member services longer than 24 hours."
+        },
+        {
+          "add": "cfo",
+          "by": "1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5d"
+        }
+      ]
+    },
+    "mapStrategy": {
+      "label": "Map each proposal to the strategy and the risk it treats",
+      "group": "Analyze",
+      "available": "not busy and isNull(mappedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "mappedAt",
+          "to": "t"
+        },
+        {
+          "log": "You map the five proposals to the strategic plan ('members can always reach their money') and to the register.",
+          "kind": "act"
+        },
+        {
+          "finding": "Immutable backups and phishing-resistant MFA bring ransomware within appetite; a call-back control on wire changes treats wire fraud for 10 thousand dollars; the managed detection service helps both; the SIEM premium tier adds dashboards but treats neither risk."
+        },
+        {
+          "add": "coo",
+          "by": "1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3d"
+        }
+      ]
+    },
+    "meetCfo": {
+      "label": "Walk the CFO through the business case before the board sees it",
+      "group": "Engage",
+      "available": "not busy and isNull(cfoAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "cfoAt",
+          "to": "t"
+        },
+        {
+          "log": "You meet the CFO one to one.",
+          "kind": "act"
+        },
+        {
+          "if": "not isNull(quantifiedAt)",
+          "then": [
+            {
+              "add": "cfo",
+              "by": "2"
+            },
+            {
+              "finding": "The CFO: 'Two point four million a year against 300 thousand once. That I can defend.'"
+            }
+          ],
+          "else": [
+            {
+              "add": "cfo",
+              "by": "0.5"
+            },
+            {
+              "finding": "The CFO: 'Show me the money at risk, not the threat landscape.'"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "meetCoo": {
+      "label": "Ask the COO to own the operational risks and the call-back control",
+      "group": "Engage",
+      "available": "not busy and isNull(cooAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "cooAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask the COO, who runs member services and payments, to own the ransomware and wire fraud risks.",
+          "kind": "act"
+        },
+        {
+          "if": "not isNull(mappedAt)",
+          "then": [
+            {
+              "add": "coo",
+              "by": "2"
+            },
+            {
+              "finding": "The COO agrees to own both and to run the call-back control in payments."
+            }
+          ],
+          "else": [
+            {
+              "add": "coo",
+              "by": "1"
+            },
+            {
+              "finding": "The COO agrees to own them, but wants to see which proposal does what."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "package": {
+      "label": "Draft the business case package",
+      "group": "Build the case",
+      "available": "not busy and isNull(submittedAt)",
+      "why": "Finish the task in progress first; once submitted, the package is with the board.",
+      "params": [
+        {
+          "id": "pk",
+          "kind": "form",
+          "label": "Package",
+          "fields": [
+            {
+              "id": "backups",
+              "label": "Immutable backups with a tested restore (180 thousand dollars)",
+              "options": [
+                {
+                  "value": "in",
+                  "label": "In"
+                },
+                {
+                  "value": "out",
+                  "label": "Out"
+                }
+              ]
+            },
+            {
+              "id": "mfa",
+              "label": "Phishing-resistant MFA for staff and admins (120 thousand dollars)",
+              "options": [
+                {
+                  "value": "in",
+                  "label": "In"
+                },
+                {
+                  "value": "out",
+                  "label": "Out"
+                }
+              ]
+            },
+            {
+              "id": "callback",
+              "label": "Call-back control on wire and payee changes (10 thousand dollars)",
+              "options": [
+                {
+                  "value": "in",
+                  "label": "In"
+                },
+                {
+                  "value": "out",
+                  "label": "Out"
+                }
+              ]
+            },
+            {
+              "id": "mdr",
+              "label": "Managed detection and response, 24x7 (240 thousand dollars)",
+              "options": [
+                {
+                  "value": "in",
+                  "label": "In"
+                },
+                {
+                  "value": "out",
+                  "label": "Out"
+                }
+              ]
+            },
+            {
+              "id": "siem",
+              "label": "SIEM premium tier (350 thousand dollars)",
+              "options": [
+                {
+                  "value": "in",
+                  "label": "In"
+                },
+                {
+                  "value": "out",
+                  "label": "Out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "incBackups",
+          "to": "backups == \"in\""
+        },
+        {
+          "set": "incMfa",
+          "to": "mfa == \"in\""
+        },
+        {
+          "set": "incCallback",
+          "to": "callback == \"in\""
+        },
+        {
+          "set": "incMdr",
+          "to": "mdr == \"in\""
+        },
+        {
+          "set": "incSiem",
+          "to": "siem == \"in\""
+        },
+        {
+          "set": "packageAt",
+          "to": "t"
+        },
+        {
+          "log": "Package drafted: {pkg} thousand dollars against a budget of {budget}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "submit": {
+      "label": "Submit the business case for the week-7 board meeting",
+      "group": "Build the case",
+      "available": "not busy and isNull(submittedAt) and (not isNull(packageAt) and isNull(boardAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "submittedAt",
+          "to": "t"
+        },
+        {
+          "log": "The case goes in the board pack: {pkg} thousand dollars.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "ownerAccept": {
+      "label": "Ask the COO to sign a time-limited acceptance of the wire fraud risk until the control is live",
+      "group": "Decide",
+      "available": "not busy and isNull(ownerAcceptAt) and (not isNull(cooAt) and isNull(cisoAcceptAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ownerAcceptAt",
+          "to": "t"
+        },
+        {
+          "log": "The COO, as risk owner, signs a 90-day acceptance of the residual wire fraud risk, with the call-back control as the condition.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "cisoAccept": {
+      "label": "Accept the wire fraud risk yourself and move on",
+      "group": "Decide",
+      "available": "not busy and isNull(cisoAcceptAt) and (isNull(ownerAcceptAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "cisoAcceptAt",
+          "to": "t"
+        },
+        {
+          "log": "You sign the acceptance yourself. The register now shows the security manager accepting a payments risk.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "signSiem": {
+      "label": "Sign the SIEM premium order now from discretionary funds",
+      "group": "Decide",
+      "available": "not busy and isNull(siemSignedAt) and (t >= offerDay)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "siemSignedAt",
+          "to": "t"
+        },
+        {
+          "log": "You sign 350 thousand dollars outside the budget process to get the discount.",
+          "kind": "bad"
+        },
+        {
+          "add": "cfo",
+          "by": "-3"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "briefChair": {
+      "label": "Brief the risk chair in business terms: exposure, money at risk, the plan and its cost",
+      "group": "Report",
+      "available": "not busy and isNull(chairAnsweredAt) and (not isNull(chairAskAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "chairAnsweredAt",
+          "to": "t"
+        },
+        {
+          "log": "You answer the chair in one page: what would happen to members, what it would cost, what the plan buys down and when.",
+          "kind": "act"
+        },
+        {
+          "add": "chair",
+          "by": "isNull(quantifiedAt) ? 1 : 2"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "dashChair": {
+      "label": "Send the risk chair the SIEM dashboard: attacks blocked this month",
+      "group": "Report",
+      "available": "not busy and isNull(chairAnsweredAt) and (not isNull(chairAskAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "chairAnsweredAt",
+          "to": "t"
+        },
+        {
+          "set": "vanityBrief",
+          "to": "true"
+        },
+        {
+          "log": "You send a chart of 41,000 blocked attacks. The chair asks again whether the credit union is exposed.",
+          "kind": "bad"
+        },
+        {
+          "add": "chair",
+          "by": "-1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Let the week pass (7 days)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You run the program for a week.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "7d"
+        }
+      ]
+    },
+    "closeQuarter": {
+      "label": "Close the quarter's planning and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the quarter and write the governance record.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the quarter's governance record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "treat",
+              "label": "Who decided on each risk above appetite",
+              "options": [
+                {
+                  "value": "owners",
+                  "label": "Their owners: the board approved the treatments; the COO owns and accepted the residual wire risk"
+                },
+                {
+                  "value": "ciso",
+                  "label": "The security manager decided and accepted for the business"
+                },
+                {
+                  "value": "none",
+                  "label": "No decision was needed"
+                }
+              ]
+            },
+            {
+              "id": "report",
+              "label": "What the board was given",
+              "options": [
+                {
+                  "value": "risk",
+                  "label": "Risk in money against the appetite, and what the investment buys down"
+                },
+                {
+                  "value": "activity",
+                  "label": "Security activity: alerts, blocked attacks, tools deployed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "treatDoc",
+          "to": "treat"
+        },
+        {
+          "set": "reportDoc",
+          "to": "report"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {treat}, {report}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "chairAsk",
+      "when": "isNull(chairAskAt) and t >= chairDay and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "chairAskAt",
+          "to": "t"
+        },
+        {
+          "log": "Board risk chair: 'A peer credit union lost three days to ransomware. Are we exposed?'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "chairLate",
+      "when": "isNull(chairLateAt) and not isNull(chairAskAt) and isNull(chairAnsweredAt) and t >= timeAt(chairAskAt) + 7 * 86400 and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "chairLateAt",
+          "to": "t"
+        },
+        {
+          "add": "chair",
+          "by": "-2"
+        },
+        {
+          "log": "A week without an answer: the chair raises it with the CEO.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "board",
+      "when": "isNull(boardAt) and t >= boardDay and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "boardAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(submittedAt) and pkg <= budget and cfo >= 6 and not isNull(quantifiedAt)",
+          "then": [
+            {
+              "set": "approved",
+              "to": "true"
+            },
+            {
+              "add": "chair",
+              "by": "1"
+            },
+            {
+              "log": "Board meeting: the security business case is approved as submitted ({pkg} thousand dollars).",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "{isNull(submittedAt) ? \"Board meeting: no security business case was in the pack.\" : pkg > budget ? \"Board meeting: the case is over the budget and the CFO will not endorse it; it is sent back to next year.\" : \"Board meeting: the CFO does not endorse the case, and the board defers it.\"}",
+              "kind": "bad"
+            },
+            {
+              "add": "chair",
+              "by": "-1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ransom",
+      "when": "isNull(ransomAt) and t >= ransomDay and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "ransomAt",
+          "to": "t"
+        },
+        {
+          "if": "approved and incBackups",
+          "then": [
+            {
+              "log": "Week 11: ransomware encrypts the file servers. The immutable backups restore member services in 9 hours.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "ransomHit",
+              "to": "true"
+            },
+            {
+              "log": "Week 11: ransomware encrypts the file servers and the backups with them. Member services are down for three days.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarterEnd",
+      "when": "t >= quarterDays and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "The quarter is over. Write the governance record.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the governance record: how you built a case the board would fund, who owns each risk above appetite, and what the board was told.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The business case",
+          "criteria": "Puts the risks in money (annualized loss) with Finance, ties each proposal to the strategy and to the risk it treats, keeps the package within budget, and leaves out spend that treats neither risk.",
+          "modelAnswer": "Ransomware at about 2.4 million a year and wire fraud at about 600 thousand, against 310 thousand for backups, MFA and the call-back control, plus detection within the 600 thousand budget; the SIEM premium tier treats neither risk, so it stayed out."
+        },
+        {
+          "label": "Risk ownership",
+          "criteria": "Assigns the operational risks to the COO as owner; the residual wire risk is accepted by its owner, time-limited and conditional, not by the security manager; no commitment outside the budget process.",
+          "modelAnswer": "The COO owns both risks and signed a 90-day acceptance of the residual wire risk until the call-back control is live. I did not accept business risk myself or sign spend outside the process."
+        },
+        {
+          "label": "Reporting to the board",
+          "criteria": "Answers the board chair in business terms within a week (exposure, money at risk, the plan and its cost), not with activity metrics.",
+          "modelAnswer": "I told the chair, within the week, what a three-day outage would cost us, what the plan buys down and when, rather than a chart of blocked attacks."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Committed spend within the approved budget."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "No risk above appetite without a treatment or an owner's time-limited acceptance at the close."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Each of the CFO, the COO and the risk chair at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(submittedAt) and not ransomHit",
+      "class": "recovered",
+      "rationale": "No case reached the board, so both risks stay above appetite for another year; recovered rather than harm only because the attack did not come before the quarter closed.",
+      "source": {
+        "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 1 Information Security Governance; Domain 2 Information Security Risk Management; Domain 3 Information Security Program",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+        "note": "Read as HTML on 2026-11-14 for REQ-272 and not re-read. Domain 1 part B covers the information security strategy and the business case, budget and resources; Domain 2 part B covers risk treatment against the risk appetite; Domain 3 part B covers program metrics reported to senior leadership. The course's objective wording is its own."
+      }
+    }
+  },
+  "endings": {
+    "outage": {
+      "label": "Member services down for three days",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and ransomHit",
+      "narrative": "The attack found backups that could be encrypted with everything else. The board's appetite was a day; members waited three."
+    },
+    "authority": {
+      "label": "Business risk accepted by the wrong person",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(cisoAcceptAt)",
+      "narrative": "You accepted a payments risk on the business's behalf. The register now hides who really carries it."
+    },
+    "overspend": {
+      "label": "Over budget",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and spendPct > budgetCap",
+      "narrative": "Spend committed outside the budget process put security over its approved budget, and the CFO's trust with it."
+    },
+    "funded": {
+      "label": "Funded, owned and within budget",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and approved and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget and caseFirst and owned and chairWell",
+      "narrative": "The board funded a case built on money at risk, every risk above appetite has an owner and a treatment, and the attack in week 11 was a nine-hour restore."
+    },
+    "fundedCostly": {
+      "label": "Partly there",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The quarter ended with a risk still above appetite, a stakeholder unconvinced, or the board told about activity rather than risk."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no governance record."
+    }
+  },
+  "endingOrder": [
+    "outage",
+    "authority",
+    "overspend",
+    "funded",
+    "fundedCostly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "caseFirst",
+        "label": "Case built on money at risk and the strategy before it went to the board",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "caseFirst",
+            "score": "met",
+            "why": "Quantified and mapped, then submitted."
+          },
+          {
+            "when": "not isNull(submittedAt) and (not isNull(quantifiedAt) or not isNull(mappedAt))",
+            "score": "partial",
+            "why": "Half the case: money at risk or the strategy map was missing when it went in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{isNull(submittedAt) ? \"No case reached the board.\" : \"Submitted with neither money at risk nor a strategy map.\"}"
+          }
+        ]
+      },
+      {
+        "id": "treated",
+        "label": "Both risks above appetite treated or accepted by their owner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "approved and aboveCount <= aboveAppetite",
+            "score": "met",
+            "why": "Nothing left above appetite."
+          },
+          {
+            "when": "approved",
+            "score": "partial",
+            "why": "Funded, but {aboveCount} still above appetite."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing approved."
+          }
+        ]
+      },
+      {
+        "id": "budget",
+        "label": "Committed spend within the approved budget",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "spendPct <= budgetCap and approved",
+            "score": "met",
+            "why": "{spent} of {budget} thousand dollars."
+          },
+          {
+            "when": "spendPct <= budgetCap",
+            "score": "partial",
+            "why": "Within budget, but nothing was approved."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{spent} of {budget} thousand dollars committed."
+          }
+        ]
+      },
+      {
+        "id": "owned",
+        "label": "Risk decisions left with their owners",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "owned",
+            "score": "met",
+            "why": "The COO owns the operational risks; you accepted nothing for the business."
+          },
+          {
+            "when": "isNull(cisoAcceptAt)",
+            "score": "partial",
+            "why": "No owner was ever asked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "You accepted a business risk yourself."
+          }
+        ]
+      },
+      {
+        "id": "chair",
+        "label": "Answered the board chair in business terms within a week",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "chairWell",
+            "score": "met",
+            "why": "Exposure, money and plan, on time."
+          },
+          {
+            "when": "not isNull(chairAnsweredAt) and not vanityBrief",
+            "score": "partial",
+            "why": "The right answer, late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{vanityBrief ? \"Activity metrics instead of exposure.\" : \"No answer.\"}"
+          }
+        ]
+      },
+      {
+        "id": "support",
+        "label": "CFO, COO and risk chair at least supportive at the close",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "minSupport >= supportTarget",
+            "score": "met",
+            "why": "All three supportive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lowest support {minSupport|0dp} of 10."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "The record names the real decision makers and what the board was told",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "treatDoc == \"owners\" and reportDoc == \"risk\"",
+            "score": "met",
+            "why": "Accurate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match a sound governance quarter."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written business case, ownership and reporting",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spent",
+        "label": "Committed spend (thousand dollars)",
+        "value": "spent",
+        "format": "number",
+        "expert": "550 or less"
+      },
+      {
+        "id": "above",
+        "label": "Risks above appetite at the close",
+        "value": "aboveCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "outageDays",
+        "label": "Days member services were down in the attack",
+        "value": "ransomHit ? 3 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Weeks 1-2",
+        "text": "Quantify both risks with Finance; map each proposal to the strategy and the risk it treats."
+      },
+      {
+        "at": "Weeks 2-3",
+        "text": "Walk the CFO through the numbers; ask the COO to own both risks. Draft the package: backups, MFA, the call-back control and detection, 550 thousand dollars."
+      },
+      {
+        "at": "Weeks 3-6",
+        "text": "Submit; decline the SIEM offer; answer the chair in business terms; the COO signs a 90-day acceptance of the residual wire risk."
+      },
+      {
+        "at": "Week 7 on",
+        "text": "The board approves; in week 11 the backups turn an attack into a nine-hour restore."
+      }
+    ],
+    "debrief": {
+      "funded": {
+        "headline": "Good: a case the board could say yes to",
+        "body": "Money at risk, a strategy map, owners for each risk and spend within budget: that is what gains senior leadership's commitment."
+      },
+      "fundedCostly": {
+        "headline": "Partly there",
+        "body": "The criteria show what was missing: a risk still above appetite, a stakeholder you did not bring along, or a board told about activity rather than risk."
+      },
+      "outage": {
+        "headline": "The attack came before the treatment",
+        "body": "Without an approved case, the backups were never made immutable. The board's appetite was a day; the outage lasted three."
+      },
+      "authority": {
+        "headline": "Not your risk to accept",
+        "body": "A security manager advises; the risk owner accepts, for a stated time and with conditions. Accepting it yourself hides who carries it."
+      },
+      "overspend": {
+        "headline": "Over budget",
+        "body": "Spend outside the budget process breaks the commitment the board gave you and costs the CFO's support."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No governance record was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Put both risks in money with Finance: ransomware about 2.4 million dollars a year, wire fraud about 600 thousand. Map each proposal to the strategy and the risk it treats: backups and MFA bring ransomware within appetite, a 10-thousand-dollar call-back control treats wire fraud, detection helps both, and the SIEM premium tier treats neither. Brief the CFO before the board, give the COO ownership, submit a package within the 600-thousand budget, decline spend outside the process, answer the chair in business terms within a week, and have the COO, not you, accept the residual wire risk until the control is live."
+  }
+}

@@ -167,6 +167,8 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
     check(`screen.desk.tickets[${i}].at`, x.at, "a ticket's at");
     check(`screen.desk.tickets[${i}].due`, x.due, "a ticket's due");
   });
+  // REQ-313: a tabletop inject's `at` is sim seconds of scenario time too.
+  (doc.screen?.tabletop?.injects ?? []).forEach((j, i) => check(`screen.tabletop.injects[${i}].at`, j.at, "a tabletop inject's at"));
   // one problem per place and name
   const seen = new Set<string>();
   return problems.filter((p) => {
@@ -192,6 +194,31 @@ export function backslashEscapeProblems(doc: ScenarioDoc): Problem[] {
     }
     if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
     if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  return out;
+}
+
+// REQ-313 (docs/sims.md 22.26; Nick, 2026-11-16: limit trademarks): the
+// governance, exercise and professional-ethics sims name no certifying
+// body's mark in what a learner reads. The objective titles are the catalog's
+// (owned by the course, not the sim) and the sources are citations, so both
+// are left out; everything else a learner can see is checked.
+export const CERT_MARKS: readonly RegExp[] = [/\bISC2\b/i, /\(ISC\)/i, /\bISACA\b/i, /\bEC-Council\b/i, /\bCompTIA\b/i, /\bCISSP\b/, /\bCISM\b/, /\bCEH\b/, /\bSecurity\+/, /Certified in Cybersecurity/i];
+const MARK_PROFILES = new Set(["governance", "exercise", "professional-ethics"]);
+const NOT_LEARNER_TEXT = new Set(["objective", "secondaryObjectives", "sources", "source", "slug"]);
+
+export function certMarkProblems(doc: ScenarioDoc): Problem[] {
+  if (!MARK_PROFILES.has(doc.outcome?.profile)) return [];
+  const out: Problem[] = [];
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      const hit = CERT_MARKS.find((r) => r.test(x));
+      if (hit) out.push({ level: "error", path, message: `names a certifying body's mark (${hit.source}); learner-facing sim text says "your professional code of ethics" or the course's topic instead (REQ-313)` });
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) if (!NOT_LEARNER_TEXT.has(k)) walk(v, path ? `${path}.${k}` : k);
   };
   walk(doc, "");
   return out;
@@ -244,6 +271,7 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     problems.push(...secondsUnitProblems(doc));
     problems.push(...backslashEscapeProblems(doc));
     problems.push(...dataConsoleProblems(doc));
+    problems.push(...certMarkProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }
