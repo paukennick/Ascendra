@@ -283,6 +283,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "alcohol-withdrawal-ciwa"),
   entry("CNA", "sundowning-at-the-exit-door"),
   entry("CCRNADULT", "tension-pneumothorax-after-line"),
+  entry("NCLEXPN", "head-strike-on-apixaban"),
   // ---- end REQ-315 ----
 ];
 
