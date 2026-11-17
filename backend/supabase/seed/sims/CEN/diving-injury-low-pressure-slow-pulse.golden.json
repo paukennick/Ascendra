@@ -1,0 +1,504 @@
+{
+  "slug": "diving-injury-low-pressure-slow-pulse",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: breathing, a bolus, the bleeding screen, skin and level; neurogenic shock reported; vasopressor at once; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "slow",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "neuro"
+          },
+          "seq": 9,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 10,
+          "tick": 49
+        },
+        {
+          "type": "teach",
+          "prompt": "fluidQ",
+          "choice": "tone",
+          "seq": 11,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "pressor",
+          "seq": 12,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "supported",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "bleedC": "met",
+          "pressorC": "met",
+          "collarC": "met",
+          "bolusC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "lowMap": 365,
+          "toPressor": 0
+        },
+        "stateHash": "40cf296534c52084"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "reportFirst",
+      "title": "Reads the pattern and reports before looking for bleeding; screens afterward; vasopressor started",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "neuro"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "fluidQ",
+          "choice": "tone",
+          "seq": 9,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "pressor",
+          "seq": 10,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 11,
+          "tick": 36
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "slower",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "bleedC": "partial",
+          "pressorC": "met",
+          "collarC": "met",
+          "bolusC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "lowMap": 295,
+          "toPressor": 0
+        },
+        "stateHash": "79c25bf01a697baa"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "latePressor",
+      "title": "Screens and reports well, then gives two more boluses before starting the vasopressor 12 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bleed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "slow",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "fluidQ",
+          "choice": "tone",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 9,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 10,
+          "tick": 36
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "pressor",
+          "seq": 12,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "neuro"
+          },
+          "seq": 13,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 230
+        }
+      ],
+      "expect": {
+        "ending": "slower",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "bleedC": "met",
+          "pressorC": "partial",
+          "collarC": "met",
+          "bolusC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "lowMap": 1210,
+          "toPressor": 970
+        },
+        "stateHash": "ad4dd23c666c9a4c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "fluidOnly",
+      "title": "Failure: calls it hemorrhagic and keeps to boluses; tells the physician only that the pressure is low",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "slow",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hemo"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "fluids"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "ischemia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "bleedC": "missed",
+          "pressorC": "missed",
+          "collarC": "met",
+          "bolusC": "met",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "lowMap": 1500,
+          "toPressor": -1
+        },
+        "stateHash": "2dd24874b1f50ea9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "collarOff",
+      "title": "Failure: takes the collar off so he can breathe more easily",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "patternQ",
+          "choice": "slow",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "collar",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "spinal"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "moved",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "bleedC": "missed",
+          "pressorC": "missed",
+          "collarC": "missed",
+          "bolusC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "lowMap": 120,
+          "toPressor": -1
+        },
+        "stateHash": "31ac74ce2d603abe"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

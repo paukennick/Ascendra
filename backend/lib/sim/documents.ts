@@ -427,6 +427,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NPTEPTA", "pta-back-pain-new-bladder-symptoms"),
   entry("CEN", "triage-indigestion-inferior-stemi"),
   entry("CEN", "asthma-attack-quiet-chest"),
+  entry("CEN", "diving-injury-low-pressure-slow-pulse"),
   // ---- end REQ-323 ----
 ];
 
