@@ -1,0 +1,1068 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "js-checkout-shipping-concatenated",
+  "title": "Shipping that never reaches the charge",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "cart.js at checkout (Fernwood Gardens online shop, fictional)",
+      "flags": [
+        {
+          "id": "fin",
+          "label": "Finance",
+          "text": "Card settlements are lower than order totals since Tuesday's checkout release. The evening sale starts at 18:00.",
+          "when": "true",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Sale",
+          "text": "18:00: the sale started on the faulty checkout.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "bad",
+          "label": "Checkout",
+          "text": "{shippedAs == \"plus\" ? \"Checkout shows NaN and refuses every order with shipping.\" : shippedAs == \"parseint\" ? \"Shipping is charged without its cents.\" : \"Orders are still charged without shipping.\"}",
+          "when": "shippedWrong",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "short",
+          "label": "Orders charged without their shipping, by day",
+          "spokenLabel": "Orders charged without shipping by day",
+          "kind": "line",
+          "unit": "orders",
+          "min": 0,
+          "max": 400,
+          "points": [
+            {
+              "id": "mon",
+              "label": "Mon",
+              "value": "0"
+            },
+            {
+              "id": "tue",
+              "label": "Tue",
+              "value": "204",
+              "flag": "true"
+            },
+            {
+              "id": "wed",
+              "label": "Wed",
+              "value": "318",
+              "flag": "true"
+            }
+          ],
+          "when": "not isNull(auditAt)"
+        }
+      ],
+      "tables": [
+        {
+          "id": "cases",
+          "label": "chargeTotal with the current code (subtotal 99.98)",
+          "spokenLabel": "the test cases",
+          "columns": [
+            {
+              "id": "ship",
+              "label": "Shipping field"
+            },
+            {
+              "id": "expect",
+              "label": "Expected",
+              "numeric": true
+            },
+            {
+              "id": "got",
+              "label": "Charged",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "z",
+              "cells": [
+                "\"0\"",
+                "99.98",
+                "{fix == \"number\" ? \"99.98\" : fix == \"parseint\" ? \"99.98\" : fix == \"plus\" ? \"99.98\" : \"99.98\"}"
+              ]
+            },
+            {
+              "id": "f",
+              "cells": [
+                "\"5.00\"",
+                "104.98",
+                "{fix == \"number\" ? \"104.98\" : fix == \"parseint\" ? \"104.98\" : fix == \"plus\" ? \"NaN\" : \"99.985 (from '99.985.00')\"}"
+              ],
+              "flag": "fix != \"number\" and fix != \"parseint\""
+            },
+            {
+              "id": "n",
+              "cells": [
+                "\"5.99\"",
+                "105.97",
+                "{fix == \"number\" ? \"105.97\" : fix == \"parseint\" ? \"104.98\" : fix == \"plus\" ? \"NaN\" : \"99.985 (from '99.985.99')\"}"
+              ],
+              "flag": "fix != \"number\""
+            }
+          ]
+        }
+      ],
+      "code": [
+        {
+          "id": "src",
+          "label": "cart.js",
+          "language": "JavaScript",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "function chargeTotal(items, shippingInput) {"
+            },
+            {
+              "id": "c1",
+              "text": "  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);"
+            },
+            {
+              "id": "c2",
+              "text": "  const total = subtotal + shippingInput.value;",
+              "when": "fix == \"none\" or fix == \"parseint\"",
+              "mark": "not isNull(typeofAt) and fix == \"none\" ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "  return parseFloat(total);",
+              "when": "fix == \"none\"",
+              "mark": "not isNull(auditAt) ? \"warning\" : \"none\""
+            },
+            {
+              "id": "c4",
+              "text": "  const shipping = parseInt(shippingInput.value);",
+              "when": "fix == \"parseint\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "  return subtotal + shipping;",
+              "when": "fix == \"parseint\" or fix == \"number\""
+            },
+            {
+              "id": "c6",
+              "text": "  return +(subtotal + shippingInput.value);",
+              "when": "fix == \"plus\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c7",
+              "text": "  const shipping = Number(shippingInput.value);",
+              "when": "fix == \"number\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c8",
+              "text": "  if (Number.isNaN(shipping)) throw new Error(\"bad shipping\");",
+              "when": "fix == \"number\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c9",
+              "text": "}"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "sale",
+          "label": "Evening sale",
+          "value": "18:00"
+        }
+      ]
+    }
+  },
+  "objective": "Primitive types, typeof, and type coercion pitfalls (== vs. ===)",
+  "secondaryObjectives": [
+    "Working with forms and form validation"
+  ],
+  "sources": [
+    {
+      "cite": "Addition (+), MDN Web Docs JavaScript reference (last modified 2026-05-11)",
+      "checkedAt": "2026-11-16",
+      "url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/Addition",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'If one side is a string, the other operand is also converted to a string and they are concatenated'; example '\"2\" + 2; // \"22\"'. What parseFloat, parseInt, Number() and unary plus return for the strings in the case ('99.985.00' parses to 99.985 with parseFloat and to NaN with Number or unary plus; parseInt('5.99') is 5) is standard JavaScript behavior not on the fetched page."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the checkout of the Fernwood Gardens online shop (fictional). Since Tuesday's release, finance sees card settlements below order totals. The evening sale starts at 18:00. It is 17:10.",
+    "handover": [
+      "Tuesday's release moved shipping into an editable field so staff can override it."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:10",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shop, the orders and the totals are invented. The sale starts at 18:00, 50 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "typeofAt": {
+      "type": "time",
+      "init": null
+    },
+    "auditAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "number",
+        "parseint",
+        "plus"
+      ],
+      "init": "none"
+    },
+    "testedAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "shippedAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "none",
+        "number",
+        "parseint",
+        "plus"
+      ],
+      "init": "unsent"
+    },
+    "shippedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "concat",
+        "rounding",
+        "gateway"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cases",
+        "manual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "shipped": {
+      "expr": "shippedAs != \"unsent\""
+    },
+    "shippedSec": {
+      "expr": "not isNull(shippedAt) ? timeAt(shippedAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(typeofAt) and (isNull(changedAt) or timeAt(typeofAt) <= timeAt(changedAt))"
+    },
+    "testedCurrent": {
+      "expr": "testPassed and not isNull(testedAt) and timeAt(testedAt) >= timeAt(lastChangeAt)"
+    },
+    "shippedWrong": {
+      "expr": "shippedAs == \"none\" or shippedAs == \"parseint\" or shippedAs == \"plus\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "typeofStep",
+        "audit",
+        "fixNumber",
+        "fixParseInt",
+        "fixPlus",
+        "test",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "typeofStep": {
+      "label": "console.log(typeof subtotal, typeof shippingInput.value) at checkout",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(typeofAt)",
+          "then": [
+            {
+              "set": "typeofAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "number string"
+        },
+        {
+          "finding": "shippingInput.value is a string: a form field's value always is."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Compare yesterday's charged totals with item total plus shipping",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(auditAt)",
+          "then": [
+            {
+              "set": "auditAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "1,240 orders: 922 match; 318 were charged without their shipping (all 318 had shipping above 0). Short by 1,742.50 in all."
+        },
+        {
+          "finding": "Only orders with shipping above zero are wrong, and each is short by exactly its shipping."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixNumber": {
+      "label": "Convert at the boundary: const shipping = Number(shippingInput.value), and reject NaN",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"number\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Convert at the boundary: const shipping = Number(shippingInput.value), and reject NaN.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "fixParseInt": {
+      "label": "Convert with parseInt(shippingInput.value)",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"parseint\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Convert with parseInt(shippingInput.value).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fixPlus": {
+      "label": "Wrap the total in unary plus: +(subtotal + shippingInput.value)",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"plus\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Wrap the total in unary plus: +(subtotal + shippingInput.value).",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "test": {
+      "label": "Run the Jest cases for shipping 0, 5.00 and 5.99",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"number\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "PASS cart.test.js  3 passed: 99.98, 104.98, 105.97 (typeof number)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"parseint\"",
+              "then": [
+                {
+                  "output": "FAIL cart.test.js  shipping 5.99: expected 105.97, received 104.98"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"plus\"",
+              "then": [
+                {
+                  "output": "FAIL cart.test.js  shipping 5.00: expected 104.98, received NaN"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "FAIL cart.test.js  shipping 5.00: expected 104.98, received '99.985.00' (string)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy the hotfix before the 18:00 sale",
+      "group": "Ship",
+      "available": "not busy and not shipped",
+      "why": "Already deployed.",
+      "effects": [
+        {
+          "set": "shippedAs",
+          "to": "fix"
+        },
+        {
+          "set": "shippedAt",
+          "to": "t"
+        },
+        {
+          "output": "Deployed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why shipping went missing from the charge",
+              "options": [
+                {
+                  "value": "concat",
+                  "label": "The shipping field's value is a string, so + concatenated it; parseFloat then read only the first number"
+                },
+                {
+                  "value": "rounding",
+                  "label": "Floating-point rounding"
+                },
+                {
+                  "value": "gateway",
+                  "label": "The payment gateway dropped the shipping line"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the fix works",
+              "options": [
+                {
+                  "value": "cases",
+                  "label": "Tests for shipping 0, 5.00 and 5.99 give number totals of 99.98, 104.98 and 105.97"
+                },
+                {
+                  "value": "manual",
+                  "label": "One test order looked right"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shop, the orders and the totals are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not shipped",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "18:00: the sale started on the faulty checkout.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the release review: what + did with the shipping value, why only some orders were wrong, and how you fixed and tested it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What + did",
+          "criteria": "A form field's value is a string; number + string concatenates ('99.98' + '5.00' is '99.985.00'); parseFloat then reads only 99.985.",
+          "modelAnswer": "subtotal + shippingInput.value concatenated; parseFloat('99.985.00') is 99.985, so shipping vanished."
+        },
+        {
+          "label": "Why only some",
+          "criteria": "With shipping 0 the string is '99.980', which parses to the right total; any nonzero shipping is lost.",
+          "modelAnswer": "Free-shipping orders parse to the right number; 318 with shipping did not."
+        },
+        {
+          "label": "The fix and the test",
+          "criteria": "Convert with Number() where the value enters and reject NaN; not parseInt (drops cents) or unary plus on the joined string (NaN); tests for 0, 5.00 and 5.99.",
+          "modelAnswer": "const shipping = Number(shippingInput.value) with a NaN check; three Jest cases pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shop, the orders and the totals are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not shipped",
+      "class": "recovered",
+      "rationale": "Deploying nothing makes nothing worse, but the sale runs on the faulty checkout; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The shop, the orders and the totals are invented."
+      }
+    }
+  },
+  "endings": {
+    "wrongShipped": {
+      "label": "A wrong total went live",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and shippedWrong",
+      "narrative": "The sale runs on a checkout that charges the wrong amount or refuses orders."
+    },
+    "notShipped": {
+      "label": "Not deployed",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not shipped",
+      "narrative": "Nothing worse went live, but the sale runs on the faulty checkout."
+    },
+    "right": {
+      "label": "Numbers at the boundary, tested, before the sale",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and shippedAs == \"number\" and shippedSec <= deadline and testedCurrent and not isNull(typeofAt)",
+      "narrative": "Shipping is converted to a number where it enters, and every total is charged in full."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The totals are right, but late or untested."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongShipped",
+    "notShipped",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "typeof",
+        "label": "Checked the operands' types before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "typeof: number and string."
+          },
+          {
+            "when": "not isNull(typeofAt)",
+            "score": "partial",
+            "why": "Checked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked what types were being added."
+          }
+        ]
+      },
+      {
+        "id": "convert",
+        "label": "Converted the field with Number() at the boundary and rejected NaN",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(shipped ? shippedAs : fix) == \"number\"",
+            "score": "met",
+            "why": "Number(), with a NaN check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{(shipped ? shippedAs : fix) == \"parseint\" ? \"parseInt drops the cents.\" : (shipped ? shippedAs : fix) == \"plus\" ? \"Unary plus on a concatenated string is NaN.\" : \"Still adds a string.\"}"
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Tested 0, 5.00 and 5.99 after the last change, before deploying",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "testedCurrent and (not shipped or timeAt(testedAt) <= shippedSec)",
+            "score": "met",
+            "why": "All three cases pass."
+          },
+          {
+            "when": "not isNull(testedAt)",
+            "score": "partial",
+            "why": "Tested, but a case failed or a change came later."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never tested the totals."
+          }
+        ]
+      },
+      {
+        "id": "audit",
+        "label": "Measured the damage (yesterday's orders)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(auditAt)",
+            "score": "met",
+            "why": "318 orders, 1,742.50 short."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Finance does not know which orders to correct."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"concat\" and checkDoc == \"cases\"",
+            "score": "met",
+            "why": "Both right."
+          },
+          {
+            "when": "causeDoc == \"concat\" or checkDoc == \"cases\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "deployMin",
+        "label": "Minutes until deployed",
+        "value": "shipped ? shippedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 16"
+      },
+      {
+        "id": "found",
+        "label": "Under-charged orders found",
+        "value": "not isNull(auditAt) ? 318 : 0",
+        "format": "number",
+        "expert": "318"
+      },
+      {
+        "id": "wrongLive",
+        "label": "Faulty totals left live (1 yes, 0 no)",
+        "value": "shippedWrong or not shipped ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "typeof: subtotal is a number, the field's value a string."
+      },
+      {
+        "at": "2-6 min",
+        "text": "Audit yesterday: 318 orders short by exactly their shipping."
+      },
+      {
+        "at": "6-9 min",
+        "text": "Number() at the boundary with a NaN check."
+      },
+      {
+        "at": "9-11 min",
+        "text": "Tests for 0, 5.00 and 5.99 pass."
+      },
+      {
+        "at": "11-14 min",
+        "text": "Deploy before 18:00; hand finance the 318 orders."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: types first, converted at the boundary",
+        "body": "If either side of + is a string, JavaScript concatenates. You checked the types, converted where the value enters, and tested the cases that differ."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The totals are right; it went late or without the tests that prove it."
+      },
+      "wrongShipped": {
+        "headline": "A wrong total went live",
+        "body": "parseInt drops cents, unary plus on a joined string is NaN, and leaving it charges without shipping. Convert the field itself to a number."
+      },
+      "notShipped": {
+        "headline": "Not deployed",
+        "body": "Safe from new harm, but the sale runs short-charging every order with shipping."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A form field's value is always a string. With subtotal a number, subtotal + shippingInput.value converts the number to a string and concatenates ('99.985.00'); parseFloat reads up to the second dot and returns 99.985, so shipping disappears, except when shipping is 0 ('99.980'). Convert the field with Number() where it enters and reject NaN. parseInt drops the cents, and unary plus applied after the concatenation gives NaN. Test 0, 5.00 and 5.99, and give finance the 318 short orders."
+  }
+}

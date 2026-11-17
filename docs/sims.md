@@ -5667,6 +5667,7 @@ engine minor, every existing hash unchanged):
   target); a control chart must have lines. The renderer flags only what the
   document flags: a run-rule signal is the author's `flag`, never computed in
   the app.
+- No `command` or `query` param anywhere in a data-screen document (`dataConsoleProblems`, lib/sim/lint.ts, an error in `sims:lint` and the generator's lint gate).
 - `code`: read-only files or cells (`label`, `language`), each line literal
   text (never a template, so braces are code), at most 160 characters, no
   newline or tab, optional `when` (a fix swaps one line for another) and a
@@ -5734,6 +5735,7 @@ driver `scripts/sim-golden/data-helpers.ts`; checked by
 | PYTHON/py-import-crash-traceback | Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs | read the traceback first; fixed the parsing, no row skipped or zeroed by a broad except; dry run matched the control trailer | py-trace |
 | PCAP/py-import-crash-traceback-pcap (band) | Diagnose syntax, runtime and logic errors from tracebacks and step-by-step tracing, then verify the fix with tests | as the base | py-trace-pcap |
 | PCEP/py-import-crash-traceback-pcep (band) | Handle runtime errors with try and one or more specific except branches, and trace the flow when one is raised | as the base | py-trace-pcep |
+| JAVASCRIPT/js-checkout-shipping-concatenated | Primitive types, typeof, and type coercion pitfalls (== vs. ===) | checked the operands' types first; Number() at the boundary with a NaN check; tested 0, 5.00 and 5.99 | js-coerce |
 | JAVASCRIPT/js-rate-board-zero-percent | Fetching data with the Fetch API and handling JSON responses | looked at the responses first; checks response.ok and shows the failure; a mocked 503 test after the last change | js-fetch |
 | TSNODE/js-rate-board-zero-percent-tsnode (band) | Call another service with fetch, check response.ok, and set a timeout with AbortSignal | as the base, in the board's Node.js proxy | js-fetch-tsnode |
 | PL300/pl300-rls-region-manager | Implementing row-level security roles with DAX filters and mapping groups to them | checked workspace access first; managers are Viewers; a security group mapped to the role | pl300-rls |
@@ -5765,7 +5767,7 @@ these courses share), so no terminal case was banded.
 fetches of URLs that appeared in a search result: Python 3.15 profile,
 pstats (3.16 dev) and "Time complexity of operations on built-in types";
 the Python tutorial's Errors and Exceptions; MDN Using the Fetch API,
-Response.ok and AbortSignal.timeout(); Microsoft Learn "Row-level security
+Response.ok, AbortSignal.timeout() and the Addition (+) reference; Microsoft Learn "Row-level security
 (RLS) with Power BI" and the DAX time intelligence training unit
 ("Additional time intelligence calculations"); SQLBI "Semi-additive measures
 in DAX"; NIST/SEMATECH e-Handbook 6.1.6, 6.3.2, 6.3.2.1 and 6.3.3.2;
@@ -5806,7 +5808,7 @@ workspace roles and sensitivity labels; PCEP CSV conversion; PCAP review and
 CI, AI-generated code, merge conflicts; SQL row multiplication, safe UPDATE
 and DELETE, transactions, foreign key actions, multicolumn index; PYDATA
 merge validation, hidden notebook state, time zones; PYTHON mutable default
-argument, file handling, pytest, asyncio, decorators; JAVASCRIPT type
-coercion, async error handling, DOM and Jest objectives; CSSGB gauge R&R,
+argument, file handling, pytest, asyncio, decorators; JAVASCRIPT async
+error handling, DOM and Jest objectives; CSSGB gauge R&R,
 FMEA, hypothesis tests, regression, multi-vari, DOE plots, pilots, lean flow
 and the control plan cases (P-Q1 to P-Q8).
