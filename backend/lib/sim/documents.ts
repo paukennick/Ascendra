@@ -437,6 +437,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PCCN", "capnography-alarm-saturation-fine"),
   entry("CMSRN", "delirium-night-prn-restraint-order"),
   band("NCLEXRN", "delirium-night-prn-restraint-order-nclexrn"),
+  entry("FNPAANP", "two-falls-not-herself"),
+  band("FNPANCC", "two-falls-not-herself-fnp-role"),
   // ---- end REQ-323 ----
 ];
 
