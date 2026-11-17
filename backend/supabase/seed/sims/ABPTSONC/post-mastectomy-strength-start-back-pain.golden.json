@@ -1,0 +1,459 @@
+{
+  "slug": "post-mastectomy-strength-start-back-pain",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: arm check, back and leg questions, neurologic exam; no loading; emergency department now; a supervised plan for later; surgeon told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "arm",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "backQ",
+          "choice": "night",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "back",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "legs",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mscc"
+          },
+          "seq": 8,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 9,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "planPrt",
+          "params": {
+            "which": "supervised"
+          },
+          "seq": 10,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 73
+        }
+      ],
+      "expect": {
+        "ending": "sentNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "screenFirst": "met",
+          "noLoad": "met",
+          "refer": "met",
+          "armC": "met",
+          "planC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 125,
+          "toCall": 240
+        },
+        "stateHash": "2df7c56e21e67032"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateDecision",
+      "title": "A careful screen with no loading, but the emergency department decision more than 10 minutes after the first sign",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "arm",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "backQ",
+          "choice": "night",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vit",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "back",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "legs",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "planPrt",
+          "params": {
+            "which": "supervised"
+          },
+          "seq": 8,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mscc"
+          },
+          "seq": 9,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 10,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 200
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "screenFirst": "met",
+          "noLoad": "met",
+          "refer": "partial",
+          "armC": "met",
+          "planC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 820
+        },
+        "stateHash": "6a28d7cf5cf83dca"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "loadedFirst",
+      "title": "Starts the resistance circuit before asking about the back, then finds the signs and sends her promptly",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "arm",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "backQ",
+          "choice": "night",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "prt",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "back",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "legs",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mscc"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "planPrt",
+          "params": {
+            "which": "none"
+          },
+          "seq": 9,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "screenFirst": "partial",
+          "noLoad": "missed",
+          "refer": "met",
+          "armC": "met",
+          "planC": "missed",
+          "impression": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 120,
+          "toCall": 60
+        },
+        "stateHash": "63ba403f07588cd3"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "nextWeek",
+      "title": "Failure: hears the back and leg symptoms, calls it mechanical, home weights and an oncology appointment next week",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "back",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "backQ",
+          "choice": "night",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "legs",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mech"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "planPrt",
+          "params": {
+            "which": "home"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "onc"
+          },
+          "seq": 7,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "delayed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "screenFirst": "met",
+          "noLoad": "met",
+          "refer": "missed",
+          "armC": "missed",
+          "planC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 60,
+          "toCall": 60
+        },
+        "stateHash": "af8b15b83b808c8a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "carriedOn",
+      "title": "Failure: takes the front desk's 'sore back' at face value, calls it mechanical and carries on with the circuit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mech"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "continue"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "prt",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "screenFirst": "missed",
+          "noLoad": "missed",
+          "refer": "missed",
+          "armC": "missed",
+          "planC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": -1,
+          "toCall": -1
+        },
+        "stateHash": "3d1be90d610108db"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
