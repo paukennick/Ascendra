@@ -262,6 +262,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // docs/sims.md 22.25), launch courses first. Keep these entries together. ----
   entry("PYTHON", "py-report-too-slow-profile"),
   entry("PL300", "pl300-rls-region-manager"),
+  entry("PL300", "pl300-stock-on-hand-summed"),
   // ---- end REQ-312 ----
 ];
 
@@ -270,6 +271,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
 export const DATA_CONSOLE_SLUGS: readonly string[] = [
   "py-report-too-slow-profile",
   "pl300-rls-region-manager",
+  "pl300-stock-on-hand-summed",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
