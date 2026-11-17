@@ -19047,7 +19047,35 @@
       "prevention_rules": [
         ".ai/checklists/pre-completion.md"
       ],
-      "prevention_notes": "Decision for Nick: extend the focus ring to narrow windows (currently wide only to keep narrow windows unchanged).",
+      "prevention_notes": "Decision for Nick: extend the focus ring to narrow windows (currently wide only to keep narrow windows unchanged). Decided by Nick 2026-11-17 08:59 PT: the ring shows at every web width (REQ-322 follow-up on wave/2026-11-17b).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2420",
+      "date": "2026-11-17",
+      "title": "ABPTSECS GBS sim named a secondary objective by its REQ-319 wording after REQ-324 restored the catalog title",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "On the integration branch wave/2026-11-17b, lib/sim/objectives.test.ts and lib/sim/health-sims-1117.test.ts failed: ABPTSECS/carpal-tunnel-referral-demyelinating-gbs listed 'Recognize demyelinating patterns on nerve conduction studies: ...' as a secondary objective, which is no longer an ABPTSECS objective title.",
+      "how_detected": "lib/sim tests on the merged wave branch (integrator, 2026-11-17)",
+      "root_cause": "Merge-caused: sims-health (REQ-323) was built on origin/master, where REQ-319 had spelled out NCS in the objective title; exam-titles (REQ-324) restored 'on NCS' in the catalog. Each branch passed alone; the sim's objective link only broke once both were merged.",
+      "requirement": "REQ-323",
+      "affected": [
+        "backend/supabase/seed/sims/ABPTSECS/carpal-tunnel-referral-demyelinating-gbs.sim.json"
+      ],
+      "fix_summary": "The sim's secondary objective uses the catalog's restored title ('... on NCS: ...'). No scoring or golden change.",
+      "fix_commits": [
+        "820c99e1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/objectives.test.ts",
+        "backend/lib/sim/health-sims-1117.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "When a branch retitles objectives (REQ-324) and another adds sims in the same round, run lib/sim/objectives.test.ts on the merged branch before reporting.",
       "recurrence_of": ""
     }
   ]
