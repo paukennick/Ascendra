@@ -6,7 +6,8 @@ import { isActive } from "@/lib/progress-sql";
 import { isUuid, normUuid } from "@/lib/visibility";
 import { serverError, unauthorized, forbidden } from "@/lib/http";
 import { AuthError } from "@/lib/auth/requireUser";
-import { AcknowledgementError, requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
+import { AcknowledgementError, MatureSimError, requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
+import { matureSimAckMissingSql, matureSimSql } from "@/lib/mature-content";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { findClientAttempt, recordAttemptTx } from "@/lib/grading-service";
@@ -27,6 +28,7 @@ import {
   ReplayBudgetError,
   SIM_LIMITS,
   isRevealed,
+  matureCapable,
   parseCommands,
   pausedSeconds,
   renderersOn,
@@ -105,6 +107,8 @@ export interface SimRow {
   unit_id: string;
   track_id: string;
   objective_title: string;
+  // REQ-327: a version of this sim's document says `mature: true`.
+  mature: boolean;
 }
 
 // VersionRow and the served-version choice live in lib/sim/server-run.ts
@@ -113,7 +117,7 @@ export interface SimRow {
 export type { VersionRow } from "@/lib/sim/server-run.ts";
 
 const SIM_COLS = `s.id, s.objective_id, s.slug, s.title, s.screen_type, s.safety_family, s.head_version_id,
-                  o.unit_id, cu.track_id, o.title as objective_title`;
+                  o.unit_id, cu.track_id, o.title as objective_title, ${matureSimSql("s")} as mature`;
 
 // Which version new runs get (docs/sims.md 6): never one pulled from rotation
 // by learner reports (REQ-199, item kind 'sim' in item_status, not
@@ -207,9 +211,39 @@ export async function gateSim(userId: string, sim: SimRow, mode: "view" | "resum
 
 // Clinical and fitness sims need the study notice (REQ-165), on every route
 // that starts, syncs, grades or finishes a run.
-async function requireNotice(sim: SimRow, userId: string): Promise<void> {
+//
+// REQ-327: a sim marked mature also needs the learner's 18+ acknowledgement
+// of that course's sims (or of the whole course, for a mental health course),
+// after the course's own gates. `caps` is the build's x-sim-caps: a build
+// that cannot show the sims notice (no `features=mature`, or no header) is
+// told to update the app (409 app_update_required) before anything else is
+// said about the sim, so an older build never shows the course notice for a
+// course that has none. `undefined` means the caller is not the app's run
+// screen ("Report a problem"): the acknowledgement is still required.
+async function requireNotice(sim: SimRow, userId: string, caps?: SimCaps | null): Promise<void> {
   await requireAcknowledgementForObjective(sim.objective_id, userId);
   if (sim.safety_family !== "general") await requireStudyNotice(userId);
+  if (sim.mature) {
+    if (caps !== undefined && !matureCapable(caps)) throw matureUpdate();
+    await requireMatureSimAck(sim, userId);
+  }
+}
+
+// REQ-327: what an older build shows in place of an 18+ sim's brief.
+export const MATURE_UPDATE_BRIEF = "This simulation is for adults (18+). Update the app to open it.";
+
+const matureUpdate = () => new SimError(409, "app_update_required", "Update the app to open this simulation.");
+
+// REQ-327: throws MatureSimError (403 mature_content_required, scope "sims")
+// unless this learner acknowledged the 18+ sims of the sim's course.
+async function requireMatureSimAck(sim: SimRow, userId: string): Promise<void> {
+  const r = await queryOne<{ missing: boolean; category: string | null }>(
+    `select ${matureSimAckMissingSql("$1::uuid", "$2::uuid")} as missing,
+            (select ec.slug from subject_tracks st join education_subcategories esc on esc.id = st.subcategory_id
+               join education_categories ec on ec.id = esc.category_id where st.id = $1) as category`,
+    [sim.track_id, userId]
+  );
+  if (r?.missing !== false) throw new MatureSimError(sim.track_id, sim.id, r?.category ?? null);
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +264,8 @@ export interface SimListItem {
   access: SimAccess;
   // false = "Update the app to open this" (docs/sims.md 5.10).
   runnable: boolean;
+  // REQ-327: for adults (18+); starting it asks for the acknowledgement.
+  mature: boolean;
 }
 
 export type SimScope = { trackId: string } | { unitId: string } | { objectiveId: string };
@@ -275,7 +311,9 @@ export async function listSims(userId: string, scope: SimScope, caps: SimCaps | 
       lastRating: r.last_rating,
       runsFinished: r.runs_finished,
       access: full ? "full" : samples.get(r.track_id) === r.id ? "sample" : "locked",
-      runnable: served?.runnable ?? false,
+      // REQ-327: a build that cannot show the 18+ notice is told to update.
+      runnable: (served?.runnable ?? false) && (!r.mature || matureCapable(caps)),
+      mature: r.mature,
     });
   }
   return out;
@@ -335,6 +373,8 @@ export interface SimView {
     brief: ScenarioDoc["brief"];
     runnable: boolean;
     clientHash: string | null;
+    // REQ-327: for adults (18+).
+    mature: boolean;
   };
   openRun: { id: string; startedAt: string; lastTick: number } | null;
   lastFinished: { id: string; rating: SimDebrief["rating"]; endedAt: string } | null;
@@ -344,6 +384,12 @@ export async function simView(userId: string, simId: string, caps: SimCaps | nul
   const sim = await visibleSim(simId, userId, env);
   if (!sim) throw notFound();
   const access = await gateSim(userId, sim, "view", env);
+  // REQ-327: the brief of an 18+ sim can itself be frank (a patient who says
+  // he wants to die), so a build that can show the notice gets the 403 that
+  // asks for it before any of the sim; an older build gets the sim's title
+  // with the brief withheld and "Update the app", never the content.
+  const olderBuild = sim.mature && !matureCapable(caps);
+  if (sim.mature && !olderBuild) await requireMatureSimAck(sim, userId);
   const open = await queryOne<RunRow>(`select * from sim_runs where user_id = $1 and sim_id = $2 and status = 'open'`, [userId, sim.id]);
   const served = open ? null : await servedVersion(sim, caps, env);
   const versionId = open?.sim_version_id ?? served?.version.id ?? null;
@@ -364,9 +410,10 @@ export async function simView(userId: string, simId: string, caps: SimCaps | nul
       trackId: sim.track_id,
       safetyFamily: sim.safety_family,
       access,
-      brief: v.document.brief,
-      runnable: open ? true : served?.runnable ?? false,
-      clientHash: v.client_hash,
+      brief: olderBuild ? { situation: MATURE_UPDATE_BRIEF } : v.document.brief,
+      runnable: olderBuild ? false : open ? true : served?.runnable ?? false,
+      clientHash: olderBuild ? null : v.client_hash,
+      mature: sim.mature,
     },
     openRun: open ? { id: open.id, startedAt: open.started_at, lastTick: open.last_tick } : null,
     lastFinished: last ? { id: last.id, rating: last.rating, endedAt: last.ended_at } : null,
@@ -454,7 +501,7 @@ export async function startRun(
 ): Promise<RunPayload> {
   const sim = await visibleSim(simId, userId, env);
   if (!sim) throw notFound();
-  await requireNotice(sim, userId);
+  await requireNotice(sim, userId, caps);
   const restart = body?.restart === true;
   await gateSim(userId, sim, restart ? "start" : "resume", env);
   const device = deviceId(body?.deviceId);
@@ -495,13 +542,13 @@ export async function startRun(
 }
 
 // The run row for a route on that run, after the sim checks.
-async function ownRun(userId: string, runId: string, env: Record<string, string | undefined>): Promise<{ run: RunRow; sim: SimRow }> {
+async function ownRun(userId: string, runId: string, env: Record<string, string | undefined>, caps?: SimCaps | null): Promise<{ run: RunRow; sim: SimRow }> {
   if (!isUuid(runId)) throw runNotFound();
   const run = await queryOne<RunRow>(`select * from sim_runs where id = $1 and user_id = $2`, [runId, userId]);
   if (!run) throw runNotFound();
   const sim = await visibleSim(run.sim_id, userId, env);
   if (!sim) throw runNotFound();
-  await requireNotice(sim, userId);
+  await requireNotice(sim, userId, caps);
   return { run, sim };
 }
 
@@ -550,20 +597,21 @@ function syncInput(body: Record<string, unknown> | null, kind: "commands" | "ski
   return { leaseEpoch: b.leaseEpoch as number, commands, tick: (b.tick as number | undefined) ?? null, stateHash };
 }
 
-export async function syncRun(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env): Promise<SyncResult> {
-  return sync(userId, runId, syncInput(body, "commands"), env);
+// REQ-327: `caps` is the request's x-sim-caps (parseCaps); see requireNotice.
+export async function syncRun(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env, caps?: SimCaps | null): Promise<SyncResult> {
+  return sync(userId, runId, syncInput(body, "commands"), env, caps);
 }
 
 // POST /api/sims/runs/:runId/skip { leaseEpoch, seq, tick, timer?, instance? }:
 // skip to a pending wait (the named one, else the soonest). The server
 // builds the skip command from its own replay (the due tick is the server's),
 // stores it like any other and returns it, so the app applies the same one.
-export async function skipWait(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env): Promise<SyncResult> {
-  return sync(userId, runId, syncInput(body, "skip"), env);
+export async function skipWait(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env, caps?: SimCaps | null): Promise<SyncResult> {
+  return sync(userId, runId, syncInput(body, "skip"), env, caps);
 }
 
-async function sync(userId: string, runId: string, input: SyncInput, env: Record<string, string | undefined>): Promise<SyncResult> {
-  const { sim } = await ownRun(userId, runId, env);
+async function sync(userId: string, runId: string, input: SyncInput, env: Record<string, string | undefined>, caps?: SimCaps | null): Promise<SyncResult> {
+  const { sim } = await ownRun(userId, runId, env, caps);
   return withTransaction(async (tx) => {
     const row = await tx.queryOne<RunRow>(`select * from sim_runs where id = $1 and user_id = $2 for update`, [runId, userId]);
     if (!row) throw runNotFound();
@@ -770,7 +818,8 @@ export async function gradeReasoning(
   runId: string,
   body: Record<string, unknown> | null,
   model?: LabStepModel,
-  env: Record<string, string | undefined> = process.env
+  env: Record<string, string | undefined> = process.env,
+  caps?: SimCaps | null
 ): Promise<ReasoningResult> {
   const b = body ?? {};
   if (typeof b.momentId !== "string" || !/^[a-z][a-zA-Z0-9_]{0,47}$/.test(b.momentId)) throw new SimError(400, "bad_request", "momentId is required");
@@ -785,7 +834,7 @@ export async function gradeReasoning(
   const answer = b.answer;
   const clientAttemptId = validClientAttemptId(b.clientAttemptId);
 
-  const { run, sim } = await ownRun(userId, runId, env);
+  const { run, sim } = await ownRun(userId, runId, env, caps);
   const v = await versionDoc(run.sim_version_id);
   const doc = v.document;
   const moment = doc.reasoning[momentId];
@@ -934,10 +983,10 @@ function transcript(d: DebriefData, answers: SimDebrief["reasoningAnswers"]): st
 // time to `tick` when the ending came with no command -- confirms it, scores
 // it, and records ONE attempt (kind 'simtask') for a terminal ending.
 // A learner_quit run records nothing for mastery (9.4). Idempotent.
-export async function finishRun(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env): Promise<SimDebrief> {
+export async function finishRun(userId: string, runId: string, body: Record<string, unknown> | null, env: Record<string, string | undefined> = process.env, caps?: SimCaps | null): Promise<SimDebrief> {
   const b = body ?? {};
   const tick = Number.isInteger(b.tick) && (b.tick as number) >= 0 ? (b.tick as number) : null;
-  const { run: first, sim } = await ownRun(userId, runId, env);
+  const { run: first, sim } = await ownRun(userId, runId, env, caps);
   if (first.status !== "open" && first.score) return first.score;
   if (!Number.isInteger(b.leaseEpoch)) throw new SimError(400, "bad_request", "leaseEpoch is required");
   return withTransaction(async (tx) => {

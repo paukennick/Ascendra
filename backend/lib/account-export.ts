@@ -118,9 +118,10 @@ export const EXPORT_SECTIONS = {
   matureContentConfirmations:
     "select user_id, category_slug, notice_version, min_age, source, confirmed_at from mature_content_confirmations where user_id = $1 order by confirmed_at asc, category_slug asc, notice_version asc",
   // REQ-259 (migration 081): the per-course 18+ acknowledgement with its
-  // attestation: course, notice version, age, where, when.
+  // attestation: course, notice version, age, where, when; REQ-327 (087):
+  // scope, the whole course or that course's 18+ simulations.
   matureCourseAcknowledgements:
-    "select user_id, track_id, notice_version, min_age, source, attested_at from mature_course_acknowledgements where user_id = $1 order by attested_at asc, track_id asc, notice_version asc",
+    "select user_id, track_id, notice_version, min_age, source, scope, attested_at from mature_course_acknowledgements where user_id = $1 order by attested_at asc, track_id asc, notice_version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",

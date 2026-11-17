@@ -1,6 +1,7 @@
 import { ok, readJson } from "@/lib/http";
 import { requireStudyNotice } from "@/lib/study-notice";
 import { requireUser } from "@/lib/auth/requireUser";
+import { parseCaps } from "@/lib/sim/server-run.ts";
 import { gradeReasoning, requireSimsEnabled, simRouteError } from "@/lib/sims";
 
 // REQ-202: seconds this route may run (grading a reasoning moment, up to 3 tries). Never above 300, the Hobby
@@ -20,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ runId: 
     // the study notice that says so must have been accepted -- checked here, not
     // only in the app.
     await requireStudyNotice(user.id);
-    return ok(await gradeReasoning(user.id, runId, body));
+    return ok(await gradeReasoning(user.id, runId, body, undefined, process.env, parseCaps(req.headers.get("x-sim-caps"))));
   } catch (err) {
     return simRouteError(err);
   }

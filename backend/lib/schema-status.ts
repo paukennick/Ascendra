@@ -491,6 +491,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where table_schema = 'public' and table_name = 'app_users' and column_name = 'date_of_birth_entered_at') as ok`,
   },
   {
+    // REQ-327: the course gate and the per-sim gate both filter
+    // mature_course_acknowledgements on scope; without the column every mental
+    // health course route and every 18+ sim fails.
+    migration: "087_mature_sim_acknowledgements.sql",
+    what: "mature_course_acknowledgements.scope (course or sims: the per-sim 18+ gate for sims marked mature in courses outside mental health)",
+    sql: `select exists(select 1 from information_schema.columns
+                       where table_schema = 'public' and table_name = 'mature_course_acknowledgements' and column_name = 'scope')
+             and exists(select 1 from pg_constraint where conname = 'mature_course_acknowledgements_scope_087') as ok`,
+  },
+  {
     // REQ-262: GET/PUT /api/account/teach-order and every lesson open read it.
     migration: "082_teach_order.sql",
     what: "learner_teach_order (the Explain first / Example first order: the random assignment, the learner's own choice; in the account export)",

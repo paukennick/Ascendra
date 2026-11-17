@@ -80,9 +80,22 @@ export interface SimCaps {
   protocol: number;
   engines: { major: number; minor: number }[];
   renderers: { type: string; level: number }[];
+  // REQ-327: what else this build handles, from `features=a,b`. Absent in
+  // every build before REQ-327.
+  features?: string[];
 }
 
-// The app sends `x-sim-caps: protocol=1;engine=1.0;renderers=bedside@3,board@3`.
+// REQ-327: a build that can show the 18+ notice for a course's sims (the 403
+// mature_content_required with scope "sims") sends `features=mature`. A sim
+// marked mature is offered only to such a build; any other is told to update
+// the app and is never sent the brief or the document.
+export const MATURE_SIM_FEATURE = "mature";
+export function matureCapable(caps: SimCaps | null | undefined): boolean {
+  return !!caps && (caps.features ?? []).includes(MATURE_SIM_FEATURE);
+}
+
+// The app sends `x-sim-caps: protocol=1;engine=1.0;renderers=bedside@3,board@3`
+// (REQ-327: and `;features=mature`).
 // Anything malformed is "no capabilities": every version is "Update the app".
 export function parseCaps(header: string | null | undefined): SimCaps | null {
   if (!header || header.length > 300) return null;
@@ -105,6 +118,12 @@ export function parseCaps(header: string | null | undefined): SimCaps | null {
         // limit as sims.screen_type.
         const m = /^([a-z][a-z-]{0,39})@(\d{1,3})$/.exec(r.trim());
         if (m) caps.renderers.push({ type: m[1], level: Number(m[2]) });
+      }
+    }
+    if (k === "features") {
+      for (const f of v.split(",")) {
+        const name = f.trim();
+        if (/^[a-z][a-z0-9-]{0,39}$/.test(name)) (caps.features ??= []).push(name);
       }
     }
   }
