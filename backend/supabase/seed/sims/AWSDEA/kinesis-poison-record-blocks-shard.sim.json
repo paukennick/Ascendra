@@ -1,0 +1,948 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "kinesis-poison-record-blocks-shard",
+  "title": "Outage: one malformed record has held a Kinesis shard for three hours",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dataeng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "06:10 ALARM enrich-telematics IteratorAge > 1 h (now 3 h 04 min, rising)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "07:10: dispatch report missing trucks",
+          "when": "not isNull(reportMissAt)",
+          "at": "timeAt(reportMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "07:10: dispatch report complete",
+          "when": "not isNull(reportOkAt)",
+          "at": "timeAt(reportOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "stream",
+          "label": "Kinesis telematics",
+          "spokenLabel": "the stream",
+          "kind": "4 shards, 24 h retention",
+          "status": "{unblocked ? \"all shards moving\" : \"shard-0002 stuck since 03:02\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        },
+        {
+          "id": "fn",
+          "label": "Lambda enrich-telematics",
+          "spokenLabel": "the function",
+          "kind": "event source mapping, batch 500",
+          "status": "{unblocked ? \"processing\" : \"retrying the same batch\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        },
+        {
+          "id": "dlq",
+          "label": "On-failure destination",
+          "spokenLabel": "the failure destination",
+          "kind": "Set on the event source mapping",
+          "status": "{configured and dest != \"none\" ? \"1 failed record kept\" : \"not set\"}",
+          "tone": "configured and dest == \"s3\" ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "lake",
+          "label": "S3 data lake",
+          "spokenLabel": "the data lake",
+          "kind": "raw/telematics/",
+          "status": "{caughtUp ? \"current\" : skipped ? \"3 h of shard-0002 missing\" : \"behind\"}",
+          "tone": "caughtUp and not skipped ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "stream",
+          "to": "fn",
+          "label": "Event source mapping",
+          "status": "{unblocked ? \"flowing\" : \"blocked on one batch\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "fn",
+          "to": "lake",
+          "label": "Writes",
+          "status": "{caughtUp ? \"caught up\" : unblocked ? \"catching up\" : \"stalled for one shard\"}",
+          "tone": "caughtUp ? \"up\" : \"degraded\""
+        }
+      ]
+    }
+  },
+  "objective": "Invoking a Lambda function from Kinesis",
+  "secondaryObjectives": [
+    "Replayability of an ingestion pipeline"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Data Engineer - Associate (DEA-C01) exam guide: Data Ingestion and Transformation 34%, Data Store Management 26%, Data Operations and Support 22%, Data Security and Governance 18%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/id_id/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.md",
+      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's."
+    },
+    {
+      "cite": "AWS Lambda Developer Guide, Lambda parameters for Amazon Kinesis Data Streams event source mappings",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-kinesis-parameters.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: MaximumRetryAttempts default -1, '-1 means infinite: failed records are retried until the record expires'; MaximumRecordAgeInSeconds default -1; BisectBatchOnFunctionError default false; StartingPosition AT_TIMESTAMP, TRIM_HORIZON or LATEST; FunctionResponseTypes ReportBatchItemFailures. That LATEST reads only new records is general knowledge (to verify)."
+    },
+    {
+      "cite": "AWS Lambda Developer Guide, Retaining discarded batch records for a Kinesis Data Streams event source in Lambda",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/de_de/lambda/latest/dg/kinesis-on-failure-destination.md",
+      "note": "Read directly on 2026-11-17 (German machine translation of the English page). Relevant text: when the function returns an error Lambda retries until the records expire, exceed MaximumRecordAgeInSeconds or reach MaximumRetryAttempts; BisectBatchOnFunctionError splits a failed batch in two to isolate bad records and splitting does not use up retries; 'with the default settings a bad record can block processing on the affected shard for up to one week'; an on-failure destination can be an SNS topic, SQS queue, S3 bucket or Kafka; for SQS and SNS Lambda sends only metadata (shardId, start and end sequence numbers), so the records must be read from the stream before they expire; for S3 it also sends the whole invocation record as payload."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data engineer on call for Tallis Freight, a fictional trucking company. Truck telematics flow into the Kinesis stream telematics (4 shards, 24-hour retention); the Lambda function enrich-telematics reads it and writes to the S3 data lake. The 07:10 dispatch report is built from last night's data. At 06:10 an alarm fired: the function's IteratorAge is over three hours and still rising.",
+    "handover": [
+      "Night shift says three of the four shards look current; nobody changed the function this week.",
+      "Trucks on firmware 4.2 started rolling out at 03:00."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the stream's shards, the function, its failure destination and the data lake.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "reportAt": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The dispatch report builds at 07:10, 60 minutes after the alarm."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "metricsAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "esmAt": {
+      "type": "time",
+      "init": null
+    },
+    "failRecAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "configured": {
+      "type": "bool",
+      "init": false
+    },
+    "dest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "s3",
+        "sqs"
+      ],
+      "init": "none"
+    },
+    "skipped": {
+      "type": "bool",
+      "init": false
+    },
+    "memory": {
+      "type": "bool",
+      "init": false
+    },
+    "reshard": {
+      "type": "bool",
+      "init": false
+    },
+    "unblockAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "poison",
+        "capacity",
+        "throughput"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "unblocked": {
+      "expr": "configured or skipped"
+    },
+    "caughtUp": {
+      "expr": "skipped or (not isNull(unblockAt) and since(unblockAt) >= 1500)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "metrics",
+        "logs",
+        "esm",
+        "configure",
+        "latest",
+        "memory",
+        "reshard",
+        "verify",
+        "failRecord",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "metrics": {
+      "label": "aws cloudwatch get-metric-statistics --metric-name IteratorAge --dimensions Name=FunctionName,Value=enrich-telematics ...",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricsAt)",
+          "then": [
+            {
+              "set": "metricsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name IteratorAge --dimensions Name=FunctionName,Value=enrich-telematics --statistics Maximum --period 900 --start-time 02:45 --end-time 06:15\n02:45  1,204 ms\n03:00  1,388 ms\n03:15  780,000 ms\n04:15  4,380,000 ms\n05:15  7,980,000 ms\n06:00  {unblocked ? \"falling\" : \"10,680,000 ms (rising about one minute per minute)\"}"
+        },
+        {
+          "finding": "The function's oldest unprocessed record has aged in step with the clock since about 03:02: one shard is not moving at all."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "aws logs tail /aws/lambda/enrich-telematics --since 15m",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws logs tail /aws/lambda/enrich-telematics --since 15m\n06:09:41 START shard-0002 batch 500 records, seq 4960...2210 to 4960...7735\n06:09:42 [ERROR] JSONDecodeError: Unterminated string starting at: line 1 column 211 (char 210)\n06:09:42   record seq 4960...2211 partitionKey TRK-4471 firmware 4.2\n06:09:42 END status=error (same batch, attempt 3,118)"
+        },
+        {
+          "finding": "Every invocation on shard-0002 fails on the same record, a truncated payload from a truck on firmware 4.2; the function keeps retrying the same batch."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "esm": {
+      "label": "aws lambda get-event-source-mapping --uuid 7c1e9d2a-telematics",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(esmAt)",
+          "then": [
+            {
+              "set": "esmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws lambda get-event-source-mapping --uuid 7c1e9d2a-telematics --query '[BatchSize,StartingPosition,MaximumRetryAttempts,MaximumRecordAgeInSeconds,BisectBatchOnFunctionError,DestinationConfig]'\n{not configured ? \"500  TRIM_HORIZON  -1  -1  false  (no destination)\" : dest == \"s3\" ? \"500  TRIM_HORIZON  2  -1  true  OnFailure: s3://tallis-telematics-failed\" : dest == \"sqs\" ? \"500  TRIM_HORIZON  2  -1  true  OnFailure: sqs telematics-failed\" : \"500  TRIM_HORIZON  2  -1  true  (no destination)\"}"
+        },
+        {
+          "finding": "Retries are unlimited (-1) and there is no failure destination: the mapping will retry this batch until the record expires from the stream, holding the shard the whole time."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "configure": {
+      "label": "aws lambda update-event-source-mapping --uuid 7c1e9d2a-telematics --bisect-batch-on-function-error --maximum-retry-attempts 2 --destination-config ...",
+      "group": "Fix",
+      "available": "not busy and (not configured)",
+      "why": "Already updated.",
+      "effects": [
+        {
+          "set": "configured",
+          "to": "true"
+        },
+        {
+          "set": "dest",
+          "to": "d"
+        },
+        {
+          "if": "isNull(unblockAt)",
+          "then": [
+            {
+              "set": "unblockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws lambda update-event-source-mapping --uuid 7c1e9d2a-telematics --bisect-batch-on-function-error --maximum-retry-attempts 2 --destination-config '{{\"OnFailure\":{{\"Destination\":\"{d == \"s3\" ? \"arn:aws:s3:::tallis-telematics-failed\" : d == \"sqs\" ? \"arn:aws:sqs:...:telematics-failed\" : \"\"}\"}}}}'\n\"State\": \"Updating\""
+        },
+        {
+          "log": "{d == \"s3\" ? \"Bisecting isolates the bad record; after two retries it goes to S3 with its payload, and the shard moves on.\" : d == \"sqs\" ? \"The shard moves on; SQS gets only the shard and sequence numbers, so the record itself must be read from the stream within 24 hours.\" : \"The shard moves on, and after two retries the bad record is discarded with nothing kept.\"}",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "d",
+          "kind": "choice",
+          "label": "On-failure destination",
+          "options": [
+            {
+              "value": "s3",
+              "label": "S3 bucket tallis-telematics-failed (keeps the record)"
+            },
+            {
+              "value": "sqs",
+              "label": "SQS queue telematics-failed (metadata only)"
+            },
+            {
+              "value": "none",
+              "label": "No destination"
+            }
+          ]
+        }
+      ]
+    },
+    "latest": {
+      "label": "Delete the mapping and recreate it with --starting-position LATEST",
+      "group": "Fix",
+      "available": "not busy and (not skipped and not configured)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "skipped",
+          "to": "true"
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws lambda delete-event-source-mapping --uuid 7c1e9d2a-telematics && aws lambda create-event-source-mapping --function-name enrich-telematics --event-source-arn arn:aws:kinesis:...:stream/telematics --starting-position LATEST\n\"State\": \"Creating\""
+        },
+        {
+          "log": "The new mapping starts at the tip of every shard: three hours of shard-0002, about a quarter of the fleet, are never read.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "memory": {
+      "label": "aws lambda update-function-configuration --function-name enrich-telematics --memory-size 3008 --timeout 300",
+      "group": "Fix",
+      "available": "not busy and (not memory)",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "set": "memory",
+          "to": "true"
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws lambda update-function-configuration --function-name enrich-telematics --memory-size 3008 --timeout 300\n\"LastUpdateStatus\": \"Successful\""
+        },
+        {
+          "log": "More memory and time change nothing: the record fails to parse in 40 ms on any size.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reshard": {
+      "label": "aws kinesis update-shard-count --stream-name telematics --target-shard-count 8 --scaling-type UNIFORM_SCALING",
+      "group": "Fix",
+      "available": "not busy and (not reshard)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "set": "reshard",
+          "to": "true"
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws kinesis update-shard-count --stream-name telematics --target-shard-count 8 --scaling-type UNIFORM_SCALING\n\"CurrentShardCount\": 4, \"TargetShardCount\": 8"
+        },
+        {
+          "log": "Resharding doubles the shard bill; the bad record is still at the head of shard-0002's data, and the batch still fails.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "aws cloudwatch get-metric-statistics ... IteratorAge (last 10 min)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "unblocked",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name IteratorAge --dimensions Name=FunctionName,Value=enrich-telematics --statistics Maximum --period 300\n{caughtUp ? \"1,310 ms (caught up)\" : unblocked ? \"falling: the backlog is draining\" : \"still rising\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "failRecord": {
+      "label": "Read what the failure destination kept for the bad record",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "configured and dest != \"none\"",
+          "then": [
+            {
+              "set": "failRecAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~$ {configured and dest == \"s3\" ? \"aws s3 cp s3://tallis-telematics-failed/aws/lambda/7c1e9d2a/shardId-000000000002/... -\n condition: RetryAttemptsExhausted, startSequenceNumber 4960...2211, payload: TRK-4471 ... (truncated at char 210)\" : configured and dest == \"sqs\" ? \"aws sqs receive-message --queue-url .../telematics-failed\n KinesisBatchInfo: shardId-000000000002, start 4960...2211, end 4960...2211 (no payload: read it from the stream before it expires)\" : \"no failure destination is set: nothing was kept\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "poison",
+                  "label": "One malformed record from firmware 4.2 failed every retry; unlimited retries and no destination held shard-0002"
+                },
+                {
+                  "value": "capacity",
+                  "label": "The function ran out of memory or time"
+                },
+                {
+                  "value": "throughput",
+                  "label": "The stream needed more shards"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= reportAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "caughtUp and not skipped",
+          "then": [
+            {
+              "set": "reportOkAt",
+              "to": "t"
+            },
+            {
+              "log": "07:10: the dispatch report builds with every truck.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "reportMissAt",
+              "to": "t"
+            },
+            {
+              "log": "07:10: the dispatch report builds without a quarter of the fleet.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why one shard stopped, what you changed in the event source mapping, and how the bad record can be replayed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Ties the stuck shard to one record and the mapping's unlimited retries.",
+          "modelAnswer": "The function failed on the same truncated record from firmware 4.2 on every attempt; with MaximumRetryAttempts -1 and no destination, Lambda retries that batch until the record expires, so shard-0002 stopped for three hours while the others stayed current."
+        },
+        {
+          "label": "Change",
+          "criteria": "Bisects, bounds retries and keeps the failure somewhere it can be replayed, without skipping data.",
+          "modelAnswer": "Turned on bisect on function error, set two retries and an S3 on-failure destination, so the bad record is isolated and kept with its payload and the shard moves on. Starting from LATEST would have dropped three hours of a quarter of the fleet."
+        },
+        {
+          "label": "Replay",
+          "criteria": "Says how the kept record gets back into the lake and checks the backlog drained.",
+          "modelAnswer": "IteratorAge fell back to about a second before 07:10; the S3 failure record holds the payload and sequence number, so it can be repaired and replayed once the parser handles firmware 4.2."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), set to 60 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The dispatch report builds at 07:10; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: skipped data, or changes that cost money and fix nothing."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not unblocked",
+      "class": "harm",
+      "rationale": "Closing with the shard still blocked leaves the dispatch report a quarter short.",
+      "source": {
+        "cite": "AWS Lambda Developer Guide, Retaining discarded batch records for a Kinesis Data Streams event source in Lambda",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/de_de/lambda/latest/dg/kinesis-on-failure-destination.md",
+        "note": "Read directly on 2026-11-17 (German machine translation of the English page). Relevant text: when the function returns an error Lambda retries until the records expire, exceed MaximumRecordAgeInSeconds or reach MaximumRetryAttempts; BisectBatchOnFunctionError splits a failed batch in two to isolate bad records and splitting does not use up retries; 'with the default settings a bad record can block processing on the affected shard for up to one week'; an on-failure destination can be an SNS topic, SQS queue, S3 bucket or Kafka; for SQS and SNS Lambda sends only metadata (shardId, start and end sequence numbers), so the records must be read from the stream before they expire; for S3 it also sends the whole invocation record as payload."
+      }
+    }
+  },
+  "endings": {
+    "skippedData": {
+      "label": "Three hours of one shard skipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and skipped",
+      "narrative": "Recreating the mapping at LATEST unblocked the stream by never reading three hours of shard-0002."
+    },
+    "reportMissed": {
+      "label": "Dispatch report short",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(reportMissAt)",
+      "narrative": "At 07:10 shard-0002 had not caught up."
+    },
+    "fixed": {
+      "label": "Shard unblocked, bad record kept for replay",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and configured and dest == \"s3\" and not skipped and isNull(reportMissAt) and not isNull(logsAt) and not isNull(esmAt) and not isNull(verifiedAt) and not isNull(failRecAt) and not memory and not reshard and causeDoc == \"poison\"",
+      "narrative": "The log named the record, the mapping showed unlimited retries, and bisect with an S3 destination freed the shard while keeping the record."
+    },
+    "gaps": {
+      "label": "Unblocked, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The shard moves again, but the record was not kept with its payload, a check was skipped, or a stray change was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "skippedData",
+    "reportMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the record and the mapping's retry settings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(logsAt) and not isNull(esmAt)",
+            "score": "met",
+            "why": "The failing record and the unlimited retries."
+          },
+          {
+            "when": "not isNull(logsAt) or not isNull(esmAt) or not isNull(metricsAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the error or the mapping."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Shard unblocked without skipping data, before 07:10",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "configured and not skipped and isNull(reportMissAt)",
+            "score": "met",
+            "why": "Bisect and bounded retries, in time."
+          },
+          {
+            "when": "unblocked",
+            "score": "partial",
+            "why": "{skipped ? \"Unblocked by skipping three hours.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The shard is still blocked."
+          }
+        ]
+      },
+      {
+        "id": "replay",
+        "label": "Bad record kept for replay, checked, no stray changes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dest == \"s3\" and not isNull(failRecAt) and not isNull(verifiedAt) and not memory and not reshard",
+            "score": "met",
+            "why": "Kept with its payload, read, and the backlog checked."
+          },
+          {
+            "when": "(configured and dest != \"none\") or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Kept as metadata only, a check skipped, or a stray change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing kept to replay."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"poison\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames capacity, not the data."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (skip, memory, shards)",
+        "value": "(skipped ? 1 : 0) + (memory ? 1 : 0) + (reshard ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:10-06:13",
+        "text": "IteratorAge rising since 03:02; the log shows the same batch failing on one truncated record; the mapping has unlimited retries and no destination."
+      },
+      {
+        "at": "06:13-06:15",
+        "text": "Turn on bisect, two retries and an S3 on-failure destination."
+      },
+      {
+        "at": "06:15-06:40",
+        "text": "IteratorAge falls; the S3 failure record holds the payload for replay; the backlog clears before 07:10."
+      }
+    ],
+    "debrief": {
+      "skippedData": {
+        "headline": "Fast, and a quarter of the night is gone",
+        "body": "LATEST starts at the tip of each shard. The backlog behind the bad record was never read, and the stream's 24-hour retention will soon remove it. Bisect, bound the retries and keep the failure in a destination instead."
+      },
+      "reportMissed": {
+        "headline": "The report ran without a quarter of the fleet",
+        "body": "Memory, timeouts and more shards do not move a batch that fails on its data. The function's log names the record; the mapping's retry and destination settings decide whether it can block a shard."
+      },
+      "fixed": {
+        "headline": "Good: unblock without losing data",
+        "body": "You read the error and the mapping before changing anything, isolated the bad record instead of skipping the backlog, kept it with its payload for replay, and confirmed IteratorAge fell before the report."
+      },
+      "gaps": {
+        "headline": "Unblocked, with gaps",
+        "body": "The criteria show what was left: the diagnosis, a destination that keeps the record, the checks, or memory and shard changes that cost money and fixed nothing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A shard whose iterator age grows minute for minute while the others stay current is blocked, not slow. The log shows every attempt failing on the same truncated record, and the mapping retries without limit (-1) with no destination, so Lambda will hold that shard until the record expires. Turn on bisect on function error so the bad record is isolated, bound the retries, and send failures to S3, which keeps the payload so the record can be replayed after the parser is fixed. Do not recreate the mapping at LATEST, which skips the backlog, and do not add memory or shards, which change nothing about a record that cannot be parsed. Confirm IteratorAge falls before the 07:10 report."
+  }
+}

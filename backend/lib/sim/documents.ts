@@ -450,6 +450,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("GCPGAIL", "agent-indirect-prompt-injection-gail"),
   band("AI901", "rag-assistant-data-leak-ai901"),
   band("GCPGAIL", "rag-assistant-data-leak-gail"),
+  entry("AWSDEA", "kinesis-poison-record-blocks-shard"),
   // ---- end REQ-320 ----
 ];
 
