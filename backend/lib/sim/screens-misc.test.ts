@@ -108,7 +108,7 @@ describe("bindings are checked", () => {
   test("a screen type without its bindings is refused", () => {
     for (const [slug, key] of [["cissp-datahall-tailgate-cooling", "facility"], ["ceh-sandbox-invoice-loader", "sandbox"], ["cpt-parq-chest-tightness", "trainer"]] as const) {
       const d = clone(docOf(slug));
-      delete (d.screen as Record<string, unknown>)[key];
+      delete (d.screen as unknown as Record<string, unknown>)[key];
       assert.ok(errors(d).some((m) => m.includes(`screen.${key}`)), slug);
     }
   });

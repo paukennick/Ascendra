@@ -376,7 +376,7 @@ export { entry as documentEntry, band as bandEntry };
 // seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
 // REQ-314 (docs/sims.md 22.27): the documents on the three new screens, by
 // slug (bands included), for lib/sim/screens-misc.test.ts.
-export const REQ314_SLUGS = {
+export const REQ314_SLUGS: { trainer: readonly string[]; facility: readonly string[]; sandbox: readonly string[] } = {
   trainer: [
     "cpt-parq-chest-tightness",
     "ace-parq-chest-tightness",
@@ -392,7 +392,7 @@ export const REQ314_SLUGS = {
   ],
   facility: ["cissp-datahall-tailgate-cooling", "datahall-tailgate-cooling-secplus"],
   sandbox: ["ceh-sandbox-invoice-loader", "sandbox-invoice-loader-cysa"],
-} as const;
+};
 export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
 
 export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && e.slug.startsWith("cnc-") && !REQ314_SLUGS.trainer.includes(e.slug));
