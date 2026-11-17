@@ -1,0 +1,1025 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "oxytocin-tachysystole-late-decels",
+  "title": "Six contractions in ten minutes",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "fhr",
+          "label": "FHR",
+          "spokenLabel": "Fetal heart rate baseline",
+          "value": "fhr",
+          "unit": "bpm",
+          "alarm": {
+            "high": 160,
+            "low": 110
+          },
+          "announce": {
+            "bands": [
+              160,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "var",
+          "label": "Variability",
+          "spokenLabel": "Baseline variability amplitude",
+          "value": "varAmp",
+          "unit": "bpm",
+          "alarm": {
+            "low": 6
+          },
+          "announce": {
+            "bands": [
+              6,
+              3
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "ctx",
+          "label": "Contractions",
+          "spokenLabel": "Contractions per 10 minutes",
+          "value": "ctxShown",
+          "unit": "/10 min",
+          "alarm": {
+            "high": 5
+          },
+          "announce": {
+            "bands": [
+              5
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Maternal blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "infusions": "Oxytocin: {oxy == \"off\" ? \"stopped\" : (oxy == \"half\" ? \"at half the rate\" : (oxy == \"up\" ? \"increased\" : \"running at the current rate\"))}. Position: {pos == \"left\" ? \"left lateral\" : (pos == \"supine\" ? \"flat on her back\" : \"semi-sitting\")}. Bolus: {isNull(bolusAt) ? \"no\" : \"500 mL lactated Ringer's\"}.",
+      "banner": [
+        {
+          "when": "lates and not resolved",
+          "text": "Late decelerations after every contraction."
+        },
+        {
+          "when": "providerHere",
+          "text": "The obstetrician is at the bedside."
+        }
+      ]
+    }
+  },
+  "objective": "Interpret the fetal heart rate baseline: 110 to 160 bpm with moderate variability reassures, and the first response to an abnormal tracing is repositioning, or stopping oxytocin if it is infusing",
+  "secondaryObjectives": [
+    "Testing within the nurse's scope: ECG, point-of-care testing, fetal monitoring",
+    "Titrating a dose against assessment and ordered parameters"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: Reduction of Risk Potential includes testing within the nurse's scope such as fetal monitoring; Pharmacological Therapies includes titrating a dose against ordered parameters."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-16",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Giles A, Prusinski R, Wallace L. Maternal Newborn Nursing (OpenStax, 2024-06-26), 16.4 Nursing Interventions Based on Fetal Heart Rate and Uterine Contraction Patterns",
+      "checkedAt": "2026-11-16",
+      "url": "https://openstax.org/books/maternal-newborn-nursing/pages/16-4-nursing-interventions-based-on-fetal-heart-rate-and-uterine-contraction-patterns",
+      "note": "Read 2026-11-16 through a summarizing fetch with quotes: 'an FHR baseline between 110 and 160 bpm with moderate variability' is one of the most reliable signs of adequate fetal oxygenation; late decelerations go with uteroplacental insufficiency, and Table 16.5 lists 'Discontinue oxytocin', 'Consider terbutaline if tachysystole', 'Change position to left lateral', 'Correct hypotension with fluid bolus' and 'Notify the HCP'; with tachysystole 'the nurse will discontinue oxytocin, if in use, and administer a tocolytic medication such as terbutaline'; Category II tracings get intrauterine resuscitation, and those that do not respond become Category III."
+    },
+    {
+      "cite": "National Certification Corporation. Monograph 2: NICHD terminology and definitions (2016), as hosted by the Oklahoma Perinatal Quality Improvement Collaborative",
+      "checkedAt": "2026-11-16",
+      "url": "https://opqic.org/wp-content/uploads/2026/03/NICHD-Terminology-and-Definitions.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch with quotes: baseline is the approximate mean FHR rounded to 5 bpm over 10 minutes, bradycardia below 110 and tachycardia above 160; moderate variability 'Amplitude range 6-25 bpm'; a late deceleration's nadir occurs after the peak of the contraction; tachysystole is 'more than 5 contractions in a 10 minute segment averaged over a 30 minute period'."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in labor and delivery. You are the RN. Ms. Rivera, 28, first baby, 39 weeks, is being induced with oxytocin; the rate was increased per protocol 30 minutes ago. She is 5 cm, semi-sitting, comfortable with an epidural. The central monitor flags her tracing.",
+    "handover": [
+      "Tracing at 09:00: baseline 140, moderate variability, accelerations. Now you see contractions coming close together.",
+      "Oxytocin protocol: titrate to adequate labor; stop the infusion for tachysystole or an abnormal tracing and notify the obstetrician. Terbutaline only on the obstetrician's order.",
+      "IV lactated Ringer's at maintenance; a bolus is allowed by protocol for hypotension or intrauterine resuscitation."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "The tracing changes over minutes, not seconds; contractions take a while to space out after oxytocin stops.",
+      "Partway through you are asked to write how you read the tracing. The case ends at 10:45, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1s",
+    "maxDuration": "50min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fRise": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "With tachysystole and late decelerations, fetal reserve falls toward a prolonged deceleration in about 14 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fFall": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Once contractions space out, the fetus recovers over tens of minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "leftSlow": {
+      "value": 0.7,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Left lateral position slows the decline. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ctxFall": {
+      "value": 0.12,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "After oxytocin stops, contractions space out over about 10 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmF": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "A prolonged deceleration that needs an emergency birth. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "okF": {
+      "value": 0.3,
+      "source": {
+        "cite": "Giles A, Prusinski R, Wallace L. Maternal Newborn Nursing (OpenStax, 2024-06-26), 16.4 Nursing Interventions Based on Fetal Heart Rate and Uterine Contraction Patterns",
+        "checkedAt": "2026-11-16",
+        "url": "https://openstax.org/books/maternal-newborn-nursing/pages/16-4-nursing-interventions-based-on-fetal-heart-rate-and-uterine-contraction-patterns",
+        "note": "Read 2026-11-16 (see the OpenStax source): a baseline of 110-160 with moderate variability reassures; the case counts a tracing back in that range with no late decelerations as resolved."
+      }
+    },
+    "tachy": {
+      "value": 5,
+      "source": {
+        "cite": "National Certification Corporation. Monograph 2: NICHD terminology and definitions (2016), as hosted by the Oklahoma Perinatal Quality Improvement Collaborative",
+        "checkedAt": "2026-11-16",
+        "url": "https://opqic.org/wp-content/uploads/2026/03/NICHD-Terminology-and-Definitions.pdf",
+        "note": "Read 2026-11-16: tachysystole is more than 5 contractions in 10 minutes averaged over 30 minutes."
+      }
+    },
+    "providerWalk": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Labor and delivery unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The obstetrician reaches the room about 5 min after the call."
+      }
+    },
+    "terbOnset": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Terbutaline spaces contractions within about 5 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "actBy": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Labor and delivery unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: oxytocin stopped and position changed within 5 min. FLAG."
+      }
+    },
+    "callBy": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Labor and delivery unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: the obstetrician told within 10 min. FLAG."
+      }
+    },
+    "endAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Labor and delivery unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The case ends at 10:45."
+      }
+    }
+  },
+  "state": {
+    "f": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "ctx": {
+      "type": "number",
+      "init": 6.2,
+      "min": 2,
+      "max": 9
+    },
+    "oxy": {
+      "type": "enum",
+      "values": [
+        "on",
+        "off",
+        "half",
+        "up"
+      ],
+      "init": "on"
+    },
+    "oxyAt": {
+      "type": "time",
+      "init": null
+    },
+    "pos": {
+      "type": "enum",
+      "values": [
+        "semi",
+        "left",
+        "supine"
+      ],
+      "init": "semi"
+    },
+    "posAt": {
+      "type": "time",
+      "init": null
+    },
+    "supine": {
+      "type": "bool",
+      "init": false
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "reviewAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callGood": {
+      "type": "bool",
+      "init": false
+    },
+    "providerHere": {
+      "type": "bool",
+      "init": false
+    },
+    "terbOrdered": {
+      "type": "bool",
+      "init": false
+    },
+    "terbAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "fhr": {
+      "expr": "round(clamp(140 + 25 * f - (f >= 0.95 ? 70 : 0), 60, 190) / 5) * 5",
+      "unit": "bpm",
+      "precision": 0
+    },
+    "varAmp": {
+      "expr": "round(clamp(15 - 13 * f, 1, 25))",
+      "unit": "bpm",
+      "precision": 0
+    },
+    "ctxShown": {
+      "expr": "round(ctx)",
+      "unit": "/10 min",
+      "precision": 0
+    },
+    "lates": {
+      "expr": "ctx > tachy and f >= okF"
+    },
+    "resolved": {
+      "expr": "f < okF and ctx <= tachy"
+    },
+    "sbp": {
+      "expr": "pos == \"supine\" ? 94 : 116",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "pos == \"supine\" ? 56 : 70",
+      "unit": "mmHg",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "labor",
+      "when": "true",
+      "update": {
+        "ctx": "clamp(ctx + (oxy == \"up\" ? 0.05 : (oxy == \"on\" ? 0 : (oxy == \"half\" ? -ctxFall / 2 : -ctxFall)) - (not isNull(terbAt) and since(terbAt) >= terbOnset ? 0.3 : 0)) * dt / 60, 3, 8)",
+        "f": "max(0.05, f + (ctx > tachy ? fRise * (pos == \"left\" ? leftSlow : 1) * (pos == \"supine\" ? 1.3 : 1) : -fFall) * dt / 60)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "review",
+        "oxytocin",
+        "position",
+        "bolus",
+        "callOb",
+        "terbutaline"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "review": {
+      "label": "Read the last 30 minutes of tracing: baseline, variability, decelerations, contraction frequency",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(reviewAt)",
+          "then": [
+            {
+              "set": "reviewAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "resolved",
+              "then": [
+                {
+                  "log": "Baseline {fhr}, variability {varAmp} bpm (moderate), no late decelerations, contractions {ctxShown} in 10 minutes.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Contractions {ctxShown} in 10 minutes averaged over 30: tachysystole. Baseline {fhr}, variability {varAmp} bpm, and a late deceleration after each contraction, its lowest point after the contraction's peak. Category II.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "oxytocin": {
+      "label": "Change the oxytocin",
+      "group": "Treat",
+      "params": [
+        {
+          "id": "o",
+          "kind": "choice",
+          "label": "Oxytocin",
+          "options": [
+            {
+              "value": "off",
+              "label": "Stop the infusion"
+            },
+            {
+              "value": "half",
+              "label": "Halve the rate"
+            },
+            {
+              "value": "up",
+              "label": "Increase it to get her delivered sooner"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "o == \"off\"",
+              "then": [
+                {
+                  "set": "oxy",
+                  "to": "\"off\""
+                },
+                {
+                  "if": "isNull(oxyAt)",
+                  "then": [
+                    {
+                      "set": "oxyAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Oxytocin stopped at {t|clock}.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "o == \"half\"",
+              "then": [
+                {
+                  "set": "oxy",
+                  "to": "\"half\""
+                },
+                {
+                  "log": "Oxytocin halved. Contractions will space out slowly, if at all.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "oxy",
+                  "to": "\"up\""
+                },
+                {
+                  "log": "Oxytocin increased into tachysystole with late decelerations.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "position": {
+      "label": "Reposition her",
+      "group": "Treat",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Position",
+          "options": [
+            {
+              "value": "left",
+              "label": "Turn her onto her left side"
+            },
+            {
+              "value": "supine",
+              "label": "Lay her flat on her back to get a clearer tracing"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "p == \"left\"",
+              "then": [
+                {
+                  "set": "pos",
+                  "to": "\"left\""
+                },
+                {
+                  "if": "isNull(posAt)",
+                  "then": [
+                    {
+                      "set": "posAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Left lateral, wedge behind her back.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "pos",
+                  "to": "\"supine\""
+                },
+                {
+                  "set": "supine",
+                  "to": "true"
+                },
+                {
+                  "log": "Flat on her back: the uterus presses on her vena cava and her pressure drops to {sbp}/{dbp}.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "bolus": {
+      "label": "500 mL lactated Ringer's bolus (protocol)",
+      "group": "Treat",
+      "available": "isNull(bolusAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "set": "f",
+          "to": "max(0.05, f - 0.05)"
+        },
+        {
+          "log": "Bolus running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "callOb": {
+      "label": "Call the obstetrician (SBAR)",
+      "group": "Call",
+      "available": "isNull(callAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "schedule": "obT",
+          "after": "providerWalk"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(reviewAt)",
+              "then": [
+                {
+                  "set": "callGood",
+                  "to": "true"
+                },
+                {
+                  "set": "terbOrdered",
+                  "to": "true"
+                },
+                {
+                  "log": "You report tachysystole, {ctxShown} in 10, recurrent lates, variability {varAmp}, what you have done. Obstetrician: 'Keep the oxytocin off, terbutaline subcutaneous now, the standard dose, I'm coming.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "You say 'her strip looks bad.' Obstetrician: 'Bad how? What's the baseline, variability, decels, contractions? I'm coming.'",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "terbutaline": {
+      "label": "Terbutaline subcutaneous as ordered",
+      "group": "Treat",
+      "available": "terbOrdered and isNull(terbAt)",
+      "why": "Needs the obstetrician's order, or already given.",
+      "effects": [
+        {
+          "set": "terbAt",
+          "to": "t"
+        },
+        {
+          "log": "Terbutaline given at {t|clock}. Her heart rate rises a little, as expected.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "obT": {
+      "label": "the obstetrician",
+      "wait": {
+        "skipLabel": "the obstetrician arriving (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Labor and delivery unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "providerHere",
+          "to": "true"
+        },
+        {
+          "set": "terbOrdered",
+          "to": "true"
+        },
+        {
+          "log": "The obstetrician reviews the tracing at the bedside.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "worse",
+      "when": "f >= 0.8",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Variability {varAmp} bpm, minimal, and the decelerations are deeper.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "better",
+      "when": "resolved",
+      "mode": "once",
+      "interruptsSkip": false,
+      "effects": [
+        {
+          "log": "Contractions spaced out; variability back to moderate; no late decelerations.",
+          "kind": "good"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(reviewAt) or t >= 180",
+      "question": "How do you read Ms. Rivera's tracing, and what do you do first?",
+      "parts": [
+        {
+          "label": "Interpretation",
+          "criteria": "Names tachysystole (more than 5 contractions in 10 minutes over 30) with recurrent late decelerations and falling variability; contrasts it with the reassuring pattern (baseline 110-160, moderate variability).",
+          "modelAnswer": "Tachysystole, six in ten, with a late deceleration after each contraction and variability drifting down: uteroplacental insufficiency from too much uterine activity. A reassuring tracing would be 110 to 160 with moderate variability."
+        },
+        {
+          "label": "First actions",
+          "criteria": "Stops the oxytocin and turns her to her side first; bolus; SBAR to the obstetrician with the numbers; terbutaline only on order; does not lay her flat or increase the oxytocin.",
+          "modelAnswer": "Stop the oxytocin and turn her to her left side, then a bolus and an SBAR to the obstetrician with the numbers. Terbutaline when ordered. Never flat on her back and never more oxytocin."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= endAt + 240",
+      "class": "harm",
+      "rationale": "An abnormal tracing still unresolved after 45 minutes of tachysystole.",
+      "source": {
+        "cite": "Giles A, Prusinski R, Wallace L. Maternal Newborn Nursing (OpenStax, 2024-06-26), 16.4 Nursing Interventions Based on Fetal Heart Rate and Uterine Contraction Patterns",
+        "checkedAt": "2026-11-16",
+        "url": "https://openstax.org/books/maternal-newborn-nursing/pages/16-4-nursing-interventions-based-on-fetal-heart-rate-and-uterine-contraction-patterns",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: 'an FHR baseline between 110 and 160 bpm with moderate variability' is one of the most reliable signs of adequate fetal oxygenation; late decelerations go with uteroplacental insufficiency, and Table 16.5 lists 'Discontinue oxytocin', 'Consider terbutaline if tachysystole', 'Change position to left lateral', 'Correct hypotension with fluid bolus' and 'Notify the HCP'; with tachysystole 'the nurse will discontinue oxytocin, if in use, and administer a tocolytic medication such as terbutaline'; Category II tracings get intrauterine resuscitation, and those that do not respond become Category III."
+      }
+    }
+  },
+  "endings": {
+    "emergencyBirth": {
+      "label": "A prolonged deceleration",
+      "class": "harm",
+      "when": "f >= harmF",
+      "terminal": true,
+      "narrative": "{t|clock}: the fetal heart rate falls to {fhr} and stays there. The team takes Ms. Rivera for an emergency cesarean birth."
+    },
+    "resolvedFast": {
+      "label": "Tracing back to reassuring",
+      "class": "target",
+      "when": "t >= endAt and resolved and oxy == \"off\" and not isNull(oxyAt) and timeAt(oxyAt) <= actBy and not isNull(posAt) and timeAt(posAt) <= actBy and not supine and callGood and timeAt(callAt) <= callBy",
+      "terminal": true,
+      "narrative": "10:45: baseline {fhr}, moderate variability, no late decelerations, contractions spaced. Oxytocin stopped, side-lying, and the obstetrician told with the numbers."
+    },
+    "resolvedLate": {
+      "label": "10:45, by a slower route",
+      "class": "recovered",
+      "when": "t >= endAt",
+      "terminal": true,
+      "narrative": "10:45: no emergency birth, but the first responses came slowly or partly: the oxytocin, the position, or the call."
+    },
+    "time_up": {
+      "label": "Still abnormal",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:50 and the tracing is still abnormal."
+    }
+  },
+  "endingOrder": [
+    "emergencyBirth",
+    "resolvedFast",
+    "resolvedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "oxyStopped",
+        "label": "Oxytocin stopped within 5 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "oxy == \"up\"",
+            "score": "missed",
+            "why": "Oxytocin increased."
+          },
+          {
+            "when": "oxy == \"half\"",
+            "score": "partial",
+            "why": "Only halved; the protocol says stop."
+          },
+          {
+            "when": "isNull(oxyAt)",
+            "score": "missed",
+            "why": "Oxytocin left running."
+          },
+          {
+            "when": "timeAt(oxyAt) <= actBy",
+            "score": "met",
+            "why": "Stopped at {timeAt(oxyAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Stopped at {timeAt(oxyAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "lateral",
+        "label": "Turned to her side within 5 min, never flat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "supine",
+            "score": "missed",
+            "why": "Laid flat on her back."
+          },
+          {
+            "when": "isNull(posAt)",
+            "score": "missed",
+            "why": "Not repositioned."
+          },
+          {
+            "when": "timeAt(posAt) <= actBy",
+            "score": "met",
+            "why": "Left lateral at {timeAt(posAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Left lateral at {timeAt(posAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "called",
+        "label": "Obstetrician told the tracing in numbers within 10 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "The obstetrician was not called."
+          },
+          {
+            "when": "not callGood",
+            "score": "partial",
+            "why": "Called without reading the tracing."
+          },
+          {
+            "when": "timeAt(callAt) <= callBy",
+            "score": "met",
+            "why": "SBAR at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "SBAR at {timeAt(callAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "read",
+        "label": "Read the tracing systematically within 3 min",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(reviewAt)",
+            "score": "missed",
+            "why": "The tracing was never read systematically."
+          },
+          {
+            "when": "timeAt(reviewAt) <= 180",
+            "score": "met",
+            "why": "Read at {timeAt(reviewAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Read at {timeAt(reviewAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "bolus",
+        "label": "Fluid bolus",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bolusAt)",
+            "score": "met",
+            "why": "Bolus at {timeAt(bolusAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No bolus."
+          }
+        ]
+      },
+      {
+        "id": "tocolytic",
+        "label": "Terbutaline given once ordered",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(terbAt)",
+            "score": "met",
+            "why": "Terbutaline at {timeAt(terbAt)|clock}."
+          },
+          {
+            "when": "terbOrdered",
+            "score": "missed",
+            "why": "Ordered but not given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never ordered: the obstetrician was not told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: tachysystole with lates, stop oxytocin, reposition",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "10:00 to stopping the oxytocin",
+        "value": "isNull(oxyAt) ? -1 : timeAt(oxyAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "ctxEnd",
+        "label": "Contractions per 10 min at the end",
+        "value": "round(ctx)",
+        "format": "number",
+        "expert": "5 or fewer"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Read the strip: six contractions in ten, late decelerations, variability falling. Tachysystole, Category II."
+      },
+      {
+        "at": "10:01",
+        "text": "Stop the oxytocin. Turn her to her left side. Bolus."
+      },
+      {
+        "at": "10:02",
+        "text": "SBAR to the obstetrician with the numbers; terbutaline when ordered."
+      },
+      {
+        "at": "~10:20",
+        "text": "Contractions spaced, variability moderate, lates gone. Restart only on the obstetrician's plan."
+      }
+    ],
+    "debrief": {
+      "emergencyBirth": {
+        "headline": "A prolonged deceleration",
+        "body": "Tachysystole with late decelerations is fixed at its cause: stop the oxytocin and turn her to her side, first. Increasing it, halving it or laying her flat let the fetus run out of reserve."
+      },
+      "resolvedFast": {
+        "headline": "Tracing back to reassuring",
+        "body": "You read the tracing, stopped the oxytocin, turned her to her side, gave a bolus and the terbutaline, and told the obstetrician in numbers. That is the expert path."
+      },
+      "resolvedLate": {
+        "headline": "Resolved, by a slower route",
+        "body": "Check how soon the oxytocin stopped (not halved), when she was turned, whether she was ever flat, and whether the obstetrician heard numbers."
+      },
+      "time_up": {
+        "headline": "Still abnormal",
+        "body": "Stop the oxytocin and reposition first."
+      }
+    },
+    "modelReasoning": "More than five contractions in ten minutes averaged over thirty is tachysystole, and a late deceleration after each contraction with falling variability says the placenta cannot keep up. A reassuring tracing is a baseline of 110 to 160 with moderate variability (6-25 bpm). The first responses are at the cause: stop the oxytocin and turn her to her left side, add a fluid bolus, and tell the obstetrician the baseline, variability, decelerations and contraction count; terbutaline is given on the obstetrician's order. Laying her flat drops her blood pressure and placental flow, and more oxytocin makes it worse."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "The obstetrician is on the way",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "tachyQ": {
+      "during": "obT",
+      "ask": "While the obstetrician comes: what defines tachysystole?",
+      "choices": [
+        {
+          "id": "five",
+          "label": "More than 5 contractions in 10 minutes, averaged over 30 minutes"
+        },
+        {
+          "id": "three",
+          "label": "3 contractions in 10 minutes"
+        },
+        {
+          "id": "long",
+          "label": "Any contraction longer than 60 seconds"
+        }
+      ],
+      "expect": "five",
+      "explain": "NICHD terminology: more than 5 contractions in a 10-minute segment averaged over a 30-minute period.",
+      "source": {
+        "cite": "National Certification Corporation. Monograph 2: NICHD terminology and definitions (2016), as hosted by the Oklahoma Perinatal Quality Improvement Collaborative",
+        "checkedAt": "2026-11-16",
+        "url": "https://opqic.org/wp-content/uploads/2026/03/NICHD-Terminology-and-Definitions.pdf",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: baseline is the approximate mean FHR rounded to 5 bpm over 10 minutes, bradycardia below 110 and tachycardia above 160; moderate variability 'Amplitude range 6-25 bpm'; a late deceleration's nadir occurs after the peak of the contraction; tachysystole is 'more than 5 contractions in a 10 minute segment averaged over a 30 minute period'."
+      }
+    }
+  }
+}

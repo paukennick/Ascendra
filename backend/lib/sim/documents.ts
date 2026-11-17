@@ -284,6 +284,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CNA", "sundowning-at-the-exit-door"),
   entry("CCRNADULT", "tension-pneumothorax-after-line"),
   entry("NCLEXPN", "head-strike-on-apixaban"),
+  entry("NCLEXRN", "oxytocin-tachysystole-late-decels"),
   // ---- end REQ-315 ----
 ];
 

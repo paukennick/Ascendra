@@ -5673,7 +5673,7 @@ test to NPTE-PT (a student lab with an instructor, not a licensed PT); the
 EMS STEMI and anaphylaxis cases to CCRN Adult (prehospital scope and
 destination decisions).
 
-**New cases (4)**, each with `endingOrder`, endings in all three outcome
+**New cases (5)**, each with `endingOrder`, endings in all three outcome
 classes, three or four critical criteria inside the `target` condition, a
 reasoning moment, a sourced teaching prompt where a named wait exists, a
 chapter, and five or six golden paths (Good, Mediocre, Bad; every criterion
@@ -5685,10 +5685,11 @@ met and missed; every ending but `time_up`):
 | CNA/sundowning-at-the-exit-door | Responding to behavior without escalating it | no hold, locked tray or sedative for convenience; validation instead of correction; unmet needs checked within 15 min | cna-sundown |
 | CCRNADULT/tension-pneumothorax-after-line | Recognize tension pneumothorax ... treated before imaging | chest examined within 3 min; decompression asked for now, not a film, within 5 min; 100% oxygen within 3 min | ccrn-ptx |
 | NCLEXPN/head-strike-on-apixaban | Recognize and report signs of rising intracranial pressure | neuro check within 5 min; the RN told with the data and 911 within 10 min; no opioid or sedating antiemetic | pn-icp |
+| NCLEXRN/oxytocin-tachysystole-late-decels | Interpret the fetal heart rate baseline ... first response is repositioning, or stopping oxytocin | oxytocin stopped (not halved) within 5 min; turned to her side within 5 min, never flat; the obstetrician told the tracing in numbers within 10 min | rn-fhr |
 
 - **Harm endings** are outcomes (a seizure, oversedation, a fall at the
-  door, cardiac arrest, herniation, aspiration while flat), never an action
-  alone. The x-ray-first choice in the tension pneumothorax case ends in
+  door, cardiac arrest, herniation, aspiration while flat, a prolonged fetal deceleration), never an
+  action alone. The x-ray-first choice in the tension pneumothorax case ends in
   arrest only because the 15-minute film is too slow for the authored
   course of the tension.
 - **Scope.** The RN and PN act on standing protocols named in the brief
@@ -5701,7 +5702,10 @@ met and missed; every ending but `time_up`):
   title or date shown), one hospital's CIWA-Ar flowsheet (items and the
   10-point trigger; not a guideline), 42 CFR 483.12 (Cornell LII), Open RN
   Nursing Assistant 10.5, StatPearls Tension Pneumothorax (2025-07-07) and
-  Increased Intracranial Pressure (2025-09-14). Relayed with their dates: the
+  Increased Intracranial Pressure (2025-09-14), OpenStax Maternal Newborn
+  Nursing 16.4 (2024) and NCC's monograph of the NICHD definitions (2016;
+  tachysystole, moderate variability). The terbutaline order carries no dose
+  number. Relayed with their dates: the
   NCLEX test plans, the CCRN handbook, the NNAAP outline, 42 CFR 483.152,
   NICE NG232 through a summary. Every disease course, effect size and local
   wait is an authored teaching value marked `FLAG`.

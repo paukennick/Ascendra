@@ -44,6 +44,7 @@ export const REQ315_SCENARIOS: readonly { course: string; slug: string; screen: 
   { course: "CNA", slug: "sundowning-at-the-exit-door", screen: "bedside" },
   { course: "CCRNADULT", slug: "tension-pneumothorax-after-line", screen: "bedside" },
   { course: "NCLEXPN", slug: "head-strike-on-apixaban", screen: "bedside" },
+  { course: "NCLEXRN", slug: "oxytocin-tachysystole-late-decels", screen: "bedside" },
 ];
 
 const BAND_PATCH_KEYS = ["brief", "objective", "secondaryObjectives", "sources"];

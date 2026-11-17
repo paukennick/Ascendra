@@ -998,10 +998,11 @@ bands where another course's sim already teaches it (docs/sims.md 22.28).
 The tables above are the REQ-296 counts and were not recomputed; this
 section lists what REQ-315 added as a main objective.
 
-- **NCLEXRN** (+7): six bands (supervising delegated care; monitoring for
+- **NCLEXRN** (+8): six bands (supervising delegated care; monitoring for
   bleeding; fluid volume overload during IV therapy; opioid therapy and
-  naloxone; oxygen saturation targets; distributive shock) and the alcohol
-  withdrawal case (CIWA-Ar screening).
+  naloxone; oxygen saturation targets; distributive shock) the alcohol
+  withdrawal case (CIWA-Ar screening) and the oxytocin tachysystole case
+  (fetal heart rate interpretation).
 - **NCLEXPN** (+3): two bands (the six clinical judgment steps in the PN
   role; ranking explanations and taking the most urgent to the RN) and the
   head-strike case (rising intracranial pressure).
@@ -1017,7 +1018,7 @@ section lists what REQ-315 added as a main objective.
 
 Still to build, in the approved order: the rest of the launch courses'
 fitting objectives that no sim has as its main objective (fitting minus
-main, REQ-296 and REQ-315 together: NCLEX-RN 101 of 111, NCLEX-PN 39 of 44,
+main, REQ-296 and REQ-315 together: NCLEX-RN 100 of 111, NCLEX-PN 39 of 44,
 CCRN Adult 73 of 81, CNA 4 of 7, NPTE-PT 27 of 32, NCE 9 of 11, NCMHCE 8
 of 11, DPT 13 of 15, PTPREREQ 1 of 2; many of these are already secondary
 objectives of a sim); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
