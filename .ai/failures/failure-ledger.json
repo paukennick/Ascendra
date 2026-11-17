@@ -18343,6 +18343,101 @@
       "prevention_rules": [],
       "prevention_notes": "A cheap test over every document names the clash at authoring time, before the heavy documents test runs",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2130",
+      "date": "2026-11-16",
+      "title": "Parkinson sim called behavior-change approaches a strong recommendation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "DPT parkinson-freezing-session scoring.modelReasoning said 'the guideline's strong recommendations are ... external cueing for freezing, and behavior-change approaches'.",
+      "how_detected": "REQ-310 source verification pass (guideline full text read 2026-11-16)",
+      "root_cause": "The note was relayed from the course seed and the guideline was only found by title on 2026-11-16; the builder grouped behavior change with the strong recommendations. Osborne et al. 2022 Table 1 gives behavior-change approaches a moderate-strength recommendation.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/parkinson-freezing-session.sim.json"
+      ],
+      "fix_summary": "Model reasoning now says the guideline strongly recommends aerobic exercise, balance and gait training and external cueing, and also recommends behavior-change approaches (moderate strength); source notes dated 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2130"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Strength-of-recommendation claims are checked against the guideline's own table, not a relayed summary.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2131",
+      "date": "2026-11-16",
+      "title": "PTSD content taught the 2017 APA guideline's strength ranking after the 2025 update",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP lab eppp-match-ebt said the APA PTSD guideline 'strongly recommends CBT, cognitive processing therapy, cognitive therapy and prolonged exposure' and conditionally brief eclectic psychotherapy; the NCMHCE trauma sim called CPT 'a strongly recommended treatment' and EMDR one of 'the recommended' therapies, citing the 2019 panel summary.",
+      "how_detected": "REQ-310 source verification pass (apa.org guideline page read 2026-11-16)",
+      "root_cause": "The source was read only as a PubMed abstract of the 2019 summary (2026-11-11); nobody checked for a newer edition. APA Council approved an update in February 2025: CBT, CPT and PE are recommended; cognitive therapy, EMDR and NET are suggested; brief eclectic psychotherapy is no longer listed.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/labs/eppp.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/sims/NCMHCE/ncmhce-trauma-treatment-plan.sim.json"
+      ],
+      "fix_summary": "Lab rubric and model answer follow the 2025 tiers; the lab source and the sim source cite the 2025 guideline page (checked 2026-11-16); sim wording no longer calls EMDR recommended or CPT strongly recommended.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2131"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A verification pass checks the publisher's page for a newer edition, not only the cited abstract.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2132",
+      "date": "2026-11-16",
+      "title": "Volk v. DeMeerleer citation put words in quotation marks the opinion does not use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The ASWB Clinical threat case cited Volk as requiring 'reasonable care, consistent with the standards of the mental health profession'; the opinion says the professional is 'under a duty of reasonable care to act consistent with the standards of the mental health profession and to protect the foreseeable victims'.",
+      "how_detected": "REQ-310 verification pass (slip opinion PDF from courts.wa.gov read 2026-11-16)",
+      "root_cause": "The opinion was read on 2026-11-14 only through a summary of Justia's page, and the summary's paraphrase was placed inside quotation marks.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/ASWBCLINICAL/aswbc-threat-identifiable-person.sim.json"
+      ],
+      "fix_summary": "Citation quotes the opinion verbatim and points at the court's PDF; note dated 2026-11-16. Also re-read RCW 26.44.020/.030/.060/.080, 9A.16.100, 71.05.120 and 42 CFR 483.12/483.24; 483.12(c) citation now includes the abuse and 24-hour branches.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2132"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Quotation marks only around text read in the primary source, never around a summary's paraphrase.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2133",
+      "date": "2026-11-16",
+      "title": "GCPACE bucket sim cited the retired five-section ACE exam guide",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "public-bucket-customer-exports cited 'Section 4 Ensuring successful operation of a cloud solution (~20%), 4.4 Managing storage and database solutions' and both GCPACE sims recorded five section weights (20/17.5/25/20/17.5).",
+      "how_detected": "REQ-310 verification pass (guide PDF read 2026-11-16)",
+      "root_cause": "On 2026-11-14 the builder read Google's guide web page, which still showed the previous five-section guide; the current PDF (live 2026-06-30) has four sections and the course units already followed it. The 'to verify' guide PDF was never opened.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/GCPACE/public-bucket-customer-exports.sim.json",
+        "backend/supabase/seed/sims/GCPACE/cloud-run-bad-revision-rollback.sim.json"
+      ],
+      "fix_summary": "Both sims cite Section 3 (~30%), 3.1 and 3.2 of the current guide, dated 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2133"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim outline citations are checked against the guide the course units follow, not a vendor web page that may be stale.",
+      "recurrence_of": ""
     }
   ]
 }
