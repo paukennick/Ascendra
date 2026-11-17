@@ -426,6 +426,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // emergency department cases, nursing depth and the launch courses.
   entry("NPTEPTA", "pta-back-pain-new-bladder-symptoms"),
   entry("CEN", "triage-indigestion-inferior-stemi"),
+  entry("CEN", "asthma-attack-quiet-chest"),
   // ---- end REQ-323 ----
 ];
 
