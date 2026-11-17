@@ -18561,6 +18561,52 @@
       "prevention_rules": [],
       "prevention_notes": "Run the full lib suite (in parts) after a source verification pass, not only targeted tests.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2125",
+      "date": "2026-11-16",
+      "title": "Two wave bands landed on the same Security+ objective",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "it-wave4.test.ts 'one per objective' failed on the wave branch: ransomware-recovery-site-secplus (REQ-316) and flood-continuity-tabletop-secplus (REQ-313) are both registered on SECPLUS's resilience and recovery objective.",
+      "how_detected": "lib/sim suite on wave/2026-11-17",
+      "root_cause": "The IT and governance builders worked in parallel from the same master and each checked only the documents on its own branch.",
+      "requirement": "REQ-316",
+      "affected": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "fix_summary": "Both kept (different halves of the objective); the test lists the pair as a known shared objective pending a decision by the lead or Nick.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Parallel sim builders should be given disjoint objective lists, or the integration run checks objective overlap across branches.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2126",
+      "date": "2026-11-16",
+      "title": "NBCC session test pinned source dates before the verify pass",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "nbcc-session.test.ts required every source checkedAt to be 2026-11-10 or 2026-11-11; REQ-310 re-read ncmhce-trauma-treatment-plan's APA PTSD guideline on 2026-11-16.",
+      "how_detected": "lib/sim suite on wave/2026-11-17",
+      "root_cause": "The test pinned exact read dates, and the verify pass did not run it.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "fix_summary": "The test also accepts 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full lib/sim suite in chunks after a verification pass that re-dates sources.",
+      "recurrence_of": ""
     }
   ]
 }
