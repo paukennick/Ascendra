@@ -18141,6 +18141,29 @@
       "prevention_rules": [],
       "prevention_notes": "Watch the seed's duration in the post-deploy log; make it faster before it nears 75 minutes.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2130",
+      "date": "2026-11-16",
+      "title": "Parkinson sim called behavior-change approaches a strong recommendation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "DPT parkinson-freezing-session scoring.modelReasoning said 'the guideline's strong recommendations are ... external cueing for freezing, and behavior-change approaches'.",
+      "how_detected": "REQ-310 source verification pass (guideline full text read 2026-11-16)",
+      "root_cause": "The note was relayed from the course seed and the guideline was only found by title on 2026-11-16; the builder grouped behavior change with the strong recommendations. Osborne et al. 2022 Table 1 gives behavior-change approaches a moderate-strength recommendation.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/parkinson-freezing-session.sim.json"
+      ],
+      "fix_summary": "Model reasoning now says the guideline strongly recommends aerobic exercise, balance and gait training and external cueing, and also recommends behavior-change approaches (moderate strength); source notes dated 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2130"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Strength-of-recommendation claims are checked against the guideline's own table, not a relayed summary.",
+      "recurrence_of": ""
     }
   ]
 }

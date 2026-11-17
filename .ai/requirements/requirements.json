@@ -11140,6 +11140,28 @@
       "risk_notes": [
         "A seed that grows past 75 minutes needs to be made faster (batching), not given more time"
       ]
+    },
+    {
+      "id": "REQ-310",
+      "category": "content",
+      "title": "Source verification pass for 'to verify' and summary-only sources",
+      "description": "Read each seed source that builders on 2026-11-14..16 marked 'to verify' or read only through a summary, directly where possible (WebSearch then WebFetch); fix wrong facts with a FAIL entry and regression test; date each note with checkedAt 2026-11-16 or leave it 'to verify' with the reason. Order: clinical, legal, IT, rest.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Every source read on 2026-11-16 has checkedAt 2026-11-16 and a note saying how it was read",
+        "Every corrected fact has a FAIL entry and a regression test",
+        "Unreadable sources stay 'to verify' with the reason"
+      ],
+      "validation_required": [
+        "backend/lib/sim/source-verification.test.ts",
+        "changed sims' goldens rebuilt and tests rerun"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
