@@ -11602,6 +11602,46 @@
         "Linear format is inferred from a fixed form",
         "Not legal advice"
       ]
+    },
+    {
+      "id": "REQ-321",
+      "category": "content",
+      "title": "Sims for the PMI and CompTIA courses that had none: breadth first, bands where a case already teaches the objective",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Production had 252 sims on 74 courses; every PMI course and eight CompTIA courses had none. Investigation: the project dashboard (REQ-311) shipped only Scrum Sprints (PSMI, and CSM bands); no PMI course was ever registered and the predictive mode had no document. No band or registration was broken. This builds, on existing screens only: bands of the Scrum Sprints for PMP, CAPM, PMI-ACP and Project+; bands of terminal, console, board and data-console cases for Server+, CloudNetX, Cloud+, AutoOps+, Data+, DataAI, Tech+, PMI-CPMAI and the CS degree foundations (CMPCBS); and the first predictive case, a PMP clinic fit-out (earned value, change control, a risk trigger, a status report and a contractor's claim) with bands for CAPM, PMI-SP, Project+, PMI-CP and PMI-RMP. PGMP, PFMP, PMI-PMOCP, PMI-PBA, CSPP and CAPA need new cases and are left open with proposals.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/pm-comptia.ts",
+        "backend/lib/sim/pm-comptia.test.ts",
+        "backend/scripts/sim-golden/",
+        "mobile/src/sim/dashboard.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "every course of the round has a sim on its highest-weighted domain except PMI-RMP (risk response only) and the six left open",
+        "each band cites its own course outline read 2026-11-17 first and drops the base course outline",
+        "bands keep their base's behavior and golden outcomes",
+        "no Official Approved or Authorized claims",
+        "the predictive case lints with zero errors and its goldens reach every ending but time_up rated Good Mediocre and Bad",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/pm-comptia.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "lib/sim tests",
+        "mobile src/sim/dashboard.test.ts",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.31",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }
