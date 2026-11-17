@@ -53,4 +53,7 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "PFMP", slug: "pfmp-water-utility-rebalance", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pfmp-rebalance" },
   { course: "PMIPMOCP", slug: "water-utility-rebalance-pmipmocp", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-pmipmocp-water-utility-rebalance-pmipmocp", base: "PFMP/pfmp-water-utility-rebalance" },
   { course: "CSPP", slug: "cspp-school-laptop-p5-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "cspp-p5" },
+  { course: "PMIRMP", slug: "pmirmp-warehouse-risk-register", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pmirmp-register" },
+  { course: "PMP", slug: "warehouse-risk-register-pmp", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-pmp-warehouse-risk-register-pmp", base: "PMIRMP/pmirmp-warehouse-risk-register" },
+  { course: "CAPM", slug: "warehouse-risk-register-capm", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-capm-warehouse-risk-register-capm", base: "PMIRMP/pmirmp-warehouse-risk-register" },
 ];

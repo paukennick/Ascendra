@@ -451,6 +451,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PFMP", "pfmp-water-utility-rebalance"),
   band("PMIPMOCP", "water-utility-rebalance-pmipmocp"),
   entry("CSPP", "cspp-school-laptop-p5-review"),
+  entry("PMIRMP", "pmirmp-warehouse-risk-register"),
+  band("PMP", "warehouse-risk-register-pmp"),
+  band("CAPM", "warehouse-risk-register-capm"),
   // ---- end REQ-321 ----
 ];
 
