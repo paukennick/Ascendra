@@ -1,0 +1,497 @@
+{
+  "slug": "falling-platelets-cold-foot-on-heparin",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: platelets and both legs; infusion, flushes and lock stopped; 4Ts high; intensivist; non-heparin anticoagulant; heparin alert; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "fourTQ",
+          "choice": "fall",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "foot",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stopHep",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "stopFlush",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hit"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "warfQ",
+          "choice": "after",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 88
+        },
+        {
+          "type": "act",
+          "action": "anticoag",
+          "seq": 12,
+          "tick": 88
+        },
+        {
+          "type": "act",
+          "action": "flag",
+          "seq": 13,
+          "tick": 88
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 88
+        }
+      ],
+      "expect": {
+        "ending": "salvaged",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopAll": "met",
+          "anticoagC": "met",
+          "noWarfarin": "met",
+          "footC": "met",
+          "scoreC": "met",
+          "callC": "met",
+          "flagC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 60,
+          "toAnticoag": 440
+        },
+        "stateHash": "ff6918d8de2ca43a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "flushesMissed",
+      "title": "Stops the infusion and calls at once, but the arterial flush and lock keep giving heparin",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "fourTQ",
+          "choice": "fall",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "foot",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stopHep",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hit"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "warfQ",
+          "choice": "after",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "anticoag",
+          "seq": 9,
+          "tick": 88
+        },
+        {
+          "type": "act",
+          "action": "flag",
+          "seq": 10,
+          "tick": 88
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 88
+        }
+      ],
+      "expect": {
+        "ending": "salvagedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "stopAll": "partial",
+          "anticoagC": "met",
+          "noWarfarin": "met",
+          "footC": "met",
+          "scoreC": "met",
+          "callC": "met",
+          "flagC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toAnticoag": 440
+        },
+        "stateHash": "44a6eb0aae609f59"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateStop",
+      "title": "Looks for other causes first and stops the heparin 6 minutes after the result; no heparin alert",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "other",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "fourTQ",
+          "choice": "fall",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "foot",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "stopHep",
+          "seq": 6,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "stopFlush",
+          "seq": 7,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "hit"
+          },
+          "seq": 8,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 100
+        },
+        {
+          "type": "teach",
+          "prompt": "warfQ",
+          "choice": "after",
+          "seq": 10,
+          "tick": 100
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 164
+        },
+        {
+          "type": "act",
+          "action": "anticoag",
+          "seq": 12,
+          "tick": 164
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 164
+        }
+      ],
+      "expect": {
+        "ending": "salvagedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 78,
+        "criteria": {
+          "stopAll": "partial",
+          "anticoagC": "met",
+          "noWarfarin": "met",
+          "footC": "met",
+          "scoreC": "met",
+          "callC": "met",
+          "flagC": "missed",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 380,
+          "toAnticoag": 820
+        },
+        "stateHash": "2c43307b35751b63"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "transfuse",
+      "title": "Failure: reads the platelets, calls it ITP, transfuses platelets and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "fourTQ",
+          "choice": "fall",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "itp"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "platelets",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "limbLoss",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopAll": "missed",
+          "anticoagC": "missed",
+          "noWarfarin": "missed",
+          "footC": "missed",
+          "scoreC": "missed",
+          "callC": "missed",
+          "flagC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toAnticoag": -1
+        },
+        "stateHash": "dafe96ddd978746a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "warfarinStart",
+      "title": "Failure: scores the 4Ts low, keeps the heparin and gives the warfarin from the night plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "fourTQ",
+          "choice": "fall",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dilution"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "warfarin",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "limbLoss",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopAll": "missed",
+          "anticoagC": "missed",
+          "noWarfarin": "missed",
+          "footC": "missed",
+          "scoreC": "missed",
+          "callC": "missed",
+          "flagC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toAnticoag": -1
+        },
+        "stateHash": "e1d92fdfdfbab9b2"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

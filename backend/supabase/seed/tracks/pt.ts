@@ -239,7 +239,7 @@ const PTA_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
 
 export const NPTE_PT_TRACK: SeedTrack = {
   code: "NPTEPT",
-  title: "Prep for a physical therapist licensure exam",
+  title: "Exam Prep for NPTE® (PT)",
   description:
     "The physical therapist licensure examination, built on FSBPT's current NPTE-PT Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges. Independently developed exam prep; not affiliated with or endorsed by the Federation of State Boards of Physical Therapy (FSBPT). NPTE and FSBPT are registered trademarks of FSBPT.",
   trackType: "certification",
@@ -494,7 +494,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NPTE_PTA_TRACK: SeedTrack = {
   code: "NPTEPTA",
-  title: "Prep for a physical therapist assistant licensure exam",
+  title: "Exam Prep for NPTE® (PTA)",
   description:
     "The physical therapist assistant licensure examination, built on FSBPT's current NPTE-PTA Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges. Independently developed exam prep; not affiliated with or endorsed by the Federation of State Boards of Physical Therapy (FSBPT). NPTE and FSBPT are registered trademarks of FSBPT.",
   trackType: "certification",

@@ -25,7 +25,7 @@ export const CEH_LABS: SeedLabSet = {
     // ----- Domain 1: Information Security and Ethical Hacking Overview (1)
     {
       slug: "ceh-engagement-kill-chain",
-      objective: "Apply hacking methodologies and frameworks -- a five-phase ethical hacking methodology, the Cyber Kill Chain and MITRE ATT&CK -- to plan an engagement",
+      objective: "Apply hacking methodologies and frameworks -- the CEH ethical hacking framework, the Cyber Kill Chain and MITRE ATT&CK -- to plan an engagement",
       kind: "case",
       title: "Frame an engagement before any testing starts",
       brief:

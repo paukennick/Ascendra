@@ -177,9 +177,9 @@ const AGE_BANDS = "patient age, scored items: Newborn 3 (2%), Infant 4 (3%), Tod
 
 export const FNPAANP_TRACK: SeedTrack = {
   code: "FNPAANP",
-  title: "Prep for a family nurse practitioner board certification exam (clinical practice focus)",
+  title: "Exam Prep for Family Nurse Practitioner (NP-C®) (clinical practice focus)",
   description:
-    "A family nurse practitioner board certification exam, built on its 2024 examination blueprint: assess, diagnose, plan and evaluate across the lifespan, weighted as the blueprint weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The Family Nurse Practitioner (NP-C®) board certification exam, built on its 2024 examination blueprint: assess, diagnose, plan and evaluate across the lifespan, weighted as the blueprint weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "advanced-practice-nursing",
   freshnessModel: "certification_aligned",
@@ -322,9 +322,9 @@ const ancc = (domain: string, items: number, pct: string, lines: string[]): Unit
 
 export const FNPANCC_TRACK: SeedTrack = {
   code: "FNPANCC",
-  title: "Prep for a family nurse practitioner board certification exam (with professional role topics)",
+  title: "Exam Prep for FNP-BC™ (with professional role topics)",
   description:
-    "A family nurse practitioner board certification exam, built on its test content outline effective October 30, 2026: assessment, diagnosis, planning, implementation and evaluation across the lifespan, weighted as the outline weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The FNP-BC™ family nurse practitioner board certification exam, built on its test content outline effective October 30, 2026: assessment, diagnosis, planning, implementation and evaluation across the lifespan, weighted as the outline weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "advanced-practice-nursing",
   freshnessModel: "certification_aligned",
@@ -355,7 +355,7 @@ export const FNPANCC_TRACK: SeedTrack = {
     durationMinutes: 210,
     questionFormat:
       "175 questions in 3.5 hours, fixed length (every candidate answers the same number of questions): 150 scored and 25 unscored pretest questions, also classified by body system, drug agent and eight age groups.",
-    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. The certifying body's page for this exam reports a 2025 pass rate of 82%.",
+    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. ANCC's FNP page reports a 2025 pass rate of 82%.",
     publishedWeightsNote:
       "ANCC's printed percentages are 17/17/19/33/13, which total 99; the outline says the total does not come to 100 because of rounding (the item counts 26/25/29/50/20 total 150). Kept as printed.",
   },

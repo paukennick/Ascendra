@@ -1,0 +1,814 @@
+{
+  "slug": "containerapp-keyvault-revision-az104",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Revision list and system logs show a 403 on the Key Vault reference; identity has no roles; Key Vault Secrets User on kv-recs; new revision v42b takes traffic; health check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "revList",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sysLogs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "identity",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "roles",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "grantSecretsUser",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 6,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "newRevision",
+          "seq": 11,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 10,
+          "seq": 12,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 13,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 11,
+          "seq": 14,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "kvRole",
+            "prevent": "roleInIac"
+          },
+          "seq": 17,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "readSystemLog": "met",
+          "leastPrivilege": "met",
+          "readyInTime": "met",
+          "noForce": "met",
+          "checkedRoles": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 6,
+          "failedK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "9e03600d65ab4d6c"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "adminRole",
+      "title": "Reads the system log, grants Key Vault Administrator on the whole subscription, new revision works",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sysLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "grantAdmin",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "newRevision",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "kvRole",
+            "prevent": "adminRole"
+          },
+          "seq": 11,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "readSystemLog": "met",
+          "leastPrivilege": "missed",
+          "readyInTime": "met",
+          "noForce": "met",
+          "checkedRoles": "missed",
+          "verified": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToReady": 3,
+          "failedK": 1,
+          "faultsK": 1
+        },
+        "stateHash": "2ed5c769184a1800"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "plainSecret",
+      "title": "Pastes the password back as a plain secret; v42b serves until the 10:45 rotation breaks it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "revList",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "plainSecret",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "newRevision",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 29,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 39,
+          "seq": 14,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 49,
+          "seq": 16,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 49,
+          "seq": 17,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 18,
+          "tick": 49
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "probe",
+            "prevent": "nothing"
+          },
+          "seq": 20,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "rotationOutage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "readSystemLog": "missed",
+          "leastPrivilege": "missed",
+          "readyInTime": "met",
+          "noForce": "met",
+          "checkedRoles": "missed",
+          "verified": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToReady": 4,
+          "failedK": 1,
+          "faultsK": 1
+        },
+        "stateHash": "30573594bcccd482"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "forceTraffic",
+      "title": "Switches to multiple revision mode and sends all traffic to the failed v42: the API answers 503",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "revList",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "forceTraffic",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "image",
+            "prevent": "nothing"
+          },
+          "seq": 7,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "forcedOutage",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "readSystemLog": "missed",
+          "leastPrivilege": "missed",
+          "readyInTime": "missed",
+          "noForce": "missed",
+          "checkedRoles": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToReady": -1,
+          "failedK": 1,
+          "faultsK": 1
+        },
+        "stateHash": "b064029fea1da01e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "retryBlind",
+      "title": "Reads the empty console log, retries the revision unchanged (fails again) and closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "consoleLogs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "newRevision",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "image",
+            "prevent": "nothing"
+          },
+          "seq": 7,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "stillBroken",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "readSystemLog": "missed",
+          "leastPrivilege": "missed",
+          "readyInTime": "missed",
+          "noForce": "met",
+          "checkedRoles": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToReady": -1,
+          "failedK": 2,
+          "faultsK": 0
+        },
+        "stateHash": "9e3264c8b76cd1c5"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Investigates slowly, then the right fix at about 10:40, just before the rotation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "revList",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "consoleLogs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 32,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "sysLogs",
+          "seq": 11,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 33,
+          "seq": 12,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "identity",
+          "seq": 13,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 14,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "roles",
+          "seq": 15,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 35,
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "grantSecretsUser",
+          "seq": 17,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 37,
+          "seq": 18,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "newRevision",
+          "seq": 19,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 41,
+          "seq": 20,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "curl",
+          "seq": 21,
+          "tick": 41
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 42,
+          "seq": 22,
+          "tick": 41
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 23,
+          "tick": 42
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 24,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "kvRole",
+            "prevent": "roleInIac"
+          },
+          "seq": 25,
+          "tick": 42
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "readSystemLog": "met",
+          "leastPrivilege": "met",
+          "readyInTime": "partial",
+          "noForce": "met",
+          "checkedRoles": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToReady": 37,
+          "failedK": 1,
+          "faultsK": 0
+        },
+        "stateHash": "985d11ee04f3418b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

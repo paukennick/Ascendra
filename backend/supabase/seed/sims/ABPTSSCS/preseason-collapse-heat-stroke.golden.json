@@ -1,0 +1,568 @@
+{
+  "slug": "preseason-collapse-heat-stroke",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: CNS signs and a rectal temperature, ice-water immersion at once, 911 to cool first, out at 39 C, parent told, handed to EMS",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "rectal",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ehs"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "cooled",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "immersed",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 166
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 11,
+          "tick": 166
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 166
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "seq": 13,
+          "tick": 166
+        }
+      ],
+      "expect": {
+        "ending": "cooledFirst",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "rectal": "met",
+          "immerse": "met",
+          "stopRight": "met",
+          "ems": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toTub": 125,
+          "toTarget": 830,
+          "coreOutK": 39
+        },
+        "stateHash": "14a3b07c8ab55f6e"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateTub",
+      "title": "History, glucose and vital signs first; rectal temperature and the tub only after several minutes, then cooled correctly",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glu",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vit",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "rectal",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 8,
+          "tick": 132
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ehs"
+          },
+          "seq": 9,
+          "tick": 132
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 10,
+          "tick": 132
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "cooled",
+          "seq": 11,
+          "tick": 132
+        },
+        {
+          "type": "chapter",
+          "chapter": "immersed",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 284
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 13,
+          "tick": 284
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "seq": 14,
+          "tick": 284
+        }
+      ],
+      "expect": {
+        "ending": "cooledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "rectal": "met",
+          "immerse": "partial",
+          "stopRight": "met",
+          "ems": "met",
+          "impression": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "toTub": 660,
+          "toTarget": 1420,
+          "coreOutK": 39
+        },
+        "stateHash": "3231727b13361c1e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "overcooled",
+      "title": "Immersion at once, but left in the tub until below 38 C before handover",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "rectal",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tub",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "cooled",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ehs"
+          },
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "immersed",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 237
+        },
+        {
+          "type": "act",
+          "action": "out",
+          "seq": 10,
+          "tick": 237
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 237
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "seq": 12,
+          "tick": 237
+        }
+      ],
+      "expect": {
+        "ending": "cooledGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "rectal": "met",
+          "immerse": "met",
+          "stopRight": "partial",
+          "ems": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toTub": 120,
+          "toTarget": 1185,
+          "coreOutK": 37.8
+        },
+        "stateHash": "4b9b14faeaa73d8a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "transportHot",
+      "title": "Failure: an oral reading, heat exhaustion, ice towels, and handed to EMS as soon as they arrive",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "oral",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "exhaust"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "towels",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "emsQ",
+          "choice": "cooled",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "handoff",
+          "seq": 9,
+          "tick": 132
+        }
+      ],
+      "expect": {
+        "ending": "hotTransport",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "rectal": "missed",
+          "immerse": "missed",
+          "stopRight": "missed",
+          "ems": "met",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toTub": -1,
+          "toTarget": -1,
+          "coreOutK": -1
+        },
+        "stateHash": "801bab25383d7f22"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "parentDrives",
+      "title": "Failure: sees the confusion and sends him with his parent by car",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "parent"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "hotTransport",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "rectal": "missed",
+          "immerse": "missed",
+          "stopRight": "missed",
+          "ems": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toTub": -1,
+          "toTarget": -1,
+          "coreOutK": -1
+        },
+        "stateHash": "8f61ebd5ecd3bbb5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "icePacksOnly",
+      "title": "Failure: ice packs and waiting, no core temperature and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tempQ",
+          "choice": "rectal",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "packs",
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "organInjury",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "rectal": "missed",
+          "immerse": "missed",
+          "stopRight": "missed",
+          "ems": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toTub": -1,
+          "toTarget": -1,
+          "coreOutK": -1
+        },
+        "stateHash": "ab0e40c3a5b5e8d6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

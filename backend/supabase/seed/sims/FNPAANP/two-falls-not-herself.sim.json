@@ -1,0 +1,1109 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "two-falls-not-herself",
+  "title": "Two falls and 'not herself'",
+  "objective": "Recognize atypical presentations in older adults, such as delirium or falls as the first sign of infection",
+  "secondaryObjectives": [
+    "Build and prioritize a differential diagnosis from history, examination and test results, ruling out the dangerous causes first",
+    "Order, perform and interpret screening and diagnostic tests, including when a test will not change management"
+  ],
+  "sources": [
+    {
+      "cite": "Family nurse practitioner certification exam blueprint (2024): Diagnose",
+      "checkedAt": "2026-11-14",
+      "url": "https://candidateportal.aanpcert.org/certs/fnp",
+      "note": "Relayed from the FNP course seed (backend/supabase/seed/tracks/fnp.ts), which read the blueprint 2026-11-14, not re-read: Diagnose is 26.5% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra FNP course catalog (backend/supabase/seed/tracks/fnp.ts, track FNPAANP)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time' that 'develops over a short period of time'; it 'can be precipitated by medications, adverse medication effects, uncontrolled pain, infections', and urinary or stool retention."
+    },
+    {
+      "cite": "Washington State Department of Health. Medical Providers' Frequently Asked Questions About Urinary Tract Infections (DOH 420-466, March 2023)",
+      "checkedAt": "2026-11-17",
+      "url": "https://doh.wa.gov/sites/default/files/2023-06/420-466-UTIFAQMedicalProviders.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. The IDSA 2019 guideline makes a 'strong recommendation against treating ASB' in older adults; patients who 'are delirious but have no UTI symptoms or systemic signs of infections' should be evaluated for other causes ('IDSA recommends investigating first for other causes for delirium'); 'Falls are, therefore, not considered to be associated with UTI in the elderly'; 'a positive UA on its own is not a very reliable indicator of UTI'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:30 in a family practice. You are the nurse practitioner. Mrs. Gutierrez, 84, comes with her daughter: two falls this week, and since yesterday she is 'not herself', mixing up her grandchildren's names. No cough she mentions, no fever at home.",
+    "handover": [
+      "Hypertension on lisinopril; mild osteoarthritis. Lives with her daughter; walks with a cane; sharp and independent until this week.",
+      "The medical assistant has a urine dipstick ready and says, 'Probably a UTI, they always are at her age.'",
+      "Practice policy: an older adult with signs of sepsis or new hypoxia goes to the emergency department the same visit; the hospital is 10 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the falls and confusion are telling you.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Pneumonia with early sepsis worsens slowly through the visit. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of septic shock in the clinic. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "decideWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The emergency referral decided within 10 minutes of the first finding of infection (practice policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "edTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Calling the emergency department and an ambulance, and the hand-over: about 15 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "camAt": {
+      "type": "time",
+      "init": null
+    },
+    "lungsAt": {
+      "type": "time",
+      "init": null
+    },
+    "dipAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vitals",
+        "cam",
+        "lungs",
+        "dip",
+        "meds"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ed",
+        "abx",
+        "pt"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pna",
+        "uti",
+        "dementia"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 24 * prog + sin(t / 15))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 8 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(122 - 40 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(94 - 8 * prog)",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              92,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 22
+          },
+          "announce": {
+            "bands": [
+              22,
+              26
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "banner": [
+        {
+          "when": "route == \"ed\" and inClinic",
+          "text": "Ambulance called; the emergency department expects her."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "vitals": {
+      "label": "Full vital signs: respiratory rate counted, SpO2, temperature",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cam": {
+      "label": "Delirium screen: onset, attention, thinking, alertness",
+      "group": "Assess",
+      "available": "not testPending and isNull(camAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "lungs": {
+      "label": "Lungs, heart, abdomen, skin, and a look at the bruises from the falls",
+      "group": "Assess",
+      "available": "not testPending and isNull(lungsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"lungs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "dip": {
+      "label": "Urine dipstick",
+      "group": "Assess",
+      "available": "not testPending and isNull(dipAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"dip\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Medication review and orthostatic blood pressure",
+      "group": "Assess",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Record your leading diagnosis",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "pna",
+              "label": "Pneumonia with early sepsis presenting as delirium and falls: an atypical presentation of infection"
+            },
+            {
+              "value": "uti",
+              "label": "Urinary tract infection, from the dipstick"
+            },
+            {
+              "value": "dementia",
+              "label": "Progressing dementia with mechanical falls"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"pna\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pna\""
+                },
+                {
+                  "log": "Leading diagnosis: pneumonia with early sepsis, presenting atypically.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"uti\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"uti\""
+                },
+                {
+                  "log": "Leading diagnosis: UTI.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dementia\""
+                },
+                {
+                  "log": "Leading diagnosis: dementia and mechanical falls.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide the plan",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "ed",
+              "label": "Emergency department now by ambulance: suspected pneumonia with sepsis, new hypoxia and delirium"
+            },
+            {
+              "value": "abx",
+              "label": "Oral antibiotics for a UTI, home with her daughter, review in 3 days"
+            },
+            {
+              "value": "pt",
+              "label": "Physical therapy for falls and a memory clinic referral; follow up in 2 weeks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ed\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ed\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "edTime"
+                },
+                {
+                  "log": "You call the emergency department and an ambulance and hand over by phone.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"abx\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"abx\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A prescription for a urinary antibiotic; they head home.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"pt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "Referrals sent; they head home.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Call the emergency physician: findings, why you suspect pneumonia, her baseline",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-over: two falls and new delirium, respiratory rate {rr}, SpO2 {spo2}%, right basal crackles, dipstick with no urinary symptoms, sharp at baseline.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Exam room",
+      "clock": "running",
+      "actions": [
+        "vitals",
+        "cam",
+        "lungs",
+        "dip",
+        "meds",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Respiratory rate {rr}, SpO2 {spo2}% on room air, temperature 37.6 C (her usual is 36.2), heart rate {hr}, blood pressure {sbp}/{dbp}.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cam\"",
+              "then": [
+                {
+                  "set": "camAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A change since yesterday that comes and goes; can't name the days backward; drifts between topics. Positive: delirium, not her baseline.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"lungs\"",
+              "then": [
+                {
+                  "set": "lungsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Crackles and bronchial breathing at the right base. Abdomen soft, no suprapubic tenderness. Bruised left hip, no deformity.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"dip\"",
+              "then": [
+                {
+                  "set": "dipAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Leukocyte esterase positive, nitrite negative. She has no burning, frequency or urgency.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No new medicines, no sedatives. Standing makes her lightheaded; the systolic drops 14.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving the practice",
+      "wait": {
+        "skipLabel": "her departure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for the ambulance and hand-over; about 10 min to leave with a prescription."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "{route == \"ed\" ? \"The ambulance takes her to the emergency department.\" : \"She goes home with her daughter.\"}",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "What is causing Mrs. Gutierrez's falls and confusion, and what does the dipstick tell you?",
+      "parts": [
+        {
+          "label": "What it is",
+          "criteria": "New delirium and falls in an 84-year-old are an atypical presentation of acute illness; a counted respiratory rate over 22, new hypoxia, a temperature above her baseline and right basal crackles point to pneumonia with early sepsis.",
+          "modelAnswer": "New confusion and falls in a sharp 84-year-old are how infection often presents at her age. Her breathing is fast, her saturation is low, she is warm for her, and she has crackles at the right base: pneumonia with early sepsis."
+        },
+        {
+          "label": "The dipstick and the plan",
+          "criteria": "A positive dipstick without urinary symptoms is likely asymptomatic bacteriuria, not the cause; delirium without urinary symptoms is investigated for other causes; emergency department now.",
+          "modelAnswer": "The dipstick is positive but she has no urinary symptoms; at her age that is usually asymptomatic bacteriuria, and treating it would miss the pneumonia. She goes to the emergency department now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Early sepsis in an older adult still in the exam room an hour on is harm here.",
+      "source": {
+        "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time' that 'develops over a short period of time'; it 'can be precipitated by medications, adverse medication effects, uncontrolled pain, infections', and urinary or stool retention."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Septic shock in the exam room",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= collapseAt and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}, barely rousable. She is in septic shock in the exam room; 911 is called."
+    },
+    "home": {
+      "label": "Sent home with the wrong diagnosis",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inClinic and (route == \"abx\" or route == \"pt\")",
+      "narrative": "That night her daughter finds her barely rousable and calls 911. She arrives in septic shock from a right lower lobe pneumonia."
+    },
+    "edNow": {
+      "label": "Atypical presentation recognized and sent",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ed\" and not isNull(vitalsAt) and not isNull(lungsAt) and not isNull(camAt) and timeAt(callAt) <= timeAt(redFlagAt) + decideWindow",
+      "narrative": "{timeAt(leftAt)|clock}: the ambulance takes her with your findings. You saw infection behind the falls and confusion, and didn't let the dipstick answer the question."
+    },
+    "edGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she goes to the emergency department, but the decision came late, or delirium or the lungs were never examined."
+    },
+    "time_up": {
+      "label": "Still in the exam room at 16:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:30 and Mrs. Gutierrez is still in the exam room."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "home",
+    "edNow",
+    "edGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "vitalsC",
+        "label": "Counted the respiratory rate and checked SpO2 and temperature",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lungsC",
+        "label": "Examined the lungs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lungsAt)",
+            "score": "met",
+            "why": "Crackles found."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "edC",
+        "label": "Emergency department within 10 minutes of the first sign of infection",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ed\" and timeAt(callAt) <= timeAt(redFlagAt) + decideWindow",
+            "score": "met",
+            "why": "Decided at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ed\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"abx\"",
+            "score": "missed",
+            "why": "Home with a urinary antibiotic."
+          },
+          {
+            "when": "route == \"pt\"",
+            "score": "missed",
+            "why": "Referrals for falls and memory."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No decision."
+          }
+        ]
+      },
+      {
+        "id": "camC",
+        "label": "Screened for delirium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(camAt)",
+            "score": "met",
+            "why": "Positive screen."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Did not let the dipstick make the diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"pna\"",
+            "score": "met",
+            "why": "Pneumonia, atypical presentation."
+          },
+          {
+            "when": "dxEnum == \"uti\"",
+            "score": "missed",
+            "why": "A dipstick without urinary symptoms."
+          },
+          {
+            "when": "dxEnum == \"dementia\"",
+            "score": "missed",
+            "why": "Called acute change dementia."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No diagnosis."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Called the emergency physician",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Called."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No call."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: infection presenting as delirium and falls; the dipstick is not the answer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toVitals",
+        "label": "15:30 to a counted respiratory rate",
+        "value": "isNull(vitalsAt) ? -1 : timeAt(vitalsAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toDecide",
+        "label": "First sign of infection to the decision",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30",
+        "text": "Full vital signs, respiratory rate counted: 23, SpO2 91%, 37.6 C against a usual 36.2."
+      },
+      {
+        "at": "~15:31",
+        "text": "Delirium screen: positive. Examination: right basal crackles."
+      },
+      {
+        "at": "~15:33",
+        "text": "Pneumonia with early sepsis presenting as delirium and falls. The dipstick doesn't change that."
+      },
+      {
+        "at": "~15:34",
+        "text": "Emergency department now by ambulance; call the emergency physician."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Shock in the exam room",
+        "body": "In older adults, falls and new confusion can be the first sign of infection. Count the respiratory rate and check SpO2 early."
+      },
+      "home": {
+        "headline": "Home with the wrong diagnosis",
+        "body": "A positive dipstick without urinary symptoms is usually asymptomatic bacteriuria; investigate other causes of delirium. Falls are not explained by bacteriuria."
+      },
+      "edNow": {
+        "headline": "Atypical presentation caught",
+        "body": "You counted the breathing, screened for delirium, found the crackles and sent her the same visit. That is the expert path."
+      },
+      "edGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check how long the decision took and whether delirium and the lungs were examined."
+      },
+      "time_up": {
+        "headline": "Still in the exam room",
+        "body": "Early sepsis in an older adult needs a decision within minutes."
+      }
+    },
+    "modelReasoning": "Two falls and new, fluctuating confusion in a previously sharp 84-year-old are an atypical presentation of acute illness. A counted respiratory rate of 23, an SpO2 of 91%, a temperature well above her usual and right basal crackles point to pneumonia with early sepsis. The positive dipstick without urinary symptoms is likely asymptomatic bacteriuria: guidance advises investigating other causes of delirium first, and falls are not explained by bacteriuria. She goes to the emergency department now."
+  },
+  "chapters": [
+    {
+      "id": "decided",
+      "label": "A plan decided",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "dipQ": {
+      "during": "testT",
+      "ask": "While you examine: what does a positive dipstick mean in an 84-year-old with delirium and no urinary symptoms?",
+      "choices": [
+        {
+          "id": "asb",
+          "label": "Often asymptomatic bacteriuria: look for another cause of the delirium"
+        },
+        {
+          "id": "uti",
+          "label": "A UTI that explains everything"
+        },
+        {
+          "id": "none",
+          "label": "Nothing, ever"
+        }
+      ],
+      "expect": "asb",
+      "explain": "IDSA recommends investigating first for other causes of delirium; a positive UA on its own is not a reliable indicator of UTI.",
+      "source": {
+        "cite": "Washington State Department of Health. Medical Providers' Frequently Asked Questions About Urinary Tract Infections (DOH 420-466, March 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://doh.wa.gov/sites/default/files/2023-06/420-466-UTIFAQMedicalProviders.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. The IDSA 2019 guideline makes a 'strong recommendation against treating ASB' in older adults; patients who 'are delirious but have no UTI symptoms or systemic signs of infections' should be evaluated for other causes ('IDSA recommends investigating first for other causes for delirium'); 'Falls are, therefore, not considered to be associated with UTI in the elderly'; 'a positive UA on its own is not a very reliable indicator of UTI'."
+      }
+    },
+    "atypQ": {
+      "during": "leaveT",
+      "ask": "While the ambulance comes: what can be the first sign of infection in an older adult?",
+      "choices": [
+        {
+          "id": "delir",
+          "label": "New confusion (delirium) or a fall, sometimes without fever"
+        },
+        {
+          "id": "fever",
+          "label": "Always a high fever"
+        },
+        {
+          "id": "cough",
+          "label": "Always a cough she reports"
+        }
+      ],
+      "expect": "delir",
+      "explain": "Delirium develops over a short time and can be precipitated by infection.",
+      "source": {
+        "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time' that 'develops over a short period of time'; it 'can be precipitated by medications, adverse medication effects, uncontrolled pain, infections', and urinary or stool retention."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

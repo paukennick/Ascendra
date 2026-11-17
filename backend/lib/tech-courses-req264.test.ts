@@ -41,9 +41,9 @@ const SKILL = ["SQL", "TSNODE"];
 const ALL = [...Object.keys(CERT), ...SKILL];
 
 describe("REQ-264..268: new technology courses", () => {
-  test("each is in the catalog once with the descriptive title pattern", () => {
+  test("each is in the catalog once with the REQ-324 title pattern", () => {
     for (const code of ALL) assert.equal(CATALOG_TRACKS.filter((t) => t.code === code).length, 1, code);
-    for (const code of Object.keys(CERT)) assert.match(track(code).title, /^Prep for an? [^®™]+ (exam|assessment|test)( \(.+\))?$/, code); // REQ-309: no exam code or mark in the title
+    for (const code of Object.keys(CERT)) assert.match(track(code).title, /^Exam Prep for \S.+$/, code); // REQ-324: the exam is named
     assert.equal(track("SQL").title, "SQL Fundamentals Coach");
     assert.equal(track("TSNODE").title, "TypeScript & Node.js Programming Coach");
   });

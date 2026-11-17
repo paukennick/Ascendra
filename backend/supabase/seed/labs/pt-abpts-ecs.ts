@@ -205,7 +205,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
             part(
               "Lymphedema and skin",
               "Recognizes that lymphedema is not an absolute contraindication (AANEM: judge each case on risk vs value, often limiting needle work in that limb), but that active skin infection over the test site means the study should be postponed until it resolves, informing the referrer.",
-              "Lymphedema alone isn't an absolute bar -- AANEM leaves needle EMG in a lymphedematous limb to case-by-case judgment, and a CTS question can often be answered by nerve conduction studies with little or no needle work in that arm. But the forearm redness may be cellulitis: postpone the study, tell the referring physician, and rebook once the skin has healed."
+              "Lymphedema alone isn't an absolute bar -- AANEM leaves needle EMG in a lymphedematous limb to case-by-case judgment, and a CTS question can often be answered by NCS with little or no needle work in that arm. But the forearm redness may be cellulitis: postpone the study, tell the referring physician, and rebook once the skin has healed."
             ),
           ],
         },
@@ -424,7 +424,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "History: numb feet for two years, slowly creeping up to the ankles. Exam: reduced vibration and pin sensation in a stocking pattern, absent ankle reflexes, normal strength. Nerve conduction studies: sural SNAPs absent bilaterally; peroneal and tibial CMAPs low with mildly slowed velocities; radial and median sensory normal. Needle EMG: chronic neurogenic changes in distal leg muscles only.",
+          text: "History: numb feet for two years, slowly creeping up to the ankles. Exam: reduced vibration and pin sensation in a stocking pattern, absent ankle reflexes, normal strength. NCS: sural SNAPs absent bilaterally; peroneal and tibial CMAPs low with mildly slowed velocities; radial and median sensory normal. Needle EMG: chronic neurogenic changes in distal leg muscles only.",
           ask: "Write the electrodiagnostic diagnosis and the differential it supports.",
           parts: [
             part(
@@ -440,7 +440,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "A second fictional patient with diabetes has 4 months of progressive weakness in both arms and legs, proximal as well as distal, and areflexia. Nerve conduction studies: motor velocities about half the lower limit in several nerves, prolonged distal latencies, conduction block in two nerves at non-entrapment sites, and prolonged F-waves.",
+          text: "A second fictional patient with diabetes has 4 months of progressive weakness in both arms and legs, proximal as well as distal, and areflexia. NCS: motor velocities about half the lower limit in several nerves, prolonged distal latencies, conduction block in two nerves at non-entrapment sites, and prolonged F-waves.",
           ask: "How does your diagnosis and communication change?",
           parts: [
             part(

@@ -1,0 +1,473 @@
+{
+  "slug": "fever-ten-days-after-chemo",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: ANC and an oral temperature; cultures; neutropenic fever; intensivist; antibiotic; precautions; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "ancQ",
+          "choice": "under500",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "temp2",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fn"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "hour",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "prec",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "treated",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "abxC": "met",
+          "noMask": "met",
+          "countC": "met",
+          "precC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 400,
+          "toCall": 60
+        },
+        "stateHash": "4e14b0636cf54bd9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Source and perfusion first, reads the count late, calls 7 minutes after it; no precautions",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "source",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ancQ",
+          "choice": "under500",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "temp2",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fn"
+          },
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "hour",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 11,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 175
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "callC": "partial",
+          "abxC": "met",
+          "noMask": "met",
+          "countC": "met",
+          "precC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 875,
+          "toCall": 360
+        },
+        "stateHash": "66c092a6eb413c1c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "abxFirst",
+      "title": "Calls at once but gives the antibiotic before drawing cultures",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ancQ",
+          "choice": "under500",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "timeQ",
+          "choice": "hour",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fn"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 7,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "temp2",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "chapter",
+          "chapter": "abx",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 82
+        },
+        {
+          "type": "act",
+          "action": "cultures",
+          "seq": 10,
+          "tick": 82
+        },
+        {
+          "type": "act",
+          "action": "prec",
+          "seq": 11,
+          "tick": 82
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 82
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "callC": "met",
+          "abxC": "partial",
+          "noMask": "met",
+          "countC": "met",
+          "precC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 350,
+          "toCall": 0
+        },
+        "stateHash": "c8158b79d1c99085"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "acetaminophen",
+      "title": "Failure: grades it mild, gives acetaminophen and waits for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "count",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ancQ",
+          "choice": "under500",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "mild"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "apap",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "abxC": "missed",
+          "noMask": "missed",
+          "countC": "met",
+          "precC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "toCall": 0
+        },
+        "stateHash": "e9e73e91c5bec640"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "portOnly",
+      "title": "Failure: finds the red port site, calls it a line infection and never reads the count",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "source",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ancQ",
+          "choice": "under500",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "line"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "abxC": "missed",
+          "noMask": "met",
+          "countC": "missed",
+          "precC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "toCall": -1
+        },
+        "stateHash": "2f0f89b63f0a8eaa"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

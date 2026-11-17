@@ -6592,3 +6592,998 @@ The CKA case reuses the CKA curriculum read on 2026-11-14.
    backout plan; the band teaches both (the base case calls it a backout
    plan).
 5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").
+
+### 22.30 Cloud sims, round of 2026-11-17: breadth for the Azure, AWS, Google Cloud and CNCF courses that had none (REQ-320)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This round's rules: every course gets at least one sim on its
+highest-weighted domain, then depth, highest weight first; reuse a case
+another course already has (a band, 4.7) before authoring; existing screens
+only. No engine, renderer, schema or migration change (engine 1.2). The list
+is `lib/sim/it-cloud.ts`; `lib/sim/it-cloud.test.ts` selects every document
+by slug (FAIL-2002) and checks what `it-wave4.test.ts` checks (22.29), with
+the course outline read on 2026-11-17 as each document's first source and no
+permission-only body's marks outside `sources` (REQ-309/319). A behavior test
+per new case checks the decision it teaches.
+
+**Bands (42).** Same construction as 22.29: the course's objective, no
+secondary objectives, the course's outline first, then the base's technical
+sources without the base course's outline; the base's golden paths
+(`npm run sim:golden -- steps c20-<course>-<slug>`). Highest-weighted domain
+first (B), then depth (D).
+
+| Course | Band (base) | Objective (abridged) | |
+|---|---|---|---|
+| AZ104 | containerapp-keyvault-revision-az104 (AI200) | Provisioning a container with Azure Container Apps (compute 20-25%) | B |
+| AZ104 | backup-vault-sabotage-az104 (SC500) | Backup and restore operations with Azure Backup | D |
+| AZ104 | kql-checkout-latency-az104 (AI200) | Querying and analyzing logs in Azure Monitor | D |
+| AZ900 | backup-vault-sabotage-az900 (SC500) | The defense-in-depth model (architecture and services 35-40%) | B |
+| AZ900 | kql-checkout-latency-az900 (AI200) | Azure Monitor, Log Analytics, alerts, Application Insights | D |
+| AZ305 | containerapp-keyvault-revision-az305 (AI200) | Recommending an application configuration management solution (infrastructure 30-35%) | B |
+| AZ305 | kql-checkout-latency-az305, backup-vault-sabotage-az305 | Recommending a monitoring solution; backup and recovery for compute | D |
+| AZ400 | kql-checkout-latency-az400 (AI200) | Designing a deployment strategy incl. feature flags (pipelines 50-55%) | B |
+| AZ400 | containerapp-keyvault-revision-az400 (AI200) | Minimizing downtime during deployments | D |
+| DP900 | stock-on-hand-summed-dp900 (PL300) | Features of data models in Power BI (analytics 25-30%) | B |
+| AWSAIF | agent-indirect-prompt-injection-aif (SECAIPLUS) | Risks of prompt engineering: exposure, poisoning, hijacking, jailbreaking (28%) | B |
+| AWSAIF | rag-assistant-data-leak-aif, loan-data-bias-aif | AI security and privacy risks; dataset characteristics (balance) | D |
+| AWSANS | alb-health-check-login-redirect-ans (AWSSOA) | Integrating load balancers with existing application deployments (design 30%) | B |
+| AWSANS | waf-login-flood-sqli-ans, nat-gateway-bill-spike-ans | Securing inbound flows; weighing risk against cost | D |
+| AWSDOP | canary-rollback-dlq-dop (AWSDVA) | Blue/green and canary deployment methods (SDLC 22%) | B |
+| AWSDOP | ec2-status-check-recovery-dop, alb-health-check-login-redirect-dop, stack-update-rollback-failed-dop | Alarms and EC2 recovery; ALB health checks; failed CloudFormation deployments | D |
+| AWSSCS | leaked-access-key-scs (AWSCLF) | Least-privilege IAM policies (IAM 20%) | B |
+| AWSSCS | waf-login-flood-sqli-scs, phi-in-application-logs-scs, guardduty-role-credentials-macie-scs | Edge protection; log data masking; GuardDuty and Macie findings | D |
+| GCPDEV | cloud-run-bad-revision-rollback-pcd (GCPACE) | Traffic splitting on Cloud Run: rollouts, rollbacks (~32%) | B |
+| GCPDEV | public-bucket-customer-exports-pcd (GCPACE) | Signed URLs for Cloud Storage objects | D |
+| GCPDEVOPS | cloud-run-bad-revision-rollback-devops (GCPACE) | Choosing a deployment strategy and success metrics (CI/CD ~30%) | B |
+| GCPDEVOPS | bigquery-dashboard-bill-devops (GCPCDL) | Optimizing resource usage for cost | D |
+| GCPPCA | bigquery-dashboard-bill-pca (GCPCDL) | Weighing cost optimization against other requirements (~25%) | B |
+| GCPPCA | public-bucket-customer-exports-pca (GCPACE) | Security and access management for storage | D |
+| GCPSEC | public-bucket-customer-exports-sec (GCPACE) | Managing IAM and ACL permissions (access ~25%) | B |
+| GCPGAIL | agent-indirect-prompt-injection-gail (SECAIPLUS) | How agents use tools: extensions, functions, data stores, plugins (~35%) | B |
+| GCPGAIL | rag-assistant-data-leak-gail (SECAIPLUS) | Privacy considerations | D |
+| GCPPDE | bigquery-dashboard-bill-pde (GCPCDL) | Planning for storage cost and performance (~20%; not the top domain) | D |
+| AI901 | rag-assistant-data-leak-ai901 (SECAIPLUS) | Privacy and security in an AI solution (40-45%; not the top domain) | D |
+| CKAD | crashloop-bad-configmap-ckad (CKA) | ConfigMaps (environment, configuration and security 25%) | B |
+| CKAD | service-selector-no-endpoints-ckad (KCNA) | Access to applications via Services and EndpointSlices | D |
+| KCSA | etcd-restore-deleted-namespace-kcsa (CKA) | etcd security: TLS, certificates, backups as sensitive data (22%) | B |
+| CGOA | service-selector-no-endpoints-cgoa (KCNA) | Continuously reconciled: manual changes and drift (principles 30%) | B |
+| CNPA | service-selector-no-endpoints-cnpa (KCNA) | Continuous delivery and GitOps, the role of reconcilers (core 36%) | B |
+| CNPE | service-selector-no-endpoints-cnpe (KCNA) | GitOps workflows: sync, health, drift correction (GitOps and CD 25%) | B |
+
+**New cases (6), terminal screen.** Same pattern as 22.29: learner-paced
+`turns` phase, one `work` wait per command, the problem's next step an
+`interruptsSkip` trigger, harm endings first, one three-part write-up, six
+goldens. Teaching timings carry an "Author's scenario timing (REQ-320)"
+source (FLAG: not measured values). The cases were generated from compact
+specs by a factory script in the builder's scratchpad; the committed JSON is
+the source of truth.
+
+| Course / slug | Profile | Core of the case | Steps |
+|---|---|---|---|
+| CKS/falco-shell-in-catalog-pod | security | Falco: a shell from java fetching a script, then the pod's token calling the API for Secrets; audit log shows db-password read. Save evidence, cut the RoleBinding, quarantine with a label and a deny-all NetworkPolicy; deleting loses evidence and the ReplicaSet brings back the same image and token; muting the rule hides the next attempt | cks-falco |
+| DP300/sleeping-session-blocks-orders | infrastructure | Blocking chain to a sleeping SSMS session with an open archive UPDATE; KILL the head blocker after asking its owner, not the victims; a service restart drops everyone; NOLOCK reads dirty data; then a blocked process report in Extended Events | dp300-blocking |
+| AZ700/stale-udr-to-retired-nva | infrastructure | Next hop and effective routes show 0.0.0.0/0 to a deallocated appliance; point it at Azure Firewall's private IP; deleting the route restores traffic around the firewall; NSG rules and restarts change nothing | az700-udr |
+| PCA/canary-gate-wrong-p99-query | infrastructure | A canary gate runs histogram_quantile on raw cumulative buckets; the right query sums the rate of buckets by le over 5m; a [30s] window over a 30 s scrape and the _sum/_count mean are traps; abort, fix the gate, add a recording rule | pca-p99 |
+| ICA/retry-storm-one-bad-ratings-pod | infrastructure | Ten 30 s retries with no timeout multiply load while round robin keeps sending to a failing pod; bound retries inside a route timeout and eject with outlier detection at maxEjectionPercent 50; 100% can empty the pool | ica-retries |
+| OTCA/split-traces-b3-propagator | infrastructure | payments extracts only B3 while checkout injects W3C traceparent; set payments to tracecontext,baggage; switching checkout to B3 splits everything else; sampling and the collector do not join traces | otca-propagation |
+
+**Still without a sim** (no existing case teaches their top domain, and
+no new case was written this round): AZ120, AZ140, AWSDEA, GCPDBE, GCPMLE,
+GCPNET, KCA, CCA, CBA. AI901 (Foundry, 55-60%) and GCPPDE (ingesting and
+processing, ~25%) have a sim only below their top domain. All fit the
+terminal or data console; none needs a new screen.
+
+**Findings** (recorded; none needed a code fix):
+
+1. **Course seed vs current outlines.** Google Cloud PCA v6.1 weights
+   (~25/18/19/15/11/12) differ slightly from the course seed's
+   (25/17.5/17.5/15/12.5/12.5). A third-party CNPE page lists different
+   domains from the seed's; the official curriculum was not re-read. The
+   Professional Cloud DevOps Engineer guide has a new version live on
+   November 23 (weights match the seed). For the verification pass.
+2. **Official pages that did not load.** The AWS AIF-C01 domain 3 page
+   returned only metadata; its weight was taken from a third-party guide and
+   the course seed. CNCF ecosystem weights (PCA, CGOA, CNPA, ICA) come from
+   the course seed and third-party study pages; the cncf/curriculum PDFs
+   were not re-read. Marked "to verify" in the sources.
+3. **Bands across levels** (as 22.29 finding 3): security-analyst incident
+   cases on AZ900, AWSAIF, GCPGAIL and AI901; an SC-500 incident on AZ305
+   and AZ104. The decision taught matches the objective; the level is the
+   base's. A decision for Nick: keep, or replace with simpler cases later.
+4. **The CKA case's prompt says `cka-lab`** in the CKAD band; CKA is not a
+   permission-only mark, so it was left.
+5. **Template braces.** A literal `{` in terminal output must be written
+   `{{` (parser.ts `parseTemplate`); PromQL label matchers and kubectl
+   jsonpath in the new cases are escaped or reworded.
+
+**Second pass of the round (sims-cloud-2, same REQ-320).** Nick's ask of
+2026-11-17 also covers the nine courses the first pass left without a sim
+and the two whose sim sat below their top domain. No existing case teaches
+any of their top-domain objectives (the closest, the AZ-700 route case and
+the CKA and KCNA cases, teach other decisions), so each got a new terminal
+case built by the same factory (22.30 above), learner-paced, engine 1.2,
+harm endings first, six or seven goldens with a Mediocre path, and a
+behavior test in `it-cloud.test.ts` ("what each case of the second cloud
+round teaches"). Every case's first source is its course outline read on
+2026-11-17; third-party pages and anything taken from memory are marked "to
+verify" in the source notes.
+
+| Course (top domain) | Slug | Profile | Core of the case | Steps |
+|---|---|---|---|---|
+| AWSDEA (ingestion and transformation 34%) | kinesis-poison-record-blocks-shard | infrastructure | One truncated record fails every retry; MaximumRetryAttempts -1 and no destination hold one shard for three hours. Bisect, two retries and an S3 on-failure destination (keeps the payload for replay); SQS keeps only metadata; recreating the mapping at LATEST skips the backlog; memory and shards change nothing | dea-kinesis |
+| GCPNET (VPC design ~21%) | gke-pod-range-exhausted-before-promo | infrastructure | IP_SPACE_EXHAUSTED names the Pod range: a /21 at 110 Pods per node is 8 node blocks. Add a secondary range and a /26-per-node pool (discontiguous multi-Pod CIDR); max Pods cannot change on the old pool, expanding the node subnet is irreversible and useless, rebuilding the cluster is an outage | gcpnet-podrange |
+| GCPDBE (scalable and available design 32%) | cloud-run-exhausts-sql-connections | infrastructure | 184 Cloud Run instances x pool 10 against max_connections 800, mostly idle. Cap instances and pool now (no restart); schedule managed connection pooling for the maintenance window; raising max_connections or enabling the pooler now restarts the database mid-sale | gcpdbe-pooling |
+| GCPMLE (scaling prototypes ~21%) | nightly-retrain-cuda-oom-after-batch-change | infrastructure | A batch-size change makes the nightly retrain run out of GPU memory. Micro-batches of 64 with accumulation of 4 and bf16 keep the tuned effective batch; reverting the batch alone mismatches the learning rate; the A100 has no quota; a retry fails the same way | gcpmle-oom |
+| AZ120 (infrastructure 25-30%, tied) | nva-route-between-sap-app-and-db | infrastructure | A security change routes app-to-database traffic through the hub appliance (not supported for SAP, doubles latency). Remove only that route, keep egress through the firewall, tell the change owner; detaching the table bypasses the firewall, a proximity placement group redeploy is an outage | az120-nva |
+| AZ140 (infrastructure 40-45%) | fslogix-share-missing-share-permission | infrastructure | Profiles moved to a storage account with no share-level permission for users: temporary profiles. Grant SMB Share Contributor (group or default), not Elevated Contributor; PreventLoginWithFailure now locks everyone out; restarts change nothing | az140-fslogix |
+| KCA (writing policies 32%) | policy-enforced-without-reading-reports | infrastructure | A validate rule went to Enforce while its background-scan reports listed 37 failures; a hotfix is refused. Make it comply, set the rule back to Audit, ticket the owners from the reports; deleting the policy is harm, excluding the namespace or turning background off hides the problem | kca-enforce |
+| CCA (architecture 20%) | cluster-pool-exhausted-new-nodes | infrastructure | New nodes keep the agent-not-ready taint: the operator's /22 pool at /24 per node is exhausted. Add a free range as a new element; editing the existing element breaks routing and overlaps a peer; the mask cannot change; restarts change nothing | cca-ipam |
+| CBA (customizing 32%) | plugin-token-marked-frontend | security | A frontend plugin gets 401; PR #88 marks the token @visibility frontend so every browser receives it. Use the backend proxy with the header from the environment, close the PR, rotate the token the preview exposed | cba-proxy |
+| AI901 (Foundry 55-60%) | chat-client-model-name-not-deployment | infrastructure | 404 DeploymentNotFound: the client passes the model name, not the deployment name. Read the deployment name from configuration, keep the key out of the repository, add a system message and test on and off topic | ai901-deploy |
+| GCPPDE (ingesting and processing ~25%) | streaming-window-drops-late-rides | infrastructure | Offline-queued rides arrive up to 25 minutes late into one-minute windows with no allowed lateness. Size lateness from the measured delay, drain (not cancel) and replace, backfill history from the raw archive; processing-time windows put fares in the wrong minute | gcppde-lateness |
+
+After this pass every course in the round's list has a sim on its
+highest-weighted domain (AZ120 on one of its two tied domains).
+
+**Depth bands of the second pass (9).** Same construction as the first
+pass's bands, with the base's own course outline (its first source) dropped
+and the band course's outline first (`bands2.py` in the builder's
+scratchpad; goldens `npm run sim:golden -- steps c20-<course>-<slug>`).
+Each objective is the same decision as the base case's:
+
+| Course | Band (base) | Objective (abridged) |
+|---|---|---|
+| AZ700 | nva-route-between-sap-app-and-db-az700 (AZ120) | Designing and implementing user-defined routes (core networking 25-30%) |
+| GCPPCA | gke-pod-range-exhausted-before-promo-pca (GCPNET) | Designing cloud-native networking, including container networking (~25%) |
+| GCPDEV | cloud-run-exhausts-sql-connections-pcd (GCPDBE) | Managing connections to Google Cloud datastores: Cloud SQL (~21%) |
+| CNPA | policy-enforced-without-reading-reports-cnpa (KCA) | Policy engines for platform governance, conformance reporting (20%) |
+| AZ104 | fslogix-share-missing-share-permission-az104 (AZ140) | Configuring identity-based access for Azure Files (storage 15-20%) |
+| AZ104 | stale-udr-to-retired-nva-az104 (AZ700) | Configuring user-defined routes (networking 15-20%) |
+| KCSA | policy-enforced-without-reading-reports-kcsa (KCA) | Admission control: webhooks, policy engines (threat model 16%) |
+| CNPE | policy-enforced-without-reading-reports-cnpe (KCA) | Policy engines and admission controllers for governance (15%) |
+| AWSDOP | kinesis-poison-record-blocks-shard-dop (AWSDEA) | Event processing workflows with Kinesis and Lambda (14%) |
+
+Candidates looked at and not banded: the GKE Pod range case for AWS
+Advanced Networking's "preventing IP address depletion with secondary CIDRs"
+(a GKE case in an AWS course would teach the wrong service), and the Backstage
+proxy case for the DevOps Engineer's "build-time versus runtime secret
+injection" (a near miss: the case is about where code runs, not when a secret
+is injected).
+
+**Findings of the second pass** (recorded; none needed a code fix, so no
+failure-ledger entry):
+
+1. **Pages that did not load or were not read.** The Kyverno validate-rules
+   page (release 1.18) timed out waiting for fetch approval; the denial text
+   and the per-rule `failureAction` field are from memory (to verify). The
+   KCA, CBA and CCA weights come from the CNCF and Isovalent pages, not the
+   cncf/curriculum PDFs. The Professional Cloud Database Engineer guide page
+   shows no weights; 32% is the course seed's. The Beam lateness facts come
+   from a third-party explanation (to verify against the Beam programming
+   guide).
+2. **Product names in the seed.** The Professional Machine Learning Engineer
+   guide (as of June 1, 2026) says "Agent Platform" (Gemini Enterprise Agent
+   Platform), not Vertex AI, matching the course seed. The case's `gcloud ai`
+   commands are from memory of the CLI (to verify).
+3. **Engine limits met while authoring** (documented behavior, not
+   defects): `+` is numeric only, so text is chosen by nested conditionals;
+   a `number` state needs `min` and `max`; a restore or containment window
+   may only tighten its profile's 60 minutes; braces inside an expression's
+   string literal end the expression, so PowerShell script blocks, Helm list
+   values and JSON in outputs sit outside conditionals and are escaped.
+
+### 22.31 Sims for the PMI and CompTIA courses that had none (REQ-321)
+
+Nick, 2026-11-17: build the breadth and depth sims still needed. Production
+had 252 sims on 74 courses; every PMI course and eight CompTIA courses had
+none.
+
+**Why PMP showed no sims (finding, not a defect).** On origin/master
+(5bbb7f0b) `ALL_DOCUMENTS` has 252 entries over 74 courses, the same as
+production. The project dashboard (22.24) shipped with Scrum Sprints only:
+three PSMI scenarios and their three CSM bands. No document was ever
+registered to a PMI course, and the dashboard's predictive mode had no
+document at all (22.24 left "the predictive PMI cases" open; Phase 1a had
+deferred the Lakeshore clinic PMP prototype). The CSM bands compile and are
+counted, so no band or registration was broken and there is no FAIL entry.
+
+**What this adds** (no new screen, no migration, engine 1.2, all
+learner-paced; `lib/sim/pm-comptia.ts` lists every document by slug for
+`lib/sim/pm-comptia.test.ts`):
+
+- 42 bands (4.7): a case another course already teaches, registered on this
+  course's objective, with this course's outline (read 2026-11-17) as the
+  first source and the base course's outline dropped. Behavior, endings and
+  golden outcomes are the base's.
+- 1 new case: `PMP/pmp-clinic-fitout-schedule-variance`, the first
+  predictive-mode document on the project dashboard.
+
+**The PMP clinic fit-out.** You are the owner's project manager on an
+8-week, $240,000 fixed-price fit-out of a clinic's second floor (fictional
+clinic, contractor and people). The dashboard shows the objective, the
+baseline and the contingency reserve, four work packages, earned value and
+actual cost against planned value (nine status meetings, the kickoff
+first), risks and issues, three people gauges and the milestones. Four
+decisions:
+
+1. End of week 2: the sponsor asks the site lead for a second sink in each
+   exam room. A change request to the change control board (met), a refusal
+   without analysis (partial) or "just do it" (missed: unpriced rework).
+2. End of week 4: risk R4's trigger (no confirmed panel delivery) is
+   reached. Execute the planned contingency, the alternate supplier, from
+   the reserve (met); add an off-plan overtime crew (partial, $18,000 on the
+   wrong constraint); wait (missed: two critical-path weeks lost).
+3. End of week 5: the status report. Every path is behind (the clinic
+   returned drawings late). Report SPI and CPI as measured with the cause
+   and a recovery plan, fast-tracking finishes (met); blame the contractor
+   without figures (partial); report green (missed, and harm).
+4. Week 7: the contractor's notice of claim for the drawing delay. Assess
+   it against the contract and records (met: half is owed); reject it
+   unread (partial: a formal dispute); sign it in full as a change order
+   (missed).
+
+Endings, in order: `misreported` (harm), `overrun` (harm, SPI or CPI
+below 0.85), `broken` (harm, a gauge below 40), `onBaseline` (target: SPI
+and CPI at least 0.95, the change through control, an honest report and
+every gauge at least 60), `partly` (recovered). The `project` profile's
+thresholds are unchanged. Seven golden paths (`pmp-fitout`): Good 1,
+Mediocre 3, Bad 3. The money and progress figures are teaching figures,
+marked as the author's.
+
+Bands of the fit-out: CAPM (cost and schedule variances), PMI-SP (schedule
+analysis, its 35% domain), Project+ (change control processes), PMI-CP (the
+claims process, its 50% domain) and PMI-RMP (implementing risk response).
+
+**Bands by course** (steps names `pmc-<course>-<slug>`):
+
+| Course / slug | Base | Objective (start) |
+|---|---|---|
+| PMP/sprint-release-before-review-pmp | PSMI/sprint-release-before-review | Ensuring value-based delivery... |
+| PMP/sprint-goal-becomes-obsolete-pmp | PSMI/sprint-goal-becomes-obsolete | Evaluating external business-environment changes... |
+| PMP/sprint-status-meeting-daily-scrum-pmp | PSMI/sprint-status-meeting-daily-scrum | Removing impediments and managing issues... |
+| CAPM/sprint-status-meeting-daily-scrum-capm | PSMI/sprint-status-meeting-daily-scrum | Evaluating meeting effectiveness... |
+| PMIACP/sprint-release-before-review-pmiacp | PSMI/sprint-release-before-review | Seeking early feedback... |
+| PMIACP/sprint-status-meeting-daily-scrum-pmiacp | PSMI/sprint-status-meeting-daily-scrum | Managing impediments and risk... |
+| PMIACP/sprint-goal-becomes-obsolete-pmiacp | PSMI/sprint-goal-becomes-obsolete | Embracing change... |
+| PROJECTPLUS/sprint-status-meeting-daily-scrum-projectplus | PSMI/sprint-status-meeting-daily-scrum | Meeting management... |
+| PROJECTPLUS/firewall-change-backout-projectplus | SECPLUS/firewall-change-backout | Change control specific to IT... |
+| SERVERPLUS/retired-dns-server-orders-stuck-serverplus | LINUXPLUS/retired-dns-server-orders-stuck | Configuring network services... |
+| SERVERPLUS/sale-traffic-third-backend-serverplus | LFCS/sale-traffic-third-backend | High availability... |
+| SERVERPLUS/report-workers-starve-api-serverplus | LFCS/report-workers-starve-api | Managing server functions... |
+| SERVERPLUS/service-no-restart-after-update-serverplus | LFCS/service-no-restart-after-update | Troubleshooting software... |
+| SERVERPLUS/nightly-backup-missing-serverplus | LINUXFUND/nightly-backup-missing | Disaster recovery... |
+| SERVERPLUS/shared-folder-permission-denied-serverplus | LINUXFUND/shared-folder-permission-denied | Identity and access management... |
+| CLOUDNETX/sale-traffic-third-backend-cloudnetx | LFCS/sale-traffic-third-backend | Availability technologies... |
+| CLOUDNETX/firewall-change-backout-cloudnetx | SECPLUS/firewall-change-backout | Access control configuration... |
+| CLOUDNETX/branch-dns-route-typo-cloudnetx | NETWORKPLUS/branch-dns-route-typo | The network troubleshooting methodology... |
+| CLOUDNETX/retired-dns-server-orders-stuck-cloudnetx | LINUXPLUS/retired-dns-server-orders-stuck | Troubleshooting connectivity issues... |
+| CLOUDPLUS/nat-gateway-bill-spike-cloudplus | AWSSAA/nat-gateway-bill-spike | Billing management... |
+| CLOUDPLUS/leaked-access-key-cloudplus | AWSCLF/leaked-access-key | Implementing identity and access management... |
+| CLOUDPLUS/rds-update-without-where-pitr-cloudplus | AWSSOA/rds-update-without-where-pitr | Implementing backup and recovery... |
+| CLOUDPLUS/cloud-run-bad-revision-rollback-cloudplus | GCPACE/cloud-run-bad-revision-rollback | Diagnosing and resolving deployment problems... |
+| AUTOOPSPLUS/py-import-crash-traceback-autoopsplus | PYTHON/py-import-crash-traceback | Troubleshooting the code life cycle... |
+| AUTOOPSPLUS/web-service-fails-after-edit-autoopsplus | LINUXFUND/web-service-fails-after-edit | Troubleshooting configuration issues... |
+| AUTOOPSPLUS/canary-rollback-dlq-autoopsplus | AWSDVA/canary-rollback-dlq | CI workflow management... |
+| DATAPLUS/sql-not-in-null-empty-list-dataplus | SQL/sql-not-in-null-empty-list | Using tools and resources to troubleshoot... |
+| DATAPLUS/stock-on-hand-summed-dataplus | PL300/pl300-stock-on-hand-summed | Applying validation and review... |
+| DATAPLUS/rls-region-manager-dataplus | PL300/pl300-rls-region-manager | Privacy strategies... |
+| DATAAI/loan-data-bias-dataai | AWSMLA/loan-data-bias | Foundational machine-learning concepts... |
+| DATAAI/fraud-model-drift-dataai | AWSMLA/fraud-model-drift | DevOps and MLOps concepts... |
+| TECHPLUS/rogue-dhcp-soho-office-techplus | APLUS_CORE1/rogue-dhcp-soho-office | Networking basics... |
+| TECHPLUS/home-office-laptop-malware-techplus | APLUS_CORE2/home-office-laptop-malware | Device security... |
+| TECHPLUS/branch-dns-route-typo-techplus | NETWORKPLUS/branch-dns-route-typo | Troubleshooting methodology... |
+| PMICPMAI/loan-data-bias-pmicpmai | AWSMLA/loan-data-bias | Overseeing data evaluation... |
+| PMICPMAI/fraud-model-drift-pmicpmai | AWSMLA/fraud-model-drift | Overseeing model governance... |
+| CMPCBS/phish-to-account-takeover-cmpcbs | SECPLUS/phish-to-account-takeover | Common attacker tactics... |
+| CAPM/clinic-fitout-variance-capm | PMP/pmp-clinic-fitout-schedule-variance | Calculating cost and schedule variances... |
+| PMISP/clinic-fitout-variance-pmisp | PMP/pmp-clinic-fitout-schedule-variance | Performing schedule analyses... |
+| PROJECTPLUS/clinic-fitout-variance-projectplus | PMP/pmp-clinic-fitout-schedule-variance | Change control processes... |
+| PMICP/clinic-fitout-claim-pmicp | PMP/pmp-clinic-fitout-schedule-variance | Managing the claims process... |
+| PMIRMP/clinic-fitout-contingency-pmirmp | PMP/pmp-clinic-fitout-schedule-variance | Implementing risk response... |
+
+**Breadth.** Each of PMP, CAPM, PMI-ACP, Project+, PMI-SP, PMI-CP, Server+,
+CloudNetX, Cloud+, AutoOps+, Data+, DataAI, Tech+, PMI-CPMAI and CMPCBS has a
+sim on (one of) its highest-weighted domains; the test checks it. PMI-RMP's
+only sim is on Risk Response (13%).
+
+**Sources** (read 2026-11-17, all through summarizing fetches): PMI's PMP
+(July 2026), CAPM (2023), PMI-SP and PMI-RMP outlines (copies hosted by a
+training provider, a university and a consultancy) and PMI-ACP (pmi.org);
+the PMI-CP domain weights from a Scribd copy (task text not shown, to
+verify); CompTIA's Server+ SK0-005, CloudNetX CNX-001, AutoOps+ AT0-001,
+DataAI DY0-001 and Tech+ FC0-U71 objective PDFs and the Cloud+ CV0-004 and
+Data+ DA0-002 pages; third-party restatements for Project+ PK0-005 (CompTIA's
+PDF refused automated reading) and PMI-CPMAI (PMI's PDF did not come up in
+search), both marked to verify; MITRE ATT&CK Enterprise tactics v20.1;
+Oguz, Project Management 2nd ed., 11.3 (earned value); Construction
+Contracting: Business and Legal Principles, ch. 22 (claims).
+
+**Findings** (recorded; none needed a code fix):
+
+1. **Bands across levels and roles**, as 22.29 finding 3: LFCS and Linux+
+   cases on Server+, A+ cases on Tech+, Network+ cases on CloudNetX (an
+   expert exam), AWS and Google Cloud cases on vendor-neutral Cloud+, an ML
+   engineer's cases on PMI-CPMAI's "overseeing" objectives, and Scrum
+   Sprints on PMP, CAPM, PMI-ACP and Project+ objectives. The decision taught
+   matches each objective; the level and the role are the base's.
+2. **Cloud+ is vendor-neutral;** its bands run on AWS and Google Cloud as
+   worked examples (the first source says so).
+3. **Open: PGMP, PFMP, PMI-PMOCP, PMI-PBA, CSPP and CAPA have no sim.** No
+   existing case teaches their top domains (program life cycle, portfolio
+   strategic alignment and performance, PMO strategy and design,
+   requirements analysis, P5 impact analysis, Argo Workflows). Proposed:
+   a program steering review on the governance board (PGMP), a portfolio
+   rebalancing after a strategy change (PFMP, PMI-PMOCP bands), a
+   requirements baseline and sign-off on the project dashboard (PMI-PBA),
+   a P5 impact review on the governance board (CSPP), and an Argo
+   Workflows DAG failure on the terminal (CAPA). PMI-RMP's identification
+   and analysis domains want a risk-register case on the governance board.
+
+#### 22.31, second part: the six courses still without a sim, PMI-RMP's top domain, and PMP depth (sims-pm-2)
+
+Same rules as the first part: existing screens only, no migration, engine
+1.2, learner-paced, each case with endings in all three classes and an
+`endingOrder` with harm first, four critical criteria met and missed across
+its goldens, Good, Mediocre and Bad goldens, one written-reasoning moment,
+and its own course outline as its first source with the date read. Every
+document is listed by slug in `lib/sim/pm-comptia.ts`; the review-paced cases
+share a golden driver, `scripts/sim-golden/pm2-helpers.ts` (move a period
+on, answer each prompt, run the inspect tasks named for a period, close).
+
+**New cases** (author's fictional organizations and teaching figures):
+
+| Course / slug | Screen, profile | Objective (start) | Core of the case | Steps |
+|---|---|---|---|---|
+| PGMP/pgmp-transit-program-steering-review | governance board, governance | Analyzing cost/schedule/quality/risk variances... (Program Life Cycle 44%) | Four monthly steering reviews of a transit fare program: consolidate the four projects' data (integration at SPI 0.82 holding up the kiosks) and correct the plan; escalate a certification risk that threatens the fare benefit to the committee and its reserve; ask the committee for conditional authorization at the deployment gate; analyze the adoption variance with the benefit owner | pgmp-steering |
+| PFMP/pfmp-water-utility-rebalance | governance board, governance | Determining how a change in strategic goals impacts the portfolio... (Strategic Alignment 25%) | A water utility's board puts water loss first: re-score six components, evaluate three scenarios (C saves 10 million but breaks the meters' dependency on billing), recommend B to the governance board, move four engineers from the paused app | pfmp-rebalance |
+| CSPP/cspp-school-laptop-p5-review | governance board, governance | Performing a P5 Impact Analysis: Product lenses... (P5 36%) | A school district's 2,000-laptop refresh: a P5 impact analysis with stakeholders, the repairable offer on lifespan and servicing (about 1,460 against 2,560 thousand dollars over six years), a certified recycler with reuse, and an announcement without a 'zero-impact' claim | cspp-p5 |
+| PMIRMP/pmirmp-warehouse-risk-register | governance board, governance | Developing a risk register... (Risk Identification 23%) | A warehouse automation project: validate thirty workshop lines into a register (issues and assumptions out, an opportunity classified), rate on the plan's matrix with urgency, EMV 200 to 50 thousand dollars for an 80 thousand mitigation, a trigger (pass rate below 95% by week 10) that starts the peak-season fallback | pmirmp-register |
+| PMIPBA/pmipba-claims-portal-baseline-signoff | project dashboard (predictive), project | Obtaining sign-off on the requirements baseline... (Analysis 35%) | An insurer's claims portal: a scored workshop for conflicting payout rules, 33 requirements baselined and 9 deferred with their trace, sign-off by the plan's decision rule after a prototype walk-through, a change after sign-off through traced impact analysis and the board | pmipba-baseline |
+| CAPA/argo-nightly-dag-region-failure | terminal, infrastructure | Build DAGs: tasks with dependencies... (Argo Workflows 36%) | A nightly DAG fans out over 12 regions and fans in to aggregate; eu-west's extract failed on a transient reset, fail fast stopped the DAG, and the exit handler said 'ready'. argo retry (failed node and dependents, about 25 minutes) before 05:30, not resubmit (late) or a run without eu-west (a wrong total); retryStrategy OnFailure with backoff (OnError does not cover a container that exits 1) and an exit handler that reads workflow.status | capa-dag |
+| PMP/pmp-contact-center-move-procurement | project dashboard (predictive), project | Planning and managing resources, procurement... and project finances (Process 41%) | A city contact center move: time and materials with a ceiling for an uncertain data migration, a critical-path engineer negotiated with the IT director before escalating, a vendor's missed milestone handled by the contract's cure step, an EAC above budget funded from the management reserve through change control | pmp-move |
+| PMP/pmp-permit-portal-hybrid-plan | project dashboard (predictive), project | Developing and maintaining an integrated project management plan... (Process 41%) | A county permit portal: a hybrid approach (the fee module fixed in law baselined, the wizard in iterations), PERT (8 + 4 x 12 + 22) / 6 = 13 days and parametric estimates, a legal amendment assessed across the plan and taken through change control, the wizard's scope flexed to the date with the product owner | pmp-permits |
+
+**New bands** (steps `pmc-<course>-<slug>`):
+
+| Course / slug | Base | Objective (start) |
+|---|---|---|
+| PMIPMOCP/water-utility-rebalance-pmipmocp | PFMP rebalance | Establishing and maintaining PMO governance... (PMO Strategic Elements 18%) |
+| PMP/warehouse-risk-register-pmp | PMI-RMP register | Planning and managing risk... (Business Environment 26%) |
+| CAPM/warehouse-risk-register-capm | PMI-RMP register | Following and executing a planned strategy or framework... (36%) |
+| PROJECTPLUS/warehouse-risk-register-projectplus | PMI-RMP register | Risk management (33%) |
+| PROJECTPLUS/contact-center-move-procurement-projectplus | PMP move | Procurement and vendor selection (33%) |
+| PMICP/contact-center-move-contracts-pmicp | PMP move | Recognizing how contract type and delivery method selection affect claims... (50%) |
+
+**Breadth after this part.** Every course of 22.31 has a sim on (one of)
+its highest-weighted domains, including PgMP, PfMP, PMI-PMOCP, PMI-PBA, CSPP,
+CAPA and PMI-RMP; `pm-comptia.test.ts` checks it for all 22 courses.
+
+**Depth after this part.** PMP's Process objectives that meet the selection
+rule (`sims:generate -- --select`) all have a sim: the integrated plan and
+resources/procurement/finances (new predictive cases), schedule (the fit-out)
+and value-based delivery (a Scrum band). PMP's Business Environment risk
+objective is a band. CAPM gains the executing-a-planned-strategy objective.
+Not built (a decision of scope, not a screen gap): PMP's People objectives
+(conflict, stakeholders, expectations), governance and compliance as primary
+objectives; CAPM's core-concepts, ethics and roadmap objectives; further
+depth in the other courses of the first part.
+
+**Sources** (read 2026-11-17; WebSearch, then summarizing fetches of pages
+that came up in search): PfMP outline (PRA-206-2017, a training provider's
+copy of PMI's PDF); PMI-PMOCP weights (a study page citing PMI's January 2025
+v2 outline; task text not shown, to verify); PgMP weights (a training
+provider's article; PMI's PDF did not come up, tasks to verify); PMI-PBA
+weights and tasks (two study pages; PMI's PDF not opened, to verify); CSPP
+(pmi.org's CSPP bundle page, direct); CAPA (the Linux Foundation's exam
+page, direct, and a study page); PMI-RMP outline (January 2023, a training
+provider's copy); GPM P5 Standard v2.0 (a third-party copy of the PDF); Argo
+Workflows documentation (Retries and the DAG walk-through, release 3.4; argo
+retry, latest), a retry-versus-resubmit article and KodeKloud's exit-handler
+notes (to verify against Argo's own walk-through); Jama Software's guide to
+the requirements baseline; Watt, Project Management 2e, ch. 13 (contract
+types); PMI's projectmanagement.com wiki on three-point estimating.
+
+**Findings for Nick** (recorded; no code defect, so no FAIL entry):
+
+1. **CSPP's weights in the seed differ from PMI's page.** The course seed has
+   five domains with P5 at 36%; pmi.org's CSPP page (read today) lists six,
+   with P5 at 24%, PRiSM 23% and a "Project Management Considerations"
+   domain at 23% that the seed does not have (the page's weights add to
+   101%). The sim is on P5, the largest domain either way. The course itself
+   needs a verification pass.
+2. **Outline texts not read directly** for PgMP, PMI-PBA and PMI-PMOCP (PMI's
+   PDFs did not come up in search); their objective wording is the seed's.
+
+### 22.32 Health breadth and nursing depth of the 2026-11-17 round (REQ-323)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." Breadth first: the ten physical therapy specialty courses,
+NPTE-PTA and the strength and conditioning course had no sims. Each now has
+at least one. Then depth: nursing bands, launch courses first. No engine,
+renderer, schema or migration change; engine 1.2 throughout; every case on
+an existing screen (treatment session, bedside, trainer).
+`lib/sim/health-sims-1117.test.ts` pins every document by slug.
+
+**Bands (16).** Each registers an existing case to a fitting catalog
+objective of another course; the patch changes only `objective`,
+`secondaryObjectives`, `sources` and, for three, `brief`. Scoring, outcome
+thresholds and endings are the base's (the test compares them). Golden paths
+are the base's steps rebuilt against the band (`scripts/sim-golden/*-band-*.steps.ts`).
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| ABPTSGCS/stroke-balance-fall-risk-geri | DPT | Fall-risk and balance examination with standardized measures and cut-offs (Examination, 25%) |
+| ABPTSNCS/dizziness-central-red-flags-neuro | DPT | Recognizing medical instability and emergencies, new neurologic signs (30%) |
+| ABPTSNCS/parkinson-freezing-session-neuro | DPT | External cueing for freezing of gait in Parkinson disease (30%) |
+| ABPTSCCS/icu-early-mobility-cardiopulm | DPT | Recognizing decompensation that requires stopping activity or escalating care (Evaluation, 30%) |
+| ABPTSOCS/tka-gait-dvt-red-flag-ortho | DPT | After knee arthroplasty: early progressive strength, NMES, except with DVT (19%) |
+| NPTEPTA/icu-early-mobility-pta | DPT | Cardiopulmonary distress that requires stopping treatment and notifying the supervising PT (17%); brief: the PTA carries out the PT's plan |
+| NSCACSCS/cscs-squat-knees-cave | NASMCPT | Assessing, cueing and modifying technique (15%); brief: a strength and conditioning coach |
+| CMSRN/post-op-transfusion-reaction-cmsrn | NCLEXRN | Restrictive threshold; stop at once for a suspected reaction |
+| CMSRN/pca-oversedation-naloxone-cmsrn | ADNRN | Opioid-induced oversedation on a sedation scale |
+| CMSRN/med-surg-deterioration-sbar-cmsrn | NCLEXRN | The nursing process applied to a changing med-surg patient |
+| PCCN/postop-hemorrhage-early-signs-pccn | CMSRN | Urgent situations and procedural or surgical complications |
+| PCCN/sepsis-to-septic-shock-pccn | CCRNADULT | Screen for sepsis and recognize shock |
+| PCCN/status-epilepticus-after-craniotomy-pccn | CCRNADULT | Status epilepticus; brief: a neuroscience progressive care unit |
+| NCLEXRN/femoral-access-retroperitoneal-bleed-nclexrn | PCCN | Prioritize hypotheses and revisit them as data arrive |
+| FNPANCC/clinic-severe-bp-stroke-signs-fnp-role | FNPAANP | Red flags that need emergency referral |
+| FNPAANP/clinic-sulfonylurea-hypoglycemia-fnp-clinical | FNPANCC | Hypoglycemia from diabetes treatment and the regimen |
+
+Band slugs use plain words, not the specialist letters (REQ-309/319).
+
+**New treatment-session cases (7)**, built in the shape of
+DPT/dizziness-central-red-flags: examine (tests share one timer and one
+pending slot), find the red flag, act on it by the right route. Each has
+`endingOrder`, a conditional harm ending that is an outcome, three critical
+criteria inside the `target` condition, a reasoning moment, one or two
+sourced teaching prompts in jsonb key order, a chapter, KPIs, an expert path,
+a debrief per ending, and five or six golden paths (Good, Mediocre, Bad;
+every ending but `time_up`; every criterion met and missed).
+
+| Course / slug | Objective (domain weight) | Critical criteria | Steps name |
+|---|---|---|---|
+| ABPTSPWCS/prenatal-exercise-severe-bp-headache | Stop exercise in pregnancy for warning signs; preeclampsia is a contraindication (55%) | warning symptoms asked and a severe-range BP confirmed on a repeat; no exercise after a warning sign; labor and delivery called and 911 within 10 min | pwcs-preeclampsia |
+| ABPTSSCS/preseason-collapse-heat-stroke | Exertional heat stroke: ice-water immersion, rectal temperature, stop at 38-39 C (35%) | rectal temperature; immersion within 5 min of the first sign; out at 38-39.2 C and cooled before transport | scs-heatstroke |
+| ABPTSWMS/leg-ulcer-calcified-abi-compression | Toe pressure, TBI and pedal Doppler when the ABI is unreliable (25%) | toe pressure and waveforms, not the ABI alone; no compression; vascular surgery the same visit within 15 min | wms-abi |
+| ABPTSPCS/knee-pain-limp-hip-slip | Suspect a slipped capital femoral epiphysis behind knee pain and a limp (20%) | hip examined; no hop test, squats or treadmill; emergency department the same day within 15 min | pcs-scfe |
+| ABPTSOCS/acute-back-pain-mri-request-cauda-equina | Classify low back pain by duration and hold back routine imaging (30%); cauda equina as the exception | bladder, bowel, saddle and sexual questions; no thrust manipulation; emergency MRI the same hour within 10 min | ocs-ces |
+| ABPTSONC/post-mastectomy-strength-start-back-pain | Supervised progressive resistance training after breast cancer surgery (27%); suspected cord compression first | back and leg questions before loading; no loading; emergency department within 10 min | onc-mscc |
+| ABPTSECS/carpal-tunnel-referral-demyelinating-gbs | Interpreting abnormal findings: axonal or demyelinating, focal or diffuse, acute or chronic (25%) | single breath count; studies read as diffuse, acute, demyelinating; 911 within 15 min | ecs-gbs |
+
+- **Harm endings** are outcomes: an eclamptic seizure, organ injury from
+  prolonged hyperthermia or transport before cooling, an ischemic injury
+  under a wrap, an unstable slip, retention, legs giving way, respiratory
+  distress; and, for a route that sends the patient away with the condition
+  unrecognized, its course after leaving (as the FNP stroke case does).
+- **Scope.** The physical therapist acts within the clinic's named policy
+  (911, labor and delivery triage, the vascular service, the emergency
+  department) and tells the referrer. No drug is given in any new case; no
+  dose appears.
+- **Breadth by highest domain.** Every physical therapy specialty course
+  has a sim whose main objective sits in its highest-weighted domain, or in
+  a tied highest one (pediatrics, neurology, geriatrics). Two courses do
+  not: NPTE-PTA's band is on Cardiovascular and Pulmonary (17%), not
+  Musculoskeletal (26%), and the strength and conditioning band is on
+  exercise technique (15%), not Scientific Foundations (25%). See "Open".
+- **Sources** are on each document with the date read and how. Read
+  2026-11-17 through summarizing fetches with quotes: the MSD Manual on
+  preeclampsia and eclampsia, Table 1 of the 2017 Pregnancy Hypertension
+  definitions (PMC5435450), a perinatology.com summary of the 2019 Canadian
+  pregnancy activity guideline (secondary), the ACOG Committee Opinion 804
+  abstract only, the NATA exertional heat illness executive summary (2014),
+  the IWGDF/ESVS/SVS 2023 PAD guideline (first 100,000 characters), a
+  Wound Practice and Research review summary on ABPI and compression, REBEL
+  EM on SCFE (2020), the GIRFT national suspected cauda equina pathway
+  (February 2023), NICE NG234 recommendations (2023) and the EAN/PNS 2023
+  Guillain-Barre guideline (a repository copy, first 100,000 characters).
+  Relayed from the course seed's 2026-11-04 reading: the StatPearls chapters
+  tagged SP-PREG, SP-HS, SP-VLU, SP-PAD, SP-SCFE, SP-LBP, SP-SCC, SP-NCS,
+  SP-GBS, and the 2020 breast cancer lymphedema guideline. Measured values,
+  disease courses, rates and local waits are authored teaching values marked
+  `FLAG`.
+- **Findings while authoring.** A measure id equal to a vital tile id is
+  refused by the validator ("duplicate id"); the builder names measures
+  `<test>Result`. The vital tile colour set has no temperature colour
+  (`neutral` is used) and a KPI format is `duration`, `number` or `usd`.
+  `time_up` is reached by no golden path in the new cases (the linter's
+  warning, as in the other clinical waves); `actions.bp2` in the pregnancy
+  case draws an availability warning although two goldens use it.
+
+**Open.**
+- NPTE-PTA Musculoskeletal (26%) needs a PTA-specific case: the DPT knee
+  case's right call is to the surgeon, not to the supervising PT, so it was
+  not banded to "report back to the supervising PT".
+- Strength and conditioning, Scientific Foundations (25%): its objectives
+  (biomechanics, physiology planning, research literacy) did not fit a timed
+  case on an existing screen. The heat stroke case was not banded to the
+  course's heat-illness objective (8%): rectal temperature and immersion are
+  led by the athletic trainer or clinician, not the coach.
+- Nursing depth: 9 bands this round. The remaining fitting objectives and
+  the next candidates are in docs/sims-coverage-nursing-specialty.md
+  ("REQ-323 progress").
+
+**Round 2 (same day, a second builder).** Nick's ask covers finishing the
+work. Order: the NPTE-PTA musculoskeletal case, purpose-written emergency
+department cases (highest-weighted categories first), nursing depth, the
+launch courses, and strength and conditioning only where an objective fits
+an existing screen (none did; see "Still open"). Fourteen new cases and
+three bands; no engine, renderer, schema or migration change.
+
+New cases share one shape, built from the treatment-session cases above:
+assessments share one timer and one pending slot; a red-flag finding sets
+`redFlagAt`; the escalation (`refer`) is timed against it; leaving for the
+next level of care ends the run. Each has `endingOrder`, three critical
+criteria inside the `target` condition, harm endings that are outcomes, a
+reasoning moment, two sourced teaching prompts in jsonb key order, a
+chapter, KPIs, an expert path, a debrief per ending and five or six golden
+paths (Good, Mediocre, Bad; every ending but `time_up`; every criterion met
+and missed). The bedside cases use the `clinical` profile.
+
+| Course / slug | Screen | Objective (abridged, unit weight) | Critical criteria | Steps name |
+|---|---|---|---|---|
+| NPTEPTA/pta-back-pain-new-bladder-symptoms | treatment session | Report any new red flag in back pain to the supervising PT before continuing (Musculoskeletal, 26%) | bladder, bowel and saddle screen before treating; no traction or exercise after a red flag; the PT told within 5 min | pta-ces |
+| CEN/triage-indigestion-inferior-stemi | bedside | Recognize ACS at triage and get a 12-lead ECG read without delay (Cardiovascular, 18 of 150 items) | ECG within 10 min of arrival; shown to the physician within 5 min; no nitroglycerin after sildenafil | cen-acs |
+| CEN/tearing-pain-heparin-ordered | bedside | Recognize aortic dissection from tearing pain and pulse or pressure differences (Cardiovascular) | ordered heparin held; physician told within 5 min; beta-blocker before vasodilator | cen-dissection |
+| CEN/asthma-attack-quiet-chest | bedside | Manage acute asthma and recognize impending respiratory failure (Respiratory, 17) | nebulizer within 5 min; physician within 5 min of tiring; oxygen titrated to 93-95% | cen-asthma |
+| CEN/diving-injury-low-pressure-slow-pulse | bedside | Recognize neurogenic shock (Neurological, 17) | bleeding looked for before the report; vasopressor within 10 min of it; collar kept on | cen-neuroshock |
+| CEN/hallway-head-injury-falling-gcs | bedside | Rising ICP from a falling level of consciousness, then pupils and Cushing's triad (Neurological) | first neuro check within 5 min and repeated; 2-point drop reported within 5 min; acted before the pupil changed | cen-icp |
+| CEN/bee-sting-anaphylaxis-triage | bedside | IM epinephrine first, then airway, fluids and adjuncts (Medical, 15) | epinephrine within 5 min and before the antihistamine; repeated within 10 min; flat, never stood | cen-anaphylaxis |
+| CEN/black-stools-then-hematemesis | bedside | Upper and lower GI bleeding with large-bore access and blood (Gastrointestinal, 14) | two large-bore IVs and the crossmatch within 5 min; on his side before the hematemesis; physician within 5 min of it | cen-gibleed |
+| PCCN/pacing-wires-pulled-then-restless | bedside | Recognize tamponade and escalate for drainage (Cardiovascular, 20%) | rapid response and the surgeon within 5 min; no diuretic; pulsus paradoxus measured | pccn-tamponade |
+| PCCN/capnography-alarm-saturation-fine | bedside | Opioid respiratory depression on sedation scales and capnography before SpO2 falls (Respiratory, 14%) | rapid response within 5 min; opioids held and no more given; alarm not silenced | pccn-capno |
+| CMSRN/delirium-night-prn-restraint-order | bedside | Restraint only after less restrictive measures fail, never PRN (Patient/Care Management, 32%) | no restraint under the PRN order; retention found and drained; low bed and alarm within 10 min | cmsrn-restraint |
+| FNPAANP/two-falls-not-herself | bedside | Atypical presentations in older adults (Diagnose, 26.5%) | respiratory rate, SpO2 and temperature; lungs examined; emergency department within 10 min of the first sign | fnp-atypical |
+| CCRNADULT/falling-platelets-cold-foot-on-heparin | bedside | Recognize HIT, stop all heparin, a non-heparin anticoagulant, flag against heparin | every heparin source (flushes and lock too) stopped within 5 min; non-heparin anticoagulant; no warfarin or platelets | ccrn-hit |
+| NCLEXPN/ltc-critical-potassium-call | bedside | Recognize high potassium and report it as a risk of dysrhythmia | reported within 5 min of the call; potassium chloride held; apical pulse checked | pn-potassium |
+
+**Bands (3)**, built as in round 1 (patch changes `objective`,
+`secondaryObjectives`, `sources`; steps reuse the base's): the head injury
+case to NCLEX-RN "Recognize Cushing's triad ..." (`rn-band-icp`); the
+restraint case to NCLEX-RN "Restraints and safety devices: assessing
+appropriateness of the type used" (`rn-band-restraint`); the FNP case to
+FNPANCC "Build and prioritize a differential diagnosis ..."
+(`fnp-role-band-atypical`). NCLEX-RN is a generalist exam, so an emergency
+department or med-surg case is its setting; the emergency cases were not
+banded to CCRN Adult or PCCN (an ICU or progressive care patient, not one
+at triage), nor the progressive care cases to CCRN Adult.
+
+- **Scope and drugs.** Every drug is "the ordered" or "the standing
+  order's" drug; no dose number appears. The RN acts on standing orders
+  named in the brief; the PTA collects data, holds treatment for safety and
+  tells the PT, who reexamines; the PN reads back, checks, holds a dose
+  pending the provider and reports.
+- **Harm endings** are outcomes: severe hypotension after a nitrate on a
+  PDE-5 inhibitor, ventricular fibrillation, respiratory arrest, a neck
+  moved out of its collar, secondary cord injury from prolonged
+  hypotension, collapse on standing in anaphylaxis, airway obstruction,
+  aspiration of blood, hemorrhagic shock, bleeding into the pericardium
+  after heparin, extension of a dissection, herniation, collapse after a
+  diuretic in tamponade, PEA, abrupt naloxone reversal, apnea, injury in
+  restraints, a fall, septic shock or a night-time collapse after being sent
+  home, a lost limb, a dysrhythmic arrest, retention in the clinic.
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes: the
+  2018 House of Delegates policy on PTA direction and supervision; Guideline
+  Central's summary of the 2025 ACC/AHA ACS guideline (the guideline itself
+  was not reachable); the NITROSTAT label (January 2017); Dabbs et al., Am
+  Fam Physician 2024 (asthma); Adams et al. 2012 (abstract only); emDocs on
+  neurogenic shock (2023) and on missed aortic dissection (2020); King and
+  Olson, American Nurse 2007 (neurogenic shock signs only); MDCalc's page on
+  the 2021 ACG upper GI bleeding guideline; the ACC's key perspectives on
+  the 2022 ACC/AHA aortic disease guideline; Overdyk and Guerra, American
+  Nurse 2011; Jaqua et al., Am Fam Physician 2023 (delirium); the Washington
+  State Department of Health UTI FAQ for providers (March 2023, citing IDSA
+  2019); the ASH HIT pocket guide (December 2018). Relayed with their dates
+  from course seeds and earlier cases: the CEN outline and ESI handbook, the
+  2020 anaphylaxis practice parameter summary, NASEMSO 2022, the 2021
+  Resuscitation Council UK guideline (posture and repeat dosing, named as
+  the department's policy), ATLS classes, AABB 2023, StatPearls on
+  intracranial pressure and low back pain, the 2025 ESC pericardial
+  guideline (named as the unit's policy), the POSS as reproduced by RNAO,
+  the naloxone label, 42 CFR 482.13(e), OpenStax Fundamentals 20.1 and the
+  UK Kidney Association hyperkalaemia guideline (named as the facility's
+  policy). A fetch of the CCJM anaphylaxis summary was not approved in time
+  and NCBI pages refused automated fetches. Disease courses, effect sizes
+  and local waits are authored teaching values marked `FLAG`.
+- **Findings while authoring.** A teaching choice id must start with a
+  letter (`24` was refused); a reasoning moment that opens on the same tick
+  as a terminal ending makes the golden builder's reasoning command fail
+  ("run has ended"), so the restraint case's harm ending fires at 8 minutes,
+  before the 10-minute reasoning trigger. `time_up` is reached by no golden
+  path (the linter's warning, as before).
+
+**Still open.**
+- Emergency nursing: 25 fitting objectives remain (tachy- and
+  bradycardias, limb ischemia, cardiogenic versus obstructive shock, COPD,
+  inhalation injury, tension pneumothorax, TIA, variceal bleeding, testicular
+  torsion, ectopic pregnancy, trauma in pregnancy, overdose, electrolytes,
+  neutropenic fever, withdrawal, injection injury, eye emergencies,
+  epistaxis, epiglottitis, burns, heat and cold, EMTALA, consent). Suicide
+  and homicide risk needs the session screen and the 18+ gate, not bedside.
+- Progressive care 37, med-surg 19, FNP 11 and 11 (counting this round's
+  cases and bands) fitting objectives remain; the list is in
+  docs/sims-coverage-nursing-specialty.md ("REQ-323 progress").
+- Strength and conditioning, Scientific Foundations (25%): no objective there
+  fits a timed case on an existing screen; left as round 1 said. A decision
+  for Nick if he wants a "trainer" case on, for example, recovery planning.
+
+### 22.33 Nursing depth of the 2026-11-17 round, third builder (REQ-325)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This builder took depth for the three launch nursing
+courses (CCRN Adult, NCLEX-RN, NCLEX-PN) while sims-health-4 took the
+nursing specialty, FNP and NPTE-PTA courses. Highest-weighted categories
+first; every case purpose-written on the bedside screen in the round-2
+shape (22.32): assessments share one timer and one pending slot, a
+red-flag finding sets `redFlagAt`, the escalation is timed against it, and
+leaving for the next level of care (or a reassessment) ends the run. No
+engine, renderer, schema or migration change; engine 1.2; clinical profile.
+No bands this round (see "Bands considered"). `lib/sim/nursing-depth-1117.test.ts`
+pins every case by slug (121 tests).
+
+Each case has `endingOrder`, three or four critical criteria inside the
+`target` condition, a conditional harm ending that is an outcome, a
+reasoning moment, two sourced teaching prompts in jsonb key order, a
+chapter, two KPIs, an expert path, a debrief per ending and five golden
+paths (Good, two Mediocre, two Bad; every ending but `time_up`; every
+criterion met and missed). Drugs appear as "the ordered" drug, with no dose
+number in learner text (the pin test checks for one); lab values and urine
+output criteria are not doses.
+
+| Course / slug | Category (weight) | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|---|
+| CCRNADULT/low-urine-after-contrast-on-vancomycin | Endocrine, Heme, GI, Renal, Integ (21%) | Protect the kidney from nephrotoxins and contrast, keep perfusion (+ AKI/ATN, classify AKI) | intensivist within 5 min; NSAID and ACE inhibitor held; fluid, no diuretic | ccrn-aki |
+| CCRNADULT/oozing-lines-in-septic-shock | 21% | DIC from its lab pattern; treat the trigger; components for bleeding (+ coagulopathies) | call within 5 min; enoxaparin held; components given | ccrn-dic |
+| CCRNADULT/pressor-climbing-home-prednisone-missed | 21% | Adrenal crisis after steroid withdrawal; hydrocortisone without delay | call within 5 min; hydrocortisone within 15 min; low glucose treated | ccrn-adrenal |
+| CCRNADULT/pale-urine-after-pituitary-surgery | 21% | Diabetes insipidus; desmopressin; watch for hyponatremia | call within 5 min; desmopressin and replacement; no restriction | ccrn-di |
+| CCRNADULT/fever-ten-days-after-chemo | 21% | Grade neutropenia; fever in neutropenia as an emergency | call within 5 min; antibiotic within 1 h after cultures; no acetaminophen-and-wait | ccrn-neutro |
+| CCRNADULT/cirrhosis-hematemesis-at-night | 21% | Portal hypertension and variceal bleeding through TIPS (+ upper GI bleeding) | call within 5 min; vasoactive drug within 15 min; airway first | ccrn-varices |
+| CCRNADULT/pressor-arm-cold-and-pale | 21% | IV infiltration: recognition and treatment (norepinephrine extravasation) | stopped within 1 min, no flush or rate rise; restarted through another line; catheter kept for the antidote | ccrn-extrav |
+| CCRNADULT/tight-belly-after-massive-resuscitation | 21% | Measure intra-abdominal pressure; organ effects of ACS | measured by protocol; surgeon within 5 min; no bolus | ccrn-abdcomp |
+| CCRNADULT/pounding-headache-c6-injury | Musculoskeletal, Neuro, Behavioral (18%) | Autonomic dysreflexia; bladder or bowel first | sat up within 2 min, never flat; bladder fixed within 10 min; no acetaminophen-and-wait | ccrn-ad |
+| CCRNADULT/tibial-fracture-pain-out-of-proportion | 18% | Acute compartment syndrome; split dressings, heart level, pressure, fasciotomy (+ early recognition) | orthopedics within 5 min; wrap split and leg level; pressure supported, no more opioid | ccrn-compartment |
+| CCRNADULT/day-six-after-coiling-new-weakness | 18% | Subarachnoid hemorrhage after securing: vasospasm, rebleed, hydrocephalus, seizures | call within 5 min; no labetalol or restriction; euvolemia and augmentation | ccrn-sah |
+| CCRNADULT/fever-stiff-neck-waiting-for-lp | 18% | Bacterial meningitis: antibiotics without delay | antibiotics within 15 min; cultures first; dexamethasone before or with | ccrn-meningitis |
+| CCRNADULT/toothache-tablets-level-above-line | Multisystem (16%) | Acetaminophen overdose: time, nomogram, acetylcysteine early | acetylcysteine within 20 min of plotting; time established; baselines sent | ccrn-apap |
+| CCRNADULT/found-on-floor-tea-colored-urine | 16% | Rhabdomyolysis: early aggressive fluids, watch potassium, kidneys, compartments | call within 5 min; fluid with lungs watched; NSAID and statin held | ccrn-rhabdo |
+| NCLEXPN/aide-feeding-thin-liquids-dysphagia | Coordinated Care (21%) | Monitor assistive personnel; intervene or report (+ accountability, PN delegation) | feeding stopped within 1 min; RN and provider within 5 min; aide redirected | pn-aide |
+| NCLEXPN/warfarin-inr-high-tarry-stool | Pharmacological Therapies (13%) | Warfarin: consistent vitamin K; higher INR, more bleeding | reported within 5 min; warfarin held; consistent intake reinforced, no big salad | pn-warfarin |
+| NCLEXPN/clinic-belly-pain-moved-right | Physiological Adaptation (10%) | Recognize and report appendicitis | provider within 5 min, never sent home; no medication outside the standing order; vital signs | pn-appendix |
+| NCLEXRN/preop-consent-after-opioid | Management of Care (18%) | The nurse's part in informed consent (+ liability and battery) | teach-back before any signature; no invalid signature; surgeon within 5 min | rn-consent |
+| NCLEXRN/digoxin-due-yellow-halos | Pharmacological and Parenteral (16%) | Digoxin toxicity; low potassium raises risk | digoxin held; provider within 5 min; apical pulse first | rn-digoxin |
+| NCLEXRN/insulin-given-to-wrong-bed | 16% | Report a medication error honestly and promptly | provider within 5 min; glucose treated; record kept honest | rn-mederror |
+| NCLEXRN/heparin-aptt-high-pink-urine | 16% | Read anticoagulant monitoring | stopped within 5 min, never increased; provider called; bleeding assessed | rn-heparin |
+| NCLEXRN/postop-fever-150-graves-meds-stopped | Physiological Adaptation (14%) | Thyroid storm as an emergency | rapid response within 5 min; cooling without aspirin; no sedate-and-wait | rn-storm |
+| NCLEXRN/day-two-chemo-potassium-climbing | Safety and Infection Prevention (13%) | Oncologic emergencies: tumor lysis syndrome | reported within 5 min; potassium fluid stopped; telemetry | rn-tls |
+| NCLEXRN/pacu-snoring-then-vomiting | Reduction of Risk Potential (12%) | PACU airway and PONV, clear handover | airway within 1 min; side and suction; no opioid before the airway | rn-pacu |
+
+- **Scope.** The ICU nurse acts on named unit policies and the
+  intensivist's orders; the RN on standing orders and protocols named in the
+  brief; the LPN reads back, checks, holds a dose pending the provider,
+  reinforces teaching the RN or provider started, and reports. Delegation
+  by the LPN is set in a state whose practice act allows it (the brief says
+  so).
+- **Harm endings** are outcomes: emergency dialysis, hemorrhagic shock,
+  refractory shock and arrest, a hypernatremic seizure, septic shock,
+  aspiration, collapse off a vasopressor, tissue necrosis, collapse from
+  abdominal compartment syndrome, a hypertensive brain hemorrhage, muscle
+  necrosis, a completed infarct, raised ICP with septic shock, the 8-hour
+  acetylcysteine window lost, a hyperkalemic dysrhythmia, aspiration with
+  respiratory distress, a GI bleed, perforation, surgery without valid
+  consent, complete heart block, a hypoglycemic seizure, a major
+  hemorrhage, heart failure from thyroid storm.
+- **No mental health content.** The NCLEX and CCRN courses are not behind
+  the 18+ gate, so the acetaminophen case is an accidental single acute
+  ingestion for dental pain, and no case touches self-harm.
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes
+  (direct pages or PDFs unless noted): StatPearls (statpearls.com copies;
+  NCBI refuses automated fetches) on AKI, DIC, adrenal crisis, AVP
+  deficiency, neutropenic fever, abdominal compartment syndrome, thyroid
+  storm, tumor lysis syndrome and appendicitis (nursing); the Guideline
+  Central summary of the 2016 AASLD portal hypertensive bleeding guidance
+  (secondary); the LEVOPHED label (5.1) and the NYU Langone peripheral
+  vasopressor protocol; the ANA/NCSBN National Guidelines for Nursing
+  Delegation (2019); the American Stroke Association page on dysphagia;
+  Open RN Nursing Fundamentals 1.6 and Management and Professional
+  Concepts 5.6; the UAMS autonomic dysreflexia guideline (2018); WikEM on
+  compartment syndrome and rhabdomyolysis (physician-edited, secondary);
+  US Pharmacist 2024 on the 2023 AHA/ASA aSAH guideline (secondary); AFP
+  2005 on the IDSA meningitis guideline (secondary); the LANOXIN label
+  (2018); American Nurse Journal 2011 on error disclosure; the Pfizer
+  heparin label (11/2025); the Merck Manual Professional on acetaminophen
+  poisoning (2026); MedlinePlus on warfarin (2026); the UF anesthesiology
+  postoperative guide. Relayed with their dates: the CCRN handbook and the
+  NCLEX test plans from the course seeds, OpenStax Fundamentals 16.3, and
+  the ADA 2026 Standards and Lilly lispro page from the LPN/VN insulin
+  case. A fetch of the AHA "top things to know" page for aSAH failed at
+  the site. Disease courses, effect sizes and local waits are authored
+  teaching values marked `FLAG`.
+- **Findings while authoring.** A test id makes a `<id>At` state, so a
+  test named `bleed` clashes with a parameter `bleedAt` (the linter refused
+  it, "name already used by params") and a test named `time` would shadow
+  the `timeAt()` function; the builder renamed both. `time_up` is reached
+  by no golden path, and an action that becomes available only after an
+  order draws the linter's "never available" warning although goldens use
+  it, as in 22.32.
+
+**Bands considered and not made.** The emergency neurogenic shock and
+anaphylaxis cases (CEN, at triage) were not banded to CCRN Adult's
+neurogenic shock and anaphylactic shock objectives, and the progressive care
+tamponade case not to CCRN's tamponade objective: the setting is not the
+ICU (the rule 22.32 used). No existing case teaches an open NCLEX-PN
+objective in PN scope.
+
+**Where this builder stopped (24 new cases).** Counted again from the
+seeded catalog: CCRN Adult 72 to 58, NCLEX-RN 97 to 90, NCLEX-PN 38 to 35
+fitting objectives that are no sim's main objective (secondary-only
+included). Next candidates, highest weight first, all bedside:
+- CCRN Adult 21%: acute pancreatitis, acute mesenteric ischemia, hepatic
+  encephalopathy, CRRT complications, ITP bleeding precautions. 18%:
+  Monro-Kellie and a falling level of consciousness, PICS and the ABCDEF
+  bundle. Neurogenic shock needs an ICU case of its own.
+- NCLEX-PN 21%: accepting a delegated task only within scope; consent and
+  battery. NCLEX-RN 18%: someone else giving consent, and refusal of
+  treatment and interpreter services.
+- Not fitting a timed bedside case: CCRN moral agency (20%) and the
+  knowledge-only Management of Care and Coordinated Care objectives
+  (malpractice parts, sentinel events, ethical principles, SMART outcomes,
+  privacy, resource management), which would suit the governance board or
+  tabletop screens; CCRN behavioral emergencies and levetiracetam mood
+  effects, and the NCLEX-RN Psychosocial Integrity objectives (31 at 9%),
+  which need the session screen and the 18+ gate. Decisions for Nick.
+
+### 22.34 Specialty nursing and PTA depth, sims-health-4 (REQ-326)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This builder's scope: depth for the emergency, progressive
+care, med-surg, both FNP and the NPTE-PTA courses, highest-weighted
+categories first, with purpose-built cases on the bedside or treatment-session
+screen, stopping at about 25 new cases. No engine, renderer, schema or
+migration change; engine 1.2 throughout. `lib/sim/health-sims-4.test.ts`
+pins every document by slug. NCLEX-RN, NCLEX-PN and CCRN Adult were left to
+sims-health-3, which worked in parallel.
+
+**One shape for all 25.** Each case is the round 2 shape (22.32): assessments
+share one timer and one pending slot; a red-flag finding (a detecting
+assessment, a reassessment once the authored course crosses `redAt`, or a key
+assessment that always finds it) sets `redFlagAt`; the escalation (`refer`)
+is timed against it; leaving for the next level of care ends the run. Every
+case has one first-line action (`fix`, timed from the start or from the red
+flag), one supporting action with its own criterion, one unsafe action that
+ends in a harm ending of its own (`unsafe`, after `unsafeDelay`), a wrong
+route that ends in harm (`wrongRoute`), progression to harm in place
+(`worsened`), `target` and `recovered`, and `time_up`; `endingOrder` lists
+the five conditional endings. Three critical criteria (`fixC`, `callC`,
+`safeC`), then the key assessment, reassessment, the supporting action, the
+impression (or, for the PTA, the note: data, not a diagnosis) and the
+hand-off. One reasoning moment, two sourced teaching prompts in jsonb key
+order, one chapter, two KPIs, an expert path and a debrief per ending. Five
+golden paths each: expert (Good), late call (Mediocre, recovered), wrong
+route, unsafe choice, no action (Bad), reaching every ending but `time_up`
+with every criterion met and missed. Bedside cases use the `clinical`
+profile, the PTA cases `physical-therapy`. The cases were written from one
+compact spec each through a scratch generator (not committed); the JSON and
+steps files are the source of truth.
+
+| Course / slug | Screen | Objective (abridged, unit weight) | Critical criteria | Steps |
+|---|---|---|---|---|
+| CEN/dizzy-slow-pulse-atropine-not-working | bedside | Stable and unstable tachycardias and bradycardias (Cardiovascular, 18 items) | atropine in 5 min; pacing called within 5 min of instability; no beta-blocker | cen-brady |
+| CEN/cold-leg-new-numbness | bedside | Acute arterial occlusion and DVT in a limb (Cardiovascular) | heparin in 5 min; vascular within 5 min of new numbness; no heat or elevation | cen-limb |
+| CEN/bike-crash-breath-sounds-gone | bedside | Tension pneumothorax, a clinical diagnosis treated before imaging (Respiratory, 17) | oxygen and access in 5 min; physician within 5 min of the signs; not sent to radiology | cen-tension |
+| CEN/copd-drowsy-on-high-flow | bedside | COPD with controlled oxygen and early NIV (Respiratory) | Venturi 88-92% in 5 min; NIV call within 5 min of acidosis; never toward 100% | cen-copd |
+| CEN/house-fire-hoarse-voice | bedside | Inhalation injury needing early airway protection (Respiratory) | oxygen and access in 5 min; anesthesia within 5 min of stridor; not sent to CT | cen-inhal |
+| CEN/missed-dialysis-weak-legs | bedside | Hyperkalemia and other electrolyte emergencies (Medical, 15) | monitor in 5 min; physician within 5 min of the ECG change; never off the monitor | cen-k |
+| CEN/chemo-day-ten-fever | bedside | Neutropenic fever as an emergency (Medical) | cultures and antibiotic within 60 min of triage; physician within 5 min of hypotension; not held for the count | cen-neutro |
+| PCCN/af-rate-control-pressure-sliding | bedside | AF with RVR; hypotension during IV rate control (Cardiovascular, 20%) | infusion with pressure checks in 5 min; stopped and called within 5 min of hypotension; no fast push | pccn-af |
+| PCCN/telemetry-st-rising-inferior-leads | bedside | ST elevation on telemetry escalated at once (Cardiovascular) | protocol in 5 min; rapid response within 5 min; no nitroglycerin in an RV infarct | pccn-stemi |
+| PCCN/pressure-crisis-headache-titration | bedside | Hypertensive emergency lowered gradually (Cardiovascular) | titrated infusion in 5 min; provider within 5 min of new confusion; never pushed to normal | pccn-htn |
+| PCCN/groin-swelling-after-cath | bedside | Access site and limb after catheterization; pressure above the puncture (Cardiovascular) | pressure within 5 min of the hematoma; fellow within 5 min; kept flat | pccn-groin |
+| PCCN/day-two-mi-cold-and-wet | bedside | Cardiogenic shock recognized and escalated (Cardiovascular) | up with oxygen in 5 min; rapid response within 5 min; no fluid bolus | pccn-cardioshock |
+| PCCN/chest-tube-on-the-floor | bedside | Tension pneumothorax and a dislodged chest tube (Respiratory, 14%) | three-sided dressing in 5 min; provider in 5 min; never reinserted | pccn-chesttube |
+| PCCN/found-down-dark-urine | bedside | Rhabdomyolysis: early fluid, potassium and kidneys (Multisystem, 15%) | fluid in 5 min; provider within 5 min of low urine or ECG change; no potassium supplement | pccn-rhabdo |
+| CMSRN/bedside-debridement-sedation-quiet-capnograph | bedside | Monitoring during and after moderate sedation (Patient/Care Management, 32%) | capnography before the first dose; stop and call within 5 min of deep sedation; no extra increment | cmsrn-sed |
+| CMSRN/found-on-floor-on-anticoagulant | bedside | Patient, drug, environment and equipment risk factors for harm (32%) | injury check before moving; provider within 5 min of the GCS drop; no sedative | cmsrn-fall |
+| CMSRN/stroke-day-one-coffee-and-pills | bedside | Nutrition and feeding with the dietitian and speech therapist (32%) | upright and nothing by mouth in 5 min; team within 5 min of the failed screen; nothing by mouth before it | cmsrn-swallow |
+| FNPANCC/clinic-swollen-lip-years-on-lisinopril | bedside | Monitor treatment response and adverse effects (Evaluation, 13%) | ACE inhibitor stopped in 5 min; 911 within 5 min of tongue or voice; not treated as allergy | fnp-angio |
+| FNPAANP/clinic-calf-ache-after-flight-now-breathless | bedside | Tests, including when a test will not change management (Assess, 32%) | Wells score in 5 min; transfer within 5 min of hypoxia; not home for a D-dimer | fnp-pe |
+| FNPAANP/clinic-three-falls-five-new-pills | bedside | Older adults: falls, cognition, function, polypharmacy, frailty (Assess) | helped to stand from the start; plan within 5 min of orthostasis; no sleeping pill | fnp-falls |
+| NPTEPTA/pta-knee-replacement-calf-swollen | treatment session | When a response requires reporting to the supervising PT (Musculoskeletal, 26%) | exercise stopped and PT told within 5 min; no calf massage | pta-dvt |
+| NPTEPTA/pta-gaze-exercises-new-double-vision | treatment session | Gaze and balance exercises for vestibular hypofunction, report symptom changes (Neuromuscular, 22%) | stopped and PT told within 5 min; not pushed through | pta-vest |
+| NPTEPTA/pta-treadmill-pressure-falls-with-grade | treatment session | Vital signs and activity tolerance during a session (Cardiovascular and Pulmonary, 17%) | stopped and PT told within 5 min of the rule; grade not raised | pta-bp |
+| NPTEPTA/pta-six-minute-walk-saturation-drops | treatment session | The 6-minute walk test by protocol (Cardiovascular and Pulmonary) | stopped and PT told within 5 min of the rule; not urged on | pta-6mwt |
+| NPTEPTA/pta-glucose-before-exercise-low | treatment session | Glucose around exercise; carbohydrate below 100; tell the PT (Metabolic, 4%) | carbohydrate and PT within 5 min; no exercise below the threshold | pta-glu |
+
+**Bands (3)**, built as in 22.32 (patch: `objective`, `secondaryObjectives`,
+`sources`; steps reuse the base's): each FNP case to the other FNP course's
+matching objective: the angioedema case to FNPAANP "Monitor treatment
+response and adverse effects ..." (`fnp-clinical-band-angio`), the PE case to
+FNPANCC "Select the diagnostic test that will change management ..."
+(`fnp-role-band-pe`), the falls case to FNPANCC "Assess older adults for
+falls ..." (`fnp-role-band-falls`). Not banded: the CCRN Adult HIT case to
+PCCN (its reasoning and model text name the intensivist and an arterial line,
+which a band cannot change; the round 2 setting rule).
+
+- **Scope and drugs.** Every drug is "the ordered" drug or named by class or
+  brand only where the history needs it (the home lisinopril, metoprolol,
+  doxazosin); no dose number appears (the test checks learner text for a
+  number with a dose unit; lab values in mg/dL are allowed). The RN acts on
+  standing orders named in the brief; the FNP decides as the prescriber; the
+  PTA stops for safety, collects data and tells the PT, who reexamines.
+- **Harm endings** are outcomes: an asystolic pause, a burned ischemic foot,
+  PEA from tension, CO2 narcosis, a closed airway, a potassium arrest, septic
+  shock, collapse after a fast push or nitroglycerin, a watershed stroke,
+  hemorrhagic shock, flash pulmonary edema, a reinserted chest tube, apnea
+  after sedation, a masked head bleed, aspiration, airway obstruction, a PE,
+  a fall and a hip fracture, a stroke left untreated, collapse on a treadmill
+  or a walk test, severe hypoglycemia.
+- **Sources** (on each document with how they were read). Read 2026-11-17
+  through summarizing fetches with quotes: ACLS-algorithms.com's summary of
+  the 2025 AHA bradycardia changes (secondary; page modified 2026-01-12);
+  emDOCs on acute limb ischemia (2015, modified 2018); RCEMLearning, burns
+  airway (UK, modified 2026-01-14); UCSF Hospitalist Handbook on neutropenic
+  fever and on cardiogenic shock (undated); ABEM Key Advance on AF with RVR
+  (reconfirmed July 2025; a summary of the 2023 ACC/AHA/ACCP/HRS guideline,
+  which was not read); StatPearls, Hypertensive Emergency (updated
+  2023-07-24); Open RN Nursing Advanced Skills 6.4 (2023); OpenAnesthesia,
+  Rhabdomyolysis (2025-09-09); Guideline Central's summary of the ASA 2018
+  moderate sedation guideline (the guideline itself was not read); the RCP
+  post-fall guide, head (UK, 2025-07-09); the American Stroke Association
+  dysphagia deck (September 2025); MSD Manual, Angioedema (September 2026);
+  the ACC summary of the ACP 2015 PE best practice advice; Phelan et al. 2015
+  on STEADI (CDC stacks manuscript). Relayed with their dates from earlier
+  cases and course seeds, not re-read: StatPearls tension pneumothorax
+  (2026-11-16), BTS/ICS 2016 (2026-11-16), UKKA hyperkalaemia (2026-11-14),
+  the 2025 ACC/AHA ACS summary and the NITROSTAT label (2026-11-17), Kern 2013
+  on femoral hemostasis (2026-11-14), Hillegass 2016 on VTE and the 2021 vital
+  sign guide (2026-11-11), Hall 2022 vestibular guideline (2026-11-14),
+  NASEMSO 2022 stroke (2026-11-11), ADA Standards 2026 (2026-11-16), the
+  2018 HOD PTA supervision policy (2026-11-17), and the course outlines.
+  Prefer-US: four sources are UK (RCEM, RCP, UKKA, BTS/ICS), each named in
+  the case as the unit's or hospital's policy where it sets a rule. The Joint
+  Commission Universal Protocol poster was not reachable (client error), so
+  no time-out case was built. Disease courses, effect sizes and local waits
+  are authored teaching values marked `FLAG`.
+- **Findings while authoring.** `npm run sims:lint` lints every document and
+  ignores a slug argument, so a run holds the shared heavy lock for minutes;
+  the builder used a local one-document lint (not committed) calling
+  `checkDocument`. A reasoning moment that opens on the same tick as a
+  terminal ending makes the golden builder fail (as in 22.32); the trigger is
+  set two minutes before the authored untreated harm. Where the key
+  assessment always finds the red flag, the call window runs from that
+  assessment, so the expert path calls at once rather than waiting for the
+  course to cross `redAt`. `time_up` is reached by no golden path (the
+  linter's warning, as before).
+
+**Where this stopped.** At 25 new cases (7 CEN, 7 PCCN, 3 CMSRN, 3 FNP, 5
+NPTE-PTA) and 3 bands, the stopping point of the brief. Counted again from
+the seeded catalog after this work (fitting objectives that are no sim's
+main objective): CEN 18, PCCN 30, CMSRN 16, FNPAANP 8, FNPANCC 8, NPTE-PTA
+13. Next candidates, highest weight first: CEN cardiogenic versus obstructive
+shock, the ACS priorities objective, TIA, variceal bleeding; PCCN
+dysrhythmias on monitoring, QTc and ST monitoring, arterial lines and CVP,
+dissection on the unit, procedural sedation, anaphylaxis, PE; CMSRN IV
+medicine adverse reactions, the pre-procedure time-out (a US source is
+needed), multimodal pain; NPTE-PTA Parkinson cueing, reflex and tone data,
+pulmonary rehabilitation intensity, guarding and fall prevention.
+
+**Not built, and why.**
+- CEN suicide and homicide risk (Mental Health Emergencies, 8.67): the 18+
+  gate is per course. `startableTrack` (lib/visibility.ts) refuses a course
+  whose category is mental health without the per-course acknowledgement
+  (`matureContentNeededSql`, lib/mature-content.ts); the counseling sessions
+  are gated because their courses sit in that category. CEN is not, and the
+  sim routes have no per-sim gate, so a CEN session would start without the
+  18+ check. Decision for Nick (below); `lib/sim/health-sims-4.test.ts`
+  fails if a CEN sim takes that objective before then. The same applies to
+  the FNP "Screen for depression and anxiety, assess suicide risk" objective
+  and PCCN "Assess and manage a patient with suicidal ideation".
+- NSCA CSCS Scientific Foundations: left without a sim, as briefed.
+
+**Decision for Nick: the CEN suicide and homicide risk session.** (a) A
+per-sim 18+ gate: a document field (for example `mature: true`) checked by
+the sim start route against an acknowledgement a non-mental-health course
+can carry. Cost: a route and engine-adjacent change, an acknowledgement
+model for one sim inside an ungated course (probably a migration), the app's
+notice for that case, tests. (b) Gate the whole CEN course as mental health.
+Cost: every under-18 learner loses the emergency nursing course for one
+objective's sake, and the course's category would misdescribe it. Not
+building it (c) costs one 8.67%-weighted objective in CEN, plus the FNP and
+PCCN suicide objectives.
+
+*Update (REQ-327, 2026-11-17).* Nick chose (a): the per-sim 18+ gate now exists (22.35). The guard in
+`lib/sim/health-sims-4.test.ts` is replaced by a test that every sim outside mental health on a
+suicide, homicide or self-harm objective is marked `mature`. The CEN, FNP and PCCN cases are not
+built yet; the lead assigns them.
+
+### 22.35 Marking a sim 18+: the per-sim age gate (REQ-327)
+
+Nick (2026-11-17): "build a per-sim 18+ gate", then (09:18 PT) "The gate should work across sensitive
+sims regardless of profession." A simulation on suicide or homicide risk, self-harm or another
+behavioral emergency can live in any course (nursing, PT, fitness, IT, anything), not only in the
+mental health category, as long as it is marked.
+
+**How to mark a sim.** Add `mature: true` at the top level of the scenario document:
+
+```ts
+export const doc: ScenarioDoc = {
+  schemaVersion: 1,
+  engine: { major: 1, minor: 2 },
+  slug: "...",
+  title: "...",
+  mature: true, // REQ-327: 18+; the server asks for the acknowledgment first
+  ...
+};
+```
+
+- The schema (`lib/sim/schema.ts`) takes it as a boolean only. The engine never reads it, so it needs
+  no engine minor. It is part of the content hash, so adding it to a published case makes a new version.
+- A sim is 18+ when ANY of its versions says so (`matureSimSql`, lib/mature-content.ts). An older
+  approved version of the same content, or an open run pinned to one, is gated too. To unmark a sim,
+  retire it and register a new one.
+- `lib/sim/health-sims-4.test.ts` fails when a sim outside the mental health category has a main or
+  secondary objective about suicide, homicide or self-harm and is not marked. The exception is a case
+  listed in `NOT_MATURE_REVIEWED`, which holds cases whose objective names the topic only in a list
+  and whose text was read. Mental health courses are gated whole (REQ-259), so their sims need no mark.
+  Marking one anyway is harmless: the course acknowledgment covers it.
+- Never put 18+ material in a sim that is not marked. The brief, the list title and the debrief are all
+  shown, and only a marked sim's brief is withheld.
+
+**What the server does** (`lib/sims.ts` `requireNotice`, `simView`, `listSims`):
+
+- The list shows an 18+ sim by name with `mature: true`. Nothing is asked to browse it.
+- The detail route (GET /api/sims/:id), the start and resume route, and every run route (commands, skip,
+  reasoning, finish) check two things, after the course's own gates (the mental health course gate and
+  the study notice):
+  1. **Capability.** A build that does not send `features=mature` in `x-sim-caps` (every build before
+     REQ-327, or no header) gets 409 `app_update_required`. On the detail route it gets the title, with
+     the brief replaced by "Update the app" and `runnable: false`. It never gets the brief or the document.
+  2. **Acknowledgment.** Without an acknowledgment, the answer is 403 `mature_content_required`, the
+     course gate's shape plus `scope: "sims"` and `simId`. The acknowledgment that counts is one of that
+     course's 18+ sims (`scope = 'sims'`) or of the whole course (`scope = 'course'`, a mental health
+     course), at the current notice version.
+- "Report a problem" on a run still needs the acknowledgment, but not the capability.
+
+**The acknowledgment** (POST /api/mature-content/accept with `scope: "sims"`):
+
+- It uses the same table as REQ-259 (`mature_course_acknowledgements`, migration 087 adds `scope`).
+- It is one row per course and notice version. It covers every 18+ sim of that course, including ones
+  added later, until the notice version changes.
+- Same attestation. The date of birth is asked once per account, and a stored one is reused and never
+  replaced. Under 18, nothing is recorded and the sims stay locked, while the rest of the course stays
+  open. Under 16, the owners also get one review mail with no date in it.
+- The route answers 400 for a mental health course (acknowledge the course itself) and for a course with
+  no 18+ sim.
+- If a course with a `sims` row later moves into the mental health category, the course acknowledgment
+  widens that row, so nobody is asked forever.
+
+**The app:**
+
+- It sends `features=mature` (`src/sim/runtime/caps.ts`).
+- It badges 18+ sims "Adults (18+)" in the list and on the sim screen.
+- On the 403, the API client shows the sims notice (`noticeText("sims")`), sends the acknowledgment with
+  `scope: "sims"` and resends the request once.
+- If the learner closes the notice, or the account is under 18, they see the simulation's own words.
+- This works the same on phones and the web.
+
+**Tests.**
+
+- `lib/mature-sims.test.ts`: the capability, the gate SQL, the 403 shape and 087.
+- `lib/mature-sims.dbtest.ts`:
+  - no acknowledgment gives a 403;
+  - an acknowledged adult starts;
+  - under 18 is locked, and under 16 sends one mail;
+  - an older build is told to update;
+  - the counseling-course gates are unchanged;
+  - a run begun before the mark;
+  - a non-clinical course;
+  - the export and deletion.
+- `src/lib/matureContent.test.ts` covers the app's side.
+
+**Legal.**
+
+- The Terms and the Privacy Policy 2026-11-18 say that simulations on sensitive topics in any course
+  are 18+.
+- They also cover what asks, that the date of birth is asked once and cannot be changed in the app,
+  that the attestation is kept per course, and what happens under 18 and under 16. Retention is
+  unchanged.
+- No new kind of data is collected.
+- No lawyer has reviewed the text.

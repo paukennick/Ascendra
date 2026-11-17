@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "house-fire-hoarse-voice",
+  "title": "Just a little hoarse",
+  "objective": "Recognize inhalation injury and airway burns that need early airway protection",
+  "secondaryObjectives": [
+    "Assess a burn: airway and inhalation injury first, then size by percentage of body surface and depth"
+  ],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Respiratory Emergencies (17 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Respiratory Emergencies is 17 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "RCEMLearning. Major trauma: burns, initial assessment and resuscitation, Airway (page last modified 2026-01-14)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.rcemlearning.co.uk/modules/major-trauma-burns/lessons/initial-assessment-and-resuscitation/topic/airway/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (a UK teaching page; no US guideline was read for this case). Suspicion of airway obstruction or inhalation injury rises with 'Hoarse voice', 'Respiratory distress/ stridor', 'Carbonaceous sputum', 'Singed nasal/facial hairs', 'Inflamed oropharynx', 'Burns to the face/oropharynx', 'History of burns in an enclosed space' and 'Raised blood gas carbon monoxide (CO) level'; 'If indicated, early intubation with an uncut tube prevents the tube moving in the event of further swelling'; 'Any suspected airway injury necessitates senior anaesthetic review to identify and predict deterioration'; 'Airway compromise can develop over a matter of hours and may only come to light when the patient is in crisis.'"
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "02:15 in the emergency department. You are the nurse in a resuscitation room. Mr. Petrov, 45, was pulled from a bedroom fire. He has burns to his face and forearms and says he 'feels fine apart from the hands'.",
+    "handover": [
+      "Triage: ESI 2. Heart rate 110, respiratory rate 22, SpO2 99% on a non-rebreather, blood pressure 138/84. Soot around the nose and mouth.",
+      "The department's burn standing order: high-flow oxygen by non-rebreather, two large-bore IVs, a carboxyhemoglobin level, burns covered with clean film, and the physician called at once for any sign of airway injury.",
+      "The emergency physician and the anesthesia team are in the department."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and treat as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:15",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Airway edema builds over the first hours. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Oxygen and sitting up do not stop the swelling. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point where hoarseness turns to stridor. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of complete airway obstruction. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician called within 5 minutes of the first sign of airway injury (department practice)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "High-flow oxygen and access within 5 minutes of arrival (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the anesthesia team to secure the airway; a ward plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A burned airway sent to CT lying flat and alone: obstruction on the scanner. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "burnsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "hx",
+        "burns"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "ward"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "anxiety",
+        "co"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "upAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(108 + 15 * prog + sin(t / 8))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 12 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(99 - 20 * max(0, prog - 0.6), 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(138 - 10 * max(0, prog - 0.7))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "84",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30,
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "High-flow oxygen and two IVs: {not isNull(fixAt)|yesno}. Head of bed up: {not isNull(upAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"airway\" and inCare",
+          "text": "The anesthesia team is coming to secure the airway."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "airway": {
+      "label": "Airway: voice, mouth and throat, nasal hair, sputum, breath sounds",
+      "group": "Assess",
+      "available": "not testPending and isNull(airwayAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"airway\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): enclosed space, how long inside, loss of consciousness",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "burns": {
+      "label": "Burns: estimate size and depth",
+      "group": "Assess",
+      "available": "not testPending and isNull(burnsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"burns\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: voice, stridor, work of breathing",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "A high-pitched noise on every breath in. He can barely speak and is pulling at his collar.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Hoarse but speaking in sentences; no stridor.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "High-flow oxygen by non-rebreather and two large-bore IVs, as ordered",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Non-rebreather on high flow; two large-bore IVs.",
+          "kind": "act"
+        }
+      ]
+    },
+    "up": {
+      "label": "Sit him up, head of the bed raised",
+      "group": "Treat",
+      "available": "isNull(upAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "upAt",
+          "to": "t"
+        },
+        {
+          "log": "Sitting up.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Send him to CT for the head scan now, with the oxygen",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for CT on a trolley, lying flat.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "airway",
+              "label": "Inhalation injury with a closing airway: it needs securing early, before the swelling gets worse"
+            },
+            {
+              "value": "anxiety",
+              "label": "Anxiety and pain from the hand burns"
+            },
+            {
+              "value": "co",
+              "label": "Carbon monoxide only; the oxygen is enough"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"airway\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"airway\""
+                },
+                {
+                  "log": "Impression: inhalation injury, airway at risk.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"anxiety\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anxiety\""
+                },
+                {
+                  "log": "Impression: anxiety.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"co\""
+                },
+                {
+                  "log": "Impression: CO only.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "airway",
+              "label": "To the bedside now with anesthesia: stridor, hoarseness and soot, the airway needs securing early"
+            },
+            {
+              "value": "ward",
+              "label": "Admit to the burns ward for dressings; recheck his voice in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"airway\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"airway\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The physician and anesthesia come with the difficult airway trolley.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ward\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A burns ward bed is requested.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: enclosed space, collapse, soot, hoarseness, stridor and its time, oxygen and access",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: closed bedroom, brief collapse, soot and singed hairs, hoarse, stridor from its time, oxygen and two IVs.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Resuscitation room",
+      "clock": "running",
+      "actions": [
+        "airway",
+        "hx",
+        "burns",
+        "reassess",
+        "fix",
+        "up",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"airway\"",
+              "then": [
+                {
+                  "set": "airwayAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Voice now a hoarse whisper, inspiratory stridor; swollen, red throat; black sputum.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Hoarse voice; singed nasal hairs; soot in the mouth; black flecks in his sputum; no stridor yet.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Trapped in the bedroom with the door shut for several minutes. He thinks he passed out briefly.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "burnsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Partial-thickness burns to the face and both forearms, about 9% of body surface; no circumferential burns.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "securing the airway",
+      "wait": {
+        "skipLabel": "the anesthesia team taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the anesthesia team to secure the airway; a ward plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He is intubated early with a large tube and goes to the burns ICU.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "A harsh noise starts on each breath in. Mr. Petrov looks frightened.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "Mr. Petrov now has a noise on breathing in. What does it mean, and what do you do?",
+      "parts": [
+        {
+          "label": "What it means",
+          "criteria": "Enclosed space, soot, singed hairs and hoarseness are inhalation injury; new stridor means swelling is narrowing the airway and will get worse over hours.",
+          "modelAnswer": "This is an inhalation injury: closed room, soot, singed hairs and a hoarse voice. The stridor means the airway is swelling shut, and it will get worse."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Physician and anesthesia now for early intubation; keep him upright on high-flow oxygen; no CT or transfer first; hand off.",
+          "modelAnswer": "Get the physician and anesthesia now to secure the airway early, keep him sitting up on high-flow oxygen, and don't send him anywhere first."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A burned airway still unprotected an hour on is harm here.",
+      "source": {
+        "cite": "RCEMLearning. Major trauma: burns, initial assessment and resuscitation, Airway (page last modified 2026-01-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.rcemlearning.co.uk/modules/major-trauma-burns/lessons/initial-assessment-and-resuscitation/topic/airway/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (a UK teaching page; no US guideline was read for this case). Suspicion of airway obstruction or inhalation injury rises with 'Hoarse voice', 'Respiratory distress/ stridor', 'Carbonaceous sputum', 'Singed nasal/facial hairs', 'Inflamed oropharynx', 'Burns to the face/oropharynx', 'History of burns in an enclosed space' and 'Raised blood gas carbon monoxide (CO) level'; 'If indicated, early intubation with an uncut tube prevents the tube moving in the event of further swelling'; 'Any suspected airway injury necessitates senior anaesthetic review to identify and predict deterioration'; 'Airway compromise can develop over a matter of hours and may only come to light when the patient is in crisis.'"
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Airway obstruction on the scanner",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Lying flat in CT, his stridor turns to silence. The airway has closed and a surgical airway is needed in crisis."
+    },
+    "worsened": {
+      "label": "Complete airway obstruction",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "SpO2 {spo2}% and falling: the stridor stops because no air is moving. Intubation is now near impossible."
+    },
+    "wrongRoute": {
+      "label": "To the ward with a burned airway",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"ward\")",
+      "narrative": "On the ward his swelling closes the airway within the hour; a crash call is made."
+    },
+    "target": {
+      "label": "Inhalation injury recognized and the airway secured early",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"airway\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(airwayAt)",
+      "narrative": "{timeAt(leftAt)|clock}: intubated in a controlled way before the swelling closed his airway."
+    },
+    "recovered": {
+      "label": "Airway secured, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"airway\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the airway is secured, but oxygen came late or the stridor went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still in the room at 03:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "03:15 and Mr. Petrov's airway is still unprotected."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "High-flow oxygen and access within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician and anesthesia called within 5 minutes of stridor",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"airway\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"airway\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sent to the ward to recheck in the morning."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Not sent away from the room with an airway at risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Sent to CT with a burned airway."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Airway examined: voice, throat, nasal hair, sputum",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(airwayAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "upC",
+        "label": "Sat upright",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(upAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named inhalation injury with an airway at risk",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"airway\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"anxiety\"",
+            "score": "missed",
+            "why": "Called it anxiety."
+          },
+          {
+            "when": "dxEnum == \"co\"",
+            "score": "missed",
+            "why": "Missed the airway."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the exposure, the airway signs and their time",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: stridor after an enclosed-space fire means the airway is closing; secure it early",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Arrival to oxygen and access",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Stridor to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:15",
+        "text": "High-flow oxygen, two IVs, sit up."
+      },
+      {
+        "at": "~02:16",
+        "text": "Airway exam: hoarse, soot, singed hairs. Reassess."
+      },
+      {
+        "at": "~02:25",
+        "text": "Stridor."
+      },
+      {
+        "at": "~02:26",
+        "text": "Physician and anesthesia now; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "A burned airway sent to CT",
+        "body": "A patient whose airway may close stays where it can be secured, sitting up. Imaging waits."
+      },
+      "worsened": {
+        "headline": "Airway closed",
+        "body": "Hoarseness after an enclosed-space fire is a warning. Stridor means the swelling is advancing; early intubation is easier than late."
+      },
+      "wrongRoute": {
+        "headline": "To the ward",
+        "body": "A hoarse voice after smoke in a closed room does not wait until morning."
+      },
+      "target": {
+        "headline": "Airway secured early",
+        "body": "You looked in the mouth, listened to the voice, reassessed and called at the first stridor. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Airway secured, with delays",
+        "body": "Check how long the stridor went before the call."
+      },
+      "time_up": {
+        "headline": "Still unprotected",
+        "body": "Airway swelling after smoke inhalation can progress over hours, then suddenly."
+      }
+    },
+    "modelReasoning": "A fire in a closed room, soot, singed nasal hairs, black sputum and a hoarse voice point to inhalation injury even when the saturation looks fine. High-flow oxygen, access and sitting up come first, and he is reassessed often. When stridor appears the airway is closing: the physician and anesthesia secure it early, before swelling makes it impossible."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "sigQ": {
+      "during": "testT",
+      "ask": "While you assess: which finding raises suspicion of inhalation injury most?",
+      "choices": [
+        {
+          "id": "hoarse",
+          "label": "A hoarse voice after a fire in a closed room"
+        },
+        {
+          "id": "hands",
+          "label": "Burns to both hands"
+        },
+        {
+          "id": "hr",
+          "label": "A heart rate of 110"
+        }
+      ],
+      "expect": "hoarse",
+      "explain": "Hoarse voice, stridor, carbonaceous sputum, singed nasal or facial hair and burns in an enclosed space raise suspicion of airway injury.",
+      "source": {
+        "cite": "RCEMLearning. Major trauma: burns, initial assessment and resuscitation, Airway (page last modified 2026-01-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.rcemlearning.co.uk/modules/major-trauma-burns/lessons/initial-assessment-and-resuscitation/topic/airway/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (a UK teaching page; no US guideline was read for this case). Suspicion of airway obstruction or inhalation injury rises with 'Hoarse voice', 'Respiratory distress/ stridor', 'Carbonaceous sputum', 'Singed nasal/facial hairs', 'Inflamed oropharynx', 'Burns to the face/oropharynx', 'History of burns in an enclosed space' and 'Raised blood gas carbon monoxide (CO) level'; 'If indicated, early intubation with an uncut tube prevents the tube moving in the event of further swelling'; 'Any suspected airway injury necessitates senior anaesthetic review to identify and predict deterioration'; 'Airway compromise can develop over a matter of hours and may only come to light when the patient is in crisis.'"
+      }
+    },
+    "whyQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: why secure the airway early in inhalation injury?",
+      "choices": [
+        {
+          "id": "swell",
+          "label": "Swelling can progress over hours and close the airway"
+        },
+        {
+          "id": "pain",
+          "label": "It treats the pain"
+        },
+        {
+          "id": "co",
+          "label": "It clears carbon monoxide faster"
+        }
+      ],
+      "expect": "swell",
+      "explain": "Airway compromise can develop over hours and may only come to light in crisis; early intubation prevents trouble with further swelling.",
+      "source": {
+        "cite": "RCEMLearning. Major trauma: burns, initial assessment and resuscitation, Airway (page last modified 2026-01-14)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.rcemlearning.co.uk/modules/major-trauma-burns/lessons/initial-assessment-and-resuscitation/topic/airway/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (a UK teaching page; no US guideline was read for this case). Suspicion of airway obstruction or inhalation injury rises with 'Hoarse voice', 'Respiratory distress/ stridor', 'Carbonaceous sputum', 'Singed nasal/facial hairs', 'Inflamed oropharynx', 'Burns to the face/oropharynx', 'History of burns in an enclosed space' and 'Raised blood gas carbon monoxide (CO) level'; 'If indicated, early intubation with an uncut tube prevents the tube moving in the event of further swelling'; 'Any suspected airway injury necessitates senior anaesthetic review to identify and predict deterioration'; 'Airway compromise can develop over a matter of hours and may only come to light when the patient is in crisis.'"
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,508 @@
+{
+  "slug": "cirrhosis-hematemesis-at-night",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: airway first; two large-bore IVs; variceal bleed; intensivist; octreotide, antibiotic, blood to goal; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "hbQ",
+          "choice": "seven",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "access",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "varix"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "tipsQ",
+          "choice": "rescue",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 10,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 11,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "blood",
+          "seq": 12,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 13,
+          "tick": 52
+        },
+        {
+          "type": "chapter",
+          "chapter": "vaso",
+          "choice": "continue",
+          "seq": 14,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 15,
+          "tick": 64
+        }
+      ],
+      "expect": {
+        "ending": "toScope",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "vasoC": "met",
+          "airwayC": "met",
+          "accessC": "met",
+          "transfC": "met",
+          "abxC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVaso": 195,
+          "toSide": 65
+        },
+        "stateHash": "a525ba5afda53b4d"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Examines the abdomen and reads labs before the airway; calls 6 minutes after the hematemesis is assessed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hbQ",
+          "choice": "seven",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "access",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "varix"
+          },
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "tipsQ",
+          "choice": "rescue",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 11,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 12,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "blood",
+          "seq": 13,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 150
+        }
+      ],
+      "expect": {
+        "ending": "toScopeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "callC": "partial",
+          "vasoC": "met",
+          "airwayC": "met",
+          "accessC": "met",
+          "transfC": "met",
+          "abxC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVaso": 570,
+          "toSide": 180
+        },
+        "stateHash": "0a11df4be07a1777"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "overTransfuse",
+      "title": "Does it all fast but keeps transfusing past the goal to a hemoglobin above 10",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hbQ",
+          "choice": "seven",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "access",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "tipsQ",
+          "choice": "rescue",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "varix"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 9,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 10,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "blood",
+          "seq": 11,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "over",
+          "seq": 12,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 52
+        }
+      ],
+      "expect": {
+        "ending": "toScopeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "callC": "met",
+          "vasoC": "met",
+          "airwayC": "met",
+          "accessC": "met",
+          "transfC": "missed",
+          "abxC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toVaso": 200,
+          "toSide": 60
+        },
+        "stateHash": "683b76b4ad255af9"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "ulcer",
+      "title": "Failure: calls it an ulcer, leaves him on his back with one small IV and rechecks in two hours",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hbQ",
+          "choice": "seven",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ulcer"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "wait"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "vasoC": "missed",
+          "airwayC": "missed",
+          "accessC": "missed",
+          "transfC": "missed",
+          "abxC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toVaso": -1,
+          "toSide": -1
+        },
+        "stateHash": "b10089b8aad9047e"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "nosebleed",
+      "title": "Failure: assesses his airway but calls it swallowed blood and does nothing more",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "hbQ",
+          "choice": "seven",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "swallowed"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "vasoC": "missed",
+          "airwayC": "missed",
+          "accessC": "missed",
+          "transfC": "missed",
+          "abxC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toVaso": -1,
+          "toSide": -1
+        },
+        "stateHash": "18c11b443c6633ce"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

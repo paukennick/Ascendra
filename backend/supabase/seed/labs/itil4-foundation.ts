@@ -73,7 +73,7 @@ export const ITIL4FND_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Match each party to its service management role, then explain why the difference matters to the provider.",
+          ask: "Match each party to its ITIL role, then explain why the difference matters to the provider.",
           parts: [
             matchPart(
               "Party to role",
@@ -210,7 +210,7 @@ export const ITIL4FND_LABS: SeedLabSet = {
       ],
     },
 
-    // The Service Value System (1)
+    // The ITIL Service Value System (1)
     {
       slug: "itil-svs-flow",
       objective: "Explaining how opportunity and demand enter the service value system and value comes out",
@@ -291,7 +291,7 @@ export const ITIL4FND_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Match each activity to the management practice whose purpose it serves.",
+          ask: "Match each activity to the ITIL practice whose purpose it serves.",
           parts: [
             matchPart(
               "Activity to practice",

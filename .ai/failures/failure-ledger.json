@@ -18820,6 +18820,287 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2370",
+      "date": "2026-11-17",
+      "title": "Short course name kept the new 'Exam Prep for' title prefix",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
+      "how_detected": "review of title readers during REQ-324",
+      "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/lib/reminder-plan.ts"
+      ],
+      "fix_summary": "'Exam Prep for' added to VENDOR_PREFIX.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/reminder-plan.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A change to the catalog title form greps for readers that parse titles (prefix strips, short names) in the same change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2371",
+      "date": "2026-11-17",
+      "title": "Reminder short name cut a long credential name to its first words",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
+      "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
+      "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/lib/reminder-plan.ts"
+      ],
+      "fix_summary": "A long name ending in '(ACRONYM)' uses the acronym before the exam code or an ellipsis.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/reminder-plan.test.ts",
+        "backend/lib/unbranded.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Turning a naming switch back on reruns the readers' tests with real names, not only the hidden ones.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2372",
+      "date": "2026-11-17",
+      "title": "A lesson fix stopped matching its objective when SAP-C02 retired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The Database job failed on every branch after 2026-11-17 12:00 UTC: 'every 2026-11-09 fix maps to exactly one seeded objective' found 0 objectives for AWSSAP-24.",
+      "how_detected": "CI Database job on #209 (lib/generation-pipeline.dbtest.ts)",
+      "root_cause": "AWSSAP-24 targets an SAP-C02 objective whose unit retires at SAP_C02_RETIRED_AT (2026-11-17T12:00Z); lookupFix skips retired objectives unless the fix sets includeRetired.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "AWSSAP-24 sets includeRetired: true, like the CMPCBS fixes for retired objectives.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A lesson fix on an objective with a scheduled retiredAt sets includeRetired when it is written.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2390",
+      "date": "2026-11-17",
+      "title": "ABPTSECS told learners to delay electrodiagnosis 3 weeks in suspected GBS/AIDP",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Objective said: 'For suspected AIDP, delay NCS and EMG until at least 3 weeks after onset and include F-waves...' (cited SP-EDX-AIDP, StatPearls 2022).",
+      "how_detected": "REQ-310 verify-2 pass; EAN/PNS 2023 guideline full text (JPNS copy, UAB repository) read 2026-11-17",
+      "root_cause": "The 2026-11-04 depth pass used a 2022 StatPearls chapter (Tier 2) as sole support for a timing claim; the EAN/PNS 2023 guideline (Tier 1), which advises electrodiagnosis to support the EARLY diagnosis and says a normal first-week study does not exclude GBS, was never looked for.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/tracks/pt-abpts.ts"
+      ],
+      "fix_summary": "Objective rewritten to the guideline (early electrodiagnosis; first-week supportive features; sural sparing more specific; normal first-week study does not exclude; repeat later). EAN-PNS-GBS added as a Tier 1 source and the disagreement recorded. The retitle invalidates the objective's stored lessons on seed (intended).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-2.test.ts::FAIL-2390"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A clinical timing or threshold claim backed only by a StatPearls chapter is checked against the current professional-society guideline before it ships; the source header records disagreements and which side was followed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2391",
+      "date": "2026-11-17",
+      "title": "Project+ unit 4 named 'Basics of IT Governance' instead of CompTIA's 'Basics of IT and Governance'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "PROJECTPLUS unit 4 title read 'Basics of IT Governance'; CompTIA's Project+ page and PK0-005 blog name domain 4.0 'Basics of IT and Governance'.",
+      "how_detected": "REQ-310 verify-2 pass; comptia.org Project+ page read 2026-11-17",
+      "root_cause": "The 2026-09-24 author condensed the domain name; no test pinned unit titles to the owner's wording.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/tracks/comptia.ts"
+      ],
+      "fix_summary": "Unit title set to CompTIA's wording. Units are matched by sort_order, and only objective retitles invalidate content, so no learner history or stored lesson is lost.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/course-verification-2.test.ts::FAIL-2391"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Unit titles copy the owner's domain names; course-verification-2.test.ts pins Project+, CNPE and PCA unit titles and weights.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2340",
+      "date": "2026-11-17",
+      "title": "Root 'We couldn't reach Ascendra' screen stretched across a wide monitor and said 'on this phone'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "On a 1440px browser window the session-retry screen put its title at the left edge, the error banner and both buttons 1,400px wide, and told a desktop user they were signed in on this phone.",
+      "how_detected": "Playwright screenshot (session refresh answered 503) during REQ-322",
+      "root_cause": "SessionRetry is an absolute overlay drawn by the root layout, outside every stack, so REQ-304's column (a stack screenLayout) never reached it; its copy was written for the phone app before the web build existed.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/src/components/SessionRetry.tsx"
+      ],
+      "fix_summary": "sessionRetryLayout caps the content at 440px and centers it on wide web windows and says 'This browser is still signed in'; phones and narrow windows keep the old layout and text.",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Overlays drawn outside the stacks (retry, lock, update, banners) are listed in mobile/src/lib/webColumn.ts comments and covered by desktopWeb.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2341",
+      "date": "2026-11-17",
+      "title": "Desktop header buttons and title sat at the window edges, 240-480px away from the centered column",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "At 1440 and 1920px the back and menu buttons and title were at x=0-16 and the settings button at the far right edge, while the content sat in a 960px column in the middle.",
+      "how_detected": "Playwright screenshots during REQ-322",
+      "root_cause": "REQ-304 wrapped only the screen body (screenLayout); the native-stack header is drawn outside it and kept its window-edge layout.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(auth)/_layout.tsx",
+        "mobile/app/(legal)/_layout.tsx"
+      ],
+      "fix_summary": "useColumnScreenOptions adds headerLeft/RightContainerStyle padding equal to the column gutter on screens that have the column (webHeaderInsets).",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2342",
+      "date": "2026-11-17",
+      "title": "Idle sign-out warning and update banner spanned the whole monitor",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Both bottom banners used left/right 16px of the window, so on a wide window they ran the full width under a 960px column.",
+      "how_detected": "Code review of root overlays during REQ-322",
+      "root_cause": "They are absolute overlays in the root layout and UpdateBanner, outside the stacks the column wraps.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/app/_layout.tsx",
+        "mobile/src/components/UpdateBanner.tsx"
+      ],
+      "fix_summary": "bottomBannerInsets puts them over the column on wide web windows; 16px edges elsewhere.",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2343",
+      "date": "2026-11-17",
+      "title": "Keyboard focus was hard to see on the web and nothing showed on hover",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Tabbing on the web showed only the browser's default thin dark outline, barely visible on the dark theme; buttons, cards and links had no hover state.",
+      "how_detected": "Playwright keyboard-focus screenshot during REQ-322",
+      "root_cause": "react-native-web draws no hover or focus styles and the app never added any.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/lib/webDesktopStyles.ts",
+        "mobile/app/_layout.tsx"
+      ],
+      "fix_summary": "A style sheet adds a 2px link-color :focus-visible ring and a faint hover wash for buttons and links, inside a min-width 901px media query (hover also needs a fine pointer).",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Decision for Nick: extend the focus ring to narrow windows (currently wide only to keep narrow windows unchanged). Decided by Nick 2026-11-17 08:59 PT: the ring shows at every web width (REQ-322 follow-up on wave/2026-11-17b).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2420",
+      "date": "2026-11-17",
+      "title": "ABPTSECS GBS sim named a secondary objective by its REQ-319 wording after REQ-324 restored the catalog title",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "On the integration branch wave/2026-11-17b, lib/sim/objectives.test.ts and lib/sim/health-sims-1117.test.ts failed: ABPTSECS/carpal-tunnel-referral-demyelinating-gbs listed 'Recognize demyelinating patterns on nerve conduction studies: ...' as a secondary objective, which is no longer an ABPTSECS objective title.",
+      "how_detected": "lib/sim tests on the merged wave branch (integrator, 2026-11-17)",
+      "root_cause": "Merge-caused: sims-health (REQ-323) was built on origin/master, where REQ-319 had spelled out NCS in the objective title; exam-titles (REQ-324) restored 'on NCS' in the catalog. Each branch passed alone; the sim's objective link only broke once both were merged.",
+      "requirement": "REQ-323",
+      "affected": [
+        "backend/supabase/seed/sims/ABPTSECS/carpal-tunnel-referral-demyelinating-gbs.sim.json"
+      ],
+      "fix_summary": "The sim's secondary objective uses the catalog's restored title ('... on NCS: ...'). No scoring or golden change.",
+      "fix_commits": [
+        "820c99e1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/objectives.test.ts",
+        "backend/lib/sim/health-sims-1117.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "When a branch retitles objectives (REQ-324) and another adds sims in the same round, run lib/sim/objectives.test.ts on the merged branch before reporting.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2430",
+      "date": "2026-11-17",
+      "title": "The sim detail route skipped the mental health course 18+ gate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "GET /api/sims/:id for a sim in a mental health course returned the brief (for example a client at risk of suicide) to a learner who had not given that course's 18+ acknowledgment; only the start and run routes (requireNotice) and the course routes checked it",
+      "how_detected": "review while adding the per-sim 18+ gate (REQ-327)",
+      "root_cause": "REQ-224/REQ-259 put the course gate on the routes that open, start or teach a course (startableTrack, requireAcknowledgementFor*); the sim detail route only checked visibility and tier (gateSim 'view'), because it was read as a preview rather than as opening content. The app reaches it only after the gated course page, so no app flow showed the gap; a direct API call did.",
+      "requirement": "REQ-327",
+      "affected": [
+        "backend/lib/sims.ts",
+        "backend/app/api/sims/[id]/route.ts"
+      ],
+      "fix_summary": "simView checks matureContentNeededSql for the sim's course and throws MatureContentError (403 mature_content_required naming the course) before reading the brief; the per-sim gate follows it",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mature-sims.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.35 lists the detail route among the gated routes; the pre-completion Mature content rule names routes that open, start or teach a course, and a route that returns a sim's brief opens content",
+      "recurrence_of": ""
     }
   ]
 }

@@ -183,7 +183,7 @@ const VERIFIED_AT = "2026-09-18T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const AWS_CLF_TRACK: SeedTrack = {
   code: "AWSCLF",
-  title: "Prep for a foundational cloud practitioner certification exam",
+  title: "Exam Prep for AWS Certified Cloud Practitioner (CLF-C02)",
   description:
     "AWS Certified Cloud Practitioner (CLF-C02): the whole AWS Cloud at a working vocabulary level -- value and economics, security and compliance, the core service catalog, and how billing and support actually work. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -331,7 +331,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
   code: "AWSSAA",
   // REQ-257 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
   levelFlow: true,
-  title: "Prep for an associate cloud solutions architect certification exam",
+  title: "Exam Prep for AWS Certified Solutions Architect – Associate (SAA-C03)",
   description:
     "AWS Certified Solutions Architect - Associate (SAA-C03): designing solutions against the Well-Architected Framework -- secure, resilient, high-performing, and cost-optimized architectures, and knowing which trade-off a requirement is really asking for. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -506,7 +506,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_AIF_TRACK: SeedTrack = {
   code: "AWSAIF",
-  title: "Prep for a foundational AI practitioner certification exam",
+  title: "Exam Prep for AWS Certified AI Practitioner (AIF-C01)",
   description:
     "AWS Certified AI Practitioner (AIF-C01): AI, ML, and generative AI on AWS for the person who uses these systems rather than builds them -- foundation models, prompt engineering, RAG and agents, responsible AI, and the security and governance around it all. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -717,7 +717,7 @@ const DVA_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const AWS_DVA_TRACK: SeedTrack = {
   code: "AWSDVA",
-  title: "Prep for an associate cloud developer certification exam",
+  title: "Exam Prep for AWS Certified Developer – Associate (DVA-C03)",
   description:
     "AWS Certified Developer - Associate (DVA-C03): writing, securing, testing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB and caching, IAM, encryption and secrets, securing calls to AI services, containers and CI/CD with rollback, and observability and optimization, with AI-assisted development throughout. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -1046,7 +1046,7 @@ export const AWS_DVA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_SOA_TRACK: SeedTrack = {
   code: "AWSSOA",
-  title: "Prep for an associate cloud operations engineer certification exam",
+  title: "Exam Prep for AWS Certified CloudOps Engineer – Associate (SOA-C03)",
   description:
     "AWS Certified CloudOps Engineer - Associate (SOA-C03), formerly SysOps Administrator - Associate: running workloads day to day -- monitoring and remediation, reliability and backups, provisioning and automation, security and compliance, and networking when the packets do not arrive. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -1186,7 +1186,7 @@ export const AWS_SOA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_DEA_TRACK: SeedTrack = {
   code: "AWSDEA",
-  title: "Prep for an associate cloud data engineer certification exam",
+  title: "Exam Prep for AWS Certified Data Engineer – Associate (DEA-C01)",
   description:
     "AWS Certified Data Engineer - Associate (DEA-C01): building data pipelines that survive production -- ingestion and transformation, choosing and cataloging data stores, operating and monitoring pipelines, and the security and governance around the data itself. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -1398,7 +1398,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
   code: "AWSMLA",
   // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
   levelFlow: true,
-  title: "Prep for an associate machine learning engineer certification exam",
+  title: "Exam Prep for AWS Certified Machine Learning Engineer – Associate (MLA-C02)",
   description:
     "AWS Certified Machine Learning Engineer - Associate (MLA-C02): building and running ML and generative AI systems on AWS -- data preparation, training and fine-tuning, deploying models, agents and RAG pipelines, and then monitoring, costing, and securing all of it in production. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -1624,7 +1624,7 @@ const SAP_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const AWS_SAP_TRACK: SeedTrack = {
   code: "AWSSAP",
-  title: "Prep for a professional cloud solutions architect certification exam",
+  title: "Exam Prep for AWS Certified Solutions Architect – Professional (SAP-C03)",
   description:
     "AWS Certified Solutions Architect - Professional (SAP-C03): architecture at organizational scale -- cloud-native and AI-integrated designs, hybrid and multi-account networks, security, compliance and governance, cost-optimized design, resilience, migration and disaster recovery, and operational excellence through automation. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -1972,7 +1972,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_DOP_TRACK: SeedTrack = {
   code: "AWSDOP",
-  title: "Prep for a professional DevOps engineer certification exam",
+  title: "Exam Prep for AWS Certified DevOps Engineer – Professional (DOP-C02)",
   description:
     "AWS Certified DevOps Engineer - Professional (DOP-C02): automating the whole delivery path -- CI/CD pipelines and artifacts, infrastructure as code across many accounts, resilient and scalable systems, monitoring and logging, incident response, and security controls applied by machine rather than by hand. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -2174,7 +2174,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const AWS_SCS_TRACK: SeedTrack = {
   code: "AWSSCS",
-  title: "Prep for a cloud security specialty certification exam",
+  title: "Exam Prep for AWS Certified Security – Specialty (SCS-C03)",
   description:
     "AWS Certified Security - Specialty (SCS-C03): securing AWS at depth -- detection and logging pipelines, incident response and forensics, infrastructure and network controls, identity and authorization at scale, data protection and key management, and multi-account governance. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",
@@ -2339,7 +2339,7 @@ const ANS_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const AWS_ANS_TRACK: SeedTrack = {
   code: "AWSANS",
-  title: "Prep for an advanced cloud networking specialty certification exam",
+  title: "Exam Prep for AWS Certified Advanced Networking – Specialty (ANS-C01)",
   description:
     "AWS Certified Advanced Networking - Specialty (ANS-C01): hybrid and cloud networking at scale -- designing edge, DNS, load balancing and hybrid routing, implementing it across accounts and Regions, operating and troubleshooting it, and securing it. Note that this exam retires 2026-12-31. Independently developed exam prep; not affiliated with or endorsed by Amazon Web Services. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.",
   trackType: "certification",

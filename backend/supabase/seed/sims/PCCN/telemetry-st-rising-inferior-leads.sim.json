@@ -1,0 +1,1209 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "telemetry-st-rising-inferior-leads",
+  "title": "The ST segment on the monitor",
+  "objective": "Recognize ST elevation and new arrhythmias on telemetry as emergencies to escalate at once",
+  "secondaryObjectives": [
+    "Differentiate unstable angina, NSTEMI and STEMI using symptoms, the 12-lead ECG and serial troponin results"
+  ],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Cardiovascular (20% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Cardiovascular is 20% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+      "note": "Relayed from the CEN case triage-indigestion-inferior-stemi, which read it 2026-11-17 through a summarizing fetch with quotes of a secondary summary, not re-read: 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)'."
+    },
+    {
+      "cite": "NITROSTAT (nitroglycerin sublingual tablets) prescribing information, revised January 2017 (FDA label 021134s009)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021134s009lbl.pdf",
+      "note": "Relayed from the CEN case triage-indigestion-inferior-stemi, which read the label PDF 2026-11-17 through a summarizing fetch with quotes, not re-read: 'Severe hypotension, particularly with upright posture, may occur with small doses of nitroglycerin'; in acute myocardial infarction 'careful clinical or hemodynamic monitoring must be used because of the possibility of hypotension and tachycardia'. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "04:10 on a progressive care unit. Mr. Whitfield, 62, was admitted yesterday with an NSTEMI and is waiting for a catheterization later today. He presses the call light: the chest pressure is back.",
+    "handover": [
+      "Admitted with an NSTEMI; aspirin and the ordered anticoagulant are running. Telemetry lead II. Blood pressure at 03:00 was 124/76.",
+      "The unit's chest pain protocol: stay with the patient, a 12-lead ECG within 10 minutes, oxygen only if SpO2 is under 90%, and rapid response and the cardiology fellow called at once for new ST elevation or a new arrhythmia.",
+      "His chart lists the ordered sublingual nitroglycerin for chest pain, held for a systolic under 90 or a suspected right ventricular infarct."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "04:10",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The occlusion completes and the injury spreads. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Staying with him and preparing helps little; only reperfusion stops it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of ST elevation in the inferior leads with a falling pressure. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of ventricular fibrillation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response and cardiology called within 5 minutes of the ST elevation (unit protocol)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The chest pain protocol started within 5 minutes of the call light (unit protocol)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the team to take him to the catheterization lab; a routine plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Nitroglycerin in an inferior infarct with right ventricular involvement and a borderline pressure: profound hypotension. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "tropAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ecg",
+        "hx",
+        "trop"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "now",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stemi",
+        "nstemi",
+        "angina"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "padsAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 - 20 * max(0, prog - 0.5) + sin(t / 13))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(124 - 50 * max(0, prog - 0.35))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(76 - 25 * max(0, prog - 0.35))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Chest pain protocol under way: {not isNull(fixAt)|yesno}. Defibrillator pads on: {not isNull(padsAt)|yesno}. Ordered anticoagulant running.",
+      "banner": [
+        {
+          "when": "route == \"now\" and inCare",
+          "text": "Rapid response and cardiology are on the way; the catheterization lab is being opened."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ecg": {
+      "label": "12-lead ECG, with right-sided leads",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): the pain, nausea, sweating, recent drugs",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "trop": {
+      "label": "Review the overnight troponin trend",
+      "group": "Assess",
+      "available": "not testPending and isNull(tropAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"trop\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: telemetry ST segment, blood pressure, pain, skin",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Telemetry shows ST elevation in lead II. Blood pressure {sbp}/{dbp}, heart rate {hr}, gray and sweaty.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Telemetry: no new ST change. Blood pressure {sbp}/{dbp}. Pain 6/10.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Chest pain protocol: stay with him, check the IV, sit him semi-recumbent",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Protocol started; staying with him.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pads": {
+      "label": "Apply defibrillator pads",
+      "group": "Treat",
+      "available": "isNull(padsAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "padsAt",
+          "to": "t"
+        },
+        {
+          "log": "Defibrillator pads on.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Give the ordered sublingual nitroglycerin for the pain",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Nitroglycerin given under the tongue.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "stemi",
+              "label": "An inferior STEMI with right ventricular involvement: a new emergency, not his NSTEMI"
+            },
+            {
+              "value": "nstemi",
+              "label": "The same NSTEMI; the cath this morning will deal with it"
+            },
+            {
+              "value": "angina",
+              "label": "Stable angina; rest and recheck"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"stemi\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stemi\""
+                },
+                {
+                  "log": "Impression: inferior STEMI with RV involvement.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"nstemi\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"nstemi\""
+                },
+                {
+                  "log": "Impression: known NSTEMI.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"angina\""
+                },
+                {
+                  "log": "Impression: stable angina.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "now",
+              "label": "Rapid response and the cardiology fellow now: new inferior ST elevation, hypotensive, activate the cath lab"
+            },
+            {
+              "value": "morning",
+              "label": "Page the fellow to review the ECG at the morning round"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"now\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"now\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "Rapid response arrives; the fellow activates the catheterization lab.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A non-urgent page is left for the morning.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: pain onset, ECG with the right-sided leads, pressure trend, nitroglycerin held",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: pain at 04:10, ECG with V4R, pressure trend, nitroglycerin held for RV involvement.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "ecg",
+        "hx",
+        "trop",
+        "reassess",
+        "fix",
+        "pads",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ecg\"",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "ST elevation in II, III and aVF with reciprocal depression in I and aVL; ST elevation in V4R.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "T-wave inversion in the inferior leads, as on admission; no ST elevation yet.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pressure like yesterday's, worse now; nauseated; no erectile dysfunction drugs.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "tropAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Troponin rose overnight, as expected for his NSTEMI.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going to the catheterization lab",
+      "wait": {
+        "skipLabel": "the cath team taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the team to take him to the catheterization lab; a routine plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the catheterization lab.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The ST alarm sounds on lead II.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "The ST alarm is sounding and his pressure is falling. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "New inferior ST elevation with reciprocal changes is a STEMI, not his known NSTEMI; ST elevation in V4R and hypotension point to right ventricular involvement.",
+          "modelAnswer": "He's now having an inferior STEMI: new ST elevation in II, III and aVF with reciprocal changes. ST elevation in V4R and the falling pressure mean the right ventricle is involved."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Rapid response and cardiology now for the cath lab; hold nitroglycerin (preload-dependent RV); pads on; stay; hand off.",
+          "modelAnswer": "Rapid response and the fellow now to activate the cath lab, hold the nitroglycerin because his right ventricle needs preload, pads on, stay with him."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "New ST elevation still on the unit an hour on is harm here.",
+      "source": {
+        "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+        "note": "Relayed from the CEN case triage-indigestion-inferior-stemi, which read it 2026-11-17 through a summarizing fetch with quotes of a secondary summary, not re-read: 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)'."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Collapse after nitroglycerin",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Minutes after the nitroglycerin his pressure collapses; he is gray and barely responsive. His right ventricle depends on preload."
+    },
+    "worsened": {
+      "label": "Ventricular fibrillation",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Heart rate {hr}, blood pressure {sbp}/{dbp}: the monitor shows ventricular fibrillation."
+    },
+    "wrongRoute": {
+      "label": "ST elevation left until morning",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"morning\")",
+      "narrative": "Before the morning round he goes into ventricular fibrillation."
+    },
+    "target": {
+      "label": "ST elevation escalated at once",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(ecgAt)",
+      "narrative": "{timeAt(leftAt)|clock}: on his way to the catheterization lab. ECG with right-sided leads, nitroglycerin held, the ST change escalated within minutes."
+    },
+    "recovered": {
+      "label": "To the cath lab, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"now\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches the cath lab, but the protocol started late or the ST elevation went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still on the unit at 05:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "05:10 and Mr. Whitfield is still on the unit."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Chest pain protocol started within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Rapid response and cardiology called within 5 minutes of the ST elevation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"now\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left for the morning round."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No nitroglycerin with an RV infarct and a falling pressure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Nitroglycerin given."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "12-lead ECG with right-sided leads",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ecgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "padsC",
+        "label": "Defibrillator pads on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(padsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named a new inferior STEMI with RV involvement",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"stemi\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"nstemi\"",
+            "score": "missed",
+            "why": "Treated new ST elevation as the old NSTEMI."
+          },
+          {
+            "when": "dxEnum == \"angina\"",
+            "score": "missed",
+            "why": "Called it stable angina."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the ECG, the pressure trend and the held nitroglycerin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: new ST elevation is a new emergency; escalate at once; no nitroglycerin",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Call light to the protocol",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "ST elevation to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "04:10",
+        "text": "Protocol: stay, IV checked, pads on."
+      },
+      {
+        "at": "~04:11",
+        "text": "12-lead with right-sided leads: no ST elevation yet. Reassess."
+      },
+      {
+        "at": "~04:16",
+        "text": "ST alarm: inferior ST elevation, pressure falling."
+      },
+      {
+        "at": "~04:17",
+        "text": "Rapid response and cardiology now; nitroglycerin held; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Nitroglycerin into an RV infarct",
+        "body": "With inferior ST elevation, right-sided changes and a falling pressure, nitroglycerin can collapse the pressure. Hold it and tell the team."
+      },
+      "worsened": {
+        "headline": "Ventricular fibrillation",
+        "body": "New ST elevation on telemetry is a new emergency. Escalate at once; reperfusion is time-critical."
+      },
+      "wrongRoute": {
+        "headline": "Left for the round",
+        "body": "ST elevation cannot wait for a morning review."
+      },
+      "target": {
+        "headline": "Escalated at once",
+        "body": "You ran the protocol, got the 12-lead with right-sided leads, held the nitroglycerin and called within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "To the cath lab, with delays",
+        "body": "Check how long the ST elevation went before the call."
+      },
+      "time_up": {
+        "headline": "Still on the unit",
+        "body": "STEMI care is measured in minutes."
+      }
+    },
+    "modelReasoning": "Recurrent pain in an NSTEMI patient starts the chest pain protocol and a 12-lead within 10 minutes. When telemetry shows new ST elevation in the inferior leads with reciprocal changes, ST elevation in V4R and a falling pressure, it is a new inferior STEMI with right ventricular involvement: rapid response and cardiology now to activate the cath lab, and nitroglycerin is held because the right ventricle depends on preload."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "ecgQ": {
+      "during": "testT",
+      "ask": "While you assess: how soon should a 12-lead ECG be read for new chest pain?",
+      "choices": [
+        {
+          "id": "ten",
+          "label": "Within 10 minutes"
+        },
+        {
+          "id": "hour",
+          "label": "Within an hour"
+        },
+        {
+          "id": "round",
+          "label": "At the next round"
+        }
+      ],
+      "expect": "ten",
+      "explain": "At least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact.",
+      "source": {
+        "cite": "ACC/AHA Guideline for the Management of Patients With Acute Coronary Syndromes (2025), as summarized by Guideline Central ('Management of ACS guidelines spotlight', 2025)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.guidelinecentral.com/insights/management-of-acs-guidelines-spotlight",
+        "note": "Relayed from the CEN case triage-indigestion-inferior-stemi, which read it 2026-11-17 through a summarizing fetch with quotes of a secondary summary, not re-read: 'at least one 12-lead ECG acquired and interpreted within 10 minutes of first medical contact'; suspected STEMI: 'first medical contact (FMC) to first device time of less than or equal to 90 minutes'; oxygen for 'confirmed hypoxia (oxygen saturation <90%)'."
+      }
+    },
+    "ntgQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: why hold nitroglycerin in an inferior STEMI with right ventricular involvement?",
+      "choices": [
+        {
+          "id": "pre",
+          "label": "It drops preload and can cause severe hypotension"
+        },
+        {
+          "id": "bleed",
+          "label": "It causes bleeding"
+        },
+        {
+          "id": "brady",
+          "label": "It causes heart block"
+        }
+      ],
+      "expect": "pre",
+      "explain": "Severe hypotension may occur with small doses of nitroglycerin; in acute MI careful monitoring is needed because of hypotension.",
+      "source": {
+        "cite": "NITROSTAT (nitroglycerin sublingual tablets) prescribing information, revised January 2017 (FDA label 021134s009)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/021134s009lbl.pdf",
+        "note": "Relayed from the CEN case triage-indigestion-inferior-stemi, which read the label PDF 2026-11-17 through a summarizing fetch with quotes, not re-read: 'Severe hypotension, particularly with upright posture, may occur with small doses of nitroglycerin'; in acute myocardial infarction 'careful clinical or hemodynamic monitoring must be used because of the possibility of hypotension and tachycardia'. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

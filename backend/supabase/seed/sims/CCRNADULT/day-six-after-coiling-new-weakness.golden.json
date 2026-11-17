@@ -1,0 +1,464 @@
+{
+  "slug": "day-six-after-coiling-new-weakness",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: neuro check against baseline; drain checked; delayed cerebral ischemia; neurointensivist now; fluid to euvolemia; pressure augmented; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "windowQ",
+          "choice": "d3",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "evd",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dci"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "neuro"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "avoidlow",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 10,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "aug",
+          "seq": 11,
+          "tick": 75
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 75
+        }
+      ],
+      "expect": {
+        "ending": "reversed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "noLower": "met",
+          "treatC": "met",
+          "evdC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toAug": 375
+        },
+        "stateHash": "7392aaca6afd1b5f"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Glucose and balance first, then the neuro check; calls 6 minutes after the new deficit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "windowQ",
+          "choice": "d3",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "balance",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "evd",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dci"
+          },
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "neuro"
+          },
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "avoidlow",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 11,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "aug",
+          "seq": 12,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "reversedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "noLower": "met",
+          "treatC": "met",
+          "evdC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toAug": 825
+        },
+        "stateHash": "49355b000a2a7750"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pressureOnly",
+      "title": "Calls at once and starts the vasopressor, but never gives the fluid or checks the drain",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "windowQ",
+          "choice": "d3",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "neuro"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "avoidlow",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dci"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "aug",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "reversedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "callC": "met",
+          "noLower": "met",
+          "treatC": "partial",
+          "evdC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toAug": 350
+        },
+        "stateHash": "1ef78215bc30ad28"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "rebleed",
+      "title": "Failure: calls it a rebleed, gives labetalol and rechecks in an hour",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "windowQ",
+          "choice": "d3",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "rebleed"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "lower",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "recheck"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "infarct",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "noLower": "missed",
+          "treatC": "missed",
+          "evdC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toAug": -1
+        },
+        "stateHash": "839e9a66bfdbe2ae"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "restricted",
+      "title": "Failure: reviews the balance, calls it a seizure and restricts fluids",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "balance",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "windowQ",
+          "choice": "d3",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "seizure"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restrict",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "infarct",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "noLower": "missed",
+          "treatC": "missed",
+          "evdC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toAug": -1
+        },
+        "stateHash": "f58ea6c024feecc6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

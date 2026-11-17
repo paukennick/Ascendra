@@ -378,7 +378,7 @@ export const LFCS_SIM_OBJECTIVES = {
 
 export const LFCS_TRACK: SeedTrack = {
   code: "LFCS",
-  title: "Prep for a performance-based Linux system administrator certification exam",
+  title: "Exam Prep for Linux Foundation Certified System Administrator® (LFCS)",
   description:
     "LFCS: the Linux Foundation's hands-on sysadmin exam, 17-20 tasks at a live command line in two hours, on any distribution. Deploy and operate services, packages, kernel parameters, SELinux, VMs and containers; configure networking, SSH, firewalls, routing, bonds and reverse proxies; manage LVM, filesystems, swap and automounts; and run Git, systemd units, certificates, users, limits, ACLs and LDAP logins. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Linux Foundation Certified System Administrator is a registered trademark of The Linux Foundation (its trademark list, read 2026-11-14). Linux is a registered trademark of Linus Torvalds.",
   trackType: "certification",

@@ -149,7 +149,7 @@ export const ABPTSONC_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the fatigue tools for a survivorship clinic",
       brief:
-        "A fictional survivorship clinic sees three groups: patients mid-chemotherapy for colorectal cancer, patients one year past treatment for breast cancer returning to work, and patients with metastatic prostate cancer on long-term hormonal therapy. The clinic currently asks \"Are you tired?\" and records yes or no. The medical director wants a two-step approach -- a quick screen for everyone, a fuller assessment for those who screen positive -- using tools the physical therapy oncology fatigue guideline rates highest, and wants the same tools used at every visit so that change can be tracked.",
+        "A fictional survivorship clinic sees three groups: patients mid-chemotherapy for colorectal cancer, patients one year past treatment for breast cancer returning to work, and patients with metastatic prostate cancer on long-term hormonal therapy. The clinic currently asks \"Are you tired?\" and records yes or no. The medical director wants a two-step approach -- a quick screen for everyone, a fuller assessment for those who screen positive -- using tools the APTA oncology fatigue guideline rates highest, and wants the same tools used at every visit so that change can be tracked.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {

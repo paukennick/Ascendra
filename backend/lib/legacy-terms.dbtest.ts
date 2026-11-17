@@ -148,8 +148,9 @@ describe("legacy clients and the Terms gate (REQ-175, FAIL-560)", () => {
     let s = await json(await onboardingGet(req(u, "current", "/api/onboarding")));
     assert.equal(s.terms.needsAcceptance, true);
     // REQ-261: only the documents whose version changed are asked again (the 2026-11-14 bump moved the Privacy Policy alone).
-    const changed = (["terms", "privacy"] as const).filter((d) => PREVIOUS_LEGAL_VERSIONS[d] !== LEGAL_VERSIONS[d]);
-    assert.deepEqual(changed, ["privacy"], "this bump is the Privacy Policy alone");
+    // REQ-327: the 2026-11-18 bump moves both.
+    const changed = (["terms", "privacy"] as const).filter((d) => (PREVIOUS_LEGAL_VERSIONS[d] as string) !== (LEGAL_VERSIONS[d] as string));
+    assert.deepEqual(changed, ["terms", "privacy"], "this bump moves the Terms and the Privacy Policy");
     assert.deepEqual(s.terms.pending, changed);
     assert.equal(s.terms.acceptedVersion, PREVIOUS_TERMS_VERSION, "the agree screen says the terms changed");
     assert.deepEqual((await json(await meGet(req(u, "current", "/api/auth/me")))).user.legalPending, changed);

@@ -1,0 +1,1500 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmp-clinic-fitout-schedule-variance",
+  "title": "A clinic fit-out: a sponsor's request, a risk trigger, a slipping schedule and a claim",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Second-floor fit-out · end of week {week} of 8",
+      "commitments": [
+        {
+          "id": "objective",
+          "label": "Project objective",
+          "text": "Four exam rooms, a procedure room and a staff room on the second floor, ready for patients on Monday 3 May 2027."
+        },
+        {
+          "id": "baseline",
+          "label": "Baseline",
+          "text": "Budget at completion $240,000; 8 weeks; planned value $30,000 a week."
+        },
+        {
+          "id": "reserve",
+          "label": "Contingency reserve",
+          "text": "{risk == \"contingency\" ? \"$3,000 of $10,000 drawn for the alternate panel supplier\" : \"$10,000, for the risks in the register\"}"
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "Not started"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Complete"
+        }
+      ],
+      "items": [
+        {
+          "id": "demo",
+          "label": "Demolition and abatement",
+          "column": "wp1",
+          "when": "true",
+          "size": "weeks 1-2"
+        },
+        {
+          "id": "rough",
+          "label": "Framing and plumbing rough-in",
+          "column": "wp2",
+          "when": "true",
+          "size": "weeks 3-4"
+        },
+        {
+          "id": "elec",
+          "label": "Electrical panel and wiring",
+          "column": "wp3",
+          "when": "true",
+          "size": "weeks 5-6",
+          "flag": "week >= 4 and week < 7 and risk == \"wait\"",
+          "note": "{risk == \"wait\" ? \"Panel two weeks late\" : risk == \"contingency\" ? \"Panel from the alternate supplier\" : risk == \"crash\" ? \"Overtime crew waiting for the panel\" : \"\"}"
+        },
+        {
+          "id": "finish",
+          "label": "Finishes, equipment and inspection",
+          "column": "wp4",
+          "when": "true",
+          "size": "weeks 7-8"
+        },
+        {
+          "id": "sinks",
+          "label": "Second sink in each exam room",
+          "column": "sinkCol",
+          "when": "change == \"informal\"",
+          "size": "unplanned"
+        }
+      ],
+      "chart": {
+        "label": "Earned value against plan",
+        "unit": "thousand dollars",
+        "slots": 9,
+        "slotLabel": "Status meeting",
+        "series": [
+          {
+            "id": "evS",
+            "label": "Earned value",
+            "style": "actual",
+            "history": "evH"
+          },
+          {
+            "id": "acS",
+            "label": "Actual cost",
+            "style": "actual",
+            "history": "acH"
+          },
+          {
+            "id": "pvS",
+            "label": "Planned value",
+            "style": "plan",
+            "values": [
+              0,
+              30,
+              60,
+              90,
+              120,
+              150,
+              180,
+              210,
+              240
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "drawings",
+          "label": "Exam-room equipment drawings returned late by the clinic",
+          "when": "week >= 3",
+          "at": "1814400",
+          "status": "Framing lost about half a week",
+          "open": "false"
+        },
+        {
+          "id": "panel",
+          "label": "Risk R4, electrical panel delivery: supplier has not confirmed",
+          "when": "week >= 4",
+          "at": "2419200",
+          "status": "{risk == \"contingency\" ? \"Contingency plan executed: alternate supplier delivers on time\" : risk == \"wait\" ? \"Became an issue: delivery two weeks late, on the critical path\" : risk == \"crash\" ? \"Overtime crew added without the plan; panel still late\" : \"Trigger reached: decision needed\"}",
+          "open": "week < 7 and risk != \"contingency\""
+        },
+        {
+          "id": "claim",
+          "label": "Contractor's notice of claim: $9,000 for the drawing delay",
+          "when": "week >= 6",
+          "at": "3628800",
+          "status": "{claim == \"review\" ? \"Reviewed against the contract: $4,500 agreed for 3 days of owner delay\" : claim == \"signed\" ? \"Signed in full as a change order\" : claim == \"rejected\" ? \"Rejected outright; the contractor has gone to the dispute clause\" : \"Received; not yet assessed\"}",
+          "open": "claim == \"none\" or claim == \"rejected\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sponsor",
+          "label": "Dr. Ruiz, sponsor",
+          "spokenLabel": "Dr. Ruiz, the sponsor",
+          "value": "sponsorTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "gc",
+          "label": "Brightwater Builders",
+          "spokenLabel": "the general contractor",
+          "value": "gcTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "staff",
+          "label": "Clinic staff",
+          "spokenLabel": "the clinic staff",
+          "value": "staffTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "m1",
+          "label": "Rough-in inspection",
+          "at": "2419200",
+          "status": "{week >= 4 ? \"Passed\" : \"Planned\"}"
+        },
+        {
+          "id": "m2",
+          "label": "Panel energized",
+          "at": "3628800",
+          "status": "{week < 6 ? \"Planned\" : risk == \"wait\" or risk == \"crash\" ? \"Late\" : \"Done\"}"
+        },
+        {
+          "id": "m3",
+          "label": "Handover to the clinic",
+          "at": "4838400",
+          "status": "{week < 8 ? \"Planned\" : spi >= 0.99 ? \"On the baseline date\" : \"Behind the baseline\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "evm",
+          "label": "PV / EV / AC",
+          "value": "${pv}k / ${round(ev)}k / ${round(ac)}k"
+        },
+        {
+          "id": "spiM",
+          "label": "SPI",
+          "value": "{spi|2dp}"
+        },
+        {
+          "id": "cpiM",
+          "label": "CPI",
+          "value": "{cpi|2dp}"
+        }
+      ]
+    }
+  },
+  "objective": "Planning and managing schedule: selecting a development-approach-appropriate estimating method, baselining the schedule, and analyzing schedule variance",
+  "secondaryObjectives": [
+    "Managing and controlling changes: executing a change control process, communicating proposed-change status, and updating documentation to reflect approved changes",
+    "Planning and managing risk: identifying and analyzing risks, maintaining a risk register, and executing a risk management plan",
+    "Evaluating project status: developing project metrics, ensuring artifacts are created and kept accessible, and communicating status",
+    "Planning and managing resources, procurement (including contract type selection and vendor performance evaluation), and project finances"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Project Management Professional (PMP) Examination Content Outline, July 2026 Update: People 33%, Process 41%, Business Environment 26%",
+      "checkedAt": "2026-11-17",
+      "url": "https://backend.kayenta.de/fileadmin/kayenta/Bilder_2026/PMP-Examination-Content-Outline-2026.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider (the course seed cites PMI's own copy). Relevant text: Domain II Task 8 'Plan and manage schedule' ('Baseline a project schedule'; 'Execute a schedule management plan'; 'Analyze schedule variation'); Domain III Task 3 'Manage and control changes' ('Execute the change control process'; 'Communicate the status of proposed changes'; 'Implement approved changes to the project'); Task 4 'Remove impediments and manage issues' ('Recognize when a risk becomes an issue'); Task 5 'Plan and manage risk' ('Maintain a risk register'; 'Execute a risk management plan'). The objective wording here is the course seed's."
+    },
+    {
+      "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+      "note": "Read 2026-11-17 through a summarizing fetch. PV is the budgeted cost of the work scheduled by a date; EV the budgeted cost of the work actually completed; AC the total spent to date. SV = EV - PV and CV = EV - AC (negative: behind schedule, over budget); SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done."
+    },
+    {
+      "cite": "Construction Contracting: Business and Legal Principles (Virginia Tech Publishing, open textbook), chapter 22 Construction Contract Claims",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.lib.vt.edu/constructioncontracting/?p=69",
+      "note": "Read 2026-11-17 through a summarizing fetch. A change order is usually the owner's action (a directed scope change); a claim is 'a written demand or assertion by the Contractor seeking an adjustment in Contract Price', often after a proposal is denied. Written notice is required within the contract's period; the contractor's submittal must establish entitlement under the contract and quantum (the amount of money or time), a time claim usually by a CPM schedule analysis; the owner accepts, denies or partly accepts, and the contractor accepts or invokes the contract's dispute resolution procedure."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The budget, the weekly planned value, the progress each event costs or recovers, the contingency figure and the trust gauges are teaching figures for exam practice, not measured values. The clinic, the contractor and the people are fictional."
+    }
+  ],
+  "brief": {
+    "situation": "You are the project manager for Lakeshore Family Clinic, a fictional clinic, on the fit-out of its second floor: four exam rooms, a procedure room and a staff room. Brightwater Builders, a fictional general contractor, holds the fixed-price construction contract. The project is predictive: an 8-week baselined schedule from Monday 1 March 2027 and a budget of $240,000, with a $10,000 contingency reserve for the risks in the register.",
+    "handover": [
+      "Sponsor: Dr. Elena Ruiz, clinic director. Contractor's site lead: Sam Okafor. The clinic staff will work in the rooms.",
+      "Planned value is $30,000 a week. You get status figures at each Friday status meeting (the kickoff is the first); the dashboard shows PV, EV, AC, SPI and CPI."
+    ],
+    "howItWorks": [
+      "The dashboard shows the objective and baseline, the work packages, earned value against plan, risks and issues, the people and the milestones.",
+      "Move the project on a week at a time. Decisions come to you as they arise; between them you can review the risk register or work out the variances.",
+      "At handover you close the project and write a short close-out note."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T08:00",
+    "tick": "1h",
+    "maxDuration": "60d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "week": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 8
+    },
+    "ev": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400
+    },
+    "ac": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 400
+    },
+    "wp1": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "wp2": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "wp3": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "wp4": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "sinkCol": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "change": {
+      "type": "enum",
+      "values": [
+        "none",
+        "ccb",
+        "informal",
+        "refused"
+      ],
+      "init": "none"
+    },
+    "risk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "contingency",
+        "wait",
+        "crash"
+      ],
+      "init": "none"
+    },
+    "report": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "green",
+        "blame"
+      ],
+      "init": "none"
+    },
+    "claim": {
+      "type": "enum",
+      "values": [
+        "none",
+        "review",
+        "signed",
+        "rejected"
+      ],
+      "init": "none"
+    },
+    "lessons": {
+      "type": "enum",
+      "values": [
+        "none",
+        "held",
+        "skipped"
+      ],
+      "init": "none"
+    },
+    "registerRead": {
+      "type": "bool",
+      "init": false
+    },
+    "sponsorTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "gcTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "staffTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "evH": {
+      "of": "ev",
+      "every": "7d",
+      "keep": "56d"
+    },
+    "acH": {
+      "of": "ac",
+      "every": "7d",
+      "keep": "56d"
+    }
+  },
+  "derived": {
+    "pv": {
+      "expr": "week * 30",
+      "unit": "k$"
+    },
+    "spi": {
+      "expr": "week == 0 ? 1 : ev / (week * 30)"
+    },
+    "cpi": {
+      "expr": "ac == 0 ? 1 : ev / ac"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "build": {
+      "label": "The fit-out",
+      "clock": "turns",
+      "actions": [
+        "register",
+        "evm"
+      ]
+    },
+    "close": {
+      "label": "Handover and closing",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "build",
+  "actions": {
+    "register": {
+      "label": "Review the risk register with the contractor's site lead",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\"",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "set": "registerRead",
+          "to": "true"
+        },
+        {
+          "log": "You go through the risk register with the site lead.",
+          "kind": "act"
+        },
+        {
+          "finding": "R4, electrical panel delivery: trigger, the supplier has not confirmed a delivery date by the end of week 4; response, contingency: order from the pre-approved alternate supplier, about $3,000 from the contingency reserve. The panel is on the critical path."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "evm": {
+      "label": "Work out schedule and cost variance from this week's figures",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and week > 0",
+      "why": "Finish what you are doing first; there are figures after week 1.",
+      "effects": [
+        {
+          "log": "You work the variances from the status data.",
+          "kind": "act"
+        },
+        {
+          "finding": "PV ${pv}k, EV ${round(ev)}k, AC ${round(ac)}k: SV ${round(ev - pv)}k, CV ${round(ev - ac)}k; SPI {spi|2dp}, CPI {cpi|2dp}. {spi < 1 ? \"Behind schedule.\" : \"On or ahead of schedule.\"} {cpi < 1 ? \"Over cost for the work done.\" : \"Within cost for the work done.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Close the project",
+      "group": "Closing",
+      "available": "phase == \"close\" and lessons == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Closing",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you close",
+              "options": [
+                {
+                  "value": "held",
+                  "label": "Hand over with the clinic's sign-off, hold a lessons-learned session with the staff and the contractor, update the templates, close the contract and archive the records"
+                },
+                {
+                  "value": "skipped",
+                  "label": "Hand over the keys and move on; everyone is busy with opening week"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lessons",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"held\"",
+              "then": [
+                {
+                  "add": "staffTrust",
+                  "by": "10"
+                },
+                {
+                  "add": "gcTrust",
+                  "by": "5"
+                },
+                {
+                  "log": "Lessons learned recorded: drawing turnaround in the contract schedule, triggers checked weekly.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "staffTrust",
+                  "by": "-5"
+                },
+                {
+                  "log": "No lessons recorded; the next fit-out starts from the same templates.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "lessons != \"none\" and not closed",
+      "why": "Close the project first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The project is closed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the week"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "The budget, the weekly planned value, the progress each event costs or recovers, the contingency figure and the trust gauges are teaching figures for exam practice, not measured values. The clinic, the contractor and the people are fictional."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "week": {
+      "label": "The next weekly status meeting",
+      "wait": {
+        "skipLabel": "Go to the next weekly status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "The budget, the weekly planned value, the progress each event costs or recovers, the contingency figure and the trust gauges are teaching figures for exam practice, not measured values. The clinic, the contractor and the people are fictional."
+      },
+      "effects": [
+        {
+          "add": "week",
+          "by": "1"
+        },
+        {
+          "add": "ac",
+          "by": "30"
+        },
+        {
+          "add": "ev",
+          "by": "30"
+        },
+        {
+          "if": "week == 3",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-15"
+            },
+            {
+              "log": "The clinic returned the exam-room equipment drawings 6 days after the contractor sent them; the contract allows 3. Framing lost about half a week.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "change == \"informal\" and (week == 3 or week == 4)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-6"
+            },
+            {
+              "add": "ac",
+              "by": "4"
+            },
+            {
+              "log": "The plumbers rework the rough-in for the extra sinks: work nobody planned or priced.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "risk == \"wait\" and (week == 5 or week == 6)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-15"
+            },
+            {
+              "log": "No panel yet: wiring cannot be terminated, and everything after it waits.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "risk == \"crash\" and week == 5",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-5"
+            },
+            {
+              "log": "The overtime crew pulls cable, then waits for the panel.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "report == \"honest\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "7.5"
+            },
+            {
+              "log": "Recovery plan: ceilings and flooring overlap with the wiring in rooms already inspected (fast-tracking, agreed with the contractor at no extra cost).",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "week == 2",
+          "then": [
+            {
+              "set": "wp1",
+              "to": "\"done\""
+            },
+            {
+              "set": "wp2",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 4",
+          "then": [
+            {
+              "set": "wp2",
+              "to": "\"done\""
+            },
+            {
+              "set": "wp3",
+              "to": "\"doing\""
+            },
+            {
+              "set": "sinkCol",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 6",
+          "then": [
+            {
+              "set": "wp3",
+              "to": "risk == \"wait\" ? \"doing\" : \"done\""
+            },
+            {
+              "set": "wp4",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 7 and risk == \"wait\"",
+          "then": [
+            {
+              "set": "wp3",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 8",
+          "then": [
+            {
+              "set": "wp4",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week < 8",
+          "then": [
+            {
+              "schedule": "week",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Friday 30 April: handover week.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "week",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "sinks",
+      "when": "week == 2 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Friday, end of week 2: a request on site.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sinkPrompt"
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "when": "week == 4 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Friday, end of week 4: R4's trigger date has passed.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "panelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "when": "week == 5 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Friday, end of week 5: the monthly status report to the sponsor is due.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reportPrompt"
+        }
+      ]
+    },
+    {
+      "id": "claimT",
+      "when": "week == 6 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Monday, week 7: a letter from the contractor.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "claimPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "sinkPrompt": {
+      "title": "End of week 2: the sponsor asks for a second sink in each exam room",
+      "context": "Dr. Ruiz, the clinic director and sponsor, walked the site with Brightwater's site lead: \"Infection control wants a second sink in every exam room. It's small; just add them while the walls are open.\" The site lead looks at you. The plumbing rough-in is on the critical path next week.",
+      "choices": [
+        {
+          "id": "ccb",
+          "label": "Log a change request: have Brightwater price it and say what it does to the schedule, then take it to the change control board (Dr. Ruiz and you) to decide",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"ccb\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Change request CR-03 logged. Brightwater's impact analysis: $8,000 and about a week on the critical path. The board defers the sinks to the summer shutdown; the baseline stands.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Execute the change control process: a request is analyzed for its impact and decided by those with the authority before anyone does the work."
+        },
+        {
+          "id": "informal",
+          "label": "Tell the site lead to go ahead; it is the sponsor asking, and it is small",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"informal\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "10"
+            },
+            {
+              "add": "gcTrust",
+              "by": "-5"
+            },
+            {
+              "log": "The plumbers start on sinks nobody priced or scheduled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Work added outside change control is scope creep: unpriced, unscheduled and outside the baseline, even when the sponsor asks."
+        },
+        {
+          "id": "refused",
+          "label": "Tell Dr. Ruiz that no changes are possible once construction has started",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"refused\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "-20"
+            },
+            {
+              "log": "Dr. Ruiz is told no without an analysis; the request goes nowhere.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Refusing without analysis is not change control either: a request is assessed and decided, and it may well be approved."
+        }
+      ]
+    },
+    "panelPrompt": {
+      "title": "End of week 4: risk R4's trigger has been reached",
+      "context": "The register's trigger for R4 was 'no confirmed panel delivery date by the end of week 4'. The supplier still has not confirmed. Brightwater: \"They usually come through. We could wait a week, or I can put an overtime electrical crew on now.\"",
+      "choices": [
+        {
+          "id": "contingency",
+          "label": "Execute R4's planned response: order from the pre-approved alternate supplier, drawing about $3,000 from the contingency reserve, and record the change in the register",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"contingency\""
+            },
+            {
+              "add": "ac",
+              "by": "3"
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Alternate supplier confirms delivery Wednesday of week 5. Register updated: R4 closed, residual risk (fit of the alternate panel) noted.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The trigger fired, so the planned contingency response is executed and its residual risk recorded."
+        },
+        {
+          "id": "wait",
+          "label": "Wait a week for the usual supplier to confirm",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"wait\""
+            },
+            {
+              "add": "staffTrust",
+              "by": "-5"
+            },
+            {
+              "log": "The risk becomes an issue: the panel arrives two weeks late.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Waiting past the trigger lets the risk become an issue on the critical path."
+        },
+        {
+          "id": "crash",
+          "label": "Add an overtime electrical crew now, without going back to the plan or the sponsor",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"crash\""
+            },
+            {
+              "add": "ac",
+              "by": "18"
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Overtime crew booked: $18,000 not in the plan, and the panel is still late.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Crashing spends money on the wrong problem: the constraint is the panel, not labor, and the planned response was cheaper."
+        }
+      ]
+    },
+    "reportPrompt": {
+      "title": "End of week 5: the monthly status report",
+      "context": "PV ${pv}k, EV ${round(ev)}k, AC ${round(ac)}k (SPI {spi|2dp}, CPI {cpi|2dp}). Brightwater's site lead: \"Just put green on it; we'll catch up.\" Dr. Ruiz reads the report before the board meeting on Monday.",
+      "choices": [
+        {
+          "id": "honest",
+          "label": "Report the variances as measured, the cause (the clinic's late drawings{risk == \"wait\" ? \" and the late panel\" : \"\"}), the forecast and a recovery plan: overlap ceilings and flooring with wiring in rooms already inspected",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"honest\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Report sent with the figures and the recovery plan; Dr. Ruiz approves the overlap.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Status is communicated as measured, with variance analysis, a forecast and the corrective action."
+        },
+        {
+          "id": "green",
+          "label": "Report green: the budget is fine and the schedule will catch up",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"green\""
+            },
+            {
+              "log": "The report says green while the project is behind.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A status that hides a measured variance misleads the sponsor and leaves no time to correct it."
+        },
+        {
+          "id": "blame",
+          "label": "Report that the contractor is running late, without the figures",
+          "effects": [
+            {
+              "set": "report",
+              "to": "\"blame\""
+            },
+            {
+              "add": "gcTrust",
+              "by": "-15"
+            },
+            {
+              "log": "The report blames Brightwater for a delay the clinic caused.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The variance has a measured size and a cause; here the cause was the owner's late drawings, not the contractor."
+        }
+      ]
+    },
+    "claimPrompt": {
+      "title": "Week 7: the contractor's notice of claim",
+      "context": "Brightwater: \"Under clause 15 we give notice of a claim for $9,000: extended site costs for the six days the clinic held the equipment drawings in week 3.\" The contract gives the owner 3 working days to return drawings. Dr. Ruiz: \"Can we just sign it so they keep working?\"",
+      "choices": [
+        {
+          "id": "review",
+          "label": "Treat it as a claim: check the notice against clause 15, ask for the substantiation (the transmittal dates, daily logs and a schedule analysis), and negotiate under the contract's dispute steps",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"review\""
+            },
+            {
+              "add": "ac",
+              "by": "4.5"
+            },
+            {
+              "add": "gcTrust",
+              "by": "5"
+            },
+            {
+              "log": "The records show 3 days of owner delay, not 6. Agreed at $4,500 and recorded as a settled claim.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A claim is the contractor's demand for an adjustment; entitlement and amount are established from the contract and the records before it is settled."
+        },
+        {
+          "id": "signed",
+          "label": "Sign it in full as a change order now, to keep the peace",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"signed\""
+            },
+            {
+              "add": "ac",
+              "by": "9"
+            },
+            {
+              "add": "gcTrust",
+              "by": "10"
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "-10"
+            },
+            {
+              "log": "$9,000 signed without review; half of it was not owed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A change order is not how a disputed claim is settled, and paying without substantiation pays for delay the owner did not cause."
+        },
+        {
+          "id": "rejected",
+          "label": "Reject it outright: delay is the contractor's problem",
+          "effects": [
+            {
+              "set": "claim",
+              "to": "\"rejected\""
+            },
+            {
+              "add": "gcTrust",
+              "by": "-25"
+            },
+            {
+              "log": "Brightwater invokes the dispute clause; the site lead stops volunteering information.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The clinic did return the drawings late; rejecting a claim without assessing it pushes it toward a formal dispute."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the close-out note for the sponsor: where the schedule stood against the baseline and why, and how the change request, the risk trigger and the contractor's claim were handled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Schedule and status",
+          "criteria": "Reads SPI and CPI correctly (below 1 is behind or over), names the cause of the variance, and says how it was reported and corrected.",
+          "modelAnswer": "At week 5 SPI was 0.90: behind, because the clinic returned the equipment drawings late; CPI was about 0.97. We reported the figures and overlapped finishes with wiring, and finished on the baseline."
+        },
+        {
+          "label": "Change, risk and claim",
+          "criteria": "The sinks went through change control; R4's contingency was executed when its trigger fired; the claim was assessed against the contract and the records, not signed or rejected unread.",
+          "modelAnswer": "The sinks went to the change control board, which deferred them with the impact in hand. When R4's trigger passed we ordered from the alternate supplier as planned. Brightwater's claim was a claim, not a change order: the records showed 3 days of owner delay and we settled for that."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI at close at or above this is on schedule."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI at close at or above this is on budget."
+        }
+      },
+      "spiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI below this at close is a schedule failure."
+        }
+      },
+      "cpiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI below this at close is a cost failure."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): every stakeholder at or above this at close."
+        }
+      },
+      "stakeholderRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): a stakeholder below this at close is a broken working relationship."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and risk == \"wait\" and report == \"honest\"",
+      "class": "recovered",
+      "rationale": "The project finished late but was reported honestly and controlled; recovered, not harm.",
+      "source": {
+        "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+        "checkedAt": "2026-11-17",
+        "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+        "note": "Read 2026-11-17 through a summarizing fetch. PV is the budgeted cost of the work scheduled by a date; EV the budgeted cost of the work actually completed; AC the total spent to date. SV = EV - PV and CV = EV - AC (negative: behind schedule, over budget); SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done."
+      }
+    }
+  },
+  "endings": {
+    "misreported": {
+      "label": "Status misreported",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and report == \"green\"",
+      "narrative": "Dr. Ruiz told the board the fit-out was on track. At handover it was {round((1 - spi) * 40)} working days behind, and the clinic had booked patients for the opening date."
+    },
+    "overrun": {
+      "label": "Over the harm line",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (spi < spiHarm or cpi < cpiHarm)",
+      "narrative": "The project closed at SPI {spi|2dp} and CPI {cpi|2dp}: beyond what the sponsor's contingency could absorb."
+    },
+    "broken": {
+      "label": "A working relationship broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (sponsorTrust < stakeholderRecovered or gcTrust < stakeholderRecovered or staffTrust < stakeholderRecovered)",
+      "narrative": "{gcTrust < stakeholderRecovered ? \"Brightwater is in a formal dispute with the clinic and has stopped raising problems early.\" : \"Dr. Ruiz no longer trusts the project's process.\"}"
+    },
+    "onBaseline": {
+      "label": "On the baseline, under control",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and spi >= spiTarget and cpi >= cpiTarget and change == \"ccb\" and report == \"honest\" and sponsorTrust >= stakeholderTarget and gcTrust >= stakeholderTarget and staffTrust >= stakeholderTarget",
+      "narrative": "The clinic opened on the baseline date within budget. The sinks wait for the summer with their impact known, and the claim was settled on the record."
+    },
+    "partly": {
+      "label": "Delivered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The rooms opened at SPI {spi|2dp} and CPI {cpi|2dp}; the criteria show where control slipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "misreported",
+    "overrun",
+    "broken",
+    "onBaseline",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "changeCrit",
+        "label": "Took the sponsor's request through change control",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "change == \"ccb\"",
+            "score": "met",
+            "why": "Analyzed, then decided by the board."
+          },
+          {
+            "when": "change == \"refused\"",
+            "score": "partial",
+            "why": "Refused without an analysis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Done outside change control."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "riskCrit",
+        "label": "Executed the planned risk response when its trigger fired",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "risk == \"contingency\"",
+            "score": "met",
+            "why": "Alternate supplier, from the reserve."
+          },
+          {
+            "when": "risk == \"crash\"",
+            "score": "partial",
+            "why": "Acted, but off-plan and on the wrong constraint."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Waited past the trigger."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "reportCrit",
+        "label": "Reported the schedule variance as measured, with its cause and a recovery plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "report == \"honest\"",
+            "score": "met",
+            "why": "Figures, cause, forecast and plan."
+          },
+          {
+            "when": "report == \"blame\"",
+            "score": "partial",
+            "why": "Late, but no figures and the wrong cause."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Reported green while behind."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "claimCrit",
+        "label": "Assessed the contractor's claim against the contract and the records",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "claim == \"review\"",
+            "score": "met",
+            "why": "Entitlement and amount checked."
+          },
+          {
+            "when": "claim == \"rejected\"",
+            "score": "partial",
+            "why": "Not paid, but not assessed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Signed unread as a change order."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "closeCrit",
+        "label": "Closed with lessons learned recorded",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lessons == \"held\"",
+            "score": "met",
+            "why": "Lessons recorded and the templates updated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No lessons learned."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spiK",
+        "label": "SPI at close",
+        "value": "round(spi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at close",
+        "value": "round(cpi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "acK",
+        "label": "Actual cost at close, thousand dollars",
+        "value": "round(ac * 10) / 10",
+        "format": "number",
+        "expert": "about 247.5 (the budget, the $3,000 contingency and the $4,500 settled claim)"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "End of week 2",
+        "text": "Log the sinks as a change request, get the impact analysis and let the change control board decide."
+      },
+      {
+        "at": "End of week 4",
+        "text": "R4's trigger has passed: execute its contingency, the alternate supplier, from the reserve, and update the register."
+      },
+      {
+        "at": "End of week 5",
+        "text": "Report SPI and CPI as measured, the cause and a recovery plan (fast-track finishes in inspected rooms)."
+      },
+      {
+        "at": "Week 7",
+        "text": "Treat the notice as a claim: check it against the contract and the records, and settle what is owed."
+      },
+      {
+        "at": "Handover",
+        "text": "Close with the clinic's sign-off, lessons learned and the records archived."
+      }
+    ],
+    "debrief": {
+      "onBaseline": {
+        "headline": "Good: on the baseline, under control",
+        "body": "Every change went through control, the risk response ran on its trigger, the status was honest and the claim was settled on the record."
+      },
+      "partly": {
+        "headline": "Delivered, with gaps",
+        "body": "The rooms opened, but the criteria below show where a change, a risk, the report or the claim slipped out of control."
+      },
+      "misreported": {
+        "headline": "Status misreported",
+        "body": "A green report over a measured variance took away the sponsor's chance to act. Report SPI and CPI as measured, with the cause and a plan."
+      },
+      "overrun": {
+        "headline": "Beyond the harm line",
+        "body": "Schedule or cost performance fell below 0.85. Waiting past a risk trigger and work outside change control are the usual ways there."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Rejecting a claim unread, or refusing the sponsor without analysis, damages the relationships a fit-out depends on."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The project was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Planned value is the budgeted cost of the work scheduled, earned value the budgeted cost of the work done, actual cost what was spent; SPI = EV / PV and CPI = EV / AC, below 1 meaning behind schedule or over cost. A request from the sponsor is a change request: analyze its impact and let the change control board decide before anyone does the work. When a risk's trigger fires, execute its planned response and record the residual risk. Report variances as measured, with the cause, a forecast and a corrective action. A contractor's claim is assessed against the contract's notice and claims clause and the project records for entitlement and amount, then settled or taken through the dispute steps."
+  }
+}

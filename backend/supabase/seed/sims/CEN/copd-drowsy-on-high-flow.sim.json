@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "copd-drowsy-on-high-flow",
+  "title": "Sleepy on oxygen",
+  "objective": "Manage a COPD exacerbation with controlled oxygen and early noninvasive ventilation",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Emergency nursing specialty examination content outline, effective July 2026: Respiratory Emergencies (17 of 150 scored items)",
+      "checkedAt": "2026-11-14",
+      "url": "https://bcen.org/wp-content/uploads/2026/03/BCEN-CEN-ECO-2025-effective-07-2026_FINAL.pdf",
+      "note": "Relayed from the CEN course seed (backend/supabase/seed/tracks/cen.ts), which read the outline 2026-11-14, not re-read: Respiratory Emergencies is 17 of 150 scored items. Scope only; headings only, no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra CEN course catalog (backend/supabase/seed/tracks/cen.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+      "checkedAt": "2026-11-16",
+      "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+      "note": "Relayed from the PCCN case copd-exacerbation-niv, which read the journal full text 2026-11-14 and 2026-11-16 through summarizing fetches with quotes, not re-read: controlled oxygen to SpO2 88-92% in an exacerbation of COPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa persist despite optimal medical therapy (Grade A). No US guideline was read for this case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "06:30 in the emergency department. You are the nurse in a monitored room. Mrs. Haddad, 71, has COPD and three days of worsening breathlessness and green sputum. The ambulance crew gave her oxygen by mask on the way.",
+    "handover": [
+      "Triage: ESI 2. Heart rate 112, respiratory rate 28, SpO2 97% on the ambulance mask, blood pressure 150/88. Pursed-lip breathing, wheeze both sides.",
+      "The department's COPD standing order: oxygen by Venturi mask titrated to SpO2 88-92%, the ordered bronchodilator nebulizers driven by air, a venous blood gas, and the physician called for drowsiness or a pH below 7.35 to consider noninvasive ventilation.",
+      "Her alert card says she has had a high carbon dioxide level before."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and treat as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "06:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "On the ambulance mask carbon dioxide keeps rising. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.022,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Controlled oxygen and nebulizers slow the rise, but the exacerbation still needs ventilatory support. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of acidosis and drowsiness: pH below 7.35 with a high CO2. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypercapnic coma and respiratory arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The physician called within 5 minutes of acidosis or drowsiness (department practice)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Oxygen changed to a titrated Venturi mask within 5 minutes of arrival (department practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the physician and respiratory therapist to start noninvasive ventilation and arrange a bed."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Oxygen turned up toward 100% in a CO2 retainer: narcosis within minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "gasAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "chestAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "gas",
+        "hx",
+        "chest"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "niv",
+        "ward"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hypercap",
+        "tired",
+        "pneumonia"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "nebAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(110 + 10 * prog + sin(t / 9))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(prog >= 0.8 ? 30 - 15 * (prog - 0.8) : 26 + 4 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(isNull(fixAt) ? 97 : 90)",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(150 - 5 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "88",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "ph": {
+      "expr": "round((7.38 - 0.16 * prog) * 100) / 100"
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30,
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              90,
+              88
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Oxygen: {isNull(fixAt) ? \"ambulance mask, high flow\" : \"Venturi, titrated to 88-92%\"}. Nebulizer driven by air: {not isNull(nebAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"niv\" and inCare",
+          "text": "The physician and the respiratory therapist are setting up noninvasive ventilation."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "gas": {
+      "label": "Venous blood gas (point of care)",
+      "group": "Assess",
+      "available": "not testPending and isNull(gasAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"gas\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): home oxygen, past ventilation, sputum, steroids",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "chest": {
+      "label": "Chest: breath sounds, accessory muscles",
+      "group": "Assess",
+      "available": "not testPending and isNull(chestAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"chest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: alertness, breathing pattern, blood gas trend",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "She drifts off mid-sentence and is hard to rouse. Breathing slower and shallower. Flapping tremor of the hands.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Awake, answering in short sentences, tired but alert.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Change to a Venturi mask titrated to SpO2 88-92%",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Venturi mask on; oxygen titrated to 88-92%.",
+          "kind": "act"
+        }
+      ]
+    },
+    "neb": {
+      "label": "Give the ordered bronchodilator nebulizer, driven by air",
+      "group": "Treat",
+      "available": "isNull(nebAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "nebAt",
+          "to": "t"
+        },
+        {
+          "log": "Nebulizer running on air.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Turn the oxygen up to a non-rebreather to get her saturation to 100%",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Non-rebreather on high flow; SpO2 climbs to 100%.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "hypercap",
+              "label": "Acute hypercapnic respiratory failure: acidotic and drowsy, she needs noninvasive ventilation now"
+            },
+            {
+              "value": "tired",
+              "label": "She is tired and settling now the oxygen is up"
+            },
+            {
+              "value": "pneumonia",
+              "label": "Pneumonia that needs antibiotics first; ventilation can wait"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"hypercap\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hypercap\""
+                },
+                {
+                  "log": "Impression: hypercapnic failure, NIV.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tired\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tired\""
+                },
+                {
+                  "log": "Impression: settling.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pneumonia\""
+                },
+                {
+                  "log": "Impression: pneumonia first.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the physician",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "niv",
+              "label": "To the bedside now: pH below 7.35 and drowsy, start noninvasive ventilation"
+            },
+            {
+              "value": "ward",
+              "label": "Admit her to a ward bed; repeat the gas in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"niv\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"niv\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The physician comes and the respiratory therapist brings the NIV machine.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ward\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A ward bed is requested.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: CO2 retainer, oxygen changes with times, gas results, the drowsiness",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: known CO2 retainer, ambulance mask changed to Venturi, gas results with times, drowsy from its time.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Monitored room",
+      "clock": "running",
+      "actions": [
+        "gas",
+        "hx",
+        "chest",
+        "reassess",
+        "fix",
+        "neb",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"gas\"",
+              "then": [
+                {
+                  "set": "gasAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "pH {ph}, carbon dioxide high and rising compared with her alert card.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "pH {ph}, carbon dioxide raised, bicarbonate high: chronic retention, compensated for now.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Home oxygen at night only. Masked ventilation once, two years ago. Green sputum for three days.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "chestAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Wheeze both sides, prolonged breathing out, using her neck muscles; no one-sided silence.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "noninvasive ventilation",
+      "wait": {
+        "skipLabel": "noninvasive ventilation starting"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the physician and respiratory therapist to start noninvasive ventilation and arrange a bed."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Noninvasive ventilation is running and she goes to the respiratory unit.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "Mrs. Haddad has stopped talking and her eyes are closing.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "Mrs. Haddad is drowsy and her gas is worse. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Drowsiness, a slower breathing rate and a pH below 7.35 with rising CO2 are acute hypercapnic respiratory failure; high-flow oxygen made it worse.",
+          "modelAnswer": "She's retaining carbon dioxide: acidotic, drowsy, breathing slower. High-flow oxygen in a known retainer helps cause this."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Oxygen titrated to 88-92%; physician now for noninvasive ventilation; nebulizers on air; stay and reassess; hand off.",
+          "modelAnswer": "Keep oxygen at 88-92%, call the physician now for NIV, nebulizers on air, and stay with her."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "An acidotic, drowsy COPD patient still without ventilatory support an hour on is harm here.",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-16",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Relayed from the PCCN case copd-exacerbation-niv, which read the journal full text 2026-11-14 and 2026-11-16 through summarizing fetches with quotes, not re-read: controlled oxygen to SpO2 88-92% in an exacerbation of COPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa persist despite optimal medical therapy (Grade A). No US guideline was read for this case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "CO2 narcosis on high-flow oxygen",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Her saturation reads 100%, but within minutes she can't be roused and her breathing slows to a few breaths a minute."
+    },
+    "worsened": {
+      "label": "Hypercapnic coma",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "pH {ph}: she is unresponsive with slow, shallow breaths. A code is called for the airway."
+    },
+    "wrongRoute": {
+      "label": "To a ward without ventilation",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"ward\")",
+      "narrative": "She is found unresponsive on the ward an hour later with a pH far lower and is intubated in crisis."
+    },
+    "target": {
+      "label": "Controlled oxygen and early noninvasive ventilation",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"niv\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(gasAt)",
+      "narrative": "{timeAt(leftAt)|clock}: NIV is running on a rousable patient. Oxygen titrated at once and the acidosis called within minutes."
+    },
+    "recovered": {
+      "label": "NIV, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"niv\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she gets NIV, but the high-flow mask stayed on too long or the drowsiness went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still in the room at 07:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "07:30 and Mrs. Haddad is still in the room without ventilatory support."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Oxygen controlled to 88-92% within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Physician called for NIV within 5 minutes of acidosis or drowsiness",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"niv\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"niv\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sent to a ward to repeat the gas in the morning."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Oxygen never pushed toward 100%",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "High-flow oxygen to 100% in a CO2 retainer."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Blood gas obtained",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(gasAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "nebC",
+        "label": "Bronchodilator nebulizer given, driven by air",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(nebAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named acute hypercapnic respiratory failure needing NIV",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"hypercap\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"tired\"",
+            "score": "missed",
+            "why": "Read drowsiness as rest."
+          },
+          {
+            "when": "dxEnum == \"pneumonia\"",
+            "score": "missed",
+            "why": "Put ventilation off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the CO2 history, oxygen changes and the drowsiness",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: drowsiness with acidosis is hypercapnic failure; NIV now, controlled oxygen",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Arrival to controlled oxygen",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Acidosis or drowsiness to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:30",
+        "text": "Venturi to 88-92%; nebulizer on air."
+      },
+      {
+        "at": "~06:31",
+        "text": "Gas: compensated retention. Reassess."
+      },
+      {
+        "at": "~06:40",
+        "text": "Drowsy, slower breaths: acidosis."
+      },
+      {
+        "at": "~06:41",
+        "text": "Physician now for NIV; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Oxygen to 100% in a retainer",
+        "body": "In COPD with hypercapnic risk the target is 88-92%. More oxygen can deepen CO2 narcosis."
+      },
+      "worsened": {
+        "headline": "Hypercapnic coma",
+        "body": "Drowsiness in a COPD exacerbation is a sign of CO2 rising. A pH below 7.35 despite treatment is the trigger for NIV."
+      },
+      "wrongRoute": {
+        "headline": "Sent to a ward",
+        "body": "Acidosis with drowsiness needs ventilatory support now, not a morning gas."
+      },
+      "target": {
+        "headline": "NIV in time",
+        "body": "Oxygen controlled at once, the gas read, and the drowsiness called within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "NIV, with delays",
+        "body": "Check how long the high-flow mask stayed on and how long the drowsiness went before the call."
+      },
+      "time_up": {
+        "headline": "Still in the room",
+        "body": "Hypercapnic failure needs ventilatory support within minutes."
+      }
+    },
+    "modelReasoning": "A known CO2 retainer arriving on a high-flow mask needs controlled oxygen at once: a Venturi mask titrated to 88-92%, with nebulizers driven by air. A blood gas tells you where she started. When she becomes drowsy with slower breathing and a pH below 7.35, that is acute hypercapnic respiratory failure: the physician starts noninvasive ventilation now."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "o2Q": {
+      "during": "testT",
+      "ask": "While you assess: what saturation target fits a COPD exacerbation with CO2 retention?",
+      "choices": [
+        {
+          "id": "mid",
+          "label": "88-92%"
+        },
+        {
+          "id": "high",
+          "label": "94-98%"
+        },
+        {
+          "id": "max",
+          "label": "As close to 100% as possible"
+        }
+      ],
+      "expect": "mid",
+      "explain": "Controlled oxygen to SpO2 88-92% in an exacerbation of COPD (BTS/ICS, Grade A).",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-16",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Relayed from the PCCN case copd-exacerbation-niv, which read the journal full text 2026-11-14 and 2026-11-16 through summarizing fetches with quotes, not re-read: controlled oxygen to SpO2 88-92% in an exacerbation of COPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa persist despite optimal medical therapy (Grade A). No US guideline was read for this case."
+      }
+    },
+    "nivQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: when is noninvasive ventilation indicated?",
+      "choices": [
+        {
+          "id": "ph",
+          "label": "pH below 7.35 with a high CO2 despite optimal treatment"
+        },
+        {
+          "id": "any",
+          "label": "Every COPD exacerbation"
+        },
+        {
+          "id": "sat",
+          "label": "Any saturation below 94%"
+        }
+      ],
+      "expect": "ph",
+      "explain": "NIV when pH <7.35 and PaCO2 >6.5 kPa persist despite optimal medical therapy (BTS/ICS, Grade A).",
+      "source": {
+        "cite": "Davidson AC, Banham S, Elliott M, et al. BTS/ICS guideline for the ventilatory management of acute hypercapnic respiratory failure in adults. Thorax 2016;71(Suppl 2):ii1-ii35",
+        "checkedAt": "2026-11-16",
+        "url": "https://thorax.bmj.com/content/71/Suppl_2/ii1",
+        "note": "Relayed from the PCCN case copd-exacerbation-niv, which read the journal full text 2026-11-14 and 2026-11-16 through summarizing fetches with quotes, not re-read: controlled oxygen to SpO2 88-92% in an exacerbation of COPD (Grade A); NIV when pH <7.35 and PaCO2 >6.5 kPa persist despite optimal medical therapy (Grade A). No US guideline was read for this case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

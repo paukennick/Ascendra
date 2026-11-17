@@ -1,0 +1,1175 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pounding-headache-c6-injury",
+  "title": "A pounding headache at C6",
+  "objective": "Recognize autonomic dysreflexia in injuries at or above T6 (sudden severe hypertension, headache) and look first for a distended bladder or bowel",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: neurological problems, including spinal cord injury, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: neurological problems, including spinal cord injury, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "UAMS Department of Physical Medicine and Rehabilitation, IDHI Brain Injury Program. Spinal Cord Injury Guidelines: Management of Acute Autonomic Dysreflexia (July 2018; draws on the Consortium for Spinal Cord Medicine guideline)",
+      "checkedAt": "2026-11-17",
+      "url": "https://idhi.uams.edu/brain-injury-program/wp-content/uploads/sites/9/2023/04/Guildelines-SCI-Autonomic-Dysreflexia-2018.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: at risk with SCI 'at or above the sixth thoracic spinal cord segment (T6)'; 'blood pressure 20-40mmHg above baseline'; 'Pounding headache'; sweating and flushing above the level of injury; 'baroreceptor-mediated bradycardia'; 'Immediately sit the person up if the individual is supine'; 'Loosen clothing or constrictive devices'; 'Monitor blood pressure and heart rate frequently (every 2-5 minutes)'; check the catheter system 'along entire length for kinks, folds, constrictions or obstructions', irrigate or 'remove and replace the catheter' if not draining; 'if SBP > 150 mmHg, consider pharmacologic management'; then survey for fecal impaction. No drug dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in a neuro ICU. You are Mr. Lewis's nurse. He is 29, on day 12 after a complete C6 spinal cord injury, breathing on his own, waiting for a rehab bed. He calls out: 'My head is pounding.'",
+    "handover": [
+      "His usual blood pressure is about 98/60 with a heart rate in the 60s. He is lying flat after a turn at 13:30.",
+      "Indwelling urinary catheter; an abdominal binder and compression stockings. No bowel movement since three days ago.",
+      "Unit protocol for autonomic dysreflexia: sit up, loosen anything tight, check blood pressure every 2 to 5 minutes, check the catheter and bladder first, then the bowel; the ordered fast-acting antihypertensive if systolic stays over 150; tell the intensivist."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The noxious stimulus below the injury keeps driving the blood pressure up. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sitRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sitting up and loosening slow the rise, but the trigger remains. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fixedRate": {
+      "value": -0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "With the bladder emptied, the reflex settles. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "flatBump": {
+      "value": 0.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Lying flat with legs raised pushes the pressure higher. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bleedAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a hypertensive intracerebral hemorrhage or seizure. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sitWindow": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sat up within 2 minutes of the blood pressure (protocol: immediately)."
+      }
+    },
+    "bladderWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The catheter fixed within 10 minutes of the blood pressure (authored target). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist told within 5 minutes (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "watchTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Observation with blood pressure every few minutes until it settles: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "bpCheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "cathAt": {
+      "type": "time",
+      "init": null
+    },
+    "bowelAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "bpCheck",
+        "skin",
+        "cath",
+        "bowel"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ad",
+        "migraine",
+        "stroke"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "sitAt": {
+      "type": "time",
+      "init": null
+    },
+    "looseAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "flatAt": {
+      "type": "time",
+      "init": null
+    },
+    "apapAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(64 - 18 * prog + sin(t / 11) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(110 + 120 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(64 + 56 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "max(0, prog + (not isNull(fixAt) ? fixedRate : (not isNull(sitAt) ? sitRate : progRate)) * dt / 60)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              55,
+              50
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "high": 150
+          },
+          "announce": {
+            "bands": [
+              150,
+              180
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(bpCheckAt)"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Sitting up: {not isNull(sitAt)|yesno}. Binder and stockings loosened: {not isNull(looseAt)|yesno}. Catheter draining: {not isNull(fixAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"icu\" and inClinic",
+          "text": "The intensivist is aware; the ordered antihypertensive is available if systolic stays over 150 once the trigger is removed."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "bpCheck": {
+      "label": "Blood pressure and heart rate now",
+      "group": "Assess",
+      "available": "not testPending and isNull(bpCheckAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bpCheck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "skin": {
+      "label": "Look at his skin above and below the injury",
+      "group": "Assess",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cath": {
+      "label": "Check the catheter and tubing along their whole length, and scan the bladder",
+      "group": "Assess",
+      "available": "not testPending and isNull(cathAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cath\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bowel": {
+      "label": "Check for fecal impaction",
+      "group": "Assess",
+      "available": "not testPending and isNull(bowelAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bowel\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "sit": {
+      "label": "Sit him up and lower his legs",
+      "group": "Treat",
+      "available": "isNull(sitAt) and inClinic",
+      "why": "Already up.",
+      "effects": [
+        {
+          "set": "sitAt",
+          "to": "t"
+        },
+        {
+          "log": "Head of bed up to sitting, legs down. You recheck the pressure every few minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "loose": {
+      "label": "Loosen the abdominal binder and remove the compression stockings",
+      "group": "Treat",
+      "available": "isNull(looseAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "looseAt",
+          "to": "t"
+        },
+        {
+          "log": "Binder opened and stockings off.",
+          "kind": "act"
+        }
+      ]
+    },
+    "fix": {
+      "label": "Straighten the kinked tubing and drain the bladder (replace the catheter if it won't drain)",
+      "group": "Treat",
+      "available": "not isNull(cathAt) and isNull(fixAt) and inClinic",
+      "why": "Check the catheter first, or already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Tubing straightened; 850 mL drains. His headache starts to ease.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flat": {
+      "label": "Lay him flat and raise his legs while you get help",
+      "group": "Treat",
+      "available": "isNull(flatAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "flatAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + flatBump"
+        },
+        {
+          "log": "Flat with legs raised. The headache gets worse.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "apap": {
+      "label": "Give the ordered PRN acetaminophen for the headache and recheck in an hour",
+      "group": "Treat",
+      "available": "isNull(apapAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "apapAt",
+          "to": "t"
+        },
+        {
+          "log": "Acetaminophen given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ad",
+              "label": "Autonomic dysreflexia from a blocked catheter: severe hypertension, bradycardia, headache, flushing above a C6 injury"
+            },
+            {
+              "value": "migraine",
+              "label": "A tension headache: treat the pain"
+            },
+            {
+              "value": "stroke",
+              "label": "A hypertensive stroke: lie him flat and call a stroke alert"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ad\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ad\""
+                },
+                {
+                  "log": "Autonomic dysreflexia; bladder trigger.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"migraine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"migraine\""
+                },
+                {
+                  "log": "Impression: headache.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stroke\""
+                },
+                {
+                  "log": "Impression: stroke.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Blood pressure 160s/90s and climbing from 98/60, heart rate in the 50s, pounding headache, flushing above the injury: autonomic dysreflexia. Sitting up, loosened, catheter kinked and being fixed"
+            },
+            {
+              "value": "later",
+              "label": "Mention the headache on afternoon rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "watchTime"
+                },
+                {
+                  "log": "The intensivist agrees and orders blood pressure every 2 to 5 minutes and the antihypertensive if systolic stays over 150 after the trigger is removed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "You add the headache to your rounds list.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and teach: pressures and times, the trigger found, and the signs he should report",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: pressures every few minutes, kinked tubing, 850 mL drained; he knows to report a pounding headache at once.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "bpCheck",
+        "skin",
+        "cath",
+        "bowel",
+        "sit",
+        "loose",
+        "fix",
+        "flat",
+        "apap",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"bpCheck\"",
+              "then": [
+                {
+                  "set": "bpCheckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Blood pressure {sbp}/{dbp} (his usual is about 98/60); heart rate {hr}.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"skin\"",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Face and neck flushed and sweating; skin below the chest pale and cool with goosebumps.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cath\"",
+              "then": [
+                {
+                  "set": "cathAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The tubing is kinked under his thigh after the turn; nothing in the bag since 12:00; bladder scan 850 mL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "bowelAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Some stool in the rectum, not impacted.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the pressure settling",
+      "wait": {
+        "skipLabel": "observation"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min of observation with frequent pressures."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "His blood pressure is back near his baseline and his headache is gone.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Mr. Lewis, and what do you look for and do first?",
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Autonomic dysreflexia: an injury at or above T6 (C6); systolic 20-40 mmHg or more above baseline with a pounding headache, flushing and sweating above the injury and a slow pulse, from a noxious stimulus below it.",
+          "modelAnswer": "This is autonomic dysreflexia. With a C6 injury, something below the injury is triggering a huge reflex: his pressure is far above his baseline, his pulse is slow, his head is pounding and he's flushed and sweating above the injury."
+        },
+        {
+          "label": "What first",
+          "criteria": "Sits him up and loosens tight items at once; checks the bladder and catheter first (kinks, distension) and drains it, then the bowel; blood pressure every 2-5 minutes; antihypertensive only if systolic stays over 150; never lies him flat; tells the intensivist.",
+          "modelAnswer": "Sit him up and loosen the binder and stockings right away, then find the trigger, bladder first: the catheter is kinked, so straighten it and drain it, then check the bowel. Pressure every few minutes, and the ordered antihypertensive only if it stays over 150. Don't lie him flat. Tell the intensivist."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Autonomic dysreflexia untreated for an hour is harm here.",
+      "source": {
+        "cite": "UAMS Department of Physical Medicine and Rehabilitation, IDHI Brain Injury Program. Spinal Cord Injury Guidelines: Management of Acute Autonomic Dysreflexia (July 2018; draws on the Consortium for Spinal Cord Medicine guideline)",
+        "checkedAt": "2026-11-17",
+        "url": "https://idhi.uams.edu/brain-injury-program/wp-content/uploads/sites/9/2023/04/Guildelines-SCI-Autonomic-Dysreflexia-2018.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: at risk with SCI 'at or above the sixth thoracic spinal cord segment (T6)'; 'blood pressure 20-40mmHg above baseline'; 'Pounding headache'; sweating and flushing above the level of injury; 'baroreceptor-mediated bradycardia'; 'Immediately sit the person up if the individual is supine'; 'Loosen clothing or constrictive devices'; 'Monitor blood pressure and heart rate frequently (every 2-5 minutes)'; check the catheter system 'along entire length for kinks, folds, constrictions or obstructions', irrigate or 'remove and replace the catheter' if not draining; 'if SBP > 150 mmHg, consider pharmacologic management'; then survey for fecal impaction. No drug dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "bleed": {
+      "label": "Hypertensive brain hemorrhage",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= bleedAt and inClinic",
+      "narrative": "His systolic passes 230; he vomits and becomes hard to rouse with a new unequal pupil. A CT confirms an intracerebral hemorrhage."
+    },
+    "settled": {
+      "label": "Dysreflexia recognized and reversed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and timeAt(sitAt) <= timeAt(redFlagAt) + sitWindow and not isNull(fixAt) and timeAt(fixAt) <= timeAt(redFlagAt) + bladderWindow and isNull(flatAt) and isNull(apapAt) and route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+      "narrative": "{timeAt(leftAt)|clock}: his pressure is back near 100 systolic and his headache is gone. You sat him up, found the kinked catheter and drained it within minutes."
+    },
+    "settledGaps": {
+      "label": "Settled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: his pressure settles, but sitting him up or finding the bladder took too long, he was laid flat, or the headache was treated as pain."
+    },
+    "time_up": {
+      "label": "Unresolved at 15:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "15:00 and the trigger is still there."
+    }
+  },
+  "endingOrder": [
+    "bleed",
+    "settled",
+    "settledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "sitC",
+        "label": "Sat him up within 2 minutes; never laid flat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(flatAt)",
+            "score": "missed",
+            "why": "Laid flat."
+          },
+          {
+            "when": "not isNull(sitAt) and timeAt(sitAt) <= timeAt(redFlagAt) + sitWindow",
+            "score": "met",
+            "why": "At once."
+          },
+          {
+            "when": "not isNull(sitAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left lying."
+          }
+        ]
+      },
+      {
+        "id": "bladderC",
+        "label": "Found and fixed the bladder trigger within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= timeAt(redFlagAt) + bladderWindow",
+            "score": "met",
+            "why": "Drained at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not found."
+          }
+        ]
+      },
+      {
+        "id": "noMask",
+        "label": "Did not treat the headache as simple pain",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(apapAt)",
+            "score": "missed",
+            "why": "Acetaminophen and wait."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Treated the cause."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Told the intensivist within 5 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "route == \"icu\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "looseC",
+        "label": "Loosened the binder and stockings",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(looseAt)",
+            "score": "met",
+            "why": "Loosened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left on."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized autonomic dysreflexia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ad\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"migraine\"",
+            "score": "missed",
+            "why": "Called it a headache."
+          },
+          {
+            "when": "dxEnum == \"stroke\"",
+            "score": "missed",
+            "why": "Called it a stroke."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and taught him the warning signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: autonomic dysreflexia; sit up, loosen, bladder first, then bowel; never flat",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toSit",
+        "label": "Blood pressure to sitting up",
+        "value": "isNull(sitAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(sitAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 30 s"
+      },
+      {
+        "id": "toFix",
+        "label": "Blood pressure to the bladder drained",
+        "value": "isNull(fixAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(fixAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Blood pressure far above his baseline with a slow pulse: sit him up, legs down."
+      },
+      {
+        "at": "~14:01",
+        "text": "Loosen the binder and stockings. Check the catheter: kinked, 850 mL in the bladder."
+      },
+      {
+        "at": "~14:02",
+        "text": "Straighten and drain. Tell the intensivist. Pressure every 2 to 5 minutes."
+      },
+      {
+        "at": "~14:05",
+        "text": "Document; teach him to report a pounding headache at once."
+      }
+    ],
+    "debrief": {
+      "bleed": {
+        "headline": "Brain hemorrhage",
+        "body": "In an injury at or above T6, sudden severe hypertension with a pounding headache is autonomic dysreflexia. Sit up, loosen, and find the trigger, bladder first."
+      },
+      "settled": {
+        "headline": "Reversed",
+        "body": "You recognized autonomic dysreflexia, sat him up at once, found the kinked catheter and drained it, and told the intensivist. That is the expert path."
+      },
+      "settledGaps": {
+        "headline": "Settled, with gaps",
+        "body": "Check how fast you sat him up and found the bladder, and whether he was laid flat or given acetaminophen instead."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "Autonomic dysreflexia needs the trigger found within minutes."
+      }
+    },
+    "modelReasoning": "Mr. Lewis has a C6 injury, above T6. A pressure far above his baseline of about 98/60, a slow pulse, a pounding headache, and flushing and sweating above the injury is autonomic dysreflexia: a noxious stimulus below the injury drives a reflex his brain cannot dampen. Sit him up and lower his legs at once, loosen the binder and stockings, and check the pressure every 2 to 5 minutes. Look for the trigger, bladder first: the catheter is kinked and the bladder holds 850 mL, so straighten and drain it; then check the bowel. Use the ordered antihypertensive only if systolic stays over 150 after that. Never lie him flat, and don't treat the headache as simple pain."
+  },
+  "chapters": [
+    {
+      "id": "drained",
+      "label": "Bladder drained",
+      "when": "not isNull(fixAt)"
+    }
+  ],
+  "teaching": {
+    "riskQ": {
+      "during": "testT",
+      "ask": "While you check: who is at risk of autonomic dysreflexia?",
+      "choices": [
+        {
+          "id": "t6",
+          "label": "People with a spinal cord injury at or above T6"
+        },
+        {
+          "id": "lumbar",
+          "label": "Only lumbar injuries"
+        },
+        {
+          "id": "any",
+          "label": "Anyone with a headache"
+        }
+      ],
+      "expect": "t6",
+      "explain": "The injury is typically at or above the sixth thoracic segment (T6).",
+      "source": {
+        "cite": "UAMS Department of Physical Medicine and Rehabilitation, IDHI Brain Injury Program. Spinal Cord Injury Guidelines: Management of Acute Autonomic Dysreflexia (July 2018; draws on the Consortium for Spinal Cord Medicine guideline)",
+        "checkedAt": "2026-11-17",
+        "url": "https://idhi.uams.edu/brain-injury-program/wp-content/uploads/sites/9/2023/04/Guildelines-SCI-Autonomic-Dysreflexia-2018.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: at risk with SCI 'at or above the sixth thoracic spinal cord segment (T6)'; 'blood pressure 20-40mmHg above baseline'; 'Pounding headache'; sweating and flushing above the level of injury; 'baroreceptor-mediated bradycardia'; 'Immediately sit the person up if the individual is supine'; 'Loosen clothing or constrictive devices'; 'Monitor blood pressure and heart rate frequently (every 2-5 minutes)'; check the catheter system 'along entire length for kinks, folds, constrictions or obstructions', irrigate or 'remove and replace the catheter' if not draining; 'if SBP > 150 mmHg, consider pharmacologic management'; then survey for fecal impaction. No drug dose is used in the case."
+      }
+    },
+    "firstQ": {
+      "during": "leaveT",
+      "ask": "While his pressure settles: what comes first in autonomic dysreflexia?",
+      "choices": [
+        {
+          "id": "sit",
+          "label": "Sit up, loosen tight items, then check the catheter and bladder"
+        },
+        {
+          "id": "drug",
+          "label": "An antihypertensive before anything else"
+        },
+        {
+          "id": "flat",
+          "label": "Lie flat and raise the legs"
+        }
+      ],
+      "expect": "sit",
+      "explain": "Immediately sit the person up, loosen clothing or constrictive devices, check the catheter system for kinks or obstruction; consider drugs if SBP stays over 150.",
+      "source": {
+        "cite": "UAMS Department of Physical Medicine and Rehabilitation, IDHI Brain Injury Program. Spinal Cord Injury Guidelines: Management of Acute Autonomic Dysreflexia (July 2018; draws on the Consortium for Spinal Cord Medicine guideline)",
+        "checkedAt": "2026-11-17",
+        "url": "https://idhi.uams.edu/brain-injury-program/wp-content/uploads/sites/9/2023/04/Guildelines-SCI-Autonomic-Dysreflexia-2018.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: at risk with SCI 'at or above the sixth thoracic spinal cord segment (T6)'; 'blood pressure 20-40mmHg above baseline'; 'Pounding headache'; sweating and flushing above the level of injury; 'baroreceptor-mediated bradycardia'; 'Immediately sit the person up if the individual is supine'; 'Loosen clothing or constrictive devices'; 'Monitor blood pressure and heart rate frequently (every 2-5 minutes)'; check the catheter system 'along entire length for kinks, folds, constrictions or obstructions', irrigate or 'remove and replace the catheter' if not draining; 'if SBP > 150 mmHg, consider pharmacologic management'; then survey for fecal impaction. No drug dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

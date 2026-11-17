@@ -1,5 +1,6 @@
 import { ok, readJson } from "@/lib/http";
 import { requireUser } from "@/lib/auth/requireUser";
+import { parseCaps } from "@/lib/sim/server-run.ts";
 import { skipWait, requireSimsEnabled, simRouteError } from "@/lib/sims";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ runId: 
     const { runId } = await params;
     const body = await readJson(req);
     const user = await requireUser(req);
-    return ok(await skipWait(user.id, runId, body));
+    return ok(await skipWait(user.id, runId, body, process.env, parseCaps(req.headers.get("x-sim-caps"))));
   } catch (err) {
     return simRouteError(err);
   }

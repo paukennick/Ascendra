@@ -1,0 +1,474 @@
+{
+  "slug": "aide-feeding-thin-liquids-dysphagia",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: watches the meal; stops it, upright, stays; breathing checked; nothing by mouth; unsafe care owned; RN and provider now; aide redirected; event report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cough",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "unsafe"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "accountQ",
+          "choice": "nurse",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "redirect",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "caught",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "stopC": "met",
+          "reportC": "met",
+          "redirectC": "met",
+          "lungsC": "met",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "toReport": 60
+        },
+        "stateHash": "6d3b1362c7cc835c"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Checks the order and questions the aide before stepping in; reports 5 minutes after seeing it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "order",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cough",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "chapter",
+          "chapter": "stopped",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "redirect",
+          "seq": 10,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "unsafe"
+          },
+          "seq": 11,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 12,
+          "tick": 100
+        },
+        {
+          "type": "teach",
+          "prompt": "accountQ",
+          "choice": "nurse",
+          "seq": 13,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 100
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "stopC": "met",
+          "reportC": "partial",
+          "redirectC": "met",
+          "lungsC": "met",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "toReport": 320
+        },
+        "stateHash": "4b51b937b64baec7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noDirections",
+      "title": "Stops the feeding and reports at once, but never checks her breathing or gives the aide directions",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cough",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "accountQ",
+          "choice": "nurse",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "unsafe"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "stopC": "met",
+          "reportC": "met",
+          "redirectC": "missed",
+          "lungsC": "missed",
+          "npoC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toStop": 0,
+          "toReport": 0
+        },
+        "stateHash": "b9d51e137f8a1edc"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "letFinish",
+      "title": "Failure: calls the coughing normal, lets the aide finish the thin juice and mentions it at shift report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cough",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "normal"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopC": "missed",
+          "reportC": "missed",
+          "redirectC": "missed",
+          "lungsC": "missed",
+          "npoC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toReport": 0
+        },
+        "stateHash": "8c05569c7decf641"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "aideProblem",
+      "title": "Failure: sees it, decides it is the aide's problem to write up later, and walks on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "observe",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "cough",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aideonly"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "aspiration",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "stopC": "missed",
+          "reportC": "missed",
+          "redirectC": "missed",
+          "lungsC": "missed",
+          "npoC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "toReport": -1
+        },
+        "stateHash": "24b802d2137ad681"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

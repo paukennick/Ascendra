@@ -1,0 +1,462 @@
+{
+  "slug": "fever-stiff-neck-waiting-for-lp",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: neuro check; bacterial meningitis; intensivist cancels the hold; cultures, dexamethasone, antibiotics; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "no",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "bm"
+          },
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "dexQ",
+          "choice": "before",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "bc",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "dex",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "treated",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "abxC": "met",
+          "bcC": "met",
+          "dexC": "met",
+          "callC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 0,
+          "toCall": 0
+        },
+        "stateHash": "862d937ef4cd0cc6"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "History and perfusion first, then tells the intensivist 6 minutes after the neuro check; antibiotics still inside 15 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "no",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "bm"
+          },
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 7,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "dexQ",
+          "choice": "before",
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "bc",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "dex",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 11,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "abxC": "met",
+          "bcC": "met",
+          "dexC": "met",
+          "callC": "partial",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 370,
+          "toCall": 370
+        },
+        "stateHash": "c5c9f0bed332a438"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "abxFirst",
+      "title": "Calls and gives the antibiotics at once, but draws cultures and gives dexamethasone after them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "no",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "dexQ",
+          "choice": "before",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "abx",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "abx",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "bc",
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "dex",
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "bm"
+          },
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "abxC": "met",
+          "bcC": "partial",
+          "dexC": "partial",
+          "callC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toAbx": 0,
+          "toCall": 0
+        },
+        "stateHash": "046adc05ecabee25"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "heldForLp",
+      "title": "Failure: assumes viral meningitis and holds the antibiotics for the CT and LP as the note says",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "no",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "viral"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "wait"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "abxC": "missed",
+          "bcC": "missed",
+          "dexC": "missed",
+          "callC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "toCall": 0
+        },
+        "stateHash": "11606db6865063be"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "migraine",
+      "title": "Failure: takes the history, calls it a migraine and waits",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "delayQ",
+          "choice": "no",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "migraine"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "herniation",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "abxC": "missed",
+          "bcC": "missed",
+          "dexC": "missed",
+          "callC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toAbx": -1,
+          "toCall": -1
+        },
+        "stateHash": "e6b7c9b3208ccfef"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

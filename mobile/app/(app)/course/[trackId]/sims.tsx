@@ -11,6 +11,9 @@ import { capsHeaders } from "@/sim/runtime/caps.ts";
 // REQ-190: a course's simulations, grouped by unit. Each row is one
 // labelled button of at least 48 dp; state is written out, never colour
 // alone. A sim this build cannot run says "Update the app to open this".
+// REQ-327: a sim marked 18+ is listed by name with an "Adults (18+)" badge;
+// opening it asks for the 18+ acknowledgement of the course's sims (the API
+// client shows the notice on the server's 403 and retries).
 
 interface SimListItem {
   id: string;
@@ -24,6 +27,8 @@ interface SimListItem {
   runsFinished: number;
   access: "full" | "sample" | "locked";
   runnable: boolean;
+  // REQ-327; absent from a server before it.
+  mature?: boolean;
 }
 
 const RATING: Record<string, string> = { good: "Good", mediocre: "Mediocre", bad: "Bad" };
@@ -80,7 +85,7 @@ export default function SimsScreen() {
             <Pressable
               key={s.id}
               accessibilityRole="button"
-              accessibilityLabel={`${s.title}. ${s.screenType === "bedside" ? "Bedside monitor" : "Architecture board"}. ${stateLabel(s)}.${s.access === "locked" ? " Part of Pro." : s.access === "sample" ? " Sample simulation." : ""}`}
+              accessibilityLabel={`${s.title}. ${s.screenType === "bedside" ? "Bedside monitor" : "Architecture board"}. ${stateLabel(s)}.${s.mature ? " For adults, 18 and over." : ""}${s.access === "locked" ? " Part of Pro." : s.access === "sample" ? " Sample simulation." : ""}`}
               accessibilityHint="Opens the simulation"
               onPress={() => router.push({ pathname: `/course/${trackId}/sim/${s.id}`, params: { title: s.title } })}
               style={({ pressed }) => [{ minHeight: 48 }, pressed && { opacity: 0.7 }]}
@@ -93,6 +98,7 @@ export default function SimsScreen() {
                     <Muted style={{ fontSize: 13 }}>{s.objectiveTitle}</Muted>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
                       <Badge label={s.screenType === "bedside" ? "Bedside monitor" : "Architecture board"} color={colors.accent} />
+                      {s.mature ? <Badge label="Adults (18+)" color={colors.muted} icon="alert-circle" /> : null}
                       {s.access === "sample" ? <Badge label="Sample" color={colors.good} icon="gift" /> : null}
                       {s.access === "locked" ? <Badge label="Part of Pro" color={colors.muted} icon="lock" /> : null}
                     </View>

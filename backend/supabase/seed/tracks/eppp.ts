@@ -134,7 +134,7 @@ const S = EPPP_SOURCES;
 
 export const EPPP_TRACK: SeedTrack = {
   code: "EPPP",
-  title: "Prep for a psychology licensure knowledge exam",
+  title: "Exam Prep for EPPP® (Part 1-Knowledge)",
   description:
     "Preparation for the Examination for Professional Practice in Psychology, Part 1-Knowledge: ASPPB's eight content areas, from biological bases of behavior to ethical, legal and professional issues, weighted as the exam weights them. Includes frank clinical material (suicide risk, abuse, violence) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the Association of State and Provincial Psychology Boards (ASPPB). EPPP is a registered trademark of ASPPB.",
   trackType: "certification",

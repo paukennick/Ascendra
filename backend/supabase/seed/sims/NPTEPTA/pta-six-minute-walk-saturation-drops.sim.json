@@ -1,0 +1,1238 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pta-six-minute-walk-saturation-drops",
+  "title": "Two minutes in",
+  "objective": "Administer the 6-minute walk test by protocol on a 30 m course with a pulse oximeter and Borg scale, and report distance and symptoms to the PT",
+  "secondaryObjectives": [
+    "Monitoring vital signs and activity tolerance during a treatment session and responding to abnormal findings"
+  ],
+  "sources": [
+    {
+      "cite": "FSBPT, NPTE-PTA Test Content Outline (Version 2025.02) and the NPTE Candidate Handbook",
+      "checkedAt": "2026-09-27",
+      "url": "https://www.fsbpt.org/Free-Resources/NPTE-Candidate-Handbook/Content-Outline",
+      "note": "Relayed from the NPTE-PTA course seed (backend/supabase/seed/tracks/pt.ts, VERIFIED_AT 2026-09-27), not re-read: Cardiovascular and pulmonary systems is 20-27 of 140 scored items, and the exam assumes entry-level practice under a supervising PT's direction. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra NPTE-PTA course catalog (backend/supabase/seed/tracks/pt.ts, track NPTEPTA)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "House of Delegates policy HOD P06-18-28-35, Direction and Supervision of the Physical Therapist Assistant (last updated 2018-08-30)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apta.org/siteassets/pdfs/policies/direction-supervision-pta.pdf",
+      "note": "Relayed from the PTA case pta-back-pain-new-bladder-symptoms, which read it 2026-11-17 through a summarizing fetch with quotes, not re-read: only the physical therapist performs evaluation, reexamination and modification of the plan of care; the PTA collects selected data and modifies an intervention 'to ensure patient or client safety and comfort'; a PT supervisory visit is made on the PTA's request for a reexamination and 'in response to a change in the patient's or client's medical status'."
+    },
+    {
+      "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+      "checkedAt": "2026-11-11",
+      "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+      "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in an outpatient pulmonary rehabilitation clinic. You are the physical therapist assistant. Dr. Shah, PT, asked you to run a 6-minute walk test for Mrs. Lindgren, 68, who has pulmonary fibrosis, on the clinic's 30 m hallway course.",
+    "handover": [
+      "Protocol: rest seated 10 minutes; record resting heart rate, SpO2 and Borg dyspnea; walk with a pulse oximeter; standard phrases each minute; she may slow or rest; record distance and symptoms.",
+      "The plan's stop rule: SpO2 under 85% on this patient's lung disease, chest pain, severe dyspnea, staggering or pallor: stop, seat her, and tell the PT, who decides about oxygen.",
+      "Dr. Shah is in the next room."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each question or measure takes the time on its button. Decide what to collect, what it means for today's session and who needs to know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.045,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Walking with fibrosis, her saturation falls steeply. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Seated and rested, her saturation recovers slowly. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point where SpO2 falls under 85% with marked breathlessness. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of collapse in the hallway. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The PT told within 5 minutes of the stop rule (the plan)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Walk stopped and she is seated within 5 minutes of the stop rule (the plan; the profile's 2-minute stop window is stricter)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the PT to reexamine and decide about oxygen and the plan; finishing the visit as planned about 25 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Urging her on for the full six minutes after the stop rule: she collapses in this authored course. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "minuteAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "minute",
+        "rest",
+        "check"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "pt",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "data",
+        "fine",
+        "dx"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "chairAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + 30 * max(0, prog - 0.35) + sin(t / 7) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(isNull(fixAt) ? 94 - 70 * max(0, prog - 0.38) : 90, 60, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Lindgren, 68",
+        "presentation": "Pulmonary fibrosis; the PT asked for a 6-minute walk test today to update the plan."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              120,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 85
+          },
+          "announce": {
+            "bands": [
+              88,
+              85
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "activity": "{not inCare ? \"Gone with the PT's plan.\" : (isNull(fixAt) ? \"Walking the 30 m hallway course with the oximeter.\" : \"Seated, recovering.\")}",
+      "measures": [
+        {
+          "id": "minuteResult",
+          "label": "Minute check",
+          "result": "SpO2 under 85% with Borg 7 at 2 minutes.",
+          "when": "not isNull(minuteAt)",
+          "flag": "true"
+        },
+        {
+          "id": "restResult",
+          "label": "Resting",
+          "result": "Resting SpO2 94%, heart rate 84, Borg 1.",
+          "when": "not isNull(restAt)"
+        },
+        {
+          "id": "checkResult",
+          "label": "Check-in",
+          "result": "No chest pain; a bit more breathless this week.",
+          "when": "not isNull(checkAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Test stopped",
+            "when": "not isNull(fixAt)"
+          },
+          {
+            "label": "Chair on the course",
+            "when": "not isNull(chairAt)"
+          },
+          {
+            "label": "{route == \"pt\" ? \"Test stopped; PT reexamining\" : \"Test finished as planned\"}",
+            "when": "not isNull(callAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleRed",
+          "label": "SpO2 under 85%, chest pain, severe dyspnea, staggering or pallor",
+          "text": "Stop: seat her, stop the test clock, and tell the supervising PT now.",
+          "met": "redSeen and isNull(callAt)"
+        },
+        {
+          "id": "ruleScope",
+          "label": "Your role",
+          "text": "Collect data and report it. Diagnosis, reexamination and changes to the plan are the PT's.",
+          "met": "false"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "minute": {
+      "label": "Minute check: SpO2, heart rate, Borg dyspnea, her appearance",
+      "group": "Examine",
+      "available": "not testPending and isNull(minuteAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"minute\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "rest": {
+      "label": "Resting measures after 10 minutes seated",
+      "group": "Examine",
+      "available": "not testPending and isNull(restAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "check": {
+      "label": "Check-in: symptoms today, chest pain, recent changes",
+      "group": "Examine",
+      "available": "not testPending and isNull(checkAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"check\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Walk beside her and watch the oximeter and her breathing",
+      "group": "Examine",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "SpO2 {spo2}%; she is gasping and grey around the lips.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "SpO2 {spo2}%; breathing harder but talking in phrases.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Stop the test, seat her in the chair, stop the clock and note the distance",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Test stopped; seated; distance and time noted.",
+          "kind": "act"
+        }
+      ]
+    },
+    "chair": {
+      "label": "Set a chair at the turnaround and keep one ready to follow",
+      "group": "Treat",
+      "available": "isNull(chairAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "chairAt",
+          "to": "t"
+        },
+        {
+          "log": "Chairs ready on the course.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Encourage her to keep going for the full six minutes: the distance matters",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "You urge her to keep walking.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Write the test note",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "data",
+              "label": "Objective data: stopped at 2 min 10 s, distance walked, lowest SpO2, Borg 7, symptoms; PT notified"
+            },
+            {
+              "value": "fine",
+              "label": "Completed with some breathlessness"
+            },
+            {
+              "value": "dx",
+              "label": "Assessment: needs ambulatory oxygen; plan changed"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"data\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"data\""
+                },
+                {
+                  "log": "Note: the data; test stopped; PT notified.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Note: completed.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dx\""
+                },
+                {
+                  "log": "Note: a decision about oxygen.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide who you tell and what happens next",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who you tell",
+          "options": [
+            {
+              "value": "pt",
+              "label": "Get Dr. Shah now with the data: SpO2 under 85% at 2 minutes, Borg 7, test stopped"
+            },
+            {
+              "value": "note",
+              "label": "Let her rest, then finish the remaining minutes; give the PT the sheet later"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"pt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"pt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "Dr. Shah comes, reexamines and decides on an oxygen titration walk.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "1500"
+                },
+                {
+                  "log": "You plan to finish the test after a rest.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the hand-off: what you found, who you told, the time",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off documented with the times.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Walk test",
+      "clock": "running",
+      "actions": [
+        "minute",
+        "rest",
+        "check",
+        "reassess",
+        "fix",
+        "chair",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"minute\"",
+              "then": [
+                {
+                  "set": "minuteAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "SpO2 {spo2}%, heart rate {hr}, Borg dyspnea 7; lips dusky, she slows to a shuffle.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "SpO2 {spo2}%, heart rate {hr}, Borg dyspnea 3; walking steadily.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"rest\"",
+              "then": [
+                {
+                  "set": "restAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Resting SpO2 94%, heart rate 84, Borg dyspnea 1, blood pressure 128/76.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "checkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No chest pain. A bit more breathless on stairs this week. No new medicines.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving the test",
+      "wait": {
+        "skipLabel": "the PT taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the PT to reexamine and decide about oxygen and the plan; finishing the visit as planned about 25 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "{route == \"pt\" ? \"Dr. Shah takes over to plan an oxygen titration.\" : \"She leaves after the visit.\"}",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The oximeter alarm beeps: {spo2}%. Mrs. Lindgren stops and leans on the wall.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 720",
+      "question": "Mrs. Lindgren's saturation is under 85% two minutes in. What does that mean for the test, and who decides?",
+      "parts": [
+        {
+          "label": "What the data show",
+          "criteria": "Exercise-induced desaturation below the plan's floor with severe dyspnea and dusky lips: a stop rule; the distance and lowest SpO2 at stopping are the result.",
+          "modelAnswer": "She's desaturating below 85% with severe breathlessness and dusky lips. That's the plan's stop rule; the distance and the lowest saturation are the result to report."
+        },
+        {
+          "label": "What I do and who decides",
+          "criteria": "Stops, seats her, records distance, time and lowest SpO2; tells the PT now; the PT decides about oxygen; documents data.",
+          "modelAnswer": "I stop the test, sit her down, note the distance, time and lowest saturation, and get Dr. Shah now. Oxygen and the plan are her decisions."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Activity stopped or eased within 2 min of a stopping rule (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "SpO2 floor during activity (profile default). FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The PT told within 5 minutes of the stop rule (the plan)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A desaturating walk test still unreported an hour on is harm here.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Collapse in the hallway",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Pushed on, she staggers, her saturation in the 70s, and sinks to the floor before you reach the chair."
+    },
+    "worsened": {
+      "label": "Collapse on the course",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "SpO2 {spo2}%: she slides down the wall, too breathless to speak."
+    },
+    "wrongRoute": {
+      "label": "Finished the test after the stop rule",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"note\")",
+      "narrative": "On the second attempt she desaturates again and nearly faints; the PT hears about it only from the sheet."
+    },
+    "target": {
+      "label": "Stopped by protocol and reported in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow) and isNull(unsafeAt) and not isNull(minuteAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the PT takes over with clean data. You ran the test by protocol, stopped at the rule and reported within minutes."
+    },
+    "recovered": {
+      "label": "Reported, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"pt\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the PT gets the data, but she walked on after the rule or the PT heard minutes late."
+    },
+    "time_up": {
+      "label": "Still unresolved at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00 and the test is unresolved."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Test stopped and seated within 5 minutes of the stop rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and (isNull(redFlagAt) or timeAt(fixAt) <= timeAt(redFlagAt) + fixWindow)",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Supervising PT told within 5 minutes of the stop rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"pt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"pt\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Finished the test after a rest; sheet later."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Not urged on after the stop rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Urged her on for the full six minutes."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Minute-by-minute SpO2, heart rate and Borg recorded",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(minuteAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "chairC",
+        "label": "Chair ready on the course",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(chairAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Documented objective data, not a decision",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"data\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Recorded a stopped test as complete."
+          },
+          {
+            "when": "dxEnum == \"dx\"",
+            "score": "partial",
+            "why": "The oxygen decision and plan change are the PT's."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the hand-off with times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: stop by the plan's rule; report the data; the PT decides about oxygen",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Stop rule to stopping",
+        "value": "isNull(fixAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(fixAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Stop rule to telling the PT",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "Resting measures; chairs ready."
+      },
+      {
+        "at": "~13:01",
+        "text": "Walk begins; minute checks."
+      },
+      {
+        "at": "~13:03",
+        "text": "SpO2 under 85%, Borg 7: stop and seat."
+      },
+      {
+        "at": "~13:03",
+        "text": "Dr. Shah now with the data; note and hand-off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Urged on past the rule",
+        "body": "Patients may slow or stop in a 6-minute walk; a stop rule ends it. The distance is never worth a collapse."
+      },
+      "worsened": {
+        "headline": "Collapse",
+        "body": "Watch the oximeter each minute and stop at the plan's floor."
+      },
+      "wrongRoute": {
+        "headline": "Finished after the rule",
+        "body": "A test stopped by a rule is reported now, not repeated."
+      },
+      "target": {
+        "headline": "Stopped and reported",
+        "body": "Protocol followed, stopped at the rule, the PT told within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Reported, with gaps",
+        "body": "Check how long she walked after the rule and how long before the PT heard."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "A desaturating patient is reported within minutes."
+      }
+    },
+    "modelReasoning": "A 6-minute walk follows its protocol: resting measures, an oximeter throughout, minute checks, chairs ready. In lung disease a saturation below the plan's floor with severe dyspnea is a stop rule. The PTA stops the test, seats her, records the distance, time and lowest SpO2, and tells the PT now; oxygen and the plan are the PT's decisions."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "deQ": {
+      "during": "testT",
+      "ask": "While you check the minute: in this patient's lung disease, which SpO2 is a stop criterion?",
+      "choices": [
+        {
+          "id": "e85",
+          "label": "Under 85%"
+        },
+        {
+          "id": "e95",
+          "label": "Under 95%"
+        },
+        {
+          "id": "never",
+          "label": "SpO2 is not a stop criterion"
+        }
+      ],
+      "expect": "e85",
+      "explain": "Stop criteria include SpO2 under 90% or a 4% drop for acute coronary syndrome, and under 85% in lung disease.",
+      "source": {
+        "cite": "APTA Acute Care and APTA Cardiovascular and Pulmonary, Adult Vital Sign Interpretation in Acute Care Guide 2021 (boards approved March and April 2021)",
+        "checkedAt": "2026-11-11",
+        "url": "https://cardiopt.memberclicks.net/assets/docs/CPG/Joint%20Vital%20Sign%20Booklet.pdf",
+        "note": "Relayed from the DPT case icu-early-mobility, which read it 2026-11-11 through a text extraction of the PDF, not re-read: normal exercise response, HR up about 10 beats/min and SBP up about 10 mmHg per MET; stop criteria include an SBP drop over 10 mmHg with increasing workload, new or worsening dysrhythmia, RR over 40, unable to speak comfortably, SpO2 under 90% or a drop of 4% or more."
+      }
+    },
+    "roleQ": {
+      "during": "leaveT",
+      "ask": "While the PT takes over: who decides whether she needs oxygen during walking?",
+      "choices": [
+        {
+          "id": "pt",
+          "label": "The supervising PT, with the medical team"
+        },
+        {
+          "id": "pta",
+          "label": "The PTA running the test"
+        },
+        {
+          "id": "pt2",
+          "label": "The patient alone"
+        }
+      ],
+      "expect": "pt",
+      "explain": "Modification of the plan of care is the physical therapist's; the PTA modifies an intervention only for safety and comfort.",
+      "source": {
+        "cite": "House of Delegates policy HOD P06-18-28-35, Direction and Supervision of the Physical Therapist Assistant (last updated 2018-08-30)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.apta.org/siteassets/pdfs/policies/direction-supervision-pta.pdf",
+        "note": "Relayed from the PTA case pta-back-pain-new-bladder-symptoms, which read it 2026-11-17 through a summarizing fetch with quotes, not re-read: only the physical therapist performs evaluation, reexamination and modification of the plan of care; the PTA collects selected data and modifies an intervention 'to ensure patient or client safety and comfort'; a PT supervisory visit is made on the PTA's request for a reexamination and 'in response to a change in the patient's or client's medical status'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,1137 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "postop-fever-150-graves-meds-stopped",
+  "title": "Fever, 150 and frightened",
+  "objective": "Treat thyroid storm -- fever, tachycardia, agitation, confusion, vomiting, diarrhea -- as an emergency needing immediate care and treatment of the cause",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Thyroid Storm (continuing education activity), last updated not shown on the page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.statpearls.com/sp/md/98/30151/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Fever of 104 F to 106 F with diaphoresis is a key presenting feature'; heart failure and atrial fibrillation; 'CNS involvement includes agitation, delirium, anxiety, psychosis, or coma'; nausea, vomiting, diarrhea and abdominal pain; precipitants include 'Abrupt discontinuation of antithyroid medicine', thyroid surgery and infections; mortality 'estimated to be 8 to 25%'; 'Thyroid storm is a true medical emergency that is fatal if left untreated'; supportive IV fluids, oxygen, cooling blankets and acetaminophen; 'The use of aspirin should be avoided due to its potential risk of increasing free thyroid hormone levels'; a beta-blocker for any suspected storm; 'Always administer thionamide before starting iodine solution'; treat the precipitant; admit to the ICU. The chapter's doses are not used."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:00 on a surgical unit. You are Ms. Okoye's nurse. She is 38, on day 1 after an emergency appendectomy. She has Graves disease and stopped her methimazole a month ago because she 'felt fine'. She is restless and sweating and says her heart is racing.",
+    "handover": [
+      "At 11:00: temperature 37.9 C, heart rate 104. She vomited at lunch and has had loose stools since.",
+      "PRN orders: acetaminophen or aspirin for fever (order set); lorazepam for anxiety.",
+      "Unit policy: call the rapid response team for a heart rate over 130, new confusion, or a temperature over 39.5 C; the RN starts cooling measures while waiting."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Thyroid storm progresses toward heart failure and collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It barely progresses once ICU-level treatment has started. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "aspirinBump": {
+      "value": 0.15,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Aspirin may raise free thyroid hormone. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "collapseAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of heart failure with collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response called within 5 minutes of the vital signs (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The rapid response team assesses and the provider orders: about 4 min."
+      }
+    },
+    "icuTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Transfer to the ICU: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "mentalAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "woundAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vitals",
+        "mental",
+        "history",
+        "wound"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rrt",
+        "page"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "storm",
+        "sepsis",
+        "anxiety"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "coolAt": {
+      "type": "time",
+      "init": null
+    },
+    "aspAt": {
+      "type": "time",
+      "init": null
+    },
+    "sedAt": {
+      "type": "time",
+      "init": null
+    },
+    "betaAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"rrt\" and t >= timeAt(callAt) + orderTime"
+    },
+    "temp": {
+      "expr": "round((39.6 + 1.2 * prog - (isNull(coolAt) ? 0 : 0.5)) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "hr": {
+      "expr": "round(138 + 30 * prog - (isNull(betaAt) ? 0 : 25) + sin(t / 7) * 6)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(146 - 40 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.5)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 6 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(betaAt) ? treatedRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              120,
+              140
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "high": 39.5
+          },
+          "announce": {
+            "bands": [
+              39.5,
+              40.5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr",
+            "flat": "isNull(vitalsAt)"
+          }
+        }
+      ],
+      "infusions": "Cooling measures: {not isNull(coolAt)|yesno}. Beta-blocker: {not isNull(betaAt)|yesno}. Aspirin given: {not isNull(aspAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(betaAt)",
+          "text": "The provider has ordered a beta-blocker now, a thionamide, IV fluids, and ICU transfer; iodine only after the thionamide."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "vitals": {
+      "label": "Full set of vital signs on the monitor",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mental": {
+      "label": "Mental status",
+      "group": "Assess",
+      "available": "not testPending and isNull(mentalAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mental\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "history": {
+      "label": "Review her history and medications",
+      "group": "Assess",
+      "available": "not testPending and isNull(historyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"history\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "wound": {
+      "label": "Check the wound and abdomen for a surgical source",
+      "group": "Assess",
+      "available": "not testPending and isNull(woundAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"wound\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cool": {
+      "label": "Start cooling: remove blankets, cooling blanket, and the ordered PRN acetaminophen",
+      "group": "Treat",
+      "available": "isNull(coolAt) and inClinic",
+      "why": "Already started.",
+      "effects": [
+        {
+          "set": "coolAt",
+          "to": "t"
+        },
+        {
+          "log": "Cooling blanket on; acetaminophen given.",
+          "kind": "act"
+        }
+      ]
+    },
+    "asp": {
+      "label": "Give the ordered PRN aspirin for the fever",
+      "group": "Treat",
+      "available": "isNull(aspAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "aspAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + aspirinBump"
+        },
+        {
+          "log": "Aspirin given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "sed": {
+      "label": "Give the ordered PRN lorazepam for her anxiety and recheck in an hour",
+      "group": "Treat",
+      "available": "isNull(sedAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "sedAt",
+          "to": "t"
+        },
+        {
+          "log": "Lorazepam given; she is quieter but still racing.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "beta": {
+      "label": "Give the ordered beta-blocker and start the ordered IV fluids",
+      "group": "Treat",
+      "available": "ordered and isNull(betaAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "betaAt",
+          "to": "t"
+        },
+        {
+          "log": "Beta-blocker given; fluids running; her rate starts to come down.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "storm",
+              "label": "Thyroid storm: Graves with methimazole stopped plus surgery; high fever, a fast irregular rhythm, agitation and confusion, vomiting and diarrhea; an emergency"
+            },
+            {
+              "value": "sepsis",
+              "label": "Post-operative wound infection: send cultures and wait"
+            },
+            {
+              "value": "anxiety",
+              "label": "Anxiety after surgery"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"storm\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"storm\""
+                },
+                {
+                  "log": "Thyroid storm.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sepsis\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sepsis\""
+                },
+                {
+                  "log": "Impression: wound infection.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anxiety\""
+                },
+                {
+                  "log": "Impression: anxiety.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "rrt",
+              "label": "Call the rapid response team: temperature over 40, heart rate around 150 and irregular, new confusion, vomiting and diarrhea in a woman with Graves who stopped methimazole a month ago, a day after surgery: suspected thyroid storm"
+            },
+            {
+              "value": "page",
+              "label": "Page the surgical resident to see her after clinic"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rrt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rrt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "icuTime"
+                },
+                {
+                  "log": "The rapid response team agrees: thyroid storm. The provider orders a beta-blocker now, a thionamide, IV fluids and ICU transfer.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"page\""
+                },
+                {
+                  "log": "The resident will see her after clinic.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and hand off to the ICU: vital trend, mental status, history, treatments and times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: vital trend, new confusion, Graves with methimazole stopped, cooling, beta-blocker and fluid times; handed off to the ICU.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Surgical unit",
+      "clock": "running",
+      "actions": [
+        "vitals",
+        "mental",
+        "history",
+        "wound",
+        "cool",
+        "asp",
+        "sed",
+        "beta",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Temperature {temp} C, heart rate {hr} and irregular, blood pressure {sbp}/{dbp}, SpO2 {spo2}%.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"mental\"",
+              "then": [
+                {
+                  "set": "mentalAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Agitated, keeps pulling at her gown, oriented to person only: new confusion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"history\"",
+              "then": [
+                {
+                  "set": "historyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Graves disease; methimazole stopped a month ago; surgery yesterday.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "woundAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Wound clean; abdomen soft and appropriately tender; no sign of a leak.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the ICU transfer",
+      "wait": {
+        "skipLabel": "her transfer to the ICU"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min to transfer her to the ICU."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She is transferred to the ICU.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Ms. Okoye, what set it off, and what do you do now?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Thyroid storm: very high fever, tachycardia with atrial fibrillation, agitation and confusion, vomiting and diarrhea; precipitated by stopping methimazole and by surgery; a true emergency with high mortality.",
+          "modelAnswer": "This is thyroid storm. She has Graves, stopped her methimazole a month ago and had surgery yesterday. Fever over 40, a heart rate around 150 and irregular, new confusion, vomiting and diarrhea. It's an emergency and it can kill her."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls rapid response now; cools with blankets off, a cooling blanket and acetaminophen, never aspirin; does not sedate and wait; gives the ordered beta-blocker and fluids; ICU transfer; the thionamide comes before any iodine.",
+          "modelAnswer": "Call rapid response now and start cooling with acetaminophen, not aspirin, because aspirin can raise free thyroid hormone. Don't just sedate her. Give the ordered beta-blocker and fluids and get her to the ICU, where she'll get the thionamide before any iodine."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Thyroid storm without emergency treatment an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Thyroid Storm (continuing education activity), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/sp/md/98/30151/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Fever of 104 F to 106 F with diaphoresis is a key presenting feature'; heart failure and atrial fibrillation; 'CNS involvement includes agitation, delirium, anxiety, psychosis, or coma'; nausea, vomiting, diarrhea and abdominal pain; precipitants include 'Abrupt discontinuation of antithyroid medicine', thyroid surgery and infections; mortality 'estimated to be 8 to 25%'; 'Thyroid storm is a true medical emergency that is fatal if left untreated'; supportive IV fluids, oxygen, cooling blankets and acetaminophen; 'The use of aspirin should be avoided due to its potential risk of increasing free thyroid hormone levels'; a beta-blocker for any suspected storm; 'Always administer thionamide before starting iodine solution'; treat the precipitant; admit to the ICU. The chapter's doses are not used."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Heart failure and collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= collapseAt and inClinic",
+      "narrative": "Her breathing becomes wet and labored, her saturation falls and her pressure drops: heart failure from the storm. A code is called."
+    },
+    "treated": {
+      "label": "Storm recognized and treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(coolAt) and not isNull(betaAt) and isNull(aspAt) and isNull(sedAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she goes to the ICU with her rate coming down, her temperature falling, and the thionamide ordered."
+    },
+    "treatedGaps": {
+      "label": "To the ICU, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches the ICU, but the call was late, cooling or the beta-blocker lagged, or aspirin or sedation went in."
+    },
+    "time_up": {
+      "label": "Untreated at 16:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:00 and the storm is untreated."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "treated",
+    "treatedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Called rapid response within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rrt\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"page\"",
+            "score": "missed",
+            "why": "Paged for after clinic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "coolC",
+        "label": "Cooled with acetaminophen, never aspirin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(aspAt)",
+            "score": "missed",
+            "why": "Aspirin given."
+          },
+          {
+            "when": "not isNull(coolAt)",
+            "score": "met",
+            "why": "Cooled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not cooled."
+          }
+        ]
+      },
+      {
+        "id": "noSedate",
+        "label": "Did not sedate and wait",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sedAt)",
+            "score": "missed",
+            "why": "Lorazepam and wait."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Treated the cause."
+          }
+        ]
+      },
+      {
+        "id": "betaC",
+        "label": "Gave the ordered beta-blocker and fluids",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(betaAt)",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized thyroid storm",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"storm\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"sepsis\"",
+            "score": "missed",
+            "why": "Called it infection."
+          },
+          {
+            "when": "dxEnum == \"anxiety\"",
+            "score": "missed",
+            "why": "Called it anxiety."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and handed off",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: thyroid storm and its trigger; rapid response, cooling without aspirin, beta-blocker, ICU",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Vital signs to rapid response",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toBeta",
+        "label": "15:00 to the beta-blocker",
+        "value": "isNull(betaAt) ? -1 : timeAt(betaAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:00",
+        "text": "Vital signs: over 40 C, around 150 and irregular. New confusion."
+      },
+      {
+        "at": "~15:01",
+        "text": "Graves, methimazole stopped, surgery: thyroid storm. Call rapid response."
+      },
+      {
+        "at": "~15:02",
+        "text": "Cool: blankets off, cooling blanket, acetaminophen, not aspirin."
+      },
+      {
+        "at": "~15:06",
+        "text": "Give the ordered beta-blocker and fluids; hand off to the ICU."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Collapse",
+        "body": "High fever, a racing heart, agitation and GI symptoms in someone with Graves off treatment is thyroid storm: call for help, cool without aspirin, and get the beta-blocker in."
+      },
+      "treated": {
+        "headline": "Treated",
+        "body": "You recognized thyroid storm and its trigger, called rapid response at once, cooled her without aspirin, didn't sedate and wait, and gave the beta-blocker. That is the expert path."
+      },
+      "treatedGaps": {
+        "headline": "To the ICU, with gaps",
+        "body": "Check how soon you called, whether aspirin or sedation went in, and how quickly cooling and the beta-blocker started."
+      },
+      "time_up": {
+        "headline": "Untreated",
+        "body": "Thyroid storm is an emergency needing treatment within minutes."
+      }
+    },
+    "modelReasoning": "Ms. Okoye has Graves disease, stopped her methimazole a month ago, and had surgery yesterday: two precipitants. A temperature over 40 C, a heart rate around 150 and irregular, agitation with new confusion, vomiting and diarrhea is thyroid storm, a true emergency with high mortality. Call the rapid response team now, cool her with blankets off, a cooling blanket and acetaminophen (not aspirin, which can raise free thyroid hormone), and don't sedate and wait. Give the ordered beta-blocker and fluids and transfer her to the ICU, where a thionamide comes before any iodine."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Rapid response called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "aspQ": {
+      "during": "testT",
+      "ask": "While you check: why is aspirin avoided for fever in thyroid storm?",
+      "choices": [
+        {
+          "id": "free",
+          "label": "It may raise free thyroid hormone levels"
+        },
+        {
+          "id": "bleed",
+          "label": "Only because of bleeding risk"
+        },
+        {
+          "id": "fine",
+          "label": "It isn't; aspirin is preferred"
+        }
+      ],
+      "expect": "free",
+      "explain": "Aspirin should be avoided because it may increase free thyroid hormone levels; acetaminophen and cooling blankets are used.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Thyroid Storm (continuing education activity), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/sp/md/98/30151/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Fever of 104 F to 106 F with diaphoresis is a key presenting feature'; heart failure and atrial fibrillation; 'CNS involvement includes agitation, delirium, anxiety, psychosis, or coma'; nausea, vomiting, diarrhea and abdominal pain; precipitants include 'Abrupt discontinuation of antithyroid medicine', thyroid surgery and infections; mortality 'estimated to be 8 to 25%'; 'Thyroid storm is a true medical emergency that is fatal if left untreated'; supportive IV fluids, oxygen, cooling blankets and acetaminophen; 'The use of aspirin should be avoided due to its potential risk of increasing free thyroid hormone levels'; a beta-blocker for any suspected storm; 'Always administer thionamide before starting iodine solution'; treat the precipitant; admit to the ICU. The chapter's doses are not used."
+      }
+    },
+    "orderQ": {
+      "during": "leaveT",
+      "ask": "While she goes to the ICU: which comes first, the thionamide or iodine?",
+      "choices": [
+        {
+          "id": "thion",
+          "label": "The thionamide, then iodine"
+        },
+        {
+          "id": "iodine",
+          "label": "Iodine, then the thionamide"
+        },
+        {
+          "id": "same",
+          "label": "Order doesn't matter"
+        }
+      ],
+      "expect": "thion",
+      "explain": "Always give the thionamide before starting iodine.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Thyroid Storm (continuing education activity), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/sp/md/98/30151/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'Fever of 104 F to 106 F with diaphoresis is a key presenting feature'; heart failure and atrial fibrillation; 'CNS involvement includes agitation, delirium, anxiety, psychosis, or coma'; nausea, vomiting, diarrhea and abdominal pain; precipitants include 'Abrupt discontinuation of antithyroid medicine', thyroid surgery and infections; mortality 'estimated to be 8 to 25%'; 'Thyroid storm is a true medical emergency that is fatal if left untreated'; supportive IV fluids, oxygen, cooling blankets and acetaminophen; 'The use of aspirin should be avoided due to its potential risk of increasing free thyroid hormone levels'; a beta-blocker for any suspected storm; 'Always administer thionamide before starting iodine solution'; treat the precipitant; admit to the ICU. The chapter's doses are not used."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

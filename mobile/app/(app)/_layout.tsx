@@ -3,10 +3,18 @@ import { colors, fonts } from "@/lib/theme";
 import { BillingProvider } from "@/billing/BillingContext";
 import { useAuth } from "@/auth/AuthContext";
 import { Loading } from "@/components/ui";
-import { webColumnLayout } from "@/components/WebColumn";
+import { useColumnScreenOptions, webColumnLayout } from "@/components/WebColumn";
 
 export default function AppLayout() {
   const { status } = useAuth();
+  // REQ-322: on wide web windows the header lines up with the column.
+  const screenOptions = useColumnScreenOptions({
+    headerStyle: { backgroundColor: colors.bgAlt },
+    headerTintColor: colors.accent,
+    headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 18 },
+    headerShadowVisible: false,
+    contentStyle: { backgroundColor: colors.bg },
+  });
   // REQ-206 (FAIL-922): on a reload or a deep link every signed-in screen
   // mounted at once and sent its requests before the session was restored from
   // the refresh cookie (or before the launch lock was opened), so
@@ -20,13 +28,7 @@ export default function AppLayout() {
     <Stack
       // Desktop web: a centered column on wide windows (src/lib/webColumn.ts).
       screenLayout={webColumnLayout}
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.bgAlt },
-        headerTintColor: colors.accent,
-        headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 18 },
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.bg },
-      }}
+      screenOptions={screenOptions}
     >
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
       <Stack.Screen name="explore" options={{ title: "Explore" }} />

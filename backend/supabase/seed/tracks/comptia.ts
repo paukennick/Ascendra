@@ -56,7 +56,7 @@ const VERIFIED_AT_20260926 = "2026-09-26T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const APLUS_CORE1_TRACK: SeedTrack = {
   code: "APLUS_CORE1",
-  title: "Prep for an IT support technician certification exam (part 1: hardware and networking)",
+  title: "Exam Prep for CompTIA A+ Core 1 (220-1201)",
   description:
     "CompTIA A+ Core 1 (220-1201) exam prep across 5 weighted domains -- mobile devices, networking, hardware, virtualization/cloud, and hardware/network troubleshooting. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -165,7 +165,7 @@ export const APLUS_CORE1_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const APLUS_CORE2_TRACK: SeedTrack = {
   code: "APLUS_CORE2",
-  title: "Prep for an IT support technician certification exam (part 2: operating systems and security)",
+  title: "Exam Prep for CompTIA A+ Core 2 (220-1202)",
   description:
     "CompTIA A+ Core 2 (220-1202) exam prep across 4 weighted domains -- operating systems, security, software troubleshooting, and operational procedures. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -267,7 +267,7 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NETWORKPLUS_TRACK: SeedTrack = {
   code: "NETWORKPLUS",
-  title: "Prep for a networking fundamentals certification exam",
+  title: "Exam Prep for CompTIA Network+ (N10-009)",
   description:
     "CompTIA Network+ (N10-009) exam prep across 5 weighted domains -- networking concepts, implementation, operations, security, and troubleshooting. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -376,7 +376,7 @@ export const NETWORKPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CLOUDPLUS_TRACK: SeedTrack = {
   code: "CLOUDPLUS",
-  title: "Prep for a vendor-neutral cloud operations certification exam",
+  title: "Exam Prep for CompTIA Cloud+ (CV0-004)",
   description:
     "CompTIA Cloud+ (CV0-004) exam prep across 6 weighted domains -- cloud architecture, deployment, security, operations, troubleshooting, and DevOps fundamentals. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -492,7 +492,7 @@ export const CLOUDPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const DATAPLUS_TRACK: SeedTrack = {
   code: "DATAPLUS",
-  title: "Prep for a vendor-neutral data analyst certification exam",
+  title: "Exam Prep for CompTIA Data+ (DA0-002)",
   description:
     "CompTIA Data+ (DA0-002) exam prep across 5 weighted domains -- data concepts and environments, acquisition and preparation, analysis, visualization and reporting, and governance. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -589,7 +589,7 @@ export const DATAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SERVERPLUS_TRACK: SeedTrack = {
   code: "SERVERPLUS",
-  title: "Prep for a server administration certification exam",
+  title: "Exam Prep for CompTIA Server+ (SK0-005)",
   description:
     "CompTIA Server+ (SK0-005) exam prep across 4 weighted domains -- server hardware installation and management, server administration, security and disaster recovery, and troubleshooting. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -675,17 +675,32 @@ export const SERVERPLUS_TRACK: SeedTrack = {
 // 90 minutes, up to 90 questions (multiple choice and performance-based),
 // passing score 710/900. Recommended experience: 6-12 months hands-on
 // managing projects in a tech environment. Domains: 33% / 30% / 19% / 18%.
+//
+// REQ-310 (verify-2, read 2026-11-17): CompTIA's own Project+ page
+// (https://www.comptia.org/en-us/certifications/project/, direct page) still
+// lists PK0-005 V5, launched November 8, 2022, no retirement or successor;
+// max 90 questions, 90 minutes, 710 on 100-900; domains "Project management
+// concepts" 33%, "Project life cycle phases" 30%, "Tools and documentation"
+// 19%, "Basics of IT and governance" 18%. The 24 numbered objectives (1.1-1.11,
+// 2.1-2.5, 3.1-3.3, 4.1-4.5) were read in CompTIA's PK0-004 vs PK0-005
+// comparison guide (partners.comptia.org, print code 09873-Sep2022, direct
+// PDF); the units below have one objective per numbered objective, in order.
+// The exam objectives PDF itself (comptia.jp) refused automated reading.
+// Fix: unit 4 was titled "Basics of IT Governance"; CompTIA's name is
+// "Basics of IT and Governance" (FAIL-2391). A unit title is not an
+// objective title, so no stored lesson is invalidated.
+const PROJECTPLUS_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const PROJECTPLUS_TRACK: SeedTrack = {
   code: "PROJECTPLUS",
-  title: "Prep for an IT project management essentials certification exam",
+  title: "Exam Prep for CompTIA Project+ (PK0-005)",
   description:
     "CompTIA Project+ (PK0-005) exam prep across 4 weighted domains -- project management concepts, project life cycle phases, tools and documentation, and the basics of IT governance. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/project/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: PROJECTPLUS_CHECKED_AT,
   credential: {
     ...COMPTIA_PROVIDER,
     credentialSlug: "project-plus",
@@ -697,7 +712,7 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
     status: "active",
     effectiveDate: "2022-11-08",
     officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/project/",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: PROJECTPLUS_CHECKED_AT,
     recommendedExperience:
       "6-12 months of hands-on experience managing projects in a technology environment.",
     durationMinutes: 90,
@@ -746,7 +761,7 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Basics of IT Governance",
+      title: "Basics of IT and Governance",
       weight: 18,
       gate: "Given an IT project with compliance or ESG implications, apply the specific governance concept -- information security, privacy compliance, or IT-specific change control -- that applies.",
       objectives: [
@@ -776,7 +791,7 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const TECHPLUS_TRACK: SeedTrack = {
   code: "TECHPLUS",
-  title: "Prep for an IT fundamentals certification exam",
+  title: "Exam Prep for CompTIA Tech+ (FC0-U71)",
   description:
     "CompTIA Tech+ (FC0-U71) exam prep across 6 weighted domains -- tech concepts and terminology, infrastructure, applications software, software development concepts, data and database fundamentals, and security. CompTIA Tech+ is CompTIA's 2024 relaunch of CompTIA ITF+ (IT Fundamentals+). Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -883,7 +898,7 @@ export const TECHPLUS_TRACK: SeedTrack = {
 // was found live for this exam yet, unlike the tracks below.
 export const AUTOOPSPLUS_TRACK: SeedTrack = {
   code: "AUTOOPSPLUS",
-  title: "Prep for an IT automation and operations certification exam",
+  title: "Exam Prep for CompTIA AutoOps+ (AT0-001)",
   description:
     "CompTIA AutoOps+ (AT0-001) exam prep across 4 weighted domains -- automation coding concepts, system configuration, continuous integration, and continuous delivery. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -962,7 +977,7 @@ export const AUTOOPSPLUS_TRACK: SeedTrack = {
 // pymupdf), not a third-party paraphrase.
 export const CLOUDNETX_TRACK: SeedTrack = {
   code: "CLOUDNETX",
-  title: "Prep for an expert hybrid cloud networking certification exam",
+  title: "Exam Prep for CompTIA CloudNetX (CNX-001)",
   description:
     "CompTIA CloudNetX (CNX-001) exam prep across 4 weighted domains -- hybrid network architecture design, network security, operations/monitoring/performance, and troubleshooting. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -1056,7 +1071,7 @@ export const CLOUDNETX_TRACK: SeedTrack = {
 // first taken from comptia.org's certification page.)
 export const SECAIPLUS_TRACK: SeedTrack = {
   code: "SECAIPLUS",
-  title: "Prep for an AI security certification exam",
+  title: "Exam Prep for CompTIA SecAI+ (CY0-001)",
   description:
     "CompTIA SecAI+ (CY0-001) exam prep across 4 weighted domains -- basic AI concepts for cybersecurity, securing AI systems, AI-assisted security, and AI governance/risk/compliance. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -1138,7 +1153,7 @@ export const SECAIPLUS_TRACK: SeedTrack = {
 // (DY0-001), domains, and weights match comptia.org's current DataAI page.
 export const DATAAI_TRACK: SeedTrack = {
   code: "DATAAI",
-  title: "Prep for an expert data science and AI certification exam",
+  title: "Exam Prep for CompTIA DataAI (DY0-001)",
   description:
     "CompTIA DataAI (DY0-001, formerly DataX) exam prep across 5 weighted domains -- mathematics and statistics, modeling/analysis/outcomes, machine learning, operations and processes, and specialized data-science applications. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",

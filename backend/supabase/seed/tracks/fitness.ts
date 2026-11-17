@@ -64,9 +64,9 @@ const COMMON = {
 export const NASM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCPT",
-  title: "Prep for a personal trainer certification exam (exercise technique focus)",
+  title: "Exam Prep for NASM® Certified Personal Trainer (exercise technique focus)",
   description:
-    "An NCCA-accredited personal trainer exam on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The NASM® Certified Personal Trainer exam, NCCA-accredited, on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://www.nasm.org/certified-personal-trainer/exam-information",
   credential: {
     providerSlug: "nasm",
@@ -172,9 +172,9 @@ export const NASM_CPT_TRACK: SeedTrack = {
 export const ACE_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACECPT",
-  title: "Prep for a personal trainer certification exam (client onboarding focus)",
+  title: "Exam Prep for ACE® Certified Personal Trainer (client onboarding focus)",
   description:
-    "An NCCA-accredited personal trainer exam on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%). Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ACE® Certified Personal Trainer exam, NCCA-accredited, on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%). Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
   credential: {
     providerSlug: "ace",
@@ -192,7 +192,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
     officialObjectivesUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "At least 18 years old with a high school diploma or equivalent and current CPR/AED certification with a live skills component. The certifying body revises the outline on a five-year cycle.",
+      "At least 18 years old with a high school diploma or equivalent and current CPR/AED certification with a live skills component. ACE revises the outline on a five-year cycle.",
     durationMinutes: 180,
     questionFormat: "150 multiple-choice questions (125 scored, 25 unscored) in three hours, fixed length (every candidate answers the same number of questions), computer-based and proctored",
     passingScorePolicy: "Scaled score of 500 or higher.",
@@ -218,7 +218,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
       objectives: [
         "Establishing functional, health, fitness and performance goals from interview and assessment data",
         "Applying exercise principles (specificity, overload, progression) to design personalized cardiorespiratory, muscular and movement programs",
-        "The phased integrated training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
+        "ACE's Integrated Fitness Training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
         "Selecting exercises and equipment and integrating them across settings: virtual, in-home, in-club and public spaces",
         "Instructing safe technique and equipment use with verbal, visual and kinesthetic cues",
         "Leveraging technology in program implementation and monitoring",
@@ -256,7 +256,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
 export const ACSM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACSMCPT",
-  title: "Prep for a personal trainer certification exam (exercise programming focus)",
+  title: "Exam Prep for ACSM Certified Personal Trainer (exercise programming focus)",
   description:
     "ACSM's NCCA-accredited personal trainer exam on the outline effective July 10, 2025: initial client consultation and assessment (25%), exercise programming and implementation (43%), exercise leadership and client education (22%), and legal and professional responsibilities (10%). Independently developed exam prep; not affiliated with or endorsed by the American College of Sports Medicine (ACSM). ACSM and ACSM-CPT are marks of the American College of Sports Medicine.",
   sourceUrl: "https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf",
@@ -339,7 +339,7 @@ export const ACSM_CPT_TRACK: SeedTrack = {
 export const NSCA_CSCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACSCS",
-  title: "Prep for a strength and conditioning specialist certification exam",
+  title: "Exam Prep for CSCS®",
   description:
     "NSCA's CSCS on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: two separately passed sections -- Scientific Foundations (exercise science, sport psychology, nutrition) and Practical/Applied (program design, exercise technique, program implementation, organization and administration). Independently developed exam prep; not affiliated with or endorsed by the National Strength and Conditioning Association (NSCA). CSCS and NSCA-CPT are registered marks of the National Strength and Conditioning Association.",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
@@ -468,7 +468,7 @@ export const NSCA_CSCS_TRACK: SeedTrack = {
 export const NSCA_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACPT",
-  title: "Prep for a personal trainer certification exam (program execution focus)",
+  title: "Exam Prep for NSCA-CPT® (program execution focus)",
   description:
     "NSCA's NCCA-accredited personal trainer exam on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: client consultation and assessment (23%), program planning (29%), program execution (36%), and safety, emergency procedures and legal issues (12%). Independently developed exam prep; not affiliated with or endorsed by the National Strength and Conditioning Association (NSCA). CSCS and NSCA-CPT are registered marks of the National Strength and Conditioning Association.",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
@@ -549,7 +549,7 @@ export const NSCA_CPT_TRACK: SeedTrack = {
 export const ISSA_NCCPT_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NCCPTCPT",
-  title: "Prep for a personal trainer certification exam (applied science focus)",
+  title: "Exam Prep for NCCPT Certified Personal Trainer (applied science focus)",
   description:
     "The NCCA-accredited personal trainer exam behind ISSA's certification, administered by its subsidiary NCCPT, on the 2020 job analysis outline: applied science (25%), program design and implementation (25%), intake and ongoing evaluation (15%), exercise selection and instruction (15%), nutrition (10%) and professional practice (10%). Independently developed exam prep; not affiliated with or endorsed by NCCPT or ISSA. NCCPT is a mark of the National Council for Certified Personal Trainers.",
   sourceUrl: "https://nccpt.issaonline.com/pages/exam-information",
@@ -701,7 +701,7 @@ export const CNC_SOURCES = {
   format: cncSrc("NASM Certified Nutrition Coach: exam and scope (course page and FAQ)", CNC_URL, "exam_outline", {
     keyValues: [
       "online, open-book exam: 100 multiple-choice questions, 90 minutes, 70% to pass, up to three attempts, within one year of purchase",
-      "no prerequisites; renew every two years with 1.9 continuing education units from the certifying body",
+      "no prerequisites; renew every two years with 1.9 NASM CEUs",
       "a nutrition coach works within a coaching scope of practice and refers to a registered dietitian nutritionist (RDN) for medical nutrition assessment or treatment; medical nutrition therapy is the RDN's",
     ],
   }),
@@ -746,9 +746,9 @@ export const NASMCNC_SIM_OBJECTIVES = {
 export const NASM_CNC_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCNC",
-  title: "Prep for a nutrition coaching certification exam",
+  title: "Exam Prep for NASM® Certified Nutrition Coach",
   description:
-    "Preparation for a nutrition coaching certification exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. The exam publishes no weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the NASM® Certified Nutrition Coach exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. The exam publishes no weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: CNC_URL,
   sourceVerifiedAt: CNC_VERIFIED_AT,
   contentReviewDueAt: "2027-11-14T00:00:00Z",
@@ -769,7 +769,7 @@ export const NASM_CNC_TRACK: SeedTrack = {
     status: "active",
     officialObjectivesUrl: CNC_URL,
     lastVendorVerifiedAt: CNC_VERIFIED_AT,
-    recommendedExperience: "None required. Recertify every two years with 1.9 continuing education units (CEUs) from the certifying body.",
+    recommendedExperience: "None required. Recertify every two years with 1.9 NASM CEUs.",
     durationMinutes: 90,
     questionFormat: "100 multiple-choice questions, fixed length (every candidate answers the same number of questions), online and open book, 90 minutes; up to three attempts within one year of purchase.",
     passingScorePolicy: "70% or higher.",

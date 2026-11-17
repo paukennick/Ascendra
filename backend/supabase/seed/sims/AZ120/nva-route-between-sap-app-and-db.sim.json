@@ -1,0 +1,940 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "nva-route-between-sap-app-and-db",
+  "title": "Slowdown: a new inspection route puts a firewall between the ERP servers and the database",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "basis@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:40 ERP dialog response 1,350 ms (baseline 640 ms); month-end close at 09:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:30: month-end close slowed",
+          "when": "not isNull(closeMissAt)",
+          "at": "timeAt(closeMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:30: month-end close on time",
+          "when": "not isNull(closeOkAt)",
+          "at": "timeAt(closeOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "sapapp01 (10.30.1.10)",
+          "spokenLabel": "the application server",
+          "kind": "E-series VM, zone 1, accelerated networking on",
+          "status": "{direct and not tableDeleted ? \"dialog response 650 ms\" : \"dialog response 1,350 ms\"}",
+          "tone": "direct and not tableDeleted ? \"up\" : \"down\""
+        },
+        {
+          "id": "rt",
+          "label": "Route table rt-sap-app",
+          "spokenLabel": "the app route table",
+          "kind": "on snet-sap-app",
+          "status": "{tableDeleted ? \"removed from the subnet\" : direct ? \"0.0.0.0/0 to the firewall only\" : \"10.30.2.0/24 to 10.30.0.4, 0.0.0.0/0 to the firewall\"}",
+          "tone": "tableDeleted ? \"degraded\" : direct ? \"up\" : \"down\""
+        },
+        {
+          "id": "nva",
+          "label": "fw-hub-nva (10.30.0.4)",
+          "spokenLabel": "the firewall appliance",
+          "kind": "hub",
+          "status": "{direct ? \"not in the database path\" : \"in the app-to-database path\"}",
+          "tone": "direct ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "hanadb01 (10.30.2.10)",
+          "spokenLabel": "the database server",
+          "kind": "M-series VM, zone 1",
+          "status": "up",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "db",
+          "label": "App to database",
+          "status": "{direct ? \"direct, about 0.35 ms\" : \"through the appliance, about 0.9 ms\"}",
+          "tone": "direct ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "app",
+          "to": "nva",
+          "label": "Internet egress",
+          "status": "{tableDeleted ? \"bypassing the firewall\" : \"through the firewall\"}",
+          "tone": "tableDeleted ? \"down\" : \"up\""
+        }
+      ]
+    }
+  },
+  "objective": "Designing networking to meet SAP workload latency requirements",
+  "secondaryObjectives": [
+    "Designing and implementing network flow control",
+    "Implementing Accelerated Networking for Azure virtual machines"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-120: Planning and Administering Azure for SAP Workloads (page last updated 2026-02-22; skills as of April 17, 2026): migrate 25-30%, design and implement infrastructure 25-30%, high availability and disaster recovery 20-25%, maintain 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-120",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Design and implement networking for SAP on Azure virtual machines': 'Implement Accelerated Networking for Azure virtual machines', 'Design and configure proximity placement groups', 'Design networking to meet SAP workload latency requirements'. The two top domains are tied; this case is on the infrastructure domain."
+    },
+    {
+      "cite": "Microsoft Learn, SAP workloads on Azure: planning and deployment guide",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-gb/azure/sap/workloads/planning-guide",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'The configuring of network virtual appliances in the communication path between the SAP application layer and the DBMS layer ... isn't supported'; 'Network virtual appliances in communication paths can easily double the network latency between two communication partners'; 'The restriction doesn't include ASG and NSG rules if the ASG and NSG rules allow a direct communication path'; the path between application servers and DBMS 'must be a direct path'; accelerated networking should be confirmed on every SAP VM; proximity placement groups only 'when default placement doesn't meet network roundtrip requirements'. The page gives no latency threshold and does not describe niping; SAP's niping tool for latency measurement is named in a Microsoft Learn training unit seen as a search result on 2026-11-17 (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the SAP Basis and Azure engineer for Ridgeway Components, a fictional manufacturer that moved its ERP system to Azure last weekend. Since this morning, dialog response times have doubled and users report slow screens. The month-end closing jobs start at 09:30 and cannot run like this. The application servers sit in subnet snet-sap-app and the database in snet-sap-db of the same virtual network.",
+    "handover": [
+      "Network security groups on both subnets allow only the ports the system needs between the two.",
+      "On Friday the security team raised CHG-5120 to 'inspect east-west traffic'."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the application server, its route table, the hub firewall appliance and the database.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "closeAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The month-end closing jobs start at 09:30, 50 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "pingAt": {
+      "type": "time",
+      "init": null
+    },
+    "effAt": {
+      "type": "time",
+      "init": null
+    },
+    "anAt": {
+      "type": "time",
+      "init": null
+    },
+    "chgAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "toldAt": {
+      "type": "time",
+      "init": null
+    },
+    "direct": {
+      "type": "bool",
+      "init": false
+    },
+    "tableDeleted": {
+      "type": "bool",
+      "init": false
+    },
+    "resized": {
+      "type": "bool",
+      "init": false
+    },
+    "ppgAt": {
+      "type": "time",
+      "init": null
+    },
+    "closeOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "closeMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "nva",
+        "accel",
+        "placement"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "redeploying": {
+      "expr": "not isNull(ppgAt) and since(ppgAt) < 2400"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "niping",
+        "effective",
+        "accel",
+        "changeLog",
+        "removeRoute",
+        "deleteTable",
+        "ppg",
+        "resize",
+        "tell",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "niping": {
+      "label": "niping -c -H hanadb01 -B 10 -L 60 (round trip, app to database)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pingAt)",
+          "then": [
+            {
+              "set": "pingAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ ssh sapapp01 'niping -c -H hanadb01 -B 10 -L 60' | tail -4\nav2   {direct ? \"0.351 ms\" : \"0.918 ms\"}\ntr2   {direct ? \"27.8 MB/s\" : \"10.6 MB/s\"}\n(test environment baseline before go-live: av2 0.34 ms)"
+        },
+        {
+          "finding": "The round trip from the application server to the database is nearly three times the baseline."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "effective": {
+      "label": "az network nic show-effective-route-table -n sapapp01-nic -g rg-sap -o table",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(effAt)",
+          "then": [
+            {
+              "set": "effAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az network nic show-effective-route-table -n sapapp01-nic -g rg-sap -o table\nSource    State    Address Prefix   Next Hop Type     Next Hop IP\nDefault   Active   10.30.0.0/16     VnetLocal\n{tableDeleted ? \"Default   Active   0.0.0.0/0        Internet\" : direct ? \"User      Active   0.0.0.0/0        VirtualAppliance  10.30.0.4\" : \"User      Active   10.30.2.0/24     VirtualAppliance  10.30.0.4\nUser      Active   0.0.0.0/0        VirtualAppliance  10.30.0.4\"}"
+        },
+        {
+          "finding": "A user route for the database subnet, 10.30.2.0/24, overrides the virtual network's own route and sends every database call through the firewall appliance."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "accel": {
+      "label": "az network nic show ... --query enableAcceleratedNetworking (app and database NICs)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(anAt)",
+          "then": [
+            {
+              "set": "anAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ for n in sapapp01-nic hanadb01-nic; do az network nic show -n $n -g rg-sap --query '[name,enableAcceleratedNetworking]' -o tsv; done\nsapapp01-nic  true\nhanadb01-nic  true"
+        },
+        {
+          "finding": "Accelerated networking is on for both VMs; it is not the cause."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "changeLog": {
+      "label": "az monitor activity-log list -g rg-sap --offset 4d --query ... (route changes)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(chgAt)",
+          "then": [
+            {
+              "set": "chgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ az monitor activity-log list -g rg-sap --offset 4d --query \"[?contains(operationName.value,'routeTables')].[eventTimestamp,caller,resourceId]\" -o tsv\nFri 17:42  secops-pipeline  .../routeTables/rt-sap-app/routes/to-db   (CHG-5120)"
+        },
+        {
+          "finding": "CHG-5120 added the to-db route on Friday evening, after the go-live tests."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "removeRoute": {
+      "label": "az network route-table route delete -g rg-sap --route-table-name rt-sap-app -n to-db",
+      "group": "Fix",
+      "available": "not busy and (not direct)",
+      "why": "Already removed.",
+      "effects": [
+        {
+          "set": "direct",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az network route-table route delete -g rg-sap --route-table-name rt-sap-app -n to-db\n(no output)"
+        },
+        {
+          "log": "Database traffic takes the virtual network's direct route again; the NSGs still allow only the needed ports, and internet egress still goes through the firewall.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deleteTable": {
+      "label": "az network vnet subnet update -n snet-sap-app --route-table '' (detach the whole route table)",
+      "group": "Fix",
+      "available": "not busy and (not tableDeleted)",
+      "why": "Already detached.",
+      "effects": [
+        {
+          "set": "direct",
+          "to": "true"
+        },
+        {
+          "set": "tableDeleted",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az network vnet subnet update -g rg-sap --vnet-name vnet-sap -n snet-sap-app --route-table ''\n\"provisioningState\": \"Succeeded\""
+        },
+        {
+          "log": "The database path is direct, and so is the internet: the application servers' egress now bypasses the firewall.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ppg": {
+      "label": "Create a proximity placement group and redeploy both VMs into it",
+      "group": "Fix",
+      "available": "not busy and (isNull(ppgAt))",
+      "why": "Already started.",
+      "effects": [
+        {
+          "set": "ppgAt",
+          "to": "t"
+        },
+        {
+          "output": "basis@cloudshell:~$ az ppg create -n ppg-sap -g rg-sap --type Standard && az vm deallocate -g rg-sap -n sapapp01 && az vm deallocate -g rg-sap -n hanadb01\nDeallocating... (the ERP system is down until both VMs are back in the group)"
+        },
+        {
+          "log": "Both VMs are already in zone 1 and the extra hop is the appliance, not distance: the system is down for a redeploy that changes nothing.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "resize": {
+      "label": "az vm resize -n sapapp01 --size Standard_E64s_v5",
+      "group": "Fix",
+      "available": "not busy and (not resized)",
+      "why": "Already resized.",
+      "effects": [
+        {
+          "set": "resized",
+          "to": "true"
+        },
+        {
+          "output": "basis@cloudshell:~$ az vm resize -g rg-sap -n sapapp01 --size Standard_E64s_v5\n(restarting sapapp01)"
+        },
+        {
+          "log": "A bigger application server waits on the same slow round trips.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell CHG-5120's owners why the to-db route came out and what keeps the path controlled",
+      "group": "Fix",
+      "available": "not busy and (isNull(toldAt))",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "toldAt",
+          "to": "t"
+        },
+        {
+          "output": "basis@cloudshell:~$ (comment on CHG-5120) An appliance between the SAP application and database layers is not a supported configuration and doubled the round trip. The path is restricted by NSG rules on both subnets; logging can use NSG flow logs instead."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "niping again and the ERP's dialog response",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "direct and not tableDeleted and not redeploying",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@cloudshell:~$ ssh sapapp01 'niping -c -H hanadb01 -B 10 -L 60' | grep av2\nav2   {direct and not redeploying ? \"0.351 ms\" : redeploying ? \"(host unreachable: redeploying)\" : \"0.918 ms\"}\nERP dialog response: {direct and not redeploying ? \"650 ms\" : redeploying ? \"system down\" : \"1,350 ms\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "nva",
+                  "label": "CHG-5120's route sent app-to-database traffic through the firewall appliance; removed it so the path is direct and NSG-controlled"
+                },
+                {
+                  "value": "accel",
+                  "label": "Accelerated networking was off"
+                },
+                {
+                  "value": "placement",
+                  "label": "The VMs were too far apart; needed a proximity placement group"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= closeAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "direct and not tableDeleted and not redeploying",
+          "then": [
+            {
+              "set": "closeOkAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: the closing jobs start at normal speed.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "closeMissAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: the closing jobs start on a slow database path.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what slowed the database calls, what you changed, and how the path stays controlled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Measures the round trip and finds the route that adds the hop.",
+          "modelAnswer": "niping showed 0.92 ms against a 0.34 ms baseline, and the effective routes showed a user route for 10.30.2.0/24 to the firewall appliance, added Friday by CHG-5120. Accelerated networking was on and both VMs were in zone 1."
+        },
+        {
+          "label": "Change",
+          "criteria": "Removes only that route, keeping internet egress through the firewall.",
+          "modelAnswer": "Deleted the to-db route, so the virtual network's direct route carries database traffic again; the 0.0.0.0/0 route to the firewall stays. An appliance between the SAP application and database layers is not supported and can double latency."
+        },
+        {
+          "label": "Control",
+          "criteria": "Keeps the path restricted without an appliance and tells the change owner.",
+          "modelAnswer": "NSG rules on both subnets still allow only the needed ports, which the support statement permits; niping is back to 0.35 ms, and CHG-5120's owners have the reason and the alternative (NSG flow logs)."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 50 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The month-end closing jobs start at 09:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: egress around the firewall, or downtime for a redeploy."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not direct",
+      "class": "harm",
+      "rationale": "Closing with the appliance still in the database path leaves month-end on a slow system.",
+      "source": {
+        "cite": "Microsoft Learn, SAP workloads on Azure: planning and deployment guide",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-gb/azure/sap/workloads/planning-guide",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: 'The configuring of network virtual appliances in the communication path between the SAP application layer and the DBMS layer ... isn't supported'; 'Network virtual appliances in communication paths can easily double the network latency between two communication partners'; 'The restriction doesn't include ASG and NSG rules if the ASG and NSG rules allow a direct communication path'; the path between application servers and DBMS 'must be a direct path'; accelerated networking should be confirmed on every SAP VM; proximity placement groups only 'when default placement doesn't meet network roundtrip requirements'. The page gives no latency threshold and does not describe niping; SAP's niping tool for latency measurement is named in a Microsoft Learn training unit seen as a search result on 2026-11-17 (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "egressBypass": {
+      "label": "Internet egress left the firewall",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and tableDeleted",
+      "narrative": "Detaching the whole route table fixed the database path and sent the application servers' internet traffic around the firewall."
+    },
+    "redeployed": {
+      "label": "System down for a redeploy",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(ppgAt)",
+      "narrative": "Moving the VMs into a proximity placement group took the ERP system down and did not remove the extra hop."
+    },
+    "closeSlow": {
+      "label": "Month-end close on a slow path",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(closeMissAt)",
+      "narrative": "At 09:30 the database calls still went through the appliance."
+    },
+    "direct": {
+      "label": "Direct path restored, controlled, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and direct and not tableDeleted and isNull(ppgAt) and not resized and isNull(closeMissAt) and not isNull(pingAt) and not isNull(effAt) and not isNull(verifiedAt) and not isNull(toldAt) and causeDoc == \"nva\"",
+      "narrative": "The round trip and the effective routes found the appliance; removing one route made the path direct while NSGs still control it."
+    },
+    "gaps": {
+      "label": "Restored, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The path is direct, but a check was skipped, the change owner was not told, or a stray change was made."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "egressBypass",
+    "redeployed",
+    "closeSlow",
+    "direct",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Measured the round trip and found the route",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pingAt) and not isNull(effAt)",
+            "score": "met",
+            "why": "The latency and its cause."
+          },
+          {
+            "when": "not isNull(pingAt) or not isNull(effAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without measuring."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Direct database path before 09:30, egress still through the firewall",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "direct and not tableDeleted and isNull(ppgAt) and isNull(closeMissAt)",
+            "score": "met",
+            "why": "One route removed, in time."
+          },
+          {
+            "when": "direct or not isNull(ppgAt)",
+            "score": "partial",
+            "why": "{tableDeleted ? \"By detaching the whole table.\" : not isNull(ppgAt) ? \"With an outage.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The appliance is still in the path."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "No stray changes; verified; change owner told",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not resized and not isNull(verifiedAt) and not isNull(toldAt)",
+            "score": "met",
+            "why": "Checked and explained."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Checked, with a stray change or nobody told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"nva\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames the VMs, not the route."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (table detached, redeploy, resize)",
+        "value": "(tableDeleted ? 1 : 0) + (isNull(ppgAt) ? 0 : 1) + (resized ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:40-08:44",
+        "text": "niping 0.92 ms against 0.34 ms; effective routes: 10.30.2.0/24 to the appliance; accelerated networking on; CHG-5120 added the route Friday."
+      },
+      {
+        "at": "08:44-08:46",
+        "text": "Delete the to-db route only; tell CHG-5120's owners why and what still controls the path."
+      },
+      {
+        "at": "08:46-08:48",
+        "text": "niping 0.35 ms and dialog response back to about 650 ms before 09:30."
+      }
+    ],
+    "debrief": {
+      "egressBypass": {
+        "headline": "Faster, and uninspected",
+        "body": "Only the route for the database subnet was the problem. Removing it keeps the default route through the firewall; detaching the table removes both."
+      },
+      "redeployed": {
+        "headline": "Placement was not the problem",
+        "body": "Both VMs were already in one zone. A proximity placement group is for when default placement misses the round-trip requirement; here an appliance in the path doubled it."
+      },
+      "closeSlow": {
+        "headline": "The close ran slow",
+        "body": "Bigger VMs wait on the same round trips. niping and the NIC's effective routes find the extra hop in two commands."
+      },
+      "direct": {
+        "headline": "Good: a direct path, still controlled",
+        "body": "You measured before changing anything, ruled out accelerated networking and placement, removed only the route that broke the support statement, kept egress through the firewall, and explained it to the change owner."
+      },
+      "gaps": {
+        "headline": "Restored, with gaps",
+        "body": "The criteria show what was left: the measurement, the routes, the check afterward, telling CHG-5120's owners, or a resize that did nothing."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The round trip from the application server to the database nearly tripled, and the NIC's effective routes show a user route for the database subnet sending every call through the firewall appliance, added by Friday's change. Accelerated networking is on and both VMs share a zone, so a resize or a proximity placement group would not help. An appliance between the SAP application and database layers is not a supported configuration and can double latency; NSG rules that allow a direct path are allowed. Remove only that route, keep the default route through the firewall, confirm the round trip with niping, and tell the change owner why, with NSG flow logs as a way to see the traffic."
+  }
+}

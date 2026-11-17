@@ -24,8 +24,8 @@ const AREAS = ["Values and Ethics", "Assessment and Planning", "Intervention and
 describe("REQ-286: Prep for the ASWB Clinical Exam and Prep for the ASWB Masters Exam", () => {
   test("each is in the catalog once, under social work licensure, gated, with the independence statement", () => {
     for (const [t, title] of [
-      [ASWB_CLINICAL_TRACK, "Prep for a clinical social work licensure exam"],
-      [ASWB_MASTERS_TRACK, "Prep for a master's-level social work licensure exam"],
+      [ASWB_CLINICAL_TRACK, "Exam Prep for ASWB Clinical Examination"],
+      [ASWB_MASTERS_TRACK, "Exam Prep for ASWB Masters Examination"],
     ] as const) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1);
       assert.equal(t.title, title);
@@ -121,7 +121,7 @@ describe("REQ-286: Prep for the ASWB Clinical Exam and Prep for the ASWB Masters
 describe("REQ-287: Prep for the Washington Psychology Jurisprudence Exam", () => {
   test("modeled on the closest course, the EPPP: psychology licensure, certification, regulatory licensure, gated", () => {
     assert.equal(CATALOG_TRACKS.filter((c) => c.code === "WAPSYCHJP").length, 1);
-    assert.equal(WA_JP_TRACK.title, "Prep for the Washington Psychology Jurisprudence Exam");
+    assert.equal(WA_JP_TRACK.title, "Exam Prep for Washington Psychology Jurisprudence Examination"); // REQ-324
     assert.equal(WA_JP_TRACK.subcategorySlug, EPPP_TRACK.subcategorySlug);
     assert.equal(WA_JP_TRACK.credential?.subcategorySlug, "psychology-licensure");
     assert.equal(WA_JP_TRACK.trackType, EPPP_TRACK.trackType);

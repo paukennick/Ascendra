@@ -1,0 +1,502 @@
+{
+  "slug": "capnography-alarm-saturation-fine",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: the capnography trend, POSS, opioids held, CPAP, rapid response, titrated naloxone, SBAR",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "spo2Q",
+          "choice": "o2",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "possCk",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "naloxQ",
+          "choice": "short",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "oird"
+          },
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "rescued",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "holdC": "met",
+          "alarmC": "met",
+          "naloxC": "met",
+          "cpapC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "peakCo2": 44
+        },
+        "stateHash": "a2b3af5861b12e30"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Reads the record, the trend and the POSS, holds opioids and puts on CPAP, but calls rapid response 6 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "spo2Q",
+          "choice": "o2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "possCk",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "naloxQ",
+          "choice": "short",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "oird"
+          },
+          "seq": 11,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "rescuedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "holdC": "met",
+          "alarmC": "met",
+          "naloxC": "met",
+          "cpapC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 430,
+          "peakCo2": 44
+        },
+        "stateHash": "0afa13fdddc8cb00"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noCpap",
+      "title": "Calls promptly and titrates naloxone, but his CPAP stays off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "spo2Q",
+          "choice": "o2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "possCk",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "naloxQ",
+          "choice": "short",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "naloxone",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "oird"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "rescuedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "callC": "met",
+          "holdC": "met",
+          "alarmC": "met",
+          "naloxC": "met",
+          "cpapC": "missed",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "peakCo2": 44
+        },
+        "stateHash": "165ddb3e230e54a8"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "fullBolus",
+      "title": "Failure: scores POSS 3, holds opioids, then pushes the whole naloxone vial",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "possCk",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "spo2Q",
+          "choice": "o2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "reversal",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "callC": "missed",
+          "holdC": "met",
+          "alarmC": "partial",
+          "naloxC": "missed",
+          "cpapC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "peakCo2": 54
+        },
+        "stateHash": "9e683eda48405610"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "silenced",
+      "title": "Failure: silences the alarm because the saturation is fine and gives hydromorphone when he stirs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "silence",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sensor"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "prn",
+          "seq": 3,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "apnea",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "holdC": "missed",
+          "alarmC": "missed",
+          "naloxC": "missed",
+          "cpapC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "peakCo2": 70
+        },
+        "stateHash": "f26b9cc8ca47e25a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "morningNote",
+      "title": "Failure: reads the record, calls it normal sleep and leaves a note for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "spo2Q",
+          "choice": "o2",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sleep"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "apnea",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "callC": "missed",
+          "holdC": "missed",
+          "alarmC": "partial",
+          "naloxC": "missed",
+          "cpapC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "peakCo2": 70
+        },
+        "stateHash": "4fd89e408eb7b326"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,810 @@
+{
+  "slug": "warehouse-risk-register-capm",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Plan read and vendor interviewed; register validated, rated on the matrix, R2 mitigated on its EMV, R5's trigger documented and fired, a full report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "plan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vendor",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "validated",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "matrix",
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 42,
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "mitigate",
+          "seq": 10,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 56,
+          "seq": 11,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "documented",
+          "seq": 12,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 7,
+          "to": 70,
+          "seq": 13,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 8,
+          "to": 84,
+          "seq": 14,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 16,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 17,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "managed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "regCrit": "met",
+          "qualCrit": "met",
+          "emvCrit": "met",
+          "trigCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "spentK": 140,
+          "aboveK": 0,
+          "supK": 7
+        },
+        "stateHash": "51be8b3896a925db"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "transfer",
+      "title": "A sound register and trigger, but R2 transferred at more than its exposure and five risks kept",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "top5",
+          "seq": 2,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 28,
+          "seq": 3,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "matrix",
+          "seq": 4,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 42,
+          "seq": 5,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "transfer",
+          "seq": 6,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 56,
+          "seq": 7,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "documented",
+          "seq": 8,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 70,
+          "seq": 9,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 84,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 11,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 12,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 13,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "regCrit": "partial",
+          "qualCrit": "met",
+          "emvCrit": "partial",
+          "trigCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "spentK": 280,
+          "aboveK": 0,
+          "supK": 5
+        },
+        "stateHash": "39c41d310ec08018"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "gutRatings",
+      "title": "Ratings by feel and a one-line report, with the mitigation and the trigger in place",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vendor",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "validated",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 28,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "gut",
+          "seq": 6,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 42,
+          "seq": 7,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "mitigate",
+          "seq": 8,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 56,
+          "seq": 9,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "documented",
+          "seq": 10,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 70,
+          "seq": 11,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 7,
+          "to": 84,
+          "seq": 12,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 13,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 14,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 15,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "regCrit": "met",
+          "qualCrit": "partial",
+          "emvCrit": "met",
+          "trigCrit": "met",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "spentK": 140,
+          "aboveK": 0,
+          "supK": 7
+        },
+        "stateHash": "79e1c389ff79562a"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "noTrigger",
+      "title": "Everything rated medium and no trigger: go-live at 91% fails in peak",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "asIs",
+          "seq": 2,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 28,
+          "seq": 3,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "medium",
+          "seq": 4,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 42,
+          "seq": 5,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "mitigate",
+          "seq": 6,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 56,
+          "seq": 7,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "skipped",
+          "seq": 8,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 70,
+          "seq": 9,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 84,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 11,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 12,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 13,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "materialized",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "regCrit": "missed",
+          "qualCrit": "missed",
+          "emvCrit": "met",
+          "trigCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "spentK": 380,
+          "aboveK": 1,
+          "supK": 2
+        },
+        "stateHash": "974cf00d4ec8bf9f"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "vagueTrigger",
+      "title": "A good register, then 'keep an eye on testing' instead of a trigger",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "validated",
+          "seq": 2,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 28,
+          "seq": 3,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "matrix",
+          "seq": 4,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 42,
+          "seq": 5,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "mitigate",
+          "seq": 6,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 56,
+          "seq": 7,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "vague",
+          "seq": 8,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 70,
+          "seq": 9,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 84,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 11,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 12,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 13,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "materialized",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "regCrit": "met",
+          "qualCrit": "met",
+          "emvCrit": "met",
+          "trigCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "spentK": 380,
+          "aboveK": 1,
+          "supK": 4
+        },
+        "stateHash": "41b842a3fc1dcbb0"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "accepted",
+      "title": "R2 accepted without analysis; the late software costs more than the reserve",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 14,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "regPrompt",
+          "choice": "validated",
+          "seq": 2,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 28,
+          "seq": 3,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "qualPrompt",
+          "choice": "matrix",
+          "seq": 4,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 42,
+          "seq": 5,
+          "tick": 28
+        },
+        {
+          "type": "choose",
+          "prompt": "emvPrompt",
+          "choice": "accept",
+          "seq": 6,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 56,
+          "seq": 7,
+          "tick": 42
+        },
+        {
+          "type": "choose",
+          "prompt": "trigPrompt",
+          "choice": "documented",
+          "seq": 8,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 70,
+          "seq": 9,
+          "tick": 56
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 84,
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 11,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 12,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 13,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "overspend",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "regCrit": "met",
+          "qualCrit": "met",
+          "emvCrit": "missed",
+          "trigCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "spentK": 560,
+          "aboveK": 1,
+          "supK": 3
+        },
+        "stateHash": "c271e9260038d122"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

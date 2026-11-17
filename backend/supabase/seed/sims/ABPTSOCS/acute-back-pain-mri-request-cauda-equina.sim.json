@@ -1,0 +1,1284 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "acute-back-pain-mri-request-cauda-equina",
+  "title": "He wants an MRI for ten days of back pain",
+  "objective": "Classify low back pain by duration (acute under 6 weeks, chronic beyond 12 weeks) and explain why routine imaging is held back: disc degeneration shows up in more than 80% of adults over 50, with or without symptoms",
+  "secondaryObjectives": [
+    "Treat new urinary retention, bowel dysfunction, saddle anesthesia or new bilateral leg weakness as possible cauda equina syndrome, a surgical emergency needing immediate referral",
+    "Screen low back pain for red flags: prior cancer or unexplained weight loss; infection risk such as recent spinal procedures, intravenous drug use, immunosuppression or fever; fracture risk such as trauma, long-term corticosteroids, osteoporosis or age over 70"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: orthopaedics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
+      "note": "Relayed from the orthopedic specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: knowledge for specialty practice is 30% and spine patient management 28% of the exam. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra orthopedic specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSOCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Margetis K, et al. Low Back Pain: Evaluation and Management. StatPearls (updated 2025-12-13), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK430685/",
+      "note": "Relayed from the course seed (tag SP-LBP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: acute low back pain under 6 weeks, chronic beyond 12; routine imaging is held back because disc degeneration appears in more than 80% of adults over 50 with or without symptoms; red flags (cancer, infection, fracture risk) are screening prompts with limited accuracy alone; new urinary retention, bowel dysfunction, saddle anesthesia or bilateral leg weakness is possible cauda equina syndrome, a surgical emergency."
+    },
+    {
+      "cite": "NHS England Getting It Right First Time (GIRFT), National Suspected Cauda Equina Syndrome Pathway (February 2023)",
+      "checkedAt": "2026-11-17",
+      "url": "https://spinal.co.uk/wp-content/uploads/2023/08/National-Suspected-Cauda-Equina-Pathway-February-2023-FINAL-V1-1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Leg or back pain with recent onset (within 2 weeks) of 'difficulty initiating micturition or impaired sensation of urinary flow', 'altered perianal, perineal or genital sensation S2-S5 dermatomes', 'severe or progressive neurological deficit of both legs', loss of rectal fullness sensation or sexual dysfunction: 'The patient should be referred to the nearest hospital with emergency MRI facility (patient should attend hospital now)'; emergency MRI 'certainly within four hours of request'. Bilateral radicular pain without these is an urgent, not emergency, referral. A UK pathway; the case's clinic policy follows it."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated model. The pace of the compression and the effect of manipulation are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:30 in an outpatient orthopedic clinic (direct access). You are the physical therapist. Mr. Okoye, 46, a warehouse supervisor, has had low back pain for 10 days since lifting a pallet, with pain down his left leg. He wants 'an MRI to see what's wrong' before he does any exercise.",
+    "handover": [
+      "Intake form: no prior back surgery; takes ibuprofen; no other medicines.",
+      "Clinic policy follows the national suspected cauda equina pathway: suspected cauda equina syndrome goes to the hospital emergency department with emergency MRI the same hour; tell his primary care physician."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Each question or test takes the time on its button. Decide what to ask, what it means and what to do.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The compression slowly worsens toward retention over the visit. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "manipBump": {
+      "value": 0.45,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A lumbar thrust manipulation on a compressed cauda equina. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "retainAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of painless urinary retention. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A question set or a bedside test: about 1 min."
+      }
+    },
+    "historyTime": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused history: about 3 min."
+      }
+    },
+    "transfer": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Arranging transport to the emergency department: about 10 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "flagsAt": {
+      "type": "time",
+      "init": null
+    },
+    "cesAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "saddleAt": {
+      "type": "time",
+      "init": null
+    },
+    "slrAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "flags",
+        "ces",
+        "neuro",
+        "saddle",
+        "slr"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ed",
+        "gp",
+        "home"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ces",
+        "sciatica",
+        "chronic"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "manipAt": {
+      "type": "time",
+      "init": null
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    },
+    "noImagingAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + 8 * prog + sin(t / 19))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(6 + 2 * prog, 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Okoye, 46",
+        "presentation": "Low back and left leg pain for 10 days after lifting; wants an MRI."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Back and leg pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "alarm": {
+            "high": 9
+          },
+          "announce": {
+            "bands": [
+              8,
+              9
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone to the hospital.\" : (prog >= 0.8 ? \"Shifting on the plinth, uncomfortable, says he needs the toilet but can't go.\" : \"Sitting stiffly, leaning to the right.\")}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "10 days since lifting: acute low back pain with left leg pain below the knee; worse sitting.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "flagsResult",
+          "label": "Red flags",
+          "result": "No cancer, weight loss, fever, drug use, steroids, recent spinal procedure or trauma.",
+          "when": "not isNull(flagsAt)"
+        },
+        {
+          "id": "cesResult",
+          "label": "Cauda equina questions",
+          "result": "Since last night: hard to start urinating; toilet paper 'feels odd' on the left buttock; now tingling in both legs.",
+          "when": "not isNull(cesAt)",
+          "flag": "true"
+        },
+        {
+          "id": "neuroResult",
+          "label": "Neurologic exam",
+          "result": "Weak left ankle plantarflexion and great-toe extension; both ankle reflexes reduced; patchy sensory loss in both feet.",
+          "when": "not isNull(neuroAt)",
+          "flag": "true"
+        },
+        {
+          "id": "saddleResult",
+          "label": "Saddle sensation",
+          "result": "Reduced light touch over the left buttock and perineum.",
+          "when": "not isNull(saddleAt)",
+          "flag": "true"
+        },
+        {
+          "id": "slrResult",
+          "label": "Straight leg raise",
+          "result": "Positive on the left at 35 degrees; pain into the right buttock too.",
+          "when": "not isNull(slrAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Reassured: no imaging needed",
+            "when": "not isNull(noImagingAt)"
+          },
+          {
+            "label": "Lumbar thrust manipulation",
+            "when": "not isNull(manipAt)"
+          },
+          {
+            "label": "Directional preference exercise and walking",
+            "when": "not isNull(exAt)"
+          },
+          {
+            "label": "{route == \"ed\" ? \"Emergency department now, emergency MRI\" : (route == \"gp\" ? \"Outpatient MRI within two weeks\" : \"Home program, no imaging\")}",
+            "when": "not isNull(callAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleCes",
+          "label": "Back or leg pain with new difficulty passing urine, saddle sensory change, or a deficit in both legs",
+          "text": "Possible cauda equina syndrome: hospital with emergency MRI now.",
+          "met": "redSeen and isNull(callAt)"
+        },
+        {
+          "id": "ruleImg",
+          "label": "Acute low back pain with no red flags",
+          "text": "No routine imaging: education and staying active.",
+          "met": "false"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: onset, pain pattern, duration, what helps",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "historyTime"
+        },
+        {
+          "log": "Taking his history (about 3 min)."
+        }
+      ]
+    },
+    "flags": {
+      "label": "Screen for cancer, infection and fracture red flags",
+      "group": "Examine",
+      "available": "not testPending and isNull(flagsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"flags\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ces": {
+      "label": "Ask about bladder, bowel, saddle sensation and sexual function",
+      "group": "Examine",
+      "available": "not testPending and isNull(cesAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ces\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Lower limb neurologic exam: strength, reflexes, sensation",
+      "group": "Examine",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "saddle": {
+      "label": "Saddle sensation, light touch, with consent and a chaperone",
+      "group": "Examine",
+      "available": "not testPending and isNull(saddleAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"saddle\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "slr": {
+      "label": "Straight leg raise, each side",
+      "group": "Examine",
+      "available": "not testPending and isNull(slrAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"slr\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "noImaging": {
+      "label": "Explain that acute back pain doesn't need routine imaging; reassure him",
+      "group": "Treat",
+      "available": "isNull(noImagingAt) and inClinic",
+      "why": "Already explained.",
+      "effects": [
+        {
+          "set": "noImagingAt",
+          "to": "t"
+        },
+        {
+          "log": "{redSeen ? \"You tell him he doesn't need an MRI, though he has signs that call for one.\" : \"You explain that most acute back pain settles and that scans show disc changes in most adults, painful or not.\"}",
+          "kind": "act"
+        }
+      ]
+    },
+    "manip": {
+      "label": "Lumbar thrust manipulation",
+      "group": "Treat",
+      "available": "isNull(manipAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "manipAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + manipBump"
+        },
+        {
+          "log": "After the manipulation his leg tingling is worse on both sides.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "exercise": {
+      "label": "Directional preference exercise and a walking program",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "log": "Prone press-ups and a walking plan.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Record your working impression",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ces",
+              "label": "Acute low back pain (under 6 weeks) with signs of cauda equina compression: emergency MRI"
+            },
+            {
+              "value": "sciatica",
+              "label": "Acute low back pain with sciatica, no red flags: no imaging, stay active"
+            },
+            {
+              "value": "chronic",
+              "label": "Chronic low back pain: a routine MRI to look for disc degeneration"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ces\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ces\""
+                },
+                {
+                  "log": "Impression: acute low back pain with suspected cauda equina syndrome.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sciatica\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sciatica\""
+                },
+                {
+                  "log": "Impression: acute low back pain with sciatica.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"chronic\""
+                },
+                {
+                  "log": "Impression: chronic low back pain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Decide where he goes",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Route",
+          "options": [
+            {
+              "value": "ed",
+              "label": "Emergency department now for an emergency MRI: suspected cauda equina syndrome"
+            },
+            {
+              "value": "gp",
+              "label": "Ask his primary care physician for an urgent outpatient MRI in the next two weeks"
+            },
+            {
+              "value": "home",
+              "label": "No imaging; home exercise and review in a week"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ed\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ed\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "transfer"
+                },
+                {
+                  "log": "The emergency department expects him; transport is arranged. You give him a copy of your findings.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"gp\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"gp\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "300"
+                },
+                {
+                  "log": "His physician's office will request an outpatient MRI.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"home\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "300"
+                },
+                {
+                  "log": "Home program given; review in a week.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his primary care physician what you found and where he went",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His physician has your findings and the plan.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "In the clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "flags",
+        "ces",
+        "neuro",
+        "saddle",
+        "slr",
+        "noImaging",
+        "manip",
+        "exercise",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Ten days since lifting a pallet: back pain with left leg pain past the knee, worse sitting, eased lying down.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"flags\"",
+              "then": [
+                {
+                  "set": "flagsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No cancer history or weight loss, no fever, no injection drug use, no steroids, no recent spinal procedure, no fall.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ces\"",
+              "then": [
+                {
+                  "set": "cesAt",
+                  "to": "t"
+                },
+                {
+                  "log": "\"Since last night it's hard to get started when I pee, and the toilet paper feels odd on one side.\" Tingling in both legs since this morning.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Weak left plantarflexion and great-toe extension, both ankle reflexes reduced, patchy numbness in both feet: a deficit in both legs.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"saddle\"",
+              "then": [
+                {
+                  "set": "saddleAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Reduced light touch over the left buttock and perineum.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "slrAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Left straight leg raise reproduces leg pain at 35 degrees; the right causes buttock pain.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "leaving the clinic",
+      "wait": {
+        "skipLabel": "his departure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to arrange transport; about 5 min to walk out."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "{route == \"ed\" ? \"He leaves for the emergency department.\" : \"He leaves the clinic.\"}",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Does Mr. Okoye need an MRI? Classify his back pain, say why imaging is usually held back, and what is different today.",
+      "parts": [
+        {
+          "label": "Classification and imaging",
+          "criteria": "Acute low back pain (10 days, under 6 weeks) with radicular pain; routine imaging is held back in acute back pain because disc degeneration is found in most adults (over 80% over 50) with or without symptoms, so a scan without red flags does not change care.",
+          "modelAnswer": "This is acute low back pain, 10 days, with left leg pain. Without red flags I would not image: scans show disc degeneration in most adults, over 80% of those over 50, whether or not they hurt, so a routine MRI would not change what we do."
+        },
+        {
+          "label": "What is different",
+          "criteria": "New difficulty starting urination, altered saddle sensation and a deficit in both legs: possible cauda equina syndrome, an emergency; no manipulation; hospital with emergency MRI now; tells the primary care physician.",
+          "modelAnswer": "But he has new difficulty starting to urinate, altered saddle sensation and signs in both legs. That is possible cauda equina syndrome. No manipulation; he goes to the emergency department now for an emergency MRI, and I tell his physician."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated model. The pace of the compression and the effect of manipulation are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated model. The pace of the compression and the effect of manipulation are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 600,
+        "source": {
+          "cite": "NHS England Getting It Right First Time (GIRFT), National Suspected Cauda Equina Syndrome Pathway (February 2023)",
+          "checkedAt": "2026-11-17",
+          "url": "https://spinal.co.uk/wp-content/uploads/2023/08/National-Suspected-Cauda-Equina-Pathway-February-2023-FINAL-V1-1.pdf",
+          "note": "Read 2026-11-17 through a summarizing fetch with quotes. Leg or back pain with recent onset (within 2 weeks) of 'difficulty initiating micturition or impaired sensation of urinary flow', 'altered perianal, perineal or genital sensation S2-S5 dermatomes', 'severe or progressive neurological deficit of both legs', loss of rectal fullness sensation or sexual dysfunction: 'The patient should be referred to the nearest hospital with emergency MRI facility (patient should attend hospital now)'; emergency MRI 'certainly within four hours of request'. Bilateral radicular pain without these is an urgent, not emergency, referral. A UK pathway; the case's clinic policy follows it. Authored window: the decision within 10 min of the first cauda equina finding."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected cauda equina syndrome still in an outpatient clinic an hour later is an emergency left unescalated, which the profile calls harm.",
+      "source": {
+        "cite": "NHS England Getting It Right First Time (GIRFT), National Suspected Cauda Equina Syndrome Pathway (February 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://spinal.co.uk/wp-content/uploads/2023/08/National-Suspected-Cauda-Equina-Pathway-February-2023-FINAL-V1-1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Leg or back pain with recent onset (within 2 weeks) of 'difficulty initiating micturition or impaired sensation of urinary flow', 'altered perianal, perineal or genital sensation S2-S5 dermatomes', 'severe or progressive neurological deficit of both legs', loss of rectal fullness sensation or sexual dysfunction: 'The patient should be referred to the nearest hospital with emergency MRI facility (patient should attend hospital now)'; emergency MRI 'certainly within four hours of request'. Bilateral radicular pain without these is an urgent, not emergency, referral. A UK pathway; the case's clinic policy follows it."
+      }
+    }
+  },
+  "endings": {
+    "retention": {
+      "label": "Urinary retention in the clinic",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= retainAt and inClinic",
+      "narrative": "Mr. Okoye cannot pass urine and his saddle numbness has spread. He is taken to hospital; delay at this stage risks permanent bladder and sexual dysfunction."
+    },
+    "delayed": {
+      "label": "Sent away without emergency imaging",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inClinic and (route == \"gp\" or route == \"home\")",
+      "narrative": "He leaves without emergency imaging. Overnight he develops painless retention and arrives at the hospital with a complete cauda equina syndrome."
+    },
+    "sentNow": {
+      "label": "Suspected cauda equina sent for emergency MRI promptly",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ed\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + escalateWindow and isNull(manipAt) and not isNull(cesAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the emergency department for an emergency MRI with your findings. You held imaging to its real indication and recognized one."
+    },
+    "sentGaps": {
+      "label": "Sent to hospital, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the emergency department, but late, after a manipulation, or without the bladder and saddle questions that should have come first."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 09:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:30 and Mr. Okoye is still in the clinic."
+    }
+  },
+  "endingOrder": [
+    "retention",
+    "delayed",
+    "sentNow",
+    "sentGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cesScreen",
+        "label": "Asked about bladder, bowel, saddle sensation and sexual function",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(cesAt)",
+            "score": "met",
+            "why": "Asked at {timeAt(cesAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "noManip",
+        "label": "No thrust manipulation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(manipAt)",
+            "score": "missed",
+            "why": "Manipulated a possibly compressed cauda equina."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "refer",
+        "label": "Emergency department for emergency MRI within 10 minutes of the first cauda equina finding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No decision."
+          },
+          {
+            "when": "route == \"ed\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + escalateWindow",
+            "score": "met",
+            "why": "Sent at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ed\"",
+            "score": "partial",
+            "why": "Sent, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{route == \"gp\" ? \"An outpatient MRI in two weeks\" : \"No imaging\"} for suspected cauda equina syndrome."
+          }
+        ]
+      },
+      {
+        "id": "flagsC",
+        "label": "Screened for cancer, infection and fracture red flags",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(flagsAt)",
+            "score": "met",
+            "why": "Screened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "neuroC",
+        "label": "Examined both legs neurologically",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt)",
+            "score": "met",
+            "why": "Examined."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Classified as acute and named suspected cauda equina syndrome",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ces\"",
+            "score": "met",
+            "why": "Acute, suspected cauda equina syndrome."
+          },
+          {
+            "when": "dxEnum == \"sciatica\"",
+            "score": "partial",
+            "why": "Acute, but the cauda equina signs were not named."
+          },
+          {
+            "when": "dxEnum == \"chronic\"",
+            "score": "missed",
+            "why": "Called 10 days chronic and wanted a routine scan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No impression."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told his primary care physician",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: acute back pain usually needs no imaging; cauda equina signs do, now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCes",
+        "label": "08:30 to the cauda equina questions",
+        "value": "isNull(cesAt) ? -1 : timeAt(cesAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      },
+      {
+        "id": "toCall",
+        "label": "First cauda equina finding to the decision",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:30",
+        "text": "History: 10 days, acute low back pain with left leg pain. Screen the red flags: none for cancer, infection or fracture."
+      },
+      {
+        "at": "~08:34",
+        "text": "Ask about bladder, bowel, saddle sensation and sexual function: new hesitancy, altered saddle sensation, tingling in both legs."
+      },
+      {
+        "at": "~08:35",
+        "text": "Neurologic exam: a deficit in both legs. No manipulation."
+      },
+      {
+        "at": "~08:36",
+        "text": "Emergency department now for an emergency MRI. Tell his physician."
+      }
+    ],
+    "debrief": {
+      "retention": {
+        "headline": "Retention in the clinic",
+        "body": "Ask about bladder, bowel and saddle sensation in everyone with back and leg pain, and never manipulate when cauda equina syndrome is possible."
+      },
+      "delayed": {
+        "headline": "Sent away without emergency imaging",
+        "body": "Holding back routine imaging is right for acute back pain without red flags. Cauda equina symptoms are the exception: hospital with emergency MRI now, not an outpatient scan."
+      },
+      "sentNow": {
+        "headline": "Sent for emergency MRI",
+        "body": "You classified his pain as acute, knew why routine imaging is held back, asked the cauda equina questions, avoided manipulation and sent him the same hour. That is the expert path."
+      },
+      "sentGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check how soon the bladder and saddle questions came, whether anything was done to his spine first, and how long the decision took."
+      },
+      "time_up": {
+        "headline": "Still in the clinic",
+        "body": "Suspected cauda equina syndrome needs a decision within minutes."
+      }
+    },
+    "modelReasoning": "Ten days of back pain after lifting is acute low back pain (under 6 weeks). Without red flags, routine imaging is held back because disc degeneration is found in more than 80% of adults over 50 whether or not they hurt, and a scan rarely changes care. But new difficulty starting urination, altered saddle sensation and a deficit in both legs are suspected cauda equina syndrome, which the national pathway sends to a hospital with emergency MRI now. So: no manipulation, emergency department now, and tell his physician."
+  },
+  "chapters": [
+    {
+      "id": "decided",
+      "label": "A decision on imaging",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "cesQ": {
+      "during": "leaveT",
+      "ask": "While transport is arranged: what timescale does the national pathway set for the emergency MRI?",
+      "choices": [
+        {
+          "id": "four",
+          "label": "As soon as possible, and within four hours of the request"
+        },
+        {
+          "id": "week",
+          "label": "Within a week"
+        },
+        {
+          "id": "two",
+          "label": "Within two weeks"
+        }
+      ],
+      "expect": "four",
+      "explain": "Suspected cauda equina syndrome attends hospital now for an emergency MRI, within four hours of the request.",
+      "source": {
+        "cite": "NHS England Getting It Right First Time (GIRFT), National Suspected Cauda Equina Syndrome Pathway (February 2023)",
+        "checkedAt": "2026-11-17",
+        "url": "https://spinal.co.uk/wp-content/uploads/2023/08/National-Suspected-Cauda-Equina-Pathway-February-2023-FINAL-V1-1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Leg or back pain with recent onset (within 2 weeks) of 'difficulty initiating micturition or impaired sensation of urinary flow', 'altered perianal, perineal or genital sensation S2-S5 dermatomes', 'severe or progressive neurological deficit of both legs', loss of rectal fullness sensation or sexual dysfunction: 'The patient should be referred to the nearest hospital with emergency MRI facility (patient should attend hospital now)'; emergency MRI 'certainly within four hours of request'. Bilateral radicular pain without these is an urgent, not emergency, referral. A UK pathway; the case's clinic policy follows it."
+      }
+    },
+    "imgQ": {
+      "during": "testT",
+      "ask": "While you test: why is routine imaging held back in acute low back pain without red flags?",
+      "choices": [
+        {
+          "id": "common",
+          "label": "Disc degeneration shows up in most adults, painful or not, so the scan rarely changes care"
+        },
+        {
+          "id": "cost",
+          "label": "Only because MRI is expensive"
+        },
+        {
+          "id": "danger",
+          "label": "Because MRI is dangerous"
+        }
+      ],
+      "expect": "common",
+      "explain": "More than 80% of adults over 50 have disc degeneration on imaging with or without symptoms.",
+      "source": {
+        "cite": "Margetis K, et al. Low Back Pain: Evaluation and Management. StatPearls (updated 2025-12-13), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK430685/",
+        "note": "Relayed from the course seed (tag SP-LBP; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: acute low back pain under 6 weeks, chronic beyond 12; routine imaging is held back because disc degeneration appears in more than 80% of adults over 50 with or without symptoms; red flags (cancer, infection, fracture risk) are screening prompts with limited accuracy alone; new urinary retention, bowel dysfunction, saddle anesthesia or bilateral leg weakness is possible cauda equina syndrome, a surgical emergency."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -99,6 +99,136 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-327 (Nick, 2026-11-17): the per-sim 18+ gate, in any course, and the
+    // Terms and Privacy Policy 2026-11-18 that disclose it. Not gated as a
+    // whole (everyone is asked to accept the new Terms and Privacy Policy);
+    // the simulation item is gated on sims.
+    id: "2026-11-17-g",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-327"],
+    title: "Updated Terms and Privacy Policy, and 18+ simulations",
+    items: [
+      {
+        icon: "shield",
+        headline: "Some simulations are marked 18+",
+        body: "Simulations on sensitive topics, such as suicide-risk assessment, can now be part of any course. They show an Adults (18+) badge and ask you to confirm you're 18 or older once per course.",
+        requires: "sims",
+      },
+      {
+        icon: "info",
+        headline: "Updated Terms of Service",
+        body: "The Terms now say that simulations on sensitive topics in any course are for adults, as mental health courses are. You'll be asked to accept them once.",
+      },
+      {
+        icon: "eye",
+        headline: "Updated Privacy Policy",
+        body: "It explains that the date of birth asked once for adults-only content also covers these simulations, and that each confirmation is kept per course. Nothing new is collected.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Your date of birth is asked only once",
+        body: "If you already gave it for a mental health course, you won't be asked again. It can't be changed in the app; if it's wrong, contact Support.",
+      },
+    ],
+  },
+  {
+    // The 2026-11-17 sims round (REQ-320 cloud, REQ-321 PMI and CompTIA,
+    // REQ-323/325/326 health) and the outline corrections of verify-2
+    // (REQ-310). Gated whole on sims, like every sims round note.
+    id: "2026-11-17-e",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-320", "REQ-321", "REQ-323", "REQ-325", "REQ-326", "REQ-310"],
+    title: "More sims for cloud, projects and health care",
+    requires: "sims",
+    items: [
+      {
+        icon: "compass",
+        headline: "Sims for the remaining cloud courses",
+        body: "Azure, AWS, Google Cloud and cloud native courses that had no sim now have them on the terminal, console and board screens, from a data stream stuck on one bad record to a canary check reading the wrong number.",
+        requires: "sims",
+      },
+      {
+        icon: "flag",
+        headline: "Predictive projects on the dashboard",
+        body: "Every PMI course and eight more CompTIA courses now have sims, including predictive projects on the project dashboard: earned value against a baseline, change control, a risk trigger and a contractor's claim.",
+        requires: "sims",
+      },
+      {
+        icon: "zap",
+        headline: "A sim in every physical therapy course",
+        body: "Every physical therapy specialty course, the PTA course and the strength and conditioning course now has a sim, and PTA sessions practice when to stop and tell the supervising therapist.",
+        requires: "sims",
+      },
+      {
+        icon: "eye",
+        headline: "More bedside cases for nurses",
+        body: "New cases for critical care, emergency, progressive care, med-surg, family nurse practitioner and the RN and PN licensure courses, from heart block that atropine won't fix to thyroid storm.",
+        requires: "sims",
+      },
+      {
+        icon: "check-circle",
+        headline: "Course outlines checked again",
+        body: "More courses were checked against their exam owners' current outlines. One physical therapy objective now follows the current guideline, and a project unit uses the exam owner's name for it.",
+      },
+    ],
+  },
+  {
+    // REQ-324 (Nick, 2026-11-17): every exam course is titled for its exam
+    // ("Exam Prep for CISSP®"), the 13 permission bodies' courses included;
+    // the exam card, emails and coach name the exam again. Not gated.
+    id: "2026-11-17-d",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-324"],
+    title: "Courses are named for their exams again",
+    items: [
+      {
+        icon: "book-open",
+        headline: "Find your exam by its name",
+        body: "Each exam course is titled for the exam it prepares for, with its code where the exam has one, such as Exam Prep for CompTIA Security+ (SY0-701) or Exam Prep for CISSP®.",
+      },
+      {
+        icon: "info",
+        headline: "Named everywhere you study",
+        body: "The exam card, practice exams, reminder emails and the coach use the exam's own name, and objectives use the exam body's own wording again.",
+      },
+      {
+        icon: "shield",
+        headline: "Still independent",
+        body: "Each course page still says Ascendra is independent and not endorsed by the organization that runs the exam.",
+      },
+    ],
+  },
+  {
+    // REQ-322 (Nick, 2026-11-17: "start the desktop web updates"): step 2 of
+    // the desktop sizing work. Web only, wide windows only; phones and the
+    // apps are unchanged. Not gated.
+    id: "2026-11-17-c",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-322"],
+    title: "A better fit on a big screen",
+    items: [
+      {
+        icon: "compass",
+        headline: "Two courses per row",
+        body: "In a wide browser window, Explore and your favorites on Home show two course cards side by side, so you see more without scrolling.",
+      },
+      {
+        icon: "eye",
+        headline: "See where you are with the keyboard",
+        body: "Pressing Tab now shows a clear outline around the button or link you are on, and buttons light up a little when your mouse is over them.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Tidier screens on a wide window",
+        body: "The top bar lines up with the page, the course page puts its practice, lab and simulation buttons in one row, and the connection screen no longer stretches.",
+      },
+    ],
+  },
+  {
     // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
     // plain reference line with a specific disclaimer, and show its published
     // facts; the six courses REQ-318 hid are listed again. Not gated.

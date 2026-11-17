@@ -1,0 +1,476 @@
+{
+  "slug": "insulin-given-to-wrong-bed",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: confirms the error; glucose and carbohydrate; names it; provider now; charge nurse and event report; dextrose; documented and disclosed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "peakQ",
+          "choice": "early",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "error"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "reportQ",
+          "choice": "all",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "charge",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "reported",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "treatC": "met",
+          "honestC": "met",
+          "chargeC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toGlucose": 125
+        },
+        "stateHash": "17bc85c48482c92f"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Assesses and treats him first, confirms the error, then waits 6 minutes before calling the provider",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "peakQ",
+          "choice": "early",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "error"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "reportQ",
+          "choice": "all",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "charge",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 12,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "reportedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "treatC": "met",
+          "honestC": "met",
+          "chargeC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 370,
+          "toGlucose": 120
+        },
+        "stateHash": "9ca4bb087090c159"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "recordLeft",
+      "title": "Reports at once and treats him, but leaves the record showing bed 12 got his insulin and skips the charge nurse",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "peakQ",
+          "choice": "early",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "carb",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "report"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "reportQ",
+          "choice": "all",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "fudge",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "error"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "reportedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "callC": "met",
+          "treatC": "met",
+          "honestC": "missed",
+          "chargeC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toGlucose": 120
+        },
+        "stateHash": "830a49205c93019f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "hidden",
+      "title": "Failure: confirms the error, decides there is nothing to report unless harm happens, and says nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "peakQ",
+          "choice": "early",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "watch"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "conceal"
+          },
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "callC": "missed",
+          "treatC": "missed",
+          "honestC": "met",
+          "chargeC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toGlucose": -1
+        },
+        "stateHash": "9ba005abb852b975"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "minor",
+      "title": "Failure: checks his glucose, calls it a small dose and does nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "peakQ",
+          "choice": "early",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "minor"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "callC": "missed",
+          "treatC": "missed",
+          "honestC": "met",
+          "chargeC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toGlucose": 60
+        },
+        "stateHash": "a7060cf247a63993"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

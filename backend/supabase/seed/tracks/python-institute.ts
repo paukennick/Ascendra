@@ -231,8 +231,8 @@ const PCEP_OUTLINE = {
 };
 
 const PCEP_FORMAT = [
-  "current version: 35 questions in 50 minutes, passing score 70%; single-select, multiple-select, interactive and scenario-based items, taken online through the certifying body's own testing service",
-  "the previous version remains active until its sunset on 2027-11-30; the current version was released on 2026-10-31",
+  "PCEP-30-03: 35 questions in 50 minutes, passing score 70%; single-select, multiple-select, interactive and scenario-based items, taken through TestNow (OpenEDG Testing Service)",
+  "PCEP-30-02 remains active until its sunset on 2027-11-30; PCEP-30-03 was released on 2026-10-31",
 ];
 
 const PYTHON_INSTITUTE = {
@@ -245,9 +245,9 @@ const PYTHON_INSTITUTE = {
 
 export const PCEP_TRACK: SeedTrack = {
   code: "PCEP",
-  title: "Prep for an entry-level Python programmer certification exam",
+  title: "Exam Prep for PCEP™ (PCEP-30-03)",
   description:
-    "An entry-level Python programmer certification exam: reading, tracing and writing short Python programs -- literals, variables and operators, conditions and loops, lists, tuples, sets, dictionaries and strings, functions and basic exceptions, text and CSV files, and the math and random modules. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The PCEP™ (PCEP-30-03) entry-level Python programmer certification exam: reading, tracing and writing short Python programs -- literals, variables and operators, conditions and loops, lists, tuples, sets, dictionaries and strings, functions and basic exceptions, text and CSV files, and the math and random modules. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "programming-languages",
   freshnessModel: "certification_aligned",
@@ -267,9 +267,9 @@ export const PCEP_TRACK: SeedTrack = {
       "Teaches PCEP-30-03 (released 2026-10-31). The previous version, PCEP-30-02, can still be taken until its sunset on 2027-11-30; its syllabus is at pythoninstitute.org/pcep-30-02.",
     officialObjectivesUrl: PCEP_SYLLABUS,
     lastVendorVerifiedAt: VERIFIED_AT,
-    recommendedExperience: "None required; this is the entry point of the certifying body's general-purpose Python programming path.",
+    recommendedExperience: "None required; PCEP is the entry point of the Python Institute's general-purpose programming path.",
     durationMinutes: 50,
-    questionFormat: "35 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive and scenario-based, taken online through the certifying body's own testing service",
+    questionFormat: "35 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive and scenario-based (TestNow, OpenEDG Testing Service)",
     passingScorePolicy: "70%",
   },
   units: [
@@ -428,15 +428,15 @@ const PCAP_OUTLINE = {
 };
 
 const PCAP_FORMAT = [
-  "current version: 42 questions in 65 minutes, passing score 72%; single-select, multiple-select, interactive, code-based and scenario-based items, taken online through the certifying body's own testing service",
-  "the previous version remains active until its sunset on 2027-11-30; the current version was released on 2026-10-31",
+  "PCAP-31-04: 42 questions in 65 minutes, passing score 72%; single-select, multiple-select, interactive, code-based and scenario-based items, taken through TestNow (OpenEDG Testing Service)",
+  "PCAP-31-03 remains active until its sunset on 2027-11-30; PCAP-31-04 was released on 2026-10-31",
 ];
 
 export const PCAP_TRACK: SeedTrack = {
   code: "PCAP",
-  title: "Prep for an associate Python programmer certification exam",
+  title: "Exam Prep for PCAP™ (PCAP-31-04)",
   description:
-    "An associate Python programmer certification exam: modules, packages and pip; exception hierarchies and custom exceptions; Unicode and string analysis; classes, inheritance, MRO and introspection; comprehensions, match-case, lambdas, closures, files and pathlib; and testing, debugging, code review and checking AI-generated code. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The PCAP™ (PCAP-31-04) associate Python programmer certification exam: modules, packages and pip; exception hierarchies and custom exceptions; Unicode and string analysis; classes, inheritance, MRO and introspection; comprehensions, match-case, lambdas, closures, files and pathlib; and testing, debugging, code review and checking AI-generated code. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "programming-languages",
   freshnessModel: "certification_aligned",
@@ -456,9 +456,9 @@ export const PCAP_TRACK: SeedTrack = {
       "Teaches PCAP-31-04 (released 2026-10-31). The previous version, PCAP-31-03, can still be taken until its sunset on 2027-11-30; its syllabus is at pythoninstitute.org/pcap-31-03.",
     officialObjectivesUrl: PCAP_SYLLABUS,
     lastVendorVerifiedAt: VERIFIED_AT,
-    recommendedExperience: "No formal prerequisite; entry-level knowledge of Python fundamentals is recommended.",
+    recommendedExperience: "No formal prerequisite; PCEP-level knowledge of Python fundamentals is recommended.",
     durationMinutes: 65,
-    questionFormat: "42 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive, code-based and scenario-based, taken online through the certifying body's own testing service",
+    questionFormat: "42 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive, code-based and scenario-based (TestNow, OpenEDG Testing Service)",
     passingScorePolicy: "72%",
   },
   units: [

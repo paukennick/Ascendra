@@ -1,0 +1,1111 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "day-two-chemo-potassium-climbing",
+  "title": "Day two of chemotherapy",
+  "objective": "Recognize oncologic emergencies the nurse must report at once, such as tumor lysis syndrome with its high potassium, high phosphate and low calcium",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Tumor Lysis Syndrome (nursing continuing education activity), last updated 2024-10-05 (last review)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.statpearls.com/nurse/ce/activity/104559",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): commonly seen in patients treated for hematologic malignancies, 'particularly following the initiation of chemotherapy'; 'metabolic disturbances such as hyperkalemia, hyperphosphatemia, hypocalcemia, and hyperuricemia'; 'severe complications, including acute kidney injury, cardiac arrhythmias, and even death'; management includes aggressive hydration, hypouricemic agents such as allopurinol or rasburicase, and close monitoring of metabolic parameters. The page gives no urine output target or hyperkalemia regimen."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "06:00 on an oncology unit. You are Mr. Vega's nurse. He is 42, on day 2 of induction chemotherapy for a high-grade lymphoma with a large tumor burden. His 05:00 labs have posted and he says his legs are cramping and his fingers tingle.",
+    "handover": [
+      "Orders: IV hydration at the ordered rate, strict intake and output, allopurinol, labs every 6 hours. His maintenance IV bag has potassium added.",
+      "Urine output overnight: 120, then 80, then 40 mL an hour.",
+      "Unit policy: oncologic emergencies (including tumor lysis syndrome) are reported to the oncology provider at once; the RN may place the patient on telemetry and stop potassium-containing fluid while calling."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "06:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Potassium and phosphate keep rising as tumor cells break down and the kidneys falter. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It barely progresses once the potassium source is stopped and treatment ordered. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kBump": {
+      "value": 0.15,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Potassium-containing fluid kept running into hyperkalemia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a hyperkalemic dysrhythmia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The oncology provider called within 5 minutes of the labs (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews and orders: about 4 min."
+      }
+    },
+    "rrtTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Transfer for closer monitoring and possible dialysis: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "symptomsAt": {
+      "type": "time",
+      "init": null
+    },
+    "ioAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "labs",
+        "ecg",
+        "symptoms",
+        "io"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "onc",
+        "rounds"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tls",
+        "dehydration",
+        "cramps"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "teleAt": {
+      "type": "time",
+      "init": null
+    },
+    "stopKAt": {
+      "type": "time",
+      "init": null
+    },
+    "txAt": {
+      "type": "time",
+      "init": null
+    },
+    "keepAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"onc\" and t >= timeAt(callAt) + orderTime"
+    },
+    "hr": {
+      "expr": "round(96 - 20 * max(0, prog - 0.5) + sin(t / 11) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(128)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(76)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(txAt) and not isNull(stopKAt) ? treatedRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              60,
+              50
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr",
+            "flat": "isNull(teleAt)"
+          }
+        }
+      ],
+      "infusions": "Potassium-containing fluid running: {isNull(stopKAt)|yesno}. On telemetry: {not isNull(teleAt)|yesno}. Ordered treatment started: {not isNull(txAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(txAt)",
+          "text": "Ordered: potassium removed from all fluids, hyperkalemia treatment per protocol, rasburicase, labs every 4 hours, nephrology consult."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "labs": {
+      "label": "Read the 05:00 labs against yesterday's",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "Look at a rhythm strip",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "symptoms": {
+      "label": "Ask about and check: cramps, tingling, muscle twitching, Chvostek sign",
+      "group": "Assess",
+      "available": "not testPending and isNull(symptomsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"symptoms\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "io": {
+      "label": "Total his intake and output",
+      "group": "Assess",
+      "available": "not testPending and isNull(ioAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"io\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "tele": {
+      "label": "Place him on telemetry",
+      "group": "Treat",
+      "available": "isNull(teleAt) and inClinic",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "teleAt",
+          "to": "t"
+        },
+        {
+          "log": "Telemetry on: peaked T waves.",
+          "kind": "act"
+        }
+      ]
+    },
+    "stopK": {
+      "label": "Stop the potassium-containing IV fluid and run plain fluid at the ordered rate",
+      "group": "Treat",
+      "available": "isNull(stopKAt) and isNull(keepAt) and inClinic",
+      "why": "Already done, or decided otherwise.",
+      "effects": [
+        {
+          "set": "stopKAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium-containing bag stopped; plain fluid at the ordered rate.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tx": {
+      "label": "Give the ordered hyperkalemia treatment and rasburicase",
+      "group": "Treat",
+      "available": "ordered and isNull(txAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "txAt",
+          "to": "t"
+        },
+        {
+          "log": "Hyperkalemia protocol and rasburicase given; T waves settling.",
+          "kind": "act"
+        }
+      ]
+    },
+    "keep": {
+      "label": "Leave the maintenance fluid as ordered; potassium is part of it",
+      "group": "Treat",
+      "available": "isNull(stopKAt) and isNull(keepAt) and inClinic",
+      "why": "Already decided.",
+      "effects": [
+        {
+          "set": "keepAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + kBump"
+        },
+        {
+          "log": "The potassium-containing fluid keeps running.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "tls",
+              "label": "Tumor lysis syndrome: high potassium, high phosphate, low calcium, high uric acid and kidney injury after starting chemotherapy; an oncologic emergency"
+            },
+            {
+              "value": "dehydration",
+              "label": "Dehydration from vomiting: more fluid and recheck tomorrow"
+            },
+            {
+              "value": "cramps",
+              "label": "Cramps from lying in bed"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"tls\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tls\""
+                },
+                {
+                  "log": "Tumor lysis syndrome.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dehydration\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dehydration\""
+                },
+                {
+                  "log": "Impression: dehydration.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"cramps\""
+                },
+                {
+                  "log": "Impression: cramps.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "onc",
+              "label": "Oncology provider now: day 2 of chemotherapy, potassium 6.4 with peaked T waves, high phosphate and uric acid, low calcium with a positive Chvostek sign, creatinine doubled, output falling: tumor lysis syndrome. On telemetry; potassium fluid stopped"
+            },
+            {
+              "value": "rounds",
+              "label": "Report the labs on the 09:00 oncology round"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"onc\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"onc\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "rrtTime"
+                },
+                {
+                  "log": "The provider agrees: hyperkalemia treatment now, rasburicase, potassium out of all fluids, labs every 4 hours, nephrology for possible dialysis, transfer for closer monitoring.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rounds\""
+                },
+                {
+                  "log": "You add the labs to the round list.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the labs and trend, rhythm, symptoms, actions and times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: potassium 6.4, phosphate, calcium, uric acid, creatinine, peaked T waves, Chvostek sign, potassium fluid stopped, provider told, treatment given.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Oncology unit",
+      "clock": "running",
+      "actions": [
+        "labs",
+        "ecg",
+        "symptoms",
+        "io",
+        "tele",
+        "stopK",
+        "tx",
+        "keep",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Potassium 6.4 (4.3 yesterday), phosphate high, calcium low, uric acid high, creatinine 1.8 from 0.9. The pattern of tumor lysis syndrome.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ecg\"",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Peaked T waves on the strip.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"symptoms\"",
+              "then": [
+                {
+                  "set": "symptomsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Leg cramps, tingling around his mouth and fingers, a positive Chvostek sign: low calcium.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ioAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Intake 3.2 L, output 1.1 L over 12 hours; output falling hour by hour.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the transfer",
+      "wait": {
+        "skipLabel": "his transfer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min to move him for closer monitoring."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He moves to the step-down unit with nephrology following.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening on day 2 of his chemotherapy, why is it an emergency, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Tumor lysis syndrome after starting chemotherapy for a high-grade lymphoma: hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia and AKI; hyperkalemia with peaked T waves threatens a fatal dysrhythmia, and low calcium causes cramps and tingling.",
+          "modelAnswer": "This is tumor lysis syndrome: the chemo is breaking down a lot of tumor fast, flooding him with potassium, phosphate and uric acid, which drops his calcium and hurts his kidneys. His potassium of 6.4 with peaked T waves can cause a fatal rhythm, and his cramps and tingling are the low calcium."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Reports to the oncology provider at once; telemetry; stops potassium-containing fluid; gives ordered treatment; strict intake and output; does not wait for rounds.",
+          "modelAnswer": "Call the oncology provider now, put him on telemetry and stop the potassium in his IV. Give the ordered hyperkalemia treatment and rasburicase, keep strict intake and output, and don't wait for 09:00 rounds."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Tumor lysis syndrome unreported an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Tumor Lysis Syndrome (nursing continuing education activity), last updated 2024-10-05 (last review)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/nurse/ce/activity/104559",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): commonly seen in patients treated for hematologic malignancies, 'particularly following the initiation of chemotherapy'; 'metabolic disturbances such as hyperkalemia, hyperphosphatemia, hypocalcemia, and hyperuricemia'; 'severe complications, including acute kidney injury, cardiac arrhythmias, and even death'; management includes aggressive hydration, hypouricemic agents such as allopurinol or rasburicase, and close monitoring of metabolic parameters. The page gives no urine output target or hyperkalemia regimen."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Hyperkalemic dysrhythmia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "His rhythm widens and slows; he becomes unresponsive. A code is called."
+    },
+    "reported": {
+      "label": "Reported and treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(teleAt) and not isNull(stopKAt) and not isNull(txAt)",
+      "narrative": "{timeAt(leftAt)|clock}: his potassium is coming down, the T waves have settled, and he moves for closer monitoring with nephrology following."
+    },
+    "reportedGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is treated, but the report was slow, telemetry was missed, or the potassium-containing fluid ran on."
+    },
+    "time_up": {
+      "label": "Unreported at 07:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "07:00 and the oncology team still doesn't know."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "reported",
+    "reportedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Reported to the oncology provider within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"onc\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"onc\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"rounds\"",
+            "score": "missed",
+            "why": "Left for rounds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "stopKC",
+        "label": "Stopped the potassium-containing fluid",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(keepAt)",
+            "score": "missed",
+            "why": "Kept running."
+          },
+          {
+            "when": "not isNull(stopKAt)",
+            "score": "met",
+            "why": "Stopped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "teleC",
+        "label": "Placed him on telemetry",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(teleAt)",
+            "score": "met",
+            "why": "On."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not on."
+          }
+        ]
+      },
+      {
+        "id": "symC",
+        "label": "Assessed for low calcium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(symptomsAt)",
+            "score": "met",
+            "why": "Chvostek positive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not assessed."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized tumor lysis syndrome",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"tls\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"dehydration\"",
+            "score": "missed",
+            "why": "Called it dehydration."
+          },
+          {
+            "when": "dxEnum == \"cramps\"",
+            "score": "missed",
+            "why": "Called it cramps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: tumor lysis syndrome; hyperkalemia most dangerous; report now, telemetry, potassium stopped",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Labs to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toTele",
+        "label": "06:00 to telemetry",
+        "value": "isNull(teleAt) ? -1 : timeAt(teleAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:00",
+        "text": "Potassium 6.4, phosphate high, calcium low, uric acid high, creatinine doubled."
+      },
+      {
+        "at": "~06:01",
+        "text": "Telemetry on: peaked T waves. Stop the potassium-containing fluid."
+      },
+      {
+        "at": "~06:02",
+        "text": "Tumor lysis syndrome. Oncology provider now."
+      },
+      {
+        "at": "~06:06",
+        "text": "Give the ordered treatment; strict intake and output; document."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Arrest",
+        "body": "Tumor lysis syndrome after chemotherapy brings high potassium, high phosphate, low calcium and kidney injury. It is reported at once, with telemetry and potassium sources stopped."
+      },
+      "reported": {
+        "headline": "Reported and treated",
+        "body": "You recognized tumor lysis syndrome from the lab pattern, put him on telemetry, stopped the potassium and reported within minutes. That is the expert path."
+      },
+      "reportedGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you reported, whether telemetry went on and whether the potassium-containing fluid was stopped."
+      },
+      "time_up": {
+        "headline": "Unreported",
+        "body": "An oncologic emergency goes to the provider at once."
+      }
+    },
+    "modelReasoning": "On day 2 of chemotherapy for a high-grade lymphoma with a large tumor burden, a potassium of 6.4 with peaked T waves, high phosphate and uric acid, low calcium with cramps, tingling and a positive Chvostek sign, a doubled creatinine and falling output are tumor lysis syndrome: an oncologic emergency. Hyperkalemia is the most immediate danger. Put him on telemetry, stop the potassium-containing fluid, report to the oncology provider at once rather than at rounds, give the ordered hyperkalemia treatment and rasburicase, and keep strict intake and output."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Reported",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "dangerQ": {
+      "during": "leaveT",
+      "ask": "While he transfers: which complications make tumor lysis syndrome an emergency?",
+      "choices": [
+        {
+          "id": "aki",
+          "label": "Acute kidney injury, cardiac arrhythmias and death"
+        },
+        {
+          "id": "rash",
+          "label": "A rash"
+        },
+        {
+          "id": "none",
+          "label": "It is usually harmless"
+        }
+      ],
+      "expect": "aki",
+      "explain": "Tumor lysis syndrome can cause acute kidney injury, cardiac arrhythmias and even death.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Tumor Lysis Syndrome (nursing continuing education activity), last updated 2024-10-05 (last review)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/nurse/ce/activity/104559",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): commonly seen in patients treated for hematologic malignancies, 'particularly following the initiation of chemotherapy'; 'metabolic disturbances such as hyperkalemia, hyperphosphatemia, hypocalcemia, and hyperuricemia'; 'severe complications, including acute kidney injury, cardiac arrhythmias, and even death'; management includes aggressive hydration, hypouricemic agents such as allopurinol or rasburicase, and close monitoring of metabolic parameters. The page gives no urine output target or hyperkalemia regimen."
+      }
+    },
+    "patternQ": {
+      "during": "testT",
+      "ask": "While you check: which lab pattern is tumor lysis syndrome?",
+      "choices": [
+        {
+          "id": "pattern",
+          "label": "High potassium, high phosphate, low calcium, high uric acid"
+        },
+        {
+          "id": "lowk",
+          "label": "Low potassium, low phosphate, high calcium"
+        },
+        {
+          "id": "na",
+          "label": "Low sodium only"
+        }
+      ],
+      "expect": "pattern",
+      "explain": "Tumor lysis syndrome brings hyperkalemia, hyperphosphatemia, hypocalcemia and hyperuricemia.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Tumor Lysis Syndrome (nursing continuing education activity), last updated 2024-10-05 (last review)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/nurse/ce/activity/104559",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): commonly seen in patients treated for hematologic malignancies, 'particularly following the initiation of chemotherapy'; 'metabolic disturbances such as hyperkalemia, hyperphosphatemia, hypocalcemia, and hyperuricemia'; 'severe complications, including acute kidney injury, cardiac arrhythmias, and even death'; management includes aggressive hydration, hypouricemic agents such as allopurinol or rasburicase, and close monitoring of metabolic parameters. The page gives no urine output target or hyperkalemia regimen."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

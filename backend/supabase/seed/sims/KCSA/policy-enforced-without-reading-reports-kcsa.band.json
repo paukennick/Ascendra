@@ -1,0 +1,27 @@
+{
+  "band": "kcsa",
+  "label": "KCSA",
+  "base": {
+    "course": "KCA",
+    "slug": "policy-enforced-without-reading-reports"
+  },
+  "slug": "policy-enforced-without-reading-reports-kcsa",
+  "patch": {
+    "objective": "Admission control: validating and mutating webhooks, ValidatingAdmissionPolicy with CEL, Pod Security Admission and policy engines (Kyverno, OPA Gatekeeper)",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CNCF KCSA Curriculum (cncf/curriculum, pinned commit 0a8cc08a): Overview of Cloud Native Security 14%, Kubernetes Cluster Component Security 22%, Kubernetes Security Fundamentals 22%, Kubernetes Threat Model 16%, Platform Security 16%, Compliance and Security Frameworks 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/kcsa/cluster-component-security) confirmed the 22% domain and its etcd topics (mutual TLS, access limited to the API server, encryption at rest, snapshots); the PDF itself was not re-read. The objective wording is the course seed's."
+      },
+      {
+        "cite": "Kyverno documentation (release 1.13), Policy Reports: Background Scans",
+        "checkedAt": "2026-11-17",
+        "url": "https://release-1-13-0.kyverno.io/docs/policy-reports/background/",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: background scans validate 'existing resources in the cluster that may have been created before a policy was created', for validate and verifyImages rules; they run periodically, by default every hour; violations go to a PolicyReport or ClusterPolicyReport; background scanning is on by default and spec.background: false turns it off; results are reported whether failureAction is Audit or Enforce, and a scan 'does not block any existing resources that match a rule, even in Enforce mode'. The validate rules page (release 1.18) could not be read on 2026-11-17 (the fetch was not approved in time): the admission denial's wording and the per-rule failureAction field are from memory of Kyverno's documentation (to verify)."
+      }
+    ]
+  }
+}

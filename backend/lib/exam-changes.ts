@@ -56,7 +56,7 @@ export const EXAM_CHANGES: readonly ExamChange[] = [
     whatChanges:
       "CompTIA Security+ V8 (SY0-801) launches on November 17, 2026. SY0-701, which this course teaches, can still be booked in English until June 11, 2027 (Japanese, Portuguese, Spanish and Thai until August 13, 2027).",
     courseDid:
-      "This course stays on SY0-701 and is unchanged. If you plan to sit SY0-801, there is a separate course for it: Prep for a core cybersecurity certification exam (2026 objectives).",
+      "This course stays on SY0-701 and is unchanged. If you plan to sit SY0-801, there is a separate course for it: Exam Prep for CompTIA Security+ (SY0-801).",
     sourceUrl: "https://www.comptia.org/en-us/certifications/security/v8/",
   },
   {

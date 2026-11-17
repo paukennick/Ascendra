@@ -1,0 +1,1123 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "delirium-night-prn-restraint-order",
+  "title": "There's a restraint order from admission",
+  "objective": "Use restraint only after less restrictive measures fail, on a time-limited order that is never PRN, with ongoing monitoring",
+  "secondaryObjectives": [
+    "Apply safety protocols for skin, falls, restraint, hourly rounding and suicide risk",
+    "Recognize patient, drug, environment and equipment risk factors for harm"
+  ],
+  "sources": [
+    {
+      "cite": "MSNCB, 2023 CMSRN Exam Blueprint: Patient/Care Management (32%)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.msncb.org/Portals/1/CMSRN%20Materials/2023%20CMSRN%20Exam%20Blueprint.pdf",
+      "note": "Relayed from the CMSRN course seed (backend/supabase/seed/tracks/cmsrn.ts), which read the blueprint 2026-11-14, not re-read: Patient/Care Management covers safety, including restraint. Scope only."
+    },
+    {
+      "cite": "Ascendra CMSRN course catalog (backend/supabase/seed/tracks/cmsrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "42 CFR 482.13(e), restraint or seclusion (eCFR, up to date as of 2026-07-16)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-482/subpart-B/section-482.13",
+      "note": "Relayed from the CMSRN course seed, which read the regulation 2026-11-14, not re-read: restraint only when less restrictive measures have failed; never a standing or PRN order; for violent or self-destructive behavior at most 4 hours per adult order, renewed up to 24 hours, with a face-to-face evaluation within 1 hour."
+    },
+    {
+      "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time'; precipitants include 'Urinary or stool retention', 'Uncontrolled pain' and 'Infection'; nonpharmacologic measures are 'the foundation of delirium management and prevention'; 'Physical restraints should be avoided because they have been correlated with worse outcomes', used only after other options are exhausted; medication only when conservative treatment fails and agitation is severe."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "02:10 on an orthopedic med-surg unit. You are Mrs. Abbott's nurse. She is 81, two days after repair of a hip fracture, and normally lives alone and manages her own affairs. Tonight she is pulling at her IV, calling for her late husband and trying to climb over the bed rail.",
+    "handover": [
+      "Evening: oriented and pleasant. Last urine recorded at 17:00. Oxycodone at 20:00 for hip pain.",
+      "The night supervisor passing by: 'There's a PRN soft wrist restraint order from admission. Put them on and she'll settle.'",
+      "Unit protocols: a bladder scan and straight catheter for retention over 600 mL; low bed, bed alarm and a sitter on request; the covering provider by phone. The unit's restraint policy follows federal rules."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what is driving her behavior and what keeps her safe.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:10",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Agitation from a full bladder climbs toward an attempt to get out of bed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "settleRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Agitation settles once the bladder is emptied and she is reoriented. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "climbAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point at which she climbs out of bed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "restraintSpan": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Minutes in wrist restraints before the struggle injures her (authored: 8). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "safeWindow": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fall precautions in place within 10 minutes (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "reviewTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The covering provider reviews by phone and comes to the bedside: about 20 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.6,
+      "min": 0,
+      "max": 2
+    },
+    "camAt": {
+      "type": "time",
+      "init": null
+    },
+    "bladderAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cam",
+        "bladder",
+        "pain"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "sedate"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "delirium",
+        "dementia",
+        "behavior"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "cathAt": {
+      "type": "time",
+      "init": null
+    },
+    "lowAt": {
+      "type": "time",
+      "init": null
+    },
+    "sitterAt": {
+      "type": "time",
+      "init": null
+    },
+    "orientAt": {
+      "type": "time",
+      "init": null
+    },
+    "restraintAt": {
+      "type": "time",
+      "init": null
+    },
+    "sleeveAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "safe": {
+      "expr": "not isNull(lowAt) and not isNull(sitterAt)"
+    },
+    "relieved": {
+      "expr": "not isNull(cathAt)"
+    },
+    "hr": {
+      "expr": "round(84 + 30 * prog + (isNull(restraintAt) ? 0 : 14) + sin(t / 15))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(138 + 26 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(78 + 10 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "clamp(prog + (relieved ? 0 - settleRate * (isNull(orientAt) ? 0.5 : 1) : progRate) * dt / 60, 0, 2)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 180
+          },
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Low bed and alarm: {not isNull(lowAt)|yesno}. Sitter: {not isNull(sitterAt)|yesno}. Catheterized: {relieved|yesno}. Wrist restraints: {not isNull(restraintAt)|yesno}.",
+      "banner": [
+        {
+          "when": "not isNull(restraintAt) and inClinic",
+          "text": "Soft wrist restraints on."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "cam": {
+      "label": "Delirium screen: onset, attention (months backward), thinking, level of alertness",
+      "group": "Assess",
+      "available": "not testPending and isNull(camAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bladder": {
+      "label": "Bladder scan and look at her abdomen",
+      "group": "Assess",
+      "available": "not testPending and isNull(bladderAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bladder\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pain": {
+      "label": "Pain with a behavioral scale, the hip dressing, temperature, glucose, SpO2",
+      "group": "Assess",
+      "available": "not testPending and isNull(painAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pain\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cath": {
+      "label": "Straight catheter by the retention protocol",
+      "group": "Treat",
+      "available": "isNull(cathAt) and not isNull(bladderAt) and inClinic",
+      "why": "Scan first, or already done.",
+      "effects": [
+        {
+          "set": "cathAt",
+          "to": "t"
+        },
+        {
+          "log": "830 mL drained. She sighs and stops pulling at the rail.",
+          "kind": "good"
+        }
+      ]
+    },
+    "lowbed": {
+      "label": "Low bed, floor mats and the bed alarm on",
+      "group": "Treat",
+      "available": "isNull(lowAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "lowAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed at its lowest, mats down, alarm armed.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sitter": {
+      "label": "Ask for a sitter to stay with her",
+      "group": "Treat",
+      "available": "isNull(sitterAt) and inClinic",
+      "why": "Already here.",
+      "effects": [
+        {
+          "set": "sitterAt",
+          "to": "t"
+        },
+        {
+          "log": "A sitter comes and stays at her bedside.",
+          "kind": "act"
+        }
+      ]
+    },
+    "orient": {
+      "label": "Lights low but on, glasses and hearing aids in, calm reorientation",
+      "group": "Treat",
+      "available": "isNull(orientAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "orientAt",
+          "to": "t"
+        },
+        {
+          "log": "Glasses and hearing aids in; you tell her where she is and that her hip is mending.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sleeve": {
+      "label": "Cover the IV site with a sleeve, out of sight",
+      "group": "Treat",
+      "available": "isNull(sleeveAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sleeveAt",
+          "to": "t"
+        },
+        {
+          "log": "IV covered with a stretch sleeve.",
+          "kind": "act"
+        }
+      ]
+    },
+    "restrain": {
+      "label": "Apply soft wrist restraints under the PRN order from admission",
+      "group": "Treat",
+      "available": "isNull(restraintAt) and inClinic",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "restraintAt",
+          "to": "t"
+        },
+        {
+          "log": "Wrist restraints on. She pulls against them, crying out.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is driving her behavior",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "delirium",
+              "label": "Delirium, precipitated by urinary retention and pain: treat the cause, protect her without restraint"
+            },
+            {
+              "value": "dementia",
+              "label": "Underlying dementia showing at night; restraint keeps her safe"
+            },
+            {
+              "value": "behavior",
+              "label": "Difficult behavior: she needs restraining"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"delirium\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"delirium\""
+                },
+                {
+                  "log": "Impression: delirium from retention and pain.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dementia\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dementia\""
+                },
+                {
+                  "log": "Impression: dementia, sundowning.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"behavior\""
+                },
+                {
+                  "log": "Impression: behavioral.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the covering provider",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "md",
+              "label": "New delirium from urinary retention (840 mL, drained) and hip pain; less restrictive measures in place; please review, and note the old PRN restraint order isn't valid"
+            },
+            {
+              "value": "sedate",
+              "label": "She's out of control; can she have something to sedate her?"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "reviewTime"
+                },
+                {
+                  "log": "The provider agrees, discontinues the PRN restraint order, adjusts her pain plan and will see her.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"sedate\""
+                },
+                {
+                  "log": "The provider asks you to try the restraint order first and call back.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document: behaviors, the cause found, each less restrictive measure and her response",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: delirium screen, retention drained, measures tried and her response, no restraint used.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Her room",
+      "clock": "running",
+      "actions": [
+        "cam",
+        "bladder",
+        "pain",
+        "cath",
+        "lowbed",
+        "sitter",
+        "orient",
+        "sleeve",
+        "restrain",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"cam\"",
+              "then": [
+                {
+                  "set": "camAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A change since the evening that comes and goes; can't name the months backward past November; rambling; alert. A positive delirium screen.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bladder\"",
+              "then": [
+                {
+                  "set": "bladderAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Lower abdomen firm and tender; bladder scan 840 mL. Nothing voided since 17:00.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "painAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Grimaces when the hip is moved, guarding her lower belly. Dressing dry. Temperature 37.2 C, glucose 128, SpO2 95%.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the provider's review",
+      "wait": {
+        "skipLabel": "the provider's bedside review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the provider to review and come to the bedside."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The provider reviews her at the bedside; the plan for the rest of the night is set.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Should Mrs. Abbott go into wrist restraints under the order from admission?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Acute, fluctuating confusion with inattention after hip surgery is delirium; a bladder of 840 mL with nothing voided since 17:00 and hip pain are precipitants to treat.",
+          "modelAnswer": "No. This is new delirium, and it has a cause: her bladder holds 840 mL and she hasn't voided since 17:00, plus her hip hurts. Treating those will settle her more than any restraint."
+        },
+        {
+          "label": "Restraint and the order",
+          "criteria": "Restraint only after less restrictive measures fail; a PRN restraint order is never valid; less restrictive measures first (catheter, low bed and alarm, sitter, reorientation, covering the IV); if restraint becomes unavoidable, a new time-limited order and ongoing monitoring.",
+          "modelAnswer": "A PRN restraint order isn't valid, and restraint comes only after less restrictive measures fail. I drain her bladder, treat her pain, put the bed low with the alarm, get a sitter, reorient her and cover the IV. If restraint ever became unavoidable, it would need a new time-limited order and close monitoring."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Untreated delirium with nothing in place an hour on is harm here.",
+      "source": {
+        "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time'; precipitants include 'Urinary or stool retention', 'Uncontrolled pain' and 'Infection'; nonpharmacologic measures are 'the foundation of delirium management and prevention'; 'Physical restraints should be avoided because they have been correlated with worse outcomes', used only after other options are exhausted; medication only when conservative treatment fails and agitation is severe."
+      }
+    }
+  },
+  "endings": {
+    "restraintInjury": {
+      "label": "Injured in restraints",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(restraintAt) and t >= timeAt(restraintAt) + restraintSpan and inClinic",
+      "narrative": "She has fought the wrist ties for eight minutes: skin torn at both wrists, heart rate {hr}, more frightened and confused than before. Her full bladder was never found."
+    },
+    "fall": {
+      "label": "A fall over the rail",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= climbAt and not safe and inClinic",
+      "narrative": "She climbs over the rail and lands on her repaired hip. The fall precautions were not in place."
+    },
+    "settled": {
+      "label": "Cause treated, no restraint",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and relieved and isNull(restraintAt) and not isNull(lowAt) and timeAt(lowAt) <= safeWindow and not isNull(camAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is dozing, reoriented, with a sitter beside her. The cause was found and treated, and no restraint was used."
+    },
+    "settledGaps": {
+      "label": "Settled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is calmer, but the cause or the fall precautions came late, or the delirium was never screened."
+    },
+    "time_up": {
+      "label": "Still agitated at 03:10",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "03:10 and Mrs. Abbott is still agitated."
+    }
+  },
+  "endingOrder": [
+    "restraintInjury",
+    "fall",
+    "settled",
+    "settledGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noRestraint",
+        "label": "No restraint under a PRN order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(restraintAt)",
+            "score": "met",
+            "why": "None."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Applied under a PRN order, before less restrictive measures."
+          }
+        ]
+      },
+      {
+        "id": "causeC",
+        "label": "Found and treated the urinary retention",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "relieved",
+            "score": "met",
+            "why": "Drained at {timeAt(cathAt)|clock}."
+          },
+          {
+            "when": "not isNull(bladderAt)",
+            "score": "partial",
+            "why": "Found but not drained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not found."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Low bed and alarm within 10 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lowAt) and timeAt(lowAt) <= safeWindow",
+            "score": "met",
+            "why": "In place."
+          },
+          {
+            "when": "not isNull(lowAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "camC",
+        "label": "Screened for delirium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(camAt)",
+            "score": "met",
+            "why": "Screened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "orientC",
+        "label": "Reoriented with glasses and hearing aids",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(orientAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Reported the cause and the invalid PRN order to the provider",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"md\"",
+            "score": "met",
+            "why": "Reported."
+          },
+          {
+            "when": "route == \"sedate\"",
+            "score": "missed",
+            "why": "Asked for sedation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented measures and response",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: delirium with a cause; no PRN restraint; less restrictive measures first",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toScan",
+        "label": "02:10 to the bladder scan",
+        "value": "isNull(bladderAt) ? -1 : timeAt(bladderAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toSafe",
+        "label": "02:10 to the low bed and alarm",
+        "value": "isNull(lowAt) ? -1 : timeAt(lowAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:10",
+        "text": "Low bed, mats and alarm now; ask for a sitter. Don't apply the PRN restraint."
+      },
+      {
+        "at": "~02:11",
+        "text": "Delirium screen: positive. Pain and basics. Bladder scan: 840 mL."
+      },
+      {
+        "at": "~02:15",
+        "text": "Straight catheter by protocol; glasses, hearing aids, reorientation; cover the IV."
+      },
+      {
+        "at": "~02:16",
+        "text": "Report to the provider, including that the PRN restraint order isn't valid. Document."
+      }
+    ],
+    "debrief": {
+      "restraintInjury": {
+        "headline": "Injured in restraints",
+        "body": "A PRN restraint order is never valid, and restraint comes only after less restrictive measures fail. Restraints are linked to worse outcomes in delirium."
+      },
+      "fall": {
+        "headline": "A fall",
+        "body": "Put the low bed, alarm and a sitter in place early, and look for the cause: retention and pain are common precipitants of delirium."
+      },
+      "settled": {
+        "headline": "Cause treated, no restraint",
+        "body": "You screened for delirium, found and drained the retention, kept her safe with less restrictive measures and refused an invalid order. That is the expert path."
+      },
+      "settledGaps": {
+        "headline": "Settled, with gaps",
+        "body": "Check when the bladder was scanned, when the fall precautions went in and whether delirium was screened."
+      },
+      "time_up": {
+        "headline": "Still agitated",
+        "body": "Look for the cause of delirium within minutes."
+      }
+    },
+    "modelReasoning": "Acute, fluctuating confusion with inattention after hip surgery is delirium, and a bladder of 840 mL with nothing voided since 17:00 is a precipitant to treat now. Restraint is used only after less restrictive measures fail, and a PRN restraint order is never valid; restraints are linked to worse outcomes in delirium. So: low bed, mats and alarm, a sitter, a straight catheter by protocol, pain addressed, glasses and hearing aids with reorientation, the IV covered, and a report to the provider."
+  },
+  "chapters": [
+    {
+      "id": "drained",
+      "label": "The bladder drained",
+      "when": "relieved"
+    }
+  ],
+  "teaching": {
+    "prnQ": {
+      "during": "testT",
+      "ask": "While you assess: can a restraint be applied under a PRN order?",
+      "choices": [
+        {
+          "id": "never",
+          "label": "No: a restraint order is never standing or PRN"
+        },
+        {
+          "id": "yes",
+          "label": "Yes, if the order is on the chart"
+        },
+        {
+          "id": "night",
+          "label": "Only at night"
+        }
+      ],
+      "expect": "never",
+      "explain": "Restraint is used only when less restrictive measures have failed and is never ordered as a standing or PRN order.",
+      "source": {
+        "cite": "42 CFR 482.13(e), restraint or seclusion (eCFR, up to date as of 2026-07-16)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-482/subpart-B/section-482.13",
+        "note": "Relayed from the CMSRN course seed, which read the regulation 2026-11-14, not re-read: restraint only when less restrictive measures have failed; never a standing or PRN order; for violent or self-destructive behavior at most 4 hours per adult order, renewed up to 24 hours, with a face-to-face evaluation within 1 hour."
+      }
+    },
+    "causeQ": {
+      "during": "leaveT",
+      "ask": "While the provider comes: which of these commonly precipitates delirium in an older patient?",
+      "choices": [
+        {
+          "id": "ret",
+          "label": "Urinary or stool retention, uncontrolled pain, infection"
+        },
+        {
+          "id": "visit",
+          "label": "Family visits"
+        },
+        {
+          "id": "light",
+          "label": "A night light"
+        }
+      ],
+      "expect": "ret",
+      "explain": "Precipitating factors include urinary or stool retention, uncontrolled pain and infection; physical restraints should be avoided.",
+      "source": {
+        "cite": "Jaqua EE, Nguyen VTN, Chin E. Delirium in older persons: prevention, evaluation, and management. Am Fam Physician 2023;108(3):278-287",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2023/0900/delirium-older-persons.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes. Delirium is an 'acute disturbance in attention, cognition, and awareness that fluctuates over time'; precipitants include 'Urinary or stool retention', 'Uncontrolled pain' and 'Infection'; nonpharmacologic measures are 'the foundation of delirium management and prevention'; 'Physical restraints should be avoided because they have been correlated with worse outcomes', used only after other options are exhausted; medication only when conservative treatment fails and agitation is severe."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

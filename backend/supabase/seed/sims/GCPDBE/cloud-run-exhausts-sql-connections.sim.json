@@ -1,0 +1,858 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cloud-run-exhausts-sql-connections",
+  "title": "Outage: the flash sale's checkout runs out of database connections",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dbeng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:20 orders-api 5xx 19% (checkout); peak traffic expected at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: peak, checkout failing",
+          "when": "not isNull(peakMissAt)",
+          "at": "timeAt(peakMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: peak, checkout healthy",
+          "when": "not isNull(peakOkAt)",
+          "at": "timeAt(peakOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "run",
+          "label": "Cloud Run orders-api",
+          "spokenLabel": "the orders service",
+          "kind": "concurrency 80",
+          "status": "{capped ? \"max 60 instances, pool 8\" : \"184 instances, pool 10, no maximum set\"}",
+          "tone": "capped ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "Cloud SQL orders-db",
+          "spokenLabel": "the orders database",
+          "kind": "PostgreSQL, Enterprise Plus",
+          "status": "{restarting ? \"restarting\" : capped ? \"about 480 of 800 connections\" : \"800 of 800 connections, most idle\"}",
+          "tone": "restarting ? \"down\" : capped ? \"up\" : \"down\""
+        },
+        {
+          "id": "pool",
+          "label": "Managed connection pooling",
+          "spokenLabel": "the pooler",
+          "kind": "transaction mode",
+          "status": "{restarted ? \"enabled mid-sale (restart)\" : planned ? \"scheduled for Wednesday 02:00\" : \"off\"}",
+          "tone": "planned ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "run",
+          "to": "db",
+          "label": "Connections",
+          "status": "{capped ? \"up to 480\" : \"up to 1,840 wanted\"}",
+          "tone": "capped ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Justifying the use of session pooler services",
+  "secondaryObjectives": [
+    "Sizing a database solution against current workload metrics and future requirements",
+    "Defining maintenance windows and notifications against application availability requirements"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Database Engineer certification exam guide: 1. Design scalable and highly available cloud database solutions; 2. Manage a solution that can span multiple database solutions; 3. Migrate data solutions; 4. Deploy scalable and highly available databases",
+      "checkedAt": "2026-11-17",
+      "url": "https://cloud.google.com/certification/guides/cloud-database-engineer",
+      "note": "Read through a summarizing fetch on 2026-11-17. Under 1.3 'Determine how applications will connect to the database': 'Configure network and security (Cloud SQL Auth Proxy, CMEK, SSL certificates)', 'Justify the use of session pooler services'. The page shows no weights; section 1's 32% is the course seed's (to verify)."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud SQL for PostgreSQL: Managed Connection Pooling overview",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/managed-connection-pooling?hl=it",
+      "note": "Read through a summarizing fetch of the Italian page on 2026-11-17. Relevant text: managed connection pooling helps scale workloads while optimizing resource use and connection latency, most useful for many short-lived connections or connection spikes such as serverless apps; it requires a Cloud SQL Enterprise Plus instance; transaction mode (the default, recommended for short-lived connections) and session mode; 'enabling managed connection pooling on an existing instance restarts the database'."
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud SQL for PostgreSQL: Configure database flags (supported flags table)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/flags",
+      "note": "Read through a summarizing fetch on 2026-11-17 (first 100,000 characters). Relevant text: max_connections' default depends on instance memory (25 to 1,000); changing it requires a restart; 'When you set, remove, or modify a flag for a database instance, the database might be restarted.' The PostgreSQL error 'sorry, too many clients already' is from PostgreSQL itself (to verify against the PostgreSQL documentation)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database engineer for Fennick Outdoor, a fictional retailer. The orders service runs on Cloud Run and uses Cloud SQL for PostgreSQL orders-db (Enterprise Plus, max_connections 800). A flash sale started at 10:00 and peaks at 11:00. Since 10:12 about one checkout in five fails with a database error.",
+    "handover": [
+      "Each Cloud Run instance opens its own connection pool (DB_POOL_MAX=10) at start-up.",
+      "orders-db's maintenance window is Wednesdays at 02:00; the sale ends at 13:00."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows Cloud Run's instances, their connection pools and orders-db.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "peakAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The sale peaks at 11:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "errAt": {
+      "type": "time",
+      "init": null
+    },
+    "runAt": {
+      "type": "time",
+      "init": null
+    },
+    "actAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "capped": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "restartAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "peakMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "connections",
+        "cpu",
+        "slowquery"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "restarting": {
+      "expr": "not isNull(restartAt) and since(restartAt) < 300"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "errors",
+        "runInfo",
+        "activity",
+        "cap",
+        "poolNow",
+        "maxConn",
+        "plan",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "errors": {
+      "label": "gcloud logging read 'resource.labels.service_name=\"orders-api\" severity>=ERROR' --limit 3",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(errAt)",
+          "then": [
+            {
+              "set": "errAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud logging read 'resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"orders-api\" AND severity>=ERROR' --limit 3 --format='value(textPayload)'\n{capped and not restarting ? \"(no errors in the last 5 minutes)\" : \"pg: FATAL: sorry, too many clients already\npg: FATAL: sorry, too many clients already\npool: timeout acquiring connection after 5000 ms\"}"
+        },
+        {
+          "finding": "The database refuses new connections: it has reached max_connections."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "runInfo": {
+      "label": "gcloud run services describe orders-api --region us-east1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(runAt)",
+          "then": [
+            {
+              "set": "runAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud run services describe orders-api --region us-east1 --format='value(spec.template.metadata.annotations.\"autoscaling.knative.dev/maxScale\",spec.template.spec.containerConcurrency)'\n{capped ? \"60  80\" : \"(none)  80\"}\ndbeng@cloudshell:~$ gcloud run services describe orders-api --region us-east1 --format='value(spec.template.spec.containers[0].env)' | grep -o 'DB_POOL_MAX=[0-9]*'\n{capped ? \"DB_POOL_MAX=8\" : \"DB_POOL_MAX=10\"}\nInstances now: {capped ? \"52\" : \"184\"}"
+        },
+        {
+          "finding": "184 instances times a pool of 10 asks for 1,840 connections from a database that allows 800."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "activity": {
+      "label": "psql: SELECT state, count(*) FROM pg_stat_activity GROUP BY state",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(actAt)",
+          "then": [
+            {
+              "set": "actAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ psql \"host=/cloudsql/fennick:us-east1:orders-db dbname=orders\" -c \"SELECT state, count(*) FROM pg_stat_activity WHERE datname='orders' GROUP BY state\"\n state  | count\n--------+------\n active | {capped ? \"61\" : \"72\"}\n idle   | {capped ? \"402\" : \"712\"}\n(2 rows)"
+        },
+        {
+          "finding": "About nine in ten connections sit idle in an instance's pool while new instances are refused: the connections are held, not used."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cap": {
+      "label": "gcloud run services update orders-api --max-instances 60 --update-env-vars DB_POOL_MAX=8",
+      "group": "Fix",
+      "available": "not busy and (not capped)",
+      "why": "Already updated.",
+      "effects": [
+        {
+          "set": "capped",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud run services update orders-api --region us-east1 --max-instances 60 --update-env-vars DB_POOL_MAX=8\nDeploying... Done. Revision orders-api-00213 serves 100% of traffic."
+        },
+        {
+          "log": "At most 60 instances times 8 connections is 480, well inside 800, with room for the admin and reporting users. No database restart.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "poolNow": {
+      "label": "gcloud sql instances patch orders-db --enable-connection-pooling (now)",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "set": "restartAt",
+          "to": "t"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud sql instances patch orders-db --enable-connection-pooling\nThe following message will be used for the patch API method.\nPatching Cloud SQL instance...working"
+        },
+        {
+          "log": "Enabling the pooler on an existing instance restarts the database: every checkout fails while it comes back.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "maxConn": {
+      "label": "gcloud sql instances patch orders-db --database-flags max_connections=3000 (now)",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "set": "restartAt",
+          "to": "t"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud sql instances patch orders-db --database-flags max_connections=3000\nWARNING: This patch modifies database flag values, which may require your instance to be restarted.\nPatching Cloud SQL instance...working"
+        },
+        {
+          "log": "max_connections needs a restart: the database goes down mid-sale, and 3,000 mostly idle connections would cost memory on every backend.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Schedule managed connection pooling (transaction mode) for Wednesday's 02:00 maintenance window",
+      "group": "Fix",
+      "available": "not busy and (not planned and not restarted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ (change CHG-4471 raised: enable managed connection pooling on orders-db at 02:00 Wednesday, transaction mode; then raise the Cloud Run cap)"
+        },
+        {
+          "log": "The pooler shares a few server connections among many client connections, which is what a serverless front end that scales to hundreds of instances needs.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check checkout errors and connections after the change",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "capped and not restarting",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud monitoring time-series ... cloudsql.googleapis.com/database/postgresql/num_backends (last 5 min)\n{capped and not restarting ? \"num_backends: 470  (max_connections 800); orders-api 5xx: 0.2%\" : restarting ? \"orders-db: instance restarting; orders-api 5xx: 100%\" : \"num_backends: 800  (max_connections 800); orders-api 5xx: 19%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "connections",
+                  "label": "Cloud Run scaled to 184 instances with a pool of 10 each: 1,840 wanted against 800, mostly idle"
+                },
+                {
+                  "value": "cpu",
+                  "label": "The database ran out of CPU"
+                },
+                {
+                  "value": "slowquery",
+                  "label": "A slow query held locks"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= peakAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "capped and not restarted",
+          "then": [
+            {
+              "set": "peakOkAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: checkout holds through the peak.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "peakMissAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: checkout fails at the peak.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the database refused connections, what you changed during the sale, and why a pooler is the lasting fix.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Multiplies instances by pool size and notices the idle connections.",
+          "modelAnswer": "Cloud Run had no maximum and scaled to 184 instances, each opening a pool of 10: 1,840 connections wanted against max_connections 800. pg_stat_activity showed about 712 of them idle."
+        },
+        {
+          "label": "During the sale",
+          "criteria": "Relieves it without restarting the database.",
+          "modelAnswer": "Capped Cloud Run at 60 instances and the pool at 8, at most 480 connections, deployed as a new revision with no database restart. Raising max_connections or enabling the pooler now would both restart orders-db at the peak."
+        },
+        {
+          "label": "Lasting fix",
+          "criteria": "Justifies the pooler with the workload's shape and schedules it in the window.",
+          "modelAnswer": "A front end that scales to hundreds of short-lived instances needs many client connections but few server connections; managed connection pooling in transaction mode provides that, so it is scheduled for Wednesday's 02:00 window, after which the cap can rise."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 40 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The sale peaks at 11:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a database restart during the sale."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not capped and not restarted",
+      "class": "harm",
+      "rationale": "Closing with the connection demand unchanged leaves checkout failing at the peak.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud SQL for PostgreSQL: Managed Connection Pooling overview",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/sql/docs/postgres/managed-connection-pooling?hl=it",
+        "note": "Read through a summarizing fetch of the Italian page on 2026-11-17. Relevant text: managed connection pooling helps scale workloads while optimizing resource use and connection latency, most useful for many short-lived connections or connection spikes such as serverless apps; it requires a Cloud SQL Enterprise Plus instance; transaction mode (the default, recommended for short-lived connections) and session mode; 'enabling managed connection pooling on an existing instance restarts the database'."
+      }
+    }
+  },
+  "endings": {
+    "restartedMidSale": {
+      "label": "Database restarted during the sale",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and restarted",
+      "narrative": "A change that needed a restart took orders-db down during the flash sale."
+    },
+    "peakFailed": {
+      "label": "Checkout failing at the peak",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(peakMissAt)",
+      "narrative": "At 11:00 Cloud Run still wanted more connections than orders-db allows."
+    },
+    "relieved": {
+      "label": "Demand capped, pooler scheduled, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and capped and planned and not restarted and isNull(peakMissAt) and not isNull(errAt) and not isNull(actAt) and not isNull(verifiedAt) and causeDoc == \"connections\"",
+      "narrative": "The error and pg_stat_activity showed idle connections filling max_connections; a cap held the sale and the pooler is scheduled for the window."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Checkout held, but the lasting fix was not planned or a check was skipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "restartedMidSale",
+    "peakFailed",
+    "relieved",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Measured connection demand against max_connections",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(errAt) and not isNull(actAt)",
+            "score": "met",
+            "why": "The error and the idle connections."
+          },
+          {
+            "when": "not isNull(errAt) or not isNull(runAt) or not isNull(actAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without measuring."
+          }
+        ]
+      },
+      {
+        "id": "relieve",
+        "label": "Checkout held through the peak without a restart",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "capped and not restarted and isNull(peakMissAt)",
+            "score": "met",
+            "why": "Demand capped, in time."
+          },
+          {
+            "when": "capped or restarted",
+            "score": "partial",
+            "why": "{restarted ? \"By restarting the database mid-sale.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Demand unchanged."
+          }
+        ]
+      },
+      {
+        "id": "pooler",
+        "label": "Pooler justified and scheduled; result verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Scheduled in the window and the relief confirmed."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"connections\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames CPU or a query."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Database restarts during the sale",
+        "value": "restarted ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:20-10:23",
+        "text": "Errors: 'too many clients'; Cloud Run: 184 instances, no maximum, pool 10; pg_stat_activity: 712 of 800 idle."
+      },
+      {
+        "at": "10:23-10:27",
+        "text": "Cap at 60 instances and pool 8 in one revision; schedule managed connection pooling for 02:00 Wednesday."
+      },
+      {
+        "at": "10:27-10:29",
+        "text": "num_backends about 470 and 5xx near zero before 11:00."
+      }
+    ],
+    "debrief": {
+      "restartedMidSale": {
+        "headline": "The right idea at the wrong time",
+        "body": "Raising max_connections and enabling the pooler both restart a Cloud SQL instance. During the sale, limit the demand from the application side; make database changes that restart it in the maintenance window."
+      },
+      "peakFailed": {
+        "headline": "The peak hit a full database",
+        "body": "Instances times pool size is the number to bring under max_connections. A maximum instance count and a smaller pool do that in one deploy."
+      },
+      "relieved": {
+        "headline": "Good: relief now, the pooler in the window",
+        "body": "You measured the demand before changing anything, cut it from the application side without a restart, confirmed the errors stopped, and justified the pooler with what the workload actually does."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the measurement, the pooler in the maintenance window, or the check."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The database refuses connections because Cloud Run scaled to 184 instances with a pool of 10 each, 1,840 wanted against max_connections 800, and pg_stat_activity shows most of them idle. During the sale, bring the demand under the limit from the application side: a maximum instance count and a smaller pool, deployed as a revision, with no database restart. Raising max_connections or enabling the pooler now would restart orders-db at the peak. The lasting fix is a pooler: a serverless front end needs many short client connections but few server connections, which is what managed connection pooling in transaction mode gives; schedule it for the maintenance window and raise the cap afterwards."
+  }
+}

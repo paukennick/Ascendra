@@ -1,0 +1,1202 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pressure-crisis-headache-titration",
+  "title": "Not all at once",
+  "objective": "Lower blood pressure in a hypertensive emergency gradually with titrated IV agents under close monitoring, because an abrupt fall can injure the organs at risk",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Cardiovascular (20% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Cardiovascular is 20% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls. Hypertensive Emergency (last updated 2023-07-24; editor Schick MA), StatPearls Publishing",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.statpearls.com/point-of-care/23224",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'lower blood pressure by 25% in the first hour', 'then to 160/100 over the next 2 to 6 hours', 'gradually to normal over 2 days'; for aortic dissection 'lower the blood pressure to below 140 mm Hg within the first hour'; agents that 'act rapidly and are easily titratable'; 'the blood pressure should be lowered gradually to prevent brain dysfunction from low perfusion'; 'continuous blood pressure monitoring' for admitted patients. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "21:00 on a progressive care unit. Mrs. Mensah, 54, came up from the emergency department with a blood pressure of 228/132, a pounding headache and blurred vision. She ran out of her blood pressure tablets two weeks ago.",
+    "handover": [
+      "CT head in the department: no bleed. Creatinine up from her baseline. No chest or back pain; pulses equal in both arms.",
+      "The provider's order: the titratable IV antihypertensive infusion, titrated to lower the mean arterial pressure by no more than 25% in the first hour, then toward 160/100 over the next 2 to 6 hours; blood pressure every 5 minutes; neurological checks every 15 minutes; call for any new neurological sign or chest pain.",
+      "The provider is on the unit."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "21:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.035,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Encephalopathy and kidney injury advance at this pressure. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Titration slows the injury; the brain still swells for a while. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of new confusion and vomiting: worsening hypertensive encephalopathy. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a seizure or a bleed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of a new neurological sign (the order)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The titrated infusion started within 5 minutes of arrival, with checks every 5 minutes (the order)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the provider to reassess and move her to intensive care; a routine plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A pressure pushed to normal within minutes: the autoregulated brain is underperfused, a watershed stroke. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "urineAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neuro",
+        "hx",
+        "urine"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "now",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "enceph",
+        "migraine",
+        "anxious"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "alineAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(92 + 5 * prog + sin(t / 11))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(fixAt) ? 228 + 10 * prog : max(180, 228 - 4 * (t - timeAt(fixAt)) / 60))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(isNull(fixAt) ? 132 + 6 * prog : max(108, 132 - 2 * (t - timeAt(fixAt)) / 60))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90,
+            "high": 200
+          },
+          "announce": {
+            "bands": [
+              180,
+              200
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Titratable infusion: {not isNull(fixAt)|yesno}. Neuro checks every 15 minutes: {not isNull(neuroAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"now\" and inCare",
+          "text": "The provider is at the bedside; intensive care is called."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "neuro": {
+      "label": "Neurological check: level of consciousness, pupils, speech, strength, vision",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): chest pain, back pain, breathlessness, drugs",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "urine": {
+      "label": "Urine output and the dipstick",
+      "group": "Assess",
+      "available": "not testPending and isNull(urineAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"urine\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: blood pressure trend, mental status, headache",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Blood pressure {sbp}/{dbp}. She's drowsy, muddled about where she is, and vomiting.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Blood pressure {sbp}/{dbp}. Alert, headache unchanged.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Start the titratable IV infusion per the order, blood pressure every 5 minutes",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Infusion running; cuff cycling every 5 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "aline": {
+      "label": "Ask for an arterial line for continuous pressure",
+      "group": "Treat",
+      "available": "isNull(alineAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "alineAt",
+          "to": "t"
+        },
+        {
+          "log": "The provider places an arterial line.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Push extra antihypertensive to get her to 130/80 within the hour",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Extra antihypertensive pushed; the pressure plunges.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "enceph",
+              "label": "Hypertensive emergency with worsening encephalopathy: escalate, keep lowering gradually"
+            },
+            {
+              "value": "migraine",
+              "label": "A migraine; the pressure will settle with pain relief"
+            },
+            {
+              "value": "anxious",
+              "label": "Anxiety about the admission"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"enceph\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"enceph\""
+                },
+                {
+                  "log": "Impression: hypertensive encephalopathy worsening.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"migraine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"migraine\""
+                },
+                {
+                  "log": "Impression: migraine.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anxious\""
+                },
+                {
+                  "log": "Impression: anxiety.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the provider",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "now",
+              "label": "To the bedside now: new confusion and vomiting on the infusion; continue gradual lowering, consider intensive care"
+            },
+            {
+              "value": "later",
+              "label": "Mention it at the 23:00 check; the pressure is coming down"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"now\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"now\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The provider comes, reassesses and arranges intensive care.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "You plan to mention it at 23:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: presenting pressure, infusion start, the pressure trend against the 25% goal, neuro changes and times",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: 228/132 on arrival, infusion start, trend against the 25% first-hour goal, new confusion and vomiting with times.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "neuro",
+        "hx",
+        "urine",
+        "reassess",
+        "fix",
+        "aline",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Confused about the year; vomited once; headache 'the worst it's been'. Pupils equal; no one-sided weakness.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Alert and oriented; blurred vision; headache 8/10; equal strength.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No chest or back pain. No breathlessness. No stimulant use.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "urineAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Output 40 mL in the last hour; protein on the dipstick.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "moving to intensive care",
+      "wait": {
+        "skipLabel": "intensive care taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the provider to reassess and move her to intensive care; a routine plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She moves to intensive care with the infusion running.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "Mrs. Mensah vomits and asks what year it is.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 1020",
+      "question": "Mrs. Mensah is confused and vomiting while the infusion runs. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "A hypertensive emergency with encephalopathy (confusion, vomiting, worse headache) and kidney injury; lowering too fast risks brain underperfusion, so the goal is no more than 25% in the first hour.",
+          "modelAnswer": "This is a hypertensive emergency and her encephalopathy is getting worse: confusion, vomiting, worse headache. The pressure must come down, but slowly: no more than 25% in the first hour, or her brain is underperfused."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Provider now; continue titration to the order's goal (no extra pushes); neuro checks; arterial line; hand off.",
+          "modelAnswer": "Call the provider now, keep titrating to the order's goal without extra pushes, keep neuro checks and the arterial line going, and hand off."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A hypertensive emergency still uncontrolled with encephalopathy an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls. Hypertensive Emergency (last updated 2023-07-24; editor Schick MA), StatPearls Publishing",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/23224",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'lower blood pressure by 25% in the first hour', 'then to 160/100 over the next 2 to 6 hours', 'gradually to normal over 2 days'; for aortic dissection 'lower the blood pressure to below 140 mm Hg within the first hour'; agents that 'act rapidly and are easily titratable'; 'the blood pressure should be lowered gradually to prevent brain dysfunction from low perfusion'; 'continuous blood pressure monitoring' for admitted patients. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "A watershed stroke from a fast fall",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "The pressure falls from crisis levels to normal in minutes. She becomes drowsy with a new weakness of the left arm: a stroke from underperfusion."
+    },
+    "worsened": {
+      "label": "Seizure",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Blood pressure {sbp}/{dbp}: she has a generalized seizure."
+    },
+    "wrongRoute": {
+      "label": "Encephalopathy left until the next check",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"later\")",
+      "narrative": "Before 23:00 she has a seizure and is found post-ictal."
+    },
+    "target": {
+      "label": "Gradual lowering and the neurological change escalated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(neuroAt)",
+      "narrative": "{timeAt(leftAt)|clock}: lowered gradually by order, checked every 5 minutes, and the new confusion called within minutes."
+    },
+    "recovered": {
+      "label": "To intensive care, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"now\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches intensive care, but the infusion started late or the confusion went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still unresolved at 22:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "22:00 and Mrs. Mensah is still in crisis."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Titrated infusion started within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Provider called within 5 minutes of the new confusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"now\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"now\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left until the next check."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "Pressure never pushed toward normal in the first hour",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Pushed to normal within the hour."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Neurological check done",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "alineC",
+        "label": "Continuous pressure monitoring arranged",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(alineAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named worsening hypertensive encephalopathy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"enceph\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"migraine\"",
+            "score": "missed",
+            "why": "Called it a migraine."
+          },
+          {
+            "when": "dxEnum == \"anxious\"",
+            "score": "missed",
+            "why": "Called it anxiety."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the pressure trend against the goal and the neuro change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: lower gradually, never to normal at once; escalate the neurological change",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Arrival to the titrated infusion",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "New confusion to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:00",
+        "text": "Titratable infusion; cuff every 5 minutes; arterial line asked for."
+      },
+      {
+        "at": "~21:01",
+        "text": "Neuro check: alert, blurred vision. Reassess."
+      },
+      {
+        "at": "~21:10",
+        "text": "Confused and vomiting."
+      },
+      {
+        "at": "~21:11",
+        "text": "Provider now; keep lowering gradually; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Pushed to normal",
+        "body": "In a hypertensive emergency the pressure comes down gradually: about 25% in the first hour, then toward 160/100 over 2 to 6 hours. Faster risks a stroke."
+      },
+      "worsened": {
+        "headline": "Seizure",
+        "body": "Encephalopathy can progress to seizures. Start the titrated drug at once and call any new neurological sign."
+      },
+      "wrongRoute": {
+        "headline": "Left until the next check",
+        "body": "New confusion during a hypertensive emergency needs the provider now."
+      },
+      "target": {
+        "headline": "Gradual and escalated",
+        "body": "Titrated by the order, monitored closely, and the change called within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Intensive care, with delays",
+        "body": "Check when the infusion started and how long the confusion went before the call."
+      },
+      "time_up": {
+        "headline": "Still in crisis",
+        "body": "Hypertensive emergency needs titrated treatment within minutes."
+      }
+    },
+    "modelReasoning": "A pressure of 228/132 with headache, blurred vision and kidney injury is a hypertensive emergency. The titratable IV drug starts at once, lowering the pressure by no more than 25% in the first hour, with checks every 5 minutes and an arterial line. New confusion and vomiting are worsening encephalopathy: the provider comes now. Pushing to normal would starve the brain."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "whyQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: why not lower it faster?",
+      "choices": [
+        {
+          "id": "perf",
+          "label": "The brain can be underperfused"
+        },
+        {
+          "id": "cost",
+          "label": "The drug is costly"
+        },
+        {
+          "id": "none",
+          "label": "There is no reason"
+        }
+      ],
+      "expect": "perf",
+      "explain": "The blood pressure should be lowered gradually to prevent brain dysfunction from low perfusion.",
+      "source": {
+        "cite": "StatPearls. Hypertensive Emergency (last updated 2023-07-24; editor Schick MA), StatPearls Publishing",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/23224",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'lower blood pressure by 25% in the first hour', 'then to 160/100 over the next 2 to 6 hours', 'gradually to normal over 2 days'; for aortic dissection 'lower the blood pressure to below 140 mm Hg within the first hour'; agents that 'act rapidly and are easily titratable'; 'the blood pressure should be lowered gradually to prevent brain dysfunction from low perfusion'; 'continuous blood pressure monitoring' for admitted patients. No dose is used in the case."
+      }
+    },
+    "rateQ": {
+      "during": "testT",
+      "ask": "While you assess: how fast should blood pressure come down in a hypertensive emergency without aortic dissection?",
+      "choices": [
+        {
+          "id": "q",
+          "label": "By about 25% in the first hour"
+        },
+        {
+          "id": "norm",
+          "label": "To normal within the hour"
+        },
+        {
+          "id": "half",
+          "label": "By half within 15 minutes"
+        }
+      ],
+      "expect": "q",
+      "explain": "Lower blood pressure by 25% in the first hour, then to 160/100 over the next 2 to 6 hours, then gradually to normal over 2 days.",
+      "source": {
+        "cite": "StatPearls. Hypertensive Emergency (last updated 2023-07-24; editor Schick MA), StatPearls Publishing",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/23224",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'lower blood pressure by 25% in the first hour', 'then to 160/100 over the next 2 to 6 hours', 'gradually to normal over 2 days'; for aortic dissection 'lower the blood pressure to below 140 mm Hg within the first hour'; agents that 'act rapidly and are easily titratable'; 'the blood pressure should be lowered gradually to prevent brain dysfunction from low perfusion'; 'continuous blood pressure monitoring' for admitted patients. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

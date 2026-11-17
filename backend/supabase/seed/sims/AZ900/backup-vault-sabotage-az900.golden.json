@@ -1,0 +1,930 @@
+{
+  "slug": "backup-vault-sabotage-az900",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Sign-ins show a takeover; block r.khan and revoke sessions; MUA with the separate Resource Guard; vault activity; undelete and resume; retention back; evidence; page the lead",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "signins",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "disableAcct",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "enableMua",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "retention",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 23,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 13,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 14,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 15,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 31,
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 31
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 19,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "adminCompromised",
+            "prevent": "muaGuard"
+          },
+          "seq": 20,
+          "tick": 31
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "containFast": "met",
+          "backupsSafe": "met",
+          "mua": "met",
+          "orderRight": "met",
+          "noOutage": "met",
+          "evidence": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 3,
+          "recK": 4,
+          "outageK": 0
+        },
+        "stateHash": "95bbe0ad6cf1be4b"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "recoverFirst",
+      "title": "Undeletes the backups while the attacker is still in (undone), then blocks the account, turns on MUA, undeletes again",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "disableAcct",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "enableMua",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 18,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 24,
+          "seq": 10,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "signins",
+          "seq": 11,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 12,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 13,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 33,
+          "seq": 14,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "internal"
+          },
+          "seq": 17,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "adminCompromised",
+            "prevent": "newVault"
+          },
+          "seq": 18,
+          "tick": 33
+        }
+      ],
+      "expect": {
+        "ending": "containedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 72,
+        "criteria": {
+          "containFast": "met",
+          "backupsSafe": "met",
+          "mua": "met",
+          "orderRight": "missed",
+          "noOutage": "met",
+          "evidence": "met",
+          "notifiedCrit": "partial",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToContain": 10,
+          "recK": 4,
+          "outageK": 0
+        },
+        "stateHash": "001fe067b8e07013"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "shutdown",
+      "title": "Shuts down all four production VMs first (production offline), then blocks the account, undeletes and turns on MUA",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "signins",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "shutdownVms",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "disableAcct",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "enableMua",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 25,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 15,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "insider",
+            "prevent": "muaGuard"
+          },
+          "seq": 16,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "containedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 61,
+        "criteria": {
+          "containFast": "met",
+          "backupsSafe": "met",
+          "mua": "met",
+          "orderRight": "met",
+          "noOutage": "missed",
+          "evidence": "missed",
+          "notifiedCrit": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": 11,
+          "recK": 4,
+          "outageK": 4
+        },
+        "stateHash": "3e043adf2aba2312"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "slowPurge",
+      "title": "Investigates and exports logs first; soft delete goes off at 02:20 and the backups are purged before the account is blocked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "signins",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 11,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "disableAcct",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 28,
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 14,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 34,
+          "seq": 15,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 16,
+          "tick": 34
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 17,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 18,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "adminCompromised",
+            "prevent": "muaGuard"
+          },
+          "seq": 19,
+          "tick": 34
+        }
+      ],
+      "expect": {
+        "ending": "purged",
+        "class": "harm",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "containFast": "partial",
+          "backupsSafe": "missed",
+          "mua": "missed",
+          "orderRight": "missed",
+          "noOutage": "met",
+          "evidence": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 25,
+          "recK": 0,
+          "outageK": 0
+        },
+        "stateHash": "a7826a679baa6255"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "closedOpen",
+      "title": "Reads the sign-ins and closes as a misunderstanding",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "signins",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "bug",
+            "prevent": "nothing"
+          },
+          "seq": 6,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "stillIn",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "containFast": "missed",
+          "backupsSafe": "partial",
+          "mua": "missed",
+          "orderRight": "missed",
+          "noOutage": "met",
+          "evidence": "missed",
+          "notifiedCrit": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "recK": 4,
+          "outageK": 0
+        },
+        "stateHash": "3be6d17e8f9c17df"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "muaButSlow",
+      "title": "Turns on MUA quickly (the soft delete attempt is blocked) but never gets to the account before 02:50: ransomware runs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "enableMua",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "activity",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 35,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 45,
+          "seq": 12,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 55,
+          "seq": 14,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "disableAcct",
+          "seq": 15,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 58,
+          "seq": 16,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "resume",
+          "seq": 17,
+          "tick": 58
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 64,
+          "seq": 18,
+          "tick": 58
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 19,
+          "tick": 64
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "full"
+          },
+          "seq": 21,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "adminCompromised",
+            "prevent": "muaGuard"
+          },
+          "seq": 22,
+          "tick": 64
+        }
+      ],
+      "expect": {
+        "ending": "encrypted",
+        "class": "harm",
+        "rating": "bad",
+        "score": 89,
+        "criteria": {
+          "containFast": "partial",
+          "backupsSafe": "met",
+          "mua": "met",
+          "orderRight": "met",
+          "noOutage": "met",
+          "evidence": "met",
+          "notifiedCrit": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 55,
+          "recK": 4,
+          "outageK": 0
+        },
+        "stateHash": "17dbee8e53c58ecf"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

@@ -1,0 +1,506 @@
+{
+  "slug": "triage-indigestion-inferior-stemi",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: ESI 2, the pain history, the ECG in 3 minutes to the physician, medications (sildenafil), aspirin, hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "esi2"
+          },
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "ten",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 37
+        },
+        {
+          "type": "chapter",
+          "chapter": "ecgDone",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 8,
+          "tick": 37
+        },
+        {
+          "type": "teach",
+          "prompt": "nitroQ",
+          "choice": "pde5",
+          "seq": 9,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 11,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "cathNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "ecg10": "met",
+          "shown": "met",
+          "noNitro": "met",
+          "aspirinC": "met",
+          "esiC": "met",
+          "noO2": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "doorEcg": 185,
+          "ecgMd": 0
+        },
+        "stateHash": "3468641740181ed1"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateEcg",
+      "title": "ESI 2 and a careful history and vital signs, but the ECG lands after 10 minutes; oxygen on a normal saturation",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "esi2"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "ten",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "oxygen",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 7,
+          "tick": 110
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "ecgDone",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 134
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 10,
+          "tick": 134
+        },
+        {
+          "type": "teach",
+          "prompt": "nitroQ",
+          "choice": "pde5",
+          "seq": 11,
+          "tick": 134
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 12,
+          "tick": 134
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 134
+        }
+      ],
+      "expect": {
+        "ending": "cathLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "ecg10": "partial",
+          "shown": "met",
+          "noNitro": "met",
+          "aspirinC": "met",
+          "esiC": "met",
+          "noO2": "missed",
+          "told": "met"
+        },
+        "kpis": {
+          "doorEcg": 670,
+          "ecgMd": 0
+        },
+        "stateHash": "0a1315586c4bb03e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "slowRead",
+      "title": "ECG inside 10 minutes, but it waits 6 minutes before the physician sees it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "esi2"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "ten",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "ecgDone",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "nitroQ",
+          "choice": "pde5",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 11,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "cathLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "ecg10": "met",
+          "shown": "partial",
+          "noNitro": "met",
+          "aspirinC": "met",
+          "esiC": "met",
+          "noO2": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "doorEcg": 120,
+          "ecgMd": 430
+        },
+        "stateHash": "98db295d2b6e40dd"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "nitroFirst",
+      "title": "Failure: ESI 2 and vital signs, then nitroglycerin without asking about sildenafil",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "esi2"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "ten",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "nitro",
+          "seq": 5,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "nitroCrash",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "ecg10": "missed",
+          "shown": "missed",
+          "noNitro": "missed",
+          "aspirinC": "missed",
+          "esiC": "met",
+          "noO2": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "doorEcg": -1,
+          "ecgMd": -1
+        },
+        "stateHash": "b2c45f0e1a4005f4"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "inTheChart",
+      "title": "Failure: ESI 3 to the waiting room, an ECG that goes in the chart unread",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "esi3"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "ecgQ",
+          "choice": "ten",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "chapter",
+          "chapter": "ecgDone",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "chart"
+          },
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "teach",
+          "prompt": "nitroQ",
+          "choice": "pde5",
+          "seq": 9,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "vf",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "ecg10": "met",
+          "shown": "missed",
+          "noNitro": "met",
+          "aspirinC": "missed",
+          "esiC": "missed",
+          "noO2": "met",
+          "told": "missed"
+        },
+        "kpis": {
+          "doorEcg": 240,
+          "ecgMd": 0
+        },
+        "stateHash": "5eda76ef301569f8"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

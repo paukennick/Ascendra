@@ -1,0 +1,1162 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pfmp-water-utility-rebalance",
+  "title": "A strategy change at a water utility: impact, scenarios, a governed decision and rebalanced capacity",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rStrat",
+          "label": "Portfolio not aligned with the new water-loss goal",
+          "spokenLabel": "Alignment risk",
+          "owner": "\"Portfolio governance board\"",
+          "rating": "rec == \"governed\" ? \"low\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "rec == \"governed\" or p < 1 ? \"within\" : \"above\"",
+          "status": "{rec == \"governed\" ? \"Scenario B approved: leak detection accelerated, the app paused\" : rec == \"direct\" ? \"Changed by you, without the board\" : rec == \"cutBilling\" ? \"Scenario C approved: billing system cancelled\" : impact == \"rescored\" ? \"Components re-scored against the new criteria\" : \"Components still ranked on the growth criteria\"}"
+        },
+        {
+          "id": "rDep",
+          "label": "Meter data has nowhere to go without the new billing system",
+          "spokenLabel": "Billing dependency risk",
+          "owner": "\"Portfolio manager\"",
+          "rating": "billingBreak ? \"critical\" : rec == \"cutBilling\" ? \"high\" : \"low\"",
+          "appetite": "billingBreak ? \"above\" : \"within\"",
+          "status": "{billingBreak ? \"Smart-meter reads cannot be billed or reported to the regulator\" : rec == \"cutBilling\" ? \"Billing cancelled; the meters still depend on it\" : \"Billing kept: the meters depend on it\"}"
+        },
+        {
+          "id": "rCap",
+          "label": "Too few data engineers for leak detection",
+          "spokenLabel": "Capacity risk",
+          "owner": "\"Portfolio manager\"",
+          "when": "p >= 4",
+          "rating": "realloc == \"reallocated\" ? \"low\" : \"high\"",
+          "appetite": "realloc == \"keep\" ? \"above\" : \"within\"",
+          "status": "{realloc == \"reallocated\" ? \"Four engineers moved from the paused app\" : realloc == \"contract\" ? \"Contractors hired\" : realloc == \"keep\" ? \"The app team kept together; leak detection waits\" : \"Decision needed\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sBoard",
+          "label": "Board chair",
+          "spokenLabel": "the board chair's support",
+          "value": "chair",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCfo",
+          "label": "Chief financial officer",
+          "spokenLabel": "the CFO's support",
+          "value": "cfo",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "VP Operations",
+          "spokenLabel": "the VP Operations's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dGoal",
+          "kind": "Strategy change",
+          "label": "Board: cut water loss from 24% to 15% in three years; customer growth is no longer a priority",
+          "status": "Adopted",
+          "when": "true"
+        },
+        {
+          "id": "dImpact",
+          "kind": "Impact assessment",
+          "label": "Week 2: what the new goal means for the six components",
+          "status": "{impact == \"none\" ? \"Due\" : impact == \"rescored\" ? \"Re-scored against the new criteria\" : impact == \"carryOn\" ? \"No change\" : \"App and office move cancelled by you\"}",
+          "when": "p >= 1"
+        },
+        {
+          "id": "dScen",
+          "kind": "Scenarios",
+          "label": "Week 4: portfolio scenarios",
+          "status": "{scen == \"three\" ? \"Three scenarios: value, risk, cost and capacity\" : scen == \"one\" ? \"One scenario: the CEO's\" : scen == \"gut\" ? \"A re-ordered list\" : \"Due\"}",
+          "when": "p >= 2"
+        },
+        {
+          "id": "dRec",
+          "kind": "Board decision",
+          "label": "Week 6: the recommended portfolio",
+          "status": "{rec == \"governed\" ? \"Scenario B approved by the board\" : rec == \"cutBilling\" ? \"Scenario C approved by the board\" : rec == \"direct\" ? \"Not taken to the board\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and rec == \"none\""
+        }
+      ],
+      "budget": {
+        "label": "Portfolio budget committed this year",
+        "spent": "spent",
+        "total": "40",
+        "unit": "million dollars"
+      },
+      "meters": [
+        {
+          "id": "mWeek",
+          "label": "Week",
+          "value": "{p * 2} of 10"
+        },
+        {
+          "id": "mAlign",
+          "label": "Budget on the water-loss goal",
+          "value": "{rec == \"governed\" ? \"26 of 40 million dollars (65%)\" : rec == \"cutBilling\" ? \"28 of 40 million dollars, with billing cancelled\" : \"22 of 40 million dollars (55%)\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Determining how a change in strategic goals impacts the portfolio and its components",
+  "secondaryObjectives": [
+    "Creating and evaluating what-if portfolio scenarios (options analysis, risk analysis, SWOT, financial analysis)",
+    "Recommending a portfolio scenario and its components, with rationale, for governance decision-making",
+    "Balancing and prioritizing portfolio components to optimize resource utilization against strategic objectives"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The water utility, its portfolio, the components' costs and scores, the scenarios and the support gauges are fictional teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the portfolio manager at Cedar Valley Water, a fictional regional water utility. After two drought years and a regulator's order, the board has changed the strategy: cut water loss from 24% to 15% in three years. Customer growth, which ranked the current portfolio, is now third. Six components share this year's 40 million dollar budget.",
+    "handover": [
+      "Components: smart meters (12 million), new billing system (10), reservoir intake upgrade (7), customer app redesign (6), leak detection pilot (3), office move (2).",
+      "The portfolio governance board decides on starting, pausing or stopping components and moving money between them. You analyze, recommend and run the portfolio."
+    ],
+    "howItWorks": [
+      "The board shows the portfolio's risks against the appetite, each executive's support in words, the budget committed and the docket.",
+      "Move on two weeks at a time. A decision comes to you at each review; before the first you can read the strategy or analyze the dependencies.",
+      "After week 10 you write the portfolio record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-11T09:00",
+    "tick": "1d",
+    "maxDuration": "120d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "impact": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rescored",
+        "carryOn",
+        "cancelled"
+      ],
+      "init": "none"
+    },
+    "scen": {
+      "type": "enum",
+      "values": [
+        "none",
+        "three",
+        "one",
+        "gut"
+      ],
+      "init": "none"
+    },
+    "rec": {
+      "type": "enum",
+      "values": [
+        "none",
+        "governed",
+        "direct",
+        "cutBilling"
+      ],
+      "init": "none"
+    },
+    "realloc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reallocated",
+        "keep",
+        "contract"
+      ],
+      "init": "none"
+    },
+    "billingBreak": {
+      "type": "bool",
+      "init": false
+    },
+    "chair": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cfo": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "strategyAt": {
+      "type": "time",
+      "init": null
+    },
+    "depsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "spent": {
+      "expr": "40 + (realloc == \"contract\" ? 3 : 0) + (billingBreak ? 4 : 0)"
+    },
+    "spendPct": {
+      "expr": "spent / 40 * 100"
+    },
+    "aboveCount": {
+      "expr": "(rec == \"governed\" ? 0 : 1) + (realloc == \"keep\" ? 1 : 0) + (billingBreak ? 1 : 0)"
+    },
+    "minSupport": {
+      "expr": "min(chair, min(cfo, ops))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The rebalancing",
+      "clock": "turns",
+      "actions": [
+        "strategy",
+        "deps"
+      ]
+    },
+    "close": {
+      "label": "Portfolio record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "strategy": {
+      "label": "Read the board's strategy paper and the regulator's order",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(strategyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "strategyAt",
+          "to": "t"
+        },
+        {
+          "log": "You read both.",
+          "kind": "act"
+        },
+        {
+          "finding": "New criteria: water-loss reduction (weight 40%), regulatory compliance (25%), financial return (20%), customer experience (15%). The order requires monthly reporting of metered water loss from next year."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "deps": {
+      "label": "Map the dependencies between the components",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(depsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "depsAt",
+          "to": "t"
+        },
+        {
+          "log": "You map what each component needs from the others.",
+          "kind": "act"
+        },
+        {
+          "finding": "Smart meters produce interval data only the new billing system can take, and the regulator's monthly report comes from billing. Leak detection needs four data engineers; the four available sit on the app team."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the portfolio record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record keeps",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The impact assessment, the scenarios with their analysis, the board's decision and rationale, and the reallocation and updated roadmap"
+                },
+                {
+                  "value": "summary",
+                  "label": "The new component list"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next portfolio review",
+      "wait": {
+        "skipLabel": "Go to the next portfolio review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 5",
+          "then": [
+            {
+              "if": "rec == \"cutBilling\"",
+              "then": [
+                {
+                  "set": "billingBreak",
+                  "to": "true"
+                },
+                {
+                  "add": "chair",
+                  "by": "-3"
+                },
+                {
+                  "add": "cfo",
+                  "by": "-2"
+                },
+                {
+                  "log": "Week 10: the first 20,000 smart meters go live, and their reads cannot be billed or sent to the regulator: the old billing system cannot take interval data. A stopgap costs 4 million dollars.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "if": "realloc == \"keep\"",
+              "then": [
+                {
+                  "add": "ops",
+                  "by": "-2"
+                },
+                {
+                  "log": "Week 10: leak detection is a month behind for want of data engineers.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 5",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Week 10: the first quarter's portfolio report is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_impactPrompt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the first review after the board's decision.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "impactPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_scenPrompt",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 4: the board wants options.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scenPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_recPrompt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 6: the governance board meets on Thursday.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "recPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_reallocPrompt",
+      "when": "p == 4 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 8: leak detection needs people.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reallocPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "impactPrompt": {
+      "title": "Week 2: what does the new goal do to the portfolio?",
+      "context": "The board's new goal: water loss from 24% to 15% in three years, under a regulator's order. Customer growth, the old first priority, is now third. The six components were ranked on the old criteria: the customer app (6 million) and the office move (2 million) ranked first and second.",
+      "choices": [
+        {
+          "id": "rescored",
+          "label": "Re-score all six components against the board's new criteria with their owners, and set out the impact on each one before anything changes",
+          "effects": [
+            {
+              "set": "impact",
+              "to": "\"rescored\""
+            },
+            {
+              "add": "chair",
+              "by": "1"
+            },
+            {
+              "log": "Re-scored: smart meters and leak detection now rank first; the app falls to fifth.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A change in strategic goals is assessed for its impact on every component against the new criteria before decisions are made."
+        },
+        {
+          "id": "carryOn",
+          "label": "Carry on as planned; the components are already approved and funded",
+          "effects": [
+            {
+              "set": "impact",
+              "to": "\"carryOn\""
+            },
+            {
+              "add": "chair",
+              "by": "-1"
+            },
+            {
+              "log": "The portfolio keeps its old ranking.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Approved components can stop being aligned when the strategy changes; that is what the impact assessment is for."
+        },
+        {
+          "id": "cancelled",
+          "label": "Cancel the app and the office move now; they no longer fit",
+          "effects": [
+            {
+              "set": "impact",
+              "to": "\"cancelled\""
+            },
+            {
+              "add": "chair",
+              "by": "-2"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "You stop two approved components on your own decision.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Stopping components is a portfolio decision for the governance board, after analysis."
+        }
+      ]
+    },
+    "scenPrompt": {
+      "title": "Week 4: options for the board",
+      "context": "The CEO has a favorite: put everything into smart meters. Finance can model costs and returns for any scenario this week; operations can say what capacity each needs.",
+      "choices": [
+        {
+          "id": "three",
+          "label": "Build three what-if scenarios (A: meters first; B: accelerate leak detection and pause the app; C: cancel billing to fund meters faster) and evaluate each on value against the new criteria, risk, cost and capacity",
+          "effects": [
+            {
+              "set": "scen",
+              "to": "\"three\""
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "Scenario B scores best: the highest water-loss reduction for the money, within capacity once the app is paused. C saves 10 million but the dependency analysis shows the meters need the new billing system.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "What-if scenarios are evaluated on the prioritization criteria with risk, financial and capacity analysis to select viable options."
+        },
+        {
+          "id": "one",
+          "label": "Work up the CEO's scenario only",
+          "effects": [
+            {
+              "set": "scen",
+              "to": "\"one\""
+            },
+            {
+              "log": "One scenario, with its costs.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "One scenario gives the board no options to weigh."
+        },
+        {
+          "id": "gut",
+          "label": "Re-order the list by judgment and skip the scenario work",
+          "effects": [
+            {
+              "set": "scen",
+              "to": "\"gut\""
+            },
+            {
+              "add": "cfo",
+              "by": "-1"
+            },
+            {
+              "log": "A re-ordered list, without analysis.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A ranking without analysis gives the board no basis for a decision."
+        }
+      ]
+    },
+    "recPrompt": {
+      "title": "Week 6: the recommendation",
+      "context": "The portfolio governance board meets on Thursday. Its charter gives it the decision on starting, pausing or stopping components and on moving money between them.",
+      "choices": [
+        {
+          "id": "governed",
+          "label": "Recommend scenario B to the board with the rationale (water-loss reduction per dollar, the billing dependency, capacity) and record its decision",
+          "effects": [
+            {
+              "set": "rec",
+              "to": "\"governed\""
+            },
+            {
+              "add": "chair",
+              "by": "1"
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "The board approves scenario B: leak detection accelerated, the app paused, billing kept.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A recommended scenario with its rationale goes to the governance body that holds the decision rights."
+        },
+        {
+          "id": "direct",
+          "label": "Put scenario B in place now and brief the board afterward; it is clearly right",
+          "effects": [
+            {
+              "set": "rec",
+              "to": "\"direct\""
+            },
+            {
+              "add": "chair",
+              "by": "-3"
+            },
+            {
+              "log": "You pause the app and move its money before the board meets.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Even the right decision, taken outside the governance model, is a decision without authority."
+        },
+        {
+          "id": "cutBilling",
+          "label": "Recommend scenario C: cancel the billing system and put its 10 million into meters",
+          "effects": [
+            {
+              "set": "rec",
+              "to": "\"cutBilling\""
+            },
+            {
+              "add": "cfo",
+              "by": "1"
+            },
+            {
+              "log": "The board approves scenario C on your recommendation.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Cancelling a component that others depend on, without the dependency in the analysis, moves the risk rather than the goal."
+        }
+      ]
+    },
+    "reallocPrompt": {
+      "title": "Week 8: who does the leak detection work?",
+      "context": "Leak detection needs four data engineers this month. Four sit on the paused app team, whose manager wants to keep them together for the app's restart next year. Contractors would cost 3 million dollars.",
+      "choices": [
+        {
+          "id": "reallocated",
+          "label": "Move the four engineers from the paused app to leak detection under the approved scenario, update the roadmap and tell the app team when it restarts",
+          "effects": [
+            {
+              "set": "realloc",
+              "to": "\"reallocated\""
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Leak detection starts on time; the roadmap shows the app's restart in the new year.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Capacity is reallocated to the components the approved scenario prioritizes, and the roadmap and the people are updated."
+        },
+        {
+          "id": "keep",
+          "label": "Keep the app team together and let leak detection wait for hiring",
+          "effects": [
+            {
+              "set": "realloc",
+              "to": "\"keep\""
+            },
+            {
+              "log": "Leak detection waits.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Keeping capacity on a paused component starves the one the strategy now puts first."
+        },
+        {
+          "id": "contract",
+          "label": "Hire contractors for 3 million dollars and keep the app team together",
+          "effects": [
+            {
+              "set": "realloc",
+              "to": "\"contract\""
+            },
+            {
+              "add": "cfo",
+              "by": "-2"
+            },
+            {
+              "log": "Contractors hired over the committed budget.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Buying capacity outside the budget when approved capacity is idle is not balancing the portfolio."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the note to the board: what the strategy change did to the portfolio, which scenario you recommended and why, and how capacity was rebalanced.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Impact and scenarios",
+          "criteria": "Re-scores the components against the new criteria, and evaluates more than one scenario on value, risk, cost, capacity and dependencies.",
+          "modelAnswer": "On the new criteria meters and leak detection rank first and the app falls to fifth. Of three scenarios, B gives the most water-loss reduction per dollar within capacity; C saves 10 million but breaks the meters' dependency on billing."
+        },
+        {
+          "label": "Decision and rebalancing",
+          "criteria": "The recommendation went to the governance board with its rationale; capacity moved from the paused component to the prioritized one, within the budget, and the roadmap was updated.",
+          "modelAnswer": "The board approved B. The four data engineers moved from the paused app to leak detection, the roadmap shows the app's restart, and spend stayed at 40 million."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Committed spend within the 40 million dollar budget at week 10."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No portfolio risk above appetite at the close."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "The board chair, the CFO and the VP Operations at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and impact == \"carryOn\" and rec == \"none\"",
+      "class": "recovered",
+      "rationale": "A portfolio left on its old ranking is misaligned, a cost to the strategy rather than immediate harm.",
+      "source": {
+        "cite": "PMI, Portfolio Management Professional (PfMP) Examination Content Outline (PRA-206-2017, July 2017): Strategic Alignment 25%, Governance 20%, Portfolio Performance 25%, Portfolio Risk Management 15%, Communications Management 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://prothoughtssolutions.com/wp-content/uploads/2020/04/portfolio-management-professional-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Strategic Alignment Task 5 scenarios 'in order to evaluate and select viable options'; Task 6 'Recommend portfolio scenario(s) and related components, based on prioritization analysis/criteria'; Task 7 'Determine the impact to portfolio and portfolio components due to changes in strategic goals and objectives'; Portfolio Performance Task 6 'Balance portfolio and prioritize portfolio components, using established criteria and methods'; Task 7 'Analyze and optimize the consolidated allocation/reallocation of capacity'; Governance Task 5 'Make recommendations and obtain approval regarding portfolio decisions'. Whether PMI has a newer outline was not checked. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "authority": {
+      "label": "A portfolio decision outside your authority",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (impact == \"cancelled\" or rec == \"direct\")",
+      "narrative": "Components were stopped or paused and money moved without the governance board."
+    },
+    "materialized": {
+      "label": "A dependency broke",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and billingBreak",
+      "narrative": "The meters went live with no system to bill their reads or report them to the regulator."
+    },
+    "overspend": {
+      "label": "Over the portfolio budget",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and spendPct > budgetCap",
+      "narrative": "The portfolio committed {spent} of 40 million dollars."
+    },
+    "realigned": {
+      "label": "Realigned through governance",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and impact == \"rescored\" and scen == \"three\" and rec == \"governed\" and realloc == \"reallocated\" and record == \"honest\" and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "The portfolio now puts 65% of its budget on the water-loss goal, within budget, with the board's decision on the record."
+    },
+    "partly": {
+      "label": "Partly realigned",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The portfolio moved, but the criteria show where the analysis, the options or the capacity fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "authority",
+    "materialized",
+    "overspend",
+    "realigned",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "impactCrit",
+        "label": "Assessed the strategy change's impact on every component",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "impact == \"rescored\"",
+            "score": "met",
+            "why": "Re-scored on the new criteria."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{impact == \"cancelled\" ? \"Components stopped without analysis or authority.\" : \"No assessment.\"}"
+          }
+        ]
+      },
+      {
+        "id": "scenCrit",
+        "label": "Evaluated what-if scenarios on value, risk, cost and capacity",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "scen == \"three\"",
+            "score": "met",
+            "why": "Three scenarios, analyzed."
+          },
+          {
+            "when": "scen == \"one\"",
+            "score": "partial",
+            "why": "One scenario only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No scenario analysis."
+          }
+        ]
+      },
+      {
+        "id": "recCrit",
+        "label": "Recommended a scenario with its rationale to the governance board",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rec == \"governed\"",
+            "score": "met",
+            "why": "Scenario B, approved by the board."
+          },
+          {
+            "when": "rec == \"cutBilling\"",
+            "score": "partial",
+            "why": "Through the board, but the scenario broke a dependency."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken to the board."
+          }
+        ]
+      },
+      {
+        "id": "capCrit",
+        "label": "Rebalanced capacity to the prioritized components within budget",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "realloc == \"reallocated\"",
+            "score": "met",
+            "why": "Engineers moved; roadmap updated."
+          },
+          {
+            "when": "realloc == \"contract\"",
+            "score": "partial",
+            "why": "Capacity bought over budget."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Leak detection left waiting."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The portfolio record keeps the analysis and the approvals",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Only the list."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spentK",
+        "label": "Committed spend, million dollars",
+        "value": "spent",
+        "format": "number",
+        "expert": "40"
+      },
+      {
+        "id": "aboveK",
+        "label": "Portfolio risks above appetite at close",
+        "value": "aboveCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest executive support at close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before week 2",
+        "text": "Read the strategy and the order; map the dependencies."
+      },
+      {
+        "at": "Week 2",
+        "text": "Re-score every component against the new criteria."
+      },
+      {
+        "at": "Week 4",
+        "text": "Evaluate three scenarios on value, risk, cost, capacity and dependencies."
+      },
+      {
+        "at": "Week 6",
+        "text": "Recommend B to the governance board with the rationale."
+      },
+      {
+        "at": "Week 8",
+        "text": "Move the four engineers from the paused app; update the roadmap."
+      },
+      {
+        "at": "Week 10",
+        "text": "Record the analysis and the board's decision."
+      }
+    ],
+    "debrief": {
+      "authority": {
+        "headline": "Not your decision to take",
+        "body": "Starting, pausing and stopping components belong to the governance board; the portfolio manager assesses, evaluates scenarios and recommends."
+      },
+      "materialized": {
+        "headline": "The dependency was not in the analysis",
+        "body": "Scenario evaluation includes dependencies between components; cancelling billing broke the meters that depend on it."
+      },
+      "overspend": {
+        "headline": "Over budget",
+        "body": "Idle capacity on a paused component was the answer, not new spend."
+      },
+      "realigned": {
+        "headline": "Good: realigned through governance",
+        "body": "Impact assessed, options evaluated, the board decided on a recommendation, and capacity followed the decision."
+      },
+      "partly": {
+        "headline": "Partly realigned",
+        "body": "The criteria show which step was missed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A change in strategic goals is assessed for its impact on every component against the new prioritization criteria. Viable options come from what-if scenarios evaluated on value, risk, cost, capacity and dependencies: cancelling billing looks cheap until the meters' dependency on it is in the analysis. The portfolio manager recommends a scenario with its rationale; the governance board, which holds the decision rights, approves it. Capacity is then reallocated to the prioritized components, here from the paused app, within the budget, and the roadmap is updated."
+  }
+}

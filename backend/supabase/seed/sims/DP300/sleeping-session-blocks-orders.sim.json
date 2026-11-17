@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sleeping-session-blocks-orders",
+  "title": "Outage: order entry hangs behind a sleeping session's open transaction",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@ops-jump:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:00 service desk: order entry saves time out; invoicing starts 09:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:30: month-end invoicing blocked",
+          "when": "not isNull(invMissAt)",
+          "at": "timeAt(invMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:30: month-end invoicing ran",
+          "when": "not isNull(invOkAt)",
+          "at": "timeAt(invOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "s87",
+          "label": "Session 87 (dba_jlee, SSMS)",
+          "spokenLabel": "session 87",
+          "kind": "sleeping, open_transaction_count 1",
+          "status": "{unblocked ? \"rolled back and gone\" : killing ? \"KILLED/ROLLBACK\" : \"holds X locks on dbo.Orders since 08:41\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        },
+        {
+          "id": "app",
+          "label": "Order entry sessions",
+          "spokenLabel": "the order entry sessions",
+          "kind": "112, 115, 118 and more",
+          "status": "{unblocked ? \"saving normally\" : victimsKilled ? \"killed; users retyping orders, still blocked\" : \"waiting LCK_M_IX on 87\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        },
+        {
+          "id": "inv",
+          "label": "Invoicing 09:30",
+          "spokenLabel": "month-end invoicing",
+          "kind": "Business deadline",
+          "status": "{not isNull(invOkAt) ? \"ran\" : not isNull(invMissAt) ? \"blocked\" : \"waiting\"}",
+          "tone": "not isNull(invMissAt) ? \"down\" : not isNull(invOkAt) ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "s87",
+          "label": "Blocked by",
+          "status": "{unblocked ? \"none\" : \"blocking_session_id 87\"}",
+          "tone": "unblocked ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Identifying and resolving session blocking",
+  "secondaryObjectives": [
+    "Monitoring using Extended Events",
+    "Identifying performance issues using dynamic management views (DMVs)"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Microsoft Learn, Understand and resolve SQL Server blocking problems (last updated 2026-08-04)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/da-dk/troubleshoot/sql/database-engine/performance/understand-resolve-blocking",
+      "note": "Read through a summarizing fetch of the Danish-locale page (English text summarized) on 2026-11-17. Relevant text: 'Identify the main blocking session (head blocker)'; scenario 2, a sleeping SPID with open_transaction_count greater than zero, which a timeout or cancel does not end ('doesn't automatically roll back or commit the transaction'), resolved by the application (IF @@TRANCOUNT > 0 ROLLBACK, SET XACT_ABORT ON) and listed as 'No, but SPID can be killed'; a killed session is marked KILLED/ROLLBACK until the rollback ends; blocked_process_report in Extended Events with the threshold set by sp_configure ('By default, no blocked process reports are produced'). KILL WITH STATUSONLY is not on that page; to verify against the KILL reference."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator for Brookline Supply, a fictional wholesaler running SQL Server 2022 on an Azure virtual machine (sql-prod01). At 09:00 the service desk reports that order entry hangs: every save spins until it times out. Month-end invoicing starts at 09:30 and writes to the same Orders table.",
+    "handover": [
+      "Nothing was deployed overnight. Two DBAs were doing archive tests on Sales this morning.",
+      "The blocked process threshold is 0 (off), so no blocked process reports exist yet."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the sessions on Sales and who waits on whom.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "invoiceAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Invoicing starts at 09:30, 30 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "chainAt": {
+      "type": "time",
+      "init": null
+    },
+    "bufferAt": {
+      "type": "time",
+      "init": null
+    },
+    "contacted": {
+      "type": "bool",
+      "init": false
+    },
+    "killing": {
+      "type": "bool",
+      "init": false
+    },
+    "unblocked": {
+      "type": "bool",
+      "init": false
+    },
+    "victimsKilled": {
+      "type": "bool",
+      "init": false
+    },
+    "nolock": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "xe": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "invOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "invMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "opentran",
+        "app",
+        "server"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "chain",
+        "buffer",
+        "contact",
+        "kill",
+        "killVictims",
+        "nolock",
+        "restart",
+        "xe",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "chain": {
+      "label": "sqlcmd: SELECT session_id, blocking_session_id, wait_type, wait_time FROM sys.dm_exec_requests WHERE blocking_session_id <> 0",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(chainAt)",
+          "then": [
+            {
+              "set": "chainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"SELECT session_id, blocking_session_id, wait_type, wait_time/1000 AS s FROM sys.dm_exec_requests WHERE blocking_session_id <> 0\"\n{unblocked ? \"(0 rows affected)\" : \"session_id blocking_session_id wait_type  s\n112        87                  LCK_M_IX   212\n115        87                  LCK_M_IX   188\n118        112                 LCK_M_IX   95\n(3 rows affected)\"}"
+        },
+        {
+          "finding": "Every chain ends at session 87, which is not in sys.dm_exec_requests itself: it is not running anything. It is the head blocker."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "buffer": {
+      "label": "sqlcmd: sys.dm_exec_sessions and sys.dm_exec_input_buffer(87, NULL) for the head blocker",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(bufferAt)",
+          "then": [
+            {
+              "set": "bufferAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"SELECT s.status, s.login_name, s.program_name, s.open_transaction_count, s.last_request_end_time, b.event_info FROM sys.dm_exec_sessions s CROSS APPLY sys.dm_exec_input_buffer(87, NULL) b WHERE s.session_id = 87\"\n{unblocked ? \"(0 rows affected)\" : \"status   login_name program_name open_transaction_count last_request_end_time event_info\nsleeping dba_jlee   SSMS         1                      08:41:12              BEGIN TRAN; UPDATE dbo.Orders SET Status='archived' WHERE OrderDate < '2026-01-01';\"}"
+        },
+        {
+          "finding": "Session 87 is sleeping with one open transaction: an archive test that began a transaction at 08:41 and never committed or rolled back. Its locks stay until it ends."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "contact": {
+      "label": "Message J. Lee: is session 87's archive UPDATE meant to be kept?",
+      "group": "Talk",
+      "available": "not busy and (not contacted)",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "set": "contacted",
+          "to": "true"
+        },
+        {
+          "log": "J. Lee: 'That was a test against the wrong window. Roll it back; nothing in it should stay.'",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "kill": {
+      "label": "KILL 87;  then KILL 87 WITH STATUSONLY",
+      "group": "Fix",
+      "available": "not busy and (not killing and not restarted)",
+      "why": "Already killed.",
+      "effects": [
+        {
+          "set": "killing",
+          "to": "true"
+        },
+        {
+          "if": "isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"KILL 87\"\ndba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"KILL 87 WITH STATUSONLY\"\nSPID 87: transaction rollback in progress. Estimated rollback completion: 61%. Estimated time remaining: 40 seconds."
+        },
+        {
+          "log": "Session 87 is marked KILLED/ROLLBACK; its UPDATE rolls back and its locks are released when the rollback ends.",
+          "kind": "good"
+        },
+        {
+          "set": "unblocked",
+          "to": "true"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "killVictims": {
+      "label": "KILL 112; KILL 115; KILL 118  (the sessions that hang)",
+      "group": "Fix",
+      "available": "not busy and (not victimsKilled and not unblocked)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "victimsKilled",
+          "to": "true"
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"KILL 112; KILL 115; KILL 118\"\nCommands completed successfully."
+        },
+        {
+          "log": "Three users lose the order they were saving. Their retries queue behind session 87 again.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nolock": {
+      "label": "Ask the app team to add WITH (NOLOCK) to the order entry queries",
+      "group": "Fix",
+      "available": "not busy and (not nolock)",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "set": "nolock",
+          "to": "true"
+        },
+        {
+          "log": "Reads stop waiting, but they now read uncommitted rows, including session 87's archived statuses. Writes still wait.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the SQL Server service on sql-prod01",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "set": "unblocked",
+          "to": "true"
+        },
+        {
+          "if": "isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@ops-jump:~$ ssh sql-prod01 'Restart-Service MSSQLSERVER -Force'\nWARNING: Waiting for service 'SQL Server (MSSQLSERVER)' to stop...\nSales: recovery 41% complete (phase 2 of 3)..."
+        },
+        {
+          "log": "Every connection on the server drops, other databases included; Sales is in recovery for 35 minutes.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "35min"
+        }
+      ]
+    },
+    "xe": {
+      "label": "Set blocked process threshold to 20 s and start an Extended Events session on blocked_process_report",
+      "group": "Prevent",
+      "available": "not busy and (not xe)",
+      "why": "Already set.",
+      "effects": [
+        {
+          "set": "xe",
+          "to": "true"
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"EXEC sp_configure 'show advanced options',1; RECONFIGURE; EXEC sp_configure 'blocked process threshold (s)',20; RECONFIGURE; CREATE EVENT SESSION blocking ON SERVER ADD EVENT sqlserver.blocked_process_report ADD TARGET package0.event_file(SET filename='blocking'); ALTER EVENT SESSION blocking ON SERVER STATE=START\"\nConfiguration option 'blocked process threshold (s)' changed from 0 to 20."
+        },
+        {
+          "log": "The next blocking chain longer than 20 seconds leaves a report naming the head blocker.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "sqlcmd: re-run the blocking query and save a test order",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "unblocked",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@ops-jump:~$ sqlcmd -S sql-prod01 -d Sales -Q \"SELECT COUNT(*) AS blocked FROM sys.dm_exec_requests WHERE blocking_session_id <> 0\"\nblocked\n{unblocked ? \"0\" : \"7\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "opentran",
+                  "label": "A sleeping SSMS session (87) with an uncommitted archive UPDATE held locks on Orders; killed and rolled back with the owner's agreement"
+                },
+                {
+                  "value": "app",
+                  "label": "The order entry application"
+                },
+                {
+                  "value": "server",
+                  "label": "The SQL Server service"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= invoiceAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "unblocked and not restarted",
+          "then": [
+            {
+              "set": "invOkAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: invoicing runs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "invMissAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: invoicing cannot write to Orders.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: who was blocking, how you ended it, and how you will see it sooner next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Head blocker",
+          "criteria": "Follows blocking_session_id to the head and reads its state and input buffer.",
+          "modelAnswer": "sys.dm_exec_requests showed every chain ending at 87; sys.dm_exec_sessions showed it sleeping with open_transaction_count 1 and the input buffer showed an uncommitted archive UPDATE from 08:41."
+        },
+        {
+          "label": "Ended",
+          "criteria": "Kills the head blocker, not its victims, after checking with its owner, and knows the KILL rolls back.",
+          "modelAnswer": "J. Lee confirmed it was a test, so KILL 87 rolled the UPDATE back; WITH STATUSONLY showed the rollback progress. Killing 112-118 or restarting the service would have hurt users and not ended the cause."
+        },
+        {
+          "label": "Next time",
+          "criteria": "Turns on the blocked process report and checks.",
+          "modelAnswer": "Blocked process threshold 20 s and an Extended Events session on blocked_process_report; the re-run showed no blocked requests before 09:30."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Invoicing starts at 09:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a service restart or killed user sessions."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not unblocked",
+      "class": "harm",
+      "rationale": "Closing with session 87 still holding its locks leaves order entry and invoicing blocked.",
+      "source": {
+        "cite": "Microsoft Learn, Understand and resolve SQL Server blocking problems (last updated 2026-08-04)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/da-dk/troubleshoot/sql/database-engine/performance/understand-resolve-blocking",
+        "note": "Read through a summarizing fetch of the Danish-locale page (English text summarized) on 2026-11-17. Relevant text: 'Identify the main blocking session (head blocker)'; scenario 2, a sleeping SPID with open_transaction_count greater than zero, which a timeout or cancel does not end ('doesn't automatically roll back or commit the transaction'), resolved by the application (IF @@TRANCOUNT > 0 ROLLBACK, SET XACT_ABORT ON) and listed as 'No, but SPID can be killed'; a killed session is marked KILLED/ROLLBACK until the rollback ends; blocked_process_report in Extended Events with the threshold set by sp_configure ('By default, no blocked process reports are produced'). KILL WITH STATUSONLY is not on that page; to verify against the KILL reference."
+      }
+    }
+  },
+  "endings": {
+    "restarted": {
+      "label": "Server restarted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and restarted",
+      "narrative": "Restarting the service dropped every connection and put Sales into recovery past 09:30."
+    },
+    "invoiceMissed": {
+      "label": "Invoicing blocked",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(invMissAt)",
+      "narrative": "At 09:30 session 87 still held its locks."
+    },
+    "fixed": {
+      "label": "Head blocker found and ended, report on",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and unblocked and not restarted and isNull(invMissAt) and not isNull(chainAt) and not isNull(bufferAt) and contacted and not victimsKilled and not nolock and xe and not isNull(verifiedAt) and causeDoc == \"opentran\"",
+      "narrative": "The chain followed to 87, its open transaction read, its owner asked, the KILL rolled it back, the fix checked and blocking reports turned on before 09:30."
+    },
+    "gaps": {
+      "label": "Unblocked, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Orders flow again, but a step was skipped or a side effect was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "restarted",
+    "invoiceMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "head",
+        "label": "Followed the chain to the head blocker and read its open transaction",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(chainAt) and not isNull(bufferAt)",
+            "score": "met",
+            "why": "Chain and input buffer read."
+          },
+          {
+            "when": "not isNull(chainAt) or not isNull(bufferAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Acted without finding the head blocker."
+          }
+        ]
+      },
+      {
+        "id": "end",
+        "label": "Ended only the head blocker, before 09:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "unblocked and not restarted and not victimsKilled and isNull(invMissAt)",
+            "score": "met",
+            "why": "KILL 87, in time."
+          },
+          {
+            "when": "unblocked and not restarted",
+            "score": "partial",
+            "why": "{victimsKilled ? \"Users' sessions were killed first.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{restarted ? \"The whole service was restarted.\" : \"Still blocked.\"}"
+          }
+        ]
+      },
+      {
+        "id": "safe",
+        "label": "Checked with the owner, no NOLOCK shortcut, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "contacted and not nolock and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "All three."
+          },
+          {
+            "when": "contacted or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Some."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "prevent",
+        "label": "Blocked process report turned on",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "xe",
+            "score": "met",
+            "why": "Threshold and Extended Events session."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The next chain will be found the same way."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"opentran\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames something that was not holding the locks."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minFix",
+        "label": "Minutes until the blocker was ended",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "about 3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00-09:02",
+        "text": "sys.dm_exec_requests: every chain ends at 87; sys.dm_exec_sessions and the input buffer: sleeping, one open transaction, an archive UPDATE since 08:41."
+      },
+      {
+        "at": "09:02-09:05",
+        "text": "J. Lee confirms it was a test; KILL 87 and WITH STATUSONLY until the rollback ends; re-run the blocking query."
+      },
+      {
+        "at": "09:05-09:06",
+        "text": "Blocked process threshold 20 s and an Extended Events session on blocked_process_report."
+      }
+    ],
+    "debrief": {
+      "restarted": {
+        "headline": "A restart ended everything, not just the blocker",
+        "body": "One sleeping session held the locks. Restarting the service rolls it back the slow way, through crash recovery, and drops every other user and database with it."
+      },
+      "invoiceMissed": {
+        "headline": "Invoicing could not start",
+        "body": "The waiting sessions are victims. Follow blocking_session_id to the session that is not waiting on anyone, read what it holds, and end that one."
+      },
+      "fixed": {
+        "headline": "Good: the head blocker, ended safely",
+        "body": "You followed the chain to a sleeping session with an open transaction, checked what it held and whose it was, killed only it, and left a blocked process report so the next one names itself."
+      },
+      "gaps": {
+        "headline": "Unblocked, with gaps",
+        "body": "The criteria show what was left: the input buffer, the owner's agreement, killed victims, a NOLOCK request, the check, or the blocked process report."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The waiting sessions all point, directly or through each other, to session 87, which is not running anything: the head blocker. sys.dm_exec_sessions shows it sleeping with open_transaction_count 1, and its input buffer shows an archive UPDATE begun at 08:41 and never committed, so its exclusive locks on Orders stay until the transaction ends. Its owner confirms it was a test, so KILL 87 rolls it back (WITH STATUSONLY shows the progress) and the locks go. Killing the waiting sessions loses users' orders and changes nothing; NOLOCK reads uncommitted data and does not help writes; restarting the service ends the blocker through crash recovery and drops everyone. Re-run the check, then set the blocked process threshold and capture blocked_process_report with Extended Events."
+  }
+}

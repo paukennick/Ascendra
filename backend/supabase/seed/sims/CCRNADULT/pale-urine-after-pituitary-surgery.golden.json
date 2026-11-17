@@ -1,0 +1,475 @@
+{
+  "slug": "pale-urine-after-pituitary-surgery",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: intake and output, specific gravity and sodium; central DI; neurosurgery now; desmopressin and replacement; sodium plan; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "urineQ",
+          "choice": "dilute",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "sg",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "di"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "nsg"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "afterQ",
+          "choice": "hypo",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "desmo",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "replace",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "naPlan",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "treated",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "treatC": "met",
+          "noRestrict": "met",
+          "sgC": "met",
+          "naC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toDesmo": 400
+        },
+        "stateHash": "de47f67f846ceba5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Neuro check and glucose first, calls 7 minutes after the sodium, and sets no sodium plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urineQ",
+          "choice": "dilute",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "sg",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "di"
+          },
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "nsg"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "afterQ",
+          "choice": "hypo",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "desmo",
+          "seq": 11,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "replace",
+          "seq": 12,
+          "tick": 175
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 175
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "callC": "partial",
+          "treatC": "met",
+          "noRestrict": "met",
+          "sgC": "met",
+          "naC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 360,
+          "toDesmo": 875
+        },
+        "stateHash": "f2475f1842dd2554"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "desmoOnly",
+      "title": "Calls at once and gives desmopressin, but never starts the replacement fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sg",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urineQ",
+          "choice": "dilute",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "nsg"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "afterQ",
+          "choice": "hypo",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "di"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "desmo",
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "naPlan",
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "callC": "met",
+          "treatC": "partial",
+          "noRestrict": "met",
+          "sgC": "met",
+          "naC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toDesmo": 400
+        },
+        "stateHash": "f623353d1aa7c5b7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "siadh",
+      "title": "Failure: reads the sodium, calls it SIADH, restricts fluids and leaves it for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sg",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urineQ",
+          "choice": "dilute",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "siadh"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "restrict",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "treatC": "missed",
+          "noRestrict": "missed",
+          "sgC": "met",
+          "naC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toDesmo": -1
+        },
+        "stateHash": "19dc575e510611c0"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "ivFluid",
+      "title": "Failure: totals the output and calls it IV fluid coming out",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urineQ",
+          "choice": "dilute",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "fluids"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "treatC": "missed",
+          "noRestrict": "met",
+          "sgC": "missed",
+          "naC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toDesmo": -1
+        },
+        "stateHash": "89d196d520801527"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

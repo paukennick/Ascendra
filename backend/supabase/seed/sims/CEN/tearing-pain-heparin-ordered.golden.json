@@ -1,0 +1,448 @@
+{
+  "slug": "tearing-pain-heparin-ordered",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: the pain story, both arms and pulses; heparin held and the physician told; beta-blocker, then vasodilator; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "missQ",
+          "choice": "deficit",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "arms",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aad"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "rate",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "toTheater",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "noHeparin": "met",
+          "callC": "met",
+          "betaFirst": "met",
+          "armsC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toArms": 125,
+          "toCall": 60
+        },
+        "stateHash": "3e24f2baf2d45939"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Neuro check, pain story and both arms, then waits 8 minutes before calling; infusions in order",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "missQ",
+          "choice": "deficit",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "arms",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aad"
+          },
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "rate",
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 11,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 170
+        }
+      ],
+      "expect": {
+        "ending": "toTheaterLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "noHeparin": "met",
+          "callC": "partial",
+          "betaFirst": "met",
+          "armsC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toArms": 180,
+          "toCall": 430
+        },
+        "stateHash": "1239df3e1405a230"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "vasoFirst",
+      "title": "Recognizes and calls promptly, but starts the vasodilator before the beta-blocker",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "missQ",
+          "choice": "deficit",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "arms",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aad"
+          },
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "rate",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "vaso",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 10,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "toTheaterLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "noHeparin": "met",
+          "callC": "met",
+          "betaFirst": "partial",
+          "armsC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toArms": 120,
+          "toCall": 60
+        },
+        "stateHash": "87b71d60995fa61f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "gaveHeparin",
+      "title": "Failure: a quick neuro check, then gives the heparin as ordered",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "missQ",
+          "choice": "deficit",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "heparin",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "tamponade",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "noHeparin": "missed",
+          "callC": "missed",
+          "betaFirst": "missed",
+          "armsC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toArms": -1,
+          "toCall": -1
+        },
+        "stateHash": "ec187cbbd48925b3"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "analgesiaOnly",
+      "title": "Failure: hears the tearing pain, calls it NSTEMI and asks only for analgesia",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pain",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "missQ",
+          "choice": "deficit",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "nstemi"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "update"
+          },
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "rupture",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "noHeparin": "met",
+          "callC": "missed",
+          "betaFirst": "missed",
+          "armsC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toArms": -1,
+          "toCall": 0
+        },
+        "stateHash": "91a66e17df7b6670"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,488 @@
+{
+  "slug": "found-on-floor-tea-colored-urine",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: labs and ECG; lungs; fluid titrated; nephrotoxins held; rhabdomyolysis; intensivist; hyperkalemia treated; compartments; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "myo",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "rhabdo"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "high",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "kTx",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "limbs",
+          "seq": 13,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 92
+        }
+      ],
+      "expect": {
+        "ending": "stabilized",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "fluidC": "met",
+          "nsaidC": "met",
+          "limbsC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toFluid": 125
+        },
+        "stateHash": "718b5aabe78f7d82"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Medications and limbs first, then the labs; calls 6 minutes after the potassium",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "myo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "limbs",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "rhabdo"
+          },
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "high",
+          "seq": 11,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "kTx",
+          "seq": 13,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "stabilizedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "fluidC": "met",
+          "nsaidC": "met",
+          "limbsC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toFluid": 240
+        },
+        "stateHash": "513cc4cdb0d83c8a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "ketorolac",
+      "title": "Calls at once and titrates fluid without checking his lungs, then gives the ketorolac for his pain",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "myo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "targetQ",
+          "choice": "high",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "nsaid",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "rhabdo"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "kTx",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "stabilizedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "callC": "met",
+          "fluidC": "partial",
+          "nsaidC": "missed",
+          "limbsC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toFluid": 60
+        },
+        "stateHash": "0b68182a2abdd6c2"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "uti",
+      "title": "Failure: reads the dipstick as a UTI, gives ketorolac and leaves the labs for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "myo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "uti"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "nsaid",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "fluidC": "missed",
+          "nsaidC": "missed",
+          "limbsC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toFluid": -1
+        },
+        "stateHash": "9b3a35460e915c7f"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "dehydration",
+      "title": "Failure: reviews his medications, calls it dehydration and lets the next bag wait",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "dipQ",
+          "choice": "myo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dehydration"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "fluidC": "missed",
+          "nsaidC": "missed",
+          "limbsC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toFluid": -1
+        },
+        "stateHash": "6a96ca9a3ee3b540"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

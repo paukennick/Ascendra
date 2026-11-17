@@ -52,7 +52,7 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CAPM_TRACK: SeedTrack = {
   code: "CAPM",
-  title: "Prep for an entry-level project management associate certification exam",
+  title: "Exam Prep for CAPM®",
   description:
     "PMI Certified Associate in Project Management (CAPM) exam prep across 4 weighted domains -- PM fundamentals, predictive/plan-based methods, agile methods, and business analysis frameworks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and CAPM are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -161,7 +161,7 @@ export const CAPM_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMP_TRACK: SeedTrack = {
   code: "PMP",
-  title: "Prep for a professional project management certification exam",
+  title: "Exam Prep for PMP®",
   description:
     "PMI Project Management Professional (PMP) exam prep across 3 weighted domains -- people, process, and business environment -- spanning predictive, agile, and hybrid ways of working. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -253,7 +253,7 @@ export const PMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIACP_TRACK: SeedTrack = {
   code: "PMIACP",
-  title: "Prep for an agile practitioner certification exam",
+  title: "Exam Prep for PMI-ACP®",
   description:
     "PMI Agile Certified Practitioner (PMI-ACP) exam prep across 4 weighted domains -- agile mindset, leadership, product, and delivery -- reframed by PMI's 2026 update around Enterprise Agility. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-ACP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -356,7 +356,7 @@ export const PMIACP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PGMP_TRACK: SeedTrack = {
   code: "PGMP",
-  title: "Prep for a program management professional certification exam",
+  title: "Exam Prep for PgMP®",
   description:
     "PMI Program Management Professional (PgMP) exam prep across 5 weighted domains -- strategic alignment, program life cycle management, benefits management, stakeholder engagement, and governance. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PgMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -375,6 +375,11 @@ export const PGMP_TRACK: SeedTrack = {
     objectivesRevision: "March 2024 ECO",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pgmp-exam-content-outline.pdf",
+    // REQ-310 (verify-2, 2026-11-17): not re-verified. The ECO PDF above
+    // needed a fetch approval that was not answered, and PMI's PgMP pages
+    // either failed to load or (program-management-pgmp) showed only PDU
+    // rules. Domain weights and task wording stay as read on 2026-09-26: to
+    // verify against the ECO.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Secondary diploma/GED + 48 months project management experience + 84 months program management experience, or bachelor's degree + 36 months project management experience + 36 months program management experience -- all within the past 15 years, plus 21 hours of program-management-specific training.",
@@ -474,7 +479,7 @@ export const PGMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PFMP_TRACK: SeedTrack = {
   code: "PFMP",
-  title: "Prep for a portfolio management professional certification exam",
+  title: "Exam Prep for PfMP®",
   description:
     "PMI Portfolio Management Professional (PfMP) exam prep across 5 weighted domains -- strategic alignment, governance, portfolio performance, portfolio risk management, and communications management. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PfMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -593,7 +598,7 @@ export const PFMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIRMP_TRACK: SeedTrack = {
   code: "PMIRMP",
-  title: "Prep for a project risk management certification exam",
+  title: "Exam Prep for PMI-RMP®",
   description:
     "PMI Risk Management Professional (PMI-RMP) exam prep across 5 weighted domains -- risk strategy and planning, identification, analysis, response, and monitoring/closing risks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-RMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -697,7 +702,7 @@ export const PMIRMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMISP_TRACK: SeedTrack = {
   code: "PMISP",
-  title: "Prep for a project scheduling certification exam",
+  title: "Exam Prep for PMI-SP®",
   description:
     "PMI Scheduling Professional (PMI-SP) exam prep across 5 weighted domains -- schedule strategy, planning/development, monitoring/controlling, closeout, and stakeholder communications. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-SP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -811,7 +816,7 @@ export const PMISP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICP_TRACK: SeedTrack = {
   code: "PMICP",
-  title: "Prep for a construction project management certification exam",
+  title: "Exam Prep for PMI-CP™",
   description:
     "PMI Construction Professional (PMI-CP) exam prep across 4 weighted domains -- contracts management, stakeholder engagement, strategy/scope management, and project governance for built-environment and capital projects. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -903,7 +908,7 @@ export const PMICP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPMOCP_TRACK: SeedTrack = {
   code: "PMIPMOCP",
-  title: "Prep for a project management office certification exam",
+  title: "Exam Prep for PMI-PMOCP™",
   description:
     "PMI PMO Certified Professional (PMI-PMOCP) exam prep across 6 weighted domains -- organizational alignment, PMO strategy, design, operations, enhancement, and the people skills a PMO practitioner needs. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PMOCP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -922,6 +927,12 @@ export const PMIPMOCP_TRACK: SeedTrack = {
     objectivesRevision: "January 2025 ECO (V2)",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pmi-pmocp-exam-content-outline_2025-1.pdf",
+    // REQ-310 (verify-2, 2026-11-17): PMI's PMI-PMOCP page (direct page,
+    // https://www.pmi.org/certifications/pmo-certified-professional-pmi-pmocp)
+    // lists the same six domains and weights (16/18/18/15/18/15), 120 questions
+    // and 165 minutes. The ECO PDF above could not be read that day (the fetch
+    // needed an approval that was not answered), so the task wording below is
+    // still as read on 2026-09-27: to verify against the ECO.
     lastVendorVerifiedAt: VERIFIED_AT_20260927,
     recommendedExperience:
       "Secondary diploma + 36 months of project-related experience within the past 8 years (waived if the candidate holds an active PMP) + 10 contact hours of PMO-specific education.",
@@ -1018,7 +1029,7 @@ export const PMIPMOCP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPBA_TRACK: SeedTrack = {
   code: "PMIPBA",
-  title: "Prep for a business analysis certification exam",
+  title: "Exam Prep for PMI-PBA®",
   description:
     "PMI Professional in Business Analysis (PMI-PBA) exam prep across 5 weighted domains -- needs assessment, planning, analysis, traceability/monitoring, and evaluation. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PBA are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -1044,6 +1055,14 @@ export const PMIPBA_TRACK: SeedTrack = {
     recommendedExperience:
       "Secondary diploma + 60 months of business analysis experience within 8 years + 35 contact hours, or bachelor's degree + 36 months + 35 hours, or a GAC-accredited bachelor's/postgraduate degree + 24 months.",
     questionFormat: "200 questions (175 scored, 25 unscored pretest); multiple choice",
+    // REQ-310 (verify-2, read 2026-11-17, direct page,
+    // https://www.pmi.org/certifications/business-analysis-pba): 200 questions,
+    // 240 minutes; Needs Assessment 18%, Planning 22%, Analysis 35%,
+    // Traceability and Monitoring 15%, Evaluation 10% -- the units' weights.
+    // The page gave the exam time this seed had left unset. The ECO PDF above
+    // could not be read that day (the fetch needed an approval that was not
+    // answered), so the task wording is still as read on 2026-11-08: to verify.
+    durationMinutes: 240,
     passingScorePolicy: "Pass/fail against a criterion-referenced standard; PMI does not publish a numeric cut score.",
   },
   units: [
@@ -1138,7 +1157,7 @@ export const PMIPBA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICPMAI_TRACK: SeedTrack = {
   code: "PMICPMAI",
-  title: "Prep for an AI project management certification exam",
+  title: "Exam Prep for PMI-CPMAI™",
   description:
     "PMI Certified Professional in Managing AI (PMI-CPMAI) exam prep across 5 weighted domains -- responsible AI, identifying business and data needs, model development/evaluation, and operationalizing AI solutions. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CPMAI are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -1157,6 +1176,12 @@ export const PMICPMAI_TRACK: SeedTrack = {
     objectivesRevision: "September 2025 ECO",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pmicpmai-exam-content-outline2025-updated.pdf",
+    // REQ-310 (verify-2, read 2026-11-17, direct page,
+    // https://www.pmi.org/certifications/ai-project-management-cpmai): 120
+    // questions, 160 minutes, no notice of a newer outline. The page shows no
+    // domains; the ECO PDF above needed a fetch approval that was not
+    // answered, so domains and task wording stay as read on 2026-09-27 from
+    // that PDF: to verify. Third-party restatements were not used.
     lastVendorVerifiedAt: VERIFIED_AT_20260927,
     recommendedExperience:
       "None required -- the only gate is completing PMI's own PMI-CPMAI Exam Prep Course first, then scheduling via Pearson VUE.",
@@ -1255,17 +1280,20 @@ export const PMICPMAI_TRACK: SeedTrack = {
 // weights, since Ascendra's other PM tracks assume a learner already
 // working from PMI's credential ladder -- noted explicitly below rather
 // than silently picking one.
+// REQ-310: the CSPP outline was re-read in full on this day (see the note in
+// the credential block).
+const CSPP_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CSPP_TRACK: SeedTrack = {
   code: "CSPP",
-  title: "Prep for a sustainable project management certification exam",
+  title: "Exam Prep for Certified Sustainable Project Professional (CSPP)™",
   description:
     "PMI & GPM Certified Sustainable Project Professional (CSPP) exam prep across 5 weighted domains -- sustainability foundations, the PRiSM life cycle, P5 impact analysis, sustainability management planning, and ESG reporting/governance. Modeled on the Certified Practitioner pathway (for candidates who already hold a qualifying PM credential); the Non-Certified Practitioner pathway adds a sixth domain and different weights for candidates without one. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI is a mark of Project Management Institute, Inc.; CSPP is a mark of its owner.",
   trackType: "certification",
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/sustainability-cspp",
-  sourceVerifiedAt: VERIFIED_AT_20260927,
+  sourceVerifiedAt: CSPP_CHECKED_AT,
   credential: {
     ...PMI_PROVIDER,
     credentialSlug: "cspp",
@@ -1277,7 +1305,7 @@ export const CSPP_TRACK: SeedTrack = {
     objectivesRevision: "March 2026 ECO (V2), Certified Practitioner pathway",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/cspp/cspp-exam-content-outline_2026.pdf",
-    lastVendorVerifiedAt: VERIFIED_AT_20260927,
+    lastVendorVerifiedAt: CSPP_CHECKED_AT,
     recommendedExperience:
       "Certified Practitioner pathway: an active qualifying PM credential (PMP, CAPM, PfMP, PgMP, or equivalent) or a Master's degree in project/program management, plus 12 hours of sustainability-specific education. (A separate Non-Certified Practitioner pathway exists for candidates without a qualifying credential -- secondary diploma + 20 hours of education, but a longer 6-domain exam.)",
     durationMinutes: 120,
@@ -1288,6 +1316,20 @@ export const CSPP_TRACK: SeedTrack = {
     // -- both pathways' printed weights total 101, with no rounding note.
     publishedWeightsNote:
       "PMI's 2026 CSPP outline prints 18+18+36+18+11 (=101) for the Certified Practitioner pathway, with no rounding note; kept as printed.",
+    // REQ-310 (verify-2, read 2026-11-17, direct PDF, the officialObjectivesUrl above;
+    // running header "February 2026", CSPP cover "MARCH 2026 V2"): the Certified
+    // Practitioner pathway is unchanged -- 100 questions (85 scored, 15 pretest),
+    // 120 minutes, domains I-V at 18/18/36/18/11 (=101), domain VI "Project
+    // Management Considerations" printed "N/A" (not tested). For the record, the
+    // Non-Certified Practitioner pathway (not modeled; Nick 2026-11-17: keep the
+    // Certified Practitioner pathway) is 145 questions (130 scored, 15 pretest),
+    // 175 minutes with one 10-minute break, domains I-VI at 12/23/24/12/7/23
+    // (=101, as published, no rounding note). Domain VI's tasks: value management,
+    // change control aligned to sustainability, sustainable project success,
+    // project artifacts, sustainability activities in each PM phase. The 24/23/23
+    // weights a review quoted for "the CSPP page" are this NCP column. Task
+    // titles for domains I-V match the objectives below in order; domain IV
+    // tasks 4 (KPIs) and 5 (sustainable procurement) share one objective.
   },
   units: [
     {

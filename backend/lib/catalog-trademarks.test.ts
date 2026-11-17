@@ -17,8 +17,20 @@
 //   - "unstated": no rule for third parties was found. Read the conservative
 //     way: no mark in the title; the description names the exam once, with a
 //     not-affiliated notice and the owner's attribution where we know it.
-// Every covered title names no mark of ANY covered body. Course codes are
-// unchanged, so mastery stays mapped. Pure data test over the seed modules.
+// REQ-324 (Nick, 2026-11-17: "Courses that are publicly named the course or
+// exam should remain that way"; title form chosen 03:40 PT): every exam
+// course's title names the exam as its body publishes it, "Exam Prep for
+// <Exam> (<code>)" ("Exam Prep for CompTIA Security+ (SY0-701)", "Exam Prep
+// for CISSP®"), the 13 "permission" bodies included. What the policies still
+// decide: no "Official", "Approved", "Authorized", "Certified by" or
+// "Master" claim of our own; ® or ™ only where the owner marks the name so
+// (TITLE_SYMBOLS below, or the reference evidence in lib/unbranded.ts), and
+// where a body's guideline asks for the symbol on first use (the Linux
+// Foundation, PMI), it is there; every exam course's description still ends
+// with its disclaimer; a permission body's course page keeps its reference
+// line. The app's name and icon carry no mark (app.json, not checked here).
+// Course codes are unchanged, so mastery stays mapped. Pure data test over the
+// seed modules.
 //
 // Not legal advice: no lawyer has reviewed these titles or notices.
 import { test, describe } from "node:test";
@@ -27,7 +39,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { RELEASE_NOTES } from "./release-notes";
-import { COURSE_REFERENCES, REFERENCE_LINE_ON, examReferenceForCode } from "./unbranded";
+import { COURSE_REFERENCES, REFERENCE_LINE_ON, UNBRANDED_NAMING_ON, examReferenceForCode } from "./unbranded";
 
 const byCode = new Map(CATALOG_TRACKS.map((t) => [t.code, t]));
 const READ = "2026-11-16";
@@ -154,6 +166,42 @@ const ALL_CODES = BODIES.flatMap((b) => b.codes);
 const ANY_MARK = new RegExp(BODIES.map((b) => b.marks.source).join("|"));
 const PERMISSION_MARKS = new RegExp(BODIES.filter((b) => b.policy === "permission").map((b) => b.marks.source).join("|"));
 
+// REQ-324: "Coach" that is part of an exam's own name (NASM's Certified
+// Nutrition Coach) is the exam, not our product name.
+const notOwnCoach = (title: string) => title.replace("Certified Nutrition Coach", "");
+
+// REQ-324: the title form (Nick, 2026-11-17 03:40 PT) and its parts.
+const EXAM_TITLE = /^Exam Prep for \S.+\S$/;
+// A published exam code: letters/digits joined by hyphens with a digit in it
+// (SY0-701, SAA-C03, AZ-900, 220-1201, 312-50, PCEP-30-03). Names like
+// NCLEX-RN, NPTE-PT or "EPPP Part 1" are not codes.
+const EXAM_CODE = /^(?=.*\d)[A-Z0-9]+(-[A-Z0-9]+)+$/;
+const NO_CLAIM = /\b(Official|Approved|Authorized|Certified by|Master)\b/gi;
+
+// REQ-324: where a title may carry ® or ™ for a body outside the 13
+// permission bodies (theirs come from lib/unbranded.ts COURSE_REFERENCES and
+// its MARK_EVIDENCE). A body not listed gets no symbol: CompTIA's page asks
+// only its authorized partners to mark its names; AWS, Microsoft, Google,
+// NREMT, ACSM, NCCPT, ASWB and Red Hat were not seen marking these names on
+// a page read for this change. `firstUse`: the guideline asks for the symbol
+// at the first use of a listed mark (`unlisted`: courses whose marks the
+// owner's list does not carry).
+const TITLE_SYMBOLS: Record<string, { url: string; readAt: string; how: string; marks: string[]; firstUse?: boolean; unlisted?: string[] }> = {
+  PMI: { url: "https://www.pmi.org/certifications", readAt: "2026-11-17", how: "page; guideline (Rev. Jan 2023 PDF, read 2026-11-17): the notice follows the mark when it first appears; training providers may use certification marks in course headings with notice of PMI's ownership",
+    marks: ["CAPM®", "PMP®", "PgMP®", "PfMP®", "PMI-PMOCP™", "PMI-ACP®", "PMI-RMP®", "PMI-PBA®", "PMI-CP™", "(CSPP)™", "PMI-CPMAI™", "PMI-SP®"], firstUse: true },
+  "Linux Foundation / CNCF": { url: "https://www.linuxfoundation.org/trademark-list/", readAt: "2026-11-17", how: "page; https://www.linuxfoundation.org/legal/trademark-usage (read 2026-11-17): \"the ® symbol immediately after the first usage\"",
+    marks: ["Certified Kubernetes Administrator®", "Certified Kubernetes Application Developer®", "Certified Kubernetes Security Specialist®", "Kubernetes®", "Prometheus Certified Associate®", "OpenTelemetry®", "Certified GitOps Associate®", "Certified Argo Project Associate®", "Cilium Certified Associate®", "Istio Certified Associate®", "Kyverno®", "Backstage®", "Linux Foundation Certified System Administrator®"],
+    firstUse: true, unlisted: ["CNPA", "CNPE"] },
+  NCSBN: { url: "https://trust.ncsbn.org/trademarks.page", readAt: "2026-11-16", how: "REQ-309 policy read: NCLEX, NCLEX-RN and NCLEX-PN are registered trademarks", marks: ["NCLEX-RN®", "NCLEX-PN®"] },
+  "AACN Certification Corporation": { url: "https://www.aacn.org/-/media/aacn-website/certification/get-certified/handbooks/certpolicyhndbk.pdf", readAt: "2026-11-16", how: "REQ-309 policy read (PDF): CCRN and PCCN are registered service marks", marks: ["CCRN®", "PCCN®"] },
+  MSNCB: { url: "https://www.msncb.org/Terms-Conditions", readAt: "2026-11-16", how: "REQ-309 policy read: CMSRN is a registered mark", marks: ["CMSRN®"] },
+  FSBPT: { url: "https://www.fsbpt.org/Portals/0/documents/free-resources/NPTE_Candidate_Handbook.pdf", readAt: "2026-11-16", how: "REQ-309 policy read (PDF): NPTE and FSBPT are registered trademarks", marks: ["NPTE®"] },
+  ASPPB: { url: "https://asppb.net/exams/asppb-examination-for-professional-psychology-eppp/", readAt: "2026-11-16", how: "REQ-309 policy read: EPPP is a registered trademark of ASPPB", marks: ["EPPP®"] },
+  NSCA: { url: "https://www.nsca.com/certification/certification-resources/credential-guidelines/", readAt: "2026-11-16", how: "REQ-309 policy read: CSCS and NSCA-CPT are registered marks", marks: ["CSCS®", "NSCA-CPT®"] },
+  "Scrum Alliance": { url: "https://www.scrumalliance.org/get-certified/scrum-master-track", readAt: "2026-11-17", how: "page: heading \"Certified ScrumMaster®\"", marks: ["Certified ScrumMaster®"] },
+  "Scrum.org": { url: "https://www.scrum.org/resources/suggested-reading-professional-scrum-master", readAt: "2026-11-17", how: "search result title only (\"Suggested Reading for Professional Scrum Master™ I\"); page not fetched", marks: ["Professional Scrum Master™"] },
+};
+
 describe("REQ-309: each exam body's trademark policy, at its most conservative reading", () => {
   test("every covered course still exists under its original code, so mastery stays mapped", () => {
     const missing = ALL_CODES.filter((c) => !byCode.has(c));
@@ -174,17 +222,84 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     assert.equal(READ, "2026-11-16");
   });
 
-  test("titles are descriptive 'Prep for a/an ... exam' and name no covered body's mark, symbol or exam code", () => {
+  test("REQ-324: unbranded naming is off, so titles, the exam card, prompts and emails name the exam", () => {
+    assert.equal(UNBRANDED_NAMING_ON, false);
+  });
+
+  test("REQ-324: every exam course's title is 'Exam Prep for <Exam>', naming the exam by its body's own name or mark", () => {
     for (const b of BODIES)
       for (const code of b.codes) {
         const title = byCode.get(code)!.title;
-        assert.match(title, /^Prep for an? [^®™]+ (exam|assessment|test)( \([^()]+\))?$/, `${b.name} ${code}: ${title}`);
-        assert.doesNotMatch(title, ANY_MARK, `${b.name} ${code}: ${title}`);
-        assert.doesNotMatch(title, /\bCoach\b/, `${b.name} ${code}`);
+        assert.match(title, EXAM_TITLE, `${b.name} ${code}: ${title}`);
+        assert.match(title, b.marks, `${b.name} ${code}: the title names no mark of its exam body: ${title}`);
+        assert.doesNotMatch(notOwnCoach(title), /\bCoach\b/, `${b.name} ${code}`);
       }
+    assert.match(byCode.get("WAPSYCHJP")!.title, /^Exam Prep for Washington Psychology Jurisprudence Examination$/);
   });
 
-  test("titles are unique across the catalog, so descriptive names still tell courses apart", () => {
+  test("REQ-324: a published exam code is in parentheses after the exam's name (Red Hat course numbers aside)", () => {
+    for (const b of BODIES)
+      for (const code of b.codes) {
+        const t = byCode.get(code)!;
+        const examCode = t.credential?.examCode;
+        if (!examCode || !EXAM_CODE.test(examCode) || b.name === "Red Hat") continue;
+        assert.ok(t.title.includes(`(${examCode})`), `${code}: ${t.title} lacks (${examCode})`);
+      }
+    // The version distinctions that existed before REQ-324 survive.
+    assert.equal(byCode.get("SECPLUS")!.title, "Exam Prep for CompTIA Security+ (SY0-701)");
+    assert.equal(byCode.get("SECPLUSV8")!.title, "Exam Prep for CompTIA Security+ (SY0-801)");
+    assert.equal(byCode.get("ITIL5FND")!.title, "Exam Prep for ITIL® Foundation (Version 5)");
+    assert.equal(byCode.get("ITIL4FND")!.title, "Exam Prep for ITIL® 4 Foundation");
+    for (const code of ["NASMCPT", "ACECPT", "ACSMCPT", "NSCACPT", "NCCPTCPT", "FNPAANP"]) assert.match(byCode.get(code)!.title, / \([a-z ]+ focus\)$/, code);
+    assert.match(byCode.get("FNPANCC")!.title, / \(with professional role topics\)$/);
+  });
+
+  test("REQ-324: no title, reference line or disclaimer claims 'Official', 'Approved', 'Authorized', 'Certified by' or 'Master', unless the word is in the exam's own published name", () => {
+    for (const t of CATALOG_TRACKS) {
+      const ref = examReferenceForCode(t.code);
+      for (const text of [t.title, ref?.line ?? "", ref?.disclaimer ?? ""])
+        for (const m of text.matchAll(NO_CLAIM)) {
+          const own = t.credential?.credentialName ?? "";
+          assert.ok(new RegExp(`\\b${m[0]}\\b`, "i").test(own), `${t.code}: "${m[0]}" in "${text}" is not part of the exam's name (${own})`);
+        }
+    }
+    assert.match("Exam Prep for Master CISSP®", NO_CLAIM);
+  });
+
+  test("REQ-324: ® and ™ only where the owner marks the name so, and on first use where its guideline asks", () => {
+    for (const b of BODIES)
+      for (const code of b.codes) {
+        const title = byCode.get(code)!.title;
+        const allowed = b.policy === "permission"
+          ? [COURSE_REFERENCES[code].exam, COURSE_REFERENCES[code].markSentence].join(" ").match(/[^ (]+[®™]/g) ?? []
+          : TITLE_SYMBOLS[b.name]?.marks ?? [];
+        for (const m of title.matchAll(/[®™]/g)) {
+          const upto = title.slice(0, m.index! + 1);
+          assert.ok(allowed.some((a) => upto.endsWith(a)), `${b.name} ${code}: "${upto}" -- no evidence the owner marks it so`);
+        }
+        if (TITLE_SYMBOLS[b.name]?.firstUse && !(TITLE_SYMBOLS[b.name].unlisted ?? []).includes(code))
+          assert.match(title, /[®™]/, `${b.name} ${code}: its guideline asks for the symbol on first use`);
+      }
+    for (const s of Object.values(TITLE_SYMBOLS)) {
+      assert.match(s.url, /^https:\/\//);
+      assert.match(s.readAt, /^2026-11-1[67]$/);
+    }
+  });
+
+  // REQ-324 follow-up (Nick, 2026-11-17 08:59 PT): Microsoft courses are named
+  // for the certification as Microsoft Learn names it, with "Microsoft" first
+  // ("Microsoft Certified: Azure Fundamentals" -> "Exam Prep for Microsoft
+  // Azure Fundamentals (AZ-900)"), as the AWS titles use the certification name.
+  test("REQ-324: Microsoft titles are 'Exam Prep for Microsoft <certification> (<exam code>)'", () => {
+    for (const code of BODIES.find((b) => b.name === "Microsoft")!.codes) {
+      const t = byCode.get(code)!;
+      const cert = t.credential!.credentialName.replace(/^Microsoft Certified: (Microsoft )?/, "");
+      assert.equal(t.title, `Exam Prep for Microsoft ${cert} (${t.credential!.examCode})`, code);
+    }
+    assert.equal(byCode.get("AZ900")!.title, "Exam Prep for Microsoft Azure Fundamentals (AZ-900)");
+  });
+
+  test("titles are unique across the catalog", () => {
     const seen = new Map<string, string>();
     for (const t of CATALOG_TRACKS) {
       assert.ok(!seen.has(t.title), `${t.code} and ${seen.get(t.title)} share "${t.title}"`);
@@ -192,35 +307,48 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
     }
   });
 
-  // REQ-319 (Nick, 2026-11-16, Option 2): a permission body's course names
-  // no mark in its title; its course page carries one plain reference line
-  // ("Prepares you for the <EXAM> exam offered by <Owner>.") and its
-  // description ends with the specific disclaimer instead of the generic
-  // notice. A body whose marks could not be verified (switched off in
-  // lib/unbranded.ts REFERENCE_LINE_ON) keeps the generic notice.
-  test("'permission' bodies: no mark in the title; a reference line and the specific disclaimer, or the generic notice while switched off", () => {
+  // REQ-319 (Nick, 2026-11-16, Option 2), kept by REQ-324: a permission
+  // body's course page carries one plain reference line ("Prepares you for
+  // the <EXAM> exam offered by <Owner>.") and its description ends with the
+  // specific disclaimer instead of the generic notice.
+  test("'permission' bodies: a reference line and the specific disclaimer at the end of the description", () => {
     for (const b of BODIES.filter((x) => x.policy === "permission"))
       for (const code of b.codes) {
         const t = byCode.get(code)!;
-        assert.doesNotMatch(t.title, PERMISSION_MARKS, `${b.name} ${code}`);
+        assert.equal(REFERENCE_LINE_ON[b.name], true, b.name);
         const ref = examReferenceForCode(code);
-        if (REFERENCE_LINE_ON[b.name] !== true) {
-          assert.equal(ref, null, code);
-          assert.doesNotMatch(t.description, PERMISSION_MARKS, `${b.name} ${code}`);
-          assert.match(t.description, GENERIC_NOTICE, `${b.name} ${code}`);
-          continue;
-        }
         assert.ok(ref, `${b.name} ${code}: no reference line`);
         assert.match(ref.line, /^Prepares you for the .+ exam offered by .+\.$/, code);
         assert.match(ref.disclaimer, /^(.+ is a (registered (certification )?)?(mark|trademark|certification mark) of .+\. )?Ascendra is independent and is not affiliated with, sponsored by or endorsed by .+\.$/, code);
         assert.ok(t.description.endsWith(` ${ref.disclaimer}`), `${code}: the description ends with the specific disclaimer`);
         assert.doesNotMatch(t.description, GENERIC_NOTICE, code);
-        assert.doesNotMatch(t.description.slice(0, -ref.disclaimer.length), PERMISSION_MARKS, `${code}: a mark outside the disclaimer`);
-        for (const text of [ref.line, ref.disclaimer]) assert.doesNotMatch(text, /\b(Official|Approved|Authorized|Certified by|Master)\b/i, code);
         // The exam's mark appears once in the line.
         const exam = COURSE_REFERENCES[code].exam;
         assert.equal(ref.line.split(exam).length - 1, 1, code);
       }
+  });
+
+  // REQ-324 follow-up (Nick, 2026-11-17 08:59 PT): a permission body's course
+  // description names its exam as the title does (the title's exam name,
+  // without a "(... focus)" tag), with the same symbols and evidence as the
+  // title, and no other ® or ™ before the disclaimer.
+  test("REQ-324: 'permission' bodies: the description names the exam as the title does, with the title's symbols only", () => {
+    const examInTitle = (title: string) => title.replace(/^Exam Prep for /, "").replace(/ \((?:[a-z ]+ focus|with professional role topics)\)$/, "");
+    for (const b of BODIES.filter((x) => x.policy === "permission"))
+      for (const code of b.codes) {
+        const t = byCode.get(code)!;
+        const exam = examInTitle(t.title);
+        const ref = examReferenceForCode(code)!;
+        const body = t.description.slice(0, -ref.disclaimer.length);
+        assert.ok(body.includes(exam), `${b.name} ${code}: the description does not name "${exam}"`);
+        assert.equal(body.split(exam).length - 1, 1, `${code}: the exam is named once`);
+        const allowed = [COURSE_REFERENCES[code].exam, COURSE_REFERENCES[code].markSentence].join(" ").match(/[^ (]+[®™]/g) ?? [];
+        for (const m of body.matchAll(/[®™]/g)) {
+          const upto = body.slice(0, m.index! + 1);
+          assert.ok(allowed.some((a) => upto.endsWith(a)), `${code}: "${upto.slice(-40)}" -- no evidence the owner marks it so`);
+        }
+      }
+    assert.equal(byCode.get("ITIL5FND")!.description.startsWith("Preparation for the ITIL® Foundation (Version 5) exam"), true);
   });
 
   test("'nominative' and 'unstated' bodies: the description carries the body's notice", () => {
@@ -241,44 +369,40 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
   });
 
   test("no catalog title pairs an exam body's mark with 'Coach'", () => {
-    const bad = CATALOG_TRACKS.filter((t) => /\bCoach\b/.test(t.title) && ANY_MARK.test(t.title)).map((t) => `${t.code}: ${t.title}`);
+    const bad = CATALOG_TRACKS.filter((t) => /\bCoach\b/.test(notOwnCoach(t.title)) && ANY_MARK.test(t.title)).map((t) => `${t.code}: ${t.title}`);
     assert.deepEqual(bad, []);
   });
 
   test("only degree and skill courses keep a 'Coach' title", () => {
-    const bad = CATALOG_TRACKS.filter((t) => /\bCoach$/.test(t.title) && !COACH_ALLOWED.has(t.code)).map((t) => `${t.code}: ${t.title}`);
+    const bad = CATALOG_TRACKS.filter((t) => /\bCoach$/.test(notOwnCoach(t.title)) && !COACH_ALLOWED.has(t.code)).map((t) => `${t.code}: ${t.title}`);
     assert.deepEqual(bad, []);
   });
 });
 
-// REQ-309: the app and README copy and What's new name no "permission" body.
-// (CC BY in the open-textbook credits is Creative Commons, not ISC2's CC.)
-describe("REQ-309: app copy, README and What's new", () => {
+// REQ-309 kept README, the app's lists and What's new free of the
+// permission bodies' names; REQ-324 names them again. What stays: the app's
+// trademark owners list names every permission body (its owner and marks as
+// lib/unbranded.ts has them), and the settings notice names none.
+describe("REQ-309/REQ-324: the app's trademark owners list", () => {
   const repo = join(__dirname, "..", "..");
   const read = (p: string) => readFileSync(join(repo, p), "utf8");
 
-  test("What's new text names no 'permission' body or mark", () => {
-    for (const n of RELEASE_NOTES) {
-      const text = [n.title, ...n.items.flatMap((i) => [i.headline, i.body])].join(" \n ");
-      assert.doesNotMatch(text, PERMISSION_MARKS, n.id);
-    }
-  });
-
-  test("README names no 'permission' body or mark", () => {
-    assert.doesNotMatch(read("README.md"), PERMISSION_MARKS);
-  });
-
-  test("the app's trademark owners list names a 'permission' body only once its reference line is on, and the settings notice names none", () => {
+  test("the app's trademark owners list names every 'permission' body, and the settings notice names none", () => {
     const vendor = read("mobile/src/lib/vendor.ts");
     const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS")).replace(/\/\/.*$/gm, "");
     const entries = [...list.matchAll(/^\s*"([^"]+)",$/gm)].map((m) => m[1]);
     for (const b of BODIES.filter((x) => x.policy === "permission")) {
       const named = entries.filter((e) => b.marks.test(e) || b.codes.some((c) => COURSE_REFERENCES[c] && e.includes((COURSE_REFERENCES[c].markSentence.match(/ of (.+)\.$/)?.[1] ?? COURSE_REFERENCES[c].owner).replace(/^the /, ""))));
-      if (REFERENCE_LINE_ON[b.name]) assert.ok(named.length >= 1, `${b.name} is missing from TRADEMARK_OWNERS`);
-      else assert.deepEqual(named, [], `${b.name} is listed before its marks are verified`);
+      assert.ok(named.length >= 1, `${b.name} is missing from TRADEMARK_OWNERS`);
     }
     const settings = read("mobile/app/(app)/settings.tsx");
     assert.doesNotMatch(settings.replace(/\{\/\*.*?\*\/\}|\/\/.*$/gm, ""), PERMISSION_MARKS);
+  });
+
+  test("README describes the REQ-324 titles, not the descriptive ones", () => {
+    const readme = read("README.md");
+    assert.doesNotMatch(readme, /Prep for an? [a-z]/);
+    assert.match(readme, /Exam Prep for CISSP®/);
   });
 });
 

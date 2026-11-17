@@ -128,6 +128,14 @@
 //             Guideline", JNPT 2022, doi:10.1097/NPT.0000000000000382,
 //             PMC8920012
 //             (https://pmc.ncbi.nlm.nih.gov/articles/PMC8920012/). CC BY-NC-ND 4.0. Supersedes the 2016 edition.
+//   EAN-PNS-GBS van Doorn et al., "European Academy of Neurology/Peripheral
+//             Nerve Society Guideline on diagnosis and treatment of
+//             Guillain-Barre syndrome", J Peripher Nerv Syst 2023;28:535-563,
+//             doi:10.1111/jns.12594 (also Eur J Neurol 2023;30(12):3646-3674,
+//             doi:10.1111/ene.16073, PMID 37814552). Read 2026-11-17 (REQ-310,
+//             FAIL-2390) in full text, the JPNS copy in the UAB repository
+//             (https://ddd.uab.cat/pub/artpub/2023/300094/300094_1.pdf),
+//             section 4.2.8, diagnostic PICO 4 "Electrodiagnosis".
 //
 // Tier 2: StatPearls (StatPearls Publishing, NCBI Bookshelf), CC BY-NC-ND
 // 4.0, so facts and topic scope only, no wording. Graded against the five
@@ -192,6 +200,12 @@
 //     as screening prompts, not diagnostic tests, consistent with that.
 //   - Patellofemoral pain and hip abductor weakness: the chapter reports
 //     mixed evidence; the objective says so instead of stating a cause.
+//   - Electrodiagnosis timing in suspected GBS/AIDP: the AIDP chapter
+//     (SP-EDX-AIDP, 2022) advised waiting at least 3 weeks after onset. The
+//     EAN/PNS 2023 guideline (Tier 1) advises electrodiagnosis to support the
+//     EARLY diagnosis, says a normal study in the first week does not exclude
+//     GBS, and says a second study later can help because abnormalities may
+//     take several weeks to develop. Followed the guideline (FAIL-2390).
 //   - Mononucleosis return to contact sport: the chapter says 4 weeks after
 //     symptom onset if recovered; no Tier 1 sports-medicine source was
 //     opened, and no number from another source conflicts.
@@ -358,7 +372,7 @@ const PT_DISCLAIMER_KEY = "pt-clinical-content";
 
 const EXAM_FORMAT =
   "Approximately 200 four-option multiple-choice items, standalone or tied to case scenarios, fixed length (every candidate answers the same number of questions), delivered at PSI test centers in four 50-question blocks of up to 90 minutes each";
-const PASSING = "Scaled score of 500; criterion-referenced standard set by the certifying body from a PSI standard-setting study.";
+const PASSING = "Scaled score of 500; criterion-referenced standard set by ABPTS from a PSI standard-setting study.";
 const DURATION = 360;
 
 const BASE_ELIGIBILITY =
@@ -423,9 +437,9 @@ const COMMON = {
 export const ABPTS_OCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSOCS",
-  title: "Prep for an orthopedic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Orthopedic Clinical Specialist (OCS)",
   description:
-    "Board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Orthopedic Clinical Specialist (OCS) exam, board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
   credential: abptsCredential({
@@ -436,7 +450,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
     outlineUrl:
       "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
     extraEligibility:
-      "From the 2027 exam cycle the 2,000 hours must be subdivided by body region, and observational or mentored hours under a board-certified orthopedic specialist may substitute for part of them.",
+      "From the 2027 exam cycle the 2,000 hours must be subdivided by body region, and observational or mentored hours under an OCS may substitute for part of them.",
   }),
   units: [
     {
@@ -543,9 +557,9 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
 export const ABPTS_GCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSGCS",
-  title: "Prep for a geriatric physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Geriatric Clinical Specialist",
   description:
-    "Board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Geriatric Clinical Specialist exam, board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
   credential: abptsCredential({
@@ -638,7 +652,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Dose falls-prevention exercise around balance and functional work (such as sit-to-stand and stepping), three or more times a week, individualized and progressed for at least 12 weeks, adding Tai Chi or progressive resistance training where feasible", // WFG
         "After hip fracture, prescribe individualized progressive exercise for standing up, balance, walking and stairs, begun as an inpatient and continued at home; after stroke, target balance, strength and walking", // WFG
-        "Use the SIGN-based physical therapy guidance for osteoporosis: single-leg standing for hip density, walking, tai chi or closed-chain resistance work for the spine, and progressive resistance training for the femoral neck", // OSTEO-CPG
+        "Use the SIGN-based APTA guidance for osteoporosis: single-leg standing for hip density, walking, tai chi or closed-chain resistance work for the spine, and progressive resistance training for the femoral neck", // OSTEO-CPG
         "Know high-impact or odd-impact protocols alone did not raise bone density at any site, and low-load seated strength work showed no density effect", // OSTEO-CPG
         "Offer people with early to mid-stage Parkinson disease and little or no cognitive impairment an individualized program that includes balance and resistance training", // WFG
       ],
@@ -662,9 +676,9 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
 export const ABPTS_NCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSNCS",
-  title: "Prep for a neurologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Neurologic Clinical Specialist",
   description:
-    "Board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Neurologic Clinical Specialist exam, board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
   credential: abptsCredential({
@@ -746,7 +760,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
         "Dose gaze stabilization: at least 3 times a day for 12 minutes total in acute unilateral loss; 3 to 5 times a day for at least 20 minutes for 4 to 6 weeks in chronic loss; 20 to 40 minutes for about 5 to 7 weeks in bilateral loss", // VEST-CPG
         "Add static and dynamic balance exercise for at least 20 minutes a day for 4 to 6 weeks in chronic unilateral hypofunction, and stop therapy when goals are met, symptoms resolve, function normalizes or progress plateaus", // VEST-CPG
         "Treat BPPV with repositioning maneuvers such as Epley or Semont as first-line care, knowing vestibular suppressant medicines are not effective treatment", // SP-BPPV
-        "In Parkinson disease, prescribe moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, all strong recommendations in the physical therapy clinical practice guideline", // PD-CPG
+        "In Parkinson disease, prescribe moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, all strong recommendations in the APTA guideline", // PD-CPG
         "Use external cueing for freezing of gait, plus gait training and task-specific training, in Parkinson disease; consider cycling over treadmill walking for people at high fall risk or with freezing", // PD-CPG
         "Manage autonomic dysreflexia as an emergency: find and remove the trigger, often by irrigating or changing a blocked Foley catheter, and check for bowel impaction, tight clothing or skin injury", // SP-AD
       ],
@@ -767,9 +781,9 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
 export const ABPTS_CCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSCCS",
-  title: "Prep for a cardiovascular and pulmonary physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Cardiovascular and Pulmonary Clinical Specialist",
   description:
-    "Board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Cardiovascular and Pulmonary Clinical Specialist exam, board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
   credential: {
     ...abptsCredential({
@@ -904,9 +918,9 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
 export const ABPTS_PCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPCS",
-  title: "Prep for a pediatric physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Pediatric Clinical Specialist",
   description:
-    "Board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Pediatric Clinical Specialist exam, board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
   credential: abptsCredential({
@@ -1019,9 +1033,9 @@ export const ABPTS_PCS_TRACK: SeedTrack = {
 export const ABPTS_SCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSSCS",
-  title: "Prep for a sports physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Sports Clinical Specialist",
   description:
-    "Board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Sports Clinical Specialist exam, board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
   credential: abptsCredential({
@@ -1125,9 +1139,9 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
 export const ABPTS_ONC_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSONC",
-  title: "Prep for an oncologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Oncologic Clinical Specialist",
   description:
-    "Board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Oncologic Clinical Specialist exam, board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
   credential: abptsCredential({
@@ -1246,9 +1260,9 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
 export const ABPTS_ECS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSECS",
-  title: "Prep for a clinical electrophysiologic physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Clinical Electrophysiologic Specialist",
   description:
-    "Board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Clinical Electrophysiologic Specialist exam, board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
   credential: abptsCredential({
@@ -1305,7 +1319,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Control limb temperature during nerve conduction studies (about 30 to 36 C for arm and leg); cold raises amplitude, lengthens latency, slows conduction and hides an RNS decrement", // SP-NCS; SP-EDX-NMJ
         "Perform repetitive nerve stimulation at a slow rate (about 3 Hz, 5 to 10 stimuli) and treat a CMAP decrement over 10% as significant; add brief exercise and repeat to show post-exercise facilitation or exhaustion", // SP-EDX-NMJ; SP-RNS
         "Time a study around nerve injury: fibrillation potentials usually show on EMG at 3 to 4 weeks, and no sign of reinnervation by 3 to 4 months raises concern for neurotmesis and surgical exploration", // SP-PNI
-        "For suspected AIDP, delay nerve conduction studies and EMG until at least 3 weeks after onset and include F-waves, which can pick up early proximal root involvement", // SP-EDX-AIDP
+        "For suspected Guillain-Barre syndrome (including AIDP), use electrodiagnosis early to support the diagnosis: in the first week absent H-reflexes and polyneuropathy-pattern conduction changes support it, a sural-sparing pattern is less sensitive but more specific, a normal first-week study does not exclude it, and a repeat study later helps because abnormalities can take weeks to develop", // EAN-PNS-GBS (REQ-310, FAIL-2390: replaced "delay NCS and EMG until at least 3 weeks after onset", SP-EDX-AIDP 2022)
       ],
     },
     {
@@ -1322,7 +1336,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Localize ulnar neuropathy at the elbow by focal slowing of motor conduction across the elbow, with or without conduction block, and watch for a Martin-Gruber-type median-to-ulnar crossover that can mimic a block", // SP-EDX-UN
         "Separate fibular neuropathy from L5 radiculopathy: L5 also weakens ankle inversion, so sample tibialis posterior or gluteus medius, which have L5 supply but not fibular nerve supply", // SP-EDX-PER
         "Confirm cervical radiculopathy on EMG with changes in a paraspinal muscle plus two muscles from different nerves sharing the root; early radiculopathy may show only sensory or demyelinating change, so EMG can miss acute cases", // SP-EDX-CR
-        "Recognize demyelinating patterns on nerve conduction studies: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies", // SP-NCS; SP-EDX-AIDP
+        "Recognize demyelinating patterns on NCS: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies", // SP-NCS; SP-EDX-AIDP
         "Recognize myopathic needle EMG: early (rapid) recruitment and polyphasic units, with spontaneous fibrillations, positive sharp waves, complex repetitive discharges or 'dive bomber' myotonic discharges in some disorders", // SP-EDX-MYO
         "Recognize Lambert-Eaton on RNS: a decrement at low rates and a large incremental CMAP rise after high-rate stimulation or brief exercise", // SP-LEMS
       ],
@@ -1361,9 +1375,9 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
 export const ABPTS_PWCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPWCS",
-  title: "Prep for a pelvic and women's health physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Pelvic and Women's Health Clinical Specialist (PWCS)",
   description:
-    "Board certification in pelvic and women's health physical therapy (renamed from women's health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Pelvic and Women's Health Clinical Specialist (PWCS) exam, board certification in pelvic and women's health physical therapy (renamed from women's health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health",
   credential: abptsCredential({
@@ -1447,9 +1461,9 @@ export const ABPTS_PWCS_TRACK: SeedTrack = {
 export const ABPTS_WMS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSWMS",
-  title: "Prep for a wound management physical therapy specialist certification exam",
+  title: "Exam Prep for ABPTS Wound Management Clinical Specialist",
   description:
-    "Board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Wound Management Clinical Specialist exam, board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
   credential: abptsCredential({
@@ -1515,7 +1529,7 @@ export const ABPTS_WMS_TRACK: SeedTrack = {
         "Critical appraisal of wound-care evidence and guidelines",
         "Professional roles: consultation, documentation, regulatory requirements and interprofessional wound care",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
-        "Apply the physical therapy diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading", // DFU-CPG
+        "Apply the APTA diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading", // DFU-CPG
         "For adults with diabetes who can exercise safely, prescribe progressive moderate- to vigorous-intensity aerobic and resistance training (the guideline's one strong recommendation) and consider activity-monitor counseling", // DFU-CPG
       ],
     },

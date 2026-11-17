@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "clinic-three-falls-five-new-pills",
+  "title": "Dizzy when she stands",
+  "objective": "Assess older adults for falls, cognition, function, polypharmacy and frailty",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Family nurse practitioner certification exam blueprint (2024): Assess",
+      "checkedAt": "2026-11-14",
+      "url": "https://candidateportal.aanpcert.org/certs/fnp",
+      "note": "Relayed from the FNP course seed (backend/supabase/seed/tracks/fnp.ts), which read the blueprint 2026-11-14, not re-read: Assess is 32% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra FNP course catalog (backend/supabase/seed/tracks/fnp.ts, track FNPAANP)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Phelan EA, Mahoney JE, Voit JC, Stevens JA. Assessment and Management of Fall Risk in Primary Care Settings. Med Clin North Am 2015;99(2):281-293 (the CDC STEADI approach; author manuscript on CDC stacks)",
+      "checkedAt": "2026-11-17",
+      "url": "https://stacks.cdc.gov/view/cdc/37444/cdc_37444_DS1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the manuscript PDF: 'Postural hypotension is defined as a reduction in systolic blood pressure of at least 20 mm Hg or in diastolic blood pressure of at least 10 mm Hg within 3 minutes of standing'; postural lightheadedness without a measured drop 'should be considered equivalent to postural hypotension for fall risk'; 'A key strategy is to reduce the dose of any indicated medications that contribute to fall risk and to taper and stop any medications that are no longer indicated'; for postural hypotension, reduce blood pressure-lowering drugs and stop drugs with it as a side effect; antidepressants, antipsychotics, sedative hypnotics, benzodiazepines, antihypertensives, NSAIDs and diuretics are linked to falls."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in a family practice. You are the nurse practitioner. Mrs. Kowalski, 83, has fallen three times this month, each time getting up at night or after sitting. Her son says she 'collects prescriptions' from three different doctors.",
+    "handover": [
+      "Brought bag of medicines: amlodipine, doxazosin started last month for her bladder, an over-the-counter diphenhydramine sleep aid nightly, sertraline, ibuprofen most days, and a loop diuretic.",
+      "She lives alone with a walker she doesn't always use. Bruise on her left hip; she can walk on it.",
+      "Practice falls policy: lying and standing blood pressure for every older adult who falls, a medicine review, and a plan the same visit; fall during the visit is prevented by sitting and standing only with help."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings are telling you.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Up and down unaided in the clinic, a fall becomes likely. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Helped and seated, a fall in the clinic is unlikely; the risk at home remains until the plan is made. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The orthostatic finding is the red flag, found on the measurement. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a fall in the clinic. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The medicine and falls plan made within 5 minutes of the orthostatic finding (practice policy)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Help to sit and stand from the start of the visit (practice policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes to go through the plan with her and her son before she leaves."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A sedative hypnotic added for her sleep: she falls that night. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "orthoAt": {
+      "type": "time",
+      "init": null
+    },
+    "cogAt": {
+      "type": "time",
+      "init": null
+    },
+    "hipAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ortho",
+        "cog",
+        "hip"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "plan",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "poly",
+        "age",
+        "hip"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "tugAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(76 + 4 * prog + sin(t / 11))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(146 - 10 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "82",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Sitting and standing only with help: {not isNull(fixAt)|yesno}. Gait and balance checked: {not isNull(tugAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"plan\" and inCare",
+          "text": "Going through the medicine and falls plan with her and her son."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ortho": {
+      "label": "Lying and standing blood pressure (1 and 3 minutes)",
+      "group": "Assess",
+      "available": "not testPending and isNull(orthoAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ortho\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cog": {
+      "label": "Brief cognitive screen",
+      "group": "Assess",
+      "available": "not testPending and isNull(cogAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cog\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hip": {
+      "label": "Examine the hip and look for other injuries",
+      "group": "Assess",
+      "available": "not testPending and isNull(hipAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hip\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: dizziness, how she stands, gait",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "She stands, sways and grabs the desk: 'the room goes dark when I get up'.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Sitting comfortably.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Sit and stand her only with help, walker at hand",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "She sits and stands only with your help and her walker.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tug": {
+      "label": "Timed Up and Go with her walker, guarded",
+      "group": "Treat",
+      "available": "isNull(tugAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tugAt",
+          "to": "t"
+        },
+        {
+          "log": "Timed Up and Go 17 seconds, guarded: slow and unsteady.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Add a prescription sleeping pill for her nights",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "A sedative hypnotic is prescribed.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "poly",
+              "label": "Falls from orthostatic hypotension and polypharmacy, with mild cognitive change: a medicine and falls plan now"
+            },
+            {
+              "value": "age",
+              "label": "Falls are part of being 83"
+            },
+            {
+              "value": "hip",
+              "label": "A hip problem; order an x-ray only"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"poly\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"poly\""
+                },
+                {
+                  "log": "Impression: orthostatic hypotension and polypharmacy.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"age\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"age\""
+                },
+                {
+                  "log": "Impression: ageing.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hip\""
+                },
+                {
+                  "log": "Impression: hip.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Make the plan",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "plan",
+              "label": "Stop the diphenhydramine and doxazosin, review the diuretic and ibuprofen, physical therapy for balance, a home safety check, review in 2 weeks"
+            },
+            {
+              "value": "later",
+              "label": "Ask her to keep a falls diary and come back in 3 months"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"plan\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"plan\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The plan is agreed with her and her son; the other prescribers are told.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A falls diary is suggested.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and tell the other prescribers: the falls, the orthostatic readings, the stopped medicines",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented; the other prescribers are sent the orthostatic readings and the changes.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Exam room",
+      "clock": "running",
+      "actions": [
+        "ortho",
+        "cog",
+        "hip",
+        "reassess",
+        "fix",
+        "tug",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ortho\"",
+              "then": [
+                {
+                  "set": "orthoAt",
+                  "to": "t"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Lying 146/82; standing at 1 minute 118/70, at 3 minutes 116/68, and she feels lightheaded: orthostatic hypotension.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cog\"",
+              "then": [
+                {
+                  "set": "cogAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Recalls 2 of 3 words; clock drawing mildly off. Her son says she is more muddled in the mornings.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hipAt",
+                  "to": "t"
+                },
+                {
+                  "log": "A bruise on the left hip; full range, weight-bearing without pain; no other injury.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the plan and going home",
+      "wait": {
+        "skipLabel": "the visit ending"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes to go through the plan with her and her son before she leaves."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with her son, her walker and the plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "Mrs. Kowalski gets up on her own to reach her bag and sways.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "Mrs. Kowalski's pressure drops when she stands and she is on many medicines. What is causing her falls, and what is your plan?",
+      "parts": [
+        {
+          "label": "What is causing the falls",
+          "criteria": "A systolic drop of 20 or more within 3 minutes of standing with lightheadedness is orthostatic hypotension; doxazosin, amlodipine, the diuretic and the sedating antihistamine add to it; mild cognitive change and a slow Timed Up and Go add frailty.",
+          "modelAnswer": "Her systolic falls by about 30 on standing and she's lightheaded: orthostatic hypotension, made worse by doxazosin, amlodipine, the diuretic and the nightly diphenhydramine. She's also slow on the Timed Up and Go and a bit muddled."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stop the drugs no longer indicated or causing it, reduce blood-pressure drugs, physical therapy for balance, home safety, tell the other prescribers, review soon; nothing sedating added.",
+          "modelAnswer": "Stop the diphenhydramine and the doxazosin, review the diuretic and ibuprofen, get physical therapy and a home safety check, tell her other doctors, and see her in 2 weeks. No sleeping pill."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "A falls visit with no plan an hour on is harm here.",
+      "source": {
+        "cite": "Phelan EA, Mahoney JE, Voit JC, Stevens JA. Assessment and Management of Fall Risk in Primary Care Settings. Med Clin North Am 2015;99(2):281-293 (the CDC STEADI approach; author manuscript on CDC stacks)",
+        "checkedAt": "2026-11-17",
+        "url": "https://stacks.cdc.gov/view/cdc/37444/cdc_37444_DS1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the manuscript PDF: 'Postural hypotension is defined as a reduction in systolic blood pressure of at least 20 mm Hg or in diastolic blood pressure of at least 10 mm Hg within 3 minutes of standing'; postural lightheadedness without a measured drop 'should be considered equivalent to postural hypotension for fall risk'; 'A key strategy is to reduce the dose of any indicated medications that contribute to fall risk and to taper and stop any medications that are no longer indicated'; for postural hypotension, reduce blood pressure-lowering drugs and stop drugs with it as a side effect; antidepressants, antipsychotics, sedative hypnotics, benzodiazepines, antihypertensives, NSAIDs and diuretics are linked to falls."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "A fall the first night on the sleeping pill",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "That night, groggy from the new pill, she gets up to the bathroom and falls, breaking her hip."
+    },
+    "worsened": {
+      "label": "A fall in the clinic",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "She stands on her own, the room goes dark, and she falls against the exam table."
+    },
+    "wrongRoute": {
+      "label": "Sent home with the same medicines",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"later\")",
+      "narrative": "Two weeks later she falls again at night and breaks her wrist; the medicines haven't changed."
+    },
+    "target": {
+      "label": "Assessed and a plan made the same visit",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"plan\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(orthoAt)",
+      "narrative": "{timeAt(leftAt)|clock}: orthostatic readings, a gait check and a medicine review led to a plan the same visit."
+    },
+    "recovered": {
+      "label": "A plan, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"plan\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: a plan is made, but she stood unaided at first or the plan waited minutes after the orthostatic finding."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and the visit has no plan."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Helped to sit and stand from the start",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Medicine and falls plan within 5 minutes of the orthostatic finding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"plan\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"plan\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A falls diary and a 3-month review."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No new sedative",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "Added a sleeping pill."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Lying and standing blood pressure measured",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(orthoAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "tugC",
+        "label": "Gait and balance checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tugAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named orthostatic hypotension and polypharmacy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"poly\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"age\"",
+            "score": "missed",
+            "why": "Called falls ageing."
+          },
+          {
+            "when": "dxEnum == \"hip\"",
+            "score": "missed",
+            "why": "Looked only at the hip."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and told the other prescribers",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: orthostatic hypotension and polypharmacy; deprescribe and plan the same visit",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Start to helping her sit and stand",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Orthostatic finding to the plan",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Help with every stand; walker at hand."
+      },
+      {
+        "at": "~10:01",
+        "text": "Timed Up and Go, guarded."
+      },
+      {
+        "at": "~10:03",
+        "text": "Lying and standing pressure: orthostatic hypotension."
+      },
+      {
+        "at": "~10:04",
+        "text": "Deprescribe, physical therapy, home safety, review; tell the prescribers."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "A new sedative",
+        "body": "Sedative hypnotics are among the medicines most linked to falls. Adding one to an older adult who falls at night is the opposite of the plan."
+      },
+      "worsened": {
+        "headline": "A fall in the clinic",
+        "body": "An older adult who falls on standing is helped to sit and stand during the visit."
+      },
+      "wrongRoute": {
+        "headline": "Same medicines, three months",
+        "body": "Orthostatic hypotension from medicines needs a plan the same visit."
+      },
+      "target": {
+        "headline": "Assessed and planned",
+        "body": "Orthostatic readings, gait, cognition and a medicine review, then a plan the same visit. That is the expert path."
+      },
+      "recovered": {
+        "headline": "A plan, with delays",
+        "body": "Check whether she stood unaided and how long the plan waited."
+      },
+      "time_up": {
+        "headline": "No plan",
+        "body": "A falls visit ends with a plan."
+      }
+    },
+    "modelReasoning": "An 83-year-old with three falls on standing, on doxazosin, amlodipine, a diuretic, a sedating antihistamine, an antidepressant and an NSAID, needs lying and standing pressure, a gait check, a cognitive screen and a medicine review. A systolic drop of 20 or more within 3 minutes with lightheadedness is orthostatic hypotension. The plan is made the same visit: stop what isn't indicated or causes it, reduce blood-pressure drugs, physical therapy and a home check, and tell her other prescribers."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "ohQ": {
+      "during": "testT",
+      "ask": "While you measure: what defines orthostatic hypotension?",
+      "choices": [
+        {
+          "id": "def",
+          "label": "A systolic drop of at least 20 or a diastolic drop of at least 10 within 3 minutes of standing"
+        },
+        {
+          "id": "five",
+          "label": "Any drop of 5 or more"
+        },
+        {
+          "id": "hr",
+          "label": "A heart rate rise alone"
+        }
+      ],
+      "expect": "def",
+      "explain": "Postural hypotension is a reduction in systolic pressure of at least 20 mm Hg or in diastolic of at least 10 within 3 minutes of standing; lightheadedness counts as equivalent for fall risk.",
+      "source": {
+        "cite": "Phelan EA, Mahoney JE, Voit JC, Stevens JA. Assessment and Management of Fall Risk in Primary Care Settings. Med Clin North Am 2015;99(2):281-293 (the CDC STEADI approach; author manuscript on CDC stacks)",
+        "checkedAt": "2026-11-17",
+        "url": "https://stacks.cdc.gov/view/cdc/37444/cdc_37444_DS1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the manuscript PDF: 'Postural hypotension is defined as a reduction in systolic blood pressure of at least 20 mm Hg or in diastolic blood pressure of at least 10 mm Hg within 3 minutes of standing'; postural lightheadedness without a measured drop 'should be considered equivalent to postural hypotension for fall risk'; 'A key strategy is to reduce the dose of any indicated medications that contribute to fall risk and to taper and stop any medications that are no longer indicated'; for postural hypotension, reduce blood pressure-lowering drugs and stop drugs with it as a side effect; antidepressants, antipsychotics, sedative hypnotics, benzodiazepines, antihypertensives, NSAIDs and diuretics are linked to falls."
+      }
+    },
+    "medQ": {
+      "during": "leaveT",
+      "ask": "While she gets ready to go: which medicine classes are linked to falls?",
+      "choices": [
+        {
+          "id": "list",
+          "label": "Sedative hypnotics, benzodiazepines, antidepressants, antihypertensives, diuretics"
+        },
+        {
+          "id": "vit",
+          "label": "Vitamins"
+        },
+        {
+          "id": "none",
+          "label": "None"
+        }
+      ],
+      "expect": "list",
+      "explain": "Antidepressants, antipsychotics, sedative hypnotics, benzodiazepines, antihypertensives, NSAIDs and diuretics are associated with falls; taper and stop medicines no longer indicated.",
+      "source": {
+        "cite": "Phelan EA, Mahoney JE, Voit JC, Stevens JA. Assessment and Management of Fall Risk in Primary Care Settings. Med Clin North Am 2015;99(2):281-293 (the CDC STEADI approach; author manuscript on CDC stacks)",
+        "checkedAt": "2026-11-17",
+        "url": "https://stacks.cdc.gov/view/cdc/37444/cdc_37444_DS1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the manuscript PDF: 'Postural hypotension is defined as a reduction in systolic blood pressure of at least 20 mm Hg or in diastolic blood pressure of at least 10 mm Hg within 3 minutes of standing'; postural lightheadedness without a measured drop 'should be considered equivalent to postural hypotension for fall risk'; 'A key strategy is to reduce the dose of any indicated medications that contribute to fall risk and to taper and stop any medications that are no longer indicated'; for postural hypotension, reduce blood pressure-lowering drugs and stop drugs with it as a side effect; antidepressants, antipsychotics, sedative hypnotics, benzodiazepines, antihypertensives, NSAIDs and diuretics are linked to falls."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

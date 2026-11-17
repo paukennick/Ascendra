@@ -115,11 +115,11 @@ export const ISC2CC_LABS: SeedLabSet = {
     },
     {
       slug: "cc-code-of-ethics-dilemma",
-      objective: "Apply the certifying body's code of ethics canons, due care and due diligence to a workplace dilemma",
+      objective: "Apply the ISC2 Code of Ethics canons, due care and due diligence to a workplace dilemma",
       kind: "case",
-      title: "Use the certifying body's code of ethics on a workplace dilemma",
+      title: "Use the ISC2 Code of Ethics on a workplace dilemma",
       brief:
-        "You are a junior security analyst at Brightwater Logistics (fictional) and hold this entry-level certification. Use the four canons of the certifying body's code of ethics as it publishes them: (I) protect society, the common good, necessary public trust and confidence, and the infrastructure; (II) act honorably, honestly, justly, responsibly, and legally; (III) provide diligent and competent service to principals; (IV) advance and protect the profession.",
+        "You are a junior security analyst at Brightwater Logistics (fictional) and hold the CC. Use the four canons of the ISC2 Code of Ethics as ISC2 publishes them: (I) protect society, the common good, necessary public trust and confidence, and the infrastructure; (II) act honorably, honestly, justly, responsibly, and legally; (III) provide diligent and competent service to principals; (IV) advance and protect the profession.",
       safetyNote: GENERAL_SAFETY,
       sources: [ETHICS],
       steps: [

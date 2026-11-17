@@ -53,7 +53,7 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const GCP_CDL_TRACK: SeedTrack = {
   code: "GCPCDL",
-  title: "Prep for a foundational cloud business leader certification exam",
+  title: "Exam Prep for Google Cloud Digital Leader",
   description:
     "Google Cloud Digital Leader: a working, non-technical fluency in Google Cloud -- digital and data transformation, AI, modern infrastructure, trust and security, and how organizations actually run and pay for cloud operations. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -200,7 +200,7 @@ export const GCP_CDL_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_ACE_TRACK: SeedTrack = {
   code: "GCPACE",
-  title: "Prep for an associate cloud engineer certification exam",
+  title: "Exam Prep for Google Cloud Associate Cloud Engineer",
   description:
     "Google Cloud Associate Cloud Engineer: deploying, securing, and operating applications and infrastructure on Google Cloud -- environment setup, compute/storage/networking implementation, day-2 operations, and access/security configuration. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -354,17 +354,32 @@ export const GCP_ACE_TRACK: SeedTrack = {
 // give exam questions context): Altostrat Media, Cymbal Retail, EHR
 // Healthcare, KnightMotives Automotive.
 // Sections: 25% / 17.5% / 17.5% / 15% / 12.5% / 12.5%.
+//
+// REQ-310 (verify-2, read 2026-11-17): the English certification page
+// (https://cloud.google.com/learn/certification/cloud-architect?hl=en) links
+// "View standard exam guide" to the unversioned PDF named below; read in full
+// that day, it prints ~25 / ~17.5 / ~17.5 / ~15 / ~12.5 / ~12.5 and names the
+// ML sections "Gemini Enterprise Agent Platform" / "Agent Platform" -- the
+// units below, unchanged. A second PDF, v6.1_pca_professional_cloud_architect_
+// exam_guide_english.pdf (~25/18/19/15/11/12, "Vertex AI", a 4.3 on
+// production reliability, for exams "on or after October 30"), is still
+// hosted but is NOT the one the certification page links, so its weights
+// were not applied. (Inference, not stated by Google: it is the earlier guide,
+// since it still uses the Vertex AI name the linked guide has replaced.) (The French guide page shows a still older 24/15/18/18/11/14.)
+// Exam facts on the page: 2 hours, $200, 50-60 multiple choice and multiple
+// select, English and Japanese, 2 case studies at 20-30%.
+const GCP_PCA_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const GCP_PCA_TRACK: SeedTrack = {
   code: "GCPPCA",
-  title: "Prep for a professional cloud architect certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud Architect",
   description:
     "Google Cloud Professional Cloud Architect: designing, building, and managing secure, scalable, cost-effective solutions on Google Cloud, anchored in the Well-Architected Framework's six pillars, plus the exam's own recurring case studies (Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive). Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-  sourceVerifiedAt: OUTLINE_CHECKED_AT,
+  sourceVerifiedAt: GCP_PCA_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-architect",
@@ -378,7 +393,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
     versionNote:
       "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
+    lastVendorVerifiedAt: GCP_PCA_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud. Experience with common open-source technologies and multitiered distributed application design across legacy, multicloud, or hybrid environments.",
     durationMinutes: 120,
@@ -540,7 +555,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_PDE_TRACK: SeedTrack = {
   code: "GCPPDE",
-  title: "Prep for a professional data engineer certification exam",
+  title: "Exam Prep for Google Cloud Professional Data Engineer",
   description:
     "Google Cloud Professional Data Engineer: designing, building, and securing data processing systems on Google Cloud -- ingestion pipelines, storage system selection, data warehouses and lakes, preparing data for analysis and AI/ML, and keeping data workloads running reliably. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -712,6 +727,13 @@ const GCP_DEVOPS_OLD_GUIDE_RETIRED_AT = "2026-11-23T12:00:00Z";
 // choice questions, no retirement notice) differed from the exam facts below
 // in two wordings, fixed here (FAIL-1542).
 const GCP_DEVOPS_CHECKED_AT = "2026-11-11T00:00:00Z";
+// REQ-310 (verify-2, 2026-11-17): the new guide was read again (direct PDF,
+// the 112326_ URL below). It still says "This exam guide will be live on
+// November 23" and points exams before then to the current guide; sections
+// ~18 / ~30 / ~18 / ~22 / ~12 with 25/14/10/20/10 considerations, matching the
+// new units at sort_order 5-9. The switch is already modeled: old units
+// retired at GCP_DEVOPS_OLD_GUIDE_RETIRED_AT (2026-11-23T12:00Z), new units
+// live, credential effectiveDate 2026-11-23. Nothing changed.
 // REQ-244 (FAIL-1541): the next review. The seed once set contentReviewDueAt
 // to 2026-11-23 (the new guide's date) and b5c4cf7 deleted the line; the
 // seed writes it with coalesce, so the stored date would have stayed and the
@@ -723,7 +745,7 @@ const GCP_DEVOPS_REVIEW_DUE_AT = "2027-11-11T00:00:00Z";
 
 export const GCP_DEVOPS_TRACK: SeedTrack = {
   code: "GCPDEVOPS",
-  title: "Prep for a professional cloud DevOps and site reliability certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud DevOps Engineer",
   description:
     "Google Cloud Professional Cloud DevOps Engineer: bootstrapping a Google Cloud organization, building CI/CD pipelines for applications/infrastructure/ML workloads, applying SRE practices, implementing observability, and optimizing performance and cost. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1014,7 +1036,7 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_SEC_TRACK: SeedTrack = {
   code: "GCPSEC",
-  title: "Prep for a professional cloud security engineer certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud Security Engineer",
   description:
     "Google Cloud Professional Cloud Security Engineer: configuring identity and access, securing communications and network boundaries, protecting data at rest/in transit/in use, automating security operations, and supporting regulatory compliance on Google Cloud. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1159,7 +1181,7 @@ export const GCP_SEC_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_NET_TRACK: SeedTrack = {
   code: "GCPNET",
-  title: "Prep for a professional cloud network engineer certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud Network Engineer",
   description:
     "Google Cloud Professional Cloud Network Engineer: designing, implementing, and troubleshooting VPC networks, hybrid/multicloud interconnectivity, managed network services, and cloud network security on Google Cloud. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1371,7 +1393,7 @@ export const GCP_NET_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DBE_TRACK: SeedTrack = {
   code: "GCPDBE",
-  title: "Prep for a professional cloud database engineer certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud Database Engineer",
   description:
     "Google Cloud Professional Cloud Database Engineer: designing scalable, highly available database solutions, managing solutions across multiple database technologies, migrating data into Google Cloud, and deploying and scaling databases in production. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1484,7 +1506,7 @@ export const GCP_DBE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_DEV_TRACK: SeedTrack = {
   code: "GCPDEV",
-  title: "Prep for a professional cloud developer certification exam",
+  title: "Exam Prep for Google Cloud Professional Cloud Developer",
   description:
     "Google Cloud Professional Cloud Developer: designing scalable, secure cloud-native applications, building and testing them with Google-recommended tools, configuring deployment to Cloud Run/GKE, and integrating applications with Google Cloud data and API services. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1613,7 +1635,7 @@ export const GCP_DEV_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_MLE_TRACK: SeedTrack = {
   code: "GCPMLE",
-  title: "Prep for a professional machine learning engineer certification exam",
+  title: "Exam Prep for Google Cloud Professional Machine Learning Engineer",
   description:
     "Google Cloud Professional Machine Learning Engineer: architecting low-code AI solutions, managing data and models with a team, scaling prototypes into production ML models, serving and scaling models, automating ML pipelines, and monitoring AI solutions. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",
@@ -1755,7 +1777,7 @@ export const GCP_MLE_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const GCP_GAIL_TRACK: SeedTrack = {
   code: "GCPGAIL",
-  title: "Prep for a generative AI leader certification exam",
+  title: "Exam Prep for Google Cloud Generative AI Leader",
   description:
     "Google Cloud Generative AI Leader: a business-level, no-code fluency in generative AI -- core concepts, Google Cloud's gen AI product landscape, techniques that improve model output, and the business strategy and security/responsible-AI considerations behind a successful gen AI initiative. Independently developed exam prep; not affiliated with or endorsed by Google. Google Cloud is a trademark of Google LLC.",
   trackType: "certification",

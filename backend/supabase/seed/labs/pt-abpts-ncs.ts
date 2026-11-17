@@ -333,7 +333,7 @@ export const ABPTSNCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "She has mild bilateral bradykinesia and rigidity, no falls, walks 1.1 m/s, has a Mini-BESTest of 24/28, and reports she has stopped her twice-weekly gym classes because she 'does not know what is safe'. Cognition is intact. Her medications are stable and she has no orthostatic symptoms.",
-          ask: "Prescribe her program for the next 3 months using the physical therapy clinical practice guideline for Parkinson disease.",
+          ask: "Prescribe her program for the next 3 months using the APTA Parkinson disease guideline.",
           parts: [
             part(
               "Program components",

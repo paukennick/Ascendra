@@ -1,0 +1,939 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stale-udr-to-retired-nva",
+  "title": "Outage: the app subnet's default route still points at last night's retired appliance",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "netops@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:15 claims team: payouts cannot reach pay.example.net since this morning; the batch settles at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: payout batch failed",
+          "when": "not isNull(batchMissAt)",
+          "at": "timeAt(batchMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: payout batch settled",
+          "when": "not isNull(batchOkAt)",
+          "at": "timeAt(batchOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "vm",
+          "label": "vm-claims01 (10.20.1.10)",
+          "spokenLabel": "the claims server",
+          "kind": "snet-app, spoke VNet",
+          "status": "{egressOk ? \"reaches pay.example.net\" : \"connections time out\"}",
+          "tone": "egressOk ? \"up\" : \"down\""
+        },
+        {
+          "id": "rt",
+          "label": "Route table rt-app",
+          "spokenLabel": "the app route table",
+          "kind": "0.0.0.0/0",
+          "status": "{bypass ? \"route deleted: system route to Internet\" : routeFixed ? \"VirtualAppliance 10.0.1.68\" : \"VirtualAppliance 10.0.1.4\"}",
+          "tone": "bypass ? \"degraded\" : routeFixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "nva",
+          "label": "fw-nva01 (10.0.1.4)",
+          "spokenLabel": "the retired appliance",
+          "kind": "Deallocated 22:10 by CHG-2291",
+          "status": "deallocated",
+          "tone": "\"down\""
+        },
+        {
+          "id": "afw",
+          "label": "afw-hub (10.0.1.68)",
+          "spokenLabel": "Azure Firewall",
+          "kind": "Hub, AzureFirewallSubnet",
+          "status": "{routeFixed ? \"inspecting spoke egress\" : \"no spoke traffic\"}",
+          "tone": "\"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "vm",
+          "to": "rt",
+          "label": "Next hop",
+          "status": "{bypass ? \"Internet\" : routeFixed ? \"10.0.1.68\" : \"10.0.1.4 (dropped)\"}",
+          "tone": "egressOk and not bypass ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "rt",
+          "to": "afw",
+          "label": "Through the hub",
+          "status": "{routeFixed ? \"yes\" : \"no\"}",
+          "tone": "routeFixed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Diagnosing and resolving routing issues",
+  "secondaryObjectives": [
+    "Designing and implementing user-defined routes (UDRs)",
+    "Configuring monitoring, network diagnostics, and logs in Azure Network Watcher"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-700: Designing and Implementing Microsoft Azure Networking Solutions (page last updated 2026-06-29): core networking infrastructure 25-30%, connectivity services 20-25%, application delivery 15-20%, private access 10-15%, network security 15-20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Design and implement user-defined routes (UDRs)', 'Associate a route table with a subnet', 'Diagnose and resolve routing issues', 'Monitor and troubleshoot network health by using Azure Network Watcher'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 address blocks reserved for documentation: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737",
+      "note": "The card processor's address 203.0.113.80 is in a documentation range; read 2026-11-11 for REQ-238."
+    },
+    {
+      "cite": "Microsoft Learn, Azure Network Watcher: Next hop overview (last updated 2026-02-25)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-gb/Azure/network-watcher/next-hop-overview",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: next hop gives the 'Next hop type, IP address, and Route table ID of a specific destination IP address'; types include VirtualAppliance, Internet and None; 'If the route is defined using a user-defined route, next hop returns the route table that has the route. Otherwise, it returns System Route'; routes that send traffic to 'a network virtual appliance can lead to connectivity issues'. That a user route overrides the system default route is from the Virtual network traffic routing page, seen only as a search result on 2026-11-17 (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer for Halden Mutual, a fictional insurer on Azure with a hub-and-spoke network. Last night change CHG-2291 replaced the third-party firewall appliance in the hub (fw-nva01, 10.0.1.4) with Azure Firewall. Since then the claims servers in spoke subnet snet-app cannot reach the card processor at pay.example.net. Claims payouts settle in a batch at 11:00. Policy: all spoke egress goes through the hub firewall.",
+    "handover": [
+      "Route table rt-app is associated with snet-app (10.20.1.0/24); the hub VNet is peered with the spoke.",
+      "Azure Firewall afw-hub already has an application rule allowing pay.example.net from 10.20.0.0/16."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the claims VM, its route table, the hub and the card processor.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "batchAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The payout batch settles at 11:00, 45 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "hopAt": {
+      "type": "time",
+      "init": null
+    },
+    "effAt": {
+      "type": "time",
+      "init": null
+    },
+    "fwAt": {
+      "type": "time",
+      "init": null
+    },
+    "chgAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "bypass": {
+      "type": "bool",
+      "init": false
+    },
+    "nsgRule": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "batchOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "batchMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "staleudr",
+        "nsg",
+        "firewall"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "egressOk": {
+      "expr": "routeFixed or bypass"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "nextHop",
+        "effective",
+        "firewallIp",
+        "changeLog",
+        "fixRoute",
+        "deleteRoute",
+        "nsgAllow",
+        "restartVm",
+        "verify",
+        "fwLogs",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "nextHop": {
+      "label": "az network watcher show-next-hop --vm vm-claims01 -g rg-claims --source-ip 10.20.1.10 --dest-ip 203.0.113.80",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(hopAt)",
+          "then": [
+            {
+              "set": "hopAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az network watcher show-next-hop --vm vm-claims01 -g rg-claims --source-ip 10.20.1.10 --dest-ip 203.0.113.80 -o table\nNextHopIpAddress    NextHopType       RouteTableId\n{bypass ? \"                    Internet          System Route\" : routeFixed ? \"10.0.1.68           VirtualAppliance  .../routeTables/rt-app\" : \"10.0.1.4            VirtualAppliance  .../routeTables/rt-app\"}"
+        },
+        {
+          "finding": "A user-defined route in rt-app sends the card processor's traffic to 10.0.1.4, the appliance CHG-2291 retired."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "effective": {
+      "label": "az network nic show-effective-route-table -n vm-claims01-nic -g rg-claims -o table",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(effAt)",
+          "then": [
+            {
+              "set": "effAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az network nic show-effective-route-table -n vm-claims01-nic -g rg-claims -o table\nSource    State    Address Prefix   Next Hop Type     Next Hop IP\nDefault   Active   10.20.0.0/16     VnetLocal\nDefault   Active   10.0.0.0/16      VNetPeering\n{bypass ? \"Default   Active   0.0.0.0/0        Internet\" : routeFixed ? \"User      Active   0.0.0.0/0        VirtualAppliance  10.0.1.68\nDefault   Invalid  0.0.0.0/0        Internet\" : \"User      Active   0.0.0.0/0        VirtualAppliance  10.0.1.4\nDefault   Invalid  0.0.0.0/0        Internet\"}"
+        },
+        {
+          "finding": "The user route 0.0.0.0/0 overrides the system default route: every outbound flow goes to the next hop it names."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "firewallIp": {
+      "label": "az network firewall show -n afw-hub -g rg-hub --query 'ipConfigurations[0].privateIPAddress'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(fwAt)",
+          "then": [
+            {
+              "set": "fwAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az network firewall show -n afw-hub -g rg-hub --query 'ipConfigurations[0].privateIPAddress' -o tsv\n10.0.1.68"
+        },
+        {
+          "finding": "The firewall that replaced the appliance listens on 10.0.1.68."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "changeLog": {
+      "label": "az monitor activity-log list -g rg-hub --offset 18h --query \"[].operationName.localizedValue\"",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(chgAt)",
+          "then": [
+            {
+              "set": "chgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az monitor activity-log list -g rg-hub --offset 18h --query \"[].[eventTimestamp,operationName.localizedValue,resourceId]\" -o tsv\n22:10  Deallocate Virtual Machine  .../virtualMachines/fw-nva01\n22:31  Create or Update Azure Firewall  .../azureFirewalls/afw-hub"
+        },
+        {
+          "finding": "CHG-2291 deallocated fw-nva01 and created afw-hub; nothing touched rt-app in the spoke."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fixRoute": {
+      "label": "az network route-table route update -g rg-claims --route-table-name rt-app -n default-egress --next-hop-type VirtualAppliance --next-hop-ip-address 10.0.1.68",
+      "group": "Fix",
+      "available": "not busy and (not routeFixed)",
+      "why": "Already updated.",
+      "effects": [
+        {
+          "set": "routeFixed",
+          "to": "true"
+        },
+        {
+          "set": "bypass",
+          "to": "false"
+        },
+        {
+          "output": "netops@cloudshell:~$ az network route-table route update -g rg-claims --route-table-name rt-app -n default-egress --next-hop-type VirtualAppliance --next-hop-ip-address 10.0.1.68 -o table\nAddressPrefix    NextHopIpAddress    NextHopType       ProvisioningState\n0.0.0.0/0        10.0.1.68           VirtualAppliance  Succeeded"
+        },
+        {
+          "log": "Spoke egress goes to Azure Firewall again, where the pay.example.net rule already allows it.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deleteRoute": {
+      "label": "az network route-table route delete -g rg-claims --route-table-name rt-app -n default-egress",
+      "group": "Fix",
+      "available": "not busy and (not bypass and not routeFixed)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "bypass",
+          "to": "true"
+        },
+        {
+          "output": "netops@cloudshell:~$ az network route-table route delete -g rg-claims --route-table-name rt-app -n default-egress\n(no output)"
+        },
+        {
+          "log": "The system route sends spoke traffic straight to the internet: payouts work, and nothing inspects or logs them.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nsgAllow": {
+      "label": "az network nsg rule create --nsg-name nsg-app ... --priority 100 --direction Outbound --access Allow --destination-address-prefixes Internet",
+      "group": "Fix",
+      "available": "not busy and (not nsgRule)",
+      "why": "Already added.",
+      "effects": [
+        {
+          "set": "nsgRule",
+          "to": "true"
+        },
+        {
+          "output": "netops@cloudshell:~$ az network nsg rule create -g rg-claims --nsg-name nsg-app -n allow-out-any --priority 100 --direction Outbound --access Allow --destination-address-prefixes Internet\n\"provisioningState\": \"Succeeded\""
+        },
+        {
+          "log": "A new allow rule changes nothing: the NSG was not blocking; the route sends packets to an address that no longer answers.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restartVm": {
+      "label": "az vm restart -n vm-claims01 -g rg-claims",
+      "group": "Fix",
+      "available": "not busy and (not restarted)",
+      "why": "Already restarted.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "output": "netops@cloudshell:~$ az vm restart -n vm-claims01 -g rg-claims\n(restarted)"
+        },
+        {
+          "log": "The VM comes back with the same effective routes.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "az network watcher test-connectivity --source-resource vm-claims01 -g rg-claims --dest-address pay.example.net --dest-port 443",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "egressOk",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az network watcher test-connectivity --source-resource vm-claims01 -g rg-claims --dest-address pay.example.net --dest-port 443 --query connectionStatus\n\"{egressOk ? \"Reachable\" : \"Unreachable\"}\""
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fwLogs": {
+      "label": "Log Analytics: AZFWApplicationRule | where SourceIp startswith \"10.20.1.\" | take 5",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "routeFixed",
+          "then": [
+            {
+              "set": "logAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "netops@cloudshell:~$ az monitor log-analytics query -w law-hub --analytics-query 'AZFWApplicationRule | where SourceIp startswith \"10.20.1.\" | take 5' -o table\n{routeFixed ? \"TimeGenerated  SourceIp     Fqdn             Action\n10:2x          10.20.1.10   pay.example.net  Allow\" : \"(no rows)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "staleudr",
+                  "label": "rt-app's 0.0.0.0/0 route still pointed at the retired appliance 10.0.1.4; updated to Azure Firewall 10.0.1.68"
+                },
+                {
+                  "value": "nsg",
+                  "label": "An NSG rule blocked outbound traffic"
+                },
+                {
+                  "value": "firewall",
+                  "label": "An Azure Firewall rule blocked pay.example.net"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= batchAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "egressOk",
+          "then": [
+            {
+              "set": "batchOkAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the payout batch settles.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "batchMissAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the payout batch cannot reach the card processor.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: where the packets went, what you changed, and how you know it holds.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Where",
+          "criteria": "Uses next hop and effective routes to show the user route and its dead next hop.",
+          "modelAnswer": "Next hop and the NIC's effective routes showed a user route 0.0.0.0/0 to VirtualAppliance 10.0.1.4, the appliance CHG-2291 deallocated; nothing was wrong with the NSG or the firewall rule."
+        },
+        {
+          "label": "Change",
+          "criteria": "Points the route at the new firewall rather than removing it, keeping egress inspected.",
+          "modelAnswer": "Updated rt-app's default-egress route to 10.0.1.68, Azure Firewall's private IP, so egress still goes through the hub as policy requires; deleting the route would have sent it straight to the internet."
+        },
+        {
+          "label": "Holds",
+          "criteria": "Verifies the path and the firewall's log before 11:00.",
+          "modelAnswer": "Connection troubleshoot reported Reachable and AZFWApplicationRule showed 10.20.1.10 allowed to pay.example.net before the batch."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 45 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The payout batch settles at 11:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: egress bypassing the firewall, or a broad NSG allow rule."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not egressOk",
+      "class": "harm",
+      "rationale": "Closing with the route still pointing at the retired appliance leaves the claims servers cut off.",
+      "source": {
+        "cite": "Microsoft Learn, Azure Network Watcher: Next hop overview (last updated 2026-02-25)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-gb/Azure/network-watcher/next-hop-overview",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: next hop gives the 'Next hop type, IP address, and Route table ID of a specific destination IP address'; types include VirtualAppliance, Internet and None; 'If the route is defined using a user-defined route, next hop returns the route table that has the route. Otherwise, it returns System Route'; routes that send traffic to 'a network virtual appliance can lead to connectivity issues'. That a user route overrides the system default route is from the Virtual network traffic routing page, seen only as a search result on 2026-11-17 (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "bypass": {
+      "label": "Egress left the hub",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and bypass",
+      "narrative": "Deleting the route sent claims traffic straight to the internet, past the firewall policy requires."
+    },
+    "batchMissed": {
+      "label": "Payout batch failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(batchMissAt)",
+      "narrative": "At 11:00 the route still pointed at 10.0.1.4."
+    },
+    "fixed": {
+      "label": "Route fixed through the firewall, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and routeFixed and not bypass and isNull(batchMissAt) and not isNull(hopAt) and not isNull(fwAt) and not nsgRule and not isNull(verifiedAt) and not isNull(logAt) and causeDoc == \"staleudr\"",
+      "narrative": "Next hop showed the dead appliance; the route now points at Azure Firewall; the path and the firewall's log confirmed it before 11:00."
+    },
+    "gaps": {
+      "label": "Fixed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Payouts flow through the firewall, but a check was skipped or a stray change was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "bypass",
+    "batchMissed",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the route and its dead next hop with Network Watcher",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hopAt) and not isNull(fwAt)",
+            "score": "met",
+            "why": "Next hop and the firewall's IP."
+          },
+          {
+            "when": "not isNull(hopAt) or not isNull(effAt)",
+            "score": "partial",
+            "why": "The route, but not where it should go."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without looking at the route."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Egress restored through the hub firewall before 11:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeFixed and not bypass and isNull(batchMissAt)",
+            "score": "met",
+            "why": "Through the firewall, in time."
+          },
+          {
+            "when": "egressOk",
+            "score": "partial",
+            "why": "{bypass ? \"Restored around the firewall.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still pointing at 10.0.1.4."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "No unneeded changes, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not nsgRule and not restarted and not isNull(verifiedAt) and not isNull(logAt)",
+            "score": "met",
+            "why": "Only the route changed, and both checks done."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Verified, with extra changes or one check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not verified."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"staleudr\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames a control that was not blocking."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (bypass, NSG rule, restart)",
+        "value": "(bypass ? 1 : 0) + (nsgRule ? 1 : 0) + (restarted ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:15-10:18",
+        "text": "Next hop: VirtualAppliance 10.0.1.4 from rt-app; effective routes: the user 0.0.0.0/0 route is active; the activity log: fw-nva01 deallocated by CHG-2291."
+      },
+      {
+        "at": "10:18-10:20",
+        "text": "Azure Firewall's private IP is 10.0.1.68; update the route's next hop to it."
+      },
+      {
+        "at": "10:20-10:24",
+        "text": "Connection troubleshoot: Reachable; AZFWApplicationRule shows the claims server allowed."
+      }
+    ],
+    "debrief": {
+      "bypass": {
+        "headline": "It works, around the firewall",
+        "body": "Without the user route the system route sends 0.0.0.0/0 to the internet. Payouts flowed, uninspected and unlogged. Point the route at the new firewall's private IP instead."
+      },
+      "batchMissed": {
+        "headline": "The batch could not reach the processor",
+        "body": "Restarts and NSG rules do not change where a user route sends packets. Next hop and effective routes name the route and its next hop in one command."
+      },
+      "fixed": {
+        "headline": "Good: the route, not the symptoms",
+        "body": "You found the user route with next hop, took the new firewall's IP from the firewall itself, changed only that route, and proved it with connection troubleshoot and the firewall's own log."
+      },
+      "gaps": {
+        "headline": "Fixed, with gaps",
+        "body": "The criteria show what was left: the diagnosis, the firewall's IP, the broad NSG rule, or the checks."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Next hop for the card processor's address returns VirtualAppliance 10.0.1.4 from route table rt-app, and the NIC's effective routes show that user route overriding the system default route. CHG-2291 deallocated fw-nva01 at that address and built Azure Firewall at 10.0.1.68, but nobody changed the spoke's route. Update the route's next hop to the firewall's private IP; deleting it would restore payouts by sending them straight to the internet, around the firewall policy requires. NSG rules and restarts do not change routing. Verify with connection troubleshoot and the firewall's application rule log before 11:00."
+  }
+}

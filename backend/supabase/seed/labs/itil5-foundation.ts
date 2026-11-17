@@ -258,7 +258,7 @@ export const ITIL5FND_LABS: SeedLabSet = {
             part(
               "Not a sequence",
               "States that the lifecycle activities are not sequential or linear and can be used iteratively, so each slice can go through discover, design, build, transition and support on its own.",
-              "The framework's lifecycle activities are not a fixed sequence: a team can discover, design, build and transition document sharing, then repeat the activities for signing and billing while document sharing is already being operated and supported."
+              "ITIL's lifecycle activities are not a fixed sequence: a team can discover, design, build and transition document sharing, then repeat the activities for signing and billing while document sharing is already being operated and supported."
             ),
           ],
         },
@@ -333,7 +333,7 @@ export const ITIL5FND_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Match each statement to the service management term it describes, then explain what turns a problem into a known error.",
+          ask: "Match each statement to the ITIL term it describes, then explain what turns a problem into a known error.",
           parts: [
             matchPart(
               "Statement to term",
@@ -481,21 +481,21 @@ export const ITIL5FND_LABS: SeedLabSet = {
     // ITIL and Other Frameworks (1)
     {
       slug: "itil5-itil-and-devops",
-      objective: "Explaining where the framework and DevOps complement each other across the lifecycle",
+      objective: "Explaining where ITIL and DevOps complement each other across the lifecycle",
       kind: "case",
       title: "The DevOps team and the change board",
       brief:
-        "At the fictional Harborview Hospital, a DevOps team deploys the patient-portal code several times a day through an automated pipeline. The operations manager says the service management framework means every change should wait for the weekly change board.",
+        "At the fictional Harborview Hospital, a DevOps team deploys the patient-portal code several times a day through an automated pipeline. The operations manager says ITIL means every change should wait for the weekly change board.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "The pipeline runs automated tests on every change and can roll back in minutes.",
-          ask: "Does the framework require the weekly board here? Explain how the framework and DevOps fit together.",
+          ask: "Does ITIL require the weekly board here? Explain how ITIL and DevOps fit together.",
           parts: [
             part(
               "Complementary",
-              "Explains that the framework does not require one slow approval route; low-risk, well-tested pipeline changes can be pre-authorized, and the framework adds the wider service view (support, users, value) that DevOps alone may not cover.",
-              "No. The framework and DevOps complement each other: the pipeline's automated tests and fast rollback let routine changes be pre-authorized, while the framework brings the whole-service view -- support readiness, users, value and continual improvement -- across the lifecycle."
+              "Explains that ITIL does not require one slow approval route; low-risk, well-tested pipeline changes can be pre-authorized, and ITIL adds the wider service view (support, users, value) that DevOps alone may not cover.",
+              "No. ITIL and DevOps complement each other: the pipeline's automated tests and fast rollback let routine changes be pre-authorized, while ITIL brings the whole-service view -- support readiness, users, value and continual improvement -- across the lifecycle."
             ),
           ],
         },

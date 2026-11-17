@@ -673,9 +673,9 @@ export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
   // REQ-258 (Nick, 2026-11-12): level-aware lessons switched on once its Key terms were written.
   levelFlow: true,
-  title: "Prep for a core cybersecurity certification exam (2023 objectives)",
+  title: "Exam Prep for CompTIA Security+ (SY0-701)",
   description:
-    "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Prep for a core cybersecurity certification exam (2026 objectives). Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
+    "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Exam Prep for CompTIA Security+ (SY0-801). Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
@@ -937,9 +937,9 @@ const SECPLUS_V8_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const SECPLUSV8_TRACK: SeedTrack = {
   code: "SECPLUSV8",
-  title: "Prep for a core cybersecurity certification exam (2026 objectives)",
+  title: "Exam Prep for CompTIA Security+ (SY0-801)",
   description:
-    "CompTIA Security+ SY0-801 (V8) exam prep across 5 weighted domains -- including the new AI threats and AI-assisted operations objectives -- with PBQ scenario drilling. For SY0-701 (bookable in English until 2027-06-11) take Prep for CompTIA Security+. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
+    "CompTIA Security+ SY0-801 (V8) exam prep across 5 weighted domains -- including the new AI threats and AI-assisted operations objectives -- with PBQ scenario drilling. For SY0-701 (bookable in English until 2027-06-11) take Exam Prep for CompTIA Security+ (SY0-701). Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
@@ -1697,7 +1697,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const LINUXPLUS_TRACK: SeedTrack = {
   code: "LINUXPLUS",
-  title: "Prep for a vendor-neutral Linux administration certification exam",
+  title: "Exam Prep for CompTIA Linux+ (XK0-006)",
   description:
     "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -1893,7 +1893,7 @@ const CYSA_V4_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const CYSAPLUS_TRACK: SeedTrack = {
   code: "CYSAPLUS",
-  title: "Prep for a cybersecurity analyst certification exam",
+  title: "Exam Prep for CompTIA CySA+ (CS0-004)",
   description:
     "CompTIA CySA+ CS0-004 (V4) exam prep across 4 weighted domains -- SOC analysis with real tools, vulnerability prioritization, incident response, and reporting -- with SOC-analyst drilling. CS0-003 units stay listed until English CS0-003 retires on 2026-12-22. Sitting a translated CS0-003 exam (available until 2027-03-23)? Its units leave this course on 2026-12-23, so finish them before then. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -2174,7 +2174,7 @@ export const CYSAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PENTESTPLUS_TRACK: SeedTrack = {
   code: "PENTESTPLUS",
-  title: "Prep for a penetration testing certification exam",
+  title: "Exam Prep for CompTIA PenTest+ (PT0-003)",
   description:
     "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",
@@ -2287,7 +2287,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SECURITYX_TRACK: SeedTrack = {
   code: "SECURITYX",
-  title: "Prep for an expert security architect certification exam",
+  title: "Exam Prep for CompTIA SecurityX (CAS-005)",
   description:
     "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering. Independently developed exam prep; not affiliated with or endorsed by CompTIA. CompTIA and its certification names are trademarks of CompTIA.",
   trackType: "certification",

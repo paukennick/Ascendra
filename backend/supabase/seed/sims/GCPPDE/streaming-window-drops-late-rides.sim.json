@@ -1,0 +1,935 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "streaming-window-drops-late-rides",
+  "title": "Reconciliation: per-minute fare totals fall short since the app started queuing offline rides",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dataeng@cloudshell:~/fares$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:10 finance: fares_minute 3.8% below the processor since Monday; reconciliation at 16:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "16:00: still short",
+          "when": "not isNull(reconMissAt)",
+          "at": "timeAt(reconMissAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "16:00: reconciled",
+          "when": "not isNull(reconOkAt)",
+          "at": "timeAt(reconOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "ps",
+          "label": "Pub/Sub rides-completed",
+          "spokenLabel": "the Pub/Sub subscription",
+          "kind": "event time: ride end",
+          "status": "some events arrive up to 25 min late",
+          "tone": "\"degraded\""
+        },
+        {
+          "id": "job",
+          "label": "Dataflow fares-per-minute",
+          "spokenLabel": "the streaming job",
+          "kind": "1-minute fixed windows",
+          "status": "{lateFixed ? \"allowed lateness 30 min, late panes accumulate\" : not isNull(fixAt) ? \"replacing\" : \"no allowed lateness: late events dropped\"}",
+          "tone": "lateFixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "raw",
+          "label": "BigQuery rides_raw",
+          "spokenLabel": "the raw archive",
+          "kind": "every event, as received",
+          "status": "complete",
+          "tone": "\"up\""
+        },
+        {
+          "id": "tot",
+          "label": "BigQuery fares_minute",
+          "spokenLabel": "the totals table",
+          "kind": "per-minute fare totals",
+          "status": "{backfilled and lateFixed ? \"matches the processor\" : backfilled ? \"history corrected; today still short\" : \"3.8% short since Monday\"}",
+          "tone": "backfilled and lateFixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "ps",
+          "to": "job",
+          "label": "Late events",
+          "status": "{lateFixed ? \"added to their window\" : \"dropped\"}",
+          "tone": "lateFixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "raw",
+          "to": "tot",
+          "label": "Backfill",
+          "status": "{backfilled ? \"Monday to now recomputed\" : not isNull(backfillAt) ? \"running\" : \"not run\"}",
+          "tone": "backfilled ? \"up\" : \"degraded\""
+        }
+      ]
+    }
+  },
+  "objective": "Designing streaming transformations: windowing, late-arriving data",
+  "secondaryObjectives": [
+    "Designing a pipeline's processing logic",
+    "Designing batch transformations"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Data Engineer certification exam guide (v4.2): designing data processing systems ~22%, ingesting and processing the data ~25%, storing the data ~20%, preparing and using data for analysis ~15%, maintaining and automating data workloads ~18%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/v4.2_professional_data_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Under 2.2 Transformations: 'Streaming (e.g., windowing, late arriving data)'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Google Cloud documentation, Stop a running Dataflow pipeline",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/dataflow/pipelines/stopping-a-pipeline",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: canceling 'stops the Dataflow service from processing any data, including buffered data' and 'You might lose in-flight data when you cancel a job'; draining (streaming only) 'enables the Dataflow service to finish processing the buffered data while simultaneously ceasing the ingestion of new data'; on drain, Dataflow 'immediately closes any in-process windows and fires all triggers'."
+    },
+    {
+      "cite": "waitingforcode.com, Late data in Apache Beam",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.waitingforcode.com/apache-beam/late-data-apache-beam/read",
+      "note": "Read through a summarizing fetch on 2026-11-17 (a third-party explanation, to verify against the Apache Beam programming guide). Relevant text: 'By default late events are rejected from the window'; data arriving after the end of the window and of the allowed lateness is 'droppable late data'; withAllowedLateness 'defines how long late data will be accepted'; its example accepts a late element with accumulating fired panes and fires a later pane. The droppedDueToLateness counter name in the scenario is from memory of Beam (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data engineer for Larchfield Taxis, a fictional ride-hailing company. The streaming Dataflow job fares-per-minute reads ride-completed events from Pub/Sub and writes per-minute fare totals, by ride end time, to the BigQuery table fares_minute. Finance reconciles them with the payment processor at 16:00 and has flagged that BigQuery has been about 4% low every day since Monday.",
+    "handover": [
+      "Monday's driver app release queues rides completed without signal and sends them when the phone reconnects.",
+      "Every raw event is also archived to the BigQuery table rides_raw by a separate subscription."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows Pub/Sub, the streaming job's windows, the raw archive and the totals table.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "reconAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Finance reconciles at 16:00, 50 minutes after the report."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "reconAt0": {
+      "type": "time",
+      "init": null
+    },
+    "dropAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "lagAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "how": {
+      "type": "enum",
+      "values": [
+        "none",
+        "drain",
+        "cancel"
+      ],
+      "init": "none"
+    },
+    "backfillAt": {
+      "type": "time",
+      "init": null
+    },
+    "procTime": {
+      "type": "bool",
+      "init": false
+    },
+    "scaled": {
+      "type": "bool",
+      "init": false
+    },
+    "reconOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "reconMissAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "late",
+        "scale",
+        "processor"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "lateFixed": {
+      "expr": "not isNull(fixAt) and since(fixAt) >= 480"
+    },
+    "backfilled": {
+      "expr": "not isNull(backfillAt) and since(backfillAt) >= 900"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "reconcile",
+        "dropped",
+        "code",
+        "lag",
+        "deploy",
+        "backfill",
+        "processingTime",
+        "scale",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reconcile": {
+      "label": "bq query: daily fare totals, fares_minute against the processor's settlement file",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(reconAt0)",
+          "then": [
+            {
+              "set": "reconAt0",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ bq query --nouse_legacy_sql 'SELECT day, bq_total, processor_total, ROUND(100*(bq_total/processor_total-1),1) AS pct FROM finance.recon_daily ORDER BY day DESC LIMIT 4'\nday         bq_total    processor_total  pct\n{backfilled ? \"Tue 11-17   (recomputed)  matches\" : \"Tue 11-17   41,882.10   43,540.70        -3.8\nMon 11-16   88,104.55   91,610.30        -3.8\nSun 11-15   86,770.20   86,802.90        0.0\"}"
+        },
+        {
+          "finding": "The shortfall starts on Monday, the day of the app release, and is the same every day."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dropped": {
+      "label": "gcloud dataflow metrics list fares-per-minute (lateness counters)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(dropAt)",
+          "then": [
+            {
+              "set": "dropAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ gcloud dataflow metrics list $JOB --region europe-west2 --source user --filter 'name.name~Late' --format 'table(name.name,scalar)'\nNAME                                   SCALAR\nWindowInto/droppedDueToLateness         {lateFixed ? \"0 (new job)\" : \"41,206\"}"
+        },
+        {
+          "finding": "The windowing step has dropped about 41,000 events for arriving after their window closed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "code": {
+      "label": "grep -n WindowInto -A3 pipeline.py",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(codeAt)",
+          "then": [
+            {
+              "set": "codeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ grep -n WindowInto -A3 pipeline.py\n58:  | 'WindowInto' >> beam.WindowInto(window.FixedWindows(60){lateFixed ? \",\n59:        trigger=AfterWatermark(late=AfterCount(1)), allowed_lateness=Duration(seconds=1800),\n60:        accumulation_mode=AccumulationMode.ACCUMULATING)\" : \")\"}\n      | 'SumFares' >> beam.CombinePerKey(sum)"
+        },
+        {
+          "finding": "Fixed one-minute windows with no allowed lateness: once the watermark passes a window, its late events are dropped."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lag": {
+      "label": "bq query: how late do events arrive since Monday (publish time minus ride end)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(lagAt)",
+          "then": [
+            {
+              "set": "lagAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ bq query --nouse_legacy_sql 'SELECT APPROX_QUANTILES(TIMESTAMP_DIFF(publish_time, ride_end, SECOND), 100)[OFFSET(99)] AS p99_s, MAX(TIMESTAMP_DIFF(publish_time, ride_end, MINUTE)) AS max_min FROM raw.rides_raw WHERE DATE(publish_time) >= \"2026-11-16\"'\np99_s  max_min\n1080   25"
+        },
+        {
+          "finding": "Since Monday the slowest 1% of events arrive 18 minutes late and none more than 25: 30 minutes of allowed lateness covers them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "deploy": {
+      "label": "Deploy the job with allowed_lateness 30 min, a late trigger and accumulating panes (MERGE by window into BigQuery), replacing the running job",
+      "group": "Fix",
+      "available": "not busy and (isNull(fixAt) and not procTime)",
+      "why": "Already replaced.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "set": "how",
+          "to": "h"
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ gcloud dataflow jobs {h == \"drain\" ? \"drain\" : \"cancel\"} $JOB --region europe-west2 && python pipeline.py --runner DataflowRunner --job_name fares-per-minute-v2 --streaming ...\n{h == \"drain\" ? \"Draining: in-process windows close and fire; buffered data is finished before the new job reads the subscription.\" : \"Cancelled: buffered data and open windows are discarded.\"}"
+        },
+        {
+          "log": "{h == \"drain\" ? \"Late events up to 30 minutes now update their minute's total; the old job finished what it held.\" : \"The new job runs with allowed lateness, but the events and windows the old job held were lost.\"}",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ],
+      "params": [
+        {
+          "id": "h",
+          "kind": "choice",
+          "label": "Replace the running job by",
+          "options": [
+            {
+              "value": "drain",
+              "label": "Draining it"
+            },
+            {
+              "value": "cancel",
+              "label": "Cancelling it"
+            }
+          ]
+        }
+      ]
+    },
+    "backfill": {
+      "label": "Run a batch job recomputing fares_minute from rides_raw by ride end time, Monday to now",
+      "group": "Fix",
+      "available": "not busy and (isNull(backfillAt))",
+      "why": "Already running.",
+      "effects": [
+        {
+          "set": "backfillAt",
+          "to": "t"
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ python backfill.py --runner DataflowRunner --source raw.rides_raw --from 2026-11-16T00:00Z --to now --sink finance.fares_minute --write MERGE\nJob fares-backfill-1117 submitted (about 15 minutes)"
+        },
+        {
+          "log": "A batch job over the archive sees every event, however late it arrived, and rewrites each minute's total.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "processingTime": {
+      "label": "Switch the windows to processing time so nothing is late",
+      "group": "Fix",
+      "available": "not busy and (not procTime and isNull(fixAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "procTime",
+          "to": "true"
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ (pipeline.py) beam.Map(lambda e: window.TimestampedValue(e, time.time()))  # stamp on arrival\nDeploying..."
+        },
+        {
+          "log": "Nothing is dropped, but each fare now counts in the minute it arrived, not the minute the ride ended: surge and per-minute figures are wrong.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "scale": {
+      "label": "gcloud dataflow jobs update-options --max-num-workers 40",
+      "group": "Fix",
+      "available": "not busy and (not scaled)",
+      "why": "Already scaled.",
+      "effects": [
+        {
+          "set": "scaled",
+          "to": "true"
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ gcloud dataflow jobs update-options $JOB --region europe-west2 --max-num-workers 40\nUpdated."
+        },
+        {
+          "log": "More workers do not wait longer for late events: the drop counter keeps climbing.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Re-run the reconciliation for Monday and today",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "backfilled and lateFixed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dataeng@cloudshell:~/fares$ bq query --nouse_legacy_sql 'SELECT day, pct FROM finance.recon_daily WHERE day >= \"2026-11-16\"'\n{backfilled and lateFixed ? \"Mon 11-16  0.0\nTue 11-17  0.0\" : backfilled ? \"Mon 11-16  0.0\nTue 11-17  -0.9 (still dropping today's late events)\" : \"Mon 11-16  -3.8\nTue 11-17  -3.8\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "late",
+                  "label": "Offline-queued rides arrive up to 25 min late and the 1-minute windows had no allowed lateness, so they were dropped"
+                },
+                {
+                  "value": "scale",
+                  "label": "The job lacked workers"
+                },
+                {
+                  "value": "processor",
+                  "label": "The payment processor double-counted"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-320)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= reconAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "backfilled and lateFixed",
+          "then": [
+            {
+              "set": "reconOkAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the totals reconcile with the processor.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "reconMissAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the totals are still short of the processor.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the totals were short, what you changed in the windowing and why that much, and how the past days were corrected.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Ties the shortfall to late data and the window's lateness setting.",
+          "modelAnswer": "Since Monday's release, rides completed offline arrive late; the job's one-minute event-time windows had no allowed lateness, so the windowing step dropped about 41,000 late events, 3.8% of fares."
+        },
+        {
+          "label": "Change",
+          "criteria": "Sizes allowed lateness from the measured delay and replaces the job without losing data.",
+          "modelAnswer": "Measured lateness: p99 18 minutes, maximum 25, so allowed lateness is 30 minutes with a late trigger and accumulating panes merged by window into BigQuery. The old job was drained, not cancelled, so its buffered data was finished. Processing-time windows would have hidden the drops by putting fares in the wrong minute."
+        },
+        {
+          "label": "Past days",
+          "criteria": "Recomputes history from the raw archive and checks the reconciliation.",
+          "modelAnswer": "A batch job over rides_raw recomputed every minute since Monday by ride end time; the reconciliation for Monday and today shows 0.0% before 16:00."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 50 minutes for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Finance reconciles at 16:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: data lost by cancelling, or fares counted in the wrong minute."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not lateFixed and not backfilled",
+      "class": "harm",
+      "rationale": "Closing with late events still dropped leaves the totals short every day.",
+      "source": {
+        "cite": "waitingforcode.com, Late data in Apache Beam",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.waitingforcode.com/apache-beam/late-data-apache-beam/read",
+        "note": "Read through a summarizing fetch on 2026-11-17 (a third-party explanation, to verify against the Apache Beam programming guide). Relevant text: 'By default late events are rejected from the window'; data arriving after the end of the window and of the allowed lateness is 'droppable late data'; withAllowedLateness 'defines how long late data will be accepted'; its example accepts a late element with accumulating fired panes and fires a later pane. The droppedDueToLateness counter name in the scenario is from memory of Beam (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "dataLost": {
+      "label": "Buffered data lost on cancel",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and how == \"cancel\"",
+      "narrative": "Cancelling the running job discarded the events and open windows it held, in the middle of fixing a data-loss problem."
+    },
+    "reconMissed": {
+      "label": "Totals still short at 16:00",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(reconMissAt)",
+      "narrative": "At 16:00 the totals did not match: late events were still being dropped, or the history was not recomputed."
+    },
+    "reconciled": {
+      "label": "Lateness sized, job drained and replaced, history backfilled",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and lateFixed and how == \"drain\" and backfilled and not procTime and not scaled and isNull(reconMissAt) and not isNull(dropAt) and not isNull(lagAt) and not isNull(verifiedAt) and causeDoc == \"late\"",
+      "narrative": "The drop counter and the arrival delays explained the shortfall; a drained replacement with 30 minutes of lateness stops it, and a backfill corrected the history."
+    },
+    "gaps": {
+      "label": "Reconciled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The totals match, but the lateness was not sized from data, a check was skipped, or a stray change was made."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "dataLost",
+    "reconMissed",
+    "reconciled",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Found the dropped late events",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(dropAt) and (not isNull(reconAt0) or not isNull(codeAt))",
+            "score": "met",
+            "why": "The drop counter and where it bites."
+          },
+          {
+            "when": "not isNull(dropAt) or not isNull(reconAt0) or not isNull(codeAt)",
+            "score": "partial",
+            "why": "Part of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without finding the drops."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Lateness fixed without losing data, history backfilled, by 16:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lateFixed and how == \"drain\" and backfilled and isNull(reconMissAt)",
+            "score": "met",
+            "why": "Both halves, safely, in time."
+          },
+          {
+            "when": "lateFixed or backfilled",
+            "score": "partial",
+            "why": "{how == \"cancel\" ? \"With buffered data lost.\" : not lateFixed ? \"History only; today still drops.\" : not backfilled ? \"Going forward only.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still dropping, history unchanged."
+          }
+        ]
+      },
+      {
+        "id": "clean",
+        "label": "Lateness sized from measured delay, no stray changes, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lagAt) and not procTime and not scaled and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Sized from data, checked."
+          },
+          {
+            "when": "not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "Checked, without the measurement or with a stray change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"late\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames capacity or the processor."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes outside the fix (cancel, processing time, workers)",
+        "value": "(how == \"cancel\" ? 1 : 0) + (procTime ? 1 : 0) + (scaled ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:10-15:14",
+        "text": "Reconciliation: -3.8% from Monday; the drop counter: about 41,000 late events; the code: no allowed lateness; arrival delay p99 18 min, max 25."
+      },
+      {
+        "at": "15:14-15:19",
+        "text": "Drain and replace with 30 minutes of allowed lateness and accumulating late panes; start the backfill from rides_raw."
+      },
+      {
+        "at": "15:19-15:36",
+        "text": "The new job is running and the backfill finishes; Monday and today reconcile at 0.0%."
+      }
+    ],
+    "debrief": {
+      "dataLost": {
+        "headline": "Fixing data loss by losing data",
+        "body": "Cancel stops a job at once, buffered data included. Drain stops reading, finishes what the job holds and fires its windows, so a replacement can start from the subscription without a gap."
+      },
+      "reconMissed": {
+        "headline": "The reconciliation failed again",
+        "body": "Two things are needed: allowed lateness so new late events count, and a backfill from the raw archive for the days already lost. Workers change neither."
+      },
+      "reconciled": {
+        "headline": "Good: event time, with room for late data",
+        "body": "You found the drops, measured how late the data really is, sized allowed lateness from it, replaced the job without losing buffered data, recomputed the lost days from the archive, and reconciled before 16:00."
+      },
+      "gaps": {
+        "headline": "Reconciled, with gaps",
+        "body": "The criteria show what was left: reading the drop counter, measuring the delays, the reconciliation check, or a change that did not help."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The shortfall began with Monday's release, which queues rides completed offline and sends them late. The job windows by ride end time into one-minute windows with no allowed lateness, and its drop counter shows about 41,000 events discarded as late. Measure how late the data is (p99 18 minutes, maximum 25), set allowed lateness to 30 minutes with a late trigger and accumulating panes merged by window, and replace the job by draining it so its buffered data is finished; cancelling would lose that data. Processing-time windows would put fares in the wrong minute, and more workers do not change lateness. Recompute Monday to now from the raw archive with a batch job, then reconcile before 16:00."
+  }
+}

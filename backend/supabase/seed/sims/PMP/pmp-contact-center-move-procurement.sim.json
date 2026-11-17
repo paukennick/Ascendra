@@ -1,0 +1,1470 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmp-contact-center-move-procurement",
+  "title": "A contact center move: a contract type, a borrowed engineer, a late vendor and a cost forecast",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "311 contact center move · end of week {week} of 10",
+      "commitments": [
+        {
+          "id": "objective",
+          "label": "Project objective",
+          "text": "The city's 311 contact center answers calls from the new Harbor Street building on Monday 13 September 2027, with no lost calls during the move."
+        },
+        {
+          "id": "baseline",
+          "label": "Baseline",
+          "text": "Budget at completion 300 thousand dollars; 10 weeks; planned value 30 thousand dollars a week."
+        },
+        {
+          "id": "reserve",
+          "label": "Reserves",
+          "text": "{finance == \"request\" ? \"Contingency 10 thousand dollars, used; 15 thousand from the sponsor's management reserve approved through change control\" : \"Contingency reserve 10 thousand dollars in the budget; management reserve held by the sponsor\"}"
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "Not started"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Complete"
+        }
+      ],
+      "items": [
+        {
+          "id": "fit",
+          "label": "Workstation fit-out (fixed-price contractor)",
+          "column": "w1",
+          "when": "true",
+          "size": "weeks 1-4"
+        },
+        {
+          "id": "net",
+          "label": "Network and phones (Ridgeline Networks)",
+          "column": "w2",
+          "when": "true",
+          "size": "weeks 3-7",
+          "flag": "week >= 5 and week < 7 and vendor != \"cure\"",
+          "note": "{vendor == \"cure\" ? \"Cure notice: recovery plan on track\" : vendor == \"terminate\" ? \"Contract terminated; rebidding\" : week >= 5 ? \"Two milestones missed\" : \"\"}"
+        },
+        {
+          "id": "crm",
+          "label": "CRM data migration",
+          "column": "w3",
+          "when": "true",
+          "size": "weeks 2-8"
+        },
+        {
+          "id": "move",
+          "label": "Move weekend and agent training",
+          "column": "w4",
+          "when": "true",
+          "size": "weeks 9-10"
+        }
+      ],
+      "chart": {
+        "label": "Earned value against plan",
+        "unit": "thousand dollars",
+        "slots": 11,
+        "slotLabel": "Status meeting",
+        "series": [
+          {
+            "id": "evS",
+            "label": "Earned value",
+            "style": "actual",
+            "history": "evH"
+          },
+          {
+            "id": "acS",
+            "label": "Actual cost",
+            "style": "actual",
+            "history": "acH"
+          },
+          {
+            "id": "pvS",
+            "label": "Planned value",
+            "style": "plan",
+            "values": [
+              0,
+              30,
+              60,
+              90,
+              120,
+              150,
+              180,
+              210,
+              240,
+              270,
+              300
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "eng",
+          "label": "IT pulls the network engineer for two weeks",
+          "when": "week >= 3",
+          "at": "1814400",
+          "status": "{res == \"negotiate\" ? \"Agreed: three days lent, a vendor engineer backfills the rest\" : res == \"override\" ? \"Sponsor overrode the IT director\" : res == \"accept\" ? \"Engineer gone two weeks; network slips\" : \"Decision needed\"}",
+          "open": "res == \"none\""
+        },
+        {
+          "id": "vend",
+          "label": "Ridgeline Networks at 40% against the 70% milestone",
+          "when": "week >= 5",
+          "at": "3024000",
+          "status": "{vendor == \"cure\" ? \"Performance reviewed against the contract; cure notice and recovery plan\" : vendor == \"terminate\" ? \"Terminated; rebidding\" : vendor == \"wait\" ? \"Invoices paid; no action\" : \"Decision needed\"}",
+          "open": "vendor == \"none\" or vendor == \"wait\""
+        },
+        {
+          "id": "eac",
+          "label": "Cost forecast above the budget",
+          "when": "week >= 7",
+          "at": "4233600",
+          "status": "{finance == \"request\" ? \"Forecast reported; 15 thousand dollars of management reserve approved\" : finance == \"hide\" ? \"Overrun moved to next quarter's operating budget\" : finance == \"cutTraining\" ? \"Agent training cut to fit\" : \"Decision needed\"}",
+          "open": "finance == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sponsor",
+          "label": "Deputy city manager, sponsor",
+          "spokenLabel": "the sponsor",
+          "value": "sponsorTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "it",
+          "label": "IT director",
+          "spokenLabel": "the IT director",
+          "value": "itTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "staff",
+          "label": "311 supervisors",
+          "spokenLabel": "the 311 supervisors",
+          "value": "staffTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "m1",
+          "label": "Network ready",
+          "at": "4233600",
+          "status": "{week < 7 ? \"Planned\" : vendor == \"cure\" and res != \"accept\" ? \"Done\" : \"Late\"}"
+        },
+        {
+          "id": "m2",
+          "label": "Calls answered from Harbor Street",
+          "at": "6048000",
+          "status": "{week < 10 ? \"Planned\" : spi >= 0.95 ? \"On the baseline date\" : \"Behind the baseline\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "evm",
+          "label": "PV / EV / AC",
+          "value": "${pv}k / ${round(ev)}k / ${round(ac)}k"
+        },
+        {
+          "id": "spiM",
+          "label": "SPI",
+          "value": "{spi|2dp}"
+        },
+        {
+          "id": "cpiM",
+          "label": "CPI",
+          "value": "{cpi|2dp}"
+        },
+        {
+          "id": "eacM",
+          "label": "Estimate at completion (BAC / CPI)",
+          "value": "${round(300 / cpi)}k"
+        }
+      ]
+    }
+  },
+  "objective": "Planning and managing resources, procurement (including contract type selection and vendor performance evaluation), and project finances",
+  "secondaryObjectives": [
+    "Evaluating project status: developing project metrics, ensuring artifacts are created and kept accessible, and communicating status",
+    "Managing conflict: identifying its source, analyzing context, implementing an agreed resolution strategy, and maintaining ground rules that prevent recurrence"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Project Management Professional (PMP) Examination Content Outline, July 2026 Update: People 33%, Process 41%, Business Environment 26%",
+      "checkedAt": "2026-11-17",
+      "url": "https://backend.kayenta.de/fileadmin/kayenta/Bilder_2026/PMP-Examination-Content-Outline-2026.pdf",
+      "note": "Read 2026-11-17 (by this round's first builder) through a summarizing fetch of a copy of PMI's PDF hosted by a training provider; the course seed cites PMI's own copy. The domain weights are as cited; the Process domain's procurement, resource and budget task statements were not quoted in that read and are to verify. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Adrienne Watt, Project Management, 2nd edition (BCcampus Open Textbooks, CC BY-SA 4.0), chapter 13 Procurement Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://biz.libretexts.org/Bookshelves/Management/Project_Management_2e_(Watt)/01%3A_Chapters/1.13%3A_Procurement_Management",
+      "note": "Read 2026-11-17 through a summarizing fetch of the LibreTexts copy. Fixed-price fits when 'the scope of work is very clear and not likely to change', with the risk mostly on the contractor; cost-reimbursable is 'most often used when the scope of work or the costs for performing the work are not well known', with the risk mostly on the project; under time and materials 'the project, rather than the contractor, assumes the risk', and such contracts typically carry a not-to-exceed amount. After award the team tracks the contractor's performance against the contract's criteria and may invoke the contract's terms when it underperforms."
+    },
+    {
+      "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+      "note": "Read 2026-11-17 (through a summarizing fetch, by this round's first builder). SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done. The estimate at completion used here, BAC / CPI, is the common formula for a variance expected to continue; it was not quoted in that read (to verify)."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The city, the contact center, the vendors, the budget, the weekly planned value, the costs and progress each event moves and the trust gauges are teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the project manager for the City of Alder Bay, a fictional city, moving its 311 contact center to the new Harbor Street building. The project is predictive: 10 weeks from Monday 5 July 2027 and 300 thousand dollars, with a 10 thousand dollar contingency reserve. The IT department lends you its network engineer; Ridgeline Networks, a fictional vendor, installs the network and phones under contract.",
+    "handover": [
+      "Sponsor: Marcus Hale, deputy city manager, who holds the management reserve. IT director: Joan Whitaker. 311 supervisors run the floor.",
+      "Planned value is 30 thousand dollars a week; the dashboard shows PV, EV, AC, SPI, CPI and the estimate at completion."
+    ],
+    "howItWorks": [
+      "The dashboard shows the objective, baseline and reserves, the work packages, earned value against plan, the open issues, the people and the milestones.",
+      "Move the project on a week at a time. Decisions come to you as they arise; before them you can read the resource plan or the vendor's contract.",
+      "At go-live you close the project and write a short note."
+    ]
+  },
+  "clock": {
+    "start": "2027-07-05T08:00",
+    "tick": "1h",
+    "maxDuration": "80d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "week": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "ev": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500
+    },
+    "ac": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500
+    },
+    "w1": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "w2": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "w3": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "w4": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "contract": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tm",
+        "fixed",
+        "costplus"
+      ],
+      "init": "none"
+    },
+    "res": {
+      "type": "enum",
+      "values": [
+        "none",
+        "negotiate",
+        "override",
+        "accept"
+      ],
+      "init": "none"
+    },
+    "vendor": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cure",
+        "terminate",
+        "wait"
+      ],
+      "init": "none"
+    },
+    "finance": {
+      "type": "enum",
+      "values": [
+        "none",
+        "request",
+        "hide",
+        "cutTraining"
+      ],
+      "init": "none"
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "closed",
+        "skipped"
+      ],
+      "init": "none"
+    },
+    "rmpAt": {
+      "type": "time",
+      "init": null
+    },
+    "contractAt": {
+      "type": "time",
+      "init": null
+    },
+    "sponsorTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "itTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "staffTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "evH": {
+      "of": "ev",
+      "every": "7d",
+      "keep": "70d"
+    },
+    "acH": {
+      "of": "ac",
+      "every": "7d",
+      "keep": "70d"
+    }
+  },
+  "derived": {
+    "pv": {
+      "expr": "week * 30",
+      "unit": "k$"
+    },
+    "spi": {
+      "expr": "week == 0 ? 1 : ev / (week * 30)"
+    },
+    "cpi": {
+      "expr": "ac == 0 ? 1 : ev / ac"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "build": {
+      "label": "The move",
+      "clock": "turns",
+      "actions": [
+        "rmp",
+        "contracts"
+      ]
+    },
+    "close": {
+      "label": "Closing",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "build",
+  "actions": {
+    "rmp": {
+      "label": "Read the resource management plan and the critical path",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(rmpAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "rmpAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the plan and the schedule.",
+          "kind": "act"
+        },
+        {
+          "finding": "The network engineer is on the critical path in weeks 3 to 6. The plan says resource conflicts go first to the functional manager and the project manager, then to the sponsor if they cannot agree."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "contracts": {
+      "label": "Read the network vendor's contract",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(contractAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "contractAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the Ridgeline contract.",
+          "kind": "act"
+        },
+        {
+          "finding": "Milestones: 70% of cabling by week 5, network ready by week 7. Clause 9: on a missed milestone the city may issue a cure notice; the vendor has 10 days to present and start a recovery plan at its own cost; termination only if it fails to cure."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Close the project",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Closing",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you close",
+              "options": [
+                {
+                  "value": "closed",
+                  "label": "Close the contracts after acceptance, record Ridgeline's performance evaluation, release the remaining resources, reconcile the budget and archive"
+                },
+                {
+                  "value": "skipped",
+                  "label": "Hand over to the 311 supervisors and move on"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Close the project first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The project is closed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the week"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "week": {
+      "label": "The next weekly status meeting",
+      "wait": {
+        "skipLabel": "Go to the next weekly status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "week",
+          "by": "1"
+        },
+        {
+          "add": "ac",
+          "by": "30"
+        },
+        {
+          "add": "ev",
+          "by": "30"
+        },
+        {
+          "if": "contract == \"fixed\" and week == 2",
+          "then": [
+            {
+              "add": "ac",
+              "by": "12"
+            },
+            {
+              "log": "The migration vendor's fixed price carries a 40% premium for the unknown data quality.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "contract == \"costplus\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ac",
+              "by": "12"
+            },
+            {
+              "log": "Cost-plus with no ceiling: the vendor's hours on data cleansing keep growing.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "contract == \"tm\" and week == 6",
+          "then": [
+            {
+              "add": "ac",
+              "by": "3"
+            },
+            {
+              "log": "Data cleansing runs over its estimate; the not-to-exceed ceiling caps it.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "res == \"negotiate\" and week == 4",
+          "then": [
+            {
+              "add": "ac",
+              "by": "4"
+            },
+            {
+              "log": "A vendor engineer backfills for a week.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "res == \"accept\" and (week == 4 or week == 5)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-15"
+            },
+            {
+              "log": "No network engineer: cabling sign-off and phone configuration wait.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "week == 5",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-10"
+            },
+            {
+              "log": "Ridgeline Networks reports 40% of the cabling against a 70% milestone.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "vendor == \"cure\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "5"
+            },
+            {
+              "log": "Ridgeline works to its recovery plan: a second crew on weekends, at its own cost under the contract.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "vendor == \"terminate\" and week == 6",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-20"
+            },
+            {
+              "add": "ac",
+              "by": "10"
+            },
+            {
+              "log": "Terminated mid-installation: a new vendor must be found and the half-done cabling inspected.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "vendor == \"wait\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-5"
+            },
+            {
+              "log": "Ridgeline falls further behind.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "week == 2",
+          "then": [
+            {
+              "set": "w3",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 3",
+          "then": [
+            {
+              "set": "w2",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 4",
+          "then": [
+            {
+              "set": "w1",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 7",
+          "then": [
+            {
+              "set": "w2",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 8",
+          "then": [
+            {
+              "set": "w3",
+              "to": "\"done\""
+            },
+            {
+              "set": "w4",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 10",
+          "then": [
+            {
+              "set": "w4",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week < 10",
+          "then": [
+            {
+              "schedule": "week",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Monday 13 September: the first calls are answered at Harbor Street.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "week",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_contractPrompt",
+      "when": "week == 1 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 1: the data migration contract.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "contractPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_resPrompt",
+      "when": "week == 3 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 3: a call from the IT director.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "resPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_vendorPrompt",
+      "when": "week == 5 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 5: the network milestone.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "vendorPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_financePrompt",
+      "when": "week == 7 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 7: the cost forecast.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "financePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "contractPrompt": {
+      "title": "End of week 1: which contract for the CRM data migration?",
+      "context": "Nobody knows how clean the legacy CRM's 400,000 records are; the vendor's estimate is 6 to 14 days of cleansing. The fit-out, a clearly specified job, is already under a fixed-price contract.",
+      "choices": [
+        {
+          "id": "tm",
+          "label": "Time and materials with a not-to-exceed ceiling and weekly hours reports: the scope is uncertain, so the city takes the risk but caps it",
+          "effects": [
+            {
+              "set": "contract",
+              "to": "\"tm\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Signed: time and materials, ceiling 40 thousand dollars, weekly reports.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Uncertain scope fits time and materials or cost-reimbursable work; a not-to-exceed ceiling limits the buyer's risk."
+        },
+        {
+          "id": "fixed",
+          "label": "Fixed price, so the vendor carries the risk",
+          "effects": [
+            {
+              "set": "contract",
+              "to": "\"fixed\""
+            },
+            {
+              "log": "The vendor prices the uncertainty in.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A fixed price on uncertain scope buys a risk premium, or invites change orders later."
+        },
+        {
+          "id": "costplus",
+          "label": "Cost plus a fee, with no ceiling: the vendor knows best",
+          "effects": [
+            {
+              "set": "contract",
+              "to": "\"costplus\""
+            },
+            {
+              "log": "Signed with no cap.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Cost-reimbursable work puts the risk on the buyer; without a ceiling or reporting, nothing limits it."
+        }
+      ]
+    },
+    "resPrompt": {
+      "title": "End of week 3: the IT director wants the network engineer back",
+      "context": "The IT director: \"A server failure at the water plant needs Dana for two weeks, starting Monday.\" Dana is on the move's critical path in weeks 3 to 6.",
+      "choices": [
+        {
+          "id": "negotiate",
+          "label": "Meet the IT director with the critical path and the resource plan: agree to lend Dana for three days, and backfill the rest with a vendor engineer (4 thousand dollars); go to the sponsor only if you cannot agree",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"negotiate\""
+            },
+            {
+              "add": "itTrust",
+              "by": "5"
+            },
+            {
+              "log": "Agreed: Dana goes for three days; a vendor engineer covers the rest.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Resource conflicts in a matrix organization are negotiated with the functional manager using the plan, with escalation as the plan says."
+        },
+        {
+          "id": "override",
+          "label": "Ask the sponsor to overrule the IT director",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"override\""
+            },
+            {
+              "add": "itTrust",
+              "by": "-25"
+            },
+            {
+              "log": "The sponsor overrules IT; Dana stays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Escalating first skips the negotiation the plan asks for and costs the relationship with the functional manager."
+        },
+        {
+          "id": "accept",
+          "label": "Let Dana go for two weeks and hope the network work catches up",
+          "effects": [
+            {
+              "set": "res",
+              "to": "\"accept\""
+            },
+            {
+              "add": "staffTrust",
+              "by": "-5"
+            },
+            {
+              "log": "Dana leaves the project for two weeks.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Giving up a critical-path resource without analysis or a backfill moves the delay onto the project."
+        }
+      ]
+    },
+    "vendorPrompt": {
+      "title": "End of week 5: the network vendor missed its milestone",
+      "context": "Ridgeline Networks has finished 40% of the cabling against a 70% milestone; its project lead blames a crew shortage. Ridgeline's next invoice arrives Monday.",
+      "choices": [
+        {
+          "id": "cure",
+          "label": "Evaluate the performance against the contract's milestones, issue the cure notice under clause 9, require a recovery plan at Ridgeline's cost, and record the evaluation",
+          "effects": [
+            {
+              "set": "vendor",
+              "to": "\"cure\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Cure notice issued; Ridgeline presents a weekend-crew recovery plan.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Vendor performance is evaluated against the contract's criteria, and the contract's remedies are invoked in their order."
+        },
+        {
+          "id": "terminate",
+          "label": "Terminate the contract now and rebid",
+          "effects": [
+            {
+              "set": "vendor",
+              "to": "\"terminate\""
+            },
+            {
+              "add": "itTrust",
+              "by": "-5"
+            },
+            {
+              "log": "Ridgeline is terminated mid-installation.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Termination before the contract's cure step costs time, money and possibly a dispute."
+        },
+        {
+          "id": "wait",
+          "label": "Pay the invoice and wait; they say they will catch up",
+          "effects": [
+            {
+              "set": "vendor",
+              "to": "\"wait\""
+            },
+            {
+              "log": "No action.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Paying without a performance review gives up the contract's leverage."
+        }
+      ]
+    },
+    "financePrompt": {
+      "title": "End of week 7: the cost forecast",
+      "context": "CPI is {cpi|2dp}; the estimate at completion (BAC / CPI) is about {round(300 / cpi)} thousand dollars against a 300 thousand budget. The contingency reserve is spent. The city's finance office releases money quarterly; the sponsor holds a management reserve.",
+      "choices": [
+        {
+          "id": "request",
+          "label": "Report the forecast with its causes and ask the sponsor, through change control, for 15 thousand dollars of management reserve",
+          "effects": [
+            {
+              "set": "finance",
+              "to": "\"request\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "The sponsor approves 15 thousand dollars of management reserve; the cost baseline is updated.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Project finances are forecast from performance; an overrun is reported with its cause and funded through the sponsor's reserve and change control."
+        },
+        {
+          "id": "hide",
+          "label": "Charge the overrun to next quarter's operating budget so the project reports on budget",
+          "effects": [
+            {
+              "set": "finance",
+              "to": "\"hide\""
+            },
+            {
+              "log": "The overrun moves to an operating budget.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Moving project cost to another budget misreports the project's finances."
+        },
+        {
+          "id": "cutTraining",
+          "label": "Cut agent training from four days to one to stay within the budget",
+          "effects": [
+            {
+              "set": "finance",
+              "to": "\"cutTraining\""
+            },
+            {
+              "add": "staffTrust",
+              "by": "-25"
+            },
+            {
+              "log": "Training cut to one day; the supervisors were not asked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Cutting scope to hide a cost variance trades a reported overrun for an unready contact center."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the close-out note for the sponsor: the contract type you chose and why, how the resource conflict and the vendor were handled, and how the project's finances were forecast and funded.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Contract and vendor",
+          "criteria": "Chooses time and materials with a ceiling for uncertain scope and says why; evaluates Ridgeline against the contract and uses its cure step.",
+          "modelAnswer": "The migration's scope was unknown, so time and materials with a 40 thousand dollar ceiling: the city carried the risk but capped it. Ridgeline missed its 70% milestone; we evaluated it against the contract and issued a cure notice, and its recovery plan brought the network in by week 7."
+        },
+        {
+          "label": "Resources and finances",
+          "criteria": "Negotiates the critical-path resource with the functional manager before escalating; forecasts EAC from CPI and funds the overrun through the sponsor's reserve and change control.",
+          "modelAnswer": "We agreed three days for Dana and a vendor backfill with the IT director. At week 7 the forecast was above budget; we reported it and the sponsor approved 15 thousand dollars of management reserve through change control."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI at close at or above this is on schedule."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI at close at or above this is on budget."
+        }
+      },
+      "spiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI below this at close is a schedule failure."
+        }
+      },
+      "cpiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI below this at close is a cost failure."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): every stakeholder at or above this at close."
+        }
+      },
+      "stakeholderRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): a stakeholder below this at close is a broken working relationship."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and vendor == \"wait\" and finance == \"request\"",
+      "class": "recovered",
+      "rationale": "A vendor left unmanaged costs schedule but, reported honestly, is not harm.",
+      "source": {
+        "cite": "Adrienne Watt, Project Management, 2nd edition (BCcampus Open Textbooks, CC BY-SA 4.0), chapter 13 Procurement Management",
+        "checkedAt": "2026-11-17",
+        "url": "https://biz.libretexts.org/Bookshelves/Management/Project_Management_2e_(Watt)/01%3A_Chapters/1.13%3A_Procurement_Management",
+        "note": "Read 2026-11-17 through a summarizing fetch of the LibreTexts copy. Fixed-price fits when 'the scope of work is very clear and not likely to change', with the risk mostly on the contractor; cost-reimbursable is 'most often used when the scope of work or the costs for performing the work are not well known', with the risk mostly on the project; under time and materials 'the project, rather than the contractor, assumes the risk', and such contracts typically carry a not-to-exceed amount. After award the team tracks the contractor's performance against the contract's criteria and may invoke the contract's terms when it underperforms."
+      }
+    }
+  },
+  "endings": {
+    "misreported": {
+      "label": "Finances misreported",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and finance == \"hide\"",
+      "narrative": "The project reported on budget; the overrun sits in next quarter's operating budget, where an audit will find it."
+    },
+    "overrun": {
+      "label": "Over the harm line",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (spi < spiHarm or cpi < cpiHarm)",
+      "narrative": "The move closed at SPI {spi|2dp} and CPI {cpi|2dp}."
+    },
+    "broken": {
+      "label": "A working relationship broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (sponsorTrust < stakeholderRecovered or itTrust < stakeholderRecovered or staffTrust < stakeholderRecovered)",
+      "narrative": "{itTrust < stakeholderRecovered ? \"The IT director no longer lends people to your projects.\" : \"The 311 supervisors opened the new center with agents trained for one day.\"}"
+    },
+    "onPlan": {
+      "label": "Moved on the baseline, contracts and money under control",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and contract == \"tm\" and res == \"negotiate\" and vendor == \"cure\" and finance == \"request\" and record == \"closed\" and spi >= spiTarget and cpi >= cpiTarget and sponsorTrust >= stakeholderTarget and itTrust >= stakeholderTarget and staffTrust >= stakeholderTarget",
+      "narrative": "Calls were answered at Harbor Street on the baseline date; the contracts are closed with Ridgeline's evaluation on file, and the overrun was funded in the open."
+    },
+    "partly": {
+      "label": "Moved, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The center moved at SPI {spi|2dp} and CPI {cpi|2dp}; the criteria show where control slipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "misreported",
+    "overrun",
+    "broken",
+    "onPlan",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "contractCrit",
+        "label": "Chose a contract type that fits the migration's uncertain scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "contract == \"tm\"",
+            "score": "met",
+            "why": "Time and materials with a ceiling."
+          },
+          {
+            "when": "contract == \"fixed\"",
+            "score": "partial",
+            "why": "Fixed price: a risk premium."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Cost plus, uncapped."
+          }
+        ]
+      },
+      {
+        "id": "resCrit",
+        "label": "Negotiated the critical-path resource with the functional manager before escalating",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "res == \"negotiate\"",
+            "score": "met",
+            "why": "Agreed, with a backfill."
+          },
+          {
+            "when": "res == \"override\"",
+            "score": "partial",
+            "why": "Kept, by overruling IT."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost for two weeks."
+          }
+        ]
+      },
+      {
+        "id": "vendorCrit",
+        "label": "Evaluated the vendor against the contract and used its remedies in order",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "vendor == \"cure\"",
+            "score": "met",
+            "why": "Cure notice and recovery plan."
+          },
+          {
+            "when": "vendor == \"terminate\"",
+            "score": "partial",
+            "why": "Acted, but skipped the cure step."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Paid and waited."
+          }
+        ]
+      },
+      {
+        "id": "financeCrit",
+        "label": "Forecast the cost and funded the overrun through the sponsor's reserve",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "finance == \"request\"",
+            "score": "met",
+            "why": "Reported and funded through change control."
+          },
+          {
+            "when": "finance == \"cutTraining\"",
+            "score": "partial",
+            "why": "Within budget, by cutting scope unannounced."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The overrun hidden."
+          }
+        ]
+      },
+      {
+        "id": "closeCrit",
+        "label": "Closed the contracts, recorded the vendor's evaluation and reconciled the budget",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"closed\"",
+            "score": "met",
+            "why": "Closed and archived."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not closed out."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spiK",
+        "label": "SPI at close",
+        "value": "round(spi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at close",
+        "value": "round(cpi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "acK",
+        "label": "Actual cost at close, thousand dollars",
+        "value": "round(ac)",
+        "format": "number",
+        "expert": "about 307"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Week 1",
+        "text": "Read the resource plan and Ridgeline's contract; time and materials with a ceiling for the migration."
+      },
+      {
+        "at": "Week 3",
+        "text": "Negotiate Dana's time with the IT director; backfill with a vendor engineer."
+      },
+      {
+        "at": "Week 5",
+        "text": "Evaluate Ridgeline against the milestone; cure notice; recovery plan at its cost."
+      },
+      {
+        "at": "Week 7",
+        "text": "Report the forecast; management reserve through change control."
+      },
+      {
+        "at": "Week 10",
+        "text": "Close the contracts, file the vendor evaluation, reconcile and archive."
+      }
+    ],
+    "debrief": {
+      "onPlan": {
+        "headline": "Good: on the baseline, contracts and money under control",
+        "body": "The contract fit the scope, the resource was negotiated, the vendor was held to the contract and the overrun was funded in the open."
+      },
+      "partly": {
+        "headline": "Moved, with gaps",
+        "body": "The criteria show where the contract, the resource, the vendor or the money slipped."
+      },
+      "misreported": {
+        "headline": "Finances misreported",
+        "body": "Report the forecast and fund it through the sponsor's reserve; moving it to another budget hides it."
+      },
+      "overrun": {
+        "headline": "Beyond the harm line",
+        "body": "An uncapped contract, a lost critical-path resource and a terminated vendor are the usual ways there."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Overruling the functional manager, or cutting the agents' training unannounced, damages the people the move depends on."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The project was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Contract type follows scope certainty: a clearly specified fit-out suits a fixed price; a migration whose data quality nobody knows suits time and materials with a not-to-exceed ceiling, so the buyer carries a capped risk instead of paying a premium. In a matrix organization a critical-path resource conflict is negotiated with the functional manager using the plan before it goes to the sponsor. A vendor that misses a milestone is evaluated against the contract and the contract's remedies are used in their order: cure notice and recovery plan before termination. Finances are forecast from performance (EAC = BAC / CPI); an overrun is reported with its cause and funded from the sponsor's management reserve through change control, not hidden or cut from scope."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "band": "kcsa",
+  "label": "KCSA",
+  "base": {
+    "course": "CKA",
+    "slug": "etcd-restore-deleted-namespace"
+  },
+  "slug": "etcd-restore-deleted-namespace-kcsa",
+  "patch": {
+    "objective": "etcd security: client and peer TLS, certificate authentication, encryption at rest, backups as sensitive data and network access limited to the API server",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CNCF KCSA Curriculum (cncf/curriculum, pinned commit 0a8cc08a): Overview of Cloud Native Security 14%, Kubernetes Cluster Component Security 22%, Kubernetes Security Fundamentals 22%, Kubernetes Threat Model 16%, Platform Security 16%, Compliance and Security Frameworks 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/kcsa/cluster-component-security) confirmed the 22% domain and its etcd topics (mutual TLS, access limited to the API server, encryption at rest, snapshots); the PDF itself was not re-read. The objective wording is the course seed's."
+      },
+      {
+        "cite": "Kubernetes documentation, Operating etcd clusters for Kubernetes",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/",
+        "note": "Read through a summarizing fetch on 2026-11-16 (the second part of the page). Relevant text: snapshot save with 'ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379' and '--cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file>', the paths taken from the etcd Pod's description; 'etcdutl --data-dir <data-dir-location> snapshot restore snapshot.db', a directory the restore creates; 'If any API servers are running in your cluster, you should not attempt to restore instances of etcd': stop all API server instances, restore, restart them; if the data directory changes, change '/etc/kubernetes/manifests/etcd.yaml's volumes.hostPath.path for name: etcd-data'; verify with 'etcdutl --write-out=table snapshot status snapshot.db'; restart kube-scheduler, kube-controller-manager and kubelet after a restore, since they lose their leader lock."
+      }
+    ]
+  }
+}

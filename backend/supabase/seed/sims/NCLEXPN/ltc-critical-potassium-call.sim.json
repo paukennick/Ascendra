@@ -1,0 +1,1027 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ltc-critical-potassium-call",
+  "title": "The lab calls with a potassium",
+  "objective": "Recognize high potassium -- above 5.1 mEq/L -- by cramping, diarrhea and peaked T waves, and report it as a risk for dysrhythmia",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-PN cases (read 2026-11-11, primary PDF), not re-read: Coordinated Care includes care within the legal scope of practice; Physiological Adaptation includes recognizing and reporting a change in the client's condition."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "OpenStax, Fundamentals of Nursing (2024), section 20.1 (Rice University, CC BY-NC-SA 4.0)",
+      "checkedAt": "2026-11-02",
+      "url": "https://openstax.org/details/books/fundamentals-nursing",
+      "note": "Relayed from the NCLEX course seed (backend/supabase/seed/tracks/nursing.ts, accessed 2026-11-02), not re-read: serum potassium above 5.1 mEq/L is hyperkalemia, recognized by irritability, cramping, diarrhea and peaked T waves, and it can progress to dysrhythmia and cardiac arrest; causes include kidney failure, potassium-sparing diuretics and supplements."
+    },
+    {
+      "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+      "note": "Relayed from the NCLEX-RN case hyperkalemia-critical-value (read 2026-11-14 in the primary PDF through a summarizing fetch with quotes), not re-read: severe hyperkalemia is 6.5 mmol/L or more (equal to mEq/L), with at least continuous ECG monitoring; peaked T waves, flattened P waves and a wide QRS, then bradycardia, sine wave and VT. A UK guideline; the facility's transfer policy follows it on monitoring."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "06:40 in a skilled nursing facility. You are the LPN on the rehab hall. The lab phones a critical result for Mr. Whitfield, 78: potassium 6.9 mEq/L on this morning's draw.",
+    "handover": [
+      "Heart failure and chronic kidney disease. Medicines include lisinopril, spironolactone and a potassium chloride tablet, due at 08:00.",
+      "Overnight the aide noted three loose stools; he said his legs felt 'heavy and crampy'.",
+      "Facility policy: a critical lab value is read back and reported to the RN supervisor and the provider at once; any licensed nurse may call 911 for a resident with a critical value and symptoms; the LPN takes vital signs and an apical pulse and may hold a scheduled dose pending the provider's call."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the result means for him, what to hold and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "06:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Potassium effects on the heart worsen toward a dysrhythmia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kclBump": {
+      "value": 0.25,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The 08:00 potassium chloride taken early or anyway. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a dysrhythmic arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The critical value reported within 5 minutes of the call (facility policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "emsTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 to the ambulance leaving with him: about 15 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "readbackAt": {
+      "type": "time",
+      "init": null
+    },
+    "pulseAt": {
+      "type": "time",
+      "init": null
+    },
+    "symptomsAt": {
+      "type": "time",
+      "init": null
+    },
+    "marAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "readback",
+        "pulse",
+        "symptoms",
+        "mar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "report",
+        "redraw"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "high",
+        "hemolyzed",
+        "mild"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "readAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "kclAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(64 - 20 * max(0, prog - 0.5) + sin(t / 11) * 4)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(118 - 20 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              60,
+              50
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "not isNull(pulseAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(pulseAt)"
+        }
+      ],
+      "banner": [
+        {
+          "when": "route == \"report\" and inClinic",
+          "text": "The RN supervisor is coming; 911 called; the provider has been paged."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "readback": {
+      "label": "Read the result back to the lab and write it down with the time and the caller's name",
+      "group": "Assess",
+      "available": "not testPending and isNull(readbackAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"readback\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pulse": {
+      "label": "Vital signs and an apical pulse for a full minute",
+      "group": "Assess",
+      "available": "not testPending and isNull(pulseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pulse\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "symptoms": {
+      "label": "Ask about and check: muscle cramps, weakness, stools, palpitations",
+      "group": "Assess",
+      "available": "not testPending and isNull(symptomsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"symptoms\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mar": {
+      "label": "Review his medications and when they are due",
+      "group": "Assess",
+      "available": "not testPending and isNull(marAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the 08:00 potassium chloride pending the provider; flag it on the medication record",
+      "group": "Treat",
+      "available": "isNull(holdAt) and isNull(kclAt) and inClinic",
+      "why": "Already held, or given.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium chloride held and flagged for the provider.",
+          "kind": "act"
+        }
+      ]
+    },
+    "kcl": {
+      "label": "Give the morning medications early, including the potassium chloride, so the round runs on time",
+      "group": "Treat",
+      "available": "isNull(kclAt) and isNull(holdAt) and inClinic",
+      "why": "Held, or already given.",
+      "effects": [
+        {
+          "set": "kclAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + kclBump"
+        },
+        {
+          "log": "Morning medications given, potassium chloride included.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what this result means",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "high",
+              "label": "Dangerous hyperkalemia with symptoms (cramps, weakness, diarrhea, an irregular slow pulse): a risk of dysrhythmia"
+            },
+            {
+              "value": "hemolyzed",
+              "label": "Probably a hemolyzed sample: ask for a redraw before telling anyone"
+            },
+            {
+              "value": "mild",
+              "label": "A little high; mention it on rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"high\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"high\""
+                },
+                {
+                  "log": "Hyperkalemia with symptoms; risk of dysrhythmia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"hemolyzed\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hemolyzed\""
+                },
+                {
+                  "log": "Probably a lab error.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"mild\""
+                },
+                {
+                  "log": "Mildly high.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "report",
+              "label": "RN supervisor and provider now with SBAR: potassium 6.9, symptoms, an irregular slow pulse; call 911 per policy"
+            },
+            {
+              "value": "redraw",
+              "label": "Ask the lab to redraw at 09:00 and report if it's still high"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"report\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "emsTime"
+                },
+                {
+                  "log": "The RN supervisor comes at once; the provider agrees to transfer; 911 is called and the ambulance crew puts him on a monitor.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"redraw\""
+                },
+                {
+                  "log": "A redraw is booked for 09:00.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off to the ambulance crew: the value and time, symptoms, pulse, medicines held",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: potassium 6.9 at 06:40, cramps, weakness, diarrhea, irregular slow pulse, potassium chloride held, on spironolactone and lisinopril.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Rehab hall",
+      "clock": "running",
+      "actions": [
+        "readback",
+        "pulse",
+        "symptoms",
+        "mar",
+        "hold",
+        "kcl",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"readback\"",
+              "then": [
+                {
+                  "set": "readbackAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Read back: potassium 6.9 mEq/L, sample not hemolyzed, called 06:40 by the lab technologist. Critical.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"pulse\"",
+              "then": [
+                {
+                  "set": "pulseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Apical pulse {hr}, irregular with pauses; blood pressure {sbp}/{dbp}; SpO2 {spo2}%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"symptoms\"",
+              "then": [
+                {
+                  "set": "symptomsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Legs cramping, can't lift them off the bed as well as yesterday; three loose stools; 'my heart flutters'.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Lisinopril and spironolactone daily; potassium chloride tablet due 08:00 and given yesterday.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the transfer",
+      "wait": {
+        "skipLabel": "the ambulance leaving"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for 911, the crew and the hand-off."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The ambulance leaves for the hospital with him on a cardiac monitor.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does a potassium of 6.9 mean for Mr. Whitfield, and what do you do as the LPN?",
+      "parts": [
+        {
+          "label": "What it means",
+          "criteria": "Potassium well above 5.1 (severe at 6.5 or more), with cramps, weakness, diarrhea and an irregular slow pulse, on spironolactone, lisinopril and a supplement with kidney disease: a risk of dysrhythmia and arrest.",
+          "modelAnswer": "Normal is up to 5.1; 6.9 is severe. His cramps, weakness, diarrhea and an irregular slow pulse fit, and his spironolactone, lisinopril, potassium tablet and kidney disease explain it. It can cause a dangerous rhythm."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Reads the result back; checks vital signs and an apical pulse; holds the potassium chloride; reports to the RN and provider at once (not after a redraw); 911 per policy; leaves IV treatment and ECG interpretation to the RN and hospital.",
+          "modelAnswer": "Read it back, check his vital signs and apical pulse, hold the potassium tablet, and report to the RN supervisor and provider now with SBAR. With symptoms, 911 per policy. Treatment like IV calcium is for the hospital team."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A critical potassium with symptoms unreported an hour on is harm here.",
+      "source": {
+        "cite": "OpenStax, Fundamentals of Nursing (2024), section 20.1 (Rice University, CC BY-NC-SA 4.0)",
+        "checkedAt": "2026-11-02",
+        "url": "https://openstax.org/details/books/fundamentals-nursing",
+        "note": "Relayed from the NCLEX course seed (backend/supabase/seed/tracks/nursing.ts, accessed 2026-11-02), not re-read: serum potassium above 5.1 mEq/L is hyperkalemia, recognized by irritability, cramping, diarrhea and peaked T waves, and it can progress to dysrhythmia and cardiac arrest; causes include kidney failure, potassium-sparing diuretics and supplements."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Dysrhythmia and arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "The aide calls you: he is gray and unresponsive, no pulse. The potassium has stopped his heart. A code is called."
+    },
+    "transferred": {
+      "label": "Critical value reported and acted on",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"report\" and timeAt(callAt) <= timeAt(readbackAt) + reportWindow and not isNull(holdAt) and isNull(kclAt) and not isNull(pulseAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he leaves on a cardiac monitor with your hand-off. You read back, checked his pulse, held the potassium and reported within minutes."
+    },
+    "transferredGaps": {
+      "label": "Transferred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the hospital, but the report came late, his pulse was never checked or the potassium tablet went in."
+    },
+    "time_up": {
+      "label": "Unreported at 07:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "07:40 and the critical value has not reached anyone who can treat it."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "transferred",
+    "transferredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Reported to the RN and provider within 5 minutes of the call",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"report\" and timeAt(callAt) <= timeAt(readbackAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"report\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"redraw\"",
+            "score": "missed",
+            "why": "Waited for a redraw."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held the potassium chloride",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(kclAt)",
+            "score": "missed",
+            "why": "Given."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "pulseC",
+        "label": "Checked vital signs and an apical pulse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pulseAt)",
+            "score": "met",
+            "why": "Irregular, slow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked."
+          }
+        ]
+      },
+      {
+        "id": "readC",
+        "label": "Read the result back",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(readbackAt)",
+            "score": "met",
+            "why": "Read back."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read back."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Recognized symptomatic hyperkalemia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"high\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"hemolyzed\"",
+            "score": "missed",
+            "why": "Assumed lab error despite symptoms."
+          },
+          {
+            "when": "dxEnum == \"mild\"",
+            "score": "missed",
+            "why": "Called 6.9 mild."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off to the ambulance crew",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: severe, symptomatic hyperkalemia; hold, check, report now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Lab call to the report",
+        "value": "isNull(callAt) ? -1 : timeAt(callAt)",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "pulseK",
+        "label": "Lab call to the apical pulse",
+        "value": "isNull(pulseAt) ? -1 : timeAt(pulseAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:40",
+        "text": "Read back the potassium of 6.9 with the time and caller."
+      },
+      {
+        "at": "~06:41",
+        "text": "Vital signs and an apical pulse: irregular and slow. Cramps, weakness, loose stools."
+      },
+      {
+        "at": "~06:43",
+        "text": "Hold the 08:00 potassium chloride. RN supervisor and provider now with SBAR; 911 per policy."
+      },
+      {
+        "at": "~06:44",
+        "text": "Hand off to the ambulance crew."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Arrest",
+        "body": "A critical potassium with symptoms is reported at once, not after a redraw, and the potassium tablet is held."
+      },
+      "transferred": {
+        "headline": "Reported and acted on",
+        "body": "You read back, checked his pulse, held the potassium and reported within minutes within your scope. That is the expert path."
+      },
+      "transferredGaps": {
+        "headline": "Transferred, with gaps",
+        "body": "Check the time to the report, whether the pulse was checked and whether the potassium tablet was held."
+      },
+      "time_up": {
+        "headline": "Unreported",
+        "body": "A critical lab value goes to the RN and provider within minutes."
+      }
+    },
+    "modelReasoning": "Potassium above 5.1 mEq/L is high and 6.9 is severe; his cramps, weakness, diarrhea and an irregular slow pulse fit, and spironolactone, lisinopril, a potassium supplement and kidney disease explain it. It can progress to dysrhythmia and arrest. Within the PN's scope: read the result back, check vital signs and an apical pulse, hold the potassium chloride pending the provider, and report to the RN supervisor and provider at once, with 911 per facility policy for a symptomatic critical value. Treatment is for the hospital team."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Reported",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "signsQ": {
+      "during": "testT",
+      "ask": "While you check him: which findings fit high potassium?",
+      "choices": [
+        {
+          "id": "cramp",
+          "label": "Cramping, diarrhea, weakness and peaked T waves on an ECG"
+        },
+        {
+          "id": "low",
+          "label": "Constipation and flattened T waves"
+        },
+        {
+          "id": "seizure",
+          "label": "Headache, confusion and seizures"
+        }
+      ],
+      "expect": "cramp",
+      "explain": "Hyperkalemia shows as irritability, cramping, diarrhea and peaked T waves and can progress to dysrhythmia and cardiac arrest.",
+      "source": {
+        "cite": "OpenStax, Fundamentals of Nursing (2024), section 20.1 (Rice University, CC BY-NC-SA 4.0)",
+        "checkedAt": "2026-11-02",
+        "url": "https://openstax.org/details/books/fundamentals-nursing",
+        "note": "Relayed from the NCLEX course seed (backend/supabase/seed/tracks/nursing.ts, accessed 2026-11-02), not re-read: serum potassium above 5.1 mEq/L is hyperkalemia, recognized by irritability, cramping, diarrhea and peaked T waves, and it can progress to dysrhythmia and cardiac arrest; causes include kidney failure, potassium-sparing diuretics and supplements."
+      }
+    },
+    "severeQ": {
+      "during": "leaveT",
+      "ask": "While the ambulance leaves: from what level is hyperkalemia severe, needing continuous ECG monitoring?",
+      "choices": [
+        {
+          "id": "sixfive",
+          "label": "6.5 mEq/L or more"
+        },
+        {
+          "id": "fiveone",
+          "label": "Just above 5.1"
+        },
+        {
+          "id": "eight",
+          "label": "Only above 8"
+        }
+      ],
+      "expect": "sixfive",
+      "explain": "Severe hyperkalemia is 6.5 or more, with at least continuous ECG monitoring.",
+      "source": {
+        "cite": "UK Kidney Association. Clinical Practice Guideline: Management of Hyperkalaemia in Adults (updated July 2026)",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.ukkidney.org/sites/default/files/documents/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20UPDATED%20JULY%202026_0.pdf",
+        "note": "Relayed from the NCLEX-RN case hyperkalemia-critical-value (read 2026-11-14 in the primary PDF through a summarizing fetch with quotes), not re-read: severe hyperkalemia is 6.5 mmol/L or more (equal to mEq/L), with at least continuous ECG monitoring; peaked T waves, flattened P waves and a wide QRS, then bradycardia, sine wave and VT. A UK guideline; the facility's transfer policy follows it on monitoring."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

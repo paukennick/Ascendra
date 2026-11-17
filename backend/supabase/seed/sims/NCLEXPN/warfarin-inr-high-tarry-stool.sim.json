@@ -1,0 +1,1079 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "warfarin-inr-high-tarry-stool",
+  "title": "No greens for a week",
+  "objective": "Teach a client on warfarin to keep vitamin K intake consistent, and know a higher INR means a greater bleeding risk",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-PN cases (read 2026-11-11, primary PDF), not re-read: Coordinated Care includes care within the legal scope of practice; Physiological Adaptation includes recognizing and reporting a change in the client's condition."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "MedlinePlus (US National Library of Medicine). Warfarin drug information (revised 2026-03-15)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.medlineplus.gov/druginfo/meds/a682277.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Warfarin may cause serious bleeding that can lead to death'; report 'pink, red, or dark brown urine, red or tarry black bowel movements, headache, dizziness, or weakness', frequent nosebleeds and bleeding gums; regular blood tests (INR) track the response; 'Eat consistent amounts of vitamin K-containing food on a week-to-week basis', avoiding large amounts of leafy green vegetables. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "16:30 in a skilled nursing facility. You are the LPN on the north hall. Mrs. Duarte, 79, on warfarin for atrial fibrillation, has an INR of 5.6 back from today's draw; last week it was 2.6. Her warfarin is due at 17:00.",
+    "handover": [
+      "After dental extractions eight days ago she has been on soft foods and has eaten none of the salads and greens she usually has daily. Her daughter visits every evening.",
+      "The aide reports her gums are oozing and she had 'a dark, sticky' stool this afternoon.",
+      "Facility policy: the LPN reports an INR outside the ordered range and any bleeding to the RN supervisor and the provider at once, and may hold an anticoagulant dose pending the provider's call; the LPN reinforces teaching the RN or provider has started."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the INR means for her, what to hold, what to reinforce and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bleeding risk progresses while anticoagulation stays excessive. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "heldRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with the dose held and the provider's plan in place. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "doseBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Another warfarin dose at an INR of 5.6 with bleeding. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "giBleedAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a significant GI bleed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Reported within 5 minutes of reading the INR (facility policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "rnTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The RN supervisor assesses her and the provider gives orders: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "inrAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "bleedAt": {
+      "type": "time",
+      "init": null
+    },
+    "dietAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "inr",
+        "vitals",
+        "bleed",
+        "diet"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "report",
+        "tomorrow"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "high",
+        "low",
+        "fine"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "doseAt": {
+      "type": "time",
+      "init": null
+    },
+    "teachAt": {
+      "type": "time",
+      "init": null
+    },
+    "greensAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + 26 * max(0, prog - 0.4) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(124 - 28 * max(0, prog - 0.5))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(holdAt) and route == \"report\" ? heldRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              110,
+              100
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        }
+      ],
+      "infusions": "Warfarin held: {not isNull(holdAt)|yesno}. Teaching reinforced: {not isNull(teachAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"report\" and inClinic",
+          "text": "The RN supervisor is coming; the provider has been paged with the INR."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "inr": {
+      "label": "Read the INR against her ordered range and last week's",
+      "group": "Assess",
+      "available": "not testPending and isNull(inrAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"inr\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bleed": {
+      "label": "Look for bleeding: gums, skin, urine, stool, ask about headache and dizziness",
+      "group": "Assess",
+      "available": "not testPending and isNull(bleedAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"bleed\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "diet": {
+      "label": "Ask about what she has been eating since the dental work",
+      "group": "Assess",
+      "available": "not testPending and isNull(dietAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"diet\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the 17:00 warfarin pending the provider and flag it",
+      "group": "Treat",
+      "available": "isNull(holdAt) and isNull(doseAt) and inClinic",
+      "why": "Already held, or given.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Warfarin held and flagged for the provider.",
+          "kind": "act"
+        }
+      ]
+    },
+    "dose": {
+      "label": "Give the 17:00 warfarin as scheduled; the provider can adjust it tomorrow",
+      "group": "Treat",
+      "available": "isNull(doseAt) and isNull(holdAt) and inClinic",
+      "why": "Held, or already given.",
+      "effects": [
+        {
+          "set": "doseAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + doseBump"
+        },
+        {
+          "log": "Warfarin given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "teach": {
+      "label": "Reinforce with her and her daughter: keep vitamin K foods consistent week to week, and report bleeding signs",
+      "group": "Treat",
+      "available": "isNull(teachAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "teachAt",
+          "to": "t"
+        },
+        {
+          "log": "She and her daughter repeat it back: steady amounts of greens, not none and not a lot; report black stools, bleeding gums, pink urine, headache or dizziness.",
+          "kind": "act"
+        }
+      ]
+    },
+    "greens": {
+      "label": "Tell her daughter to bring a big salad tonight to bring the INR down",
+      "group": "Treat",
+      "available": "isNull(greensAt) and inClinic",
+      "why": "Already said.",
+      "effects": [
+        {
+          "set": "greensAt",
+          "to": "t"
+        },
+        {
+          "log": "Her daughter promises a large spinach salad.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does the INR mean for her?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "high",
+              "label": "INR 5.6 means her blood clots much more slowly than intended: a high bleeding risk, and she is bleeding (gums, bruises, black stool); her vitamin K intake dropped after the dental work"
+            },
+            {
+              "value": "low",
+              "label": "A high INR means she is at risk of clots"
+            },
+            {
+              "value": "fine",
+              "label": "A little high; it'll settle when she eats normally"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"high\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"high\""
+                },
+                {
+                  "log": "High INR with bleeding; vitamin K intake dropped.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"low\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"low\""
+                },
+                {
+                  "log": "Read as clotting risk.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Read as minor.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "report",
+              "label": "RN supervisor and provider now with SBAR: INR 5.6 (range 2 to 3), oozing gums, bruises, a black tarry stool, dizzy standing; no greens for eight days; warfarin held"
+            },
+            {
+              "value": "tomorrow",
+              "label": "Leave a note for the provider's morning round"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"report\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "rnTime"
+                },
+                {
+                  "log": "The RN supervisor comes at once; the provider orders warfarin held, a blood count and a stool test, and transfer if her pressure falls.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"tomorrow\""
+                },
+                {
+                  "log": "A note is left for the morning.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the INR, bleeding signs, the held dose and the teaching reinforced",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: INR 5.6, bleeding signs, warfarin held, RN and provider told, teaching reinforced.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "North hall",
+      "clock": "running",
+      "actions": [
+        "inr",
+        "vitals",
+        "bleed",
+        "diet",
+        "hold",
+        "dose",
+        "teach",
+        "greens",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"inr\"",
+              "then": [
+                {
+                  "set": "inrAt",
+                  "to": "t"
+                },
+                {
+                  "log": "INR 5.6; her ordered range is 2 to 3; last week 2.6. Her blood is clotting much more slowly than intended.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pulse {hr}, blood pressure {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"bleed\"",
+              "then": [
+                {
+                  "set": "bleedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Gums oozing; bruises on both forearms; the stool in the commode is black and tarry; no headache; a little dizzy standing.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dietAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Soft foods only for eight days: no salads, no greens. Before that, greens every day.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the RN supervisor's assessment",
+      "wait": {
+        "skipLabel": "the RN's assessment"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for the RN supervisor to assess and the provider to order."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The RN supervisor has assessed her; the provider's orders are in.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does an INR of 5.6 mean for Mrs. Duarte, why did it rise, and what do you do within your role?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A higher INR means slower clotting and greater bleeding risk; 5.6 is far above her range and she is bleeding (gums, bruises, black stool); it rose after her vitamin K intake fell (no greens for eight days).",
+          "modelAnswer": "A higher INR means her blood clots more slowly, so 5.6 means a big bleeding risk, and she's already bleeding: gums, bruises and a black stool. It went up because she stopped eating her usual greens after the dental work, so her vitamin K dropped."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds the warfarin pending the provider; checks vital signs and bleeding; reports to the RN supervisor and provider now; reinforces consistent vitamin K intake (not none, not a sudden large amount) and bleeding signs to report; documents.",
+          "modelAnswer": "Hold the warfarin, check her vital signs and for bleeding, and report to the RN supervisor and provider now. Then reinforce the teaching: steady amounts of greens week to week, not none and not a sudden big salad, and report bleeding signs."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An INR of 5.6 with bleeding unreported an hour on is harm here.",
+      "source": {
+        "cite": "MedlinePlus (US National Library of Medicine). Warfarin drug information (revised 2026-03-15)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.medlineplus.gov/druginfo/meds/a682277.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Warfarin may cause serious bleeding that can lead to death'; report 'pink, red, or dark brown urine, red or tarry black bowel movements, headache, dizziness, or weakness', frequent nosebleeds and bleeding gums; regular blood tests (INR) track the response; 'Eat consistent amounts of vitamin K-containing food on a week-to-week basis', avoiding large amounts of leafy green vegetables. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "gibleed": {
+      "label": "Significant GI bleed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= giBleedAt and inClinic",
+      "narrative": "She passes a large black stool, becomes pale and faint, and her pressure falls to 88/54. 911 is called."
+    },
+    "safe": {
+      "label": "Held, reported and taught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and not isNull(holdAt) and isNull(doseAt) and not isNull(teachAt) and isNull(greensAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the RN supervisor has her plan in hand; the warfarin is held, and she and her daughter know to keep her greens steady and what to report."
+    },
+    "safeGaps": {
+      "label": "Reported, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is assessed, but the report was slow, the dose went in, the teaching was missed, or her daughter was told to bring a big salad."
+    },
+    "time_up": {
+      "label": "Unreported at 17:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "17:30 and no one who can treat her knows."
+    }
+  },
+  "endingOrder": [
+    "gibleed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Reported to the RN supervisor and provider within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"report\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"tomorrow\"",
+            "score": "missed",
+            "why": "Left for the morning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held the warfarin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(doseAt)",
+            "score": "missed",
+            "why": "Given."
+          },
+          {
+            "when": "not isNull(holdAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not addressed."
+          }
+        ]
+      },
+      {
+        "id": "teachC",
+        "label": "Reinforced consistent vitamin K intake, not a sudden change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(greensAt)",
+            "score": "missed",
+            "why": "Advised a big salad."
+          },
+          {
+            "when": "not isNull(teachAt)",
+            "score": "met",
+            "why": "Reinforced."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reinforced."
+          }
+        ]
+      },
+      {
+        "id": "bleedC",
+        "label": "Checked vital signs and for bleeding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bleedAt) and not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(bleedAt) or not isNull(vitalsAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the INR correctly",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"high\"",
+            "score": "met",
+            "why": "Bleeding risk."
+          },
+          {
+            "when": "dxEnum == \"low\"",
+            "score": "missed",
+            "why": "Read backwards."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Called it minor."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: high INR means bleeding risk; vitamin K intake fell; hold, report, reinforce consistency",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "INR to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toHold",
+        "label": "16:30 to the dose held",
+        "value": "isNull(holdAt) ? -1 : timeAt(holdAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:30",
+        "text": "INR 5.6, range 2 to 3. Hold the 17:00 warfarin."
+      },
+      {
+        "at": "~16:31",
+        "text": "Bleeding check: gums, bruises, black tarry stool; vital signs."
+      },
+      {
+        "at": "~16:33",
+        "text": "RN supervisor and provider now with SBAR."
+      },
+      {
+        "at": "~16:34",
+        "text": "Reinforce steady vitamin K intake and bleeding signs with her and her daughter; document."
+      }
+    ],
+    "debrief": {
+      "gibleed": {
+        "headline": "GI bleed",
+        "body": "A higher INR means slower clotting and more bleeding risk. At 5.6 with bleeding, hold the warfarin and report at once."
+      },
+      "safe": {
+        "headline": "Held, reported, taught",
+        "body": "You read the INR correctly, held the dose, checked her for bleeding, reported within minutes and reinforced steady vitamin K intake. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Reported, with gaps",
+        "body": "Check how soon you reported, whether the dose went in, and whether the teaching was steady intake rather than a sudden big salad."
+      },
+      "time_up": {
+        "headline": "Unreported",
+        "body": "An INR far above range with bleeding goes to the RN and provider at once."
+      }
+    },
+    "modelReasoning": "A higher INR means blood that clots more slowly and a greater bleeding risk. Mrs. Duarte's INR of 5.6 is far above her range of 2 to 3, and she is bleeding: oozing gums, bruises and a black tarry stool. It rose because her vitamin K intake fell when she stopped eating her daily greens after dental work. Within the LPN role: hold the warfarin pending the provider, check vital signs and bleeding, and report to the RN supervisor and provider now. Then reinforce the teaching: keep vitamin K foods consistent week to week (not none, and not a sudden large salad), and report black stools, bleeding gums, pink urine, headache or dizziness."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Reported",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "inrQ": {
+      "during": "testT",
+      "ask": "While you check: what does a higher INR mean on warfarin?",
+      "choices": [
+        {
+          "id": "slow",
+          "label": "Blood clots more slowly: a greater bleeding risk"
+        },
+        {
+          "id": "fast",
+          "label": "Blood clots faster: a clot risk"
+        },
+        {
+          "id": "none",
+          "label": "Nothing about bleeding"
+        }
+      ],
+      "expect": "slow",
+      "explain": "Warfarin may cause serious bleeding; the INR tracks the body's response, and a higher value means slower clotting.",
+      "source": {
+        "cite": "MedlinePlus (US National Library of Medicine). Warfarin drug information (revised 2026-03-15)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.medlineplus.gov/druginfo/meds/a682277.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Warfarin may cause serious bleeding that can lead to death'; report 'pink, red, or dark brown urine, red or tarry black bowel movements, headache, dizziness, or weakness', frequent nosebleeds and bleeding gums; regular blood tests (INR) track the response; 'Eat consistent amounts of vitamin K-containing food on a week-to-week basis', avoiding large amounts of leafy green vegetables. No dose is used in the case."
+      }
+    },
+    "vitkQ": {
+      "during": "leaveT",
+      "ask": "While the RN assesses her: what is the right teaching about vitamin K foods?",
+      "choices": [
+        {
+          "id": "steady",
+          "label": "Eat consistent amounts week to week"
+        },
+        {
+          "id": "avoid",
+          "label": "Avoid all greens"
+        },
+        {
+          "id": "more",
+          "label": "Eat extra greens when the INR is high"
+        }
+      ],
+      "expect": "steady",
+      "explain": "Eat consistent amounts of vitamin K-containing food on a week-to-week basis.",
+      "source": {
+        "cite": "MedlinePlus (US National Library of Medicine). Warfarin drug information (revised 2026-03-15)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.medlineplus.gov/druginfo/meds/a682277.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Warfarin may cause serious bleeding that can lead to death'; report 'pink, red, or dark brown urine, red or tarry black bowel movements, headache, dizziness, or weakness', frequent nosebleeds and bleeding gums; regular blood tests (INR) track the response; 'Eat consistent amounts of vitamin K-containing food on a week-to-week basis', avoiding large amounts of leafy green vegetables. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

@@ -1,0 +1,464 @@
+{
+  "slug": "tight-belly-after-massive-resuscitation",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: bladder pressure by protocol; NG to suction; abdominal compartment syndrome; surgeon now; blocker; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iapCheck",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "defQ",
+          "choice": "over20",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "measured",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "ng",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "acs"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surg"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "techQ",
+          "choice": "protocol",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "nmb",
+          "seq": 10,
+          "tick": 65
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 65
+        }
+      ],
+      "expect": {
+        "ending": "decompressed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "measureC": "met",
+          "callC": "met",
+          "noBolus": "met",
+          "bridgeC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toMeasure": 65
+        },
+        "stateHash": "a5ae1bb3a05035fd"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Examines and reviews organs first, measures, then tells the surgeon 6 minutes after the pressure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "exam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "defQ",
+          "choice": "over20",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "organs",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "iapCheck",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "chapter",
+          "chapter": "measured",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ng",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "acs"
+          },
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surg"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "techQ",
+          "choice": "protocol",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "nmb",
+          "seq": 11,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "decompressedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "measureC": "met",
+          "callC": "partial",
+          "noBolus": "met",
+          "bridgeC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toMeasure": 180
+        },
+        "stateHash": "b35ff8254e08b326"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "bolusFirst",
+      "title": "Measures and calls fast, but gives a fluid bolus for the low urine first",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "organs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "defQ",
+          "choice": "over20",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iapCheck",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "measured",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surg"
+          },
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "techQ",
+          "choice": "protocol",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "acs"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "ng",
+          "seq": 10,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "nmb",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "decompressedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "measureC": "met",
+          "callC": "met",
+          "noBolus": "missed",
+          "bridgeC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toMeasure": 120
+        },
+        "stateHash": "0fe3db35740627fe"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "headUp",
+      "title": "Failure: takes an invalid head-up reading, calls him dry, gives a bolus and repeats in 4 hours",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "quick",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "defQ",
+          "choice": "over20",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dry"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "repeat"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "measureC": "missed",
+          "callC": "missed",
+          "noBolus": "missed",
+          "bridgeC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toMeasure": -1
+        },
+        "stateHash": "9269a3c3b2cf18e6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "feltIt",
+      "title": "Failure: feels the abdomen, calls it ARDS and never measures",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "exam",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "defQ",
+          "choice": "over20",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ards"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "measureC": "missed",
+          "callC": "missed",
+          "noBolus": "met",
+          "bridgeC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toMeasure": -1
+        },
+        "stateHash": "94a6a7eb6df6b4d4"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

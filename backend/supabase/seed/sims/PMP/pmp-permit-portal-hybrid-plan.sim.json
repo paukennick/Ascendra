@@ -1,0 +1,1464 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmp-permit-portal-hybrid-plan",
+  "title": "A county permit portal: choosing an approach, estimating, a change in the law and a forecast that falls short",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Online permits · end of week {week} of 12",
+      "commitments": [
+        {
+          "id": "objective",
+          "label": "Project objective",
+          "text": "Residents apply and pay for building permits online, with fees calculated under the state's new fee law from Monday 3 April 2028."
+        },
+        {
+          "id": "approach",
+          "label": "Approach",
+          "text": "{approach == \"hybrid\" ? \"Hybrid: the fee module baselined and planned; the application wizard in two-week iterations to a fixed release date; one integrated plan\" : approach == \"predictive\" ? \"Predictive: every part specified and baselined up front\" : approach == \"adaptive\" ? \"Adaptive: every part in iterations, no baseline\" : \"To be decided\"}"
+        },
+        {
+          "id": "baseline",
+          "label": "Budget",
+          "text": "Budget at completion 360 thousand dollars; 12 weeks; planned value 30 thousand dollars a week."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "Not started"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Complete"
+        }
+      ],
+      "items": [
+        {
+          "id": "fee",
+          "label": "Fee calculation and payment (state fee law)",
+          "column": "w1",
+          "when": "true",
+          "size": "weeks 2-9"
+        },
+        {
+          "id": "wiz",
+          "label": "Application wizard for residents",
+          "column": "w2",
+          "when": "true",
+          "size": "weeks 2-11"
+        },
+        {
+          "id": "gis",
+          "label": "Parcel lookup from the county GIS",
+          "column": "w3",
+          "when": "true",
+          "size": "weeks 3-8"
+        },
+        {
+          "id": "insp",
+          "label": "Inspection scheduling (state amendment)",
+          "column": "w4",
+          "when": "week >= 5",
+          "size": "added week 5"
+        }
+      ],
+      "chart": {
+        "label": "Earned value against plan",
+        "unit": "thousand dollars",
+        "slots": 13,
+        "slotLabel": "Status meeting",
+        "series": [
+          {
+            "id": "evS",
+            "label": "Earned value",
+            "style": "actual",
+            "history": "evH"
+          },
+          {
+            "id": "acS",
+            "label": "Actual cost",
+            "style": "actual",
+            "history": "acH"
+          },
+          {
+            "id": "pvS",
+            "label": "Planned value",
+            "style": "plan",
+            "values": [
+              0,
+              30,
+              60,
+              90,
+              120,
+              150,
+              180,
+              210,
+              240,
+              270,
+              300,
+              330,
+              360
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "amend",
+          "label": "State amends the fee law: permits must offer inspection scheduling",
+          "when": "week >= 5",
+          "at": "3024000",
+          "status": "{change == \"ccb\" ? \"Impact assessed across the plan; approved; baseline and subsidiary plans updated\" : change == \"backlog\" ? \"Added to the wizard backlog only\" : change == \"ignore\" ? \"Left until after launch\" : \"Decision needed\"}",
+          "open": "change == \"none\""
+        },
+        {
+          "id": "vel",
+          "label": "Wizard forecast: 70% of the backlog by the release date",
+          "when": "week >= 8",
+          "at": "4838400",
+          "status": "{velocity == \"reprioritize\" ? \"Must-haves for launch agreed with the permits manager; the rest after\" : velocity == \"addDevs\" ? \"Two developers added\" : velocity == \"cutTests\" ? \"Fee module testing cut to free people\" : \"Decision needed\"}",
+          "open": "velocity == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sponsor",
+          "label": "County administrator, sponsor",
+          "spokenLabel": "the sponsor",
+          "value": "sponsorTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "po",
+          "label": "Permits manager, product owner",
+          "spokenLabel": "the permits manager",
+          "value": "poTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "team",
+          "label": "Development team",
+          "spokenLabel": "the development team",
+          "value": "teamTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "m1",
+          "label": "Fee module accepted against the law",
+          "at": "5443200",
+          "status": "{week < 9 ? \"Planned\" : approach == \"adaptive\" ? \"Not baselined; late\" : \"Accepted\"}"
+        },
+        {
+          "id": "m2",
+          "label": "Portal live for the fee law's start",
+          "at": "7257600",
+          "status": "{week < 12 ? \"Planned\" : legalGap ? \"Live, out of line with the law\" : \"Live\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "evm",
+          "label": "PV / EV / AC",
+          "value": "${pv}k / ${round(ev)}k / ${round(ac)}k"
+        },
+        {
+          "id": "spiM",
+          "label": "SPI",
+          "value": "{spi|2dp}"
+        },
+        {
+          "id": "cpiM",
+          "label": "CPI",
+          "value": "{cpi|2dp}"
+        },
+        {
+          "id": "gisM",
+          "label": "GIS integration estimate",
+          "value": "{estimate == \"threePoint\" ? \"(8 + 4 x 12 + 22) / 6 = 13 days\" : estimate == \"analogous\" ? \"10 days, from last year's portal\" : estimate == \"vendor\" ? \"8 days, the vendor's figure\" : \"not estimated\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Developing and maintaining an integrated project management plan: assessing complexity, recommending a predictive/adaptive/hybrid approach, and estimating work effort",
+  "secondaryObjectives": [
+    "Managing and controlling changes: executing a change control process, communicating proposed-change status, and updating documentation to reflect approved changes",
+    "Planning and managing project compliance: confirming requirements (security, health/safety, sustainability, regulatory), classifying categories, and analyzing noncompliance consequences"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Project Management Professional (PMP) Examination Content Outline, July 2026 Update: People 33%, Process 41%, Business Environment 26%",
+      "checkedAt": "2026-11-17",
+      "url": "https://backend.kayenta.de/fileadmin/kayenta/Bilder_2026/PMP-Examination-Content-Outline-2026.pdf",
+      "note": "Read 2026-11-17 (by this round's first builder) through a summarizing fetch of a copy of PMI's PDF hosted by a training provider; the course seed cites PMI's own copy. The domain weights are as cited; the Process domain's procurement, resource and budget task statements were not quoted in that read and are to verify. The objective wording is the course seed's."
+    },
+    {
+      "cite": "PMI, projectmanagement.com wiki: 3 Points Estimating",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.projectmanagement.com/wikis/368763/3-points-estimating",
+      "note": "Read 2026-11-17 through a summarizing fetch. Three-point estimating addresses uncertainty: triangular E = (O + M + P) / 3; beta (PERT) E = (O + 4M + P) / 6, which weights the most likely estimate more. The page lists parametric and analogous estimates without further explanation; that parametric estimating multiplies a unit rate by a quantity is the general definition, not quoted here (to verify)."
+    },
+    {
+      "cite": "Abdullah Oguz, Project Management, 2nd edition (MSL Academic Endeavors, CC BY-NC 4.0), 11.3 Earned Value Management",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/chapter/11-3-earned-value-management-evm/",
+      "note": "Read 2026-11-17 (through a summarizing fetch, by this round's first builder). SPI = EV / PV and CPI = EV / AC, below 1.0 meaning behind schedule and over cost for the work done. The estimate at completion used here, BAC / CPI, is the common formula for a variance expected to continue; it was not quoted in that read (to verify)."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-321)",
+      "checkedAt": "2026-11-17",
+      "note": "The county, the portal, the fee law, the estimates, the budget, the weekly planned value, the progress each event moves and the trust gauges are teaching figures for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the project manager for Riverbend County, a fictional county, building an online building-permit portal. A new state fee law starts on Monday 3 April 2028 and the portal must calculate and collect its fees from that day. The budget is 360 thousand dollars over 12 weeks from Monday 10 January 2028.",
+    "handover": [
+      "Sponsor: Helen Ortiz, county administrator. Product owner for the residents' application wizard: Raj Patel, permits manager. A team of six developers and two testers.",
+      "Planned value is 30 thousand dollars a week; the dashboard shows PV, EV, AC, SPI and CPI at each Friday status meeting."
+    ],
+    "howItWorks": [
+      "The dashboard shows the objective, the approach and the budget, the work, earned value against plan, the open issues, the people and the milestones.",
+      "Move the project on a week at a time. Decisions come to you as they arise; before them you can read the law or talk to the people who apply for permits.",
+      "At go-live you close the project and write a short note."
+    ]
+  },
+  "clock": {
+    "start": "2028-01-10T08:00",
+    "tick": "1h",
+    "maxDuration": "100d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "week": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 12
+    },
+    "ev": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500
+    },
+    "ac": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 500
+    },
+    "w1": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "w2": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "w3": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "w4": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "approach": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hybrid",
+        "predictive",
+        "adaptive"
+      ],
+      "init": "none"
+    },
+    "estimate": {
+      "type": "enum",
+      "values": [
+        "none",
+        "threePoint",
+        "analogous",
+        "vendor"
+      ],
+      "init": "none"
+    },
+    "change": {
+      "type": "enum",
+      "values": [
+        "none",
+        "ccb",
+        "backlog",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "velocity": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reprioritize",
+        "addDevs",
+        "cutTests"
+      ],
+      "init": "none"
+    },
+    "legalGap": {
+      "type": "bool",
+      "init": false
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "closed",
+        "skipped"
+      ],
+      "init": "none"
+    },
+    "lawAt": {
+      "type": "time",
+      "init": null
+    },
+    "usersAt": {
+      "type": "time",
+      "init": null
+    },
+    "sponsorTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "poTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "teamTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "evH": {
+      "of": "ev",
+      "every": "7d",
+      "keep": "84d"
+    },
+    "acH": {
+      "of": "ac",
+      "every": "7d",
+      "keep": "84d"
+    }
+  },
+  "derived": {
+    "pv": {
+      "expr": "week * 30",
+      "unit": "k$"
+    },
+    "spi": {
+      "expr": "week == 0 ? 1 : ev / (week * 30)"
+    },
+    "cpi": {
+      "expr": "ac == 0 ? 1 : ev / ac"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "build": {
+      "label": "The project",
+      "clock": "turns",
+      "actions": [
+        "law",
+        "users"
+      ]
+    },
+    "close": {
+      "label": "Closing",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "build",
+  "actions": {
+    "law": {
+      "label": "Read the state fee law and its start date",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(lawAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lawAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the law with the county attorney.",
+          "kind": "act"
+        },
+        {
+          "finding": "The fee schedule is fixed in the law and applies from 3 April; the county must show its calculation matches the schedule before charging. Amendments are expected during the session."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "users": {
+      "label": "Talk to permit counter staff and two contractors about applying",
+      "group": "Inspect",
+      "available": "not busy and phase == \"build\" and isNull(usersAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "usersAt",
+          "to": "t"
+        },
+        {
+          "add": "poTrust",
+          "by": "5"
+        },
+        {
+          "log": "You sit at the permit counter for a morning.",
+          "kind": "act"
+        },
+        {
+          "finding": "Nobody agrees on what a resident needs first: counter staff say the parcel lookup, contractors say saved drafts. The wizard's needs will be learned by testing it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Close the project",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Closing",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you close",
+              "options": [
+                {
+                  "value": "closed",
+                  "label": "Hand over with the permits manager's acceptance, update the integrated plan's final baseline and estimates for future portals, record lessons learned and archive"
+                },
+                {
+                  "value": "skipped",
+                  "label": "Hand over and move on"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Close the project first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The project is closed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the week"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "week": {
+      "label": "The next weekly status meeting",
+      "wait": {
+        "skipLabel": "Go to the next weekly status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "week",
+          "by": "1"
+        },
+        {
+          "add": "ac",
+          "by": "30"
+        },
+        {
+          "add": "ev",
+          "by": "30"
+        },
+        {
+          "if": "approach == \"predictive\" and (week == 6 or week == 7)",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-8"
+            },
+            {
+              "log": "The first usability test sends the up-front wizard specification back: residents could not find the parcel step.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "approach == \"adaptive\" and week == 9",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-10"
+            },
+            {
+              "log": "The fee module, never baselined, is still changing three weeks before the law starts.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "estimate == \"analogous\" and week == 7",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-6"
+            },
+            {
+              "log": "The GIS integration takes 13 days, not last year's 10: this county's parcel service is older.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "estimate == \"vendor\" and week >= 6 and week <= 8",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-6"
+            },
+            {
+              "log": "The GIS integration overruns the vendor's 8 days again.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "change == \"backlog\" and week == 9",
+          "then": [
+            {
+              "add": "ev",
+              "by": "-10"
+            },
+            {
+              "add": "teamTrust",
+              "by": "-5"
+            },
+            {
+              "log": "Inspection scheduling needs the GIS and the fee module too; the schedule and cost plans never had it.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "velocity == \"addDevs\" and (week == 9 or week == 10)",
+          "then": [
+            {
+              "add": "ac",
+              "by": "8"
+            },
+            {
+              "add": "ev",
+              "by": "-3"
+            },
+            {
+              "log": "The two new developers need the team's time to get started.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "if": "week == 12 and (change == \"ignore\" or approach == \"adaptive\" or velocity == \"cutTests\")",
+          "then": [
+            {
+              "set": "legalGap",
+              "to": "true"
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "-20"
+            },
+            {
+              "log": "{change == \"ignore\" ? \"Launch day: the portal offers no inspection scheduling, which the amended law requires.\" : velocity == \"cutTests\" ? \"Launch day: an untested fee rule overcharges commercial permits.\" : \"Launch day: the fee module goes live unaccepted against the law.\"}",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "week == 2",
+          "then": [
+            {
+              "set": "w1",
+              "to": "\"doing\""
+            },
+            {
+              "set": "w2",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 3",
+          "then": [
+            {
+              "set": "w3",
+              "to": "\"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 5",
+          "then": [
+            {
+              "set": "w4",
+              "to": "change == \"ignore\" ? \"todo\" : \"doing\""
+            }
+          ]
+        },
+        {
+          "if": "week == 8",
+          "then": [
+            {
+              "set": "w3",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 9",
+          "then": [
+            {
+              "set": "w1",
+              "to": "\"done\""
+            }
+          ]
+        },
+        {
+          "if": "week == 11",
+          "then": [
+            {
+              "set": "w2",
+              "to": "\"done\""
+            },
+            {
+              "set": "w4",
+              "to": "change == \"ignore\" ? \"todo\" : \"done\""
+            }
+          ]
+        },
+        {
+          "if": "week < 12",
+          "then": [
+            {
+              "schedule": "week",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "log": "Monday 3 April: the portal is live.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "week",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_approachPrompt",
+      "when": "week == 1 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 1: the plan needs an approach.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "approachPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_estimatePrompt",
+      "when": "week == 2 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 2: the estimates.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "estimatePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_changePrompt",
+      "when": "week == 5 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 5: the state amends the law.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "changePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_velocityPrompt",
+      "when": "week == 8 and phase == \"build\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "End of week 8: the wizard's forecast.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "velocityPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "approachPrompt": {
+      "title": "End of week 1: which delivery approach?",
+      "context": "The fee module must match a schedule fixed in law by a fixed date. The application wizard's needs are unclear: counter staff and contractors disagree on what residents need first. The parcel lookup depends on an old county GIS service.",
+      "choices": [
+        {
+          "id": "hybrid",
+          "label": "Recommend a hybrid approach: plan and baseline the fee module and the GIS work predictively; build the wizard in two-week iterations with the permits manager as product owner, to the fixed release date; tie both into one integrated plan",
+          "effects": [
+            {
+              "set": "approach",
+              "to": "\"hybrid\""
+            },
+            {
+              "add": "teamTrust",
+              "by": "5"
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Approved: a hybrid plan, with one schedule and one budget across both parts.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The approach follows each part's complexity and certainty: fixed, well-understood requirements suit a predictive plan; uncertain ones suit iterations; a hybrid ties them into one plan."
+        },
+        {
+          "id": "predictive",
+          "label": "Specify and baseline everything up front, the wizard included",
+          "effects": [
+            {
+              "set": "approach",
+              "to": "\"predictive\""
+            },
+            {
+              "add": "poTrust",
+              "by": "-10"
+            },
+            {
+              "log": "The wizard is specified in full before anyone has tried it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Specifying uncertain needs up front plans rework in."
+        },
+        {
+          "id": "adaptive",
+          "label": "Run everything in iterations with no baseline, the fee module included",
+          "effects": [
+            {
+              "set": "approach",
+              "to": "\"adaptive\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "-5"
+            },
+            {
+              "log": "No baseline for the fee module.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A part fixed in law, with a fixed date, needs a plan and a baseline it can be accepted against."
+        }
+      ]
+    },
+    "estimatePrompt": {
+      "title": "End of week 2: estimating the work",
+      "context": "The GIS integration is the uncertain piece: the team's optimistic, most likely and pessimistic figures are 8, 12 and 22 days. The 40 permit forms take about 2 days each. Last year's portal in another county took 10 days for its GIS work. The GIS vendor says 8.",
+      "choices": [
+        {
+          "id": "threePoint",
+          "label": "Use a three-point (PERT) estimate for the GIS work, (8 + 4 x 12 + 22) / 6 = 13 days, and a parametric estimate for the forms, 40 x 2 = 80 days of effort",
+          "effects": [
+            {
+              "set": "estimate",
+              "to": "\"threePoint\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "The plan carries 13 days for the GIS work and 80 days of effort for the forms.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Uncertain work gets a three-point estimate; repeatable units get a parametric one."
+        },
+        {
+          "id": "analogous",
+          "label": "Use last year's portal: 10 days for the GIS work",
+          "effects": [
+            {
+              "set": "estimate",
+              "to": "\"analogous\""
+            },
+            {
+              "log": "10 days, by analogy.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Analogous estimating is quick but only as good as the likeness; this county's GIS is older."
+        },
+        {
+          "id": "vendor",
+          "label": "Take the vendor's 8 days",
+          "effects": [
+            {
+              "set": "estimate",
+              "to": "\"vendor\""
+            },
+            {
+              "add": "teamTrust",
+              "by": "-10"
+            },
+            {
+              "log": "8 days, the most optimistic figure.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The optimistic figure alone is not an estimate of uncertain work."
+        }
+      ]
+    },
+    "changePrompt": {
+      "title": "End of week 5: the state amends the law",
+      "context": "The legislature adds a requirement: permit applicants must be offered inspection scheduling from the start date. It touches the wizard, the GIS lookup and the fee module, and needs about 20 thousand dollars of work.",
+      "choices": [
+        {
+          "id": "ccb",
+          "label": "Assess the impact across scope, schedule, cost, risk and communications, take it to change control, and update the integrated plan, the fee module's baseline and the wizard's backlog together",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"ccb\""
+            },
+            {
+              "add": "sponsorTrust",
+              "by": "5"
+            },
+            {
+              "log": "Approved with its impact: the plan, the baseline and the backlog all updated, funded from the schedule and budget reserves.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An integrated plan is maintained as a whole: a change's impact is assessed across every subsidiary plan, decided through change control, and the documents updated together."
+        },
+        {
+          "id": "backlog",
+          "label": "Add it to the wizard backlog; the team will fit it in",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"backlog\""
+            },
+            {
+              "log": "Added to the backlog only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A change that touches three parts changed in one plan leaves the others wrong."
+        },
+        {
+          "id": "ignore",
+          "label": "Leave it until after launch; the scope is baselined",
+          "effects": [
+            {
+              "set": "change",
+              "to": "\"ignore\""
+            },
+            {
+              "log": "The amendment is parked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A legal requirement with a start date is not optional scope; the baseline is changed through control."
+        }
+      ]
+    },
+    "velocityPrompt": {
+      "title": "End of week 8: the wizard will not finish everything",
+      "context": "Four iterations in, the wizard's velocity forecasts about 70% of the backlog by the release date. The fee module is in testing and on its baseline.",
+      "choices": [
+        {
+          "id": "reprioritize",
+          "label": "Reprioritize with the permits manager: agree the must-haves for launch (apply, upload, pay, schedule an inspection), move the rest after launch, and update the integrated plan and the stakeholders",
+          "effects": [
+            {
+              "set": "velocity",
+              "to": "\"reprioritize\""
+            },
+            {
+              "add": "poTrust",
+              "by": "5"
+            },
+            {
+              "log": "Launch scope agreed; the remainder planned for May.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "In the adaptive part, scope flexes to the fixed date by value, with the product owner; the integrated plan reflects it."
+        },
+        {
+          "id": "addDevs",
+          "label": "Add two developers for the last four weeks",
+          "effects": [
+            {
+              "set": "velocity",
+              "to": "\"addDevs\""
+            },
+            {
+              "add": "teamTrust",
+              "by": "-20"
+            },
+            {
+              "log": "Two developers join in week 9.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Adding people late adds onboarding and coordination before it adds output."
+        },
+        {
+          "id": "cutTests",
+          "label": "Move the fee module's testers onto the wizard",
+          "effects": [
+            {
+              "set": "velocity",
+              "to": "\"cutTests\""
+            },
+            {
+              "add": "teamTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Fee module testing is cut short.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The legally fixed part is the one that must be accepted against the law."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the close-out note for the sponsor: the approach you recommended and why, how the work was estimated, and how the plan was kept integrated through the amendment and the wizard's forecast.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Approach and estimates",
+          "criteria": "Recommends a hybrid from the parts' differing certainty; uses three-point estimating for the uncertain GIS work (13 days) and parametric for the forms.",
+          "modelAnswer": "The fee module was fixed in law with a fixed date, so it was planned and baselined; the wizard's needs were unknown, so it ran in iterations to the release date, all in one plan. The GIS work was estimated at (8 + 48 + 22) / 6 = 13 days; the forms at 40 x 2 days."
+        },
+        {
+          "label": "Keeping the plan integrated",
+          "criteria": "Takes the amendment through change control with its impact on every subsidiary plan; flexes the wizard's scope to the date with the product owner; keeps the fee module's testing.",
+          "modelAnswer": "The amendment touched three parts: we assessed it across the plans, it was approved, and the baseline and backlog were updated together. At 70% forecast we agreed the launch must-haves with the permits manager and planned the rest for May."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI at close at or above this is on schedule."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI at close at or above this is on budget."
+        }
+      },
+      "spiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): SPI below this at close is a schedule failure."
+        }
+      },
+      "cpiHarm": {
+        "value": 0.85,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): CPI below this at close is a cost failure."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): every stakeholder at or above this at close."
+        }
+      },
+      "stakeholderRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Author's scenario figures (REQ-321)",
+          "checkedAt": "2026-11-17",
+          "note": "Project outcome profile (docs/sims.md 9.2): a stakeholder below this at close is a broken working relationship."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and estimate == \"analogous\" and change == \"backlog\"",
+      "class": "recovered",
+      "rationale": "A weak estimate and a half-integrated change cost schedule, not harm, while the law is met.",
+      "source": {
+        "cite": "PMI, projectmanagement.com wiki: 3 Points Estimating",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.projectmanagement.com/wikis/368763/3-points-estimating",
+        "note": "Read 2026-11-17 through a summarizing fetch. Three-point estimating addresses uncertainty: triangular E = (O + M + P) / 3; beta (PERT) E = (O + 4M + P) / 6, which weights the most likely estimate more. The page lists parametric and analogous estimates without further explanation; that parametric estimating multiplies a unit rate by a quantity is the general definition, not quoted here (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "legal": {
+      "label": "Live out of line with the law",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and legalGap",
+      "narrative": "The portal went live on the law's start date without meeting it; the county must stop or correct charges."
+    },
+    "overrun": {
+      "label": "Over the harm line",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (spi < spiHarm or cpi < cpiHarm)",
+      "narrative": "The project closed at SPI {spi|2dp} and CPI {cpi|2dp}."
+    },
+    "broken": {
+      "label": "A working relationship broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and (sponsorTrust < stakeholderRecovered or poTrust < stakeholderRecovered or teamTrust < stakeholderRecovered)",
+      "narrative": "{teamTrust < stakeholderRecovered ? \"The team no longer trusts the plan's numbers.\" : \"The permits manager no longer trusts the project.\"}"
+    },
+    "integrated": {
+      "label": "One plan, kept integrated, live on the date",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and approach == \"hybrid\" and estimate == \"threePoint\" and change == \"ccb\" and velocity == \"reprioritize\" and record == \"closed\" and spi >= spiTarget and cpi >= cpiTarget and sponsorTrust >= stakeholderTarget and poTrust >= stakeholderTarget and teamTrust >= stakeholderTarget",
+      "narrative": "The portal went live for the fee law's start with inspection scheduling, on budget, and the wizard's remaining features planned for May."
+    },
+    "partly": {
+      "label": "Live, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The portal went live at SPI {spi|2dp} and CPI {cpi|2dp}; the criteria show where the plan slipped."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "legal",
+    "overrun",
+    "broken",
+    "integrated",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "approachCrit",
+        "label": "Recommended a delivery approach that fits each part's complexity and certainty",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "approach == \"hybrid\"",
+            "score": "met",
+            "why": "Hybrid, one integrated plan."
+          },
+          {
+            "when": "approach == \"predictive\"",
+            "score": "partial",
+            "why": "Workable, with rework planned in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No baseline for the legal part."
+          }
+        ]
+      },
+      {
+        "id": "estimateCrit",
+        "label": "Estimated uncertain work with three points and repeatable work parametrically",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "estimate == \"threePoint\"",
+            "score": "met",
+            "why": "13 days for the GIS work; 80 days for the forms."
+          },
+          {
+            "when": "estimate == \"analogous\"",
+            "score": "partial",
+            "why": "By analogy to a different county."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The optimistic figure."
+          }
+        ]
+      },
+      {
+        "id": "changeCrit",
+        "label": "Kept the plan integrated through the amendment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "change == \"ccb\"",
+            "score": "met",
+            "why": "Impact across the plans; updated together."
+          },
+          {
+            "when": "change == \"backlog\"",
+            "score": "partial",
+            "why": "One plan changed, the others not."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A legal requirement parked."
+          }
+        ]
+      },
+      {
+        "id": "velocityCrit",
+        "label": "Flexed the adaptive scope to the date with the product owner",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "velocity == \"reprioritize\"",
+            "score": "met",
+            "why": "Launch must-haves agreed."
+          },
+          {
+            "when": "velocity == \"addDevs\"",
+            "score": "partial",
+            "why": "People added late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The legal part's testing cut."
+          }
+        ]
+      },
+      {
+        "id": "closeCrit",
+        "label": "Closed with the final baseline, estimates and lessons recorded",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"closed\"",
+            "score": "met",
+            "why": "Recorded and archived."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "spiK",
+        "label": "SPI at close",
+        "value": "round(spi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at close",
+        "value": "round(cpi * 100) / 100",
+        "format": "number",
+        "expert": "0.95 or more"
+      },
+      {
+        "id": "gisK",
+        "label": "GIS integration estimate, days",
+        "value": "estimate == \"threePoint\" ? 13 : estimate == \"analogous\" ? 10 : estimate == \"vendor\" ? 8 : 0",
+        "format": "number",
+        "expert": "13"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Week 1",
+        "text": "Read the law; sit with counter staff; recommend a hybrid in one integrated plan."
+      },
+      {
+        "at": "Week 2",
+        "text": "PERT for the GIS work, (8 + 48 + 22) / 6 = 13 days; parametric for the forms."
+      },
+      {
+        "at": "Week 5",
+        "text": "The amendment: impact across the plans, change control, baseline and backlog updated together."
+      },
+      {
+        "at": "Week 8",
+        "text": "Launch must-haves with the permits manager; the rest after launch; plan updated."
+      },
+      {
+        "at": "Week 12",
+        "text": "Acceptance, final baseline, estimates and lessons recorded."
+      }
+    ],
+    "debrief": {
+      "integrated": {
+        "headline": "Good: one plan, kept integrated",
+        "body": "The approach fit each part, the estimates fit the uncertainty, the amendment changed the plan as a whole and the adaptive scope flexed to the date."
+      },
+      "partly": {
+        "headline": "Live, with gaps",
+        "body": "The criteria show where the approach, the estimates or the plan's integration slipped."
+      },
+      "legal": {
+        "headline": "Out of line with the law",
+        "body": "The legally fixed part needs a baseline, its amendments through change control, and its testing kept."
+      },
+      "overrun": {
+        "headline": "Beyond the harm line",
+        "body": "Optimistic estimates and rework from specifying uncertain needs up front are the usual ways there."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Optimistic numbers and late additions to the team cost the team's trust in the plan."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The project was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Assess complexity part by part: a fee module fixed in law with a fixed date suits a predictive, baselined plan; a wizard whose needs are unknown suits iterations to a fixed release date; a hybrid integrates them in one schedule and budget. Estimate uncertain work with three points, (O + 4M + P) / 6 = 13 days here, and repeatable work parametrically, 40 forms x 2 days. Maintain the integrated plan as a whole: a legal amendment touching three parts is assessed across scope, schedule, cost, risk and communications, decided through change control, and the baseline and backlog updated together. In the adaptive part, scope flexes to the date by value with the product owner; the legally fixed part keeps its testing."
+  }
+}

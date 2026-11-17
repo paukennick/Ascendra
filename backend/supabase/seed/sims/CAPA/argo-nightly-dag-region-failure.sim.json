@@ -1,0 +1,1053 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "argo-nightly-dag-region-failure",
+  "title": "A nightly Argo Workflows DAG fails on one region, and finance needs the report at 05:30",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "data@ops:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "04:30 alert: Workflow nightly-sales-8x2kq Failed; finance channel at 04:20: 'Nightly report ready'",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "05:30: no complete report",
+          "when": "not isNull(lateAt)",
+          "at": "timeAt(lateAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "05:30: complete report in finance's hands",
+          "when": "not isNull(reportAt)",
+          "at": "timeAt(reportAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "ext",
+          "label": "extract x12 (withItems)",
+          "spokenLabel": "the twelve extract tasks",
+          "kind": "fan-out",
+          "status": "{partial ? \"11 regions; eu-west left out\" : finishAt > 0 and finishAt <= t ? \"12 of 12 succeeded\" : finishAt > 0 ? \"eu-west running again\" : \"11 succeeded, eu-west failed\"}",
+          "tone": "finishAt > 0 and finishAt <= t and not partial ? \"up\" : \"down\""
+        },
+        {
+          "id": "tr",
+          "label": "transform x12",
+          "spokenLabel": "the twelve transform tasks",
+          "kind": "per region",
+          "status": "{finishAt > 0 and finishAt <= t and not partial ? \"12 of 12 succeeded\" : \"11 succeeded, eu-west not run\"}",
+          "tone": "finishAt > 0 and finishAt <= t and not partial ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "agg",
+          "label": "aggregate",
+          "spokenLabel": "the aggregate task",
+          "kind": "fan-in on all 12",
+          "status": "{finishAt > 0 and finishAt <= t ? (partial ? \"ran on 11 regions\" : \"succeeded\") : \"not run: a dependency failed\"}",
+          "tone": "finishAt > 0 and finishAt <= t and not partial ? \"up\" : \"down\""
+        },
+        {
+          "id": "pub",
+          "label": "publish",
+          "spokenLabel": "the publish task",
+          "kind": "finance report",
+          "status": "{finishAt > 0 and finishAt <= t ? (partial ? \"published, missing eu-west\" : \"published\") : \"not run\"}",
+          "tone": "finishAt > 0 and finishAt <= t and not partial ? \"up\" : \"down\""
+        },
+        {
+          "id": "exit",
+          "label": "onExit: notify",
+          "spokenLabel": "the exit handler",
+          "kind": "exit handler",
+          "status": "{exitFixed ? \"posts the Workflow's status and failures\" : \"posts 'Nightly report ready' whatever the status\"}",
+          "tone": "exitFixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "ext",
+          "to": "tr",
+          "label": "Each transform depends on its extract",
+          "status": "fan-out",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l2",
+          "from": "tr",
+          "to": "agg",
+          "label": "Aggregate depends on all 12",
+          "status": "{finishAt > 0 and finishAt <= t ? \"satisfied\" : \"blocked by eu-west\"}",
+          "tone": "finishAt > 0 and finishAt <= t ? \"up\" : \"down\""
+        },
+        {
+          "id": "l3",
+          "from": "agg",
+          "to": "pub",
+          "label": "Publish after aggregate",
+          "status": "{finishAt > 0 and finishAt <= t ? \"done\" : \"waiting\"}",
+          "tone": "finishAt > 0 and finishAt <= t ? \"up\" : \"degraded\""
+        }
+      ]
+    }
+  },
+  "objective": "Build DAGs: tasks with dependencies, conditional execution with when, loops with withItems and withParam, and fan-out and fan-in",
+  "secondaryObjectives": [
+    "Understand the Workflow spec: parameters, volumes, retryStrategy, timeouts, activeDeadlineSeconds, exit handlers, and workflow and pod garbage collection"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Argo Workflows documentation (release 3.4), Walk-through: DAG",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-workflows.readthedocs.io/en/release-3.4/walk-through/dag/",
+      "note": "Read 2026-11-17 through a summarizing fetch. A DAG is defined 'by specifying the dependencies of each task'. Its fail-fast behavior, when it detects a failed node, stops scheduling new steps, 'Then it waits until all DAG nodes are completed before failing the DAG itself'; FailFast defaults to true."
+    },
+    {
+      "cite": "Argo Workflows documentation (release 3.4), Retries",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-workflows.readthedocs.io/en/release-3.4/retries/",
+      "note": "Read 2026-11-17 through a summarizing fetch. retryPolicy chooses which failures to retry: Always 'Retry all failed steps'; OnFailure (the default) 'Retry steps whose main container is marked as failed in Kubernetes'; OnError 'Retry steps that encounter Argo controller errors, or whose init or wait containers fail'; OnTransientError for errors defined as transient. 'You can configure the delay between retries with backoff.'"
+    },
+    {
+      "cite": "Argo Workflows documentation, argo retry (CLI reference, latest)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-workflows.readthedocs.io/en/latest/cli/argo_retry/",
+      "note": "Read 2026-11-17 through a summarizing fetch: 'Rerun a failed Workflow. Specifically, rerun all failed steps.' A retry reuses the existing Workflow object. A third-party article read the same day (oneuptime.com, 2026-08-02, 'Retry vs. Resubmit in Argo Workflows') adds that with retry 'successful work that does not need to be reset remains recorded', while resubmit creates a new Workflow and evaluates the graph again from the start unless --memoized is used."
+    },
+    {
+      "cite": "KodeKloud notes, Prep Course Certified Argo Project Associate: Demo Exit Handler",
+      "checkedAt": "2026-11-17",
+      "url": "https://notes.kodekloud.com/docs/Prep-Course-Certified-Argo-Project-Associate-CAPA/Argo-Workflow/Demo-Exit-Handler/page.md",
+      "note": "Read 2026-11-17 through a summarizing fetch (a training provider's notes, not Argo's own documentation): 'Exit handlers run once at the end of a workflow regardless of success or failure', set with onExit; the handler reads {{workflow.status}} to decide what to do, for example sending a failure notification when the status is Failed. To verify against the Argo exit-handler walk-through."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data platform engineer on call at Northwind Outfitters, a fictional retailer. The nightly-sales Workflow is a DAG: extract fans out over 12 regions (withItems), each region's transform depends on its extract, aggregate fans in on all 12 transforms, and publish writes the finance report. At 04:30 the Workflow shows Failed. At 04:20 the finance channel got its usual message: 'Nightly report ready'. Finance closes the day's books at 05:30.",
+    "handover": [
+      "The Workflow normally takes about 2 hours from 02:00; one region's extract and transform take about 25 minutes.",
+      "Change calendar: the eu-west sales database replica restarted for maintenance between 03:10 and 03:14."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the DAG's tasks and their state.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "04:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "closeAt": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Finance closes the books at 05:30, 60 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "getAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "specAt": {
+      "type": "time",
+      "init": null
+    },
+    "how": {
+      "type": "enum",
+      "values": [
+        "none",
+        "retry",
+        "resubmit",
+        "partial"
+      ],
+      "init": "none"
+    },
+    "finishAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "partial": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "retryAdded": {
+      "type": "enum",
+      "values": [
+        "none",
+        "right",
+        "onError"
+      ],
+      "init": "none"
+    },
+    "exitFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "exitRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "lateAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "transient",
+        "code",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Pipeline failed",
+      "clock": "turns",
+      "actions": [
+        "get",
+        "logs",
+        "spec",
+        "recover",
+        "notify",
+        "addRetry",
+        "fixExit",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "get": {
+      "label": "argo get nightly-sales-8x2kq",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(getAt)",
+          "then": [
+            {
+              "set": "getAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@ops:~$ argo get nightly-sales-8x2kq\nName: nightly-sales-8x2kq   Status: Failed   Message: child 'extract-eu-west' failed\nSTEP                     PHASE\n ├─ extract(us-east..)    Succeeded (11)\n ├─ extract(eu-west)      Failed  exit code 1\n ├─ transform(..)         Succeeded (11)\n ├─ transform(eu-west)    Omitted\n ├─ aggregate             Omitted\n ├─ publish               Omitted\n └─ onExit: notify        Succeeded"
+        },
+        {
+          "finding": "Eleven regions went through; eu-west's extract failed, so the DAG stopped scheduling (fail fast is the default) and the fan-in, aggregate, never ran. The exit handler ran anyway and reported success."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "argo logs nightly-sales-8x2kq --node-field-selector displayName=extract(eu-west)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@ops:~$ argo logs nightly-sales-8x2kq ...extract(eu-west)\n03:12:07 connecting to sales-eu-replica:5432\n03:12:09 error: server closed the connection unexpectedly (connection reset by peer)\n03:12:09 exit 1"
+        },
+        {
+          "finding": "The extract failed at 03:12, inside the replica's 03:10-03:14 maintenance restart: a transient failure, and nothing retried it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "spec": {
+      "label": "kubectl get workflowtemplate nightly-sales -o yaml | grep -n -A4 'retryStrategy\\|onExit\\|name: notify'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(specAt)",
+          "then": [
+            {
+              "set": "specAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@ops:~$ kubectl get workflowtemplate nightly-sales -o yaml | grep -n -A4 ...\n12:  onExit: notify\n61:  - name: notify\n62:    container:\n63:      args: [\"post #finance-reports 'Nightly report ready'\"]\n(no retryStrategy in any template)"
+        },
+        {
+          "finding": "No template has a retryStrategy, and the exit handler posts 'Nightly report ready' without reading workflow.status, so it says ready on failure too."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "recover": {
+      "label": "Rerun the pipeline",
+      "group": "Fix",
+      "available": "not busy and (finishAt == 0)",
+      "why": "The pipeline is already running again.",
+      "effects": [
+        {
+          "set": "how",
+          "to": "h"
+        },
+        {
+          "cases": [
+            {
+              "when": "h == \"retry\"",
+              "then": [
+                {
+                  "set": "finishAt",
+                  "to": "t + 1500"
+                },
+                {
+                  "output": "data@ops:~$ argo retry nightly-sales-8x2kq\nName: nightly-sales-8x2kq   Status: Running\n(the 11 succeeded regions are kept; extract(eu-west), its transform, aggregate and publish run again)"
+                },
+                {
+                  "log": "Retry reruns the failed node and everything that depends on it: about 25 minutes.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "h == \"resubmit\"",
+              "then": [
+                {
+                  "set": "finishAt",
+                  "to": "t + 7800"
+                },
+                {
+                  "output": "data@ops:~$ argo resubmit nightly-sales-8x2kq\nName: nightly-sales-r7tq4   Status: Running   (all 12 regions from the start)"
+                },
+                {
+                  "log": "Resubmit creates a new Workflow and runs every region again: about 2 hours 10 minutes.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "finishAt",
+                  "to": "t + 1200"
+                },
+                {
+                  "set": "partial",
+                  "to": "true"
+                },
+                {
+                  "output": "data@ops:~$ argo submit --from workflowtemplate/nightly-sales -p regions='[us-east,...]'   # 11 regions, eu-west left out\nName: nightly-sales-p2m8d   Status: Running"
+                },
+                {
+                  "log": "A new run without eu-west: it will aggregate and publish 11 regions as the day's total.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "h",
+          "kind": "choice",
+          "label": "How",
+          "options": [
+            {
+              "value": "retry",
+              "label": "argo retry nightly-sales-8x2kq"
+            },
+            {
+              "value": "resubmit",
+              "label": "argo resubmit nightly-sales-8x2kq"
+            },
+            {
+              "value": "partial",
+              "label": "argo submit --from workflowtemplate/nightly-sales without eu-west"
+            }
+          ]
+        }
+      ]
+    },
+    "notify": {
+      "label": "Post in #finance-reports: the 04:20 'ready' message was wrong; the complete report is being rerun",
+      "group": "Communicate",
+      "available": "not busy and (not notified)",
+      "why": "Already posted.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "output": "data@ops:~$ post #finance-reports 'Correction: the 04:20 ready message was wrong. The nightly run failed on eu-west; it is being rerun and I will post when the report is complete.'"
+        },
+        {
+          "log": "Finance holds the close until the report is complete.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addRetry": {
+      "label": "Add a retryStrategy to the extract template",
+      "group": "Prevent",
+      "available": "not busy and (retryAdded == \"none\")",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "r == \"right\"",
+              "then": [
+                {
+                  "set": "retryAdded",
+                  "to": "\"right\""
+                },
+                {
+                  "output": "data@ops:~$ kubectl apply -f nightly-sales.yaml   # extract: retryStrategy {{limit: \"3\", retryPolicy: OnFailure, backoff: {{duration: 1m, factor: 2}}}}\nworkflowtemplate.argoproj.io/nightly-sales configured"
+                },
+                {
+                  "log": "A failed extract container is now retried three times with backoff.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "retryAdded",
+                  "to": "\"onError\""
+                },
+                {
+                  "output": "data@ops:~$ kubectl apply -f nightly-sales.yaml   # extract: retryStrategy {{limit: \"3\", retryPolicy: OnError}}\nworkflowtemplate.argoproj.io/nightly-sales configured"
+                },
+                {
+                  "log": "OnError retries controller errors and failed init or wait containers, not a main container that exits 1.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "retryStrategy",
+          "options": [
+            {
+              "value": "right",
+              "label": "limit 3, retryPolicy OnFailure, backoff 1m doubling"
+            },
+            {
+              "value": "onError",
+              "label": "limit 3, retryPolicy OnError"
+            }
+          ]
+        }
+      ]
+    },
+    "fixExit": {
+      "label": "Change the exit handler",
+      "group": "Prevent",
+      "available": "not busy and (not exitFixed and not exitRemoved)",
+      "why": "Already changed.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "e == \"status\"",
+              "then": [
+                {
+                  "set": "exitFixed",
+                  "to": "true"
+                },
+                {
+                  "output": "data@ops:~$ kubectl apply -f nightly-sales.yaml   # notify: post 'Nightly report {{{{workflow.status}}}}' and the failed tasks when not Succeeded\nworkflowtemplate.argoproj.io/nightly-sales configured"
+                },
+                {
+                  "log": "The exit handler now reports the Workflow's real status.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "exitRemoved",
+                  "to": "true"
+                },
+                {
+                  "output": "data@ops:~$ kubectl apply -f nightly-sales.yaml   # onExit removed\nworkflowtemplate.argoproj.io/nightly-sales configured"
+                },
+                {
+                  "log": "No message at all now, on success or failure.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "e",
+          "kind": "choice",
+          "label": "Exit handler",
+          "options": [
+            {
+              "value": "status",
+              "label": "post the Workflow's status (workflow.status) and the failed tasks"
+            },
+            {
+              "value": "remove",
+              "label": "remove onExit"
+            }
+          ]
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the Workflow (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "transient",
+                  "label": "A transient connection reset during the eu-west replica's restart failed one extract; no retryStrategy retried it, fail fast stopped the DAG before the fan-in, and the exit handler reported 'ready' without reading the status"
+                },
+                {
+                  "value": "code",
+                  "label": "A bug in the transform code"
+                },
+                {
+                  "value": "data",
+                  "label": "Bad sales data in eu-west"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-321)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= closeAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "finishAt > 0 and finishAt <= t and not partial",
+          "then": [
+            {
+              "set": "reportAt",
+              "to": "t"
+            },
+            {
+              "log": "05:30: finance closes the books on the complete report.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "lateAt",
+              "to": "t"
+            },
+            {
+              "log": "05:30: finance has no complete report to close on.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the Workflow failed and finance was told it was ready, how you recovered, and what stops it next time.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the DAG and the failed node's log: one region's extract hit a transient reset; fail fast stopped the DAG before the fan-in; no retry; the exit handler ignored the status.",
+          "modelAnswer": "extract(eu-west) exited 1 on a connection reset during the replica's restart. Nothing retried it, the DAG stopped scheduling, and aggregate, which fans in on all 12, never ran. onExit posted 'ready' because it never reads workflow.status."
+        },
+        {
+          "label": "Recovery",
+          "criteria": "Retries the failed Workflow so the 11 succeeded regions are kept and only eu-west and its dependents rerun, before 05:30; corrects the false message.",
+          "modelAnswer": "argo retry reran eu-west, its transform, aggregate and publish in about 25 minutes; resubmit would have rerun all 12 regions and missed 05:30. I told finance the 04:20 message was wrong."
+        },
+        {
+          "label": "Next time",
+          "criteria": "Adds a retryStrategy that covers a failed main container, with backoff, on the extract template, and makes the exit handler report the real status.",
+          "modelAnswer": "retryStrategy limit 3, OnFailure, backoff 1m doubling on extract; the exit handler posts {{workflow.status}} and the failed tasks."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), the default 60 minutes",
+          "checkedAt": "2026-11-17",
+          "note": "Finance closes at 05:30, 60 minutes after the alert; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: a report published without a region, or the exit message removed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and how == \"none\"",
+      "class": "harm",
+      "rationale": "Closing without a rerun leaves finance with no report and a false 'ready' message.",
+      "source": {
+        "cite": "Argo Workflows documentation (release 3.4), Walk-through: DAG",
+        "checkedAt": "2026-11-17",
+        "url": "https://argo-workflows.readthedocs.io/en/release-3.4/walk-through/dag/",
+        "note": "Read 2026-11-17 through a summarizing fetch. A DAG is defined 'by specifying the dependencies of each task'. Its fail-fast behavior, when it detects a failed node, stops scheduling new steps, 'Then it waits until all DAG nodes are completed before failing the DAG itself'; FailFast defaults to true."
+      }
+    }
+  },
+  "endings": {
+    "wrongReport": {
+      "label": "An incomplete report published as the day's total",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and partial",
+      "narrative": "Finance closed the books on 11 regions; eu-west's sales were missing."
+    },
+    "late": {
+      "label": "No complete report by 05:30",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(lateAt)",
+      "narrative": "Finance closed without the night's sales."
+    },
+    "delivered": {
+      "label": "Retried in time, and the next failure handled by design",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not isNull(reportAt) and not partial and notified and retryAdded == \"right\" and exitFixed and not isNull(getAt) and not isNull(logsAt) and causeDoc == \"transient\"",
+      "narrative": "The complete report reached finance before 05:30, finance knew the 04:20 message was wrong, and the template now retries and reports honestly."
+    },
+    "gaps": {
+      "label": "Report delivered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The report reached finance, but the criteria show what was left: the diagnosis, the message, or the template."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "wrongReport",
+    "late",
+    "delivered",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the DAG and the failed node's log",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(getAt) and not isNull(logsAt)",
+            "score": "met",
+            "why": "Failed node and its cause found."
+          },
+          {
+            "when": "not isNull(getAt) or not isNull(logsAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Rerun without looking."
+          }
+        ]
+      },
+      {
+        "id": "recover",
+        "label": "Retried the failed node and its dependents before 05:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "how == \"retry\" and not isNull(reportAt)",
+            "score": "met",
+            "why": "argo retry, complete by 05:30."
+          },
+          {
+            "when": "how == \"resubmit\"",
+            "score": "partial",
+            "why": "Complete, but every region rerun and late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{partial ? \"Published without eu-west.\" : \"Not rerun.\"}"
+          }
+        ]
+      },
+      {
+        "id": "prevent",
+        "label": "A retryStrategy that covers the failure, and an exit handler that reads the status",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "retryAdded == \"right\" and exitFixed",
+            "score": "met",
+            "why": "OnFailure with backoff; status reported."
+          },
+          {
+            "when": "retryAdded != \"none\" or exitFixed",
+            "score": "partial",
+            "why": "{retryAdded == \"onError\" ? \"OnError does not retry a container that exits 1.\" : \"Only one of the two.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The template is unchanged."
+          }
+        ]
+      },
+      {
+        "id": "comms",
+        "label": "Corrected the false 'ready' message",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "notified",
+            "score": "met",
+            "why": "Finance told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Finance still thinks it is ready."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"transient\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record misses the cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "regions",
+        "label": "Regions in the published report",
+        "value": "finishAt > 0 and finishAt <= t ? (partial ? 11 : 12) : 0",
+        "format": "number",
+        "expert": "12"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "04:30-04:36",
+        "text": "argo get: eu-west's extract failed, aggregate never ran; its log: a connection reset during the replica restart; the template: no retryStrategy, an exit handler that ignores the status."
+      },
+      {
+        "at": "04:36-04:38",
+        "text": "argo retry: only eu-west and its dependents rerun, about 25 minutes; tell finance the 04:20 message was wrong."
+      },
+      {
+        "at": "04:38-04:42",
+        "text": "retryStrategy limit 3, OnFailure, backoff on extract; the exit handler posts workflow.status."
+      }
+    ],
+    "debrief": {
+      "wrongReport": {
+        "headline": "A fan-in that skipped a region",
+        "body": "Running the DAG without a failed region publishes a wrong total. Retry the failed node; aggregate fans in on all 12 by design."
+      },
+      "late": {
+        "headline": "Late",
+        "body": "Resubmit reruns every region from the start; retry reruns only the failed node and its dependents, in about 25 minutes."
+      },
+      "delivered": {
+        "headline": "Good: retry, correct, prevent",
+        "body": "You read the DAG and the failed node's log, retried only what failed, corrected the false message, and added a retryStrategy and an honest exit handler."
+      },
+      "gaps": {
+        "headline": "Delivered, with gaps",
+        "body": "The criteria show which step was missed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The DAG fans out extract over 12 regions, each transform depends on its extract, and aggregate fans in on all 12. One extract failed on a transient connection reset during the replica's restart; with no retryStrategy nothing retried it, and fail fast stopped scheduling, so aggregate and publish never ran. The exit handler runs whatever the outcome and posted 'ready' because it never reads workflow.status. argo retry reruns the failed node and its dependents and keeps the 11 succeeded regions: about 25 minutes. Resubmit reruns everything and misses 05:30; running without eu-west publishes a wrong total. Next time: retryStrategy on extract with retryPolicy OnFailure (the default, which covers a main container that exits 1; OnError does not) and backoff, and an exit handler that reports the real status."
+  }
+}

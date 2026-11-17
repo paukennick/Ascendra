@@ -1,0 +1,1284 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pressor-arm-cold-and-pale",
+  "title": "A cold, white forearm",
+  "objective": "IV infiltration: recognition and treatment",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: integumentary problems and IV infiltration, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: integumentary problems and IV infiltration, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "LEVOPHED (norepinephrine bitartrate) prescribing information, Warnings and Precautions 5.1 (Pfizer, as published on pfizermedical.com)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pfizermedical.com/levophed-1/warnings",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label section: 'infuse into a large vein, check the infusion site frequently for free flow, and monitor for signs of extravasation'; for extravasation, 'infiltrate the ischemic area as soon as possible, using a syringe with a fine hypodermic needle' with phentolamine in saline. The label date was not shown on the page. The dose is not used in the case."
+    },
+    {
+      "cite": "Lewis T, NYU Langone Medical Center Department of Pharmacy. Adult Guidelines for Peripheral Administration of Vasopressor Therapy and the Management of Extravasation Events (undated institutional protocol, hosted by REBEL EM)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rebelem.com/wp-content/uploads/2020/02/Peripheral-Vasopressor-Protocol.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: 'On suspecting extravasation, the infusion must be stopped immediately'; 'Slowly aspirate as much drug as possible'; 'Leave the catheter in place' until the reversal agent is given through it; 'Elevate the affected limb'; warm compresses; the attending or intensivist 'must be contacted immediately'; check the site every hour; a 20-gauge or larger visible catheter in the forearm or upper arm; two working peripheral lines. An institutional protocol, named in the case as the unit's policy."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "22:00 in a medical ICU. You are Mrs. Olsen's nurse. She is 72, in septic shock from pneumonia, on the ordered norepinephrine through a 20-gauge peripheral IV in her left forearm while a central line is arranged. Her MAP has drifted down over 20 minutes even though the rate went up.",
+    "handover": [
+      "A second working 20-gauge IV is in her right forearm, running maintenance fluid.",
+      "The hourly site check is due; the last one was at 20:55.",
+      "Unit policy for peripheral vasopressors: stop at once if extravasation is suspected, aspirate, leave the catheter for the antidote, elevate, call the intensivist, and restart the vasopressor through another working line."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "22:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Tissue ischemia spreads while norepinephrine keeps running into it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stoppedRate": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It still progresses after the infusion stops, until the antidote is given. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": 0.0,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It stops progressing once the antidote is infiltrated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "flushBump": {
+      "value": 0.15,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A flush pushes more drug into the tissue. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rateBump": {
+      "value": 0.15,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A higher rate pushes more drug into the tissue. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "necrosisAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of full-thickness skin necrosis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gapLimit": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Ten minutes off any vasopressor in septic shock is the authored limit before collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of finding it (unit policy)."
+      }
+    },
+    "stopWindow": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The infusion stopped within 1 minute of finding it (unit policy: 'immediately')."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist arrives with the ordered phentolamine: about 4 min."
+      }
+    },
+    "lineTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The central line is placed and confirmed: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "siteAt": {
+      "type": "time",
+      "init": null
+    },
+    "distalAt": {
+      "type": "time",
+      "init": null
+    },
+    "otherAt": {
+      "type": "time",
+      "init": null
+    },
+    "trendAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "site",
+        "distal",
+        "other",
+        "trend"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "note"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "extrav",
+        "shock",
+        "phlebitis"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "aspAt": {
+      "type": "time",
+      "init": null
+    },
+    "pulledAt": {
+      "type": "time",
+      "init": null
+    },
+    "restartAt": {
+      "type": "time",
+      "init": null
+    },
+    "elevAt": {
+      "type": "time",
+      "init": null
+    },
+    "antiAt": {
+      "type": "time",
+      "init": null
+    },
+    "flushAt": {
+      "type": "time",
+      "init": null
+    },
+    "rateAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"icu\" and t >= timeAt(callAt) + orderTime"
+    },
+    "offPressor": {
+      "expr": "not isNull(stopAt) and isNull(restartAt)"
+    },
+    "hr": {
+      "expr": "round(112 + (offPressor ? 14 : 0) + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(stopAt) ? 94 - 10 * prog : (isNull(restartAt) ? 78 : 104))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "94",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(antiAt) ? treatedRate : (isNull(stopAt) ? progRate : stoppedRate)) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              100,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Norepinephrine in the left forearm: {isNull(stopAt)|yesno}. Norepinephrine in the right forearm: {not isNull(restartAt)|yesno}. Antidote given: {not isNull(antiAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(antiAt)",
+          "text": "The intensivist is at the bedside with the ordered phentolamine."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "site": {
+      "label": "Check the left forearm IV site",
+      "group": "Assess",
+      "available": "not testPending and isNull(siteAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"site\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "distal": {
+      "label": "Check the hand beyond it: color, capillary refill, radial pulse, sensation",
+      "group": "Assess",
+      "available": "not testPending and isNull(distalAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"distal\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "other": {
+      "label": "Check the right forearm IV",
+      "group": "Assess",
+      "available": "not testPending and isNull(otherAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"other\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "trend": {
+      "label": "Review the MAP and rate trend for the last 30 minutes",
+      "group": "Assess",
+      "available": "not testPending and isNull(trendAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"trend\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the norepinephrine at the left forearm now",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already stopped.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Infusion stopped and disconnected at the hub.",
+          "kind": "act"
+        }
+      ]
+    },
+    "asp": {
+      "label": "Aspirate as much as you can through the catheter and leave it in place for the antidote",
+      "group": "Treat",
+      "available": "not isNull(stopAt) and isNull(aspAt) and isNull(pulledAt) and inClinic",
+      "why": "Stop it first, already done, or the catheter is out.",
+      "effects": [
+        {
+          "set": "aspAt",
+          "to": "t"
+        },
+        {
+          "log": "A little fluid aspirated; catheter left in, capped and labeled.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pull": {
+      "label": "Pull the catheter out at once",
+      "group": "Treat",
+      "available": "not isNull(stopAt) and isNull(pulledAt) and isNull(antiAt) and inClinic",
+      "why": "Stop it first, or already out.",
+      "effects": [
+        {
+          "set": "pulledAt",
+          "to": "t"
+        },
+        {
+          "log": "Catheter removed. There is no route left for the antidote into the tissue around the vein.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart the norepinephrine through the working right forearm IV",
+      "group": "Treat",
+      "available": "not isNull(stopAt) and isNull(restartAt) and inClinic",
+      "why": "Stop the infiltrated line first, or already restarted.",
+      "effects": [
+        {
+          "set": "restartAt",
+          "to": "t"
+        },
+        {
+          "log": "Norepinephrine running through the right forearm IV; maintenance fluid moved.",
+          "kind": "act"
+        }
+      ]
+    },
+    "elev": {
+      "label": "Elevate the left arm and apply a warm compress per the unit's protocol",
+      "group": "Treat",
+      "available": "not isNull(stopAt) and isNull(elevAt) and inClinic",
+      "why": "Stop it first, or already done.",
+      "effects": [
+        {
+          "set": "elevAt",
+          "to": "t"
+        },
+        {
+          "log": "Arm elevated on pillows; warm compress on; the border marked with the time.",
+          "kind": "act"
+        }
+      ]
+    },
+    "anti": {
+      "label": "Assist the intensivist infiltrating the ordered phentolamine",
+      "group": "Treat",
+      "available": "ordered and isNull(antiAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "antiAt",
+          "to": "t"
+        },
+        {
+          "log": "Phentolamine infiltrated through the catheter and around the area; color starts to return.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flush": {
+      "label": "Flush the left IV to see whether it is still patent",
+      "group": "Treat",
+      "available": "isNull(flushAt) and isNull(pulledAt) and inClinic",
+      "why": "Already flushed.",
+      "effects": [
+        {
+          "set": "flushAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + flushBump"
+        },
+        {
+          "log": "The flush pushes more drug into the tissue; the swelling spreads.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "rate": {
+      "label": "Turn the norepinephrine up again: the MAP is falling",
+      "group": "Treat",
+      "available": "isNull(stopAt) and isNull(rateAt) and inClinic",
+      "why": "Stopped, or already increased.",
+      "effects": [
+        {
+          "set": "rateAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + rateBump"
+        },
+        {
+          "log": "Rate increased; the MAP does not move.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "extrav",
+              "label": "Extravasation of a vasopressor: blanched, cool, swollen tissue and a MAP that no longer responds"
+            },
+            {
+              "value": "shock",
+              "label": "Worsening septic shock: the dose needs to go up"
+            },
+            {
+              "value": "phlebitis",
+              "label": "Phlebitis: a warm pack and watch it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"extrav\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"extrav\""
+                },
+                {
+                  "log": "Vasopressor extravasation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"shock\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"shock\""
+                },
+                {
+                  "log": "Impression: worsening shock.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"phlebitis\""
+                },
+                {
+                  "log": "Impression: phlebitis.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Norepinephrine has extravasated in the left forearm: pale, cool, swollen to the wrist; stopped, aspirated, catheter left in; restarted through the right arm. Ask for phentolamine and the central line now"
+            },
+            {
+              "value": "note",
+              "label": "Note it and mention the arm when the central line team comes"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "lineTime"
+                },
+                {
+                  "log": "The intensivist comes at once with the ordered phentolamine and moves the central line up.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"note\""
+                },
+                {
+                  "log": "You add the arm to your notes for the line team.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document: time found, appearance and border, actions and times, antidote, and an hourly site check",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: extravasation found at the hourly check, border marked, stop, aspiration, restart, elevation, phentolamine time; hourly checks.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "site",
+        "distal",
+        "other",
+        "trend",
+        "stop",
+        "asp",
+        "pull",
+        "restart",
+        "elev",
+        "anti",
+        "flush",
+        "rate",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"site\"",
+              "then": [
+                {
+                  "set": "siteAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The forearm around the IV is pale, cool and swollen to above the wrist; blanched skin tracks up the vein; no blood return. Extravasation of norepinephrine.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"distal\"",
+              "then": [
+                {
+                  "set": "distalAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Fingers pink, capillary refill 3 s, radial pulse present, sensation intact.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"other\"",
+              "then": [
+                {
+                  "set": "otherAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The right forearm 20-gauge flushes easily with good blood return; no swelling.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "trendAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Rate up twice since 21:35 while the MAP fell from 68 to the low 60s: the drug is not reaching her circulation.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the central line",
+      "wait": {
+        "skipLabel": "the central line placement"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min to place and confirm the central line."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The central line is placed and confirmed; the norepinephrine moves to it.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "What has happened at the IV site, and what do you do, in what order?",
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Vasopressor extravasation: pale, cool, swollen, blanched tissue with no blood return, and a MAP that falls as the rate rises because the drug is going into the tissue.",
+          "modelAnswer": "The norepinephrine has extravasated: her forearm is pale, cool and swollen with no blood return, and her MAP fell even as the rate went up because the drug was going into her arm."
+        },
+        {
+          "label": "In what order",
+          "criteria": "Stop the infusion at once; aspirate and leave the catheter for the antidote; restart the vasopressor through another working line so the MAP holds; elevate; call the intensivist for phentolamine; never flush or turn the rate up into the infiltrated site.",
+          "modelAnswer": "Stop it immediately, aspirate, and leave the catheter in for the phentolamine. Restart the norepinephrine in the right arm right away so her pressure holds. Elevate the arm and call the intensivist now. Don't flush it or turn it up."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An extravasated vasopressor without an antidote an hour on is harm here.",
+      "source": {
+        "cite": "LEVOPHED (norepinephrine bitartrate) prescribing information, Warnings and Precautions 5.1 (Pfizer, as published on pfizermedical.com)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pfizermedical.com/levophed-1/warnings",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label section: 'infuse into a large vein, check the infusion site frequently for free flow, and monitor for signs of extravasation'; for extravasation, 'infiltrate the ischemic area as soon as possible, using a syringe with a fine hypodermic needle' with phentolamine in saline. The label date was not shown on the page. The dose is not used in the case."
+      }
+    }
+  },
+  "endings": {
+    "collapse": {
+      "label": "Collapse off the vasopressor",
+      "class": "harm",
+      "terminal": true,
+      "when": "offPressor and t >= timeAt(stopAt) + gapLimit and inClinic",
+      "narrative": "With no vasopressor running for ten minutes, her MAP falls into the 40s and she becomes unresponsive. A code is called."
+    },
+    "necrosis": {
+      "label": "Skin and tissue necrosis",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= necrosisAt and inClinic",
+      "narrative": "The forearm turns dusky and then black along the vein. Plastic surgery is called for a full-thickness necrosis."
+    },
+    "saved": {
+      "label": "Extravasation treated, pressure held",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow and not isNull(aspAt) and not isNull(antiAt) and not isNull(restartAt) and isNull(flushAt) and isNull(rateAt) and route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+      "narrative": "{timeAt(leftAt)|clock}: color is back in the forearm, the norepinephrine moves to the central line, and her MAP held throughout."
+    },
+    "savedGaps": {
+      "label": "Arm and pressure saved, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she gets her central line, but the stop or call was slow, the catheter was pulled before the antidote, more drug went into the arm, or the antidote never came."
+    },
+    "time_up": {
+      "label": "Untreated at 23:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "23:00 and the forearm has had no antidote."
+    }
+  },
+  "endingOrder": [
+    "collapse",
+    "necrosis",
+    "saved",
+    "savedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopC",
+        "label": "Stopped the infusion within 1 minute; no flush or rate increase into the site",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(flushAt) or not isNull(rateAt)",
+            "score": "missed",
+            "why": "More drug pushed in."
+          },
+          {
+            "when": "not isNull(stopAt) and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow",
+            "score": "met",
+            "why": "At once."
+          },
+          {
+            "when": "not isNull(stopAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not stopped."
+          }
+        ]
+      },
+      {
+        "id": "restartC",
+        "label": "Restarted the vasopressor through another working line",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(restartAt)",
+            "score": "met",
+            "why": "At {timeAt(restartAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left off."
+          }
+        ]
+      },
+      {
+        "id": "antiC",
+        "label": "Catheter left in and the antidote given through it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(antiAt) and not isNull(aspAt)",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "not isNull(antiAt)",
+            "score": "partial",
+            "why": "Given around the site only; catheter pulled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Called the intensivist within 5 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called."
+          },
+          {
+            "when": "route == \"icu\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "elevC",
+        "label": "Elevated, compress, border marked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(elevAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized extravasation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"extrav\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"shock\"",
+            "score": "missed",
+            "why": "Called it worsening shock."
+          },
+          {
+            "when": "dxEnum == \"phlebitis\"",
+            "score": "missed",
+            "why": "Called it phlebitis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented with times and hourly checks",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: extravasation; stop, aspirate, leave the catheter, restart elsewhere, antidote",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "Site check to stop",
+        "value": "isNull(stopAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(stopAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 30 s"
+      },
+      {
+        "id": "offTime",
+        "label": "Time off any vasopressor",
+        "value": "isNull(stopAt) ? -1 : (isNull(restartAt) ? -1 : timeAt(restartAt) - timeAt(stopAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "22:00",
+        "text": "Site check: pale, cool, swollen, blanched, no blood return. Stop the norepinephrine there."
+      },
+      {
+        "at": "~22:01",
+        "text": "Aspirate and leave the catheter; restart through the right forearm IV."
+      },
+      {
+        "at": "~22:01",
+        "text": "Call the intensivist for phentolamine; elevate, compress, mark the border."
+      },
+      {
+        "at": "~22:05",
+        "text": "Assist the phentolamine infiltration; document; hourly checks."
+      }
+    ],
+    "debrief": {
+      "collapse": {
+        "headline": "Collapse",
+        "body": "Stopping an infiltrated vasopressor is right, but a patient in shock needs it restarted through another working line within minutes."
+      },
+      "necrosis": {
+        "headline": "Tissue necrosis",
+        "body": "A vasopressor in the tissue causes ischemia. Stop it at once, aspirate, leave the catheter for the antidote, and never flush or turn it up into the site."
+      },
+      "saved": {
+        "headline": "Arm and pressure saved",
+        "body": "You stopped it at once, aspirated, kept the catheter for the antidote, restarted through the other arm and called within minutes. That is the expert path."
+      },
+      "savedGaps": {
+        "headline": "Saved, with gaps",
+        "body": "Check how fast you stopped and called, whether the catheter stayed in for the antidote, and whether more drug went in."
+      },
+      "time_up": {
+        "headline": "Untreated",
+        "body": "An extravasated vasopressor needs the antidote as soon as possible."
+      }
+    },
+    "modelReasoning": "A pale, cool, swollen, blanched forearm with no blood return, and a MAP that fell as the rate rose, is norepinephrine extravasation: the drug is constricting the tissue instead of reaching her circulation. Stop the infusion immediately, aspirate what you can and leave the catheter in so the antidote can go through it, and restart the vasopressor through the other working line straight away, because she is in shock. Elevate the arm, mark the border, and call the intensivist for phentolamine infiltrated as soon as possible, as the label directs. Never flush the line or turn the rate up into the infiltrated site."
+  },
+  "chapters": [
+    {
+      "id": "stopped",
+      "label": "Infusion stopped",
+      "when": "not isNull(stopAt)"
+    }
+  ],
+  "teaching": {
+    "siteQ": {
+      "during": "testT",
+      "ask": "While you check: what does the label say about a peripheral norepinephrine site?",
+      "choices": [
+        {
+          "id": "large",
+          "label": "Use a large vein, check the site frequently for free flow, and watch for extravasation"
+        },
+        {
+          "id": "any",
+          "label": "Any vein is fine if it flushes"
+        },
+        {
+          "id": "hand",
+          "label": "Prefer the back of the hand"
+        }
+      ],
+      "expect": "large",
+      "explain": "Infuse into a large vein, check the infusion site frequently for free flow, and monitor for signs of extravasation.",
+      "source": {
+        "cite": "LEVOPHED (norepinephrine bitartrate) prescribing information, Warnings and Precautions 5.1 (Pfizer, as published on pfizermedical.com)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pfizermedical.com/levophed-1/warnings",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the label section: 'infuse into a large vein, check the infusion site frequently for free flow, and monitor for signs of extravasation'; for extravasation, 'infiltrate the ischemic area as soon as possible, using a syringe with a fine hypodermic needle' with phentolamine in saline. The label date was not shown on the page. The dose is not used in the case."
+      }
+    },
+    "catheterQ": {
+      "during": "leaveT",
+      "ask": "While the central line goes in: why was the catheter left in place?",
+      "choices": [
+        {
+          "id": "antidote",
+          "label": "To aspirate the drug and give the antidote through it"
+        },
+        {
+          "id": "reuse",
+          "label": "To use it again for the vasopressor"
+        },
+        {
+          "id": "nothing",
+          "label": "It makes no difference"
+        }
+      ],
+      "expect": "antidote",
+      "explain": "Aspirate as much drug as possible and leave the catheter in place until the reversal agent is given.",
+      "source": {
+        "cite": "Lewis T, NYU Langone Medical Center Department of Pharmacy. Adult Guidelines for Peripheral Administration of Vasopressor Therapy and the Management of Extravasation Events (undated institutional protocol, hosted by REBEL EM)",
+        "checkedAt": "2026-11-17",
+        "url": "https://rebelem.com/wp-content/uploads/2020/02/Peripheral-Vasopressor-Protocol.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF: 'On suspecting extravasation, the infusion must be stopped immediately'; 'Slowly aspirate as much drug as possible'; 'Leave the catheter in place' until the reversal agent is given through it; 'Elevate the affected limb'; warm compresses; the attending or intensivist 'must be contacted immediately'; check the site every hour; a 20-gauge or larger visible catheter in the forearm or upper arm; two working peripheral lines. An institutional protocol, named in the case as the unit's policy."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

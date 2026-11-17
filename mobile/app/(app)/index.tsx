@@ -13,6 +13,8 @@ import { colors, fonts, spacing } from "@/lib/theme";
 import { homeReviewCard } from "@/lib/homeReview";
 import { HOME_EMPTY } from "@/lib/emptyStates";
 import { WhatsNewDialog, useWhatsNewOnFocus } from "@/components/WhatsNew";
+import { GridRow, useGridColumns } from "@/components/WebColumn";
+import { chunkRows } from "@/lib/webColumn";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -50,6 +52,8 @@ export default function Home() {
   // REQ-140: an unseen release note, offered once the launch questions are
   // settled; never blocks or blanks Home.
   const whatsNew = useWhatsNewOnFocus();
+  // REQ-322: two cards per row on a wide web window; one everywhere else.
+  const columns = useGridColumns();
 
   const toggleFavorite = useCallback((track: Track) => {
     const next = !track.is_favorite;
@@ -88,6 +92,53 @@ export default function Home() {
   const favorites = (tracks ?? []).filter((t) => t.is_favorite && t.id !== mostRecentId).sort(byLastStudied);
   const firstName = user?.displayName?.split(" ")[0];
   const review = homeReviewCard(reviewToday);
+  const rows: (Track | Track[])[] = columns > 1 ? chunkRows(favorites, columns) : favorites;
+  const reviewCard = (extra?: { flex: number }) =>
+    review ? (
+      <Card
+        onPress={() => router.push("/review")}
+        accessibilityLabel={review.a11y}
+        style={{ marginTop: mostRecent ? 0 : spacing.md, ...extra }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View style={[styles.exploreIconWrap, { backgroundColor: withAlpha(colors.warn) }]}>
+            <Feather name="rotate-ccw" size={18} color={colors.warn} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <H2>{review.title}</H2>
+            <Muted>{review.line}</Muted>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+        </View>
+      </Card>
+    ) : null;
+  const browseCard = (extra?: { flex: number }) =>
+    tracks ? (
+      <Card
+        onPress={() => router.push("/explore")}
+        accessibilityLabel={`Browse all courses. ${tracks.length} courses across every category`}
+        style={{ marginTop: mostRecent || review ? 0 : spacing.md, ...extra }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View style={styles.exploreIconWrap}>
+            <Feather name="compass" size={18} color={colors.accent} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <H2>Browse all courses</H2>
+            <Muted>{tracks.length} courses across every category</Muted>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+        </View>
+      </Card>
+    ) : null;
+  const renderCourse = (item: Track, style?: { flex: number }) => (
+    <CourseCard
+      track={item}
+      style={style}
+      onPress={() => router.push(`/course/${item.id}`)}
+      onToggleFavorite={() => toggleFavorite(item)}
+    />
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
@@ -101,9 +152,9 @@ export default function Home() {
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} tracks={tracks} />
       <WhatsNewDialog entry={sidebarOpen ? null : whatsNew.entry} onDismiss={whatsNew.dismiss} />
-      <FlatList
-        data={favorites}
-        keyExtractor={(item) => item.id}
+      <FlatList<Track | Track[]>
+        data={rows}
+        keyExtractor={(item) => (Array.isArray(item) ? item.map((t) => t.id).join("+") : item.id)}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />
@@ -142,54 +193,26 @@ export default function Home() {
               </Card>
             ) : null}
 
-            {review ? (
-              <Card
-                onPress={() => router.push("/review")}
-                accessibilityLabel={review.a11y}
-                style={{ marginTop: mostRecent ? 0 : spacing.md }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                  <View style={[styles.exploreIconWrap, { backgroundColor: withAlpha(colors.warn) }]}>
-                    <Feather name="rotate-ccw" size={18} color={colors.warn} />
-                  </View>
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <H2>{review.title}</H2>
-                    <Muted>{review.line}</Muted>
-                  </View>
-                  <Feather name="chevron-right" size={20} color={colors.mutedDim} />
-                </View>
-              </Card>
-            ) : null}
-
-            {tracks ? (
-              <Card
-                onPress={() => router.push("/explore")}
-                accessibilityLabel={`Browse all courses. ${tracks.length} courses across every category`}
-                style={{ marginTop: mostRecent || review ? 0 : spacing.md }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                  <View style={styles.exploreIconWrap}>
-                    <Feather name="compass" size={18} color={colors.accent} />
-                  </View>
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <H2>Browse all courses</H2>
-                    <Muted>{tracks.length} courses across every category</Muted>
-                  </View>
-                  <Feather name="chevron-right" size={20} color={colors.mutedDim} />
-                </View>
-              </Card>
-            ) : null}
+            {/* REQ-322: on a wide web window Review and Browse sit side by side. */}
+            {columns > 1 && review && tracks ? (
+              <GridRow columns={2} cells={[reviewCard({ flex: 1 }), browseCard({ flex: 1 })]} />
+            ) : (
+              <>
+                {review ? reviewCard() : null}
+                {tracks ? browseCard() : null}
+              </>
+            )}
 
             {tracks && favorites.length ? <H2 style={{ marginTop: spacing.md }}>Favorites</H2> : null}
           </View>
         }
-        renderItem={({ item }) => (
-          <CourseCard
-            track={item}
-            onPress={() => router.push(`/course/${item.id}`)}
-            onToggleFavorite={() => toggleFavorite(item)}
-          />
-        )}
+        renderItem={({ item }) =>
+          Array.isArray(item) ? (
+            <GridRow columns={columns} cells={item.map((t) => renderCourse(t, { flex: 1 }))} />
+          ) : (
+            renderCourse(item)
+          )
+        }
         ListEmptyComponent={
           tracks && tracks.length === 0 ? (
             <Card>

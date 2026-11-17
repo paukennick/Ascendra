@@ -69,6 +69,9 @@ interface SimInfo {
     access: "full" | "sample" | "locked";
     brief: { situation: string; handover?: string[]; howItWorks?: string[] };
     runnable: boolean;
+    // REQ-327: for adults (18+). The server asked for the acknowledgement
+    // before sending any of it (the API client showed the notice).
+    mature?: boolean;
   };
   openRun: { id: string; lastTick: number } | null;
   lastFinished: { id: string; rating: string | null } | null;
@@ -168,6 +171,7 @@ export default function SimScreen() {
             <H1>{info.sim.title}</H1>
             <Muted>{info.sim.objectiveTitle}</Muted>
             {info.sim.access === "sample" ? <Badge label="Sample simulation" color={colors.good} icon="gift" /> : null}
+            {info.sim.mature ? <Badge label="Adults (18+)" color={colors.muted} icon="alert-circle" /> : null}
           </View>
           <Card elevated>
             <H2>The situation</H2>

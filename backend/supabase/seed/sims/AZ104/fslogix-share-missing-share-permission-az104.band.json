@@ -1,0 +1,33 @@
+{
+  "band": "az104",
+  "label": "Azure Administrator (AZ-104)",
+  "base": {
+    "course": "AZ140",
+    "slug": "fslogix-share-missing-share-permission"
+  },
+  "slug": "fslogix-share-missing-share-permission-az104",
+  "patch": {
+    "objective": "Configuring identity-based access for Azure Files",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Microsoft Learn, Study guide for Exam AZ-104: Microsoft Azure Administrator (skills measured as of October 26, 2023; page last updated 2026-10-30): Manage Azure identities and governance 20-25%, Implement and manage storage 15-20%, Deploy and manage Azure compute resources 20-25%, Implement and manage virtual networking 15-20%, Monitor and maintain Azure resources 10-15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/certifications/resources/study-guides/az-104",
+        "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Provision a container by using Azure Container Apps'; 'Perform backup and restore operations by using Azure Backup'; 'Query and analyze logs in Azure Monitor'. The objective wording is the course seed's."
+      },
+      {
+        "cite": "Microsoft Learn, FSLogix: Configure SMB storage permissions",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/fslogix/fslogix-storage-config-ht",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: it is 'recommended to configure the default share-level permission using Storage File Data SMB Share Contributor', assigned to all authenticated identities; 'Storage File Data SMB Share Elevated Contributor' for specific admin users or groups who set Windows ACLs; only Elevated Contributors can assign permissions on the share root or other files and directories without the storage account key; NTFS: CREATOR OWNER Modify on subfolders and files only, Domain Admins Full Control, Domain Users Modify on this folder only, so each profile directory has permissions only for its user."
+      },
+      {
+        "cite": "Microsoft Learn, FSLogix: Troubleshooting issues with old, temporary, or local profiles",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/fslogix/fslogix-trouble-shooting-ht",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: storage permissions are 'one of the most common misconfigured settings for an FSLogix solution'; the profile log shows '[ERROR:00000005] Failed to attach VHD. (Access is denied.)' and 'LoadProfile failed ... FrxStatus: 31 (Access is denied.)'; PreventLoginWithFailure replaces the shell to prevent a user's sign-in when their profile fails to attach. The log folder path in the scenario is from memory of FSLogix's default (to verify)."
+      }
+    ]
+  }
+}

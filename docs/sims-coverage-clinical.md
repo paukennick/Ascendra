@@ -1024,3 +1024,42 @@ of 11, DPT 13 of 15, PTPREREQ 1 of 2; many of these are already secondary
 objectives of a sim); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
 123 open); the ABPTS courses (none yet); ASWB and the remaining mental
 health objectives (docs/sims-coverage-mental-health-wave.md).
+
+## REQ-323 round 2 (2026-11-17)
+
+Launch courses, new main objectives (docs/sims.md 22.32, "Round 2"):
+**NCLEXRN** +2 bands (Cushing's triad with a falling level of
+consciousness, from the emergency head injury case; assessing whether a
+restraint is appropriate, from the med-surg delirium case); **NCLEXPN** +1
+case (high potassium reported as a risk of dysrhythmia, in a skilled
+nursing facility); **CCRNADULT** +1 case (heparin-induced thrombocytopenia).
+**NPTEPTA** +1 case (red flags in back pain reported to the supervising PT,
+Musculoskeletal). Counted again from the seeded catalog: NCLEX-RN 97,
+NCLEX-PN 38 and CCRN Adult 72 fitting objectives are no sim's main
+objective (secondary-only included).
+
+## REQ-325 round 3 (2026-11-17)
+
+Launch courses, new main objectives (docs/sims.md 22.33): **CCRNADULT**
++14 cases (8 in Endocrine, Hematology/Immunology, GI, Renal/GU,
+Integumentary; 4 in Musculoskeletal, Neurological, Behavioral/Psychosocial;
+2 in Multisystem), **NCLEXRN** +7 cases (Management of Care,
+Pharmacological and Parenteral Therapies x3, Physiological Adaptation,
+Safety and Infection Prevention, Reduction of Risk Potential), **NCLEXPN**
++3 cases (Coordinated Care, Pharmacological Therapies, Physiological
+Adaptation). Counted again from the seeded catalog: CCRN Adult 58,
+NCLEX-RN 90 and NCLEX-PN 35 fitting objectives are no sim's main objective
+(secondary-only included). The next candidates and the objectives that
+don't fit a bedside case are listed in 22.33.
+
+## REQ-326, sims-health-4 (2026-11-17)
+
+**NPTEPTA** +5 treatment-session cases (docs/sims.md 22.34): reporting a
+response to the supervising PT (new calf swelling after a knee replacement,
+Musculoskeletal); gaze-stabilization exercises with new neurological signs
+(Neuromuscular; implementing balance interventions as secondary); vital
+signs and activity tolerance (a systolic falling as the treadmill grade
+rises; cardiac and pulmonary rehabilitation as secondary); the 6-minute walk
+test stopped at desaturation; glucose around exercise (hypo- and
+hyperglycemia during a session as secondary). Counted again: NPTE-PTA 13
+fitting objectives are no sim's main objective.

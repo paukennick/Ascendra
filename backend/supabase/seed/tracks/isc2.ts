@@ -123,7 +123,7 @@ const CC_OUTLINE: Record<1 | 2 | 3 | 4 | 5, string[]> = {
     "1.2 Understand risk management concepts: risk management lifecycle; risk management processes",
     "1.3 Understand governance concepts: regulations and laws; frameworks and guidelines; policies, standards (e.g., ISO, Center for Internet Security), procedures",
     "1.4 Understand cybersecurity controls: technical controls; administrative controls; physical controls",
-    "1.5 Maintain professional and ethical conduct: professional code of conduct; due care and due diligence; the certifying body's code of ethics",
+    "1.5 Maintain professional and ethical conduct: professional code of conduct; due care and due diligence; ISC2 Code of Ethics",
   ],
   2: [
     "2.1 Plan Governance, Risk, and Compliance (GRC): purpose; importance; frameworks and tools",
@@ -159,10 +159,10 @@ const CC_DOMAIN_TITLES = {
 export const CC_FORMAT_KEY_VALUES = [
   "outline effective September 1, 2026 (footer v01/2026); five domains at average weights 24 / 17.3 / 20 / 21.3 / 17.3 percent",
   "Computerized Adaptive Testing (CAT) in every language; 2 hours; 100-125 items; multiple choice and advanced item types",
-  "passing grade 700 out of 1000 points; the certifying body reports pass or fail, not a numeric score, and gives failing candidates per-domain proficiency",
+  "passing grade 700 out of 1000 points; ISC2 reports pass or fail, not a numeric score, and gives failing candidates per-domain proficiency",
   "each CAT exam includes 25 unscored pretest items; a candidate must answer at least 75 operational and 25 pretest items to receive a result",
   "no item review: once an answer is finalized it cannot be changed",
-  "no work experience or degree is required; the certifying body recommends basic IT knowledge",
+  "no work experience or degree is required; ISC2 recommends basic IT knowledge",
 ];
 
 const ccOutline = (d: 1 | 2 | 3 | 4 | 5): UnitSource =>
@@ -178,7 +178,7 @@ export const ISC2_SOURCES = {
     keyValues: [
       "outline effective April 15, 2024 (footer v9/2024); eight domains at average weights 16 / 10 / 13 / 13 / 13 / 12 / 13 / 10 percent",
       "CAT in English, Chinese, German, Japanese and Spanish; 3 hours maximum; 100-150 items; multiple choice and advanced innovative items",
-      "passing grade 700 out of 1000; the certifying body reports pass or fail only, with per-domain proficiency (below, near, above) for failing candidates; the exam is compensatory",
+      "passing grade 700 out of 1000; ISC2 reports pass or fail only, with per-domain proficiency (below, near, above) for failing candidates; the exam is compensatory",
       "25 unscored pretest items in every exam; each next item is chosen so the candidate has about a 50% chance of answering it",
       "after 100 items the exam ends when the ability estimate is above or below the passing standard with 95% confidence; otherwise at 150 items or when time runs out",
       "no item review: a finalized answer cannot be changed",
@@ -191,9 +191,9 @@ export const ISC2_SOURCES = {
 
 export const ISC2CC_TRACK: SeedTrack = {
   code: "ISC2CC",
-  title: "Prep for an entry-level cybersecurity certification exam",
+  title: "Exam Prep for Certified in Cybersecurity (CC®)",
   description:
-    "Entry-level preparation for a cybersecurity certification exam on the outline effective September 1, 2026: security principles, governance, identity and access management, networking and cloud security, and security operations with incident response, weighted as the exam weights them, with practice for the adaptive (CAT) format. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Entry-level preparation for the Certified in Cybersecurity (CC®) exam on the outline effective September 1, 2026: security principles, governance, identity and access management, networking and cloud security, and security operations with incident response, weighted as the exam weights them, with practice for the adaptive (CAT) format. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",
@@ -217,12 +217,12 @@ export const ISC2CC_TRACK: SeedTrack = {
     officialObjectivesUrl: CC_OUTLINE_URL,
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "No specific prerequisites: no cybersecurity work experience or degree is required, and the certifying body recommends basic information technology knowledge.",
+      "No specific prerequisites: no cybersecurity work experience or degree is required, and ISC2 recommends basic information technology knowledge.",
     durationMinutes: 120,
     questionFormat:
-      "Computerized Adaptive Testing (CAT): 100-125 items in up to 2 hours, multiple choice and advanced item types, at a Pearson VUE testing center. Every exam includes 25 unscored pretest items you cannot tell apart, and items cannot be reviewed or changed once answered. (The exam outline effective 2026-09-01 and the adaptive testing FAQ, read 2026-11-14.)",
+      "Computerized Adaptive Testing (CAT): 100-125 items in up to 2 hours, multiple choice and advanced item types, at a Pearson VUE testing center. Every exam includes 25 unscored pretest items you cannot tell apart, and items cannot be reviewed or changed once answered. (ISC2 CC exam outline effective 2026-09-01; CAT FAQ, read 2026-11-14.)",
     passingScorePolicy:
-      "700 out of 1000 points. The certifying body reports pass or fail rather than a score; failing candidates see their proficiency per domain. You must answer at least 75 scored and 25 pretest items within the time to receive a result. Retakes after 30, 60, then 90 test-free days, at most 4 attempts in 12 months.",
+      "700 out of 1000 points. ISC2 reports pass or fail rather than a score; failing candidates see their proficiency per domain. You must answer at least 75 scored and 25 pretest items within the time to receive a result. Retakes after 30, 60, then 90 test-free days, at most 4 attempts in 12 months.",
     publishedWeightsNote:
       "ISC2 prints the CC average weights as 24, 17.3, 20, 21.3 and 17.3 percent with 'Total: 100%'; the five numbers add to 99.9, kept exactly as printed (outline effective 2026-09-01).",
   },
@@ -231,7 +231,7 @@ export const ISC2CC_TRACK: SeedTrack = {
       title: CC_DOMAIN_TITLES[1],
       rangeLabel: "24% of the exam (average weight)",
       weight: 24,
-      gate: "Given a short workplace scenario, name the security property at stake (confidentiality, integrity, availability, authentication, non-repudiation or privacy), assess the risk against the organization's tolerance, choose a treatment and a mix of technical, administrative and physical controls, and say which canon of the certifying body's code of ethics applies to the people involved.",
+      gate: "Given a short workplace scenario, name the security property at stake (confidentiality, integrity, availability, authentication, non-repudiation or privacy), assess the risk against the organization's tolerance, choose a treatment and a mix of technical, administrative and physical controls, and say which ISC2 Code of Ethics canon applies to the people involved.",
       sources: [ccOutline(1), ISC2_SOURCES.ccFormat],
       objectives: [
         // 1.1
@@ -246,7 +246,7 @@ export const ISC2CC_TRACK: SeedTrack = {
         // 1.4
         "Classify controls as technical, administrative or physical, and select a combination of them for a given risk",
         // 1.5
-        "Apply the certifying body's code of ethics canons, due care and due diligence to a workplace dilemma",
+        "Apply the ISC2 Code of Ethics canons, due care and due diligence to a workplace dilemma",
       ],
     },
     {
@@ -331,7 +331,7 @@ export const ISC2CC_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 const CISSP_OUTLINE: Record<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, string[]> = {
   1: [
-    "1.1 Understand, adhere to, and promote professional ethics: the certifying body's code of professional ethics; organizational code of ethics",
+    "1.1 Understand, adhere to, and promote professional ethics: ISC2 Code of Professional Ethics; organizational code of ethics",
     "1.2 Understand and apply security concepts: confidentiality, integrity, and availability, authenticity, and nonrepudiation (5 Pillars of Information Security)",
     "1.3 Evaluate and apply security governance principles: alignment of the security function to business strategy, goals, mission, and objectives; organizational processes; organizational roles and responsibilities; security control frameworks (e.g., ISO, NIST, COBIT, SABSA, PCI, FedRAMP); due care/due diligence",
     "1.4 Understand legal, regulatory, and compliance issues that pertain to information security in a holistic context: cybercrimes and data breaches; licensing and intellectual property requirements; import/export controls; transborder data flow; issues related to privacy (e.g., GDPR, California Consumer Privacy Act, Personal Information Protection Law, Protection of Personal Information Act); contractual, legal, industry standards, and regulatory requirements",
@@ -439,9 +439,9 @@ const cisspUnit = (d: CisspDomain, gate: string, objectives: string[]) => ({
 
 export const CISSP_TRACK: SeedTrack = {
   code: "CISSP",
-  title: "Prep for an advanced information security professional certification exam",
+  title: "Exam Prep for CISSP®",
   description:
-    "Preparation for an advanced information security professional certification exam on the outline effective April 15, 2024: all eight domains weighted as the exam weights them, taught from a manager's and architect's view of risk, with practice for the adaptive (CAT) format. The outline is replaced on April 15, 2027; this course is reviewed before then. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the CISSP® exam on the outline effective April 15, 2024: all eight domains weighted as the exam weights them, taught from a manager's and architect's view of risk, with practice for the adaptive (CAT) format. The outline is replaced on April 15, 2027; this course is reviewed before then. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",
@@ -465,12 +465,12 @@ export const CISSP_TRACK: SeedTrack = {
     officialObjectivesUrl: CISSP_OUTLINE_URL,
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "Five years of cumulative, full-time experience in two or more of the eight domains; a relevant bachelor's or master's degree, or a credential on the certifying body's approved list, can satisfy one year. Part-time work and internships can count. Passing without the experience makes you an associate of the certifying body, with six years to earn it.",
+      "Five years of cumulative, full-time experience in two or more of the eight domains; a relevant bachelor's or master's degree, or a credential on ISC2's approved list, can satisfy one year. Part-time work and internships can count. Passing without the experience makes you an Associate of ISC2, with six years to earn it.",
     durationMinutes: 180,
     questionFormat:
-      "Computerized Adaptive Testing (CAT) in English: 100-150 items in up to 3 hours, multiple choice and advanced innovative items, at authorized Pearson VUE centers. Every exam includes 25 unscored pretest items; each next item is chosen so you have about a 50% chance of answering it, and answers cannot be reviewed or changed once finalized. (The exam outline effective 2024-04-15 and the adaptive testing FAQ, read 2026-11-14.)",
+      "Computerized Adaptive Testing (CAT) in English: 100-150 items in up to 3 hours, multiple choice and advanced innovative items, at ISC2-authorized Pearson VUE centers. Every exam includes 25 unscored pretest items; each next item is chosen so you have about a 50% chance of answering it, and answers cannot be reviewed or changed once finalized. (ISC2 CISSP exam outline effective 2024-04-15; CISSP CAT FAQ, read 2026-11-14.)",
     passingScorePolicy:
-      "700 out of 1000 points. The exam ends after 100 items once your ability estimate is above or below the passing standard with 95% confidence, otherwise at 150 items or when time runs out; the certifying body reports pass or fail only, with per-domain proficiency for failing candidates. Retakes after 30, 60, then 90 test-free days, at most 4 attempts in 12 months.",
+      "700 out of 1000 points. The exam ends after 100 items once your ability estimate is above or below the passing standard with 95% confidence, otherwise at 150 items or when time runs out; ISC2 reports pass or fail only, with per-domain proficiency for failing candidates. Retakes after 30, 60, then 90 test-free days, at most 4 attempts in 12 months.",
   },
   units: [
     cisspUnit(
@@ -478,7 +478,7 @@ export const CISSP_TRACK: SeedTrack = {
       "Given a business decision with security consequences -- an acquisition, a new privacy law, a supplier, a cut budget -- frame it in the organization's goals, name the laws, frameworks and ethics in play, quantify or rank the risk, choose a treatment the business can own, and say what you would tell the board.",
       [
         // 1.1
-        "Apply the certifying body's code of professional ethics and an organizational code of ethics to a professional dilemma",
+        "Apply the ISC2 Code of Professional Ethics and an organizational code of ethics to a professional dilemma",
         // 1.2
         "Apply the five pillars -- confidentiality, integrity, availability, authenticity and nonrepudiation -- to a business need",
         // 1.3

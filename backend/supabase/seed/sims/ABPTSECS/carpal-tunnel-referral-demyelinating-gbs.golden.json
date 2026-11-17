@@ -1,0 +1,476 @@
+{
+  "slug": "carpal-tunnel-referral-demyelinating-gbs",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, strength and reflexes, single breath count, brief motor studies; suspected Guillain-Barre syndrome; 911; physician told",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "exam",
+          "seq": 5,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "sbc",
+          "seq": 6,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "ncs",
+          "seq": 7,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aidp"
+          },
+          "seq": 8,
+          "tick": 109
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 9,
+          "tick": 109
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 109
+        }
+      ],
+      "expect": {
+        "ending": "sentNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "breath": "met",
+          "interpret": "met",
+          "refer": "met",
+          "noLongEmg": "met",
+          "examC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 185,
+          "toCall": 360
+        },
+        "stateHash": "98ad875d1c607ae8"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "fullStudy",
+      "title": "Completes a full needle EMG before checking breathing and calling 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ncs",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "emg",
+          "seq": 5,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "sbc",
+          "seq": 6,
+          "tick": 324
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aidp"
+          },
+          "seq": 7,
+          "tick": 336
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 8,
+          "tick": 336
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 336
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "breath": "met",
+          "interpret": "met",
+          "refer": "partial",
+          "noLongEmg": "missed",
+          "examC": "missed",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 1500
+        },
+        "stateHash": "478f128097a73bea"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noBreathCheck",
+      "title": "Reads the studies correctly and calls 911, but never checks her breathing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "exam",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ncs",
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aidp"
+          },
+          "seq": 6,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 7,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "breath": "missed",
+          "interpret": "met",
+          "refer": "met",
+          "noLongEmg": "met",
+          "examC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 300
+        },
+        "stateHash": "ba55c6f3c3468c86"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "routineNeurology",
+      "title": "Failure: a correct pattern, but a routine neurology referral and home",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "ncs",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aidp"
+          },
+          "seq": 5,
+          "tick": 84
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "neuro"
+          },
+          "seq": 6,
+          "tick": 84
+        }
+      ],
+      "expect": {
+        "ending": "sentAway",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "breath": "missed",
+          "interpret": "met",
+          "refer": "missed",
+          "noLongEmg": "met",
+          "examC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": 240
+        },
+        "stateHash": "20a5c9ca4b2bf941"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "asReferred",
+      "title": "Failure: straight to the studies, reported as bilateral carpal tunnel syndrome, splints and home",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ncs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cts"
+          },
+          "seq": 3,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "home"
+          },
+          "seq": 4,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "sentAway",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "breath": "missed",
+          "interpret": "missed",
+          "refer": "missed",
+          "noLongEmg": "met",
+          "examC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": -1,
+          "toCall": -1
+        },
+        "stateHash": "e452f8650940a1aa"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "studyOnly",
+      "title": "Failure: a full study, a chronic axonal impression and no decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sbcQ",
+          "choice": "weak",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "emg",
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "axonal"
+          },
+          "seq": 5,
+          "tick": 276
+        }
+      ],
+      "expect": {
+        "ending": "respFail",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "breath": "missed",
+          "interpret": "missed",
+          "refer": "missed",
+          "noLongEmg": "missed",
+          "examC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toRedFlag": 180,
+          "toCall": -1
+        },
+        "stateHash": "e372ee21e7b78fd7"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

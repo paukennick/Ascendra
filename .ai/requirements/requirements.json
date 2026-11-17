@@ -11566,7 +11566,9 @@
       "documentation_required": [
         "changelog"
       ],
-      "risk_notes": []
+      "risk_notes": [
+        "verify-2 (2026-11-17): CSPP, GCPPCA, GCPDEVOPS, CNPE, PROJECTPLUS, ABPTSECS checked against owner outlines/guideline; FAIL-2390 (GBS electrodiagnosis), FAIL-2391 (Project+ unit 4 name). PgMP/PBA/PMOCP/CPMAI ECO PDFs not fetchable (approval timed out): task text stays to verify. Item 7 (remaining 'to verify' sim notes, NIST/IT) not done."
+      ]
     },
     {
       "id": "REQ-319",
@@ -11601,6 +11603,365 @@
         "Generated lessons already stored for these courses may name marks",
         "Linear format is inferred from a fixed form",
         "Not legal advice"
+      ]
+    },
+    {
+      "id": "REQ-324",
+      "category": "trademarks",
+      "title": "Exam course titles name the exam: 'Exam Prep for <Exam> (<code>)'; unbranded naming off",
+      "description": "Nick 2026-11-17 03:33 PT: 'The current naming is not going to work. Courses that are publicly named the course or exam should remain that way.' Scope: all courses, the 13 permission-only bodies included; 03:40 PT: title form 'Exam Prep for <Exam> (<code>)' for every exam course. Exam names and codes as the body publishes them; parentheses omitted where there is no separate code; ® or ™ only where the owner marks the name so, and on first use where its guideline asks (Linux Foundation, PMI). The exam card, practice exam, emails, prompts, course codes and objective titles name the exam again (lib/unbranded.ts UNBRANDED_NAMING_ON false); the reference line and specific disclaimer stay; sims still name no permission body. App name and icon carry no mark.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "every exam course title matches ^Exam Prep for and names its exam body's mark",
+        "a published exam code is in parentheses (Red Hat numbers aside)",
+        "no Official/Approved/Authorized/Certified by/Master claim outside the exam's own name",
+        "symbols backed by owner evidence (TITLE_SYMBOLS or MARK_EVIDENCE)",
+        "every exam course description still ends with its disclaimer",
+        "permission bodies keep the reference line",
+        "UNBRANDED_NAMING_ON is false and every reader honors it",
+        "objectives REQ-319 renamed only for marks use the body's wording",
+        "sims unchanged (certMarkProblems)"
+      ],
+      "validation_required": [
+        "backend lib/catalog-trademarks.test.ts",
+        "backend lib/unbranded.test.ts",
+        "backend lib/unbranded.dbtest.ts",
+        "backend lib/reminder-plan.test.ts",
+        "backend course tests"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "README.md",
+        "backend/lib/release-notes.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "risk_notes": [
+        "Not legal advice; CompTIA",
+        "AWS",
+        "Microsoft and the Linux Foundation guidelines discourage marks in product names (Nick chose this form knowingly)",
+        "Objective retitles invalidate stored lessons for those objectives (FAIL-893)",
+        "Scrum.org ™ read only from a search result title"
+      ]
+    },
+    {
+      "id": "REQ-322",
+      "category": "ux",
+      "title": "Desktop web: header, grids, root screens and hover/focus on wide windows (step 2)",
+      "description": "Nick 2026-11-17: start the desktop web updates (step 2 after REQ-304). On the web in a window wider than 900px: the header's buttons and title line up with the 960px column (the header background still spans the window); Home favorites and the Explore catalog show two course cards per row; on Home, Review and Browse sit side by side; the course page's Practice exam, Labs and Simulations buttons sit in one row; the root 'We couldn't reach Ascendra' screen is a centered 440px column and names the browser; the idle warning and update banners sit over the column; buttons and links get a hover wash and a visible 2px keyboard focus ring. Phones, the native apps and windows 900px or narrower are unchanged. Sims, exams, labs and the PBQ simulator keep the full width and edge-aligned header.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/webColumn.ts",
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/lib/webDesktopStyles.ts",
+        "mobile/src/components/WebColumn.tsx",
+        "mobile/src/components/SessionRetry.tsx",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(auth)/_layout.tsx",
+        "mobile/app/(legal)/_layout.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "isWideWeb is false on iOS and Android at every width and on the web at 900px and below",
+        "Header insets are empty unless the screen has the column (none on sims/exams/labs/PBQ)",
+        "Course lists use one column except on wide web windows where they use two",
+        "The retry screen is capped at 440px only on wide web; it names the browser in every web window and keeps 'this phone' in the native apps (follow-up, Nick 2026-11-17 08:59 PT)",
+        "The keyboard focus ring (:focus-visible) applies at every web width (follow-up, Nick 2026-11-17 08:59 PT); the hover wash is inside a min-width 901px media query and also needs (hover: hover) and (pointer: fine)",
+        "Narrow screenshots (390x844 and 800x900) before and after differ by at most 2 intensity levels (font rendering noise)",
+        "What's new 2026-11-17-c covers REQ-304 and REQ-322"
+      ],
+      "validation_required": [
+        "cd mobile && node --test src/lib/desktopWeb.test.ts src/lib/webColumn.test.ts",
+        "cd mobile && npx tsc --noEmit",
+        "Playwright screenshots at 1440x900 1920x1080 800x900 390x844 against production API",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Hover wash and focus ring are CSS selectors on react-native-web roles; a control without a role gets neither",
+        "Header alignment uses the stack's header container styles; a screen that renders its own header option overrides would not be aligned"
+      ]
+    },
+    {
+      "id": "REQ-321",
+      "category": "content",
+      "title": "Sims for the PMI and CompTIA courses that had none: breadth first, bands where a case already teaches the objective",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Production had 252 sims on 74 courses; every PMI course and eight CompTIA courses had none. Investigation: the project dashboard (REQ-311) shipped only Scrum Sprints (PSMI, and CSM bands); no PMI course was ever registered and the predictive mode had no document. No band or registration was broken. This builds, on existing screens only: bands of the Scrum Sprints for PMP, CAPM, PMI-ACP and Project+; bands of terminal, console, board and data-console cases for Server+, CloudNetX, Cloud+, AutoOps+, Data+, DataAI, Tech+, PMI-CPMAI and the CS degree foundations (CMPCBS); and the first predictive case, a PMP clinic fit-out (earned value, change control, a risk trigger, a status report and a contractor's claim) with bands for CAPM, PMI-SP, Project+, PMI-CP and PMI-RMP. PGMP, PFMP, PMI-PMOCP, PMI-PBA, CSPP and CAPA need new cases and are left open with proposals. Second part (sims-pm-2, same day): new cases for the six and PMI-RMP's top domain, on existing screens only: a PgMP program steering review, a PfMP portfolio rebalancing (PMI-PMOCP band), a CSPP P5 impact review and a PMI-RMP risk register (PMP, CAPM and Project+ bands) on the governance board; a PMI-PBA requirements baseline and sign-off on the project dashboard; a CAPA Argo Workflows DAG failure on the terminal. Depth for PMP's Process domain (41%): two purpose-written predictive cases, a contact center move (contract type, a borrowed engineer, a late vendor, a cost forecast; Project+ and PMI-CP bands) and a county permit portal (hybrid approach, PERT and parametric estimates, a legal amendment through integrated change control).",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/pm-comptia.ts",
+        "backend/lib/sim/pm-comptia.test.ts",
+        "backend/scripts/sim-golden/",
+        "mobile/src/sim/dashboard.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "every course of the round has a sim on its highest-weighted domain except PMI-RMP (risk response only) and the six left open",
+        "each band cites its own course outline read 2026-11-17 first and drops the base course outline",
+        "bands keep their base's behavior and golden outcomes",
+        "no Official Approved or Authorized claims",
+        "the predictive case lints with zero errors and its goldens reach every ending but time_up rated Good Mediocre and Bad",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/pm-comptia.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "lib/sim tests",
+        "mobile src/sim/dashboard.test.ts",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.31",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "sims-pm-2 (2026-11-17): the acceptance criterion's exceptions (PMI-RMP and the six open courses) are closed; every course of the round now has a sim on its highest-weighted domain, checked by pm-comptia.test.ts."
+      ]
+    },
+    {
+      "id": "REQ-320",
+      "category": "content",
+      "title": "Cloud sims: breadth first for the Azure, AWS, Google Cloud and CNCF courses that had none, then depth",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Every Azure (AI901, AZ104, AZ120, AZ140, AZ305, AZ400, AZ700, AZ900, DP300, DP900), AWS (AWSAIF, AWSANS, AWSDEA, AWSDOP, AWSSCS), Google Cloud (GCPDBE, GCPDEV, GCPDEVOPS, GCPGAIL, GCPMLE, GCPNET, GCPPCA, GCPPDE, GCPSEC) and CNCF/Linux Foundation course (KCA, KCSA, CKAD, CKS, CNPA, CNPE, CGOA, CCA, ICA, OTCA, PCA, CBA) gets at least one sim on its highest-weighted domain, highest-demand exams first (AZ-104, AZ-900, AZ-305, CKAD, CKS), then depth highest weight first for objectives that fit the selection rule. Reuse before authoring: where another course's sim teaches the same objective, register a band. Existing screens only; no engine, schema or migration change. Course outlines read 2026-11-17 and dated; teaching timings flagged; no permission-only body's marks in sim text. Second pass (sims-cloud-2): a new top-domain case for each course the first pass left without one (AWSDEA, GCPNET, GCPDBE, GCPMLE, AZ120, AZ140, KCA, CCA, CBA) or below its top domain (AI901, GCPPDE), then depth bands of those cases in the first pass's courses.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-cloud.ts",
+        "backend/lib/sim/it-cloud.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each document carries its course outline read 2026-11-17 as its first source",
+        "a band keeps its base's actions endings ending order and golden outcomes",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug",
+        "a behavior test per new case checks the decision it teaches"
+      ],
+      "validation_required": [
+        "lib/sim/it-cloud.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "backend sim tests in parts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.30",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "bands across certification levels (security-analyst cases on leader and fundamentals courses)",
+        "third-party summaries used where official outline pages did not load"
+      ]
+    },
+    {
+      "id": "REQ-323",
+      "category": "content",
+      "title": "Health sims of the 2026-11-17 round: a sim for every physical therapy specialty course, NPTE-PTA and strength and conditioning, then nursing depth by bands",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. Breadth first: each of the ten physical therapy specialty courses, NPTE-PTA and the strength and conditioning course gets at least one sim on its highest-weighted domain where an objective there fits an existing screen, by a band of a DPT, NPTE or trainer case where the objective is the same and a new treatment-session case where none is. Then depth: nursing objectives that fit the selection rule, launch courses first, by bands of existing bedside cases. No new screen, engine, schema or migration. Sims name no permission-only body or specialist letters (REQ-309/319). Round 2 (same day): a PTA-specific musculoskeletal case on the treatment-session screen; purpose-written emergency department cases on the bedside screen, highest-weighted categories first; new progressive care, med-surg, FNP, CCRN Adult and NCLEX-PN bedside cases; and bands of the new cases to NCLEX-RN and the other FNP course where the setting fits.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-sims-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every breadth course has at least one sim",
+        "each band registers another course's case to a fitting catalog objective and changes only objective secondary objectives sources and brief",
+        "each new scenario has endingOrder three or four critical criteria harm endings that are outcomes and Good Mediocre and Bad golden paths reaching every ending but time_up",
+        "every document lints with zero errors and replays its goldens",
+        "sources are dated and say how they were read",
+        "no learner text names a permission-only mark or specialist letters",
+        "no claim of clinician or expert review",
+        "round 2: NPTE-PTA has a sim on Musculoskeletal, and the emergency nursing course has a case in each of its four highest-weighted categories"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-323 documents",
+        "lib/sim/health-sims-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.32",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-325",
+      "category": "content",
+      "title": "Nursing depth, round 3 of 2026-11-17: purpose-written bedside cases for CCRN Adult, NCLEX-RN and NCLEX-PN, highest-weighted categories first",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. A third builder adds depth to the launch nursing courses: open fitting objectives in CCRN Adult (72), NCLEX-RN (97) and NCLEX-PN (38), highest-weighted categories first, as purpose-written cases on the bedside screen in the shape of the REQ-323 round-2 cases. Bands only where an existing case truly teaches the objective in the right setting and scope. Drugs only as the ordered drug with no dose; unsafe choices end in harm; sources checked and dated, US sources preferred; no clinician or expert review claim; no permission-only marks. No new screen, engine, schema or migration. Stop at about 25 cases or when the remaining objectives no longer fit, and record where it stopped.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/nursing-depth-1117.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a bedside case on engine 1.2 with endingOrder three or four critical criteria and a conditional harm ending that is an outcome",
+        "goldens reach Good Mediocre and Bad and every ending but time_up with every criterion met and missed",
+        "every document lints with zero errors",
+        "objectives are the course's own and pass the selection screen",
+        "sources are dated and say how they were read",
+        "no dose number and no permission-only mark or specialist letters in learner text",
+        "no claim of clinician or expert review",
+        "each course has a case in its highest-weighted category with a fitting objective"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-325 documents",
+        "lib/sim/nursing-depth-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.33",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-326",
+      "category": "content",
+      "title": "Specialty nursing and PTA depth sims of the 2026-11-17 round (sims-health-4): purpose-built bedside and treatment-session cases, highest-weighted categories first",
+      "description": "Nick (2026-11-17, 03:20 PT): build the breadth and depth sims still needed. This builder's scope is depth for the specialty courses: CEN, PCCN, CMSRN, FNPAANP, FNPANCC and NPTE-PTA, highest-weighted categories first, purpose-built cases on the bedside or treatment-session screen, stopping at about 25 new cases. No new screen, engine, schema or migration. Drugs appear only as the ordered drug with no dose; unsafe choices lead to harm endings; no permission-only marks in sim text; no claim of clinician or expert review. The CEN suicide and homicide risk session is deferred (decision for Nick): the 18+ gate is per course (mental health category), and CEN is not in that category. NSCA CSCS Scientific Foundations stays without a sim.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-sims-4.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a fitting objective's main sim on the bedside or treatment-session screen",
+        "each has endingOrder three critical criteria an unsafe choice that ends in harm and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band registers the case to the other FNP course's matching objective and changes only objective secondary objectives and sources",
+        "no dose number and no permission-only mark in learner text",
+        "sources dated and say how they were read",
+        "no CEN sim on suicide or homicide risk until a per-sim 18+ gate exists"
+      ],
+      "validation_required": [
+        "lint of the REQ-326 documents",
+        "lib/sim/health-sims-4.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.34",
+        "docs/sims-coverage-nursing-specialty.md",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-327",
+      "category": "feature",
+      "title": "Per-sim 18+ gate: a sim marked mature in any course needs the 18+ acknowledgment of that course's sims",
+      "description": "Nick 2026-11-17 08:59 PT: build a per-sim 18+ gate so suicide/homicide-risk and other behavioral-emergency sims can live outside the mental health category; 09:18 PT: the gate works across sensitive sims regardless of profession, and the Terms and Privacy Policy disclose it. A sim document with mature: true (schema boolean; any version marked makes the sim 18+) is refused on the detail, start/resume and every run route without an acknowledgment of that course's 18+ sims (mature_course_acknowledgements.scope = 'sims', migration 087) or of the whole course (scope 'course', a mental health course): 403 mature_content_required with the course gate's shape plus scope and simId. Same attestation, date of birth asked once and never replaced, under 18 locked, under 16 one owner mail without the date. A build without x-sim-caps features=mature gets 409 app_update_required and never the brief. The list shows the sim by name with mature: true. Terms and Privacy Policy 2026-11-18 (no lawyer review).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/087_mature_sim_acknowledgements.sql",
+        "backend/lib/mature-content.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/sim/server-run.ts",
+        "backend/lib/sim/schema.ts",
+        "backend/lib/sim/engine/v1/types.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/app/api/mature-content/accept/route.ts",
+        "backend/app/api/sims/",
+        "backend/lib/schema-status.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/email.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/release-notes.ts",
+        "backend/app/delete-account/page.tsx",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/sim/runtime/caps.ts",
+        "mobile/app/(app)/course/[trackId]/sims.tsx",
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx",
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "docs/sims.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "an 18+ sim without an acknowledgment answers 403 mature_content_required with scope sims and simId on detail start and run routes and creates no run",
+        "an acknowledged adult starts and resumes",
+        "under 18 is locked and records nothing; under 16 sends one owner mail without the date",
+        "a stored date of birth is reused and never replaced",
+        "a build without features=mature gets 409 app_update_required and the brief is withheld",
+        "mental health course gates are unchanged and a course acknowledgment covers its 18+ sims",
+        "a sims acknowledgment never opens a mental health course",
+        "the gate works in a non-clinical course",
+        "any sim outside mental health on a suicide homicide or self-harm objective is marked mature",
+        "the Terms and Privacy Policy disclose 18+ simulations in any course"
+      ],
+      "validation_required": [
+        "backend unit tests and typecheck",
+        "npm run test:db on a throwaway Postgres with every migration applied",
+        "mobile npm test and tsc",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.35",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "mobile/src/content/legal.ts",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Installed builds before this release cannot open 18+ sims (told to update)",
+        "A run begun before a sim was marked stops at the gate until acknowledged",
+        "The legal text has had no lawyer review",
+        "To unmark a sim it must be retired and re-registered (any marked version keeps it 18+)",
+        "Everyone is asked to accept the 2026-11-18 Terms and Privacy Policy once"
       ]
     }
   ]

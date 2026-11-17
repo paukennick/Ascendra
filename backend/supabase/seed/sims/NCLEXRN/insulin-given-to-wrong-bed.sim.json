@@ -1,0 +1,1075 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "insulin-given-to-wrong-bed",
+  "title": "The wrong bed",
+  "objective": "Report a medication error honestly and promptly, because early disclosure may allow an intervention that prevents harm",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Myers V. When something goes wrong: how to disclose an error. American Nurse Journal, 2011-10-11",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.myamericannurse.com/when-something-goes-wrong-how-to-disclose-an-error/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Noting mistakes and reporting them is the responsibility of all healthcare providers'; 'Trigger your chain of command if there is an event', with the author notifying her head nurse and the physician immediately after her own medication error; 'Disclosure is required per professional, legal and regulatory standards', usually led by the physician, nursing leadership or a team and planned; questions answered as honestly as possible."
+    },
+    {
+      "cite": "American Diabetes Association Professional Practice Committee. 6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026. Diabetes Care 2026;49(Suppl 1):S132-S149",
+      "checkedAt": "2026-11-11",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178",
+      "note": "Relayed from the LPN/VN case ltc-insulin-hypoglycemia (read 2026-11-11, primary text), not re-read: level 1 hypoglycemia is glucose under 70 and at least 54 mg/dL, level 2 under 54; glucose is preferred for the conscious person under 70, repeated if still low 15 minutes later."
+    },
+    {
+      "cite": "Lilly Medical. What are the pharmacodynamic properties of Humulin and Humalog (insulin lispro)?",
+      "checkedAt": "2026-11-11",
+      "url": "https://medical.lilly.com/us/products/answers/what-are-the-pharmacodynamic-properties-of-humulin-insulin-human-and-humalog-insulin-lispro-42601",
+      "note": "Relayed from the LPN/VN case ltc-insulin-hypoglycemia (read 2026-11-11, primary web page), not re-read: subcutaneous insulin lispro has a rapid onset and a time to peak insulin concentration of 30 to 90 minutes."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:20 on a medical unit. You go to give Mr. Brooke in bed 12 his ordered mealtime insulin lispro and find it already signed out at 09:05, by you. You realize you gave it to Mr. Brooks in bed 14.",
+    "handover": [
+      "Mr. Brooks, bed 14, is 76, admitted with cellulitis, no diabetes. He ate about half his breakfast.",
+      "Mr. Brooke, bed 12, has type 2 diabetes and still has not had his mealtime insulin.",
+      "Unit policy: a medication error is reported at once to the provider and the charge nurse, the patient is assessed and treated, and an event report is filed; disclosure to the patient is planned with the provider and charge nurse. The unit's hypoglycemia protocol: 15 g fast carbohydrate for a conscious patient under 70 mg/dL, recheck in 15 minutes."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:20",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Glucose falls as the lispro peaks in a patient without diabetes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "carbRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It falls more slowly after oral carbohydrate. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ivRate": {
+      "value": -0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It recovers on the ordered IV dextrose with frequent checks. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seizureAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a hypoglycemic seizure. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider and charge nurse told within 5 minutes of recognizing the error (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews and orders: about 4 min."
+      }
+    },
+    "reviewTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider reviews him and plans disclosure with the charge nurse: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "verifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "verify",
+        "glucose",
+        "assess"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "report",
+        "conceal"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "error",
+        "minor",
+        "watch"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "carbAt": {
+      "type": "time",
+      "init": null
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "chargeAt": {
+      "type": "time",
+      "init": null
+    },
+    "fudgeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"report\" and t >= timeAt(callAt) + orderTime"
+    },
+    "glu": {
+      "expr": "round(112 - 80 * prog)",
+      "unit": "mg/dL",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(80 + 30 * max(0, prog - 0.4) + sin(t / 11) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(132)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(78)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "max(0.1, prog + (not isNull(ivAt) ? ivRate : (not isNull(carbAt) ? carbRate : progRate)) * dt / 60)"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Glucose",
+          "value": "glu",
+          "unit": "mg/dL",
+          "alarm": {
+            "low": 70
+          },
+          "announce": {
+            "bands": [
+              70,
+              54
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(glucoseAt)"
+        }
+      ],
+      "infusions": "Carbohydrate given: {not isNull(carbAt)|yesno}. IV dextrose: {not isNull(ivAt)|yesno}. Charge nurse told and event report: {not isNull(chargeAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(ivAt)",
+          "text": "The provider has ordered IV dextrose and glucose checks every 15 minutes for bed 14, and will see bed 12 about his insulin."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "verify": {
+      "label": "Confirm the error: scan records, the MAR and both wristbands",
+      "group": "Assess",
+      "available": "not testPending and isNull(verifyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"verify\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Check Mr. Brooks's glucose",
+      "group": "Assess",
+      "available": "not testPending and isNull(glucoseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glucose\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "assess": {
+      "label": "Assess Mr. Brooks: alertness, sweating, shakiness, whether he can swallow",
+      "group": "Assess",
+      "available": "not testPending and isNull(assessAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"assess\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "carb": {
+      "label": "Give 15 g of fast carbohydrate per the hypoglycemia protocol and recheck in 15 minutes",
+      "group": "Treat",
+      "available": "not isNull(glucoseAt) and isNull(carbAt) and inClinic",
+      "why": "Check the glucose first, or already given.",
+      "effects": [
+        {
+          "set": "carbAt",
+          "to": "t"
+        },
+        {
+          "log": "Half a cup of juice given; recheck set for 15 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "iv": {
+      "label": "Start the ordered IV dextrose and glucose checks every 15 minutes",
+      "group": "Treat",
+      "available": "ordered and isNull(ivAt) and inClinic",
+      "why": "Not ordered yet, or running.",
+      "effects": [
+        {
+          "set": "ivAt",
+          "to": "t"
+        },
+        {
+          "log": "IV dextrose running; checks every 15 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "charge": {
+      "label": "Tell the charge nurse and file the event report",
+      "group": "Treat",
+      "available": "isNull(chargeAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "chargeAt",
+          "to": "t"
+        },
+        {
+          "log": "Charge nurse told; event report filed with the facts and times.",
+          "kind": "act"
+        }
+      ]
+    },
+    "fudge": {
+      "label": "Leave the record as it is so it shows bed 12 got his insulin",
+      "group": "Treat",
+      "available": "isNull(fudgeAt) and inClinic",
+      "why": "Already decided.",
+      "effects": [
+        {
+          "set": "fudgeAt",
+          "to": "t"
+        },
+        {
+          "log": "The record still says bed 12 had his insulin. Bed 12 will now miss his dose.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what happened and what it means",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "error",
+              "label": "A wrong-patient medication error: rapid-acting insulin given to a man without diabetes, peaking in the next hour; he needs monitoring and treatment now, and the error must be reported"
+            },
+            {
+              "value": "minor",
+              "label": "A small dose; he'll be fine after lunch"
+            },
+            {
+              "value": "watch",
+              "label": "No harm yet, so nothing to report unless his glucose drops"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"error\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"error\""
+                },
+                {
+                  "log": "Wrong-patient insulin error: report and treat.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"minor\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"minor\""
+                },
+                {
+                  "log": "Impression: minor.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"watch\""
+                },
+                {
+                  "log": "Impression: report only if harm.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "report",
+              "label": "Provider now: I gave bed 12's lispro to Mr. Brooks in bed 14 at 09:05; he has no diabetes, glucose falling, given carbohydrate. Ask for orders for him, and for bed 12's missed dose"
+            },
+            {
+              "value": "conceal",
+              "label": "Say nothing; watch his glucose yourself and treat it if it drops"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"report\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"report\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "reviewTime"
+                },
+                {
+                  "log": "The provider thanks you for calling at once: IV dextrose and checks every 15 minutes for bed 14, a new plan for bed 12, and a disclosure conversation with the charge nurse.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"conceal\""
+                },
+                {
+                  "log": "You decide to keep an eye on him without telling anyone.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the facts and times objectively, and join the provider and charge nurse in the planned disclosure to Mr. Brooks",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented the facts and times; you join the provider and charge nurse when they explain what happened to Mr. Brooks.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit",
+      "clock": "running",
+      "actions": [
+        "verify",
+        "glucose",
+        "assess",
+        "carb",
+        "iv",
+        "charge",
+        "fudge",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"verify\"",
+              "then": [
+                {
+                  "set": "verifyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Confirmed: the bed 12 lispro was scanned under an override at 09:05 and given to Mr. Brooks in bed 14, 15 minutes ago. The insulin is peaking soon.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"glucose\"",
+              "then": [
+                {
+                  "set": "glucoseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose {glu} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "assessAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Alert, a little sweaty, says he feels 'jittery'; swallowing normally.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the provider's review",
+      "wait": {
+        "skipLabel": "the provider's review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the provider to review him and plan the disclosure."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The provider reviews Mr. Brooks: glucose stable on dextrose. The disclosure is done together.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you do about the error, and why does reporting it now matter?",
+      "parts": [
+        {
+          "label": "Why now",
+          "criteria": "Rapid-acting insulin peaks within 30 to 90 minutes; a man without diabetes will become hypoglycemic; reporting now lets the provider order IV dextrose and monitoring before harm; reporting is every provider's responsibility.",
+          "modelAnswer": "The lispro will peak in the next hour, and he doesn't have diabetes, so his glucose will keep falling. If I report it now, the provider can order dextrose and checks before he has a seizure. Hiding it only delays that."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Checks his glucose and treats per protocol; calls the provider at once and tells the charge nurse; event report; honest documentation; bed 12's missed dose raised; disclosure to the patient planned with the provider and charge nurse.",
+          "modelAnswer": "Check his glucose and give juice per protocol, call the provider now and tell the charge nurse, and file the event report. Document honestly, flag that bed 12 missed his dose, and join the planned disclosure."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A medication error hidden from the provider for an hour is harm here.",
+      "source": {
+        "cite": "Myers V. When something goes wrong: how to disclose an error. American Nurse Journal, 2011-10-11",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.myamericannurse.com/when-something-goes-wrong-how-to-disclose-an-error/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Noting mistakes and reporting them is the responsibility of all healthcare providers'; 'Trigger your chain of command if there is an event', with the author notifying her head nurse and the physician immediately after her own medication error; 'Disclosure is required per professional, legal and regulatory standards', usually led by the physician, nursing leadership or a team and planned; questions answered as honestly as possible."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "Hypoglycemic seizure",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= seizureAt and inClinic",
+      "narrative": "Mr. Brooks becomes confused, then has a seizure. His glucose is 30. A rapid response is called, and the error comes out in the review."
+    },
+    "reported": {
+      "label": "Reported and treated in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(carbAt) and not isNull(ivAt) and not isNull(chargeAt) and isNull(fudgeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: Mr. Brooks's glucose is stable on dextrose, bed 12 has a plan, and the error is reported and disclosed. Your call came early enough to prevent harm."
+    },
+    "reportedGaps": {
+      "label": "Reported, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is safe, but the report came late, carbohydrate or dextrose was missed, the charge nurse and event report were skipped, or the record was left wrong."
+    },
+    "time_up": {
+      "label": "Still hidden at 10:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:20 and no one else knows about the error."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "reported",
+    "reportedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Reported to the provider within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"report\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"report\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"conceal\"",
+            "score": "missed",
+            "why": "Hidden."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reported."
+          }
+        ]
+      },
+      {
+        "id": "treatC",
+        "label": "Checked and treated his glucose",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(carbAt) and not isNull(ivAt)",
+            "score": "met",
+            "why": "Carbohydrate and dextrose."
+          },
+          {
+            "when": "not isNull(carbAt) or not isNull(ivAt)",
+            "score": "partial",
+            "why": "One."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not treated."
+          }
+        ]
+      },
+      {
+        "id": "honestC",
+        "label": "Kept the record honest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fudgeAt)",
+            "score": "missed",
+            "why": "Record left wrong."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Honest."
+          }
+        ]
+      },
+      {
+        "id": "chargeC",
+        "label": "Told the charge nurse and filed the event report",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(chargeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Named the error and its risk",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"error\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"minor\"",
+            "score": "missed",
+            "why": "Called it minor."
+          },
+          {
+            "when": "dxEnum == \"watch\"",
+            "score": "missed",
+            "why": "Report only if harm."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and joined the disclosure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: report at once so treatment can prevent harm; treat, report, document honestly",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Recognizing it to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toGlucose",
+        "label": "09:20 to his glucose",
+        "value": "isNull(glucoseAt) ? -1 : timeAt(glucoseAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:20",
+        "text": "Confirm the error: bed 12's lispro given to bed 14 at 09:05."
+      },
+      {
+        "at": "~09:21",
+        "text": "Glucose 84 and falling; give 15 g carbohydrate per protocol."
+      },
+      {
+        "at": "~09:22",
+        "text": "Call the provider now; tell the charge nurse; event report."
+      },
+      {
+        "at": "~09:27",
+        "text": "Start the ordered IV dextrose; document honestly; join the planned disclosure."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "Hypoglycemic seizure",
+        "body": "A medication error reported at once can be treated before it harms. Hidden, the insulin peaked with no plan."
+      },
+      "reported": {
+        "headline": "Reported in time",
+        "body": "You confirmed the error, treated his glucose, called the provider and charge nurse at once, kept the record honest and joined the disclosure. That is the expert path."
+      },
+      "reportedGaps": {
+        "headline": "Reported, with gaps",
+        "body": "Check how soon you reported, whether his glucose was treated, whether the charge nurse and event report followed, and whether the record was honest."
+      },
+      "time_up": {
+        "headline": "Hidden",
+        "body": "Medication errors are reported at once so treatment can start."
+      }
+    },
+    "modelReasoning": "Bed 12's rapid-acting insulin was given to Mr. Brooks, who has no diabetes, 15 minutes ago; it will peak within the next hour and his glucose will keep falling. Reporting now is what allows the provider to order IV dextrose and frequent checks before harm. Check his glucose, give 15 g of fast carbohydrate per protocol, call the provider at once and tell the charge nurse, file the event report, and document the facts honestly, including that bed 12 missed his dose. Disclosure to Mr. Brooks is planned with the provider and charge nurse. Waiting to see whether harm happens, or leaving the record wrong, turns an error into an injury."
+  },
+  "chapters": [
+    {
+      "id": "reported",
+      "label": "Error reported",
+      "when": "not isNull(callAt) and route == \"report\""
+    }
+  ],
+  "teaching": {
+    "peakQ": {
+      "during": "testT",
+      "ask": "While you check: when does insulin lispro peak after a subcutaneous dose?",
+      "choices": [
+        {
+          "id": "early",
+          "label": "About 30 to 90 minutes"
+        },
+        {
+          "id": "late",
+          "label": "About 6 to 8 hours"
+        },
+        {
+          "id": "none",
+          "label": "It has no peak"
+        }
+      ],
+      "expect": "early",
+      "explain": "Insulin lispro has a rapid onset and a time to peak of 30 to 90 minutes.",
+      "source": {
+        "cite": "Lilly Medical. What are the pharmacodynamic properties of Humulin and Humalog (insulin lispro)?",
+        "checkedAt": "2026-11-11",
+        "url": "https://medical.lilly.com/us/products/answers/what-are-the-pharmacodynamic-properties-of-humulin-insulin-human-and-humalog-insulin-lispro-42601",
+        "note": "Relayed from the LPN/VN case ltc-insulin-hypoglycemia (read 2026-11-11, primary web page), not re-read: subcutaneous insulin lispro has a rapid onset and a time to peak insulin concentration of 30 to 90 minutes."
+      }
+    },
+    "reportQ": {
+      "during": "leaveT",
+      "ask": "While the provider reviews him: whose job is it to report a medication error?",
+      "choices": [
+        {
+          "id": "all",
+          "label": "Every health care provider's, starting with the one who notices it"
+        },
+        {
+          "id": "harm",
+          "label": "Only if the patient is harmed"
+        },
+        {
+          "id": "pharm",
+          "label": "Pharmacy's"
+        }
+      ],
+      "expect": "all",
+      "explain": "Noting mistakes and reporting them is the responsibility of all health care providers; trigger the chain of command when there is an event.",
+      "source": {
+        "cite": "Myers V. When something goes wrong: how to disclose an error. American Nurse Journal, 2011-10-11",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.myamericannurse.com/when-something-goes-wrong-how-to-disclose-an-error/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Noting mistakes and reporting them is the responsibility of all healthcare providers'; 'Trigger your chain of command if there is an event', with the author notifying her head nurse and the physician immediately after her own medication error; 'Disclosure is required per professional, legal and regulatory standards', usually led by the physician, nursing leadership or a team and planned; questions answered as honestly as possible."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

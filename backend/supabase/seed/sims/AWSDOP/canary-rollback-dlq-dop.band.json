@@ -1,0 +1,57 @@
+{
+  "band": "dop",
+  "label": "AWS DevOps Engineer Professional (DOP-C02)",
+  "base": {
+    "course": "AWSDVA",
+    "slug": "canary-rollback-dlq"
+  },
+  "slug": "canary-rollback-dlq-dop",
+  "patch": {
+    "objective": "Using blue/green and canary deployment methods",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified DevOps Engineer - Professional (DOP-C02) exam guide: SDLC Automation 22%, Configuration Management and IaC 17%, Resilient Cloud Solutions 15%, Monitoring and Logging 15%, Incident and Event Response 14%, Security and Compliance 17%",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/userguide/devops-engineer-professional-02-domain1.html",
+        "note": "Domain 1 page read through a summarizing fetch on 2026-11-17: 'This domain accounts for 22% of the exam content'; Task 1.4 skills 'Troubleshooting deployment issues' and 'Using different deployment methods (for example, blue/green, canary)'. The other domains' weights and wording are the course seed's (backend/supabase/seed/tracks/aws.ts); their pages were not re-read."
+      },
+      {
+        "cite": "AWS. Lambda Developer Guide: Error handling for asynchronous invocation",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html",
+        "note": "Read 2026-11-11: 'If the function returns an error, by default Lambda attempts to run it two more times, with a one-minute wait between the first two attempts, and two minutes between the second and third attempts'; throttling (429) and system errors (500-series) are retried 'for up to 6 hours by default'; 'When an event expires or fails all processing attempts, Lambda discards it' unless a dead-letter queue or on-failure destination keeps it."
+      },
+      {
+        "cite": "AWS. Lambda Developer Guide: Capturing records of asynchronous invocations (dead-letter queues)",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html",
+        "note": "Read 2026-11-11: a DLQ (SQS standard queue or SNS standard topic) 'is used when an event fails all processing attempts'; Lambda sends 'the event to the dead-letter queue as-is', with RequestID, ErrorCode and ErrorMessage ('The first 1 KB of the error message') attributes; 'To reprocess events in a dead-letter queue, you can set it as an event source for your Lambda function. Alternatively, you can manually retrieve the events.'"
+      },
+      {
+        "cite": "AWS. CodeDeploy User Guide: Deployment configurations (AWS Lambda compute platform)",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
+        "note": "Read 2026-11-11: CodeDeployDefault.LambdaCanary10Percent5Minutes 'Shifts 10 percent of traffic in the first increment. The remaining 90 percent is deployed five minutes later'; LambdaAllAtOnce 'Shifts all traffic to the updated Lambda functions at once'."
+      },
+      {
+        "cite": "AWS. SAM Developer Guide: Deploying serverless applications gradually",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html",
+        "note": "Read 2026-11-11: with DeploymentPreference, 'if your pre-traffic or post-traffic tests fail, or if a CloudWatch alarm is triggered, CodeDeploy rolls back your deployment'; Alarms 'automatically roll back your deployment'; AutoPublishAlias publishes a new version and points the alias at it."
+      },
+      {
+        "cite": "AWS. Amazon SQS API Reference: SetQueueAttributes",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html",
+        "note": "Read 2026-11-11: MessageRetentionPeriod 'from 60 (1 minute) to 1,209,600 (14 days). Default: 345,600 (4 days)'. The scenario's DLQ was created with 2 days."
+      },
+      {
+        "cite": "AWS. IAM User Guide: Security best practices in IAM",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+        "note": "Read 2026-11-11: AWS managed policies 'might not grant least-privilege permissions for your specific use cases'; reduce permissions further with customer managed policies specific to the use case."
+      }
+    ]
+  }
+}

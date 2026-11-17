@@ -66,6 +66,65 @@ export function matureUnderageMessage(): string {
   );
 }
 
+// REQ-327 (Nick, 2026-11-17): what an acknowledgement covers
+// (mature_course_acknowledgements.scope, migration 087). "course": a whole
+// mental health course (REQ-259). "sims": the 18+ simulations of a course
+// outside the mental health category -- a sim document marked `mature: true`
+// (lib/sim/schema.ts) is refused without it, the rest of the course is not.
+// Same attestation, same date of birth asked once, same under-18 and under-16
+// rules. One "sims" acknowledgement covers every 18+ sim of that course at the
+// current notice version, as one course acknowledgement covers every lesson of
+// a mental health course.
+export const MATURE_SCOPES = ["course", "sims"] as const;
+export type MatureScope = (typeof MATURE_SCOPES)[number];
+export function isMatureScope(s: unknown): s is MatureScope {
+  return typeof s === "string" && (MATURE_SCOPES as readonly string[]).includes(s);
+}
+
+export const MATURE_SIM_REQUIRED_MESSAGE =
+  "This simulation covers a sensitive topic and is for adults. Confirm you're 18 or older to open it (update the app if you don't see the notice).";
+export function matureSimUnderageMessage(): string {
+  return (
+    `This simulation is for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so it stays locked on this account. ` +
+    `That's based on the date of birth on your account, which can't be changed in the app. ` +
+    `If it's wrong, contact ${supportEmail()} and we'll look at it.`
+  );
+}
+
+// The 403 a mature sim answers without an acknowledgement: the course gate's
+// shape (code, trackId, noticeVersion, minAge) plus scope "sims" and the sim,
+// so the app shows the sims notice for THAT course and retries. `category` is
+// the course's category slug, or null.
+export function matureSimRequiredBody(trackId: string, simId: string, category: string | null) {
+  return {
+    code: MATURE_CONTENT_REQUIRED_CODE,
+    scope: "sims" as const,
+    category,
+    trackId,
+    simId,
+    noticeVersion: MATURE_CONTENT_NOTICE_VERSION,
+    minAge: MATURE_CONTENT_MIN_AGE,
+  };
+}
+
+// SQL: true when the sim aliased `sim` is 18+ -- ANY of its versions'
+// documents says `"mature": true`. Any, not only the served one: a flag added
+// to a case that was already published makes a new version, while an older
+// approved version of the same content may still be the one served or pinned
+// to an open run. To unmark a sim, retire it and register a new one.
+export function matureSimSql(sim: string): string {
+  return `exists(select 1 from sim_versions msv where msv.sim_id = ${sim}.id and msv.document @> '{"mature": true}'::jsonb)`;
+}
+
+// SQL: true when the learner in `userParam` has NOT acknowledged the 18+ sims
+// of the course whose id is `trackExpr` at the current version. A course
+// acknowledgement (a mental health course) covers its sims too.
+export function matureSimAckMissingSql(trackExpr: string, userParam: string): string {
+  return `not exists (select 1 from mature_course_acknowledgements mca
+                       where mca.user_id = ${userParam} and mca.track_id = ${trackExpr}
+                         and mca.notice_version = '${MATURE_CONTENT_NOTICE_VERSION}' and mca.scope in ('course', 'sims'))`;
+}
+
 export function isMatureCategory(slug: unknown): slug is MatureCategory {
   return typeof slug === "string" && (MATURE_CATEGORIES as readonly string[]).includes(slug);
 }
@@ -98,7 +157,8 @@ export function matureContentNeededSql(track: string, userParam: string): string
             where esc.id = ${track}.subcategory_id and ec.slug in (${slugs})
               and not exists (select 1 from mature_course_acknowledgements mca
                                where mca.user_id = ${userParam} and mca.track_id = ${track}.id
-                                 and mca.notice_version = '${MATURE_CONTENT_NOTICE_VERSION}'))`;
+                                 and mca.notice_version = '${MATURE_CONTENT_NOTICE_VERSION}'
+                                 and mca.scope = 'course'))`;
 }
 
 export type AgeStatus = "unknown" | "adult" | "under_18";
@@ -113,6 +173,9 @@ export interface MatureState {
   ageStatus: AgeStatus;
   // Courses this account has acknowledged at the current notice version.
   acknowledgedTrackIds: string[];
+  // REQ-327: courses whose 18+ sims this account has acknowledged (scope
+  // "sims") at the current notice version.
+  acknowledgedSimTrackIds: string[];
 }
 
 export function ageStatusOf(dateOfBirth: string | null, now: Date = new Date()): AgeStatus {
@@ -122,8 +185,8 @@ export function ageStatusOf(dateOfBirth: string | null, now: Date = new Date()):
 
 export async function matureContentState(userId: string, now: Date = new Date()): Promise<MatureState> {
   const user = await queryOne<{ dob: string | null }>(`select date_of_birth::text as dob from app_users where id = $1`, [userId]);
-  const rows = await query<{ track_id: string }>(
-    `select track_id from mature_course_acknowledgements where user_id = $1 and notice_version = $2 order by attested_at asc, track_id asc`,
+  const rows = await query<{ track_id: string; scope: MatureScope }>(
+    `select track_id, scope from mature_course_acknowledgements where user_id = $1 and notice_version = $2 order by attested_at asc, track_id asc`,
     [userId, MATURE_CONTENT_NOTICE_VERSION]
   );
   return {
@@ -131,7 +194,8 @@ export async function matureContentState(userId: string, now: Date = new Date())
     minAge: MATURE_CONTENT_MIN_AGE,
     dateOfBirthOnFile: !!user?.dob,
     ageStatus: ageStatusOf(user?.dob ?? null, now),
-    acknowledgedTrackIds: rows.map((r) => r.track_id),
+    acknowledgedTrackIds: rows.filter((r) => r.scope === "course").map((r) => r.track_id),
+    acknowledgedSimTrackIds: rows.filter((r) => r.scope === "sims").map((r) => r.track_id),
   };
 }
 
@@ -146,6 +210,27 @@ export async function matureCategoryOfTrack(trackId: string, userId: string): Pr
   );
   if (!row) return null;
   return { id: row.id, category: isMatureCategory(row.slug) ? row.slug : null };
+}
+
+// REQ-327: a visible course OUTSIDE the mental health category that has at
+// least one live 18+ sim, for the accept route's "sims" scope; null when the
+// course is not visible. `hasMatureSims` false or `category` mental health
+// means there is nothing to acknowledge at this scope.
+export async function matureSimsOfTrack(
+  trackId: string,
+  userId: string
+): Promise<{ id: string; category: string | null; hasMatureSims: boolean } | null> {
+  const row = await queryOne<{ id: string; slug: string | null; has: boolean }>(
+    `select st.id,
+            (select ec.slug from education_subcategories esc join education_categories ec on ec.id = esc.category_id
+              where esc.id = st.subcategory_id) as slug,
+            exists(select 1 from sims s join objectives o on o.id = s.objective_id join course_units cu on cu.id = o.unit_id
+                    where cu.track_id = st.id and s.retired_at is null and ${matureSimSql("s")}) as has
+       from subject_tracks st where st.id = $1 and (st.user_id is null or st.user_id = $2)`,
+    [trackId, userId]
+  );
+  if (!row) return null;
+  return { id: row.id, category: row.slug, hasMatureSims: row.has };
 }
 
 export type AcknowledgeResult =
@@ -174,8 +259,12 @@ export async function acknowledgeMatureCourse(input: {
   trackId: string;
   source: MatureSource;
   dateOfBirth: unknown;
+  // REQ-327: "course" (default) or "sims". The caller has checked the course
+  // fits the scope.
+  scope?: MatureScope;
   now?: Date;
 }): Promise<AcknowledgeResult> {
+  const scope: MatureScope = input.scope ?? "course";
   const now = input.now ?? new Date();
   return withTransaction(async (tx) => {
     const user = await tx.queryOne<{ dob: string | null; email: string }>(
@@ -202,11 +291,19 @@ export async function acknowledgeMatureCourse(input: {
     const age = ageOn(dob, now);
     if (age < MATURE_CONTENT_MIN_AGE) return { kind: "underage" as const, belowMinimum: age < MINIMUM_AGE, newlyStored, email: user.email };
     // Idempotent: a repeat (a retry, a second phone) keeps the first row.
+    // REQ-327: one row per course and version, so a course acknowledgement
+    // for a course that has a "sims" row (it moved into the mental health
+    // category) widens that row to the course, with this attestation's time
+    // and source; the course gate reads course rows only, so doing nothing
+    // there would ask forever. A "sims" acknowledgement never narrows a
+    // course row (which already covers the sims).
     await tx.query(
-      `insert into mature_course_acknowledgements (user_id, track_id, notice_version, min_age, source, attested_at)
-       values ($1, $2, $3, $4, $5, $6)
-       on conflict (user_id, track_id, notice_version) do nothing`,
-      [input.userId, input.trackId, MATURE_CONTENT_NOTICE_VERSION, MATURE_CONTENT_MIN_AGE, input.source, now]
+      `insert into mature_course_acknowledgements as m (user_id, track_id, notice_version, min_age, source, attested_at, scope)
+       values ($1, $2, $3, $4, $5, $6, $7)
+       on conflict (user_id, track_id, notice_version) do update
+         set scope = excluded.scope, source = excluded.source, attested_at = excluded.attested_at
+         where excluded.scope = 'course' and m.scope <> 'course'`,
+      [input.userId, input.trackId, MATURE_CONTENT_NOTICE_VERSION, MATURE_CONTENT_MIN_AGE, input.source, now, scope]
     );
     return { kind: "recorded" as const, dateOfBirthStored: newlyStored };
   });
