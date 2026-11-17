@@ -58,4 +58,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "GCPMLE", slug: "nightly-retrain-cuda-oom-after-batch-change", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpmle-oom" },
   { course: "AZ120", slug: "nva-route-between-sap-app-and-db", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-nva" },
   { course: "AZ140", slug: "fslogix-share-missing-share-permission", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-fslogix" },
+  { course: "KCA", slug: "policy-enforced-without-reading-reports", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "kca-enforce" },
 ];
