@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pacu-snoring-then-vomiting",
+  "title": "Snoring, then retching",
+  "objective": "Prioritize airway management and postoperative nausea and vomiting in the postanesthesia care unit, and give a clear handover from the surgical team",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: the objective titles are the course's own, built from this test plan's client needs categories."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "University of Florida Department of Anesthesiology. Anesthesiology CA-1 Success Guide: Postoperative (UF Health, undated page)",
+      "checkedAt": "2026-11-17",
+      "url": "https://anest.ufl.edu/education/anesthesiology-ca-1-success-guide/postoperative/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: for airway obstruction in the PACU consider 'jaw thrust/chin lift, placement of oral/nasal airway' and increase delivered oxygen; causes include secretions and laryngospasm; residual anesthesia causes hypoventilation; PONV risk factors include 'Volatile anesthetics', 'Longer duration of anesthesia', 'Perioperative opioid use', female sex and a history of PONV or motion sickness; to prevent recurrent aspiration, 'Elevate head of bed, avoid sedation, place NG tube'. The page does not cover handoff content; the unit's handoff policy is named in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:40 in the postanesthesia care unit. Ms. Ferreira, 46, arrives after a two-hour laparoscopic gallbladder removal under general anesthesia. The anesthesia provider starts the handover at the bedside while she is still drowsy.",
+    "handover": [
+      "She is snoring loudly, on a face mask; she had nausea and vomiting after her last anesthetic.",
+      "Orders: oxygen to keep SpO2 at or above 94%, the ordered IV antiemetic for nausea, the ordered IV opioid for pain over 6.",
+      "Unit policy: the receiving nurse takes a structured handover (procedure, airway, drugs given, fluids, problems, plan) with the anesthesia provider present, and calls anesthesia for any airway problem not fixed by basic maneuvers."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what comes first, what can wait, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An obstructed airway in a drowsy patient leads toward hypoxia; vomiting while supine leads toward aspiration. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "openRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It barely progresses with the airway open and vomiting managed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "opioidBump": {
+      "value": 0.25,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An opioid into an obstructed, drowsy airway. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "aspirateAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypoxia with aspiration. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "airwayWindow": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Airway maneuver within 1 minute of finding the obstruction (authored target). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "dischargeTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Recovery to the unit's discharge criteria: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "handoverAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "handover",
+        "pain"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ok",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "airway",
+        "pain",
+        "handoff"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "jawAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "antiAt": {
+      "type": "time",
+      "init": null
+    },
+    "opioidAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "airwayOk": {
+      "expr": "not isNull(jawAt)"
+    },
+    "hr": {
+      "expr": "round(84 + 24 * prog + sin(t / 11) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(124)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(72)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "airwayOk ? round(97 - 4 * max(0, prog - 0.5)) : round(93 - 14 * max(0, prog - 0.4))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (airwayOk and (not isNull(sideAt) or t < 300) ? openRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Airway opened: {airwayOk|yesno}. On her side for vomiting: {not isNull(sideAt)|yesno}. Antiemetic: {not isNull(antiAt)|yesno}. Opioid: {not isNull(opioidAt)|yesno}.",
+      "banner": [
+        {
+          "when": "t >= 300 and isNull(sideAt) and inClinic",
+          "text": "She is retching."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "airway": {
+      "label": "Look, listen and feel: chest rise, airway noise, SpO2",
+      "group": "Assess",
+      "available": "not testPending and isNull(airwayAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"airway\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "handover": {
+      "label": "Take the structured handover from the anesthesia provider",
+      "group": "Assess",
+      "available": "not testPending and isNull(handoverAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"handover\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "pain": {
+      "label": "Ask about pain and nausea when she rouses",
+      "group": "Assess",
+      "available": "not testPending and isNull(painAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pain\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "jaw": {
+      "label": "Jaw thrust and chin lift; insert an oral or nasal airway if needed; increase the oxygen",
+      "group": "Treat",
+      "available": "isNull(jawAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "jawAt",
+          "to": "t"
+        },
+        {
+          "log": "Jaw thrust opens her airway; a nasal airway keeps it open; oxygen increased. Snoring stops; SpO2 climbing.",
+          "kind": "act"
+        }
+      ]
+    },
+    "side": {
+      "label": "Turn her on her side, head down slightly, and suction as she retches",
+      "group": "Treat",
+      "available": "isNull(sideAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sideAt",
+          "to": "t"
+        },
+        {
+          "log": "On her side; suction clears her mouth as she vomits.",
+          "kind": "act"
+        }
+      ]
+    },
+    "anti": {
+      "label": "Give the ordered IV antiemetic",
+      "group": "Treat",
+      "available": "isNull(antiAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "antiAt",
+          "to": "t"
+        },
+        {
+          "log": "Antiemetic given; nausea settling.",
+          "kind": "act"
+        }
+      ]
+    },
+    "opioid": {
+      "label": "Give the ordered IV opioid now for her pain of 7",
+      "group": "Treat",
+      "available": "isNull(opioidAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "opioidAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(jawAt)",
+          "then": [
+            {
+              "set": "prog",
+              "to": "prog + opioidBump"
+            },
+            {
+              "log": "Opioid given into a drowsy, obstructed airway; she snores louder and her saturation drops.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Opioid given with her airway open and monitored.",
+              "kind": "act"
+            }
+          ]
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What comes first?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "airway",
+              "label": "Airway first: a partly obstructed airway in a drowsy patient; then protect her from aspiration as she vomits and treat PONV; pain after the airway is safe"
+            },
+            {
+              "value": "pain",
+              "label": "Pain first: she is at 7"
+            },
+            {
+              "value": "handoff",
+              "label": "Finish the handover paperwork first; the snoring is normal after anesthesia"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"airway\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"airway\""
+                },
+                {
+                  "log": "Airway first, then vomiting and PONV, then pain.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"pain\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pain\""
+                },
+                {
+                  "log": "Pain first.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"handoff\""
+                },
+                {
+                  "log": "Paperwork first.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call anesthesia",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ok",
+              "label": "Tell the anesthesia provider at the bedside: airway opened with jaw thrust and a nasal airway, SpO2 recovered; she is vomiting, on her side, antiemetic given"
+            },
+            {
+              "value": "none",
+              "label": "Let the anesthesia provider leave; you'll manage"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ok\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ok\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "dischargeTime"
+                },
+                {
+                  "log": "The anesthesia provider agrees and stays until she is awake enough to protect her airway.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "dischargeTime"
+                },
+                {
+                  "log": "The anesthesia provider leaves for the next case.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the handover, the airway event and actions, the vomiting and antiemetic, and her recovery scores",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: handover received, airway obstruction relieved with jaw thrust and a nasal airway, vomiting managed on her side, antiemetic, recovery scores.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PACU bay",
+      "clock": "running",
+      "actions": [
+        "airway",
+        "handover",
+        "pain",
+        "jaw",
+        "side",
+        "anti",
+        "opioid",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"airway\"",
+              "then": [
+                {
+                  "set": "airwayAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Loud snoring with see-saw chest movement: a partly obstructed upper airway. SpO2 {spo2}%.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"handover\"",
+              "then": [
+                {
+                  "set": "handoverAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Procedure and duration; airway was easy; volatile anesthetic and an opioid given; no antiemetic given; fluids; a history of PONV; plan: antiemetic for nausea, opioid for pain.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "painAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pain 7 at the port sites; 'I feel sick'.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "recovery",
+      "wait": {
+        "skipLabel": "her recovery"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min to meet the unit's discharge criteria."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She is awake, protecting her airway, nausea settled, pain controlled: ready to leave the PACU.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "In what order do you handle her snoring, vomiting, pain and the handover, and why?",
+      "parts": [
+        {
+          "label": "Order",
+          "criteria": "Airway first (snoring with see-saw breathing is obstruction): jaw thrust, chin lift, oral or nasal airway, oxygen; then aspiration protection when she vomits (side, suction) and PONV treatment; pain once the airway is safe; the handover is taken with the anesthesia provider present.",
+          "modelAnswer": "Airway first: that snoring with see-saw breathing is obstruction, so jaw thrust, an airway adjunct and more oxygen. When she retches, turn her on her side and suction so she doesn't aspirate, and give the antiemetic. Pain comes once her airway is safe. I take the handover with anesthesia still at the bedside."
+        },
+        {
+          "label": "Why",
+          "criteria": "A drowsy patient after volatile anesthetic and opioid with a PONV history has a high risk of obstruction and aspiration; an opioid into an obstructed airway worsens it.",
+          "modelAnswer": "She had a volatile anesthetic, an opioid and a history of PONV, and she's still drowsy, so obstruction and aspiration are the biggest risks. Giving the opioid before her airway is open would make it worse."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unmanaged airway in the PACU for an hour is harm here.",
+      "source": {
+        "cite": "University of Florida Department of Anesthesiology. Anesthesiology CA-1 Success Guide: Postoperative (UF Health, undated page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://anest.ufl.edu/education/anesthesiology-ca-1-success-guide/postoperative/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: for airway obstruction in the PACU consider 'jaw thrust/chin lift, placement of oral/nasal airway' and increase delivered oxygen; causes include secretions and laryngospasm; residual anesthesia causes hypoventilation; PONV risk factors include 'Volatile anesthetics', 'Longer duration of anesthesia', 'Perioperative opioid use', female sex and a history of PONV or motion sickness; to prevent recurrent aspiration, 'Elevate head of bed, avoid sedation, place NG tube'. The page does not cover handoff content; the unit's handoff policy is named in the case."
+      }
+    }
+  },
+  "endings": {
+    "aspiration": {
+      "label": "Hypoxia and aspiration",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= aspirateAt and inClinic",
+      "narrative": "She vomits while flat and obstructed; her saturation falls into the 70s. Anesthesia is called back to suction and support her airway; a chest film later shows aspiration."
+    },
+    "recovered": {
+      "label": "Airway first, recovered",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and not isNull(jawAt) and timeAt(jawAt) <= timeAt(redFlagAt) + airwayWindow and not isNull(sideAt) and not isNull(antiAt) and not isNull(handoverAt) and (isNull(opioidAt) or timeAt(opioidAt) > timeAt(jawAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is awake, protecting her airway, nausea settled and pain controlled. You put her airway first and kept her from aspirating."
+    },
+    "recoveredGaps": {
+      "label": "Recovered, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she recovers, but the airway maneuver was slow, the handover was skipped, the antiemetic was missed, or the opioid went in first."
+    },
+    "time_up": {
+      "label": "Unresolved at 11:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:40 and her airway is still not secure."
+    }
+  },
+  "endingOrder": [
+    "aspiration",
+    "recovered",
+    "recoveredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "airwayC",
+        "label": "Opened the airway within 1 minute of finding the obstruction",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(jawAt) and timeAt(jawAt) <= timeAt(redFlagAt) + airwayWindow",
+            "score": "met",
+            "why": "At once."
+          },
+          {
+            "when": "not isNull(jawAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not opened."
+          }
+        ]
+      },
+      {
+        "id": "sideC",
+        "label": "Protected her from aspiration when she vomited",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sideAt)",
+            "score": "met",
+            "why": "On her side, suctioned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left flat."
+          }
+        ]
+      },
+      {
+        "id": "noOpioidFirst",
+        "label": "No opioid before the airway was open",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(opioidAt) and (isNull(jawAt) or timeAt(opioidAt) <= timeAt(jawAt))",
+            "score": "missed",
+            "why": "Opioid into an obstructed airway."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Airway first."
+          }
+        ]
+      },
+      {
+        "id": "ponvC",
+        "label": "Treated PONV",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(antiAt)",
+            "score": "met",
+            "why": "Antiemetic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not treated."
+          }
+        ]
+      },
+      {
+        "id": "handC",
+        "label": "Took the structured handover with anesthesia present",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(handoverAt) and route == \"ok\"",
+            "score": "met",
+            "why": "Taken."
+          },
+          {
+            "when": "not isNull(handoverAt)",
+            "score": "partial",
+            "why": "Taken, then let them leave."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Skipped."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Put the airway first",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"airway\"",
+            "score": "met",
+            "why": "Airway first."
+          },
+          {
+            "when": "dxEnum == \"pain\"",
+            "score": "missed",
+            "why": "Pain first."
+          },
+          {
+            "when": "dxEnum == \"handoff\"",
+            "score": "missed",
+            "why": "Paperwork first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not decided."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: airway, then aspiration and PONV, then pain; why her risk is high",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAirway",
+        "label": "Finding the obstruction to opening it",
+        "value": "isNull(jawAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(jawAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 30 s"
+      },
+      {
+        "id": "toSide",
+        "label": "10:40 to on her side",
+        "value": "isNull(sideAt) ? -1 : timeAt(sideAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:40",
+        "text": "Snoring with see-saw breathing: jaw thrust, nasal airway, more oxygen."
+      },
+      {
+        "at": "~10:41",
+        "text": "Structured handover with anesthesia at the bedside: PONV history, no antiemetic given."
+      },
+      {
+        "at": "~10:42",
+        "text": "Antiemetic. When she retches: on her side, suction."
+      },
+      {
+        "at": "~10:45",
+        "text": "Pain treated once her airway is open; document."
+      }
+    ],
+    "debrief": {
+      "aspiration": {
+        "headline": "Aspiration",
+        "body": "In the PACU the airway comes first: jaw thrust, an adjunct and oxygen for obstruction, then side and suction for vomiting. An opioid into an obstructed airway makes it worse."
+      },
+      "recovered": {
+        "headline": "Airway first",
+        "body": "You opened her airway at once, took a full handover, treated her PONV, protected her from aspiration and treated pain only once she was safe. That is the expert path."
+      },
+      "recoveredGaps": {
+        "headline": "Recovered, with gaps",
+        "body": "Check how fast you opened her airway, whether the handover happened with anesthesia present, and whether the opioid went in first."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "An obstructed airway in the PACU is fixed within a minute."
+      }
+    },
+    "modelReasoning": "Loud snoring with see-saw chest movement in a drowsy patient is upper airway obstruction: open it first with jaw thrust and chin lift, an oral or nasal airway if needed, and more oxygen. Her risk is high: a volatile anesthetic, an opioid, a two-hour case and a history of PONV. When she retches, turn her on her side and suction to prevent aspiration, and give the ordered antiemetic. Pain is treated once the airway is safe; an opioid into an obstructed airway worsens it. Take the structured handover with the anesthesia provider present and keep them until her airway is secure."
+  },
+  "chapters": [
+    {
+      "id": "open",
+      "label": "Airway open",
+      "when": "airwayOk"
+    }
+  ],
+  "teaching": {
+    "ponvQ": {
+      "during": "leaveT",
+      "ask": "While she recovers: which of her features raise the risk of PONV?",
+      "choices": [
+        {
+          "id": "risks",
+          "label": "Female sex, a PONV history, a volatile anesthetic, opioids and a longer anesthetic"
+        },
+        {
+          "id": "age",
+          "label": "Only age over 70"
+        },
+        {
+          "id": "none",
+          "label": "None; PONV is random"
+        }
+      ],
+      "expect": "risks",
+      "explain": "PONV risk factors include volatile anesthetics, longer anesthesia, perioperative opioids, female sex and a history of PONV or motion sickness.",
+      "source": {
+        "cite": "University of Florida Department of Anesthesiology. Anesthesiology CA-1 Success Guide: Postoperative (UF Health, undated page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://anest.ufl.edu/education/anesthesiology-ca-1-success-guide/postoperative/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: for airway obstruction in the PACU consider 'jaw thrust/chin lift, placement of oral/nasal airway' and increase delivered oxygen; causes include secretions and laryngospasm; residual anesthesia causes hypoventilation; PONV risk factors include 'Volatile anesthetics', 'Longer duration of anesthesia', 'Perioperative opioid use', female sex and a history of PONV or motion sickness; to prevent recurrent aspiration, 'Elevate head of bed, avoid sedation, place NG tube'. The page does not cover handoff content; the unit's handoff policy is named in the case."
+      }
+    },
+    "maneuverQ": {
+      "during": "testT",
+      "ask": "While you check: what are the first maneuvers for upper airway obstruction in the PACU?",
+      "choices": [
+        {
+          "id": "jaw",
+          "label": "Jaw thrust or chin lift, an oral or nasal airway, more oxygen"
+        },
+        {
+          "id": "opioid",
+          "label": "Treat her pain so she relaxes"
+        },
+        {
+          "id": "wait",
+          "label": "Wait for her to wake up"
+        }
+      ],
+      "expect": "jaw",
+      "explain": "Consider jaw thrust or chin lift, an oral or nasal airway, and increased oxygen.",
+      "source": {
+        "cite": "University of Florida Department of Anesthesiology. Anesthesiology CA-1 Success Guide: Postoperative (UF Health, undated page)",
+        "checkedAt": "2026-11-17",
+        "url": "https://anest.ufl.edu/education/anesthesiology-ca-1-success-guide/postoperative/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: for airway obstruction in the PACU consider 'jaw thrust/chin lift, placement of oral/nasal airway' and increase delivered oxygen; causes include secretions and laryngospasm; residual anesthesia causes hypoventilation; PONV risk factors include 'Volatile anesthetics', 'Longer duration of anesthesia', 'Perioperative opioid use', female sex and a history of PONV or motion sickness; to prevent recurrent aspiration, 'Elevate head of bed, avoid sedation, place NG tube'. The page does not cover handoff content; the unit's handoff policy is named in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
