@@ -1,0 +1,481 @@
+{
+  "slug": "digoxin-due-yellow-halos",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: apical pulse and labs; digoxin held; telemetry; suspected toxicity; provider now; potassium; documented and taught",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "gi",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tele",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tox"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "lowk",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "k",
+          "seq": 12,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "caught",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "holdC": "met",
+          "callC": "met",
+          "apicalC": "met",
+          "labsC": "met",
+          "teleC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toTele": 125
+        },
+        "stateHash": "00b9281b37dfdce9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Asks about symptoms and reviews the record before the apical pulse; calls 6 minutes after it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "gi",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "tele",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tox"
+          },
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 11,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "lowk",
+          "seq": 12,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "k",
+          "seq": 13,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "holdC": "met",
+          "callC": "partial",
+          "apicalC": "met",
+          "labsC": "met",
+          "teleC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toTele": 240
+        },
+        "stateHash": "83bec229561eaae5"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noMonitor",
+      "title": "Holds the digoxin and calls at once, but never reads the labs or puts her on telemetry",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "gi",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "provider"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "riskQ",
+          "choice": "lowk",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tox"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "held",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "k",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "caughtGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "holdC": "met",
+          "callC": "met",
+          "apicalC": "met",
+          "labsC": "missed",
+          "teleC": "partial",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toTele": -1
+        },
+        "stateHash": "5835025fd64dfbdd"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "doseGiven",
+      "title": "Failure: blames the antibiotic, gives the digoxin with an antiemetic without a pulse, and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "symptoms",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "gi",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "gi"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "dose",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rounds"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "block",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "holdC": "missed",
+          "callC": "missed",
+          "apicalC": "missed",
+          "labsC": "missed",
+          "teleC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toTele": -1
+        },
+        "stateHash": "e7b9589ccee2d06a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "usualAf",
+      "title": "Failure: takes the pulse, calls it her usual atrial fibrillation and moves on",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "apical",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "signsQ",
+          "choice": "gi",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "af"
+          },
+          "seq": 4,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "block",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "holdC": "missed",
+          "callC": "missed",
+          "apicalC": "met",
+          "labsC": "missed",
+          "teleC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toTele": -1
+        },
+        "stateHash": "ce1b591a4675fa92"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
