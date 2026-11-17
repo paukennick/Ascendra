@@ -429,6 +429,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CEN", "asthma-attack-quiet-chest"),
   entry("CEN", "diving-injury-low-pressure-slow-pulse"),
   entry("CEN", "bee-sting-anaphylaxis-triage"),
+  entry("CEN", "black-stools-then-hematemesis"),
   // ---- end REQ-323 ----
 ];
 
