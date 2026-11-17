@@ -16,6 +16,7 @@ import { toUsSpelling } from "../us-spelling";
 
 export const REQ326_CASES: readonly { course: string; slug: string; screen: "bedside" | "treatment-session" }[] = [
   { course: "CEN", slug: "dizzy-slow-pulse-atropine-not-working", screen: "bedside" },
+  { course: "CEN", slug: "cold-leg-new-numbness", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
