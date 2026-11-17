@@ -358,7 +358,7 @@ const PT_DISCLAIMER_KEY = "pt-clinical-content";
 
 const EXAM_FORMAT =
   "Approximately 200 four-option multiple-choice items, standalone or tied to case scenarios, fixed length (every candidate answers the same number of questions), delivered at PSI test centers in four 50-question blocks of up to 90 minutes each";
-const PASSING = "Scaled score of 500; criterion-referenced standard set by the certifying body from a PSI standard-setting study.";
+const PASSING = "Scaled score of 500; criterion-referenced standard set by ABPTS from a PSI standard-setting study.";
 const DURATION = 360;
 
 const BASE_ELIGIBILITY =
@@ -436,7 +436,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
     outlineUrl:
       "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
     extraEligibility:
-      "From the 2027 exam cycle the 2,000 hours must be subdivided by body region, and observational or mentored hours under a board-certified orthopedic specialist may substitute for part of them.",
+      "From the 2027 exam cycle the 2,000 hours must be subdivided by body region, and observational or mentored hours under an OCS may substitute for part of them.",
   }),
   units: [
     {
@@ -638,7 +638,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Dose falls-prevention exercise around balance and functional work (such as sit-to-stand and stepping), three or more times a week, individualized and progressed for at least 12 weeks, adding Tai Chi or progressive resistance training where feasible", // WFG
         "After hip fracture, prescribe individualized progressive exercise for standing up, balance, walking and stairs, begun as an inpatient and continued at home; after stroke, target balance, strength and walking", // WFG
-        "Use the SIGN-based physical therapy guidance for osteoporosis: single-leg standing for hip density, walking, tai chi or closed-chain resistance work for the spine, and progressive resistance training for the femoral neck", // OSTEO-CPG
+        "Use the SIGN-based APTA guidance for osteoporosis: single-leg standing for hip density, walking, tai chi or closed-chain resistance work for the spine, and progressive resistance training for the femoral neck", // OSTEO-CPG
         "Know high-impact or odd-impact protocols alone did not raise bone density at any site, and low-load seated strength work showed no density effect", // OSTEO-CPG
         "Offer people with early to mid-stage Parkinson disease and little or no cognitive impairment an individualized program that includes balance and resistance training", // WFG
       ],
@@ -746,7 +746,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
         "Dose gaze stabilization: at least 3 times a day for 12 minutes total in acute unilateral loss; 3 to 5 times a day for at least 20 minutes for 4 to 6 weeks in chronic loss; 20 to 40 minutes for about 5 to 7 weeks in bilateral loss", // VEST-CPG
         "Add static and dynamic balance exercise for at least 20 minutes a day for 4 to 6 weeks in chronic unilateral hypofunction, and stop therapy when goals are met, symptoms resolve, function normalizes or progress plateaus", // VEST-CPG
         "Treat BPPV with repositioning maneuvers such as Epley or Semont as first-line care, knowing vestibular suppressant medicines are not effective treatment", // SP-BPPV
-        "In Parkinson disease, prescribe moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, all strong recommendations in the physical therapy clinical practice guideline", // PD-CPG
+        "In Parkinson disease, prescribe moderate- to high-intensity aerobic exercise, progressive resistance training and balance training, all strong recommendations in the APTA guideline", // PD-CPG
         "Use external cueing for freezing of gait, plus gait training and task-specific training, in Parkinson disease; consider cycling over treadmill walking for people at high fall risk or with freezing", // PD-CPG
         "Manage autonomic dysreflexia as an emergency: find and remove the trigger, often by irrigating or changing a blocked Foley catheter, and check for bowel impaction, tight clothing or skin injury", // SP-AD
       ],
@@ -1305,7 +1305,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Control limb temperature during nerve conduction studies (about 30 to 36 C for arm and leg); cold raises amplitude, lengthens latency, slows conduction and hides an RNS decrement", // SP-NCS; SP-EDX-NMJ
         "Perform repetitive nerve stimulation at a slow rate (about 3 Hz, 5 to 10 stimuli) and treat a CMAP decrement over 10% as significant; add brief exercise and repeat to show post-exercise facilitation or exhaustion", // SP-EDX-NMJ; SP-RNS
         "Time a study around nerve injury: fibrillation potentials usually show on EMG at 3 to 4 weeks, and no sign of reinnervation by 3 to 4 months raises concern for neurotmesis and surgical exploration", // SP-PNI
-        "For suspected AIDP, delay nerve conduction studies and EMG until at least 3 weeks after onset and include F-waves, which can pick up early proximal root involvement", // SP-EDX-AIDP
+        "For suspected AIDP, delay NCS and EMG until at least 3 weeks after onset and include F-waves, which can pick up early proximal root involvement", // SP-EDX-AIDP
       ],
     },
     {
@@ -1322,7 +1322,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Localize ulnar neuropathy at the elbow by focal slowing of motor conduction across the elbow, with or without conduction block, and watch for a Martin-Gruber-type median-to-ulnar crossover that can mimic a block", // SP-EDX-UN
         "Separate fibular neuropathy from L5 radiculopathy: L5 also weakens ankle inversion, so sample tibialis posterior or gluteus medius, which have L5 supply but not fibular nerve supply", // SP-EDX-PER
         "Confirm cervical radiculopathy on EMG with changes in a paraspinal muscle plus two muscles from different nerves sharing the root; early radiculopathy may show only sensory or demyelinating change, so EMG can miss acute cases", // SP-EDX-CR
-        "Recognize demyelinating patterns on nerve conduction studies: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies", // SP-NCS; SP-EDX-AIDP
+        "Recognize demyelinating patterns on NCS: prolonged distal latencies, slowed conduction velocity, temporal dispersion and conduction block, with prolonged F-wave and H-reflex latencies", // SP-NCS; SP-EDX-AIDP
         "Recognize myopathic needle EMG: early (rapid) recruitment and polyphasic units, with spontaneous fibrillations, positive sharp waves, complex repetitive discharges or 'dive bomber' myotonic discharges in some disorders", // SP-EDX-MYO
         "Recognize Lambert-Eaton on RNS: a decrement at low rates and a large incremental CMAP rise after high-rate stimulation or brief exercise", // SP-LEMS
       ],
@@ -1515,7 +1515,7 @@ export const ABPTS_WMS_TRACK: SeedTrack = {
         "Critical appraisal of wound-care evidence and guidelines",
         "Professional roles: consultation, documentation, regulatory requirements and interprofessional wound care",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
-        "Apply the physical therapy diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading", // DFU-CPG
+        "Apply the APTA diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading", // DFU-CPG
         "For adults with diabetes who can exercise safely, prescribe progressive moderate- to vigorous-intensity aerobic and resistance training (the guideline's one strong recommendation) and consider activity-monitor counseling", // DFU-CPG
       ],
     },

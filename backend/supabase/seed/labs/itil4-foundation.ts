@@ -210,7 +210,7 @@ export const ITIL4FND_LABS: SeedLabSet = {
       ],
     },
 
-    // The Service Value System (1)
+    // The ITIL Service Value System (1)
     {
       slug: "itil-svs-flow",
       objective: "Explaining how opportunity and demand enter the service value system and value comes out",

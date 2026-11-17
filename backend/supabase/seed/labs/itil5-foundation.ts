@@ -481,7 +481,7 @@ export const ITIL5FND_LABS: SeedLabSet = {
     // ITIL and Other Frameworks (1)
     {
       slug: "itil5-itil-and-devops",
-      objective: "Explaining where the framework and DevOps complement each other across the lifecycle",
+      objective: "Explaining where ITIL and DevOps complement each other across the lifecycle",
       kind: "case",
       title: "The DevOps team and the change board",
       brief:

@@ -200,7 +200,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
     // ----------------------------------------------------------------- Clinical inquiry and professional roles (2)
     {
       slug: "wms-exercise-with-active-plantar-ulcer",
-      objective: "Apply the physical therapy diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading",
+      objective: "Apply the APTA diabetic foot ulcer guideline: prescribe exercise that keeps cardiovascular and muscular fitness while minimizing weight bearing, adding an assistive device when it helps balance and unloading",
       kind: "build",
       title: "Prescribe exercise for a man in a total contact cast",
       brief:

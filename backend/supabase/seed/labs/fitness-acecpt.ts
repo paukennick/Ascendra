@@ -173,7 +173,7 @@ export const ACECPT_LABS: SeedLabSet = {
     // -----------------------------------------------------------------------
     {
       slug: "ace-ift-phase-placement",
-      objective: "The phased integrated training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
+      objective: "ACE's Integrated Fitness Training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
       kind: "build",
       title: "Place a client in the phased training model",
       brief:

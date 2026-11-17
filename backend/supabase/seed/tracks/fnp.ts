@@ -355,7 +355,7 @@ export const FNPANCC_TRACK: SeedTrack = {
     durationMinutes: 210,
     questionFormat:
       "175 questions in 3.5 hours, fixed length (every candidate answers the same number of questions): 150 scored and 25 unscored pretest questions, also classified by body system, drug agent and eight age groups.",
-    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. The certifying body's page for this exam reports a 2025 pass rate of 82%.",
+    passingScorePolicy: "Scored on the 150 scored questions only; pretest questions do not affect the score. ANCC's FNP page reports a 2025 pass rate of 82%.",
     publishedWeightsNote:
       "ANCC's printed percentages are 17/17/19/33/13, which total 99; the outline says the total does not come to 100 because of rounding (the item counts 26/25/29/50/20 total 150). Kept as printed.",
   },

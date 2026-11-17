@@ -115,7 +115,7 @@ export const ISC2CC_LABS: SeedLabSet = {
     },
     {
       slug: "cc-code-of-ethics-dilemma",
-      objective: "Apply the certifying body's code of ethics canons, due care and due diligence to a workplace dilemma",
+      objective: "Apply the ISC2 Code of Ethics canons, due care and due diligence to a workplace dilemma",
       kind: "case",
       title: "Use the certifying body's code of ethics on a workplace dilemma",
       brief:

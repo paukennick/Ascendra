@@ -192,7 +192,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
     officialObjectivesUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "At least 18 years old with a high school diploma or equivalent and current CPR/AED certification with a live skills component. The certifying body revises the outline on a five-year cycle.",
+      "At least 18 years old with a high school diploma or equivalent and current CPR/AED certification with a live skills component. ACE revises the outline on a five-year cycle.",
     durationMinutes: 180,
     questionFormat: "150 multiple-choice questions (125 scored, 25 unscored) in three hours, fixed length (every candidate answers the same number of questions), computer-based and proctored",
     passingScorePolicy: "Scaled score of 500 or higher.",
@@ -218,7 +218,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
       objectives: [
         "Establishing functional, health, fitness and performance goals from interview and assessment data",
         "Applying exercise principles (specificity, overload, progression) to design personalized cardiorespiratory, muscular and movement programs",
-        "The phased integrated training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
+        "ACE's Integrated Fitness Training model: functional, movement and load/speed training and cardiorespiratory training by intensity zones",
         "Selecting exercises and equipment and integrating them across settings: virtual, in-home, in-club and public spaces",
         "Instructing safe technique and equipment use with verbal, visual and kinesthetic cues",
         "Leveraging technology in program implementation and monitoring",
@@ -701,7 +701,7 @@ export const CNC_SOURCES = {
   format: cncSrc("NASM Certified Nutrition Coach: exam and scope (course page and FAQ)", CNC_URL, "exam_outline", {
     keyValues: [
       "online, open-book exam: 100 multiple-choice questions, 90 minutes, 70% to pass, up to three attempts, within one year of purchase",
-      "no prerequisites; renew every two years with 1.9 continuing education units from the certifying body",
+      "no prerequisites; renew every two years with 1.9 NASM CEUs",
       "a nutrition coach works within a coaching scope of practice and refers to a registered dietitian nutritionist (RDN) for medical nutrition assessment or treatment; medical nutrition therapy is the RDN's",
     ],
   }),
@@ -769,7 +769,7 @@ export const NASM_CNC_TRACK: SeedTrack = {
     status: "active",
     officialObjectivesUrl: CNC_URL,
     lastVendorVerifiedAt: CNC_VERIFIED_AT,
-    recommendedExperience: "None required. Recertify every two years with 1.9 continuing education units (CEUs) from the certifying body.",
+    recommendedExperience: "None required. Recertify every two years with 1.9 NASM CEUs.",
     durationMinutes: 90,
     questionFormat: "100 multiple-choice questions, fixed length (every candidate answers the same number of questions), online and open book, 90 minutes; up to three attempts within one year of purchase.",
     passingScorePolicy: "70% or higher.",

@@ -92,6 +92,7 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
     examCode: row.exam_code,
     examRevision: row.exam_revision,
   });
+  const reference = examReferenceForCode(row.track_code);
   const domainList = domains.map((d) => ({
     name: d.name,
     // numeric(5,2) arrives as a string from pg
@@ -118,14 +119,17 @@ export async function examBlueprintForTrack(trackId: string): Promise<ExamBluepr
       : null,
     domains: domainList,
     unbranded: names.unbranded,
-    facts: names.unbranded
+    // REQ-324: the facts block also carries the reference line ("Prepares you
+    // for the CISSP® exam offered by ISC2.") that the course page shows under
+    // the title, so a permission body's course keeps it with names on.
+    facts: names.unbranded || reference
       ? publishedExamFacts({
           questionFormat: row.question_format,
           durationMinutes: row.duration_minutes,
           passingScorePolicy: row.passing_score_policy,
           recommendedExperience: row.recommended_experience,
           domains: domainList,
-          reference: examReferenceForCode(row.track_code),
+          reference,
         })
       : null,
   };

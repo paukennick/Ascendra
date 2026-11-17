@@ -1,6 +1,6 @@
 import type { SeedTrack } from "../supabase/seed/data";
 import { dayOf } from "@/lib/content-currency";
-import { isUnbrandedCode } from "@/lib/unbranded";
+import { namesHiddenForCode } from "@/lib/unbranded";
 
 // REQ-187 (audit 2026-11-09 R10): a short, dated "current facts" block per
 // course, added to every prompt's course framing (lib/prompts.ts
@@ -26,7 +26,8 @@ export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): 
   if (c) {
     // REQ-319: an unbranded course's exam is not named, coded or versioned by
     // its marks here either; the dates and status still pin the version.
-    const unbranded = isUnbrandedCode(track.code);
+    // REQ-324: off for every course (UNBRANDED_NAMING_ON), so the exam is named.
+    const unbranded = namesHiddenForCode(track.code);
     const name = unbranded ? "The exam this course follows (its name is not used; see the rule above)" : (c.standardName ?? c.credentialName);
     const code = !unbranded && c.examCode ? ` ${c.examCode}` : "";
     const rev = unbranded ? null : (c.examRevision ?? c.standardRevision);

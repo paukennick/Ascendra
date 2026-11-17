@@ -26,6 +26,17 @@
 // `sources`), but no learner-facing heading is built from it.
 //
 // Not legal advice: no lawyer has reviewed this.
+//
+// REQ-324 (Nick, 2026-11-17: "Courses that are publicly named the course or
+// exam should remain that way"): unbranded naming is OFF. Every course names
+// its exam again, including these 13 bodies' courses: titles ("Exam Prep for
+// <Exam> (<code>)"), the exam card, the practice exam, emails, prompts and
+// course codes. UNBRANDED_NAMING_ON is the one switch; learnerExamNames,
+// learnerTrackRow and the current-facts block read it through namesHidden*.
+// What stays: the body list and its marks (sims still name none of them,
+// lib/sim/lint.ts certMarkProblems), the evidence, the reference line under
+// the title and the specific disclaimer at the end of the description.
+export const UNBRANDED_NAMING_ON = false;
 
 export interface UnbrandedBody {
   name: string; // for tests and reports only, never shown to learners
@@ -73,6 +84,17 @@ export function isUnbrandedProvider(slug: string | null | undefined): boolean {
   return !!slug && PROVIDERS.has(slug);
 }
 
+// REQ-324: whether a learner, prompt or email is kept from the exam's names
+// for this catalog course / provider. False for every course while
+// UNBRANDED_NAMING_ON is off; `on` lets a test turn the switch.
+export function namesHiddenForCode(code: string | null | undefined, on: boolean = UNBRANDED_NAMING_ON): boolean {
+  return on && isUnbrandedCode(code);
+}
+
+export function namesHiddenForProvider(slug: string | null | undefined, on: boolean = UNBRANDED_NAMING_ON): boolean {
+  return on && isUnbrandedProvider(slug);
+}
+
 // The body's marks for a catalog course, or null when the course is not unbranded.
 export function marksForCode(code: string | null | undefined): RegExp | null {
   return (code && BY_CODE.get(code.toUpperCase())?.marks) || null;
@@ -99,8 +121,8 @@ export function learnerExamNames<T extends {
   credentialName?: string | null;
   examCode?: string | null;
   examRevision?: string | null;
-}>(x: T): T & { unbranded: boolean } {
-  if (!isUnbrandedProvider(x.providerSlug)) return { ...x, unbranded: false };
+}>(x: T, on: boolean = UNBRANDED_NAMING_ON): T & { unbranded: boolean } {
+  if (!namesHiddenForProvider(x.providerSlug, on)) return { ...x, unbranded: false };
   return { ...x, providerName: null, credentialName: null, examCode: null, examRevision: null, unbranded: true };
 }
 
@@ -137,18 +159,18 @@ export const UNBRANDED_DISPLAY_CODES: Readonly<Record<string, string>> = {
   ITIL4FND: "ITSM-FOUNDATION-V4",
 };
 
-export function learnerTrackCode(code: string, userId: string | null | undefined): string {
-  if (userId) return code; // a learner's own course keeps the code they typed
+export function learnerTrackCode(code: string, userId: string | null | undefined, on: boolean = UNBRANDED_NAMING_ON): string {
+  if (userId || !on) return code; // a learner's own course keeps the code they typed
   return UNBRANDED_DISPLAY_CODES[code.toUpperCase()] ?? code;
 }
 
 // A subject_tracks row as the app gets it: the display code for an
 // unbranded catalog course, and `unbranded` so a new app build can show the
 // exam's published facts instead of a provider line.
-export function learnerTrackRow<T extends object>(row: T): T & { unbranded?: true } {
+export function learnerTrackRow<T extends object>(row: T, on: boolean = UNBRANDED_NAMING_ON): T & { unbranded?: true } {
   const r = row as { code?: unknown; user_id?: unknown };
-  if (typeof r.code !== "string" || r.user_id != null || !isUnbrandedCode(r.code)) return row;
-  return { ...row, code: learnerTrackCode(r.code, null), unbranded: true as const };
+  if (typeof r.code !== "string" || r.user_id != null || !namesHiddenForCode(r.code, on)) return row;
+  return { ...row, code: learnerTrackCode(r.code, null, on), unbranded: true as const };
 }
 
 // REQ-319: the line every model prompt for an unbranded course carries
@@ -225,8 +247,8 @@ export function publishedExamFacts(x: {
 // ---------------------------------------------------------------------------
 // The reference line (Nick, 2026-11-16 8:27 PM PT: Option 2 approved)
 // ---------------------------------------------------------------------------
-// Course titles stay descriptive (no mark in a title, the app name or the
-// icon). Each course of a permission-only body gets, on its course page, one
+// REQ-324 (Nick, 2026-11-17): course titles now name the exam ("Exam Prep for
+// CISSP®"); the app name and icon still carry no mark. Each course of a permission-only body gets, on its course page, one
 // plain reference line naming the exam once:
 //   "Prepares you for the <EXAM> exam offered by <Owner>."
 // and under it a specific disclaimer, which replaces the generic notice at the
@@ -238,8 +260,8 @@ export function publishedExamFacts(x: {
 // legal name is the one its own site gives. Each body's evidence is in
 // MARK_EVIDENCE, read 2026-11-16 (WebFetch of the owner's page). Never a logo,
 // a real exam question, or "Official", "Approved", "Authorized", "Certified
-// by" or "Master" (lib/unbranded.test.ts). Everything else in the course stays
-// unbranded: exam card, prompts, emails, codes, lessons, labs and sims.
+// by" or "Master" (lib/unbranded.test.ts). REQ-324: the exam card, prompts,
+// emails and codes name the exam again (UNBRANDED_NAMING_ON); sims still don't.
 //
 // A body whose marks could not be verified on its own site is switched off
 // and keeps the generic notice until Nick decides (REFERENCE_LINE_ON).
