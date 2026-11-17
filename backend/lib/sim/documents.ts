@@ -269,6 +269,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PYTHON", "py-import-crash-traceback"),
   band("PCAP", "py-import-crash-traceback-pcap"),
   band("PCEP", "py-import-crash-traceback-pcep"),
+  entry("SQL", "sql-not-in-null-empty-list"),
   // ---- end REQ-312 ----
 ];
 
@@ -284,6 +285,7 @@ export const DATA_CONSOLE_SLUGS: readonly string[] = [
   "py-import-crash-traceback",
   "py-import-crash-traceback-pcap",
   "py-import-crash-traceback-pcep",
+  "sql-not-in-null-empty-list",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
