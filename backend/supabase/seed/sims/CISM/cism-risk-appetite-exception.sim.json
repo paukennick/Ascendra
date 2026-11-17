@@ -1,0 +1,1346 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cism-risk-appetite-exception",
+  "title": "An exception request against the risk appetite",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rScan",
+          "label": "Customer addresses and signatures unencrypted on 300 drivers' handhelds",
+          "spokenLabel": "Handheld data risk",
+          "owner": "{decision == \"self\" ? \"Security manager (not the business owner)\" : \"VP Sales (the business owner)\"}",
+          "rating": "breached ? \"critical\" : controlsLive or decision == \"deny\" ? \"medium\" : \"high\"",
+          "appetite": "decision == \"deny\" or remediated ? \"within\" : controlsLive and decision == \"grant90\" ? \"excepted\" : \"above\"",
+          "status": "{breached ? \"A stolen handheld exposed 2,000 customers' data\" : decision == \"unset\" ? \"Exception requested, not decided\" : decision == \"deny\" ? \"Exception denied; the old process stays\" : remediated ? \"App replaced; exception closed\" : controlsLive ? \"Excepted with encryption, remote wipe and a 7-day purge\" : decision == \"grant90\" ? \"Excepted; controls rolling out\" : \"Excepted with no conditions\"}"
+        },
+        {
+          "id": "rRoute",
+          "label": "Route-planning service outage",
+          "spokenLabel": "Route service risk",
+          "owner": "\"COO\"",
+          "rating": "\"medium\"",
+          "appetite": "\"within\"",
+          "status": "Failover tested last quarter"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sVp",
+          "label": "VP Sales",
+          "spokenLabel": "VP Sales's support",
+          "value": "vp",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSteer",
+          "label": "Steering committee",
+          "spokenLabel": "Security steering committee's support",
+          "value": "steer",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dReq",
+          "kind": "Exception request",
+          "label": "VP Sales: 'Six months' exception from the encryption and MFA standard for the legacy scanner app, so the Harlow contract launches in week 3'",
+          "status": "{decision == \"unset\" ? \"Waiting for your decision\" : decision == \"grant90\" ? \"Granted for 90 days with conditions\" : decision == \"grant180\" ? \"Granted as asked: six months, no conditions\" : decision == \"deny\" ? \"Denied\" : \"Signed off by you\"}",
+          "when": "true",
+          "flag": "decision == \"unset\" and t >= launchDay - 7 * 86400"
+        },
+        {
+          "id": "dLaunch",
+          "kind": "Business deadline",
+          "label": "Week 3: Harlow contract launch",
+          "status": "{isNull(launchAt) ? \"Scheduled\" : launched ? \"Launched on the legacy app\" : \"Slipped: no app approved\"}",
+          "when": "true"
+        },
+        {
+          "id": "dSteer",
+          "kind": "Committee",
+          "label": "Security steering committee review of the exception",
+          "status": "Reviewed and endorsed",
+          "when": "not isNull(steerAt)"
+        },
+        {
+          "id": "dReg",
+          "kind": "Register",
+          "label": "Exception entry: owner, expiry, conditions",
+          "status": "Recorded",
+          "when": "not isNull(registerAt)"
+        },
+        {
+          "id": "dPlan",
+          "kind": "Remediation",
+          "label": "Replace the scanner app before the exception expires",
+          "status": "{remediated ? \"Done in week 12\" : \"Agreed with IT and Sales\"}",
+          "when": "not isNull(planAt)"
+        },
+        {
+          "id": "dDevices",
+          "kind": "Purchase",
+          "label": "300 new encrypted handhelds",
+          "status": "Ordered outside the budget",
+          "when": "not isNull(devicesAt)"
+        }
+      ],
+      "budget": {
+        "label": "Discretionary security budget committed",
+        "spent": "spent",
+        "total": "budget",
+        "unit": "thousand dollars"
+      },
+      "meters": [
+        {
+          "id": "mAssess",
+          "label": "Assessment",
+          "value": "{isNull(assessAt) ? \"not done\" : isNull(compareAt) ? \"likelihood and impact rated: high\" : \"rated high, above the appetite (customer data unencrypted outside our control)\"}"
+        },
+        {
+          "id": "mCtl",
+          "label": "Compensating controls",
+          "value": "{isNull(optionsAt) ? \"not worked out\" : controlsLive ? \"live: full-device encryption, remote wipe, 7-day purge\" : \"worked out with IT: full-device encryption, remote wipe, 7-day purge (24 thousand dollars)\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Assess and analyze information security risk against the organization's risk appetite and tolerance",
+  "secondaryObjectives": [
+    "Assign risk and control ownership and run a security exception process",
+    "Choose a risk treatment -- mitigate, transfer, avoid or accept -- based on risk appetite"
+  ],
+  "sources": [
+    {
+      "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 1 Information Security Governance; Domain 2 Information Security Risk Management; Domain 3 Information Security Program",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+      "note": "Read as HTML on 2026-11-14 for REQ-272 and not re-read. Domain 1 part B covers the information security strategy and the business case, budget and resources; Domain 2 part B covers risk treatment against the risk appetite; Domain 3 part B covers program metrics reported to senior leadership. The course's objective wording is its own."
+    },
+    {
+      "cite": "NIST Cybersecurity Framework (CSF) 2.0 (NIST CSWP 29, February 26, 2024), GOVERN function: GV.RM-01, GV.RM-02, GV.RR-02, GV.OV",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nist.gov/system/files/documents/2024/02/21/CSF%202.0%20Implementation%20Examples.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch of NIST's 'CSF 2.0 Implementation Examples' PDF (dated February 26, 2024), which restates the Core outcomes: GV.RM-02 'Risk appetite and risk tolerance statements are established, communicated, and maintained'; GV.RR-02 'Roles, responsibilities, and authorities related to cybersecurity risk management are established, communicated, understood, and enforced'; GV.OV 'Results of organization-wide cybersecurity risk management activities and performance are used to inform, improve, and adjust the risk management strategy'. The CSWP 29 document itself was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "You are the information security manager at Northgate Freight, a fictional logistics company. The VP Sales asks for a six-month exception from the encryption and MFA standard: 300 drivers would use a legacy scanner app that keeps customer addresses and signatures unencrypted on the handhelds, so a new contract can launch in week 3. Assess the risk against the board's appetite, decide what to recommend, and run the exception through governance.",
+    "handover": [
+      "Appetite statement: customer personal data must not leave our control unencrypted. Tolerance: exceptions up to 90 days, with compensating controls, approved by the business owner and reviewed by the security steering committee.",
+      "Your discretionary budget this quarter is 40 thousand dollars."
+    ],
+    "howItWorks": [
+      "The clock is the quarter: each task takes days. Choose it, then let it finish, which moves the calendar on. The business and the risk move on the same calendar.",
+      "The board shows the risk register against the appetite, each stakeholder's support in words, the budget committed and the docket.",
+      "When you close the quarter you write the exception record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "100d",
+    "calendar": "week"
+  },
+  "params": {
+    "budget": {
+      "value": 40,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The fictional company's discretionary security budget for the quarter, thousand dollars."
+      }
+    },
+    "launchDay": {
+      "value": 1209600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The contract launch is in week 3."
+      },
+      "unit": "s"
+    },
+    "theftDay": {
+      "value": 4233600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "A handheld is stolen in week 8."
+      },
+      "unit": "s"
+    },
+    "quarterDays": {
+      "value": 7862400,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Thirteen weeks in the quarter."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "launched": {
+      "type": "bool",
+      "init": false
+    },
+    "breached": {
+      "type": "bool",
+      "init": false
+    },
+    "remediated": {
+      "type": "bool",
+      "init": false
+    },
+    "controlsLive": {
+      "type": "bool",
+      "init": false
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "compareAt": {
+      "type": "time",
+      "init": null
+    },
+    "optionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "vpAt": {
+      "type": "time",
+      "init": null
+    },
+    "decidedAt": {
+      "type": "time",
+      "init": null
+    },
+    "steerAt": {
+      "type": "time",
+      "init": null
+    },
+    "registerAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "devicesAt": {
+      "type": "time",
+      "init": null
+    },
+    "launchAt": {
+      "type": "time",
+      "init": null
+    },
+    "theftAt": {
+      "type": "time",
+      "init": null
+    },
+    "expiryAt": {
+      "type": "time",
+      "init": null
+    },
+    "liveAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "decision": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "grant90",
+        "grant180",
+        "deny",
+        "self"
+      ],
+      "init": "unset"
+    },
+    "vp": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "steer": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "ownerDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vp",
+        "security"
+      ],
+      "init": "unset"
+    },
+    "basisDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "appetite",
+        "request"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "spent": {
+      "expr": "(controlsLive or not isNull(liveAt) or decision == \"grant90\" ? 24 : 0) + (isNull(devicesAt) ? 0 : 120)"
+    },
+    "spendPct": {
+      "expr": "spent / budget * 100"
+    },
+    "aboveCount": {
+      "expr": "decision == \"deny\" or remediated or (controlsLive and decision == \"grant90\") ? 0 : 1"
+    },
+    "assessedFirst": {
+      "expr": "not isNull(assessAt) and not isNull(compareAt) and not isNull(decidedAt) and timeAt(compareAt) <= timeAt(decidedAt)"
+    },
+    "conditioned": {
+      "expr": "decision == \"grant90\" and controlsLive and (isNull(theftAt) or timeAt(liveAt) <= timeAt(theftAt))"
+    },
+    "governed": {
+      "expr": "not isNull(steerAt) and not isNull(registerAt)"
+    },
+    "minSupport": {
+      "expr": "min(vp, steer)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "quarter": {
+      "label": "The quarter",
+      "clock": "turns",
+      "actions": [
+        "assess",
+        "compare",
+        "options",
+        "meetVp",
+        "decide",
+        "steering",
+        "register",
+        "plan",
+        "devices",
+        "watch",
+        "closeQuarter"
+      ]
+    },
+    "report": {
+      "label": "Exception record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "quarter",
+  "actions": {
+    "assess": {
+      "label": "Assess the risk: how likely a lost handheld is, and what one would expose",
+      "group": "Analyze",
+      "available": "not busy and isNull(assessAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "assessAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull last year's device losses and the app's data map.",
+          "kind": "act"
+        },
+        {
+          "finding": "About 40 handhelds a year are lost or stolen. Each keeps two weeks of deliveries: about 2,000 customers' names, addresses and signatures, unencrypted. Likelihood high, impact high: rated high."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3d"
+        }
+      ]
+    },
+    "compare": {
+      "label": "Compare the rated risk with the appetite and tolerance statement",
+      "group": "Analyze",
+      "available": "not busy and isNull(compareAt) and (not isNull(assessAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "compareAt",
+          "to": "t"
+        },
+        {
+          "log": "You set the rating against the board's statement.",
+          "kind": "act"
+        },
+        {
+          "finding": "Appetite: customer personal data must not leave our control unencrypted. Tolerance: exceptions up to 90 days, with compensating controls, approved by the business owner and reviewed by the steering committee. Six months with no controls is outside both."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "options": {
+      "label": "Work out compensating controls with IT",
+      "group": "Analyze",
+      "available": "not busy and isNull(optionsAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "optionsAt",
+          "to": "t"
+        },
+        {
+          "log": "IT can push full-device encryption and remote wipe through device management, and have the app purge deliveries after 7 days: 24 thousand dollars, five days to roll out.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4d"
+        }
+      ]
+    },
+    "meetVp": {
+      "label": "Meet the VP Sales about what the launch needs",
+      "group": "Engage",
+      "available": "not busy and isNull(vpAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "vpAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask the VP what the contract needs and by when.",
+          "kind": "act"
+        },
+        {
+          "if": "not isNull(optionsAt)",
+          "then": [
+            {
+              "add": "vp",
+              "by": "2"
+            },
+            {
+              "finding": "The VP: 'If encryption on the handhelds gets me launched in week 3, I'll sign for it and replace the app by the end of the quarter.'"
+            }
+          ],
+          "else": [
+            {
+              "add": "vp",
+              "by": "0.5"
+            },
+            {
+              "finding": "The VP: 'I need a yes or a no. Every week we slip costs us the contract.'"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "decide": {
+      "label": "Decide the exception request",
+      "group": "Decide",
+      "available": "not busy and decision == \"unset\"",
+      "why": "Decided; finish the task in progress first.",
+      "params": [
+        {
+          "id": "d",
+          "kind": "choice",
+          "label": "Decision",
+          "options": [
+            {
+              "value": "grant90",
+              "label": "Recommend 90 days with encryption, remote wipe and a 7-day purge as conditions; the VP signs as risk owner"
+            },
+            {
+              "value": "grant180",
+              "label": "Grant six months as asked, no conditions: the launch matters most"
+            },
+            {
+              "value": "deny",
+              "label": "Deny: the standard has no exceptions"
+            },
+            {
+              "value": "self",
+              "label": "Approve 90 days with the conditions and sign it yourself to save time"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "decision",
+          "to": "d"
+        },
+        {
+          "set": "decidedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "d == \"grant90\" or d == \"self\"",
+              "then": [
+                {
+                  "log": "The exception is granted for 90 days on conditions. IT starts the rollout.",
+                  "kind": "act"
+                },
+                {
+                  "schedule": "rollout",
+                  "after": "5d"
+                },
+                {
+                  "add": "vp",
+                  "by": "1"
+                }
+              ]
+            },
+            {
+              "when": "d == \"grant180\"",
+              "then": [
+                {
+                  "log": "The exception is granted as asked: six months, no conditions.",
+                  "kind": "bad"
+                },
+                {
+                  "add": "vp",
+                  "by": "2"
+                },
+                {
+                  "add": "steer",
+                  "by": "-2"
+                }
+              ]
+            },
+            {
+              "when": "d == \"deny\"",
+              "then": [
+                {
+                  "log": "The exception is denied. The Harlow launch will slip.",
+                  "kind": "bad"
+                },
+                {
+                  "add": "vp",
+                  "by": "-4"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "steering": {
+      "label": "Take the exception to the security steering committee",
+      "group": "Engage",
+      "available": "not busy and isNull(steerAt) and (decision != \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "steerAt",
+          "to": "t"
+        },
+        {
+          "log": "The committee reviews the rating, the conditions and the expiry.",
+          "kind": "act"
+        },
+        {
+          "add": "steer",
+          "by": "decision == \"grant90\" ? 3 : decision == \"deny\" ? 1 : 0"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "register": {
+      "label": "Record the exception in the risk register: owner, expiry, conditions",
+      "group": "Review",
+      "available": "not busy and isNull(registerAt) and (decision != \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "registerAt",
+          "to": "t"
+        },
+        {
+          "log": "Recorded with its owner, its expiry and its conditions.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Agree a plan with IT and Sales to replace the app before the exception expires",
+      "group": "Decide",
+      "available": "not busy and isNull(planAt) and (decision == \"grant90\" or decision == \"self\" or decision == \"grant180\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "IT and Sales agree to move the drivers to the current app by week 12.",
+          "kind": "act"
+        },
+        {
+          "add": "vp",
+          "by": "0.5"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "devices": {
+      "label": "Order 300 new encrypted handhelds now (120 thousand dollars)",
+      "group": "Decide",
+      "available": "not busy and isNull(devicesAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "devicesAt",
+          "to": "t"
+        },
+        {
+          "log": "You order 120 thousand dollars of devices from a 40-thousand discretionary budget.",
+          "kind": "bad"
+        },
+        {
+          "add": "steer",
+          "by": "-2"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Let the week pass (7 days)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "log": "You run the program for a week.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "7d"
+        }
+      ]
+    },
+    "closeQuarter": {
+      "label": "Close the quarter and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the quarter and write the record.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the exception record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "owner",
+              "label": "Who owns the residual risk",
+              "options": [
+                {
+                  "value": "vp",
+                  "label": "The VP Sales, as the business owner, for 90 days"
+                },
+                {
+                  "value": "security",
+                  "label": "The security team"
+                }
+              ]
+            },
+            {
+              "id": "basis",
+              "label": "What the decision rests on",
+              "options": [
+                {
+                  "value": "appetite",
+                  "label": "The rated risk against the board's appetite and tolerance"
+                },
+                {
+                  "value": "request",
+                  "label": "The business's request and deadline"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "ownerDoc",
+          "to": "owner"
+        },
+        {
+          "set": "basisDoc",
+          "to": "basis"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {owner}, {basis}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "rollout": {
+      "label": "Device controls rolling out",
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "controlsLive",
+          "to": "true"
+        },
+        {
+          "set": "liveAt",
+          "to": "t"
+        },
+        {
+          "log": "Full-device encryption, remote wipe and the 7-day purge are live on all 300 handhelds.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "launch",
+      "when": "isNull(launchAt) and t >= launchDay and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "launchAt",
+          "to": "t"
+        },
+        {
+          "if": "decision == \"grant90\" or decision == \"grant180\" or decision == \"self\"",
+          "then": [
+            {
+              "set": "launched",
+              "to": "true"
+            },
+            {
+              "log": "Week 3: the Harlow contract launches on the legacy app.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "add": "vp",
+              "by": "-2"
+            },
+            {
+              "log": "Week 3: the launch slips; no app is approved for the drivers.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "theft",
+      "when": "isNull(theftAt) and launched and t >= theftDay and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "theftAt",
+          "to": "t"
+        },
+        {
+          "if": "controlsLive",
+          "then": [
+            {
+              "log": "Week 8: a handheld is stolen from a van. It is encrypted, and remote wipe clears it within the hour. No customer data is exposed.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "breached",
+              "to": "true"
+            },
+            {
+              "log": "Week 8: a handheld is stolen from a van. It is unencrypted: about 2,000 customers' addresses and signatures are exposed and must be notified.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expiry",
+      "when": "isNull(expiryAt) and (decision == \"grant90\" or decision == \"self\") and not isNull(decidedAt) and t >= timeAt(decidedAt) + 84 * 86400 and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "expiryAt",
+          "to": "t"
+        },
+        {
+          "if": "not isNull(planAt)",
+          "then": [
+            {
+              "set": "remediated",
+              "to": "true"
+            },
+            {
+              "log": "The drivers move to the current app; the exception closes on time.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "The exception reaches its expiry with no replacement planned. It must be renewed or the drivers stop.",
+              "kind": "bad"
+            },
+            {
+              "add": "steer",
+              "by": "-1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarterEnd",
+      "when": "t >= quarterDays and phase == \"quarter\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "The quarter is over. Write the exception record.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the exception record: how you rated the risk against the appetite, what you recommended and why, and who decided.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Against the appetite",
+          "criteria": "Rates likelihood and impact from the loss history and the data held, and compares the result with the appetite and tolerance before deciding.",
+          "modelAnswer": "About 40 devices a year are lost, each with about 2,000 customers' data unencrypted: high, and outside an appetite that allows no unencrypted customer data outside our control."
+        },
+        {
+          "label": "The recommendation",
+          "criteria": "Recommends an exception inside the tolerance: at most 90 days, with compensating controls (encryption, remote wipe, purge) live before the risk is, and a plan to remove the cause before expiry; neither the six months asked for nor a flat refusal that ignores the business.",
+          "modelAnswer": "Ninety days with full-device encryption, remote wipe and a 7-day purge, live before the launch, and the app replaced by week 12."
+        },
+        {
+          "label": "Governance",
+          "criteria": "The business owner accepts and owns the residual risk; the steering committee reviews; the register records owner, expiry and conditions; no spend outside the budget.",
+          "modelAnswer": "The VP Sales signed as risk owner, the steering committee endorsed it, and the register shows the owner, the 90-day expiry and the conditions."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "budgetCap": {
+        "value": 100,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Committed spend within the discretionary budget."
+        }
+      },
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "The handheld risk within appetite, or above it only under an approved, conditioned exception, at the close."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Governance outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "The VP Sales and the steering committee at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and decision == \"unset\"",
+      "class": "recovered",
+      "rationale": "No exception was decided, so no customer data went out unencrypted, but the business missed its launch for want of an answer; a cost, not harm.",
+      "source": {
+        "cite": "ISACA, CISM Exam Content Outline (exam from 2026-11-03): Domain 1 Information Security Governance; Domain 2 Information Security Risk Management; Domain 3 Information Security Program",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.isaca.org/credentialing/cism/cism-exam-content-outline",
+        "note": "Read as HTML on 2026-11-14 for REQ-272 and not re-read. Domain 1 part B covers the information security strategy and the business case, budget and resources; Domain 2 part B covers risk treatment against the risk appetite; Domain 3 part B covers program metrics reported to senior leadership. The course's objective wording is its own."
+      }
+    }
+  },
+  "endings": {
+    "breach": {
+      "label": "Customer data exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breached",
+      "narrative": "An unencrypted handheld went missing with about 2,000 customers' data on it, under an exception that allowed it."
+    },
+    "authority": {
+      "label": "Exception signed by the wrong person",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and decision == \"self\"",
+      "narrative": "The conditions were right, but you signed the business's risk yourself. The register now says security owns a sales risk."
+    },
+    "overspend": {
+      "label": "Over budget",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and spendPct > budgetCap",
+      "narrative": "You committed three times your discretionary budget outside the process."
+    },
+    "managed": {
+      "label": "Excepted within tolerance, owned and governed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and assessedFirst and conditioned and governed and aboveCount <= aboveAppetite and spendPct <= budgetCap and minSupport >= supportTarget",
+      "narrative": "You rated the risk against the appetite, recommended an exception inside the tolerance, and the business owner carried it with controls live before the risk was."
+    },
+    "costly": {
+      "label": "Safe, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "No data was exposed, but the decision skipped the assessment, the governance steps or the business's needs."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no exception record."
+    }
+  },
+  "endingOrder": [
+    "breach",
+    "authority",
+    "overspend",
+    "managed",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "assessed",
+        "label": "Rated the risk and compared it with the appetite before deciding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "assessedFirst",
+            "score": "met",
+            "why": "Assessed, compared, then decided."
+          },
+          {
+            "when": "not isNull(assessAt)",
+            "score": "partial",
+            "why": "Rated, but not set against the appetite before the decision."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without an assessment."
+          }
+        ]
+      },
+      {
+        "id": "conditioned",
+        "label": "An exception inside the tolerance, with compensating controls live before the risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "conditioned",
+            "score": "met",
+            "why": "Ninety days, controls live by day {timeAt(liveAt) / 86400|0dp}."
+          },
+          {
+            "when": "decision == \"deny\"",
+            "score": "partial",
+            "why": "No exposure, but no way forward for the business either."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{decision == \"grant180\" ? \"Six months with no conditions.\" : \"No conditioned exception.\"}"
+          }
+        ]
+      },
+      {
+        "id": "owner",
+        "label": "The business owner accepted the residual risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "decision == \"grant90\" and not isNull(vpAt)",
+            "score": "met",
+            "why": "The VP signed as owner."
+          },
+          {
+            "when": "decision == \"grant90\"",
+            "score": "partial",
+            "why": "The VP signed without hearing what the controls cost the launch."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{decision == \"self\" ? \"You signed for the business.\" : \"No owner accepted a residual risk.\"}"
+          }
+        ]
+      },
+      {
+        "id": "governed",
+        "label": "Steering committee review and a register entry with owner, expiry and conditions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "governed",
+            "score": "met",
+            "why": "Reviewed and recorded."
+          },
+          {
+            "when": "not isNull(steerAt) or not isNull(registerAt)",
+            "score": "partial",
+            "why": "Only one of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Outside governance."
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "label": "A plan to remove the cause before the exception expires",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt)",
+            "score": "met",
+            "why": "The app is replaced by week 12."
+          },
+          {
+            "when": "decision == \"deny\"",
+            "score": "na",
+            "why": "No exception to expire."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing planned for the expiry."
+          }
+        ]
+      },
+      {
+        "id": "budget",
+        "label": "Committed spend within the discretionary budget",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "spendPct <= budgetCap",
+            "score": "met",
+            "why": "{spent} of {budget} thousand dollars."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{spent} of {budget} thousand dollars."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "The record names the owner and the appetite as the basis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "ownerDoc == \"vp\" and basisDoc == \"appetite\"",
+            "score": "met",
+            "why": "Accurate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record does not match a sound exception."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written assessment, recommendation and governance",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "exposed",
+        "label": "Customers whose data was exposed",
+        "value": "breached ? 2000 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "days",
+        "label": "Exception length granted (days)",
+        "value": "decision == \"grant180\" ? 180 : decision == \"grant90\" or decision == \"self\" ? 90 : 0",
+        "format": "number",
+        "expert": "90 or less"
+      },
+      {
+        "id": "spent",
+        "label": "Discretionary spend committed (thousand dollars)",
+        "value": "spent",
+        "format": "number",
+        "expert": "24"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Week 1",
+        "text": "Rate the risk from the loss history and the data held; set it against the appetite and the tolerance; work out compensating controls with IT."
+      },
+      {
+        "at": "Week 1-2",
+        "text": "Meet the VP; recommend 90 days with encryption, remote wipe and a purge; the VP signs as owner; IT rolls the controls out before the launch."
+      },
+      {
+        "at": "Week 2-3",
+        "text": "Steering committee review, register entry with owner, expiry and conditions, and a plan to replace the app by week 12."
+      },
+      {
+        "at": "Week 8 on",
+        "text": "A stolen handheld is wiped and encrypted; the exception closes on time when the app is replaced."
+      }
+    ],
+    "debrief": {
+      "managed": {
+        "headline": "Good: inside the tolerance, owned and governed",
+        "body": "An exception is a time-limited, conditioned acceptance by the business owner, reviewed by governance, with the cause removed before it expires."
+      },
+      "costly": {
+        "headline": "Safe, at a cost",
+        "body": "The criteria show what was missing: the assessment, the governance steps, or a way for the business to meet its deadline."
+      },
+      "breach": {
+        "headline": "The exception let the data walk",
+        "body": "Without encryption and remote wipe, the first stolen handheld became a notifiable breach."
+      },
+      "authority": {
+        "headline": "Not your risk to sign",
+        "body": "The security manager recommends; the business owner accepts the residual risk."
+      },
+      "overspend": {
+        "headline": "Over budget",
+        "body": "A three-times overspend outside the process is not a treatment the steering committee can stand behind."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No exception record was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Rate the risk from evidence: about 40 handhelds lost a year, each with about 2,000 customers' data unencrypted, so high, and outside an appetite that allows no unencrypted customer data outside our control. The tolerance allows 90 days with compensating controls approved by the business owner. Recommend exactly that: encryption, remote wipe and a 7-day purge, live before the launch, and a plan to replace the app by week 12. The VP Sales signs as owner; the steering committee reviews; the register records owner, expiry and conditions."
+  }
+}

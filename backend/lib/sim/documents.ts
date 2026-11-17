@@ -262,6 +262,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // professional-ethics conversations (docs/sims.md 22.26;
   // GOVERNANCE_DOCUMENTS below). Keep these entries together. ----
   entry("CISM", "cism-security-business-case-budget"),
+  entry("CISM", "cism-risk-appetite-exception"),
   // ---- end REQ-313 ----
 ];
 
