@@ -1,0 +1,979 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "head-strike-on-apixaban",
+  "title": "Headache and vomiting after a fall",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 170
+          },
+          "announce": {
+            "bands": [
+              160,
+              170,
+              180
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vitalsOn"
+        },
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              70,
+              60,
+              50
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vitalsOn"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate you counted",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              12,
+              10
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vitalsOn"
+        }
+      ],
+      "infusions": "Head of bed: {hobUp ? \"30 degrees\" : \"flat\"}. On his side: {sideLying ? \"yes\" : \"no\"}. PRN given: {sedated ? \"yes\" : \"no\"}.",
+      "banner": [
+        {
+          "when": "emsHere",
+          "text": "Paramedics are at the bedside."
+        },
+        {
+          "when": "rnHere",
+          "text": "The RN supervisor is in the room."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize and report signs of rising intracranial pressure: headache, vomiting, falling level of consciousness, and Cushing's triad",
+  "secondaryObjectives": [
+    "Organize and prioritize care by client need, using airway, breathing and circulation and Maslow's hierarchy to decide what comes first"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_PN_Test Plan-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-PN cases (read 2026-11-11, primary PDF), not re-read: Physiological Adaptation and Reduction of Risk Potential include recognizing and reporting changes in the client's condition; Coordinated Care includes care within the legal scope of practice."
+    },
+    {
+      "cite": "Ascendra NCLEX-PN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-16",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+      "note": "Read 2026-11-16 through a summarizing fetch with quotes: suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'; such patients are managed in intensive care."
+    },
+    {
+      "cite": "NICE guideline NG232, Head injury: assessment and early management (2023), recommendation 1.5.13 as reproduced by St Emlyn's",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.stemlynsblog.org/nice-head-injury-guidelines-2023/",
+      "note": "Relayed from the REQ-223 CNA fall case (read 2026-11-10 through a secondary summary), not re-read: for people on anticoagulants (including DOACs) with a head injury, consider a CT head scan within 8 hours. FLAG: a UK guideline through a summary; used only for why a head strike on a blood thinner is an emergency to report, not for a timing in this case."
+    }
+  ],
+  "brief": {
+    "situation": "14:00 in a long-term care home. You are the LPN. Mr. Kaminski, 81, slipped in his bathroom at 11:30 and bumped the back of his head; the aide helped him up and he said he was fine. Now the aide says he 'has a bad headache, threw up his lunch, and keeps dozing off'.",
+    "handover": [
+      "Atrial fibrillation on apixaban 5 mg twice daily. Baseline: alert, oriented, chatty, walks with a cane.",
+      "PRN orders: hydrocodone-acetaminophen 5/325 mg for pain; promethazine 12.5 mg for nausea.",
+      "Facility policy: any change in condition goes to the RN supervisor at once; any licensed nurse may call 911 for an emergency."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "He is changing minute by minute. Some checks take a minute.",
+      "Partway through you are asked to write what is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "icpRise": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "A bleed on a blood thinner raises the pressure to herniation in about 20 min from here. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hobSlow": {
+      "value": 0.8,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Head of bed at 30 degrees slows the rise a little. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "herniate": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Herniation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "vomitIcp": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "He vomits again at this level. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "emsWait": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "911 reaches the home about 10 min after the call."
+      }
+    },
+    "rnWalk": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The RN supervisor reaches the room about 3 min after an urgent call."
+      }
+    },
+    "neuroBy": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: level of consciousness and pupils within 5 min. FLAG."
+      }
+    },
+    "callBy": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: the RN told and 911 called within 10 min. FLAG."
+      }
+    }
+  },
+  "state": {
+    "icp": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "hobUp": {
+      "type": "bool",
+      "init": false
+    },
+    "sideLying": {
+      "type": "bool",
+      "init": false
+    },
+    "airwayAt": {
+      "type": "time",
+      "init": null
+    },
+    "sedated": {
+      "type": "bool",
+      "init": false
+    },
+    "vomited2": {
+      "type": "bool",
+      "init": false
+    },
+    "aspirated": {
+      "type": "bool",
+      "init": false
+    },
+    "rnCallAt": {
+      "type": "time",
+      "init": null
+    },
+    "rnGood": {
+      "type": "bool",
+      "init": false
+    },
+    "rnHere": {
+      "type": "bool",
+      "init": false
+    },
+    "call911At": {
+      "type": "time",
+      "init": null
+    },
+    "emsHere": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "sbp": {
+      "expr": "round(clamp(132 + 60 * icp, 90, 230))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(clamp(78 + 8 * icp, 50, 120))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(88 - 45 * max(0, icp - 0.4), 38, 140))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(16 - 6 * max(0, icp - 0.5) - (sedated ? 3 : 0), 6, 30))",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "not emsHere",
+      "update": {
+        "icp": "icp + icpRise * (hobUp ? hobSlow : 1) * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "neuro",
+        "vitals",
+        "airway",
+        "callRn",
+        "call911",
+        "hydrocodone",
+        "promethazine",
+        "sleep"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "neuro": {
+      "label": "Neurological check: level of consciousness, orientation, pupils, grips",
+      "group": "Collect data",
+      "effects": [
+        {
+          "if": "isNull(neuroAt)",
+          "then": [
+            {
+              "set": "neuroAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "icp >= 0.8",
+              "then": [
+                {
+                  "log": "Opens his eyes only to pain, mumbles; right pupil larger and sluggish; weak left grip.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "icp >= 0.55",
+              "then": [
+                {
+                  "log": "Opens his eyes to a loud voice, confused about place and time; right pupil a little larger than the left; grips equal.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Drowsy but opens his eyes to his name; knows his name, not the date; pupils equal and reactive; holds his head: 'It's splitting.' A goose egg on the back of his head. This is a change from his baseline.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs, counting respirations for a full minute",
+      "group": "Collect data",
+      "effects": [
+        {
+          "set": "vitalsOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(vitalsAt)",
+          "then": [
+            {
+              "set": "vitalsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "icp >= 0.8",
+              "then": [
+                {
+                  "log": "BP {sbp}/{dbp}, pulse {hr}, respirations {rr} and irregular, with pauses.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "BP {sbp}/{dbp} (his usual is about 130/78), pulse {hr} and irregular (atrial fibrillation), respirations {rr}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "airway": {
+      "label": "Head of bed to 30 degrees, turn him on his side, emesis basin and suction ready, nothing by mouth",
+      "group": "Care",
+      "available": "not hobUp",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "hobUp",
+          "to": "true"
+        },
+        {
+          "set": "sideLying",
+          "to": "true"
+        },
+        {
+          "set": "airwayAt",
+          "to": "t"
+        },
+        {
+          "log": "Head up 30 degrees, on his side, basin and suction at hand, NPO sign on the door.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sleep": {
+      "label": "Lower the bed flat and let him sleep it off; recheck in an hour",
+      "group": "Care",
+      "effects": [
+        {
+          "set": "hobUp",
+          "to": "false"
+        },
+        {
+          "set": "sideLying",
+          "to": "false"
+        },
+        {
+          "log": "Bed flat, lights off. A sleepy man after a head strike on a blood thinner is not 'tired'.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hydrocodone": {
+      "label": "Give hydrocodone-acetaminophen PRN for the headache",
+      "group": "Care",
+      "available": "not sedated",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "sedated",
+          "to": "true"
+        },
+        {
+          "log": "Given. An opioid clouds the level of consciousness you need to follow and slows his breathing.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "promethazine": {
+      "label": "Give promethazine PRN for the vomiting",
+      "group": "Care",
+      "available": "not sedated",
+      "why": "A sedating PRN was already given.",
+      "effects": [
+        {
+          "set": "sedated",
+          "to": "true"
+        },
+        {
+          "log": "Given. A sedating antiemetic hides the drowsiness that is telling you his brain is in trouble.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "callRn": {
+      "label": "Call the RN supervisor to the room now (SBAR)",
+      "group": "Report",
+      "available": "isNull(rnCallAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "rnCallAt",
+          "to": "t"
+        },
+        {
+          "schedule": "rnT",
+          "after": "rnWalk"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(neuroAt) and vitalsOn",
+              "then": [
+                {
+                  "set": "rnGood",
+                  "to": "true"
+                },
+                {
+                  "log": "You report: head strike at 11:30 on apixaban; now headache, vomiting, drowsy and disoriented; BP {sbp}/{dbp} up from 130s, pulse {hr}. RN: 'That's a bleed until proven otherwise. Coming.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "You say he is 'not himself'. RN: 'What are his vital signs and neuro checks? Get them; I'm coming.'",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911 (facility policy for an emergency)",
+      "group": "Report",
+      "available": "isNull(call911At)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "call911At",
+          "to": "t"
+        },
+        {
+          "schedule": "emsT",
+          "after": "emsWait"
+        },
+        {
+          "log": "911: an 81-year-old on a blood thinner, head strike 2.5 hours ago, now vomiting and drowsy.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "rnT": {
+      "label": "the RN supervisor",
+      "wait": {
+        "skipLabel": "the RN arriving (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 3 min."
+      },
+      "effects": [
+        {
+          "set": "rnHere",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "isNull(call911At)",
+              "then": [
+                {
+                  "set": "call911At",
+                  "to": "t"
+                },
+                {
+                  "schedule": "emsT",
+                  "after": "emsWait"
+                },
+                {
+                  "log": "The RN looks at him and calls 911.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The RN is in the room and calls the provider and his daughter.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "emsT": {
+      "label": "paramedics",
+      "wait": {
+        "skipLabel": "the paramedics (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Long-term care practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 10 min."
+      },
+      "effects": [
+        {
+          "set": "emsHere",
+          "to": "true"
+        },
+        {
+          "log": "Paramedics take over for transport to a hospital with CT and neurosurgery.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "vomit",
+      "when": "icp >= vomitIcp",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "vomited2",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "sideLying",
+              "then": [
+                {
+                  "log": "He vomits again, into the basin; his airway stays clear.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "aspirated",
+                  "to": "true"
+                },
+                {
+                  "log": "He vomits lying flat on his back and chokes on it.",
+                  "kind": "alarm"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cushing",
+      "when": "icp >= 0.8",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "His breathing becomes irregular, with pauses; he is hard to rouse.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(neuroAt) or t >= 180",
+      "question": "What do you think is happening to Mr. Kaminski, what do you report, and what comes first?",
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Names a possible intracranial bleed after a head strike on an anticoagulant, with rising intracranial pressure: headache, vomiting, drowsiness and confusion; knows Cushing's triad (high BP, slow pulse, irregular breathing) is late.",
+          "modelAnswer": "A head strike on apixaban, now a bad headache, vomiting and drowsiness: a bleed raising his intracranial pressure. Rising BP with a falling pulse and irregular breathing would be Cushing's triad, a late sign."
+        },
+        {
+          "label": "Priorities",
+          "criteria": "Collects neuro checks and vital signs; reports to the RN at once with the data and calls 911 under policy; protects the airway (head up 30, on his side, NPO); gives no opioid or sedating antiemetic; does not let him sleep it off.",
+          "modelAnswer": "Neuro check and vital signs, then the RN now with the numbers, and 911. Head of bed 30, on his side with suction ready, nothing by mouth. No hydrocodone or promethazine: they hide the level of consciousness I'm watching."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= 2399 and not emsHere",
+      "class": "harm",
+      "rationale": "A suspected bleed on a blood thinner still not in emergency care 40 minutes later.",
+      "source": {
+        "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'; such patients are managed in intensive care."
+      }
+    }
+  },
+  "endings": {
+    "herniated": {
+      "label": "Herniation",
+      "class": "harm",
+      "when": "icp >= herniate",
+      "terminal": true,
+      "narrative": "{t|clock}: he is unresponsive with a blown right pupil and long pauses in his breathing. CPR-ready; paramedics are called or hurried."
+    },
+    "aspirated": {
+      "label": "He aspirated",
+      "class": "harm",
+      "when": "aspirated",
+      "terminal": true,
+      "narrative": "{t|clock}: he inhaled vomit lying flat; gurgling, SpO2 falling. Suction and 911."
+    },
+    "handedOver": {
+      "label": "Recognized, reported and handed over",
+      "class": "target",
+      "when": "emsHere and not sedated and not isNull(neuroAt) and timeAt(neuroAt) <= neuroBy and rnGood and timeAt(rnCallAt) <= callBy and not isNull(call911At) and timeAt(call911At) <= callBy",
+      "terminal": true,
+      "narrative": "{t|clock}: paramedics take a drowsy but rousable Mr. Kaminski. You saw the change, reported it with the numbers, and got him moving toward a scan."
+    },
+    "handedOverLate": {
+      "label": "Handed over, by a slower or riskier route",
+      "class": "recovered",
+      "when": "emsHere",
+      "terminal": true,
+      "narrative": "{t|clock}: paramedics take over, but time or information was lost: a late or vague report, a late 911, or a sedating PRN clouding his neuro checks."
+    },
+    "time_up": {
+      "label": "No emergency care",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:40 and he is still in his room."
+    }
+  },
+  "endingOrder": [
+    "herniated",
+    "aspirated",
+    "handedOver",
+    "handedOverLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "neuro",
+        "label": "Neuro check (consciousness, orientation, pupils) within 5 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(neuroAt)",
+            "score": "missed",
+            "why": "No neurological check."
+          },
+          {
+            "when": "timeAt(neuroAt) <= neuroBy",
+            "score": "met",
+            "why": "Neuro check at {timeAt(neuroAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Neuro check at {timeAt(neuroAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "reported",
+        "label": "RN told with neuro checks and vital signs within 10 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(rnCallAt)",
+            "score": "missed",
+            "why": "The RN was not told."
+          },
+          {
+            "when": "not rnGood",
+            "score": "partial",
+            "why": "Reported without the data."
+          },
+          {
+            "when": "timeAt(rnCallAt) <= callBy",
+            "score": "met",
+            "why": "SBAR with the data at {timeAt(rnCallAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported at {timeAt(rnCallAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "ems",
+        "label": "911 within 10 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(call911At)",
+            "score": "missed",
+            "why": "911 never called."
+          },
+          {
+            "when": "timeAt(call911At) <= callBy",
+            "score": "met",
+            "why": "911 at {timeAt(call911At)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "911 at {timeAt(call911At)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "noSedation",
+        "label": "No opioid or sedating antiemetic",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sedated",
+            "score": "missed",
+            "why": "A sedating PRN clouded his neuro checks."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Nothing sedating given."
+          }
+        ]
+      },
+      {
+        "id": "airway",
+        "label": "Head up 30 degrees, on his side, suction ready, NPO",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "aspirated",
+            "score": "missed",
+            "why": "He aspirated lying flat."
+          },
+          {
+            "when": "hobUp",
+            "score": "met",
+            "why": "Airway protected."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left flat."
+          }
+        ]
+      },
+      {
+        "id": "vitals",
+        "label": "Vital signs with a full-minute respiratory count",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "vitalsOn",
+            "score": "met",
+            "why": "BP, pulse and respirations taken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No vital signs: Cushing's triad cannot be seen."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: bleed, rising pressure, report, airway, no sedation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toRn",
+        "label": "14:00 to the RN report",
+        "value": "isNull(rnCallAt) ? -1 : timeAt(rnCallAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "to911",
+        "label": "14:00 to 911",
+        "value": "isNull(call911At) ? -1 : timeAt(call911At)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:00",
+        "text": "Neuro check: drowsy, disoriented, pupils equal, goose egg on his occiput. A change from baseline."
+      },
+      {
+        "at": "14:01",
+        "text": "Vital signs: BP up from his usual, pulse in the 80s. Head of bed 30, on his side, basin and suction, NPO."
+      },
+      {
+        "at": "14:02",
+        "text": "SBAR to the RN with the numbers; call 911 under the policy. No hydrocodone, no promethazine."
+      },
+      {
+        "at": "~14:12",
+        "text": "Paramedics take over; give them the time of the fall, the apixaban and your serial neuro checks."
+      }
+    ],
+    "debrief": {
+      "herniated": {
+        "headline": "Herniation",
+        "body": "Headache, vomiting and drowsiness after a head strike on a blood thinner is a bleed until proven otherwise. Report with the data and get him to emergency care; Cushing's triad is late."
+      },
+      "aspirated": {
+        "headline": "He aspirated",
+        "body": "A drowsy, vomiting patient needs the head up and to be on his side with suction ready before anything else."
+      },
+      "handedOver": {
+        "headline": "Recognized, reported and handed over",
+        "body": "You checked his neuro status and vital signs, protected his airway, avoided sedating PRNs, and got the RN and 911 moving with the numbers. That is the expert path."
+      },
+      "handedOverLate": {
+        "headline": "Handed over, by a slower route",
+        "body": "Check how soon you did a neuro check, whether your report had the data, when 911 was called, and whether a sedating PRN went in."
+      },
+      "time_up": {
+        "headline": "No emergency care",
+        "body": "A change in consciousness after a head strike on an anticoagulant is an emergency."
+      }
+    },
+    "modelReasoning": "A fall with a head strike on apixaban, followed hours later by a severe headache, vomiting and drowsiness, points to an intracranial bleed raising the pressure inside his skull. Headache, vomiting and a falling level of consciousness are the early signs; Cushing's triad (rising blood pressure, slowing pulse, irregular breathing) is late and ominous. The PN collects the data that shows the change, neuro checks and vital signs, and takes it to the RN at once; under the facility policy 911 is called. Protect the airway first in a drowsy, vomiting patient: head up 30 degrees, on his side, suction ready, nothing by mouth. Do not give an opioid or a sedating antiemetic, and never let him sleep it off: they hide the very sign you are following."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Help is on the way",
+      "when": "not isNull(call911At)"
+    }
+  ],
+  "teaching": {
+    "triadQ": {
+      "during": "emsT",
+      "ask": "While the paramedics come: which set is Cushing's triad?",
+      "choices": [
+        {
+          "id": "triad",
+          "label": "Rising blood pressure, slowing pulse, irregular breathing"
+        },
+        {
+          "id": "shock",
+          "label": "Falling blood pressure, fast pulse, fast breathing"
+        },
+        {
+          "id": "fever",
+          "label": "Fever, stiff neck, rash"
+        }
+      ],
+      "expect": "triad",
+      "explain": "Cushing's triad is hypertension, bradycardia and irregular respiration, a late and ominous sign of impending herniation.",
+      "source": {
+        "cite": "Pinto VL, Adeyinka A. Increased Intracranial Pressure. StatPearls (updated 2025-09-14), NCBI Bookshelf NBK482119",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK482119/",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: suspect raised intracranial pressure with 'headaches, vomiting, and altered mental status varying from drowsiness to coma'; 'Cushing triad is a clinical syndrome consisting of hypertension, bradycardia, and irregular respiration', 'a late and ominous sign of impending herniation'; 'Early recognition and intervention are vital to prevent life-threatening complications such as brain herniation'; such patients are managed in intensive care."
+      }
+    }
+  }
+}
