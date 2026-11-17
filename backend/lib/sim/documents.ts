@@ -281,6 +281,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("NCE", "nce-suicide-safety-plan"),
   band("NCMHCE", "ncmhce-boundary-dual-relationship"),
   entry("NCLEXRN", "alcohol-withdrawal-ciwa"),
+  entry("CNA", "sundowning-at-the-exit-door"),
   // ---- end REQ-315 ----
 ];
 
