@@ -59,4 +59,8 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "AZ120", slug: "nva-route-between-sap-app-and-db", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-nva" },
   { course: "AZ140", slug: "fslogix-share-missing-share-permission", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az140-fslogix" },
   { course: "KCA", slug: "policy-enforced-without-reading-reports", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "kca-enforce" },
+  { course: "CCA", slug: "cluster-pool-exhausted-new-nodes", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "cca-ipam" },
+  { course: "CBA", slug: "plugin-token-marked-frontend", screen: "terminal", profile: "security", kind: "scenario", steps: "cba-proxy" },
+  { course: "AI901", slug: "chat-client-model-name-not-deployment", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "ai901-deploy" },
+  { course: "GCPPDE", slug: "streaming-window-drops-late-rides", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcppde-lateness" },
 ];

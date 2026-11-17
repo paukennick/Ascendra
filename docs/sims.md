@@ -6695,3 +6695,54 @@ terminal or data console; none needs a new screen.
 5. **Template braces.** A literal `{` in terminal output must be written
    `{{` (parser.ts `parseTemplate`); PromQL label matchers and kubectl
    jsonpath in the new cases are escaped or reworded.
+
+**Second pass of the round (sims-cloud-2, same REQ-320).** Nick's ask of
+2026-11-17 also covers the nine courses the first pass left without a sim
+and the two whose sim sat below their top domain. No existing case teaches
+any of their top-domain objectives (the closest, the AZ-700 route case and
+the CKA and KCNA cases, teach other decisions), so each got a new terminal
+case built by the same factory (22.30 above), learner-paced, engine 1.2,
+harm endings first, six or seven goldens with a Mediocre path, and a
+behavior test in `it-cloud.test.ts` ("what each case of the second cloud
+round teaches"). Every case's first source is its course outline read on
+2026-11-17; third-party pages and anything taken from memory are marked "to
+verify" in the source notes.
+
+| Course (top domain) | Slug | Profile | Core of the case | Steps |
+|---|---|---|---|---|
+| AWSDEA (ingestion and transformation 34%) | kinesis-poison-record-blocks-shard | infrastructure | One truncated record fails every retry; MaximumRetryAttempts -1 and no destination hold one shard for three hours. Bisect, two retries and an S3 on-failure destination (keeps the payload for replay); SQS keeps only metadata; recreating the mapping at LATEST skips the backlog; memory and shards change nothing | dea-kinesis |
+| GCPNET (VPC design ~21%) | gke-pod-range-exhausted-before-promo | infrastructure | IP_SPACE_EXHAUSTED names the Pod range: a /21 at 110 Pods per node is 8 node blocks. Add a secondary range and a /26-per-node pool (discontiguous multi-Pod CIDR); max Pods cannot change on the old pool, expanding the node subnet is irreversible and useless, rebuilding the cluster is an outage | gcpnet-podrange |
+| GCPDBE (scalable and available design 32%) | cloud-run-exhausts-sql-connections | infrastructure | 184 Cloud Run instances x pool 10 against max_connections 800, mostly idle. Cap instances and pool now (no restart); schedule managed connection pooling for the maintenance window; raising max_connections or enabling the pooler now restarts the database mid-sale | gcpdbe-pooling |
+| GCPMLE (scaling prototypes ~21%) | nightly-retrain-cuda-oom-after-batch-change | infrastructure | A batch-size change makes the nightly retrain run out of GPU memory. Micro-batches of 64 with accumulation of 4 and bf16 keep the tuned effective batch; reverting the batch alone mismatches the learning rate; the A100 has no quota; a retry fails the same way | gcpmle-oom |
+| AZ120 (infrastructure 25-30%, tied) | nva-route-between-sap-app-and-db | infrastructure | A security change routes app-to-database traffic through the hub appliance (not supported for SAP, doubles latency). Remove only that route, keep egress through the firewall, tell the change owner; detaching the table bypasses the firewall, a proximity placement group redeploy is an outage | az120-nva |
+| AZ140 (infrastructure 40-45%) | fslogix-share-missing-share-permission | infrastructure | Profiles moved to a storage account with no share-level permission for users: temporary profiles. Grant SMB Share Contributor (group or default), not Elevated Contributor; PreventLoginWithFailure now locks everyone out; restarts change nothing | az140-fslogix |
+| KCA (writing policies 32%) | policy-enforced-without-reading-reports | infrastructure | A validate rule went to Enforce while its background-scan reports listed 37 failures; a hotfix is refused. Make it comply, set the rule back to Audit, ticket the owners from the reports; deleting the policy is harm, excluding the namespace or turning background off hides the problem | kca-enforce |
+| CCA (architecture 20%) | cluster-pool-exhausted-new-nodes | infrastructure | New nodes keep the agent-not-ready taint: the operator's /22 pool at /24 per node is exhausted. Add a free range as a new element; editing the existing element breaks routing and overlaps a peer; the mask cannot change; restarts change nothing | cca-ipam |
+| CBA (customizing 32%) | plugin-token-marked-frontend | security | A frontend plugin gets 401; PR #88 marks the token @visibility frontend so every browser receives it. Use the backend proxy with the header from the environment, close the PR, rotate the token the preview exposed | cba-proxy |
+| AI901 (Foundry 55-60%) | chat-client-model-name-not-deployment | infrastructure | 404 DeploymentNotFound: the client passes the model name, not the deployment name. Read the deployment name from configuration, keep the key out of the repository, add a system message and test on and off topic | ai901-deploy |
+| GCPPDE (ingesting and processing ~25%) | streaming-window-drops-late-rides | infrastructure | Offline-queued rides arrive up to 25 minutes late into one-minute windows with no allowed lateness. Size lateness from the measured delay, drain (not cancel) and replace, backfill history from the raw archive; processing-time windows put fares in the wrong minute | gcppde-lateness |
+
+After this pass every course in the round's list has a sim on its
+highest-weighted domain (AZ120 on one of its two tied domains).
+
+**Findings of the second pass** (recorded; none needed a code fix, so no
+failure-ledger entry):
+
+1. **Pages that did not load or were not read.** The Kyverno validate-rules
+   page (release 1.18) timed out waiting for fetch approval; the denial text
+   and the per-rule `failureAction` field are from memory (to verify). The
+   KCA, CBA and CCA weights come from the CNCF and Isovalent pages, not the
+   cncf/curriculum PDFs. The Professional Cloud Database Engineer guide page
+   shows no weights; 32% is the course seed's. The Beam lateness facts come
+   from a third-party explanation (to verify against the Beam programming
+   guide).
+2. **Product names in the seed.** The Professional Machine Learning Engineer
+   guide (as of June 1, 2026) says "Agent Platform" (Gemini Enterprise Agent
+   Platform), not Vertex AI, matching the course seed. The case's `gcloud ai`
+   commands are from memory of the CLI (to verify).
+3. **Engine limits met while authoring** (documented behavior, not
+   defects): `+` is numeric only, so text is chosen by nested conditionals;
+   a `number` state needs `min` and `max`; a restore or containment window
+   may only tighten its profile's 60 minutes; braces inside an expression's
+   string literal end the expression, so PowerShell script blocks, Helm list
+   values and JSON in outputs sit outside conditionals and are escaped.

@@ -457,6 +457,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AZ120", "nva-route-between-sap-app-and-db"),
   entry("AZ140", "fslogix-share-missing-share-permission"),
   entry("KCA", "policy-enforced-without-reading-reports"),
+  entry("CCA", "cluster-pool-exhausted-new-nodes"),
+  entry("CBA", "plugin-token-marked-frontend"),
+  entry("AI901", "chat-client-model-name-not-deployment"),
+  entry("GCPPDE", "streaming-window-drops-late-rides"),
   // ---- end REQ-320 ----
 ];
 

@@ -258,3 +258,168 @@ describe("what each new cloud case teaches (REQ-320)", () => {
     assert.notEqual(p.value("foundAt"), null);
   });
 });
+
+describe("what each case of the second cloud round teaches (REQ-320, sims-cloud-2)", () => {
+  const until = (r: ReturnType<typeof driver>, m: number) => {
+    while (r.minutes() < m && !r.run.state.ended && r.run.state.phase === "incident") r.act("watch");
+  };
+  test("AWS DEA Kinesis: memory and shards leave the shard blocked; LATEST skips the backlog; bisect with an S3 destination catches up in time", () => {
+    const d = docOf("kinesis-poison-record-blocks-shard");
+    const cap = driver(d);
+    cap.act("memory");
+    cap.act("reshard");
+    until(cap, 61);
+    assert.notEqual(cap.value("reportMissAt"), null);
+    const skip = driver(d);
+    skip.act("latest");
+    assert.equal(skip.value("skipped"), true);
+    const ok = driver(d);
+    ok.act("configure", { d: "s3" });
+    until(ok, 61);
+    assert.equal(ok.value("reportMissAt"), null);
+    assert.equal(ok.value("caughtUp"), true);
+  });
+  test("GCPNET Pod range: max Pods cannot change on the old pool and a bigger node subnet does nothing; a new Pod range and pool scale in time", () => {
+    const d = docOf("gke-pod-range-exhausted-before-promo");
+    const n = driver(d);
+    n.act("tryMax");
+    n.act("expand");
+    until(n, 56);
+    assert.notEqual(n.value("promoMissAt"), null);
+    const ok = driver(d);
+    ok.act("addRange");
+    ok.act("nodePool");
+    until(ok, 56);
+    assert.equal(ok.value("poolReady"), true);
+    assert.equal(ok.value("promoMissAt"), null);
+  });
+  test("GCPDBE pooling: max_connections and the pooler restart the database now; capping Cloud Run holds the peak", () => {
+    const d = docOf("cloud-run-exhausts-sql-connections");
+    for (const a of ["maxConn", "poolNow"]) {
+      const r = driver(d);
+      r.act(a);
+      assert.equal(r.value("restarted"), true, a);
+    }
+    const ok = driver(d);
+    ok.act("cap");
+    until(ok, 41);
+    assert.equal(ok.value("peakMissAt"), null);
+  });
+  test("GCPMLE out of memory: no-quota hardware and a retry never run; accumulation runs; reverting the batch runs with the wrong effective batch", () => {
+    const d = docOf("nightly-retrain-cuda-oom-after-batch-change");
+    for (const c of ["a100", "same"]) {
+      const r = driver(d);
+      r.act("submit", { c });
+      until(r, 61);
+      assert.notEqual(r.value("launchMissAt"), null, c);
+    }
+    const ok = driver(d);
+    ok.act("submit", { c: "accum" });
+    until(ok, 61);
+    assert.equal(ok.value("launchMissAt"), null);
+    const rv = driver(d);
+    rv.act("submit", { c: "revert" });
+    until(rv, 61);
+    assert.equal(rv.value("healthy"), true);
+    assert.equal(rv.value("cfg"), "revert");
+  });
+  test("AZ-120 latency: a resize changes nothing; detaching the table bypasses the firewall; removing the one route fixes it", () => {
+    const d = docOf("nva-route-between-sap-app-and-db");
+    const r = driver(d);
+    r.act("resize");
+    until(r, 51);
+    assert.notEqual(r.value("closeMissAt"), null);
+    const t = driver(d);
+    t.act("deleteTable");
+    assert.equal(t.value("tableDeleted"), true);
+    const ok = driver(d);
+    ok.act("removeRoute");
+    until(ok, 51);
+    assert.equal(ok.value("closeMissAt"), null);
+  });
+  test("AZ-140 FSLogix: restarts leave users denied; PreventLoginWithFailure locks everyone out; Contributor at the share fixes it in time", () => {
+    const d = docOf("fslogix-share-missing-share-permission");
+    const r = driver(d);
+    r.act("restart");
+    until(r, 46);
+    assert.notEqual(r.value("shiftMissAt"), null);
+    const l = driver(d);
+    l.act("preventLogin");
+    assert.equal(l.value("lockedOut"), true);
+    const ok = driver(d);
+    ok.act("grant", { w: "users" });
+    until(ok, 46);
+    assert.equal(ok.value("working"), true);
+    assert.equal(ok.value("shiftMissAt"), null);
+  });
+  test("KCA enforce: background scans off leave the hotfix refused; a compliant manifest is admitted in time", () => {
+    const d = docOf("policy-enforced-without-reading-reports");
+    const b = driver(d);
+    b.act("backgroundOff");
+    until(b, 51);
+    assert.notEqual(b.value("hotfixMissAt"), null);
+    const ok = driver(d);
+    ok.act("addLimit");
+    ok.act("toAudit");
+    until(ok, 51);
+    assert.equal(ok.value("hotfixMissAt"), null);
+  });
+  test("CCA cluster pool: restarts and the mask leave the nodes idle; editing the pool breaks it; a new element fixes it", () => {
+    const d = docOf("cluster-pool-exhausted-new-nodes");
+    const r = driver(d);
+    r.act("restart");
+    r.act("mask");
+    until(r, 51);
+    assert.notEqual(r.value("peakMissAt"), null);
+    const c = driver(d);
+    c.act("changeCidr");
+    until(c, 51);
+    assert.equal(c.value("ready"), false);
+    const ok = driver(d);
+    ok.act("append");
+    until(ok, 51);
+    assert.equal(ok.value("ready"), true);
+  });
+  test("CBA proxy: restarts leave the 401; merging the PR works by exposing the token; the proxy works in time", () => {
+    const d = docOf("plugin-token-marked-frontend");
+    const r = driver(d);
+    r.act("restart");
+    until(r, 51);
+    assert.notEqual(r.value("demoMissAt"), null);
+    const m = driver(d);
+    m.act("merge");
+    assert.equal(m.value("merged"), true);
+    const ok = driver(d);
+    ok.act("proxy");
+    until(ok, 51);
+    assert.equal(ok.value("proxyLive"), true);
+    assert.equal(ok.value("demoMissAt"), null);
+  });
+  test("AI-901 chat client: new packages leave the 404; the deployment name fixes it", () => {
+    const d = docOf("chat-client-model-name-not-deployment");
+    const r = driver(d);
+    r.act("reinstall");
+    until(r, 46);
+    assert.notEqual(r.value("demoMissAt"), null);
+    const ok = driver(d);
+    ok.act("setDeployment");
+    until(ok, 46);
+    assert.equal(ok.value("demoMissAt"), null);
+  });
+  test("GCPPDE lateness: workers change nothing; a backfill alone leaves today short; draining with lateness plus a backfill reconciles", () => {
+    const d = docOf("streaming-window-drops-late-rides");
+    const s = driver(d);
+    s.act("scale");
+    until(s, 51);
+    assert.notEqual(s.value("reconMissAt"), null);
+    const b = driver(d);
+    b.act("backfill");
+    until(b, 51);
+    assert.notEqual(b.value("reconMissAt"), null);
+    const ok = driver(d);
+    ok.act("deploy", { h: "drain" });
+    ok.act("backfill");
+    until(ok, 51);
+    assert.equal(ok.value("reconMissAt"), null);
+  });
+});

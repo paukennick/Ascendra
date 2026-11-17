@@ -412,3 +412,31 @@ that fails on accelerator quota; AZ140 a host pool whose FSLogix profile
 share is unreachable; AZ120 an SAP VM size or Accelerated Networking
 mismatch; CBA (Backstage React customization) fits the data and code console
 better than the terminal.
+
+**Second pass (sims-cloud-2, same day).** The nine courses above and the two
+whose sim sat below their top domain each got a new terminal case on the top
+domain (docs/sims.md 22.30, second pass):
+
+| Course | New case (top domain) |
+|---|---|
+| AWSDEA | kinesis-poison-record-blocks-shard (ingestion and transformation) |
+| GCPNET | gke-pod-range-exhausted-before-promo (VPC design) |
+| GCPDBE | cloud-run-exhausts-sql-connections (scalable, available design) |
+| GCPMLE | nightly-retrain-cuda-oom-after-batch-change (scaling prototypes) |
+| AZ120 | nva-route-between-sap-app-and-db (infrastructure, tied top) |
+| AZ140 | fslogix-share-missing-share-permission (AVD infrastructure) |
+| KCA | policy-enforced-without-reading-reports (writing policies) |
+| CCA | cluster-pool-exhausted-new-nodes (architecture) |
+| CBA | plugin-token-marked-frontend (customizing Backstage), on the terminal: the decision is where a secret runs, not React code, so the data console was not needed |
+| AI901 | chat-client-model-name-not-deployment (Foundry) |
+| GCPPDE | streaming-window-drops-late-rides (ingesting and processing) |
+
+Depth in the courses the first pass covered, as bands of these cases (each
+the same decision at that course's objective): AZ-700 user-defined routes
+(the AZ-120 appliance route), Google Cloud Architect cloud-native networking
+(the GKE Pod range), Google Cloud Developer datastore connections (the Cloud
+SQL pooler), CNPA and CNPE policy engines and KCSA admission control (the
+Kyverno reports case), AZ-104 Azure Files identity-based access (the FSLogix
+case) and user-defined routes (the AZ-700 stale route), AWS DevOps event
+processing with Kinesis and Lambda (the poison record). Every course in the
+round's list now has a sim on its highest-weighted domain.
