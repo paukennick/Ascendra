@@ -18165,6 +18165,30 @@
       "prevention_rules": [],
       "prevention_notes": "The REQ-313 test checks met-and-missed per criterion for every document, so a path change that hides a criterion fails npm test, not only sims:lint",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2201",
+      "date": "2026-11-16",
+      "title": "The REQ-274 security-console test selected documents by course code and failed once REQ-313 added sims to the same courses",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/security-certs-sims.test.ts: not ok 'at least two per course, each valid, on the console ...' (the governance board, tabletop and session documents in ISC2CC, CISSP and CISM are not security-console)",
+      "how_detected": "backend sim tests run for the changed area",
+      "root_cause": "The test (and lib/sims-security-certs.dbtest.ts, which expected exactly eight seeded sims) took every document of the four courses instead of naming its own slugs, the selection FAIL-2002 already ruled out; any new sim in those courses breaks it.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sims-security-certs.dbtest.ts"
+      ],
+      "fix_summary": "Both select the eight REQ-274 documents by slug",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Round rule: sim tests select documents by slug, never by course code",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

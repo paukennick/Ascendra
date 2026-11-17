@@ -15,7 +15,19 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["ISC2CC", "CISSP", "CISM", "CEH"] as const;
-const DOCS = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
+// FAIL-2201 (FAIL-2002): select the REQ-274 documents by slug; REQ-313 added
+// governance, tabletop and ethics sims to the same courses.
+const SLUGS = [
+  "cc-triage-phish-correlation",
+  "cc-leaver-account-still-active",
+  "cissp-web-tier-data-theft",
+  "cissp-ransomware-recovery-site",
+  "cism-payroll-supplier-breach",
+  "cism-checkout-skimmer-containment",
+  "ceh-arp-poisoning-finance-vlan",
+  "ceh-blind-sqli-search",
+];
+const DOCS = ALL_DOCUMENTS.filter((e) => SLUGS.includes(e.slug) && (COURSES as readonly string[]).includes(e.course));
 const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {

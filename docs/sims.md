@@ -5806,6 +5806,11 @@ is the author's and says so on its param.
    string literal (`"Package: {pkg}"` inside `{...}` renders the braces); write
    adjacent slots instead.
 3. **`time_up`** is reached by no golden path in any case, as elsewhere.
+4. **Selection by course code (FAIL-2201, a recurrence of FAIL-2002)**:
+   `lib/sim/security-certs-sims.test.ts` and `lib/sims-security-certs.dbtest.ts`
+   took every document of the CC, CISSP, CISM and CEH courses, so the new
+   sims in those courses failed the console test. Both now name their eight
+   slugs.
 
 **Ships over the air.** Everything on the app side is JavaScript (two panels,
 two view models, a caps change, the session button label); no native module,
