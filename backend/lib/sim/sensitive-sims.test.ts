@@ -26,9 +26,14 @@ export const REQ329_CASES: readonly { course: string; slug: string; harmPath: st
   { course: "CEN", slug: "ed-screen-positive-wants-to-go-home", harmPath: "neverScreened" },
   { course: "CEN", slug: "ed-threat-against-former-supervisor", harmPath: "secretAndSent" },
   { course: "PCCN", slug: "new-heart-failure-better-off-without-me", harmPath: "leftForDay" },
+  { course: "FNPAANP", slug: "clinic-depression-follow-up-item-nine", harmPath: "listOnly" },
+  { course: "FNPANCC", slug: "clinic-widower-thoughts-right-now", harmPath: "nextWeek" },
 ];
 
-export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [];
+export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [
+  { course: "FNPANCC", slug: "clinic-depression-follow-up-item-nine-fnp-role", base: "FNPAANP/clinic-depression-follow-up-item-nine" },
+  { course: "FNPAANP", slug: "clinic-widower-thoughts-right-now-fnp-clinical", base: "FNPANCC/clinic-widower-thoughts-right-now" },
+];
 
 const BAND_PATCH_KEYS = ["objective", "secondaryObjectives", "sources"];
 // Specialist letters and the boards' marks (REQ-309/319), as in health-sims-4.

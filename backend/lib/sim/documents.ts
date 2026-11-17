@@ -478,6 +478,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CEN", "ed-screen-positive-wants-to-go-home"),
   entry("CEN", "ed-threat-against-former-supervisor"),
   entry("PCCN", "new-heart-failure-better-off-without-me"),
+  entry("FNPAANP", "clinic-depression-follow-up-item-nine"),
+  band("FNPANCC", "clinic-depression-follow-up-item-nine-fnp-role"),
+  entry("FNPANCC", "clinic-widower-thoughts-right-now"),
+  band("FNPAANP", "clinic-widower-thoughts-right-now-fnp-clinical"),
   // ---- end REQ-329 ----
 ];
 
