@@ -18,7 +18,7 @@ import { PROFILE_THRESHOLDS } from "./engine/v1/validate.ts";
 import type { GoldenFile } from "./engine/v1/validate.ts";
 import type { ScenarioDoc } from "./engine/v1/types.ts";
 import { DEFAULT_RENDERERS, pacingEligible, parseCaps, renderersOn, runnable } from "./server-run.ts";
-import { backslashEscapeProblems, secondsUnitProblems } from "./lint.ts";
+import { backslashEscapeProblems, dataConsoleProblems, secondsUnitProblems } from "./lint.ts";
 import { scenarioSchema } from "./schema.ts";
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 
@@ -111,6 +111,14 @@ describe("REQ-312 screen.data bindings", () => {
     const u = base();
     u.screen.data!.flags[1].id = u.screen.data!.flags[0].id;
     assert.ok(errors(u).some((e) => e.includes("duplicate id")));
+  });
+
+  test("sims:lint refuses typed params on a data screen; the seeded cases have none", () => {
+    for (const e of SCENARIOS) assert.deepEqual(dataConsoleProblems(loadDocument(e)), [], e.slug);
+    const d = base();
+    d.actions.checkAccess.params = [{ id: "q", kind: "query", label: "Search", fields: [], maxLength: 200 }];
+    assert.equal(dataConsoleProblems(d).length, 1);
+    assert.match(dataConsoleProblems(d)[0].message, /nothing typed is executed/);
   });
 
   test("the data profile's default thresholds; authors may tighten, never loosen", () => {

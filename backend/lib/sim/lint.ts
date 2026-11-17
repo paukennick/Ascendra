@@ -189,6 +189,22 @@ export function backslashEscapeProblems(doc: ScenarioDoc): Problem[] {
   return out;
 }
 
+// REQ-312 (docs/sims.md 22.25): on the data and code console nothing the
+// learner types reaches the engine. A data-screen document may not use the
+// typed `command` or `query` params; every learner input is a choice (an
+// editable cell is an action with one choice param, checked by the
+// validator), a form of choices, a pick or a slot.
+export function dataConsoleProblems(doc: ScenarioDoc): Problem[] {
+  if (doc.screen?.type !== "data") return [];
+  const out: Problem[] = [];
+  for (const [id, a] of Object.entries(doc.actions ?? {})) {
+    (a.params ?? []).forEach((p, i) => {
+      if (p.kind === "command" || p.kind === "query") out.push({ level: "error", path: `actions.${id}.params[${i}]`, message: `a ${p.kind} param takes typed text; on the data console every input is an authored choice and nothing typed is executed (REQ-312)` });
+    });
+  }
+  return out;
+}
+
 // `full` false = schema only (sims:validate); true adds the semantic and
 // content layers, golden replays and the path search (sims:lint).
 export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?: string; searchNodes?: number }): DocumentReport {
@@ -219,6 +235,7 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     problems.push(...endingOrderProblems(doc, golden));
     problems.push(...secondsUnitProblems(doc));
     problems.push(...backslashEscapeProblems(doc));
+    problems.push(...dataConsoleProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }
