@@ -18189,6 +18189,29 @@
       "prevention_rules": [],
       "prevention_notes": "A verification pass checks the publisher's page for a newer edition, not only the cited abstract.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2132",
+      "date": "2026-11-16",
+      "title": "Volk v. DeMeerleer citation put words in quotation marks the opinion does not use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The ASWB Clinical threat case cited Volk as requiring 'reasonable care, consistent with the standards of the mental health profession'; the opinion says the professional is 'under a duty of reasonable care to act consistent with the standards of the mental health profession and to protect the foreseeable victims'.",
+      "how_detected": "REQ-310 verification pass (slip opinion PDF from courts.wa.gov read 2026-11-16)",
+      "root_cause": "The opinion was read on 2026-11-14 only through a summary of Justia's page, and the summary's paraphrase was placed inside quotation marks.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/ASWBCLINICAL/aswbc-threat-identifiable-person.sim.json"
+      ],
+      "fix_summary": "Citation quotes the opinion verbatim and points at the court's PDF; note dated 2026-11-16. Also re-read RCW 26.44.020/.030/.060/.080, 9A.16.100, 71.05.120 and 42 CFR 483.12/483.24; 483.12(c) citation now includes the abuse and 24-hour branches.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2132"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Quotation marks only around text read in the primary source, never around a summary's paraphrase.",
+      "recurrence_of": ""
     }
   ]
 }

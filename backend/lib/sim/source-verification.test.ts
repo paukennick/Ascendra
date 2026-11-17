@@ -47,6 +47,14 @@ export const VERIFIED_20261116: readonly (readonly [string, string])[] = [
   ["acute-ischemic-stroke-lvo", "Cardene IV (nicardipine)"],
   ["inferior-stemi-cath-alert", "Rao SV"],
   ["ncmhce-trauma-treatment-plan", "APA Clinical Practice Guideline for the Treatment of PTSD"],
+  ["aswbm-child-abuse-report", "RCW 26.44.030"],
+  ["aswbm-child-abuse-report", "RCW 26.44.020"],
+  ["aswbm-child-abuse-report", "RCW 26.44.060"],
+  ["aswbc-threat-identifiable-person", "Volk v. DeMeerleer"],
+  ["aswbc-threat-identifiable-person", "RCW 71.05.120(3)"],
+  ["duty-to-protect-threat", "Volk v. DeMeerleer"],
+  ["resident-chokes-at-lunch", "42 CFR 483.24(a)(3)"],
+  ["resident-found-on-floor", "42 CFR 483.12(c)"],
 ];
 
 for (const [slug, prefix] of VERIFIED_20261116) {
@@ -79,4 +87,13 @@ test("FAIL-2131: PTSD content follows the 2025 APA guideline, not the 2017 stren
   assert.doesNotMatch(eppp, /strongly recommends[^.]*cognitive therapy/);
   assert.doesNotMatch(eppp, /brief eclectic psychotherapy/);
   assert.match(eppp, /suggests cognitive therapy, EMDR and narrative exposure therapy/);
+});
+
+test("FAIL-2132: the Volk v. DeMeerleer citation quotes the opinion's own words", () => {
+  const cites = sourcesOf(rawOf("aswbc-threat-identifiable-person")).filter((x) => x.cite.startsWith("Volk v. DeMeerleer"));
+  assert.ok(cites.length > 0);
+  for (const c of cites) {
+    assert.doesNotMatch(c.cite, /'reasonable care, consistent with the standards of the mental health profession'/);
+    assert.match(c.cite, /'under a duty of reasonable care to act consistent with the standards of the mental health profession and to protect the foreseeable victims'/);
+  }
 });
