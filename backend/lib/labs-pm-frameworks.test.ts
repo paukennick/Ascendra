@@ -12,11 +12,13 @@ import { VALUE_SOURCES } from "../supabase/seed/labs/value-sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
-const CODES = ["PSMI", "CSM", "ITIL4FND", "CSSGB", "NASMCNC"] as const;
+const CODES = ["PSMI", "CSM", "ITIL4FND", "ITIL5FND", "CSSGB", "NASMCNC"] as const;
 const EXPECTED: Record<(typeof CODES)[number], number[]> = {
   PSMI: [2, 2, 2, 2, 2, 2],
   CSM: [2, 2, 3, 2, 1, 2],
   ITIL4FND: [2, 2, 1, 1, 1, 2, 3],
+  // REQ-308: weights 30/10/10/40/5/2.5/2.5.
+  ITIL5FND: [3, 2, 2, 3, 1, 1, 1],
   CSSGB: [2, 2, 2, 2, 2, 2],
   NASMCNC: [2, 3, 2, 3],
 };
@@ -46,7 +48,7 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach lab sets", () 
       assert.ok(interactive >= 5, `${code}: ${interactive} labs with an interactive part`);
       const outline = set.sources.find((s) => s.kind === "exam_outline");
       assert.ok(outline, `${code} cites an outline`);
-      assert.equal(outline!.checkedAt, "2026-11-14");
+      assert.equal(outline!.checkedAt, code === "ITIL5FND" ? "2026-11-16" : "2026-11-14");
     });
 
     test(`${code}: safety note, fictional people or organizations, never 'your client'`, () => {
@@ -87,5 +89,11 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach lab sets", () 
 
   test("ITIL lab outlines are rechecked before PeopleCert's planned 2027-12-31 ITIL 4 sunset", () => {
     for (const s of setOf("ITIL4FND").sources) assert.ok(s.recheckBy && s.recheckBy < "2027-12-31", s.url);
+  });
+
+  test("ITIL5FND: lab sources are rechecked with the course (2027-05-16), slugs never reuse ITIL 4's", () => {
+    for (const s of setOf("ITIL5FND").sources) assert.equal(s.recheckBy, "2027-05-16", s.url);
+    const old = new Set(setOf("ITIL4FND").labs.map((l) => l.slug));
+    for (const l of setOf("ITIL5FND").labs) assert.ok(!old.has(l.slug) && l.slug.startsWith("itil5-"), l.slug);
   });
 });

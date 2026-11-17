@@ -10,13 +10,13 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
-import { PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, CSSGB_TRACK } from "../supabase/seed/tracks/pm-frameworks";
+import { PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, ITIL5FND_TRACK, CSSGB_TRACK } from "../supabase/seed/tracks/pm-frameworks";
 import { NASM_CNC_TRACK } from "../supabase/seed/tracks/fitness";
 import { courseCategoryOf } from "./billing-config";
 import { STUDY_EMPHASIS_TRACK_CODES } from "./readiness";
 import { unitReferenceLines } from "./current-facts";
 
-const ALL = [PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, CSSGB_TRACK, NASM_CNC_TRACK];
+const ALL = [PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, ITIL5FND_TRACK, CSSGB_TRACK, NASM_CNC_TRACK];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
@@ -37,6 +37,7 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     assert.equal(CSM_TRACK.subcategorySlug, "agile-scrum-certifications");
     assert.equal(CSSGB_TRACK.subcategorySlug, "quality-six-sigma-certifications");
     assert.equal(ITIL4FND_TRACK.subcategorySlug, "it-certifications");
+    assert.equal(ITIL5FND_TRACK.subcategorySlug, "it-certifications");
     assert.equal(NASM_CNC_TRACK.subcategorySlug, "fitness");
     for (const t of ALL) assert.equal(t.credential?.subcategorySlug, t.subcategorySlug, t.code);
     const sql = readFileSync(new URL("../supabase/migrations/084_pm_agile_quality_taxonomy.sql", import.meta.url), "utf8");
@@ -69,7 +70,7 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
         const outline = u.sources?.find((s) => s.outline?.length);
         assert.ok(outline, `${t.code} / ${u.title} has outline statements`);
         assert.equal(outline!.kind, "exam_outline");
-        assert.equal(outline!.checkedAt, "2026-11-14");
+        assert.equal(outline!.checkedAt, t.code === "ITIL5FND" ? "2026-11-16" : "2026-11-14");
         for (const s of u.sources!) {
           assert.match(s.checkedAt, DATE);
           assert.match(s.url, /^https:\/\//);
@@ -134,5 +135,67 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     const lines = unitReferenceLines(NASM_CNC_TRACK, "Nutrition Science").join("\n");
     assert.match(lines, /1\.2-1\.6 g per kg/);
     assert.match(lines, /carbohydrate 45-65%, fat 20-35%, protein 10-35%/);
+  });
+});
+
+// REQ-308 (Nick, 2026-11-16): the ITIL course switches to ITIL Foundation
+// (Version 5). ITIL4FND is hidden, not deleted (it reached production in
+// #193 with no learners); ITIL5FND carries the syllabus v5.0 categories and
+// weights as read 2026-11-16 and stays unverified, because PeopleCert does
+// not publish the syllabus and it was read in a publisher's reproduction.
+describe("REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 Foundation", () => {
+  test("ITIL4FND is hidden with its reason; ITIL5FND is listed", () => {
+    assert.ok(!Number.isNaN(Date.parse(ITIL4FND_TRACK.hiddenAt!)));
+    assert.match(ITIL4FND_TRACK.hiddenReason ?? "", /ITIL5FND/);
+    assert.match(ITIL4FND_TRACK.hiddenReason ?? "", /https:\/\/peoplecert\.org\/help-and-support\/faq-itil/);
+    assert.equal(ITIL5FND_TRACK.hiddenAt, undefined);
+    assert.equal(ITIL4FND_TRACK.credential!.status, "transitioning");
+    assert.equal(ITIL4FND_TRACK.credential!.retirementDate, "2027-12-31");
+    assert.notEqual(ITIL5FND_TRACK.credential!.credentialSlug, ITIL4FND_TRACK.credential!.credentialSlug);
+  });
+
+  test("seven units in syllabus order, weighted 30/10/10/40/5/2.5/2.5 as published", () => {
+    const w = [30, 10, 10, 40, 5, 2.5, 2.5];
+    assert.deepEqual(activeUnits(ITIL5FND_TRACK).map((u) => u.weight), w);
+    assert.equal(sum(w), 100);
+    ITIL5FND_TRACK.units.forEach((u, i) => {
+      assert.match(u.rangeLabel ?? "", new RegExp(`^${w[i]}% of the exam \\(${(w[i] * 40) / 100} of 40 questions\\)$`));
+      const outline = u.sources!.find((s) => s.outline?.length)!;
+      assert.match(outline.outline![0], new RegExp(`^${i + 1}\\. `), u.title);
+    });
+    assert.notEqual(ITIL5FND_TRACK.credential?.domainWeights, "study_emphasis");
+  });
+
+  test("format as read on PeopleCert's page on 2026-11-16", () => {
+    const c = ITIL5FND_TRACK.credential!;
+    assert.equal(c.durationMinutes, 60);
+    assert.match(c.questionFormat!, /^40 multiple-choice questions in 60 minutes, closed book/);
+    assert.match(c.questionFormat!, /9 languages/);
+    assert.match(c.passingScorePolicy!, /^65%: 26 of 40/);
+    assert.equal(c.lastVendorVerifiedAt, "2026-11-16T00:00:00Z");
+  });
+
+  test("unverified: no sourceVerifiedAt or sourceUrl, reviewed within six months", () => {
+    assert.equal(ITIL5FND_TRACK.sourceVerifiedAt, undefined);
+    assert.equal(ITIL5FND_TRACK.sourceUrl, undefined);
+    assert.equal(ITIL5FND_TRACK.contentReviewDueAt, "2027-05-16T00:00:00Z");
+    assert.match(ITIL5FND_TRACK.credential!.versionNote!, /does not publish/);
+    for (const u of ITIL5FND_TRACK.units) for (const s of u.sources!) assert.equal(s.recheckBy, "2027-05-16", `${u.title}: ${s.url}`);
+  });
+
+  test("key values: the syllabus's lists (dimensions, lifecycle activities, principles, practice groups)", () => {
+    const lines = ITIL5FND_TRACK.units.flatMap((u) => u.sources!.flatMap((s) => s.keyValues ?? [])).join("\n");
+    assert.match(lines, /discover; design; acquire; build; transition; operate; deliver; support/);
+    assert.match(lines, /organizations and people; partners and suppliers; information and technology; value streams and processes/);
+    assert.match(lines, /focus on value; start where you are; progress iteratively with feedback/);
+    assert.match(lines, /general management practices, and product and service management practices/);
+  });
+
+  test("trademark: descriptive title with ® on first use, PeopleCert group notice, no license claim", () => {
+    assert.equal(ITIL5FND_TRACK.title, "Prep for the ITIL® Foundation (Version 5) Exam");
+    assert.match(ITIL5FND_TRACK.description, /not affiliated with or endorsed by PeopleCert\./);
+    assert.match(ITIL5FND_TRACK.description, /ITIL® and PRINCE2® are registered trademarks of the PeopleCert group\.$/);
+    assert.doesNotMatch(ITIL5FND_TRACK.description, /under licen[cs]e/i);
+    assert.doesNotMatch(ITIL5FND_TRACK.description, /\bITILs\b|\bITIL's\b/, "mark used as an adjective only");
   });
 });

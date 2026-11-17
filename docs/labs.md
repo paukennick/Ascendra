@@ -819,10 +819,11 @@ patient's team" or described without a number.
 | PSMI | 12 (7 build, 5 case) | 2/2/2/2/2/2 | [Scrum.org PSM I focus areas](https://www.scrum.org/assessments/professional-scrum-master-i-certification) and the [2020 Scrum Guide](https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf) (read 2026-11-14) |
 | CSM | 12 (7 build, 5 case) | 2/2/3/2/1/2 | [CSM learning objectives (January 2022)](https://www.scrumalliance.org/media/certifications/los/csm_learning_objectives_2022.pdf) and Scrum Foundations (read 2026-11-14) |
 | ITIL4FND | 12 (9 build, 3 case) | 2/2/1/1/1/2/3 | ITIL 4 Foundation syllabus v1.4, read in a training organization's copy; [PeopleCert exam page](https://www.peoplecert.org/browse-certifications/it-governance-and-service-management/ITIL-1/itil-4-foundation-2565) (read 2026-11-14) |
+| ITIL5FND (REQ-308) | 13 (9 build, 4 case) | 3/2/2/3/1/1/1 | ITIL Foundation (Version 5) syllabus v5.0 (February 2026), read in [Van Haren's licensed reproduction](https://download.boekhuis.nl/9789401814720_fragm-docb.pdf); [PeopleCert exam page](https://www.peoplecert.org/jp/browse-certifications/it-governance-and-service-management/ITIL-1/itil-5-foundation-version-50-4154) (read 2026-11-16). ITIL4FND above is hidden since 2026-11-16; its labs stay seeded with it |
 | CSSGB | 12 (10 build, 2 case) | 2/2/2/2/2/2 | [ASQ CSSGB Body of Knowledge (2022)](https://www.asq.org/cert/resource/pdf/certification/cssgb-cert-insert.pdf) (read 2026-11-14) |
 | NASMCNC | 10 (7 build, 3 case) | 2/3/2/3 | [NASM CNC course sections](https://www.nasm.org/products/single-complex/nasm-certified-nutrition-coach/CNC301K) (read 2026-11-14) |
 
-Files `seed/labs/scrum-psmi.ts`, `scrum-csm.ts`, `itil4-foundation.ts`,
+Files `seed/labs/scrum-psmi.ts`, `scrum-csm.ts`, `itil4-foundation.ts`, `itil5-foundation.ts` (REQ-308),
 `asq-cssgb.ts` and `fitness-nasmcnc.ts`, checked by
 `lib/labs-pm-frameworks.test.ts` (hybrid density unit by unit, one lab per
 objective, both kinds, at least five labs per course with an interactive

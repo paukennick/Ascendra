@@ -4,7 +4,7 @@ Measured 2026-11-14 on branch feature/build-labs and re-measured 2026-11-16 afte
 
 **The rule (Nick, 2026-11-14):** one lab per unit, plus six per course split across units by exam weight (equal split, earliest units first, when a course has no weights), at most three per unit, and never more labs in a unit than it has objectives. The generator's own plan (`unitPlan`, policy hybrid, docs/labs.md "Density") also caps each unit by how many objectives its verb heuristic counts as hands-on, which planned fewer labs than this rule in 40 visible courses; a course brought up to the rule gets a `LAB_PLAN_TOP_UPS` entry so the plan and the density tests follow the rule.
 
-**Totals for visible courses (2026-11-16, 146 courses):** 1703 labs now, 1707 required by the rule. On 2026-11-14 the 118 courses then visible had 1287 labs before the fill; this fill added 77. Hidden courses not measured: DCA, EX188, EX280.
+**Totals for visible courses (2026-11-16, 146 courses):** 1703 labs now, 1707 required by the rule. On 2026-11-14 the 118 courses then visible had 1287 labs before the fill; this fill added 77. Hidden courses not measured: DCA, EX188, EX280, and ITIL4FND (hidden 2026-11-16, REQ-308; it had 12/12 and its row is replaced by ITIL5FND, built to the rule with 13 labs).
 
 Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = the rest (Nick's fill order); 3* = a course added by #193 after the first measurement (its "labs before" is its count at merge). Per unit shows labs now / rule, in unit order.
 
@@ -151,7 +151,7 @@ Group: 1 = pre-generated and level-aware lessons, 2 = mixed-round courses, 3 = t
 | FNPANCC | 3* | 5 | 11 | 11 | 0 | 11 | 0 | 2/2 2/2 2/2 3/3 2/2 |
 | PSMI | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
 | CSM | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 3/3 2/2 1/1 2/2 |
-| ITIL4FND | 3* | 7 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 1/1 1/1 1/1 2/2 3/3 |
+| ITIL5FND | 3* | 7 | 13 | 13 | 0 | 13 | 0 | 3/3 2/2 2/2 3/3 1/1 1/1 1/1 |
 | CSSGB | 3* | 6 | 12 | 12 | 0 | 12 | 0 | 2/2 2/2 2/2 2/2 2/2 2/2 |
 | ASWBCLINICAL | 3* | 3 | 9 | 9 | 0 | 9 | 0 | 3/3 3/3 3/3 |
 | ASWBMASTERS | 3* | 3 | 9 | 9 | 0 | 9 | 0 | 3/3 3/3 3/3 |

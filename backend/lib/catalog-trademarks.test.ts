@@ -254,9 +254,11 @@ describe("REQ-309: app copy, README and What's new", () => {
 // are hidden from the catalog, not deleted, so they can come back if the
 // owners agree. Nothing else is hidden by accident.
 describe("hidden courses", () => {
-  test("exactly EX188, EX280 and DCA are hidden, each with its reason and guideline URL", () => {
+  // REQ-308: ITIL4FND is hidden too, replaced by ITIL5FND (its reason is
+  // checked in pm-frameworks-course.test.ts).
+  test("exactly EX188, EX280, DCA and ITIL4FND are hidden, each with its reason and guideline URL", () => {
     const hidden = CATALOG_TRACKS.filter((t) => t.hiddenAt).map((t) => t.code).sort();
-    assert.deepEqual(hidden, ["DCA", "EX188", "EX280"]);
+    assert.deepEqual(hidden, ["DCA", "EX188", "EX280", "ITIL4FND"]);
     for (const code of ["EX188", "EX280"]) {
       const t = byCode.get(code)!;
       assert.ok(!Number.isNaN(Date.parse(t.hiddenAt!)), code);

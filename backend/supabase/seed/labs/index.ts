@@ -156,6 +156,8 @@ import { withValueSources } from "./value-sources";
 import { PSMI_LABS } from "./scrum-psmi";
 import { CSM_LABS } from "./scrum-csm";
 import { ITIL4FND_LABS } from "./itil4-foundation";
+// REQ-308: ITIL Foundation (Version 5); ITIL4FND is hidden.
+import { ITIL5FND_LABS } from "./itil5-foundation";
 import { CSSGB_LABS } from "./asq-cssgb";
 import { NASMCNC_LABS } from "./fitness-nasmcnc";
 
@@ -307,6 +309,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PSMI_LABS,
   CSM_LABS,
   ITIL4FND_LABS,
+  ITIL5FND_LABS,
   CSSGB_LABS,
   NASMCNC_LABS,
   // REQ-286, REQ-287.
