@@ -526,15 +526,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgAlt,
     borderRightWidth: 1,
     borderRightColor: colors.border,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
   paneHidden: { display: "none" },
-  skipLink: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.sm, backgroundColor: colors.accentDim },
-  paneBrand: { fontFamily: fonts.displaySemiBold, fontSize: 20, color: colors.text, paddingHorizontal: 12, paddingTop: 2, paddingBottom: spacing.lg },
+  // Over the brand line while it has focus, so the menu below doesn't move.
+  skipLink: {
+    position: "absolute",
+    top: 8,
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: radius.sm,
+    backgroundColor: colors.accentDim,
+  },
+  paneBrand: { fontFamily: fonts.displaySemiBold, fontSize: 20, color: colors.text, paddingHorizontal: 16, paddingTop: 2, paddingBottom: spacing.md },
   paneScroll: { flex: 1 },
-  paneList: { gap: 2, paddingBottom: spacing.md },
+  // The scroll area clips; 4px each side keeps the focus ring (2px, offset 2px) visible.
+  paneList: { gap: 2, paddingHorizontal: 4, paddingTop: 4, paddingBottom: spacing.md },
   paneGroup: {
     fontFamily: fonts.monoMedium,
     fontSize: 10,
@@ -557,5 +569,5 @@ const styles = StyleSheet.create({
   paneRowOn: { backgroundColor: colors.accentDim },
   paneLabel: { fontFamily: fonts.body, fontSize: 15, color: colors.text, flex: 1 },
   paneLabelOn: { fontFamily: fonts.bodySemiBold, color: colors.link },
-  paneFooter: { gap: 2, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
+  paneFooter: { gap: 2, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm, paddingHorizontal: 4 },
 });
