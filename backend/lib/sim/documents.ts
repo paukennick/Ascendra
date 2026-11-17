@@ -462,6 +462,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "heparin-aptt-high-pink-urine"),
   entry("CCRNADULT", "toothache-tablets-level-above-line"),
   entry("CCRNADULT", "found-on-floor-tea-colored-urine"),
+  entry("NCLEXPN", "warfarin-inr-high-tarry-stool"),
   // ---- end REQ-325 ----
 ];
 
