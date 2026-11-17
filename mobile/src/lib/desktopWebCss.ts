@@ -15,11 +15,11 @@ import { WEB_COLUMN_BREAKPOINT } from "./webColumn.ts";
 // this at all. Hover also requires a real pointer that can hover, so a touch
 // laptop's tap does not leave a tint behind.
 //
-// - Focus: a 2px ring in the link colour (5.9:1 on the page background),
+// - Focus: a 2px ring in the link color (5.9:1 on the page background),
 //   shown only for keyboard focus (:focus-visible), not for mouse clicks.
 //   Text fields keep their own focused border and are left alone.
 // - Hover: a faint light wash over buttons and links that are not disabled.
-//   It is a background image, so it keeps the control's own colour and
+//   It is a background image, so it keeps the control's own color and
 //   rounded corners underneath.
 export function desktopWebCss(breakpoint: number = WEB_COLUMN_BREAKPOINT, ring: string = colors.link): string {
   const min = breakpoint + 1;
