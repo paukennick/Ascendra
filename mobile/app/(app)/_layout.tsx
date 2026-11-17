@@ -3,7 +3,9 @@ import { colors, fonts } from "@/lib/theme";
 import { BillingProvider } from "@/billing/BillingContext";
 import { useAuth } from "@/auth/AuthContext";
 import { Loading } from "@/components/ui";
-import { useColumnScreenOptions, webColumnLayout } from "@/components/WebColumn";
+import { useColumnScreenOptions, usePersistentSidebarWidth, useWideWeb, webColumnLayout } from "@/components/WebColumn";
+import { APP_CONTENT_ID, DesktopSidebar } from "@/components/Sidebar";
+import { Platform, StyleSheet, View } from "react-native";
 
 export default function AppLayout() {
   const { status } = useAuth();
@@ -14,7 +16,10 @@ export default function AppLayout() {
     headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 18 },
     headerShadowVisible: false,
     contentStyle: { backgroundColor: colors.bg },
-  });
+  }, { sidebar: true });
+  // REQ-328: the persistent sidebar on wide web windows.
+  const wide = useWideWeb();
+  const sidebarWidth = usePersistentSidebarWidth();
   // REQ-206 (FAIL-922): on a reload or a deep link every signed-in screen
   // mounted at once and sent its requests before the session was restored from
   // the refresh cookie (or before the launch lock was opened), so
@@ -23,8 +28,7 @@ export default function AppLayout() {
   // visible changes.
   if (status === "loading" || status === "locked" || status === "retry") return <Loading label="Restoring your session..." />;
   // REQ-122: the plan (inert while paid plans are off) for every signed-in screen.
-  return (
-    <BillingProvider>
+  const stack = (
     <Stack
       // Desktop web: a centered column on wide windows (src/lib/webColumn.ts).
       screenLayout={webColumnLayout}
@@ -79,6 +83,26 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/sims" options={{ title: "Simulations" }} />
       <Stack.Screen name="course/[trackId]/sim/[simId]" options={{ title: "Simulation" }} />
     </Stack>
+  );
+  // Native apps: exactly as before. On the web the stack always sits in the
+  // same wrapper, so resizing the window across 900px or opening a sim (where
+  // the sidebar hides) never remounts the stack and loses its history. The
+  // sidebar comes first, so Tab reaches it before the header and the screen.
+  if (Platform.OS !== "web") return <BillingProvider>{stack}</BillingProvider>;
+  return (
+    <BillingProvider>
+      <View style={styles.row}>
+        {wide ? <DesktopSidebar hidden={sidebarWidth === 0} /> : null}
+        {/* The skip link's target (screens carry their own role="main"). */}
+        <View style={styles.content} nativeID={wide ? APP_CONTENT_ID : undefined} tabIndex={wide ? -1 : undefined}>
+          {stack}
+        </View>
+      </View>
     </BillingProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  row: { flex: 1, flexDirection: "row" },
+  content: { flex: 1, minWidth: 0 },
+});
