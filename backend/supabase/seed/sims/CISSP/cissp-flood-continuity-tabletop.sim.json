@@ -1,0 +1,1225 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cissp-flood-continuity-tabletop",
+  "title": "A business continuity tabletop: the river rises",
+  "screen": {
+    "type": "tabletop",
+    "level": 1,
+    "tabletop": {
+      "injects": [
+        {
+          "id": "i1",
+          "title": "05:30 Flood warning",
+          "text": "The river warning is raised to major. Water is expected in the headquarters basement, where the data center is, by about 08:00. 140 day staff are due in at 07:00; 12 night staff are on site.",
+          "when": "t >= i1At",
+          "at": "i1At",
+          "open": "isNull(safetyAt)"
+        },
+        {
+          "id": "i2",
+          "title": "07:30 Power",
+          "text": "Mains power is lost at headquarters. The data center runs on its generator, with fuel for about six hours.",
+          "when": "t >= i2At",
+          "at": "i2At",
+          "open": "isNull(declareAt)"
+        },
+        {
+          "id": "i3",
+          "title": "10:00 Warm site",
+          "text": "The warm site reports it can start bringing systems up. IT asks which first.",
+          "when": "t >= i3At",
+          "at": "i3At",
+          "open": "order == \"unset\""
+        },
+        {
+          "id": "i4",
+          "title": "13:00 Payments",
+          "text": "Orders are flowing at the warm site, but every card charge fails: the payment processor only accepts traffic from the headquarters address.",
+          "when": "t >= i4At",
+          "at": "i4At",
+          "open": "isNull(processorAt)"
+        },
+        {
+          "id": "i5",
+          "title": "Day 2, 09:00 Customers",
+          "text": "Hospital customers are calling about today's deliveries of surgical supplies. Some threaten to switch suppliers.",
+          "when": "t >= i5At",
+          "at": "i5At",
+          "open": "isNull(customersAt)"
+        }
+      ],
+      "roles": [
+        {
+          "id": "lead",
+          "label": "Continuity coordinator (you)",
+          "spokenLabel": "Continuity coordinator, you",
+          "status": "{isNull(declareAt) ? \"Monitoring\" : \"Running the continuity plan\"}",
+          "tone": "\"engaged\""
+        },
+        {
+          "id": "fac",
+          "label": "Facilities and safety",
+          "spokenLabel": "Facilities and safety",
+          "status": "{isNull(safetyAt) ? \"Watching the river\" : \"Staff accounted for; building closed\"}",
+          "tone": "isNull(safetyAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "it",
+          "label": "IT disaster recovery lead",
+          "spokenLabel": "IT disaster recovery lead",
+          "status": "{isNull(declareAt) ? \"On the generator\" : \"Failing over to the warm site\"}",
+          "tone": "isNull(declareAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "ops",
+          "label": "Head of order operations",
+          "spokenLabel": "Head of order operations",
+          "status": "{order == \"bia\" ? \"Orders first, as the impact analysis says\" : order == \"unset\" ? \"Waiting\" : \"Waiting behind other systems\"}",
+          "tone": "order == \"unset\" ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier manager",
+          "spokenLabel": "Supplier manager",
+          "status": "{isNull(processorAt) ? \"Not yet involved\" : \"Calling the payment processor under the contract\"}",
+          "tone": "isNull(processorAt) ? \"waiting\" : \"engaged\""
+        },
+        {
+          "id": "capacity",
+          "label": "Warm site capacity",
+          "spokenLabel": "Warm site capacity",
+          "status": "{isNull(gapCapAt) ? \"Not yet discussed\" : \"Covers about 60 percent of the load the plan assumes\"}",
+          "tone": "isNull(gapCapAt) ? \"waiting\" : \"gap\""
+        }
+      ],
+      "comms": [
+        {
+          "id": "cStaff",
+          "label": "Staff",
+          "spokenLabel": "Staff message",
+          "status": "{isNull(staffAt) ? \"\" : not isNull(gapTreeAt) ? \"Do not come in; by text and the corrected call tree\" : \"Do not come in; by the call tree, a third of it out of date\"}",
+          "tone": "isNull(staffAt) ? (t >= i1At + 90 * 60 ? \"late\" : \"none\") : \"sent\""
+        },
+        {
+          "id": "cExec",
+          "label": "Executives",
+          "spokenLabel": "Executive briefing",
+          "status": "{isNull(execAt) ? \"\" : \"Disaster declared; recovery order and estimates\"}",
+          "tone": "isNull(execAt) ? \"none\" : \"sent\""
+        },
+        {
+          "id": "cCust",
+          "label": "Customers",
+          "spokenLabel": "Customer update",
+          "status": "{isNull(customersAt) ? \"\" : \"Status, alternate depot, a time for the next update\"}",
+          "tone": "isNull(customersAt) ? \"none\" : \"sent\""
+        }
+      ],
+      "decisions": {
+        "label": "Decision log",
+        "items": [
+          {
+            "label": "{staffComing ? \"Staff to come in as normal\" : \"Staff told not to come in; night shift accounted for and out\"}",
+            "when": "not isNull(safetyAt)"
+          },
+          {
+            "label": "Disaster declared; continuity plan invoked; failover to the warm site",
+            "when": "not isNull(declareAt)"
+          },
+          {
+            "label": "{order == \"bia\" ? \"Recover in impact-analysis order: orders and payments, then the warehouse, then the rest\" : \"Recover email and the file shares first\"}",
+            "when": "order != \"unset\""
+          },
+          {
+            "label": "Payment processor asked under the contract to allow the warm site's address",
+            "when": "not isNull(processorAt)"
+          },
+          {
+            "label": "Customers updated: status, alternate depot, next update time",
+            "when": "not isNull(customersAt)"
+          }
+        ]
+      },
+      "meters": [
+        {
+          "id": "mGen",
+          "label": "Generator fuel",
+          "value": "{not isNull(declareAt) ? \"Not needed: systems failed over\" : hardDown ? \"Out: the data center went down hard\" : t >= i2At ? \"Running on the generator: about six hours of fuel from 07:30\" : \"Not started\"}"
+        },
+        {
+          "id": "mGaps",
+          "label": "Plan gaps found",
+          "value": "{gapsFound} of 3"
+        }
+      ]
+    }
+  },
+  "objective": "Participate in business continuity planning and exercises",
+  "secondaryObjectives": [
+    "Implement disaster recovery processes and test the plan with read-throughs, walkthroughs, simulations, parallel tests and full interruption tests",
+    "Prioritize business continuity requirements from a business impact analysis, including external dependencies"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CISSP Certification Exam Outline (effective 2024-04-15), Domains 7 and 1",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline",
+      "note": "Headings read in the English PDF on 2026-11-14 for REQ-271 and not re-read: Domain 7 covers business continuity planning and exercises and disaster recovery testing (read-through, walkthrough, simulation, parallel, full interruption); Domain 1 covers business continuity requirements from a business impact analysis. The course's objective wording is its own."
+    },
+    {
+      "cite": "NIST SP 800-34 Rev. 1, Contingency Planning Guide for Federal Information Systems (May 2010, updated November 11, 2010)",
+      "checkedAt": "2026-11-14",
+      "url": "https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final",
+      "note": "Read 2026-11-14 for REQ-274 through a summarizing fetch of the CSRC page (final, not withdrawn) and not re-read; the BIA, maximum tolerable downtime and recovery-priority vocabulary is the guide's. The systems, times and tiers in this exercise are the author's."
+    },
+    {
+      "cite": "CISA, CISA Tabletop Exercise Packages (CTEPs)",
+      "checkedAt": "2026-11-16",
+      "url": "https://cisa.gov/cisa-tabletop-exercises-packages",
+      "note": "Read 2026-11-16 through a summarizing fetch of the CTEP page: the packages include 'template exercise objectives, scenarios, and discussion questions', templates for 'exercise planners, facilitators / evaluators, and participants', 'a feedback form ... and an After Action Report'; scenarios include ransomware. The injects, organization and times in this exercise are the author's."
+    },
+    {
+      "cite": "FEMA, Homeland Security Exercise and Evaluation Program (HSEEP), revised February 2020",
+      "checkedAt": "2026-11-16",
+      "url": "https://fema.gov/hseep",
+      "note": "Read 2026-11-16 through a summarizing fetch of the HSEEP page: 'Exercise evaluation assesses the ability to meet exercise objectives and capabilities'; results are documented in an After-Action Report/Improvement Plan covering 'strengths, areas for improvement, capability performance, and corrective actions'. The page does not itself say corrective actions get owners and dates; that practice is the author's reading of an improvement plan and is marked as such."
+    },
+    {
+      "cite": "NIST SP 800-84, Guide to Test, Training, and Exercise Programs for IT Plans and Capabilities (September 2006)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nist.gov/publications/guide-test-training-and-exercise-programs-it-plans-and-capabilities-0",
+      "note": "Read 2026-11-16 through a summarizing fetch of the NIST publication page, which gave only the title, number and dates (created 2006, page updated May 20, 2023); the guide's text on tabletop exercises was not read. Named as the federal guide for IT plan exercises; to verify."
+    }
+  ],
+  "brief": {
+    "situation": "You coordinate business continuity at Pinecrest Medical Supply, a fictional distributor of surgical supplies to hospitals. Today the continuity team runs a tabletop exercise, and you play the coordinator. The facilitator reads a flood scenario in injects from 05:30: the river is rising toward headquarters, where the data center sits in the basement. Keep people safe, invoke the plan in time, recover in the order the business needs, and find where the plan fails.",
+    "handover": [
+      "The business impact analysis gives order management and payments a maximum tolerable downtime of 24 hours, the warehouse system 48 hours, and email, file shares and payroll 7 days.",
+      "A warm site 200 km away holds replicas of the critical systems. This is an exercise: a decision made here is judged as if it were real."
+    ],
+    "howItWorks": [
+      "The clock is the scenario's time. Each discussion takes scenario minutes; the facilitator's next inject arrives on the same clock and stops the wait.",
+      "The table shows each inject (one still waiting for the team's decision is marked), the roles, the communications and the decision log.",
+      "When the exercise ends you write the after-action report and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-17T05:30",
+    "tick": "10min",
+    "maxDuration": "48h",
+    "calendar": "date"
+  },
+  "params": {
+    "i1At": {
+      "value": 0,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "First inject at 05:30."
+      },
+      "unit": "s"
+    },
+    "i2At": {
+      "value": 7200,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Power lost at 07:30."
+      },
+      "unit": "s"
+    },
+    "i3At": {
+      "value": 16200,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The warm site's question at 10:00."
+      },
+      "unit": "s"
+    },
+    "i4At": {
+      "value": 27000,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The payment failure at 13:00."
+      },
+      "unit": "s"
+    },
+    "i5At": {
+      "value": 99000,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Customers call on day 2 at 09:00."
+      },
+      "unit": "s"
+    },
+    "fuelHours": {
+      "value": 21600,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "About six hours of generator fuel (the fictional site's figure)."
+      },
+      "unit": "s"
+    },
+    "exerciseEnd": {
+      "value": 113400,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The facilitator ends the scenario on day 2 at 13:00."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "staffComing": {
+      "type": "bool",
+      "init": false
+    },
+    "hardDown": {
+      "type": "bool",
+      "init": false
+    },
+    "safetyAt": {
+      "type": "time",
+      "init": null
+    },
+    "declareAt": {
+      "type": "time",
+      "init": null
+    },
+    "orderAt": {
+      "type": "time",
+      "init": null
+    },
+    "processorAt": {
+      "type": "time",
+      "init": null
+    },
+    "customersAt": {
+      "type": "time",
+      "init": null
+    },
+    "staffAt": {
+      "type": "time",
+      "init": null
+    },
+    "execAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapDepAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapTreeAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapCapAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "downAt": {
+      "type": "time",
+      "init": null
+    },
+    "order": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "bia",
+        "email"
+      ],
+      "init": "unset"
+    },
+    "aar": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owned",
+        "listed",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "gapsFound": {
+      "expr": "(isNull(gapDepAt) ? 0 : 1) + (isNull(gapTreeAt) ? 0 : 1) + (isNull(gapCapAt) ? 0 : 1)"
+    },
+    "unowned": {
+      "expr": "aar == \"owned\" ? 0 : gapsFound"
+    },
+    "onTime": {
+      "expr": "(not isNull(safetyAt) and timeAt(safetyAt) - i1At <= decisionWindow ? 1 : 0) + (not isNull(declareAt) and timeAt(declareAt) - i2At <= decisionWindow ? 1 : 0) + (not isNull(orderAt) and timeAt(orderAt) - i3At <= decisionWindow ? 1 : 0) + (not isNull(processorAt) and timeAt(processorAt) - i4At <= decisionWindow ? 1 : 0) + (not isNull(customersAt) and timeAt(customersAt) - i5At <= decisionWindow ? 1 : 0)"
+    },
+    "rolesIn": {
+      "expr": "not isNull(safetyAt) and not isNull(declareAt) and not isNull(execAt) and not isNull(processorAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "exercise": {
+      "label": "Exercise in progress",
+      "clock": "turns",
+      "actions": [
+        "safety",
+        "declare",
+        "brief",
+        "recoveryOrder",
+        "processor",
+        "customers",
+        "askDep",
+        "askTree",
+        "askCap",
+        "watch",
+        "endEx"
+      ]
+    },
+    "report": {
+      "label": "Hot wash and after-action",
+      "clock": "stopped",
+      "actions": [
+        "afterAction"
+      ]
+    }
+  },
+  "initialPhase": "exercise",
+  "actions": {
+    "safety": {
+      "label": "Decide about staff and the building",
+      "group": "Decide",
+      "available": "not busy and isNull(safetyAt)",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "s",
+          "kind": "choice",
+          "label": "Staff",
+          "options": [
+            {
+              "value": "safe",
+              "label": "People first: tell day staff not to come in, account for the night shift and get them out"
+            },
+            {
+              "value": "normal",
+              "label": "Business as usual until the water actually arrives"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "safetyAt",
+          "to": "t"
+        },
+        {
+          "set": "staffComing",
+          "to": "s == \"normal\""
+        },
+        {
+          "if": "s == \"safe\"",
+          "then": [
+            {
+              "set": "staffAt",
+              "to": "t"
+            },
+            {
+              "log": "Day staff are told not to come in; the 12 night staff are accounted for and leave.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "log": "Staff are expected in at 07:00 into a building the river will reach.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "declare": {
+      "label": "Declare a disaster, invoke the continuity plan and fail over to the warm site",
+      "group": "Decide",
+      "available": "not busy and isNull(declareAt) and t >= i2At",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "declareAt",
+          "to": "t"
+        },
+        {
+          "log": "Disaster declared. IT starts the planned failover while the generator still runs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "brief": {
+      "label": "Brief the executives: declared, recovery order, estimates",
+      "group": "Decide",
+      "available": "not busy and isNull(execAt) and not isNull(declareAt)",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "execAt",
+          "to": "t"
+        },
+        {
+          "log": "The executives have the declaration, the recovery order and the estimates.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "recoveryOrder": {
+      "label": "Decide the recovery order",
+      "group": "Decide",
+      "available": "not busy and order == \"unset\" and t >= i3At",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "Order",
+          "options": [
+            {
+              "value": "bia",
+              "label": "As the business impact analysis sets it: order management and payments (maximum tolerable downtime 24 hours), then the warehouse system, then the rest"
+            },
+            {
+              "value": "email",
+              "label": "Email and the file shares first, so everyone can communicate"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "order",
+          "to": "r"
+        },
+        {
+          "set": "orderAt",
+          "to": "t"
+        },
+        {
+          "log": "Decided: {r == \"bia\" ? \"recover in impact-analysis order\" : \"email and file shares first\"}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "processor": {
+      "label": "Have the supplier manager call the payment processor under the contract to allow the warm site's address",
+      "group": "Decide",
+      "available": "not busy and isNull(processorAt) and t >= i4At",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "processorAt",
+          "to": "t"
+        },
+        {
+          "log": "The processor adds the warm site's address within two hours under the contract's continuity clause.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "customers": {
+      "label": "Update hospital customers: status, the alternate depot, and when the next update comes",
+      "group": "Decide",
+      "available": "not busy and isNull(customersAt) and t >= i5At",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "set": "customersAt",
+          "to": "t"
+        },
+        {
+          "log": "Customers hear what is shipping from the alternate depot and when they will hear next.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "askDep": {
+      "label": "Ask the table: which outside services does each critical process depend on?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapDepAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapDepAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask: which outside services does each critical process depend on?",
+          "kind": "act"
+        },
+        {
+          "finding": "The impact analysis lists internal systems only. The payment processor's address allow-list, the carrier's portal and the EDI link are in nobody's plan. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askTree": {
+      "label": "Ask the table: when was the staff call tree last tested?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapTreeAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapTreeAt",
+          "to": "t"
+        },
+        {
+          "log": "You ask: when was the staff call tree last tested?",
+          "kind": "act"
+        },
+        {
+          "finding": "Two years ago. About a third of the numbers are out of date. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askCap": {
+      "label": "Ask IT: how much of the normal load can the warm site carry?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapCapAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapCapAt",
+          "to": "t"
+        },
+        {
+          "log": "Ask IT: how much of the normal load can the warm site carry?",
+          "kind": "act"
+        },
+        {
+          "finding": "About 60 percent; the plan assumes all of it. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Move the scenario on (1 hour)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "log": "The facilitator moves the scenario on an hour.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "60min"
+        }
+      ]
+    },
+    "endEx": {
+      "label": "Call the end of the exercise and hold the hot wash",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "You call the end of the exercise and start the hot wash.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "afterAction": {
+      "label": "Write the after-action report",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "plan",
+              "label": "The gaps the exercise found",
+              "options": [
+                {
+                  "value": "owned",
+                  "label": "Each gap with an owner and a date in the improvement plan"
+                },
+                {
+                  "value": "listed",
+                  "label": "Listed; owners to be decided later"
+                },
+                {
+                  "value": "none",
+                  "label": "No report: the exercise went well"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "aar",
+          "to": "plan"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "After-action: {plan}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Discussion in progress",
+      "wait": {
+        "skipLabel": "Let the discussion finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "inject2",
+      "when": "t >= i2At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: mains power lost; the generator has about six hours of fuel.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject3",
+      "when": "t >= i3At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: the warm site asks which systems first.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject4",
+      "when": "t >= i4At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: card charges fail at the warm site.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject5",
+      "when": "t >= i5At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: hospital customers are calling.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "fuelOut",
+      "when": "isNull(downAt) and isNull(declareAt) and t >= i2At + fuelHours and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "downAt",
+          "to": "t"
+        },
+        {
+          "set": "hardDown",
+          "to": "true"
+        },
+        {
+          "log": "The generator runs dry. The data center goes down hard, mid-transaction, with no failover started.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "exEnd",
+      "when": "t >= exerciseEnd and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The facilitator ends the exercise. Time for the hot wash.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "hotwash"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "hotwash": {
+      "question": "For the after-action report: how the team protected people, when and why it invoked the plan, the recovery order it chose, and what the exercise showed about the plan.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "People and the declaration",
+          "criteria": "Puts people first at the warning (staff told not to come in, night shift accounted for); declares and fails over while the generator still runs, not after it fails.",
+          "modelAnswer": "Staff were told not to come in and the night shift was out by 06:00; we declared at 07:40 and failed over on generator power."
+        },
+        {
+          "label": "Recovery by impact",
+          "criteria": "Recovers in the business impact analysis's order (orders and payments within their 24-hour tolerance first) and handles the external dependency through the supplier contract.",
+          "modelAnswer": "Orders and payments first, inside their 24-hour tolerance; the processor added the warm site's address under the contract."
+        },
+        {
+          "label": "What the plan lacks",
+          "criteria": "Names the gaps (external dependencies missing from the impact analysis, an untested call tree, a warm site sized at 60 percent) and gives each an owner and a date.",
+          "modelAnswer": "Three gaps, each with an owner and a date: dependencies into the impact analysis, the call tree tested quarterly, and the warm site's capacity."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "exercise",
+    "thresholds": {
+      "decisionWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Each inject's decision within an hour of scenario time."
+        }
+      },
+      "unownedGaps": {
+        "value": 0,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "Every gap found has an owner and a date in the improvement plan."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declareAt) and not hardDown",
+      "class": "recovered",
+      "rationale": "The exercise ended before the plan was invoked and before the generator ran out; nothing was tested, but nothing in the scenario was lost either.",
+      "source": {
+        "cite": "FEMA, Homeland Security Exercise and Evaluation Program (HSEEP), revised February 2020",
+        "checkedAt": "2026-11-16",
+        "url": "https://fema.gov/hseep",
+        "note": "Read 2026-11-16 through a summarizing fetch of the HSEEP page: 'Exercise evaluation assesses the ability to meet exercise objectives and capabilities'; results are documented in an After-Action Report/Improvement Plan covering 'strengths, areas for improvement, capability performance, and corrective actions'. The page does not itself say corrective actions get owners and dates; that practice is the author's reading of an improvement plan and is marked as such."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "People put at risk",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and staffComing",
+      "narrative": "In the scenario, 140 people drove toward a building the river was about to reach. No system is worth that."
+    },
+    "hardDown": {
+      "label": "The data center went down hard",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and hardDown",
+      "narrative": "The plan was never invoked while there was power to fail over cleanly; the generator ran dry with transactions in flight."
+    },
+    "noReport": {
+      "label": "No after-action",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and aar == \"none\"",
+      "narrative": "The exercise found problems, and none of them will be fixed: there is no improvement plan."
+    },
+    "exercised": {
+      "label": "The plan was tested and the gaps owned",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and onTime >= 5 and rolesIn and gapsFound >= 3 and unowned <= unownedGaps and order == \"bia\"",
+      "narrative": "People first, the plan invoked in time, recovery in the order the business needs, and each gap with an owner and a date."
+    },
+    "partly": {
+      "label": "Partly tested",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The exercise ran, but decisions came late, the recovery order ignored the impact analysis, or a gap went unfound or unowned."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no after-action report."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "hardDown",
+    "noReport",
+    "exercised",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "timely",
+        "label": "Each inject decided within an hour of scenario time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "onTime >= 5",
+            "score": "met",
+            "why": "All five in time."
+          },
+          {
+            "when": "onTime >= 3",
+            "score": "partial",
+            "why": "{onTime} of 5 in time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{onTime} of 5 in time."
+          }
+        ]
+      },
+      {
+        "id": "people",
+        "label": "People first: staff kept away and the night shift accounted for",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(safetyAt) and not staffComing",
+            "score": "met",
+            "why": "Nobody went toward the water."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{staffComing ? \"Staff were told to come in.\" : \"Staff were never told.\"}"
+          }
+        ]
+      },
+      {
+        "id": "order",
+        "label": "Recovered in the impact analysis's order and handled the outside dependency",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "order == \"bia\" and not isNull(processorAt)",
+            "score": "met",
+            "why": "Orders and payments first; the processor fixed under contract."
+          },
+          {
+            "when": "order == \"bia\" or not isNull(processorAt)",
+            "score": "partial",
+            "why": "Half of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{order == \"email\" ? \"Email before the orders the hospitals need.\" : \"No recovery order.\"}"
+          }
+        ]
+      },
+      {
+        "id": "gaps",
+        "label": "Found the plan's gaps and gave each an owner and a date",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gapsFound >= 3 and unowned <= unownedGaps",
+            "score": "met",
+            "why": "All three found and owned."
+          },
+          {
+            "when": "gapsFound >= 1 and aar != \"none\"",
+            "score": "partial",
+            "why": "{gapsFound} of 3 found; {unowned} without an owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{aar == \"none\" ? \"No after-action report.\" : \"No gap found.\"}"
+          }
+        ]
+      },
+      {
+        "id": "declare",
+        "label": "Declared and failed over on generator power",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(declareAt) and not hardDown",
+            "score": "met",
+            "why": "Clean failover."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{hardDown ? \"The generator ran dry first.\" : \"Never declared.\"}"
+          }
+        ]
+      },
+      {
+        "id": "comms",
+        "label": "Executives briefed and customers updated",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(execAt) and not isNull(customersAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(execAt) or not isNull(customersAt)",
+            "score": "partial",
+            "why": "Only one."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "hotwash",
+        "label": "Written after-action: people, declaration, recovery order, gaps",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "onTime",
+        "label": "Injects decided within an hour",
+        "value": "onTime",
+        "format": "number",
+        "expert": "5"
+      },
+      {
+        "id": "gaps",
+        "label": "Plan gaps found",
+        "value": "gapsFound",
+        "format": "number",
+        "expert": "3"
+      },
+      {
+        "id": "unowned",
+        "label": "Gaps left without an owner",
+        "value": "unowned",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "05:30-06:00",
+        "text": "People first: tell day staff not to come in and get the night shift out. Ask when the call tree was last tested."
+      },
+      {
+        "at": "07:30-08:00",
+        "text": "Declare and fail over while the generator runs; brief the executives; ask how much load the warm site carries."
+      },
+      {
+        "at": "10:00",
+        "text": "Recover in the impact analysis's order: orders and payments first. Ask which outside services each process depends on."
+      },
+      {
+        "at": "13:00 and day 2",
+        "text": "Have the supplier manager fix the processor under the contract; update hospital customers with a time for the next update."
+      },
+      {
+        "at": "After",
+        "text": "Give each gap an owner and a date in the improvement plan."
+      }
+    ],
+    "debrief": {
+      "exercised": {
+        "headline": "Good: the exercise did its job",
+        "body": "People first, the plan invoked while it could still work, recovery by business impact, and the plan's gaps owned while they are cheap to fix."
+      },
+      "partly": {
+        "headline": "Partly tested",
+        "body": "The criteria show what was missed: a late decision, a recovery order that ignored the impact analysis, or a gap found but not owned."
+      },
+      "unsafe": {
+        "headline": "People come first",
+        "body": "Life safety comes before any system. Sending staff toward a flood is a decision no continuity plan allows."
+      },
+      "hardDown": {
+        "headline": "Declared too late",
+        "body": "A warm site is only useful if you fail over while you still can. Waiting for the generator to fail turned a planned failover into a crash."
+      },
+      "noReport": {
+        "headline": "Nothing will change",
+        "body": "Without an improvement plan, the gaps the exercise found will still be there when the river really rises."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No after-action report was written before the run's limit."
+      }
+    },
+    "modelReasoning": "People first: keep day staff away and get the night shift out. Declare and fail over while the generator still runs. Recover in the business impact analysis's order: orders and payments within their 24-hour tolerance, then the warehouse, then the rest. Fix the processor's allow-list through the supplier contract. Brief executives and update customers with a time for the next update. Use the exercise to find the plan's gaps: external dependencies, an untested call tree, a warm site at 60 percent. Give each an owner and a date."
+  }
+}

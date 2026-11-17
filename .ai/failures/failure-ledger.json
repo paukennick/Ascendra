@@ -18209,6 +18209,495 @@
       "prevention_rules": [],
       "prevention_notes": "When a course is hidden, README counts, the sims list and What's new items that name or count it are updated in the same change.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2180",
+      "date": "2026-11-16",
+      "title": "REQ-269 sim test selected its documents by course code",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/sim/tech-courses-sims.test.ts failed 4 tests (two per course; SQL and TSNODE now had three) after REQ-312 added a data console SQL sim and a TSNODE band",
+      "how_detected": "test run while adding REQ-312 sims",
+      "root_cause": "The test built its set with ALL_DOCUMENTS.filter(e => e.course in SCREEN), so any later sim registered to SQL or TSNODE joined a set whose rules (terminal screen, two per course, terminal profile) were written for REQ-269 only; the FAIL-2002 rule had not been applied to this older test",
+      "requirement": "REQ-312",
+      "affected": [
+        "backend/lib/sim/tech-courses-sims.test.ts"
+      ],
+      "fix_summary": "The test lists its eight REQ-269 slugs; REQ-312's own tests select by DATA_CONSOLE_SLUGS",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/tech-courses-sims.test.ts",
+        "backend/lib/sim/data-console.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug from their own requirement's list (FAIL-2002); a new sim on an existing course is checked against every test that filters by that course code",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2200",
+      "date": "2026-11-16",
+      "title": "A critical criterion of the CISM exception case was never missed by any golden path",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: ERROR scoring.criteria.governed: missed by no golden path (cism-risk-appetite-exception)",
+      "how_detected": "npm run sims:lint (scratch runner over the REQ-313 documents)",
+      "root_cause": "The no-conditions path still recorded the exception in the register, so 'governed' scored partial, never missed; the golden set could not show the criterion separates a governed exception from an ungoverned one. Same class as FAIL-1823.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/scripts/sim-golden/cism-exception.steps.ts"
+      ],
+      "fix_summary": "The asAsked path no longer records the exception, so governed is missed there; goldens rebuilt",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/governance-screens.test.ts (every criterion met and missed in every REQ-313 golden file)",
+        "sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-313 test checks met-and-missed per criterion for every document, so a path change that hides a criterion fails npm test, not only sims:lint",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2201",
+      "date": "2026-11-16",
+      "title": "The REQ-274 security-console test selected documents by course code and failed once REQ-313 added sims to the same courses",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/security-certs-sims.test.ts: not ok 'at least two per course, each valid, on the console ...' (the governance board, tabletop and session documents in ISC2CC, CISSP and CISM are not security-console)",
+      "how_detected": "backend sim tests run for the changed area",
+      "root_cause": "The test (and lib/sims-security-certs.dbtest.ts, which expected exactly eight seeded sims) took every document of the four courses instead of naming its own slugs, the selection FAIL-2002 already ruled out; any new sim in those courses breaks it.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sims-security-certs.dbtest.ts"
+      ],
+      "fix_summary": "Both select the eight REQ-274 documents by slug",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Round rule: sim tests select documents by slug, never by course code",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2220",
+      "date": "2026-11-16",
+      "title": "Sandbox case sample hash had 65 hex characters",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: screen.sandbox.indicators[0].value has an encoded blob (40+ base64 characters)",
+      "how_detected": "sandboxSafetyProblems (lint) while authoring",
+      "root_cause": "The fictional SHA-256 was typed with one extra character; a SHA-256 digest is 64 hex characters and the defensive lint only exempts 40-64 hex digests, so the malformed value was reported as a blob",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/supabase/seed/sims/CEH/ceh-sandbox-invoice-loader.sim.json"
+      ],
+      "fix_summary": "Hash corrected to 64 characters",
+      "fix_commits": [
+        "5df424e9"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/screens-misc.test.ts::FAIL-2220: a SHA-256 is 64 hex characters; a 65-character one is caught as a blob"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "sandboxSafetyProblems runs in sims:lint and the REQ-314 test; the exemption is exact on length",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2221",
+      "date": "2026-11-16",
+      "title": "Security console tests selected documents by course",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "security-certs-sims.test.ts: screen 'facility-console' !== 'security-console'; security-w2.test.ts: CYSAPLUS 3 !== 2",
+      "how_detected": "running the existing sim tests after adding REQ-314 documents",
+      "root_cause": "Both tests took every document of their courses as console cases; a new CISSP case on the facility console, a CEH case on the sandbox report and a CySA+ band broke the counts and screen asserts",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "Select by course and screen type security-console",
+      "fix_commits": [
+        "25029f1d"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests select sim documents by slug or screen, never by course alone (FAIL-2002); REQ-314's own test selects by slug lists (REQ314_SLUGS)",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2222",
+      "date": "2026-11-16",
+      "title": "time_up debrief text equal to the ending narrative leaked as server-only text",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: server-only text reaches the client: The case ran out without a record. (and two more cases)",
+      "how_detected": "lib/sim/documents.test.ts",
+      "root_cause": "Three cases used the same sentence for the time_up ending's narrative (sent to the app) and its debrief body (server-only), so the leak test saw debrief text in the client document",
+      "requirement": "REQ-314",
+      "affected": [
+        "NASMCPT/cpt-squat-knees-cave",
+        "NASMCNC/cnc-ambivalent-food-record",
+        "CEH/ceh-sandbox-invoice-loader"
+      ],
+      "fix_summary": "Debrief bodies rewritten as advice, distinct from the narrative",
+      "fix_commits": [
+        "a0820ee1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/screens-misc.test.ts::no debrief",
+        "model answer or expert path text appears in what the app receives",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-314 test runs the leak check on its own documents, so it fails fast without the heavy documents test",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2240",
+      "date": "2026-11-16",
+      "title": "NBCC session list selected by course, so any new NCE or NCMHCE sim broke the REQ-239 tests",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Registering an NCE or NCMHCE band (REQ-315) adds it to NBCC_SESSION_DOCUMENTS, whose test asserts exactly five REQ-239 documents with fixed objectives",
+      "how_detected": "review before registering the NCE and NCMHCE bands",
+      "root_cause": "NBCC_SESSION_DOCUMENTS filtered ALL_DOCUMENTS by course code, the pattern FAIL-2000/FAIL-2002 retired for DPT and the IT waves; this list was missed",
+      "requirement": "REQ-315",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "NBCC_SESSION_DOCUMENTS now names the five REQ-239 slugs (NBCC_FIRST_SET)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/clinical-sims-1116.test.ts::FAIL-2240: the REQ-239 NBCC session list is named by slug",
+        "so NCE and NCMHCE bands do not join it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select by slug from their requirement's own list (pre-completion checklist, FAIL-2002); the new regression test pins the NBCC list",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2241",
+      "date": "2026-11-16",
+      "title": "A sim state variable named scoring looked like the server-only scoring block in the client document",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: 'NCLEXRN/alcohol-withdrawal-ciwa: client document has key \"scoring\"'",
+      "how_detected": "lib/sim/documents.test.ts in the end-of-work run under the shared lock",
+      "root_cause": "The CIWA-Ar case named its scoring-in-progress flag state.scoring; the client-leak test checks key names anywhere in the client document, so a client-visible id that equals a server-only key fails it. Neither the schema nor sims:lint checks ids against that list, and documents.test.ts is heavy and was run only at the end",
+      "requirement": "REQ-315",
+      "affected": [
+        "backend/supabase/seed/sims/NCLEXRN/alcohol-withdrawal-ciwa.sim.json",
+        "backend/scripts/sim-golden/rn-ciwa.steps.ts"
+      ],
+      "fix_summary": "Renamed the state to scoringNow and rebuilt the goldens",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/clinical-sims-1116.test.ts::FAIL-2241: no client-visible id is a server-only key name",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A cheap test over every document names the clash at authoring time, before the heavy documents test runs",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2130",
+      "date": "2026-11-16",
+      "title": "Parkinson sim called behavior-change approaches a strong recommendation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "DPT parkinson-freezing-session scoring.modelReasoning said 'the guideline's strong recommendations are ... external cueing for freezing, and behavior-change approaches'.",
+      "how_detected": "REQ-310 source verification pass (guideline full text read 2026-11-16)",
+      "root_cause": "The note was relayed from the course seed and the guideline was only found by title on 2026-11-16; the builder grouped behavior change with the strong recommendations. Osborne et al. 2022 Table 1 gives behavior-change approaches a moderate-strength recommendation.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/parkinson-freezing-session.sim.json"
+      ],
+      "fix_summary": "Model reasoning now says the guideline strongly recommends aerobic exercise, balance and gait training and external cueing, and also recommends behavior-change approaches (moderate strength); source notes dated 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2130"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Strength-of-recommendation claims are checked against the guideline's own table, not a relayed summary.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2131",
+      "date": "2026-11-16",
+      "title": "PTSD content taught the 2017 APA guideline's strength ranking after the 2025 update",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP lab eppp-match-ebt said the APA PTSD guideline 'strongly recommends CBT, cognitive processing therapy, cognitive therapy and prolonged exposure' and conditionally brief eclectic psychotherapy; the NCMHCE trauma sim called CPT 'a strongly recommended treatment' and EMDR one of 'the recommended' therapies, citing the 2019 panel summary.",
+      "how_detected": "REQ-310 source verification pass (apa.org guideline page read 2026-11-16)",
+      "root_cause": "The source was read only as a PubMed abstract of the 2019 summary (2026-11-11); nobody checked for a newer edition. APA Council approved an update in February 2025: CBT, CPT and PE are recommended; cognitive therapy, EMDR and NET are suggested; brief eclectic psychotherapy is no longer listed.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/labs/eppp.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/sims/NCMHCE/ncmhce-trauma-treatment-plan.sim.json"
+      ],
+      "fix_summary": "Lab rubric and model answer follow the 2025 tiers; the lab source and the sim source cite the 2025 guideline page (checked 2026-11-16); sim wording no longer calls EMDR recommended or CPT strongly recommended.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2131"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A verification pass checks the publisher's page for a newer edition, not only the cited abstract.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2132",
+      "date": "2026-11-16",
+      "title": "Volk v. DeMeerleer citation put words in quotation marks the opinion does not use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The ASWB Clinical threat case cited Volk as requiring 'reasonable care, consistent with the standards of the mental health profession'; the opinion says the professional is 'under a duty of reasonable care to act consistent with the standards of the mental health profession and to protect the foreseeable victims'.",
+      "how_detected": "REQ-310 verification pass (slip opinion PDF from courts.wa.gov read 2026-11-16)",
+      "root_cause": "The opinion was read on 2026-11-14 only through a summary of Justia's page, and the summary's paraphrase was placed inside quotation marks.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/ASWBCLINICAL/aswbc-threat-identifiable-person.sim.json"
+      ],
+      "fix_summary": "Citation quotes the opinion verbatim and points at the court's PDF; note dated 2026-11-16. Also re-read RCW 26.44.020/.030/.060/.080, 9A.16.100, 71.05.120 and 42 CFR 483.12/483.24; 483.12(c) citation now includes the abuse and 24-hour branches.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2132"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Quotation marks only around text read in the primary source, never around a summary's paraphrase.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2133",
+      "date": "2026-11-16",
+      "title": "GCPACE bucket sim cited the retired five-section ACE exam guide",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "public-bucket-customer-exports cited 'Section 4 Ensuring successful operation of a cloud solution (~20%), 4.4 Managing storage and database solutions' and both GCPACE sims recorded five section weights (20/17.5/25/20/17.5).",
+      "how_detected": "REQ-310 verification pass (guide PDF read 2026-11-16)",
+      "root_cause": "On 2026-11-14 the builder read Google's guide web page, which still showed the previous five-section guide; the current PDF (live 2026-06-30) has four sections and the course units already followed it. The 'to verify' guide PDF was never opened.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/supabase/seed/sims/GCPACE/public-bucket-customer-exports.sim.json",
+        "backend/supabase/seed/sims/GCPACE/cloud-run-bad-revision-rollback.sim.json"
+      ],
+      "fix_summary": "Both sims cite Section 3 (~30%), 3.1 and 3.2 of the current guide, dated 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/source-verification.test.ts::FAIL-2133"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim outline citations are checked against the guide the course units follow, not a vendor web page that may be stale.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2120",
+      "date": "2026-11-16",
+      "title": "Sims named permission-only exam bodies' marks in learner-facing text",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After REQ-309 (#205), learner-facing sim text still named marks of bodies whose policy allows no use without written permission: NASM-CNC and NASM in two nutrition coaching sims, NCMHCE in three counseling briefs, APTA in a DPT teaching prompt, ITIL in the new service desk sim's reasoning question, and a form number CC-0412 that reads as ISC2's CC mark.",
+      "how_detected": "integration review of the 2026-11-17 wave against catalog-trademarks.test.ts",
+      "root_cause": "REQ-309 checked course titles, descriptions, README, the app list and What's new, but not sim documents; the only sim-level check (lint.ts certMarkProblems, REQ-313) covered the governance, exercise and professional-ethics profiles, and the wave's sims were written before #205.",
+      "requirement": "REQ-309",
+      "affected": [
+        "backend/lib/sim/lint.ts",
+        "backend/supabase/seed/sims/NASMCNC",
+        "backend/supabase/seed/sims/NCMHCE",
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json",
+        "backend/supabase/seed/sims/ITIL5FND/monday-service-desk-wifi-problem.sim.json",
+        "backend/supabase/seed/sims/SECPLUS/departing-engineer-usb-evidence.sim.json"
+      ],
+      "fix_summary": "certMarkProblems checks every profile for the 13 permission bodies' marks (patterns copied from catalog-trademarks.test.ts, less the homonyms GCS, ECS, CISA and 'ACE inhibitor'); the texts were reworded to describe the role or topic.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/cert-marks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "cert-marks.test.ts fails if the lint's patterns drift from the catalog test's permission bodies, and runs the check over every seeded document.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2121",
+      "date": "2026-11-16",
+      "title": "README named ITIL after PeopleCert became permission-only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "README's sims list (added by REQ-311) read 'Scrum (PSM I and CSM) and ITIL Foundation (Version 5)'; catalog-trademarks.test.ts 'README names no permission body or mark' fails on ITIL once #205 is merged.",
+      "how_detected": "integration review of the 2026-11-17 wave",
+      "root_cause": "REQ-311 was written before #205 made PeopleCert a permission-only body.",
+      "requirement": "REQ-309",
+      "affected": [
+        "README.md"
+      ],
+      "fix_summary": "The line now reads 'Scrum and IT service management'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "catalog-trademarks.test.ts checks README for every permission body's marks; new README lines describe the topic, not the exam.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2122",
+      "date": "2026-11-16",
+      "title": "Union merge of the screen branches nested later screen checks inside earlier ones",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the wave branch after merging REQ-312..REQ-314, validate.ts called dataCheck from inside deskCheck, governanceCheck and tabletopCheck from inside dataCheck, and the facility, sandbox and trainer checks from inside tabletopCheck, each after the host's early return, so those screens' bindings were validated only when another screen's bindings existed. The REQ-313 and REQ-316 document entries likewise landed in DATA_CONSOLE_SLUGS instead of ALL_DOCUMENTS (and REQ-315's after the next array).",
+      "how_detected": "integration review of the merged validate.ts and documents.ts",
+      "root_cause": "Each branch inserted a new call plus a new function at the same base point, relying on the base's closing brace to close its function. Concatenating two such insertions (ours then theirs) is valid syntax but moves theirs' call into ours' last function; the same happened with array entries appended before a shared closing bracket.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "All screen checks are called from screenCheck; each block of document entries is inside ALL_DOCUMENTS.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/screen-checks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When resolving same-point insertions by concatenation, check that each side's insertion is self-contained (a call plus a closed function, entries before the array's own bracket); screen-checks.test.ts fails if a screen's check is not reached for a document of that type alone.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2123",
+      "date": "2026-11-16",
+      "title": "Data profile threshold shared its name with the SQL case's state counter",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The data outcome profile's threshold rowsAlteredOutsideFix had the same name as the SQL case's state counter; because thresholds are bound as names, the case could not use both and left the threshold out (docs/sims.md 22.25 note 3).",
+      "how_detected": "REQ-312 build notes; rename approved by Nick 2026-11-16",
+      "root_cause": "docs/sims.md 20.1 suggested the same name for the counter and the threshold.",
+      "requirement": "REQ-312",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts",
+        "mobile/src/sim/engine/v1/validate.ts",
+        "docs/sims.md"
+      ],
+      "fix_summary": "The threshold is now alteredRowsMax; the counter keeps its name.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/data-console.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "data-console.test.ts asserts the old name is not a data threshold.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2124",
+      "date": "2026-11-16",
+      "title": "EPPP lab test still expected the 2017 PTSD guideline citation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "labs-aplus-eppp.test.ts 'the EPPP labs that quote a drug level, a statute or a guideline cite it' failed on the wave branch: eppp-match-ebt no longer cites PubMed 31305099.",
+      "how_detected": "backend lib suite on wave/2026-11-17",
+      "root_cause": "REQ-310 moved the lab to the 2025 APA PTSD guideline's page and the test asserting the old URL was not run in that pass.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/lib/labs-aplus-eppp.test.ts"
+      ],
+      "fix_summary": "The test checks for the APA PTSD guideline page instead.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-aplus-eppp.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full lib suite (in parts) after a source verification pass, not only targeted tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2125",
+      "date": "2026-11-16",
+      "title": "Two wave bands landed on the same Security+ objective",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "it-wave4.test.ts 'one per objective' failed on the wave branch: ransomware-recovery-site-secplus (REQ-316) and flood-continuity-tabletop-secplus (REQ-313) are both registered on SECPLUS's resilience and recovery objective.",
+      "how_detected": "lib/sim suite on wave/2026-11-17",
+      "root_cause": "The IT and governance builders worked in parallel from the same master and each checked only the documents on its own branch.",
+      "requirement": "REQ-316",
+      "affected": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "fix_summary": "Both kept (different halves of the objective); the test lists the pair as a known shared objective pending a decision by the lead or Nick.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Parallel sim builders should be given disjoint objective lists, or the integration run checks objective overlap across branches.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2126",
+      "date": "2026-11-16",
+      "title": "NBCC session test pinned source dates before the verify pass",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "nbcc-session.test.ts required every source checkedAt to be 2026-11-10 or 2026-11-11; REQ-310 re-read ncmhce-trauma-treatment-plan's APA PTSD guideline on 2026-11-16.",
+      "how_detected": "lib/sim suite on wave/2026-11-17",
+      "root_cause": "The test pinned exact read dates, and the verify pass did not run it.",
+      "requirement": "REQ-310",
+      "affected": [
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "fix_summary": "The test also accepts 2026-11-16.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/nbcc-session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run the full lib/sim suite in chunks after a verification pass that re-dates sources.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2127",
+      "date": "2026-11-16",
+      "title": "REQ-238 DB test selected its sims by course after a band joined CYSAPLUS",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims-security-w2.dbtest.ts expected eight seeded sims and got nine on the wave branch: REQ-314's sandbox-invoice-loader-cysa band is also on CYSAPLUS.",
+      "how_detected": "sims DB tests on a throwaway Postgres, wave/2026-11-17",
+      "root_cause": "The test filtered ALL_DOCUMENTS by course, which FAIL-2002 already said not to do; the screens-misc branch did not run the DB suite.",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/lib/sims-security-w2.dbtest.ts"
+      ],
+      "fix_summary": "Select the eight REQ-238 incidents by slug.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims-security-w2.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug (round rule, FAIL-2002); run the sims DB tests when a branch adds sims to a course another suite seeds.",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

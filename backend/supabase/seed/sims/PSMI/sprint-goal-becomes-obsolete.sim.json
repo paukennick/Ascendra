@@ -1,0 +1,1474 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sprint-goal-becomes-obsolete",
+  "title": "Sprint 9: the partner bank pulls out mid-Sprint",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 9 · day {day} of 5{cancelledBy != \"none\" ? \" · cancelled\" : \"\"}",
+      "commitments": [
+        {
+          "id": "productGoal",
+          "label": "Product Goal",
+          "text": "Loyalty members come back more often."
+        },
+        {
+          "id": "sprintGoal",
+          "label": "Sprint Goal",
+          "text": "{goalChanged ? \"Replaced mid-Sprint: a gift-card balance check\" : \"Members can redeem points for a discount at checkout.\"}{obsolete ? \" (obsolete: the points scheme ends Friday)\" : \"\"}"
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Code reviewed; automated tests pass; accessibility checked; deployed to staging."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Done"
+        }
+      ],
+      "items": [
+        {
+          "id": "r1",
+          "label": "Show the points balance at checkout",
+          "column": "r1",
+          "when": "true",
+          "size": "5 points"
+        },
+        {
+          "id": "r2",
+          "label": "Redeem points for a discount{r2small ? \" (first slice: a fixed discount)\" : \"\"}",
+          "column": "r2",
+          "when": "true",
+          "size": "{r2small ? \"5 points\" : \"8 points\"}",
+          "note": "{scope == \"cutQuality\" ? \"Review and accessibility check skipped\" : \"\"}",
+          "flag": "obsolete and cancelledBy == \"none\""
+        },
+        {
+          "id": "r3",
+          "label": "Points earned, on the order confirmation email",
+          "column": "r3",
+          "when": "true",
+          "size": "3 points"
+        },
+        {
+          "id": "g",
+          "label": "Gift-card balance check (Dana's request)",
+          "column": "g",
+          "when": "giftAdded",
+          "size": "5 points",
+          "note": "Added mid-Sprint"
+        }
+      ],
+      "chart": {
+        "label": "Sprint burn-down",
+        "unit": "points",
+        "slots": 5,
+        "slotLabel": "Day",
+        "series": [
+          {
+            "id": "remaining",
+            "label": "Points remaining",
+            "style": "actual",
+            "history": "burn"
+          },
+          {
+            "id": "plan",
+            "label": "Plan",
+            "style": "plan",
+            "values": [
+              16,
+              12,
+              8,
+              4,
+              0
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "size",
+          "label": "Redeeming points is bigger than planned",
+          "when": "scope != \"none\"",
+          "at": "7200",
+          "status": "{scope == \"negotiate\" ? \"Scope renegotiated with Maya\" : scope == \"push\" ? \"Evenings this week\" : scope == \"extend\" ? \"Sprint stretched by two days\" : \"Quality cut\"}",
+          "open": "false"
+        },
+        {
+          "id": "bank",
+          "label": "The partner bank ends the points scheme on Friday",
+          "when": "obsolete",
+          "at": "timeAt(obsoleteAt)",
+          "status": "{cancelledBy == \"po\" ? \"Maya cancelled the Sprint\" : cancelledBy == \"sm\" ? \"The Scrum Master cancelled the Sprint\" : \"The Sprint carries on toward an obsolete Goal\"}",
+          "open": "cancelledBy == \"none\" and phase == \"sprint\""
+        }
+      ],
+      "people": [
+        {
+          "id": "dev",
+          "label": "Developers",
+          "spokenLabel": "The Developers",
+          "value": "devTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "po",
+          "label": "Maya, Product Owner",
+          "spokenLabel": "Maya, the Product Owner",
+          "value": "poTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "dana",
+          "label": "Dana, VP of Sales",
+          "spokenLabel": "Dana, the VP of Sales",
+          "value": "danaTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "ds",
+          "label": "Daily Scrums",
+          "at": "72900",
+          "status": "{cancelledBy != \"none\" ? \"Ended with the Sprint\" : \"Each morning at 09:15\"}"
+        },
+        {
+          "id": "review",
+          "label": "Sprint Review",
+          "at": "349200",
+          "status": "{cancelledBy != \"none\" ? \"Not held: the Sprint was cancelled\" : phase == \"close\" ? \"Held\" : \"Upcoming\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "rem",
+          "label": "Points remaining",
+          "value": "{remaining}"
+        }
+      ]
+    }
+  },
+  "objective": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "secondaryObjectives": [
+    "Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal",
+    "Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers",
+    "Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection"
+  ],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). The Sprint: 'No changes are made that would endanger the Sprint Goal'; 'Quality does not decrease'; 'Scope may be clarified and renegotiated with the Product Owner as more is learned'. 'A Sprint could be cancelled if the Sprint Goal becomes obsolete. Only the Product Owner has the authority to cancel the Sprint.'"
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Sprint Backlog: 'If the work turns out to be different than they expected, they collaborate with the Product Owner to negotiate the scope of the Sprint Backlog within the Sprint without affecting the Sprint Goal.' Sprints are fixed length, one month or less."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Product Owner: 'The Product Owner may represent the needs of many stakeholders in the Product Backlog. Those wanting to change the Product Backlog can do so by trying to convince the Product Owner.'"
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Definition of Done: an item that does not meet it 'cannot be released or even presented at the Sprint Review'; it returns to the Product Backlog."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master of the loyalty team at Harbor Lane Outfitters, a fictional online outdoor-gear shop. Sprint 9 runs one week, Monday 1 March to Friday 5 March 2027. Its Sprint Goal: members can redeem points for a discount at checkout. The points scheme is run with a partner bank.",
+    "handover": [
+      "Developers: Sam, Ana and Joe. Product Owner: Maya. Dana, VP of Sales, is keen on anything that helps the spring promotion.",
+      "Sprint Backlog: 16 points across three items, all serving the Sprint Goal."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the board, the burn-down, issues, the people and the events. Decisions come to you as the week unfolds; between them you can act from the action groups.",
+      "Move the week on when you are ready. Each morning the board shows what the Developers finished the day before.",
+      "When the Sprint ends, by cancellation or at the Review, you decide with the team what happens to its work and write a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T13:00",
+    "tick": "15min",
+    "maxDuration": "5d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "day": {
+      "type": "number",
+      "init": 1,
+      "min": 1,
+      "max": 5
+    },
+    "r1": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "r2": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "r3": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "g": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "r2Work": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "scope": {
+      "type": "enum",
+      "values": [
+        "none",
+        "negotiate",
+        "cutQuality",
+        "extend",
+        "push"
+      ],
+      "init": "none"
+    },
+    "r2small": {
+      "type": "bool",
+      "init": false
+    },
+    "dana": {
+      "type": "enum",
+      "values": [
+        "none",
+        "toPO",
+        "add",
+        "swap"
+      ],
+      "init": "none"
+    },
+    "giftAdded": {
+      "type": "bool",
+      "init": false
+    },
+    "obsolete": {
+      "type": "bool",
+      "init": false
+    },
+    "obsoleteAt": {
+      "type": "time",
+      "init": null
+    },
+    "cancelledBy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "po",
+        "sm"
+      ],
+      "init": "none"
+    },
+    "cancelAt": {
+      "type": "time",
+      "init": null
+    },
+    "goalChanged": {
+      "type": "bool",
+      "init": false
+    },
+    "factsShared": {
+      "type": "bool",
+      "init": false
+    },
+    "work": {
+      "type": "enum",
+      "values": [
+        "none",
+        "review",
+        "discard",
+        "ship"
+      ],
+      "init": "none"
+    },
+    "devTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "poTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "danaTrust": {
+      "type": "number",
+      "init": 60,
+      "min": 0,
+      "max": 100
+    },
+    "danaTalked": {
+      "type": "bool",
+      "init": false
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "burn": {
+      "of": "remaining",
+      "every": "1d",
+      "keep": "5d"
+    }
+  },
+  "derived": {
+    "remaining": {
+      "expr": "(r1 == \"done\" ? 0 : 5) + (r2 == \"done\" ? 0 : (r2small ? 5 : 8)) + (r3 == \"done\" ? 0 : 3) + (giftAdded and g != \"done\" ? 5 : 0)",
+      "unit": "pts"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "sprint": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "board",
+        "facts",
+        "danaChat"
+      ]
+    },
+    "close": {
+      "label": "Closing the Sprint",
+      "clock": "stopped",
+      "actions": [
+        "undone",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "sprint",
+  "actions": {
+    "board": {
+      "label": "Walk the board and the burn-down with the Developers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"sprint\"",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "log": "You look at the board and the burn-down with the Developers.",
+          "kind": "act"
+        },
+        {
+          "finding": "{remaining} points remain with {5 - day} days to go. {obsolete ? \"Everything on the board serves a Sprint Goal that no longer makes sense.\" : giftAdded ? \"The gift-card check pushed redeeming points back a day.\" : \"The board is aimed at the Sprint Goal.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "facts": {
+      "label": "Gather what is Done, what is half-built and what the bank's news means, for Maya",
+      "group": "Product Owner",
+      "available": "not busy and phase == \"sprint\" and (obsolete and not factsShared)",
+      "why": "Nothing has changed yet (or it is done).",
+      "effects": [
+        {
+          "log": "You put the facts together for Maya: what is Done, what is not, and what the partner bank's notice changes.",
+          "kind": "act"
+        },
+        {
+          "set": "factsShared",
+          "to": "true"
+        },
+        {
+          "add": "poTrust",
+          "by": "5"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "danaChat": {
+      "label": "Meet Dana and explain how a request reaches the team: through Maya and the Product Backlog",
+      "group": "Stakeholders",
+      "available": "not busy and phase == \"sprint\" and (dana != \"none\" and not danaTalked)",
+      "why": "Nothing to explain yet (or you have).",
+      "effects": [
+        {
+          "log": "You explain to Dana that Maya orders the Product Backlog and that the Sprint Review is where she can shape what comes next.",
+          "kind": "act"
+        },
+        {
+          "add": "danaTrust",
+          "by": "10"
+        },
+        {
+          "set": "danaTalked",
+          "to": "true"
+        },
+        {
+          "finding": "Dana: \"Fine. I'll bring it to Maya, and I'll be at the Review.\""
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "undone": {
+      "label": "Decide with the team and Maya what happens to the Sprint's work",
+      "group": "Closing the Sprint",
+      "available": "work == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "form",
+          "label": "The Sprint's work",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What happens to it",
+              "options": [
+                {
+                  "value": "review",
+                  "label": "Inspect what is Done; the undone items go back to the Product Backlog, re-estimated, for Maya to order"
+                },
+                {
+                  "value": "discard",
+                  "label": "Throw all of it away, Done work included, and start fresh"
+                },
+                {
+                  "value": "ship",
+                  "label": "Release the half-built redeem feature anyway, so the Sprint shows something"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "work",
+          "to": "what"
+        },
+        {
+          "cases": [
+            {
+              "when": "what == \"review\"",
+              "then": [
+                {
+                  "log": "Done work is kept; undone items return to the Product Backlog.",
+                  "kind": "good"
+                },
+                {
+                  "add": "danaTrust",
+                  "by": "10"
+                }
+              ]
+            },
+            {
+              "when": "what == \"ship\"",
+              "then": [
+                {
+                  "log": "Work that does not meet the Definition of Done was released.",
+                  "kind": "bad"
+                },
+                {
+                  "add": "poTrust",
+                  "by": "-10"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The Done work is thrown away with the rest.",
+                  "kind": "bad"
+                },
+                {
+                  "add": "devTrust",
+                  "by": "-10"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "close": {
+      "label": "Close the Sprint and plan the next one",
+      "group": "Closing the Sprint",
+      "available": "work != \"none\" and not closed",
+      "why": "Decide what happens to the Sprint's work first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The Sprint is closed. Sprint Planning for the next Sprint starts from the Product Backlog Maya orders.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "surprise": {
+      "label": "Monday afternoon",
+      "wait": {
+        "skipLabel": "Carry on with Monday afternoon"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "log": "Monday 15:00: Sam has news about the redeem item.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "scopePrompt"
+        }
+      ]
+    },
+    "morning": {
+      "label": "The next Daily Scrum",
+      "wait": {
+        "skipLabel": "Go to the next Daily Scrum"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "day",
+          "by": "1"
+        },
+        {
+          "if": "giftAdded and g != \"done\"",
+          "then": [
+            {
+              "set": "g",
+              "to": "\"done\""
+            },
+            {
+              "log": "The gift-card balance check is Done; it took Tuesday's capacity.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "r3 != \"done\" and r1 == \"done\"",
+          "then": [
+            {
+              "set": "r3",
+              "to": "\"done\""
+            },
+            {
+              "log": "Points on the order confirmation email are Done.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "r2 != \"done\"",
+          "then": [
+            {
+              "add": "r2Work",
+              "by": "giftAdded and day == 3 ? 0 : 1"
+            },
+            {
+              "if": "r2Work >= (r2small or scope == \"push\" or scope == \"cutQuality\" ? 2 : 3)",
+              "then": [
+                {
+                  "set": "r2",
+                  "to": "\"done\""
+                },
+                {
+                  "log": "Redeem points for a discount is {scope == \"cutQuality\" ? \"finished without the review and accessibility check the Definition of Done requires\" : \"Done\"}.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "r1 != \"done\"",
+          "then": [
+            {
+              "set": "r1",
+              "to": "\"done\""
+            },
+            {
+              "set": "r3",
+              "to": "\"doing\""
+            },
+            {
+              "log": "Show the points balance at checkout is Done.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "day < 5",
+          "then": [
+            {
+              "schedule": "morning",
+              "after": "24h"
+            }
+          ],
+          "else": [
+            {
+              "schedule": "review",
+              "after": "285min"
+            }
+          ]
+        }
+      ]
+    },
+    "danaVisit": {
+      "label": "Tuesday morning",
+      "wait": {
+        "skipLabel": "Carry on with Tuesday morning"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "log": "Tuesday 10:00: Dana from Sales is at the team's desks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "danaPrompt"
+        }
+      ]
+    },
+    "review": {
+      "label": "The Sprint Review",
+      "wait": {
+        "skipLabel": "Go to the Sprint Review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "Friday 14:00: the Sprint Review, for a Goal that stopped making sense on Wednesday.",
+          "kind": "sys"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "surprise",
+          "after": "2h"
+        },
+        {
+          "schedule": "morning",
+          "after": "1215min"
+        }
+      ]
+    },
+    {
+      "id": "tuesday",
+      "when": "day == 2 and phase == \"sprint\"",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "danaVisit",
+          "after": "45min"
+        }
+      ]
+    },
+    {
+      "id": "bank",
+      "when": "day == 3 and phase == \"sprint\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "obsolete",
+          "to": "true"
+        },
+        {
+          "set": "obsoleteAt",
+          "to": "t"
+        },
+        {
+          "log": "Wednesday 09:15: the partner bank ends the points scheme on Friday.",
+          "kind": "alarm"
+        },
+        {
+          "prompt": "obsoletePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "scopePrompt": {
+      "title": "Monday, 15:00: bigger than it looked",
+      "context": "Sam: \"Redeeming points touches the price engine. It's more like 13 points than 8. We won't get it Done this week as planned.\" The Developers look at you.",
+      "choices": [
+        {
+          "id": "negotiate",
+          "label": "Have the Developers and Maya renegotiate the scope: a first slice that still meets the Sprint Goal, the rest back to the Product Backlog",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"negotiate\""
+            },
+            {
+              "set": "r2small",
+              "to": "true"
+            },
+            {
+              "add": "poTrust",
+              "by": "5"
+            },
+            {
+              "add": "devTrust",
+              "by": "5"
+            },
+            {
+              "log": "Maya and the Developers split the item: a fixed-discount slice now, the rest later. The Sprint Goal holds.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Scope is clarified and renegotiated with the Product Owner as more is learned, without affecting the Sprint Goal."
+        },
+        {
+          "id": "cutQuality",
+          "label": "Skip the code review and accessibility check on this item to save time",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"cutQuality\""
+            },
+            {
+              "log": "Quality traded for time: 'Quality does not decrease' (Scrum Guide 2020).",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The Definition of Done is not negotiable inside the Sprint; scope is."
+        },
+        {
+          "id": "extend",
+          "label": "Add two days to this Sprint so the item fits",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"extend\""
+            },
+            {
+              "add": "poTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Sprints are a fixed length; stretching one to fit the work breaks the cadence.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A Sprint has a fixed length. Renegotiate scope instead."
+        },
+        {
+          "id": "push",
+          "label": "Ask the Developers to work evenings this week to get it all in",
+          "effects": [
+            {
+              "set": "scope",
+              "to": "\"push\""
+            },
+            {
+              "add": "devTrust",
+              "by": "-15"
+            },
+            {
+              "log": "The Developers agree, unhappily.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Overtime hides the real size of the work and wears the team down; renegotiating scope keeps the Goal and the pace."
+        }
+      ]
+    },
+    "danaPrompt": {
+      "title": "Tuesday, 10:00: a request from Sales",
+      "context": "Dana, VP of Sales, walks up to the Developers: \"I need a gift-card balance check before the spring promo. It's small. Can you just add it this week?\"",
+      "choices": [
+        {
+          "id": "toPO",
+          "label": "Thank her and ask her to take it to Maya, who orders the Product Backlog",
+          "effects": [
+            {
+              "set": "dana",
+              "to": "\"toPO\""
+            },
+            {
+              "add": "danaTrust",
+              "by": "-5"
+            },
+            {
+              "add": "poTrust",
+              "by": "5"
+            },
+            {
+              "log": "Dana's request goes to Maya. The Sprint Backlog stays aimed at the Sprint Goal.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "'Those wanting to change the Product Backlog can do so by trying to convince the Product Owner.'"
+        },
+        {
+          "id": "add",
+          "label": "Let the Developers add it to this Sprint alongside the Goal work",
+          "effects": [
+            {
+              "set": "dana",
+              "to": "\"add\""
+            },
+            {
+              "set": "giftAdded",
+              "to": "true"
+            },
+            {
+              "set": "g",
+              "to": "\"doing\""
+            },
+            {
+              "add": "poTrust",
+              "by": "-15"
+            },
+            {
+              "add": "danaTrust",
+              "by": "10"
+            },
+            {
+              "log": "New work pulled in mid-Sprint, round the Product Owner, at the Sprint Goal's expense.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "No changes are made that would endanger the Sprint Goal; new work goes through the Product Owner."
+        },
+        {
+          "id": "swap",
+          "label": "Drop 'redeem points' from the Sprint and build the gift-card check instead",
+          "effects": [
+            {
+              "set": "dana",
+              "to": "\"swap\""
+            },
+            {
+              "set": "giftAdded",
+              "to": "true"
+            },
+            {
+              "set": "g",
+              "to": "\"doing\""
+            },
+            {
+              "set": "goalChanged",
+              "to": "true"
+            },
+            {
+              "add": "poTrust",
+              "by": "-20"
+            },
+            {
+              "add": "danaTrust",
+              "by": "10"
+            },
+            {
+              "log": "The Sprint Goal was set aside for a stakeholder's request.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That abandons the Sprint Goal without the Product Owner. Only she can decide the Goal no longer holds."
+        }
+      ]
+    },
+    "obsoletePrompt": {
+      "title": "Wednesday, 09:15: the partner bank pulls out",
+      "context": "Maya forwards an email: the partner bank ends the points scheme on Friday. After that, points cannot be redeemed at all. The Sprint Goal, members redeem points at checkout, no longer makes sense.",
+      "choices": [
+        {
+          "id": "toPO",
+          "label": "Bring it to Maya at once with what is Done; the decision to cancel is hers",
+          "effects": [
+            {
+              "set": "cancelledBy",
+              "to": "\"po\""
+            },
+            {
+              "set": "cancelAt",
+              "to": "t"
+            },
+            {
+              "add": "poTrust",
+              "by": "10"
+            },
+            {
+              "log": "Maya cancels the Sprint: its Goal is obsolete. Only the Product Owner has that authority.",
+              "kind": "good"
+            },
+            {
+              "cancel": "morning"
+            },
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "phase": "close"
+            }
+          ],
+          "feedback": "'A Sprint could be cancelled if the Sprint Goal becomes obsolete. Only the Product Owner has the authority to cancel the Sprint.'"
+        },
+        {
+          "id": "smCancel",
+          "label": "Cancel the Sprint yourself; it is obvious",
+          "effects": [
+            {
+              "set": "cancelledBy",
+              "to": "\"sm\""
+            },
+            {
+              "set": "cancelAt",
+              "to": "t"
+            },
+            {
+              "add": "poTrust",
+              "by": "-25"
+            },
+            {
+              "log": "You cancelled the Sprint. That authority is the Product Owner's alone.",
+              "kind": "bad"
+            },
+            {
+              "cancel": "morning"
+            },
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "phase": "close"
+            }
+          ],
+          "feedback": "Only the Product Owner has the authority to cancel the Sprint."
+        },
+        {
+          "id": "keep",
+          "label": "Keep building toward the Sprint Goal; the Sprint Review will sort it out",
+          "effects": [
+            {
+              "log": "The Developers keep building a feature that cannot be used after Friday.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Building toward an obsolete Goal wastes the rest of the Sprint. Inspection should lead to adaptation now."
+        },
+        {
+          "id": "changeGoal",
+          "label": "Replace the Sprint Goal with the gift-card check and carry on",
+          "effects": [
+            {
+              "set": "goalChanged",
+              "to": "true"
+            },
+            {
+              "set": "giftAdded",
+              "to": "true"
+            },
+            {
+              "set": "g",
+              "to": "\"doing\""
+            },
+            {
+              "add": "poTrust",
+              "by": "-10"
+            },
+            {
+              "log": "The Sprint Goal was swapped mid-Sprint instead of the Sprint being cancelled and replanned.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An obsolete Sprint Goal is a reason for the Product Owner to cancel the Sprint and plan a new one, not to rewrite the Goal mid-Sprint."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Reflect on the Sprint: how the team handled the bigger item and Dana's request, what an obsolete Sprint Goal called for and who decided, and what happened to the work.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Inside the Sprint",
+          "criteria": "Scope renegotiated with the Product Owner without lowering quality or stretching the Sprint; a stakeholder's new request routed to the Product Owner and the Product Backlog, not pulled into the Sprint round her.",
+          "modelAnswer": "When redeeming points turned out bigger, the Developers and Maya renegotiated scope: a slice that still met the Sprint Goal, the rest back to the Product Backlog; quality and the Sprint's length did not move. Dana's gift-card request went to Maya, who orders the Product Backlog; nothing was added that endangered the Goal."
+        },
+        {
+          "label": "The obsolete Goal",
+          "criteria": "Recognized the Sprint Goal as obsolete, brought the facts to the Product Owner at once, and left the cancellation to her (only the Product Owner may cancel); Done work kept and inspected, undone items returned to the Product Backlog; nothing undone released.",
+          "modelAnswer": "Once the bank ended the scheme, the Sprint Goal was obsolete. I brought Maya the facts straight away and she cancelled the Sprint: only the Product Owner has that authority. We kept and inspected the Done work, returned the undone items to the Product Backlog for her to re-order, and planned a new Sprint."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Nothing that misses the Definition of Done is released."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Working relationships at the Sprint's end (author's teaching model)."
+        }
+      },
+      "trustRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf"
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and work == \"discard\"",
+      "class": "recovered",
+      "rationale": "Throwing the Done work away wastes value but releases nothing broken and harms no one; recovered, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Definition of Done: an item that does not meet it 'cannot be released or even presented at the Sprint Review'; it returns to the Product Backlog."
+      }
+    }
+  },
+  "endings": {
+    "smCancelled": {
+      "label": "Cancelled without the authority",
+      "class": "harm",
+      "when": "closed and cancelledBy == \"sm\"",
+      "terminal": true,
+      "narrative": "The Sprint is over, but you ended it. Maya, who is accountable for the product's value, heard about it second, and the team has learned that the Scrum Master can overrule the Product Owner."
+    },
+    "shipped": {
+      "label": "Undone work released",
+      "class": "harm",
+      "when": "closed and work == \"ship\"",
+      "terminal": true,
+      "narrative": "A half-built redeem feature went live days before the scheme it depends on ends. Support starts getting calls on Monday."
+    },
+    "qualityCut": {
+      "label": "Quality cut to fit",
+      "class": "harm",
+      "when": "closed and scope == \"cutQuality\"",
+      "terminal": true,
+      "narrative": "The redeem item skipped its review and accessibility check. Whatever the Sprint's fate, the code base now carries work that is not Done but looks it."
+    },
+    "wasted": {
+      "label": "Kept building toward an obsolete Goal",
+      "class": "harm",
+      "when": "closed and cancelledBy == \"none\"",
+      "terminal": true,
+      "narrative": "{goalChanged ? \"The Sprint Goal was rewritten mid-Sprint instead of the Sprint being cancelled and replanned.\" : \"Three days went into a feature nobody can use after Friday.\"}"
+    },
+    "adapted": {
+      "label": "Cancelled by the Product Owner, the work kept honest",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and cancelledBy == \"po\" and scope == \"negotiate\" and dana == \"toPO\" and work == \"review\" and devTrust >= trustTarget and poTrust >= trustTarget and danaTrust >= trustTarget",
+      "narrative": "Maya cancelled the Sprint the morning the Goal became obsolete. The Done work is kept, the rest is back in the Product Backlog, and Dana's gift-card check is there too, where Maya can order it."
+    },
+    "partly": {
+      "label": "Cancelled by the Product Owner, with gaps",
+      "class": "recovered",
+      "when": "closed",
+      "terminal": true,
+      "narrative": "Maya made the call, but earlier in the week the Sprint Backlog, Dana's request or the people were handled in ways that cost the team."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "smCancelled",
+    "shipped",
+    "qualityCut",
+    "wasted",
+    "adapted",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "authority",
+        "label": "Left the cancellation to the Product Owner, the morning the Goal became obsolete",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "cancelledBy == \"po\"",
+            "score": "met",
+            "why": "Maya cancelled the Sprint."
+          },
+          {
+            "when": "cancelledBy == \"sm\"",
+            "score": "missed",
+            "why": "You cancelled it yourself."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody cancelled it; the Sprint ran on."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "scopeCrit",
+        "label": "Renegotiated scope with the Product Owner, without lowering quality or stretching the Sprint",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "scope == \"negotiate\"",
+            "score": "met",
+            "why": "A smaller slice; the Sprint Goal held."
+          },
+          {
+            "when": "scope == \"push\"",
+            "score": "partial",
+            "why": "Evenings instead of renegotiating."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{scope == \"extend\" ? \"The Sprint was stretched.\" : \"Quality was cut.\"}"
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "routing",
+        "label": "Routed a stakeholder's request through the Product Owner",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dana == \"toPO\"",
+            "score": "met",
+            "why": "Dana went to Maya."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Work came into the Sprint round the Product Owner."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "workCrit",
+        "label": "Kept Done work and returned undone work to the Product Backlog",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "work == \"review\"",
+            "score": "met",
+            "why": "Inspected and kept; the rest re-ordered by Maya."
+          },
+          {
+            "when": "work == \"discard\"",
+            "score": "partial",
+            "why": "Done work thrown away."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Undone work released."
+          }
+        ]
+      },
+      {
+        "id": "stakeholderCrit",
+        "label": "Helped Dana work with the team through the Product Owner and the Sprint Review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "danaTalked and dana == \"toPO\"",
+            "score": "met",
+            "why": "Dana knows how her request reaches the team."
+          },
+          {
+            "when": "dana == \"toPO\"",
+            "score": "partial",
+            "why": "Redirected, but never told how it works."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Her request went round the Product Owner."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "hoursToCancel",
+        "label": "Hours from the bank's notice to the cancellation",
+        "value": "isNull(cancelAt) ? -1 : (timeAt(cancelAt) - timeAt(obsoleteAt)) / 3600",
+        "format": "number",
+        "expert": "0 (the same morning)"
+      },
+      {
+        "id": "pointsLeft",
+        "label": "Points not Done when the Sprint ended",
+        "value": "remaining",
+        "format": "number",
+        "expert": "Whatever was left: undone work goes back to the Product Backlog"
+      },
+      {
+        "id": "poEnd",
+        "label": "Maya's trust at the end",
+        "value": "round(poTrust)",
+        "format": "number",
+        "expert": "60 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday 15:00",
+        "text": "Have the Developers and Maya renegotiate the bigger item's scope; the Sprint Goal, quality and the Sprint's length stay."
+      },
+      {
+        "at": "Tuesday 10:00",
+        "text": "Send Dana to Maya; then explain to Dana how requests reach the team."
+      },
+      {
+        "at": "Wednesday 09:15",
+        "text": "Bring the bank's news to Maya with what is Done; she cancels the Sprint."
+      },
+      {
+        "at": "Closing",
+        "text": "Keep and inspect the Done work, return the rest to the Product Backlog, plan the next Sprint."
+      }
+    ],
+    "debrief": {
+      "adapted": {
+        "headline": "Good: inspected, adapted, and the right person decided",
+        "body": "Scope moved, quality did not; Dana's request went to the Product Owner; and when the Goal became obsolete, Maya cancelled the Sprint at once."
+      },
+      "partly": {
+        "headline": "The right call, with gaps",
+        "body": "Maya cancelled the Sprint, but the criteria below show where the week cost the team: stretched or overloaded, a request pulled in round the Product Owner, or work thrown away."
+      },
+      "smCancelled": {
+        "headline": "Not the Scrum Master's call",
+        "body": "'Only the Product Owner has the authority to cancel the Sprint' (Scrum Guide 2020). Bring her the facts; she decides."
+      },
+      "shipped": {
+        "headline": "Undone work released",
+        "body": "Work that does not meet the Definition of Done cannot be released; it returns to the Product Backlog."
+      },
+      "qualityCut": {
+        "headline": "Quality traded for time",
+        "body": "'Quality does not decrease' during the Sprint. When work is bigger than expected, scope is renegotiated with the Product Owner."
+      },
+      "wasted": {
+        "headline": "The Goal was obsolete, and the Sprint ran on",
+        "body": "An obsolete Sprint Goal is the case for cancelling the Sprint. Building on, or rewriting the Goal mid-Sprint, wastes the rest of it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The Sprint was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Inside the Sprint, scope is renegotiated with the Product Owner when work turns out bigger, while the Sprint Goal, quality and the Sprint's length hold; stakeholders change the Product Backlog by convincing the Product Owner. When the Sprint Goal becomes obsolete, the Sprint can be cancelled, and only the Product Owner has that authority: bring her the facts at once. Keep and inspect the Done work, return the undone items to the Product Backlog, and plan a new Sprint."
+  }
+}

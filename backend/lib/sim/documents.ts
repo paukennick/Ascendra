@@ -217,6 +217,24 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCNC", "cnc-crash-diet-request"),
   entry("NASMCNC", "cnc-greens-powder-warfarin"),
   // ---- end REQ-282 ----
+  // ---- REQ-314: the client trainer, the facility console and the sandbox
+  // report (docs/sims.md 22.27). Keep these entries together. ----
+  entry("NASMCPT", "cpt-parq-chest-tightness"),
+  band("ACECPT", "ace-parq-chest-tightness"),
+  band("ACSMCPT", "acsm-parq-chest-tightness"),
+  band("NSCACPT", "nscacpt-parq-chest-tightness"),
+  band("NCCPTCPT", "nccpt-parq-chest-tightness"),
+  entry("NASMCPT", "cpt-squat-knees-cave"),
+  band("ACECPT", "ace-squat-knees-cave"),
+  band("ACSMCPT", "acsm-squat-knees-cave"),
+  band("NSCACPT", "nscacpt-squat-knees-cave"),
+  band("NCCPTCPT", "nccpt-squat-knees-cave"),
+  entry("NASMCNC", "cnc-ambivalent-food-record"),
+  entry("CISSP", "cissp-datahall-tailgate-cooling"),
+  band("SECPLUS", "datahall-tailgate-cooling-secplus"),
+  entry("CEH", "ceh-sandbox-invoice-loader"),
+  band("CYSAPLUS", "sandbox-invoice-loader-cysa"),
+  // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
   // below). Keep these entries together. ----
@@ -258,6 +276,144 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-311: Scrum Sprints on the project dashboard's Sprint mode
+  // (project-dashboard renderer, scrum profile), course PSMI, each also a
+  // band on the same CSM objective (docs/sims.md 22.24). Keep these entries
+  // together. ----
+  entry("PSMI", "sprint-status-meeting-daily-scrum"),
+  band("CSM", "csm-sprint-status-meeting-daily-scrum"),
+  entry("PSMI", "sprint-goal-becomes-obsolete"),
+  band("CSM", "csm-sprint-goal-becomes-obsolete"),
+  entry("PSMI", "sprint-release-before-review"),
+  band("CSM", "csm-sprint-release-before-review"),
+  // The ITIL service desk, course ITIL5FND. That course is built on another
+  // branch (REQ-308, feature/itil5); until it is in the catalog the seed
+  // stops here with a clear error, and lib/sim/objectives.test.ts checks
+  // the titles against ITIL5_DESK_OBJECTIVES below instead.
+  entry("ITIL5FND", "monday-service-desk-wifi-problem"),
+  // ---- end REQ-311 ----
+  // ---- REQ-312: the data and code console (screen type data, data profile;
+  // docs/sims.md 22.25), launch courses first. Keep these entries together. ----
+  entry("PYTHON", "py-report-too-slow-profile"),
+  entry("PL300", "pl300-rls-region-manager"),
+  entry("PL300", "pl300-stock-on-hand-summed"),
+  entry("CSSGB", "cssgb-fill-weight-chart"),
+  entry("JAVASCRIPT", "js-rate-board-zero-percent"),
+  band("TSNODE", "js-rate-board-zero-percent-tsnode"),
+  entry("PYTHON", "py-import-crash-traceback"),
+  band("PCAP", "py-import-crash-traceback-pcap"),
+  band("PCEP", "py-import-crash-traceback-pcep"),
+  entry("SQL", "sql-not-in-null-empty-list"),
+  entry("CSSGB", "cssgb-capability-tool-wear"),
+  entry("JAVASCRIPT", "js-checkout-shipping-concatenated"),
+  // ---- end REQ-312 ----
+  // ---- REQ-313: the governance board, the tabletop exercise and the
+  // professional-ethics conversations (docs/sims.md 22.26;
+  // GOVERNANCE_DOCUMENTS below). Keep these entries together. ----
+  entry("CISM", "cism-security-business-case-budget"),
+  entry("CISM", "cism-risk-appetite-exception"),
+  entry("CISM", "cism-ransomware-tabletop"),
+  entry("ISC2CC", "cc-ethics-shared-credentials"),
+  entry("CISSP", "cissp-ethics-audit-finding-pressure"),
+  entry("CISSP", "cissp-flood-continuity-tabletop"),
+  // REQ-313 bands (docs/sims.md 4.7): the same case on another course's
+  // objective that it teaches.
+  band("ISC2CC", "cc-ransomware-tabletop"),
+  band("SECPLUS", "ransomware-tabletop-secplus"),
+  band("SECPLUSV8", "ransomware-tabletop-v8"),
+  band("SECPLUS", "risk-exception-appetite-secplus"),
+  band("SECPLUSV8", "risk-exception-appetite-v8"),
+  band("ISC2CC", "cc-flood-continuity-tabletop"),
+  band("SECPLUS", "flood-continuity-tabletop-secplus"),
+  band("SECPLUSV8", "flood-continuity-tabletop-v8"),
+  // ---- end REQ-313 ----
+  // ---- REQ-316 (IT sims, wave 4): launch courses first; bands register a case another course
+  // already teaches on this course's objective (docs/sims.md 22.29). Keep
+  // these entries together. ----
+  band("SECPLUS", "ransomware-recovery-site-secplus"),
+  band("SECPLUS", "payroll-supplier-breach-secplus"),
+  band("SECPLUS", "arp-poisoning-finance-vlan-secplus"),
+  band("SECPLUS", "blind-sqli-search-secplus"),
+  band("SECPLUS", "triage-phish-correlation-secplus"),
+  band("SECPLUS", "checkout-skimmer-containment-secplus"),
+  band("SECPLUS", "web-tier-data-theft-secplus"),
+  band("SECPLUS", "ot-segmentation-breach-secplus"),
+  band("APLUS_CORE2", "firewall-change-backout-aplus2"),
+  band("NETWORKPLUS", "arp-poisoning-finance-vlan-netplus"),
+  band("NETWORKPLUS", "firewall-change-backout-netplus"),
+  band("NETWORKPLUS", "rogue-dhcp-soho-office-netplus"),
+  band("NETWORKPLUS", "ransomware-recovery-site-netplus"),
+  band("LINUXPLUS", "fstab-uuid-typo-emergency-linuxplus"),
+  band("LINUXPLUS", "report-workers-starve-api-linuxplus"),
+  band("LINUXPLUS", "lvm-database-volume-full-linuxplus"),
+  band("LINUXPLUS", "clock-skew-blocks-logins-linuxplus"),
+  band("LINUXPLUS", "shared-folder-permission-denied-linuxplus"),
+  band("LINUXPLUS", "nightly-backup-missing-linuxplus"),
+  band("KCNA", "crashloop-bad-configmap-kcna"),
+  band("KCNA", "apiserver-static-pod-bad-flag-kcna"),
+  band("AWSSOA", "waf-login-flood-sqli-soa"),
+  band("AWSSOA", "nat-gateway-bill-spike-soa"),
+  band("AWSSOA", "canary-rollback-dlq-soa"),
+  band("AWSSOA", "leaked-access-key-soa"),
+  band("AWSSAA", "leaked-access-key-saa"),
+  band("AWSSAA", "rds-update-without-where-pitr-saa"),
+  band("AWSCLF", "waf-login-flood-sqli-clf"),
+  band("AWSCLF", "nat-gateway-bill-spike-clf"),
+  band("GCPACE", "bigquery-dashboard-bill-ace"),
+  band("GCPCDL", "public-bucket-customer-exports-cdl"),
+  band("GCPCDL", "cloud-run-bad-revision-rollback-cdl"),
+  entry("SECPLUS", "spoofed-ceo-wire-dmarc"),
+  entry("SECPLUS", "departing-engineer-usb-evidence"),
+  entry("AWSSOA", "alb-health-check-login-redirect"),
+  entry("AWSSAA", "guardduty-role-credentials-macie"),
+  entry("LINUXPLUS", "retired-dns-server-orders-stuck"),
+  entry("CKA", "etcd-restore-deleted-namespace"),
+  // ---- end REQ-316 ----
+  // ---- REQ-315 (clinical sims, round of 2026-11-16): bands that register a
+  // case another course already teaches to this course's objective (4.7),
+  // then new cases on the launch courses. Keep these entries together. ----
+  band("NCLEXRN", "delegation-morning-assignment-nclexrn"),
+  band("NCLEXRN", "postop-hemorrhage-early-signs-nclexrn"),
+  band("NCLEXRN", "heart-failure-pulmonary-edema-nclexrn"),
+  band("NCLEXRN", "pca-oversedation-naloxone-nclexrn"),
+  band("NCLEXRN", "copd-exacerbation-niv-nclexrn"),
+  band("NCLEXRN", "sepsis-to-septic-shock-nclexrn"),
+  band("NCLEXPN", "ltc-insulin-hypoglycemia-nclexpn"),
+  band("NCLEXPN", "ltc-pressure-injury-infection-nclexpn"),
+  band("CCRNADULT", "copd-exacerbation-niv-ccrn"),
+  band("CCRNADULT", "post-op-transfusion-reaction-ccrn"),
+  band("CCRNADULT", "pca-oversedation-naloxone-ccrn"),
+  band("CCRNADULT", "heart-failure-pulmonary-edema-ccrn"),
+  band("NPTEPT", "tka-gait-dvt-red-flag-npte"),
+  band("NPTEPT", "parkinson-freezing-session-npte"),
+  band("NPTEPT", "dizziness-central-red-flags-npte"),
+  band("NPTEPT", "icu-early-mobility-npte"),
+  band("NPTEPT", "stroke-balance-fall-risk-npte"),
+  band("NCE", "nce-suicide-safety-plan"),
+  band("NCMHCE", "ncmhce-boundary-dual-relationship"),
+  entry("NCLEXRN", "alcohol-withdrawal-ciwa"),
+  entry("CNA", "sundowning-at-the-exit-door"),
+  entry("CCRNADULT", "tension-pneumothorax-after-line"),
+  entry("NCLEXPN", "head-strike-on-apixaban"),
+  entry("NCLEXRN", "oxytocin-tachysystole-late-decels"),
+  // ---- end REQ-315 ----
+];
+
+// REQ-312: the data and code console documents (docs/sims.md 22.25), by
+// slug so a later sim in the same course cannot change this set (FAIL-2002).
+export const DATA_CONSOLE_SLUGS: readonly string[] = [
+  "py-report-too-slow-profile",
+  "pl300-rls-region-manager",
+  "pl300-stock-on-hand-summed",
+  "cssgb-fill-weight-chart",
+  "js-rate-board-zero-percent",
+  "js-rate-board-zero-percent-tsnode",
+  "py-import-crash-traceback",
+  "py-import-crash-traceback-pcap",
+  "py-import-crash-traceback-pcep",
+  "sql-not-in-null-empty-list",
+  "cssgb-capability-tool-wear",
+  "js-checkout-shipping-concatenated",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -273,6 +429,7 @@ export const EPPP_OBJECTIVES = [
 // objective titles they are registered to (active objectives of course DPT).
 // REQ-296: later DPT sims (docs/sims-coverage-clinical.md) are not part of
 // this first set, so the set is named by slug.
+const NBCC_FIRST_SET = ["nce-boundary-dual-relationship", "nce-substance-use-screen", "ncmhce-intake-ptsd-alcohol", "ncmhce-suicide-safety-plan", "ncmhce-trauma-treatment-plan"];
 const DPT_FIRST_SET = ["icu-early-mobility", "tka-gait-dvt-red-flag", "stroke-balance-fall-risk"];
 export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT" && DPT_FIRST_SET.includes(e.slug));
 export const DPT_OBJECTIVES = [
@@ -284,7 +441,10 @@ export const DPT_OBJECTIVES = [
 // REQ-239: the NCE and NCMHCE client-session documents and the objective
 // titles they are registered to (active objectives of their course; the
 // titles are exported by seed/tracks/nbcc.ts too, and the tests compare).
-export const NBCC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NCE" || e.course === "NCMHCE");
+// FAIL-2240: selected by slug (the REQ-239 set), not by course, so a later
+// NCE or NCMHCE sim or band (REQ-315) cannot break the REQ-239 tests
+// (FAIL-2002); NBCC_FIRST_SET is declared with the DPT set above.
+export const NBCC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => (e.course === "NCE" || e.course === "NCMHCE") && NBCC_FIRST_SET.includes(e.slug));
 export const NBCC_OBJECTIVES: Readonly<Record<string, string>> = {
   "nce-boundary-dual-relationship": "Manage boundaries and multiple relationships under the ACA Code of Ethics",
   "nce-substance-use-screen": "Screen for substance use and match the client to a level of care",
@@ -356,7 +516,28 @@ export { entry as documentEntry, band as bandEntry };
 // REQ-282: the NASM-CNC coaching-session documents and the objective titles
 // they are registered to (active objectives of course NASMCNC; the course
 // seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
-export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC");
+// REQ-314 (docs/sims.md 22.27): the documents on the three new screens, by
+// slug (bands included), for lib/sim/screens-misc.test.ts.
+export const REQ314_SLUGS: { trainer: readonly string[]; facility: readonly string[]; sandbox: readonly string[] } = {
+  trainer: [
+    "cpt-parq-chest-tightness",
+    "ace-parq-chest-tightness",
+    "acsm-parq-chest-tightness",
+    "nscacpt-parq-chest-tightness",
+    "nccpt-parq-chest-tightness",
+    "cpt-squat-knees-cave",
+    "ace-squat-knees-cave",
+    "acsm-squat-knees-cave",
+    "nscacpt-squat-knees-cave",
+    "nccpt-squat-knees-cave",
+    "cnc-ambivalent-food-record",
+  ],
+  facility: ["cissp-datahall-tailgate-cooling", "datahall-tailgate-cooling-secplus"],
+  sandbox: ["ceh-sandbox-invoice-loader", "sandbox-invoice-loader-cysa"],
+};
+export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
+
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && e.slug.startsWith("cnc-") && !REQ314_SLUGS.trainer.includes(e.slug));
 export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
   "cnc-crash-diet-request":
     "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
@@ -378,9 +559,57 @@ export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbm-suicide-violence-risk": "Assess risk of harm to self and others and act on what you find",
 };
 
+// REQ-311: the Scrum Sprint documents on the project dashboard (Sprint mode)
+// and the objective titles they are registered to (active objectives of PSMI
+// and CSM; a CSM document is a band of the PSMI one).
+export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "PSMI" || e.course === "CSM");
+export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
+  "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+  "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "csm-sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "csm-sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+};
+
+// REQ-311: the ITIL service-desk documents and the ITIL Foundation (Version 5)
+// objective titles they are registered to, as the itil5 builder gave them
+// (REQ-308; Version 5 has no practices-in-detail unit, so the desk serves the
+// problem, error and known error outcome and the value chain and service
+// level terms).
+export const DESK_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ITIL5FND");
+export const ITIL5_DESK_OBJECTIVES: Readonly<Record<string, readonly string[]>> = {
+  "monday-service-desk-wifi-problem": [
+    "Distinguishing a problem, an error and a known error in an operational scenario",
+    "Explaining the value chain's terms: product specifications and prototypes, events and incidents, releases and tests, service requests, disasters and operating models",
+    "Explaining the service journey, service quality, service levels and what a service level agreement records",
+  ],
+};
+
 // REQ-289: the Washington psychology jurisprudence session (a band of the EPPP
 // duty-to-protect case) and its objective.
 export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "WAPSYCHJP");
 export const WAJP_OBJECTIVES: Readonly<Record<string, string>> = {
   "wajp-duty-to-protect-threat": "Apply the duty to warn or protect when a client threatens an identifiable person",
 };
+
+// REQ-313 (docs/sims.md 22.26): the governance board, tabletop and
+// professional-ethics documents (authored and bands), by profile.
+export const GOVERNANCE_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) =>
+  [
+    "cism-security-business-case-budget",
+    "cism-risk-appetite-exception",
+    "cism-ransomware-tabletop",
+    "cc-ethics-shared-credentials",
+    "cissp-ethics-audit-finding-pressure",
+    "cissp-flood-continuity-tabletop",
+    "cc-ransomware-tabletop",
+    "ransomware-tabletop-secplus",
+    "ransomware-tabletop-v8",
+    "risk-exception-appetite-secplus",
+    "risk-exception-appetite-v8",
+    "cc-flood-continuity-tabletop",
+    "flood-continuity-tabletop-secplus",
+    "flood-continuity-tabletop-v8",
+  ].includes(e.slug),
+);

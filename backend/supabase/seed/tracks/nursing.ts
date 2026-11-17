@@ -271,8 +271,10 @@ const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 //     below 500; postpartum fever above 100.4 F. Lithium's target level
 //     (Pharmacology 13.3) was not checked against the FDA label and is left
 //     out. Postpartum haemorrhage (1,000 mL within 24 hours) is ACOG's 2017
-//     definition as cited by Maternal-Newborn Nursing 21.2; ACOG itself was
-//     not opened.
+//     definition as cited by Maternal-Newborn Nursing 21.2 (section 21.2 read
+//     again on openstax.org 2026-11-16, REQ-310). ACOG Practice Bulletin 183
+//     itself could not be read on 2026-11-16 (journal page failed, PMC copies
+//     behind a browser check); OPQIC's summary page gives the same definition.
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

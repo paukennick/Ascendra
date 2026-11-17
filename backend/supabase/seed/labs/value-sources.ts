@@ -356,10 +356,18 @@ const LITHIUM_LABEL = guide234("https://dailymed.nlm.nih.gov/dailymed/drugInfo.c
 // 10.1111/j.1745-3992.1991.tb00195.x), read in NCME's PDF: SEM = SD x
 // square root of (1 - reliability); 1.96 SEM for a 95% band.
 const HARVILL_SEM = ref234("https://ncme.org/wp-content/uploads/2025/10/Module-9-Standard-Error-of-Measurement-Harvill-S-1.pdf");
-// APA guideline panel summary, PTSD in adults (Am Psychol 2019;74:596,
-// DOI 10.1037/amp0000473), abstract read on PubMed: strongly recommends
-// CBT, CPT, CT and PE; conditionally BEP, EMDR and NET.
-const APA_PTSD_GUIDELINE = guide234("https://pubmed.ncbi.nlm.nih.gov/31305099/");
+// APA Clinical Practice Guideline for the Treatment of PTSD, updated version
+// approved by APA Council in February 2025 (REQ-310, FAIL-2131). Read
+// 2026-11-16 on apa.org (treatments page, "Last updated: April 2025",
+// summarizing fetch with quotes) and in the Monitor on Psychology report
+// (Pappas, July 2025): it recommends CBT, cognitive processing therapy and
+// prolonged exposure, and suggests cognitive therapy, EMDR and narrative
+// exposure therapy (and fluoxetine, paroxetine, sertraline, venlafaxine);
+// brief eclectic psychotherapy is no longer listed. The 2017 guideline
+// (panel summary Am Psychol 2019;74:596) put cognitive therapy with the
+// strong recommendations and brief eclectic psychotherapy with the
+// conditional ones; the course no longer teaches that version.
+const APA_PTSD_GUIDELINE = source("https://www.apa.org/ptsd-guideline/treatments", "clinical_guideline", "2026-11-16");
 // NICE CG31 (OCD: CBT including ERP) and CG113 (GAD and panic: CBT; applied
 // relaxation as a GAD alternative).
 const NICE_CG31 = guide234("https://www.nice.org.uk/guidance/cg31/chapter/Recommendations");

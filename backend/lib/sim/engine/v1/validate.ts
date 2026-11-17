@@ -110,7 +110,11 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     stakeholderRecovered: { value: 40, tighter: "higher", note: "one stakeholder 40-59" },
     attritionHarm: { value: 2, tighter: "lower", note: "team attrition >= 2 is harm" },
   },
+  // REQ-314: the client trainer adds `stopWindow` (exercise stopped or eased
+  // <= 2 min of sim time after a warning sign; ACSM's Guidelines name the
+  // signs, the window is a teaching figure, as for physical therapy).
   fitness: {
+    stopWindow: { value: 120, tighter: "lower", note: "exercise stopped or eased <= 2 min after a warning sign appears" },
     painReductionTarget: { value: 50, tighter: "higher", note: "primary goal: pain reduced >= 50%" },
     painReductionRecovered: { value: 25, tighter: "higher", note: "pain reduced 25-49%" },
     adherenceTarget: { value: 80, tighter: "higher", note: "adherence >= 80%" },
@@ -138,7 +142,20 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     restoreWindow: { value: 3600, tighter: "lower", note: "service restored <= 60 min after the first report" },
     newFaults: { value: 0, tighter: "lower", note: "faults the fix itself introduced; none is the target" },
   },
-  data: {},
+  // REQ-312 (docs/sims.md 9.2, 20.1, 22.25): a case on the data and code
+  // console. Target: the right root cause found and the right result
+  // delivered within the window, with no data altered beyond the fix;
+  // recovered: delivered late, or with a reversible side effect a check
+  // caught; harm: a wrong result shipped to the stakeholder (a published
+  // report, a deployed change, a release on a bad measurement), or data
+  // deleted or corrupted beyond recovery. Times are sim seconds from the
+  // request; altered rows are a state counter written at command time (20.1).
+  data: {
+    deliverWindow: { value: 7200, tighter: "lower", note: "right result delivered <= 2 h after the request" },
+    // Renamed from rowsAlteredOutsideFix (Nick, 2026-11-16) so a case can keep
+    // a state counter of that name: thresholds are bound as names (22.25).
+    alteredRowsMax: { value: 0, tighter: "lower", note: "rows changed beyond the fix; none is the target" },
+  },
   // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
   // session's safety or diagnostic task done within its window with the
   // alliance intact; recovered: done late, partly, or at a cost to the
@@ -150,6 +167,49 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     allianceRecovered: { value: 3, tighter: "higher", note: "rapport below this at the close is a rupture" },
     safetyWindow: { value: 1200, tighter: "lower", note: "the critical safety question asked <= 20 min after the cue" },
   },
+  // REQ-314 (docs/sims.md 9.2, 22.27): an event on the facility console.
+  // Target: life safety first (no one left in danger), the alarm acted on
+  // within the response window, the breach or failure contained and the
+  // evidence (badge log, video) kept; recovered: handled late, or at a cost
+  // (equipment lost, a door left unsecured for a while, evidence partly
+  // lost); harm: a person put in danger, a breach left open, or the critical
+  // room lost. Times are sim seconds from the first alarm.
+  facility: {
+    responseWindow: { value: 600, tighter: "lower", note: "the first alarm acted on <= 10 min after it sounds" },
+    peopleAtRisk: { value: 0, tighter: "lower", note: "people left in danger at the close; none is the target" },
+  },
+  // REQ-311 (docs/sims.md 9.2, 22.24): one Sprint on the project dashboard's
+  // Sprint mode. The `project` profile is earned value (CPI, SPI against a
+  // baseline), which the Scrum Guide 2020 does not use: its commitments are
+  // the Sprint Goal and the Definition of Done, and forecasts "do not replace
+  // the importance of empiricism". Target: the Sprint Goal met by an
+  // Increment that meets the Definition of Done (or, when the Goal became
+  // obsolete, the Sprint cancelled by the Product Owner), nothing undone
+  // presented as done, every event inside its timebox, impediments acted on
+  // before the next Daily Scrum, and the people still working with the team;
+  // recovered: the Goal partly met with the shortfall transparent, or an
+  // impediment or a timebox handled late; harm: undone work released or
+  // presented as done, the Sprint Goal endangered or abandoned without the
+  // Product Owner, or the team's trust broken. Times are sim seconds.
+  scrum: {
+    dailyScrumMax: { value: 900, tighter: "lower", note: "the Daily Scrum is a 15-minute event (Scrum Guide 2020)" },
+    undoneShown: { value: 0, tighter: "lower", note: "items not meeting the Definition of Done released or presented; an undone item 'cannot be released or even presented at the Sprint Review' (Scrum Guide 2020)" },
+    impedimentWindow: { value: 86400, tighter: "lower", note: "an impediment to the Sprint Goal acted on within one working day, before the next Daily Scrum inspects progress toward the Goal" },
+    trustTarget: { value: 60, tighter: "higher", note: "every team and stakeholder gauge >= 60/100 at the Sprint's end" },
+    trustRecovered: { value: 40, tighter: "higher", note: "a gauge below this at the Sprint's end is a broken working relationship" },
+  },
+  // REQ-311 (docs/sims.md 9.2, 22.24): a shift on the service desk. Target:
+  // every incident prioritized by impact and urgency and restored within its
+  // service level target, repeat incidents raised as a problem, every change
+  // authorized by the change authority its type needs; recovered: one target
+  // missed, or a step done late; harm: a high-priority incident left past its
+  // target, or a change made without authorization that causes a new
+  // incident. Times are sim seconds.
+  service: {
+    slaBreachTarget: { value: 0, tighter: "lower", note: "incidents restored after their service level target; none is the target" },
+    slaBreachRecovered: { value: 1, tighter: "lower", note: "more breaches than this is harm" },
+    unauthorizedChanges: { value: 0, tighter: "lower", note: "changes made without the authorization their type needs" },
+  },
   // REQ-232 (docs/sims.md 9.2, 22.8): a physical therapy treatment session.
   // Target: the session's goal reached with every stopping rule respected and
   // any red flag escalated in time; recovered: the goal partly reached, or a
@@ -160,6 +220,45 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     stopWindow: { value: 120, tighter: "lower", note: "activity stopped or eased <= 2 min after a stopping rule is crossed" },
     spo2Floor: { value: 88, tighter: "higher", note: "SpO2 below this during activity is a stopping rule (APTA acute care guide 2021)" },
     escalateWindow: { value: 900, tighter: "lower", note: "a red flag reported to the medical team <= 15 min after it is found" },
+  },
+  // REQ-313 (docs/sims.md 9.2, 22.26): a quarter on the governance board.
+  // Target: the quarter's decisions made within budget (`budgetCap`, percent
+  // of the approved budget), no risk left above appetite without a treatment
+  // or an approved, time-limited exception at the close (`aboveAppetite` 0),
+  // and every key stakeholder's support at or above `supportTarget` (of 10);
+  // recovered: within the cap but a stakeholder below target, a decision
+  // late, or an exception without compensating controls; harm: spending past
+  // the cap, a risk above appetite left untreated that then materializes, or
+  // a decision taken outside the decision maker's authority. Times are sim
+  // seconds from the quarter's start.
+  governance: {
+    budgetCap: { value: 100, tighter: "lower", note: "spend <= 100% of the approved budget at the close" },
+    aboveAppetite: { value: 0, tighter: "lower", note: "risks above appetite with no treatment or approved exception at the close; none is the target" },
+    supportTarget: { value: 6, tighter: "higher", note: "each key stakeholder's support >= 6/10 at the close" },
+  },
+  // REQ-313 (docs/sims.md 9.2, 22.26): a tabletop exercise. Target: each
+  // inject's key decision made within `decisionWindow` of scenario time,
+  // every role the plan needs engaged, external words cleared by legal before
+  // they go out, and every gap the exercise found given an owner and a date
+  // in the after-action report (`unownedGaps` 0); recovered: decisions late,
+  // a role missing, or gaps found but left unowned; harm: in the scenario, a
+  // statement or payment made outside the plan or the law, a notification
+  // deadline missed, or the exercise closed with no after-action at all.
+  exercise: {
+    decisionWindow: { value: 3600, tighter: "lower", note: "each inject's key decision <= 60 min of scenario time after it arrives" },
+    unownedGaps: { value: 0, tighter: "lower", note: "gaps found with no owner and date in the after-action report; none is the target" },
+  },
+  // REQ-313 (docs/sims.md 9.2, 22.26): a professional-ethics dilemma on the
+  // session screen. Target: the duty acted on (refusal, disclosure or
+  // escalation through the proper channel) within `actWindow` of the
+  // request, with no canon breached (`canonBreaches` 0) and the working
+  // relationship kept where the ethics allow; recovered: acted late, or by a
+  // channel that cost more than it needed; harm: the unethical act done or
+  // covered up, a confidentiality broken beyond what the duty required, or
+  // the matter left unreported where the code requires a report.
+  "professional-ethics": {
+    actWindow: { value: 86400, tighter: "lower", note: "the duty acted on <= 1 day after the request or discovery" },
+    canonBreaches: { value: 0, tighter: "lower", note: "actions that breach a canon of the professional code; none is the target" },
   },
 };
 
@@ -1525,9 +1624,635 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       checkOne(it.when, root, WHERE_TICK, `screen.session.record.items[${j}].when`, info, col, "bool");
       checkTemplate(it.label, root, WHERE_TICK, `screen.session.record.items[${j}].label`, info, col);
     });
+    // REQ-313: an app at session@1 draws "Read the client"; a document that
+    // names its read button needs session@2 so that app is told to update.
+    if (se.readLabel !== undefined) {
+      if (typeof se.readLabel !== "string" || !se.readLabel.trim()) col.error("screen.session.readLabel", "names the read-aloud button in words");
+      if ((s.level ?? 1) < 2) col.error("screen.session.readLabel", "needs screen.level 2 (session@2); an app at level 1 would say \"Read the client\"");
+    }
   }
   consoleCheck(doc, root, info, col);
   terminalCheck(doc, root, info, col);
+  dashboardCheck(doc, root, info, col);
+  deskCheck(doc, root, info, col);
+  dataCheck(doc, root, info, col);
+  governanceCheck(doc, root, info, col);
+  tabletopCheck(doc, root, info, col);
+  facilityCheck(doc, root, info, col);
+  sandboxCheck(doc, root, info, col);
+  trainerCheck(doc, root, info, col);
+}
+
+// REQ-311 (docs/sims.md 22.24): the project dashboard's bindings, checked
+// like the console's. Display only: nothing here changes stepping.
+export const DASHBOARD_MODES: readonly string[] = ["predictive", "sprint"];
+const MAX_CHART_SLOTS = 60;
+
+function dashboardCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "project-dashboard" && !s.dashboard) col.error("screen.dashboard", "a project dashboard needs its commitments, board, issue, people and event bindings");
+  const d = s.dashboard;
+  if (!d) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (DASHBOARD_MODES.indexOf(d.mode) < 0) col.error("screen.dashboard.mode", "is predictive or sprint");
+  checkTemplate(d.heading, root, WHERE_TICK, "screen.dashboard.heading", info, col);
+  if (!Array.isArray(d.commitments) || !d.commitments.length) col.error("screen.dashboard.commitments", d.mode === "sprint" ? "needs the Sprint Goal (and the Product Goal and Definition of Done)" : "needs the project's objective");
+  (d.commitments ?? []).forEach((c, i) => {
+    const path = `screen.dashboard.commitments[${i}]`;
+    unique(c.id, path);
+    if (!c.label) col.error(`${path}.label`, "names the commitment");
+    checkTemplate(c.text, root, WHERE_TICK, `${path}.text`, info, col);
+    if (c.when) checkOne(c.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  if (d.mode === "sprint" && !(d.commitments ?? []).some((c) => (c.label ?? "").toLowerCase().indexOf("sprint goal") >= 0)) col.error("screen.dashboard.commitments", "Sprint mode shows the Sprint Goal (a commitment labelled 'Sprint Goal')");
+  if (!Array.isArray(d.columns) || !d.columns.length) col.error("screen.dashboard.columns", "needs at least one board column");
+  const colIds = (d.columns ?? []).map((c) => c.id);
+  (d.columns ?? []).forEach((c, i) => {
+    unique(c.id, `screen.dashboard.columns[${i}]`);
+    if (!c.label) col.error(`screen.dashboard.columns[${i}].label`, "names the column");
+  });
+  const colTy: Ty = { k: "enum", values: colIds };
+  (d.items ?? []).forEach((it, i) => {
+    const path = `screen.dashboard.items[${i}]`;
+    unique(it.id, path);
+    checkTemplate(it.label, root, WHERE_TICK, `${path}.label`, info, col);
+    checkOne(it.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(it.column, root, WHERE_TICK, `${path}.column`, info, col, colTy);
+    if (it.size) checkTemplate(it.size, root, WHERE_TICK, `${path}.size`, info, col);
+    if (it.note) checkTemplate(it.note, root, WHERE_TICK, `${path}.note`, info, col);
+    if (it.flag) checkOne(it.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  if (d.chart) {
+    const c = d.chart;
+    if (!(c.slots >= 2 && c.slots <= MAX_CHART_SLOTS && c.slots === Math.floor(c.slots))) col.error("screen.dashboard.chart.slots", `a whole number from 2 to ${MAX_CHART_SLOTS}`);
+    if (!c.series.length) col.error("screen.dashboard.chart.series", "needs at least one series");
+    if (!c.series.some((x) => x.style === "actual")) col.error("screen.dashboard.chart.series", "needs an actual series (the plan line alone says nothing)");
+    c.series.forEach((x, i) => {
+      const path = `screen.dashboard.chart.series[${i}]`;
+      unique(x.id, path);
+      if (x.style === "actual") {
+        if (x.values) col.error(path, "an actual series is a history, sampled as the run goes, not fixed values");
+        if (!x.history || !(doc.history ?? {})[x.history]) col.error(`${path}.history`, `no history ${x.history ?? "(none)"}`);
+      } else {
+        if (x.history) col.error(path, "a plan series is fixed values, one per slot, not a history");
+        if (!Array.isArray(x.values) || x.values.length !== c.slots) col.error(`${path}.values`, `needs ${c.slots} values, one per slot`);
+      }
+    });
+  }
+  (d.issues ?? []).forEach((x, i) => {
+    const path = `screen.dashboard.issues[${i}]`;
+    unique(x.id, path);
+    checkTemplate(x.label, root, WHERE_TICK, `${path}.label`, info, col);
+    checkOne(x.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(x.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+    checkTemplate(x.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(x.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+  });
+  if (!Array.isArray(d.people) || !d.people.length) col.error("screen.dashboard.people", "needs at least one gauge (the team, the Product Owner, a stakeholder)");
+  (d.people ?? []).forEach((g, i) => {
+    const path = `screen.dashboard.people[${i}]`;
+    unique(g.id, path);
+    if (!g.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkOne(g.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (!(g.max > 0)) col.error(`${path}.max`, "must be positive");
+    if (g.bands.some((b, j) => j > 0 && b <= g.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+    if (g.words.length !== g.bands.length + 1) col.error(`${path}.words`, "needs one word more than bands (the state in words, 13.1)");
+  });
+  (d.events ?? []).forEach((e, i) => {
+    const path = `screen.dashboard.events[${i}]`;
+    unique(e.id, path);
+    if (!e.label) col.error(`${path}.label`, "names the event");
+    checkOne(e.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+    checkTemplate(e.status, root, WHERE_TICK, `${path}.status`, info, col);
+    if (e.when) checkOne(e.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  (d.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.dashboard.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.dashboard.meters[${i}].value`, info, col);
+  });
+}
+
+// REQ-311 (docs/sims.md 22.24): the service desk's bindings.
+export const DESK_KINDS: readonly string[] = ["incident", "request", "problem", "change"];
+export const DESK_TONES: readonly string[] = ["ok", "degraded", "down", "maintenance"];
+const T_DTONE: Ty = { k: "enum", values: [...DESK_TONES] };
+
+function deskCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "service-desk" && !s.desk) col.error("screen.desk", "a service desk needs its priority matrix, ticket and service bindings");
+  const d = s.desk;
+  if (!d) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  const m = d.matrix;
+  if (!m || !m.impacts?.length || !m.urgencies?.length) col.error("screen.desk.matrix", "needs impact and urgency levels");
+  else {
+    if (m.priorities.length !== m.impacts.length || m.priorities.some((r) => r.length !== m.urgencies.length)) col.error("screen.desk.matrix.priorities", "one row per impact level, one column per urgency level");
+    const ps = new Set<number>();
+    m.priorities.forEach((r) => r.forEach((p) => {
+      if (!(p >= 1 && p === Math.floor(p))) col.error("screen.desk.matrix.priorities", "priorities are whole numbers from 1 (the highest)");
+      ps.add(p);
+    }));
+    if (m.priorities.length && m.priorities[0][0] !== 1) col.error("screen.desk.matrix.priorities", "the highest impact and urgency is priority 1");
+    for (const p of ps) if (!m.targets.some((t) => t.priority === p)) col.error("screen.desk.matrix.targets", `no service level target for priority ${p}`);
+  }
+  const refs = new Set<string>();
+  if (!Array.isArray(d.tickets) || !d.tickets.length) col.error("screen.desk.tickets", "needs at least one ticket");
+  (d.tickets ?? []).forEach((t, i) => {
+    const path = `screen.desk.tickets[${i}]`;
+    unique(t.id, path);
+    if (!t.ref) col.error(`${path}.ref`, "needs a reference (INC-1042)");
+    if (refs.has(t.ref)) col.error(`${path}.ref`, `duplicate reference ${t.ref}`);
+    refs.add(t.ref);
+    if (DESK_KINDS.indexOf(t.kind) < 0) col.error(`${path}.kind`, "is incident, request, problem or change");
+    checkTemplate(t.title, root, WHERE_TICK, `${path}.title`, info, col);
+    checkOne(t.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(t.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+    checkOne(t.impact, root, WHERE_TICK, `${path}.impact`, info, col, T_NUM);
+    checkOne(t.urgency, root, WHERE_TICK, `${path}.urgency`, info, col, T_NUM);
+    checkOne(t.priority, root, WHERE_TICK, `${path}.priority`, info, col, T_NUM);
+    checkTemplate(t.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(t.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+    checkOne(t.due, root, WHERE_TICK, `${path}.due`, info, col, T_NUM);
+    if (t.assignee) checkTemplate(t.assignee, root, WHERE_TICK, `${path}.assignee`, info, col);
+  });
+  if (!Array.isArray(d.services) || !d.services.length) col.error("screen.desk.services", "needs at least one service");
+  (d.services ?? []).forEach((v, i) => {
+    const path = `screen.desk.services[${i}]`;
+    unique(v.id, path);
+    if (!v.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(v.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(v.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_DTONE);
+  });
+  (d.meters ?? []).forEach((mm, i) => {
+    unique(mm.id, `screen.desk.meters[${i}]`);
+    checkTemplate(mm.value, root, WHERE_TICK, `screen.desk.meters[${i}].value`, info, col);
+  });
+}
+
+// REQ-312 (docs/sims.md 20.1, 22.25): the data and code console's bindings,
+// checked like the terminal's. Display only: nothing here changes stepping.
+// An editable cell names an action whose one param is a choice, listed in a
+// phase, so an edit is a bounded choice the engine already validates.
+export const DATA_SEVERITIES: readonly string[] = ["error", "warning", "info"];
+export const DATA_MARKS: readonly string[] = ["none", "error", "warning", "changed", "focus"];
+export const DATA_CHART_KINDS: readonly string[] = ["bar", "line", "control"];
+const T_MARK: Ty = { k: "enum", values: [...DATA_MARKS] };
+const DATA_CODE_LINE_MAX = 160;
+const DATA_TABLE_ROWS_MAX = 60;
+const DATA_CHART_POINTS_MAX = 60;
+
+function dataCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "data" && !s.data) col.error("screen.data", "a data and code console needs its workspace, flag, table, chart and code bindings");
+  const d = s.data;
+  if (!d) return;
+  if (s.type !== "data") col.error("screen.data", "data bindings belong on a screen of type data");
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  const optBool = (e: string | undefined, path: string): void => {
+    if (e !== undefined) checkOne(e, root, WHERE_TICK, path, info, col, "bool");
+  };
+  if (typeof d.workspace !== "string" || !d.workspace) col.error("screen.data.workspace", "names what is open (a file, a report, a process line)");
+  else checkTemplate(d.workspace, root, WHERE_TICK, "screen.data.workspace", info, col);
+  for (const k of ["flags", "tables", "charts", "code"] as const) {
+    if (!Array.isArray(d[k])) col.error(`screen.data.${k}`, `needs a ${k} list (it may be empty)`);
+  }
+  if (!(d.tables ?? []).length && !(d.charts ?? []).length && !(d.code ?? []).length) col.error("screen.data", "needs at least one table, chart or code file to show");
+  (d.flags ?? []).forEach((f, i) => {
+    const path = `screen.data.flags[${i}]`;
+    unique(f.id, path);
+    if (!f.label) col.error(`${path}.label`, "names the flag (a check, a stakeholder, a rule)");
+    if (!DATA_SEVERITIES.includes(f.severity)) col.error(`${path}.severity`, `must be one of ${DATA_SEVERITIES.join(", ")}`);
+    checkTemplate(f.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(f.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  const phaseActions = new Set(Object.values(doc.phases).flatMap((p) => p.actions));
+  (d.tables ?? []).forEach((t, i) => {
+    const path = `screen.data.tables[${i}]`;
+    unique(t.id, path);
+    if (!t.spokenLabel) col.error(path, "needs a spokenLabel");
+    optBool(t.when, `${path}.when`);
+    if (!Array.isArray(t.columns) || !t.columns.length) col.error(`${path}.columns`, "needs at least one column");
+    if (!Array.isArray(t.rows)) col.error(`${path}.rows`, "needs a rows list");
+    if ((t.rows ?? []).length > DATA_TABLE_ROWS_MAX) col.error(`${path}.rows`, `at most ${DATA_TABLE_ROWS_MAX} rows on screen; a larger dataset is a catalogue shown through an output table`);
+    const colIds = new Set<string>();
+    (t.columns ?? []).forEach((c, j) => {
+      if (colIds.has(c.id)) col.error(`${path}.columns[${j}]`, `duplicate column ${c.id}`);
+      colIds.add(c.id);
+      if (!c.label) col.error(`${path}.columns[${j}].label`, "needs a heading");
+    });
+    const rowIds = new Set<string>();
+    (t.rows ?? []).forEach((r, j) => {
+      const rp = `${path}.rows[${j}]`;
+      if (rowIds.has(r.id)) col.error(rp, `duplicate row ${r.id}`);
+      rowIds.add(r.id);
+      if (!Array.isArray(r.cells) || r.cells.length !== (t.columns ?? []).length) col.error(`${rp}.cells`, `needs one cell per column (${(t.columns ?? []).length})`);
+      (r.cells ?? []).forEach((c, k) => checkTemplate(c, root, WHERE_TICK, `${rp}.cells[${k}]`, info, col));
+      optBool(r.when, `${rp}.when`);
+      optBool(r.flag, `${rp}.flag`);
+    });
+    if (t.note !== undefined) checkTemplate(t.note, root, WHERE_TICK, `${path}.note`, info, col);
+    const cells = new Set<string>();
+    (t.edits ?? []).forEach((e, j) => {
+      const ep = `${path}.edits[${j}]`;
+      if (!rowIds.has(e.row)) col.error(`${ep}.row`, `no row ${e.row}`);
+      if (!colIds.has(e.column)) col.error(`${ep}.column`, `no column ${e.column}`);
+      const key = `${e.row}/${e.column}`;
+      if (cells.has(key)) col.error(ep, `cell ${key} is editable twice`);
+      cells.add(key);
+      const a = doc.actions[e.action];
+      if (!a) col.error(`${ep}.action`, `no action ${e.action}`);
+      else if (!a.params || a.params.length !== 1 || a.params[0].kind !== "choice") col.error(`${ep}.action`, "an editable cell's action has exactly one param, of kind choice (an edit is a bounded choice)");
+      if (a && !phaseActions.has(e.action)) col.error(`${ep}.action`, `action ${e.action} is in no phase`);
+    });
+  });
+  (d.charts ?? []).forEach((c, i) => {
+    const path = `screen.data.charts[${i}]`;
+    unique(c.id, path);
+    if (!c.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!DATA_CHART_KINDS.includes(c.kind)) col.error(`${path}.kind`, `must be one of ${DATA_CHART_KINDS.join(", ")}`);
+    if (!(typeof c.min === "number" && typeof c.max === "number" && c.min < c.max)) col.error(`${path}.min`, "min and max are numbers with min below max (the axis)");
+    if (typeof c.unit !== "string") col.error(`${path}.unit`, "says the unit in words (it may be empty)");
+    optBool(c.when, `${path}.when`);
+    if (!Array.isArray(c.points) || !c.points.length) col.error(`${path}.points`, "needs at least one point");
+    if ((c.points ?? []).length > DATA_CHART_POINTS_MAX) col.error(`${path}.points`, `at most ${DATA_CHART_POINTS_MAX} points`);
+    const pids = new Set<string>();
+    (c.points ?? []).forEach((p, j) => {
+      const pp = `${path}.points[${j}]`;
+      if (pids.has(p.id)) col.error(pp, `duplicate point ${p.id}`);
+      pids.add(p.id);
+      if (!p.label) col.error(`${pp}.label`, "needs a label (a subgroup, a month, a category)");
+      checkOne(p.value, root, WHERE_TICK, `${pp}.value`, info, col, T_NUM);
+      optBool(p.when, `${pp}.when`);
+      optBool(p.flag, `${pp}.flag`);
+    });
+    if (c.kind === "control" && !(c.lines ?? []).length) col.error(`${path}.lines`, "a control chart needs its center line and limits");
+    (c.lines ?? []).forEach((l, j) => {
+      const lp = `${path}.lines[${j}]`;
+      if (pids.has(l.id)) col.error(lp, `duplicate id ${l.id}`);
+      pids.add(l.id);
+      if (!l.label) col.error(`${lp}.label`, "names the line (center line, UCL, LSL, target)");
+      checkOne(l.value, root, WHERE_TICK, `${lp}.value`, info, col, T_NUM);
+      optBool(l.when, `${lp}.when`);
+    });
+    if (c.note !== undefined) checkTemplate(c.note, root, WHERE_TICK, `${path}.note`, info, col);
+  });
+  (d.code ?? []).forEach((f, i) => {
+    const path = `screen.data.code[${i}]`;
+    unique(f.id, path);
+    if (!f.label) col.error(`${path}.label`, "names the file or cell");
+    if (!f.language) col.error(`${path}.language`, "names the language (Python, JavaScript, SQL, DAX, M)");
+    optBool(f.when, `${path}.when`);
+    if (!Array.isArray(f.lines) || !f.lines.length) col.error(`${path}.lines`, "needs at least one line");
+    const lids = new Set<string>();
+    (f.lines ?? []).forEach((l, j) => {
+      const lp = `${path}.lines[${j}]`;
+      if (lids.has(l.id)) col.error(lp, `duplicate line ${l.id}`);
+      lids.add(l.id);
+      if (typeof l.text !== "string") col.error(`${lp}.text`, "is literal text");
+      else if (l.text.length > DATA_CODE_LINE_MAX) col.error(`${lp}.text`, `at most ${DATA_CODE_LINE_MAX} characters (wrap long lines)`);
+      else if (l.text.includes("\n") || l.text.includes("\t")) col.error(`${lp}.text`, "one line per entry, spaces for indentation (no newline or tab)");
+      optBool(l.when, `${lp}.when`);
+      if (l.mark !== undefined) checkOne(l.mark, root, WHERE_TICK, `${lp}.mark`, info, col, T_MARK);
+    });
+  });
+  (d.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.data.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.data.meters[${i}].value`, info, col);
+  });
+}
+
+// REQ-313 (docs/sims.md 22.26): the governance board's and the tabletop's
+// bindings, checked like the console's. Display only: nothing here changes
+// stepping, the corpus or any hash, and there is no engine minor.
+export const RISK_RATINGS: readonly string[] = ["critical", "high", "medium", "low"];
+export const APPETITE_TONES: readonly string[] = ["within", "above", "excepted"];
+export const ROLE_TONES: readonly string[] = ["engaged", "waiting", "gap"];
+export const COMMS_TONES: readonly string[] = ["none", "draft", "cleared", "sent", "late"];
+const T_RATING: Ty = { k: "enum", values: [...RISK_RATINGS] };
+const T_APPETITE: Ty = { k: "enum", values: [...APPETITE_TONES] };
+const T_ROLE: Ty = { k: "enum", values: [...ROLE_TONES] };
+const T_COMMS: Ty = { k: "enum", values: [...COMMS_TONES] };
+
+function governanceCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "governance-board" && !s.governance) col.error("screen.governance", "a governance board needs its risk, stakeholder and docket bindings");
+  const g = s.governance;
+  if (!g) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (!Array.isArray(g.risks) || !g.risks.length) col.error("screen.governance.risks", "needs at least one risk in the register");
+  if (!Array.isArray(g.stakeholders) || !g.stakeholders.length) col.error("screen.governance.stakeholders", "needs at least one stakeholder (a board member, an executive, a business owner)");
+  if (!Array.isArray(g.docket)) col.error("screen.governance.docket", "needs a docket list (it may be empty)");
+  (g.risks ?? []).forEach((r, i) => {
+    const path = `screen.governance.risks[${i}]`;
+    unique(r.id, path);
+    if (!r.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(r.owner, root, WHERE_TICK, `${path}.owner`, info, col);
+    checkTemplate(r.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(r.rating, root, WHERE_TICK, `${path}.rating`, info, col, T_RATING);
+    checkOne(r.appetite, root, WHERE_TICK, `${path}.appetite`, info, col, T_APPETITE);
+    if (r.when) checkOne(r.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  (g.stakeholders ?? []).forEach((k, i) => {
+    const path = `screen.governance.stakeholders[${i}]`;
+    unique(k.id, path);
+    if (!k.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkOne(k.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (!(k.max > 0)) col.error(`${path}.max`, "must be positive");
+    if (!Array.isArray(k.bands) || k.bands.some((b, j) => j > 0 && b <= k.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+    if (!Array.isArray(k.words) || k.words.length !== (k.bands ?? []).length + 1) col.error(`${path}.words`, "needs one word more than bands (support in words, 13.1)");
+  });
+  (g.docket ?? []).forEach((d, i) => {
+    const path = `screen.governance.docket[${i}]`;
+    unique(d.id, path);
+    if (!d.kind) col.error(`${path}.kind`, "says what it is (policy, exception, business case, board paper, decision)");
+    checkTemplate(d.label, root, WHERE_TICK, `${path}.label`, info, col);
+    checkTemplate(d.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(d.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (d.flag) checkOne(d.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  if (g.budget) {
+    if (!g.budget.label) col.error("screen.governance.budget.label", "names the budget");
+    if (!g.budget.unit) col.error("screen.governance.budget.unit", "says the unit in words (thousand dollars, ...)");
+    checkOne(g.budget.spent, root, WHERE_TICK, "screen.governance.budget.spent", info, col, T_NUM);
+    checkOne(g.budget.total, root, WHERE_TICK, "screen.governance.budget.total", info, col, T_NUM);
+  }
+  (g.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.governance.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.governance.meters[${i}].value`, info, col);
+  });
+}
+
+function tabletopCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "tabletop" && !s.tabletop) col.error("screen.tabletop", "a tabletop needs its inject, role and communication bindings");
+  const t = s.tabletop;
+  if (!t) return;
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  if (!Array.isArray(t.injects) || !t.injects.length) col.error("screen.tabletop.injects", "needs at least one inject");
+  if (!Array.isArray(t.roles) || !t.roles.length) col.error("screen.tabletop.roles", "needs at least one role around the table");
+  if (!Array.isArray(t.comms)) col.error("screen.tabletop.comms", "needs a communications list (it may be empty)");
+  (t.injects ?? []).forEach((j, i) => {
+    const path = `screen.tabletop.injects[${i}]`;
+    unique(j.id, path);
+    checkTemplate(j.title, root, WHERE_TICK, `${path}.title`, info, col);
+    checkTemplate(j.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(j.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(j.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+    checkOne(j.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+  });
+  (t.roles ?? []).forEach((r, i) => {
+    const path = `screen.tabletop.roles[${i}]`;
+    unique(r.id, path);
+    if (!r.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(r.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(r.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_ROLE);
+  });
+  (t.comms ?? []).forEach((c, i) => {
+    const path = `screen.tabletop.comms[${i}]`;
+    unique(c.id, path);
+    if (!c.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(c.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(c.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_COMMS);
+  });
+  (t.decisions?.items ?? []).forEach((it, j) => {
+    checkOne(it.when, root, WHERE_TICK, `screen.tabletop.decisions.items[${j}].when`, info, col, "bool");
+    checkTemplate(it.label, root, WHERE_TICK, `screen.tabletop.decisions.items[${j}].label`, info, col);
+  });
+  (t.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.tabletop.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.tabletop.meters[${i}].value`, info, col);
+  });
+}
+
+// REQ-314 (docs/sims.md 22.27): the facility console, the sandbox report and
+// the client trainer, checked like the console and the session. Display and
+// lint only: nothing here changes stepping, the corpus or any hash.
+export const FACILITY_ALARM_KINDS: readonly string[] = ["intrusion", "door", "duress", "fire", "power", "hvac", "water", "other"];
+export const FACILITY_TONES: readonly string[] = ["secure", "watch", "alarm", "locked"];
+export const DOOR_RESULTS: readonly string[] = ["granted", "denied", "forced", "held", "tailgate"];
+export const INDICATOR_TYPES: readonly string[] = ["hash", "domain", "ip", "url", "file", "registry", "mutex", "other"];
+export const INDICATOR_TONES: readonly string[] = ["unreviewed", "confirmed", "benign", "actioned"];
+export const RULE_TONES: readonly string[] = ["draft", "tested", "noisy", "deployed"];
+export const RULE_KINDS: readonly string[] = ["yara", "sigma", "other"];
+
+function uniqueIds(col: Collector): (id: string, path: string) => void {
+  const ids = new Set<string>();
+  return (id, path) => {
+    if (typeof id !== "string" || !/^[a-z][a-zA-Z0-9_]{0,47}$/.test(id)) col.error(path, `bad id ${String(id)}`);
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+}
+
+function facilityCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "facility-console" && !s.facility) col.error("screen.facility", "a facility console needs its site, zone, alarm, door, camera and environment bindings");
+  const f = s.facility;
+  if (!f) return;
+  const P = "screen.facility";
+  const unique = uniqueIds(col);
+  const tone: Ty = { k: "enum", values: [...FACILITY_TONES] };
+  const result: Ty = { k: "enum", values: [...DOOR_RESULTS] };
+  if (!f.site || !f.site.name) col.error(`${P}.site`, "needs the site's name");
+  else checkTemplate(f.site.status, root, WHERE_TICK, `${P}.site.status`, info, col);
+  if (!Array.isArray(f.zones) || !f.zones.length) col.error(`${P}.zones`, "needs at least one zone (lobby, server room, loading dock, ...)");
+  if (!Array.isArray(f.alarms) || !f.alarms.length) col.error(`${P}.alarms`, "needs at least one alarm");
+  for (const k of ["doors", "cameras", "environment"] as const) if (!Array.isArray(f[k])) col.error(`${P}.${k}`, `needs a ${k} list (it may be empty)`);
+  (f.zones ?? []).forEach((z, i) => {
+    const path = `${P}.zones[${i}]`;
+    unique(z.id, path);
+    if (!z.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!z.kind) col.error(`${path}.kind`, "says what it is (lobby, server room, loading dock, ...)");
+    checkTemplate(z.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(z.tone, root, WHERE_TICK, `${path}.tone`, info, col, tone);
+  });
+  (f.alarms ?? []).forEach((a, i) => {
+    const path = `${P}.alarms[${i}]`;
+    unique(a.id, path);
+    if (FACILITY_ALARM_KINDS.indexOf(a.kind) < 0) col.error(`${path}.kind`, `must be one of ${FACILITY_ALARM_KINDS.join(", ")}`);
+    if (CONSOLE_SEVERITIES.indexOf(a.severity) < 0) col.error(`${path}.severity`, `must be one of ${CONSOLE_SEVERITIES.join(", ")}`);
+    checkTemplate(a.title, root, WHERE_TICK, `${path}.title`, info, col);
+    if (a.detail) checkTemplate(a.detail, root, WHERE_TICK, `${path}.detail`, info, col);
+    checkTemplate(a.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(a.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(a.open, root, WHERE_TICK, `${path}.open`, info, col, "bool");
+    checkOne(a.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (f.doors ?? []).forEach((d, i) => {
+    const path = `${P}.doors[${i}]`;
+    unique(d.id, path);
+    if (!d.reader) col.error(`${path}.reader`, "names the reader or door");
+    checkTemplate(d.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(d.result, root, WHERE_TICK, `${path}.result`, info, col, result);
+    checkOne(d.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(d.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  (f.cameras ?? []).forEach((c, i) => {
+    const path = `${P}.cameras[${i}]`;
+    unique(c.id, path);
+    if (!c.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(c.view, root, WHERE_TICK, `${path}.view`, info, col);
+    if (c.when) checkOne(c.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  (f.environment ?? []).forEach((e, i) => {
+    const path = `${P}.environment[${i}]`;
+    unique(e.id, path);
+    if (!e.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!e.unit) col.error(`${path}.unit`, "needs a unit (°C, %, min, ...)");
+    checkOne(e.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (e.low !== undefined && e.high !== undefined && !(e.low < e.high)) col.error(path, "low must be below high");
+  });
+  (f.people ?? []).forEach((p, i) => {
+    const path = `${P}.people[${i}]`;
+    unique(p.id, path);
+    checkTemplate(p.label, root, WHERE_TICK, `${path}.label`, info, col);
+    checkTemplate(p.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(p.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (p.flag) checkOne(p.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (f.meters ?? []).forEach((m, i) => {
+    unique(m.id, `${P}.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `${P}.meters[${i}].value`, info, col);
+  });
+}
+
+function sandboxCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "sandbox-report" && !s.sandbox) col.error("screen.sandbox", "a sandbox report needs its sample, process, network, indicator, rule and host bindings");
+  const b = s.sandbox;
+  if (!b) return;
+  const P = "screen.sandbox";
+  const unique = uniqueIds(col);
+  if (!b.sample || !b.sample.name) col.error(`${P}.sample`, "needs the sample's name");
+  else checkTemplate(b.sample.summary, root, WHERE_TICK, `${P}.sample.summary`, info, col);
+  for (const k of ["static", "processes", "network", "indicators", "rules"] as const) if (!Array.isArray(b[k])) col.error(`${P}.${k}`, `needs a ${k} list (it may be empty)`);
+  if (!Array.isArray(b.hosts) || !b.hosts.length) col.error(`${P}.hosts`, "needs at least one host in scope");
+  const line = (l: { id: string; when: string; flag?: string }, path: string, texts: string[]): void => {
+    unique(l.id, path);
+    for (const t of texts) checkTemplate(t, root, WHERE_TICK, `${path}`, info, col);
+    checkOne(l.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (l.flag) checkOne(l.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  };
+  (b.static ?? []).forEach((x, i) => line(x, `${P}.static[${i}]`, [x.text]));
+  const seen = new Set<string>();
+  (b.processes ?? []).forEach((x, i) => {
+    const path = `${P}.processes[${i}]`;
+    if (!x.image) col.error(`${path}.image`, "names the process image");
+    if (x.parent !== undefined && !seen.has(x.parent)) col.error(`${path}.parent`, `no earlier process ${x.parent} (a parent comes before its children)`);
+    line(x, path, [x.detail]);
+    seen.add(x.id);
+  });
+  (b.network ?? []).forEach((x, i) => {
+    if (!x.proto) col.error(`${P}.network[${i}].proto`, "names the protocol (DNS, HTTPS, SMB, ...)");
+    line(x, `${P}.network[${i}]`, [x.dest, x.detail]);
+  });
+  (b.indicators ?? []).forEach((x, i) => {
+    const path = `${P}.indicators[${i}]`;
+    if (INDICATOR_TYPES.indexOf(x.type) < 0) col.error(`${path}.type`, `must be one of ${INDICATOR_TYPES.join(", ")}`);
+    line(x, path, [x.value, x.status]);
+    checkOne(x.tone, root, WHERE_TICK, `${path}.tone`, info, col, { k: "enum", values: [...INDICATOR_TONES] });
+  });
+  (b.rules ?? []).forEach((x, i) => {
+    const path = `${P}.rules[${i}]`;
+    if (RULE_KINDS.indexOf(x.kind) < 0) col.error(`${path}.kind`, `must be one of ${RULE_KINDS.join(", ")}`);
+    if (!x.label) col.error(`${path}.label`, "names the rule");
+    line(x, path, [x.text, x.status]);
+    checkOne(x.tone, root, WHERE_TICK, `${path}.tone`, info, col, { k: "enum", values: [...RULE_TONES] });
+  });
+  (b.hosts ?? []).forEach((h, i) => {
+    const path = `${P}.hosts[${i}]`;
+    unique(h.id, path);
+    if (!h.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!h.kind) col.error(`${path}.kind`, "says what it is (workstation, mail server, ...)");
+    checkTemplate(h.status, root, WHERE_TICK, `${path}.status`, info, col);
+    checkOne(h.tone, root, WHERE_TICK, `${path}.tone`, info, col, T_TONE);
+  });
+  (b.meters ?? []).forEach((m, i) => {
+    unique(m.id, `${P}.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `${P}.meters[${i}].value`, info, col);
+  });
+}
+
+function trainerCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "trainer" && !s.trainer) col.error("screen.trainer", "a client trainer screen needs its client bindings");
+  const tr = s.trainer;
+  if (!tr) return;
+  const P = "screen.trainer";
+  const unique = uniqueIds(col);
+  if (!tr.client || !tr.client.name) col.error(`${P}.client`, "needs the client's name");
+  else checkTemplate(tr.client.presentation, root, WHERE_TICK, `${P}.client.presentation`, info, col);
+  if (!Array.isArray(tr.gauges) || !tr.gauges.length) col.error(`${P}.gauges`, "needs at least one gauge (trust, readiness, confidence, adherence)");
+  (tr.gauges ?? []).forEach((g, i) => {
+    const path = `${P}.gauges[${i}]`;
+    unique(g.id, path);
+    if (!g.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkOne(g.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+    if (!(g.max > 0)) col.error(`${path}.max`, "must be positive");
+    if (g.bands.some((v, j) => j > 0 && v <= g.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+    if (g.words.length !== g.bands.length + 1) col.error(`${path}.words`, "needs one word more than bands (the state in words, 13.1)");
+  });
+  (tr.readings ?? []).forEach((r, i) => {
+    const path = `${P}.readings[${i}]`;
+    unique(r.id, path);
+    if (!r.spokenLabel) col.error(path, "needs a spokenLabel");
+    checkTemplate(r.value, root, WHERE_TICK, `${path}.value`, info, col);
+    if (r.when) checkOne(r.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (r.flag) checkOne(r.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.intake?.items ?? []).forEach((it, i) => {
+    const path = `${P}.intake.items[${i}]`;
+    unique(it.id, path);
+    if (!it.question) col.error(`${path}.question`, "needs the question as asked");
+    checkTemplate(it.answer, root, WHERE_TICK, `${path}.answer`, info, col);
+    checkOne(it.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (it.flag) checkOne(it.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.findings ?? []).forEach((m, i) => {
+    const path = `${P}.findings[${i}]`;
+    unique(m.id, path);
+    checkTemplate(m.result, root, WHERE_TICK, `${path}.result`, info, col);
+    checkOne(m.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    if (m.flag) checkOne(m.flag, root, WHERE_TICK, `${path}.flag`, info, col, "bool");
+  });
+  (tr.program?.items ?? []).forEach((it, j) => {
+    checkOne(it.when, root, WHERE_TICK, `${P}.program.items[${j}].when`, info, col, "bool");
+    checkTemplate(it.label, root, WHERE_TICK, `${P}.program.items[${j}].label`, info, col);
+  });
+  (tr.journal ?? []).forEach((j, i) => {
+    const path = `${P}.journal[${i}]`;
+    unique(j.id, path);
+    checkTemplate(j.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(j.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+    checkOne(j.at, root, WHERE_TICK, `${path}.at`, info, col, T_NUM);
+  });
+  if (!Array.isArray(tr.rules) || !tr.rules.length) col.error(`${P}.rules`, "needs at least one scope-of-practice or stop rule");
+  (tr.rules ?? []).forEach((r, i) => {
+    const path = `${P}.rules[${i}]`;
+    unique(r.id, path);
+    checkTemplate(r.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(r.met, root, WHERE_TICK, `${path}.met`, info, col, "bool");
+  });
 }
 
 // REQ-237 (docs/sims.md 20.1, 22.10): the terminal screen's bindings,

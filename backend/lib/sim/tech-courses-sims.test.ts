@@ -22,7 +22,19 @@ const SCREEN: Record<string, { type: string; profile: string }> = {
   SC500: { type: "security-console", profile: "security" },
   AI200: { type: "terminal", profile: "infrastructure" },
 };
-const MINE = ALL_DOCUMENTS.filter((e) => e.course in SCREEN);
+// By slug (FAIL-2002, FAIL-2180): REQ-312 added data console sims and a band
+// to SQL and TSNODE, which a course-code filter would pull into this set.
+const REQ269_SLUGS = [
+  "sql-slow-login-seq-scan",
+  "sql-flash-sale-oversold",
+  "node-env-file-silent-exit",
+  "node-type-stripping-enum-crash",
+  "sc500-illicit-consent-grant",
+  "sc500-backup-vault-sabotage",
+  "ai200-containerapp-keyvault-revision",
+  "ai200-kql-checkout-latency",
+];
+const MINE = ALL_DOCUMENTS.filter((e) => REQ269_SLUGS.includes(e.slug));
 
 // Every string a learner can see, without the citations (whose URLs are real).
 function visibleStrings(v: unknown, out: string[] = []): string[] {

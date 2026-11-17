@@ -1,0 +1,1690 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sprint-status-meeting-daily-scrum",
+  "title": "Sprint 14: the Daily Scrum has turned into a status meeting",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 14 · day {day} of 5",
+      "commitments": [
+        {
+          "id": "productGoal",
+          "label": "Product Goal",
+          "text": "Returning shoppers check out in under a minute."
+        },
+        {
+          "id": "sprintGoal",
+          "label": "Sprint Goal",
+          "text": "A returning shopper can pay with a saved card at checkout."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Code reviewed; automated tests pass; verified against the payment provider's sandbox; accessibility checked."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Done"
+        }
+      ],
+      "items": [
+        {
+          "id": "a",
+          "label": "Save a card on file (provider tokenization)",
+          "column": "a",
+          "when": "true",
+          "size": "8 points",
+          "note": "{mocked and a == \"done\" ? \"Works against a mock only\" : \"\"}",
+          "flag": "impKnown and not keysIn and not mocked"
+        },
+        {
+          "id": "b",
+          "label": "Pay with a saved card at checkout",
+          "column": "b",
+          "when": "true",
+          "size": "8 points",
+          "note": "{mocked and b == \"done\" ? \"Works against a mock only\" : \"\"}"
+        },
+        {
+          "id": "d",
+          "label": "Checkout tests and accessibility pass",
+          "column": "d",
+          "when": "true",
+          "size": "5 points"
+        },
+        {
+          "id": "c",
+          "label": "Card-expiry reminder email",
+          "column": "c",
+          "when": "true",
+          "size": "5 points",
+          "note": "{focus == \"scattered\" and c != \"done\" ? \"Priya is on this\" : \"Not needed for the Sprint Goal\"}"
+        },
+        {
+          "id": "e",
+          "label": "Fix the flaky checkout test suite",
+          "column": "e",
+          "when": "true",
+          "size": "3 points"
+        }
+      ],
+      "chart": {
+        "label": "Sprint burn-down",
+        "unit": "points",
+        "slots": 5,
+        "slotLabel": "Day",
+        "series": [
+          {
+            "id": "remaining",
+            "label": "Points remaining",
+            "style": "actual",
+            "history": "burn"
+          },
+          {
+            "id": "plan",
+            "label": "Plan",
+            "style": "plan",
+            "values": [
+              29,
+              22,
+              15,
+              8,
+              0
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "keys",
+          "label": "No sandbox keys for the payment provider; 'save a card' cannot be built or tested",
+          "when": "impKnown",
+          "at": "timeAt(impKnownAt)",
+          "status": "{keysIn ? \"Resolved: keys issued by security\" : raised ? \"With Omar, the security lead; promised this afternoon\" : mocked ? \"Worked around with a mock\" : \"Not yet raised outside the team\"}",
+          "open": "not keysIn and not mocked"
+        }
+      ],
+      "people": [
+        {
+          "id": "dev",
+          "label": "Developers",
+          "spokenLabel": "The Developers",
+          "value": "devTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "po",
+          "label": "Maya, Product Owner",
+          "spokenLabel": "Maya, the Product Owner",
+          "value": "poTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "rob",
+          "label": "Rob, engineering manager",
+          "spokenLabel": "Rob, the engineering manager",
+          "value": "robTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "ds2",
+          "label": "Daily Scrum (Tuesday)",
+          "at": "72900",
+          "status": "{dsMode == \"none\" ? \"Upcoming\" : dsMode == \"skipped\" ? \"Skipped\" : \"Held\"}"
+        },
+        {
+          "id": "ds3",
+          "label": "Daily Scrums (Wednesday to Friday)",
+          "at": "159300",
+          "status": "{day < 3 ? \"Upcoming\" : dsMode == \"planning\" ? \"The Developers' planning event, 12 minutes\" : dsMode == \"skipped\" ? \"Skipped\" : \"Status reports\"}"
+        },
+        {
+          "id": "review",
+          "label": "Sprint Review",
+          "at": "349200",
+          "status": "{presented == \"none\" ? \"Upcoming\" : presented == \"done\" ? \"Held: the Done Increment\" : \"Held: everything shown as finished\"}"
+        },
+        {
+          "id": "retroEv",
+          "label": "Sprint Retrospective",
+          "at": "354600",
+          "status": "{retro == \"none\" ? \"Upcoming\" : retro == \"skip\" ? \"Skipped\" : \"Held: one improvement agreed\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "rem",
+          "label": "Points remaining",
+          "value": "{remaining} of 29"
+        },
+        {
+          "id": "dsLen",
+          "label": "Tuesday's Daily Scrum (timebox 15 minutes)",
+          "value": "{dsMinutes|0dp} minutes"
+        }
+      ]
+    }
+  },
+  "objective": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+  "secondaryObjectives": [
+    "Applying the three pillars -- transparency, inspection and adaptation -- to spot where a team has stopped inspecting or adapting",
+    "Recognizing the five Scrum values in a team's behavior and what happens when they erode",
+    "Causing the removal of impediments to the team's progress without solving everything for them",
+    "Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, a status-report Daily Scrum, a stabilization Sprint -- and responding to them",
+    "Deciding what happens to work that does not meet the Definition of Done when the Sprint ends",
+    "Leading the organization's Scrum adoption: training, coaching and helping stakeholders work with the team"
+  ],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Scrum Master accountabilities include 'Causing the removal of impediments to the Scrum Team's progress'; the Developers are accountable for 'Creating a plan for the Sprint, the Sprint Backlog' and 'Adapting their plan each day toward the Sprint Goal'."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Definition of Done: 'If a Product Backlog item does not meet the Definition of Done, it cannot be released or even presented at the Sprint Review'; it returns to the Product Backlog for future consideration."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Scrum values: 'Commitment, Focus, Openness, Respect, and Courage'; the three pillars transparency, inspection and adaptation; forecasts such as burn-downs 'do not replace the importance of empiricism'."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Sprint Review: 'a working session and the Scrum Team should avoid limiting it to a presentation'; Retrospective: 'to plan ways to increase quality and effectiveness'."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master of the checkout team at Harbor Lane Outfitters, a fictional online outdoor-gear shop. Sprint 14 runs one week, Monday 1 March to Friday 5 March 2027. Sprint Planning ended at 13:00 on Monday with a Sprint Goal: a returning shopper can pay with a saved card at checkout. Rob, the engineering manager, has started coming to the Daily Scrum because, he says, he never knows where things stand.",
+    "handover": [
+      "Developers: Lena, Sam, Priya and Dev. Product Owner: Maya.",
+      "Sprint Backlog: 29 points. Save a card on file, pay with a saved card, and the checkout tests and accessibility pass deliver the Sprint Goal; the card-expiry email and the flaky test fix are in the Sprint too."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the board, the burn-down, impediments, the people and the events. You act as the Scrum Master from the action groups; each action takes the time it would.",
+      "Move the week on to the next Daily Scrum when you are ready. Each morning the board shows what the Developers got done the day before.",
+      "On Friday you hold the Sprint Review and the Retrospective, then write a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T13:00",
+    "tick": "15min",
+    "maxDuration": "5d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "day": {
+      "type": "number",
+      "init": 1,
+      "min": 1,
+      "max": 5
+    },
+    "a": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "b": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "c": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "d": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "e": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "bWork": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "dWork": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "cWork": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "focus": {
+      "type": "enum",
+      "values": [
+        "scattered",
+        "goal"
+      ],
+      "init": "scattered"
+    },
+    "dsMode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "status",
+        "roundRobin",
+        "skipped",
+        "planning"
+      ],
+      "init": "none"
+    },
+    "dsMinutes": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60
+    },
+    "dsFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "impKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "impKnownAt": {
+      "type": "time",
+      "init": null
+    },
+    "raised": {
+      "type": "bool",
+      "init": false
+    },
+    "raisedAt": {
+      "type": "time",
+      "init": null
+    },
+    "keysIn": {
+      "type": "bool",
+      "init": false
+    },
+    "mocked": {
+      "type": "bool",
+      "init": false
+    },
+    "assigned": {
+      "type": "bool",
+      "init": false
+    },
+    "robInformed": {
+      "type": "bool",
+      "init": false
+    },
+    "devTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "poTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "robTrust": {
+      "type": "number",
+      "init": 55,
+      "min": 0,
+      "max": 100
+    },
+    "presented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "done",
+        "all"
+      ],
+      "init": "none"
+    },
+    "retro": {
+      "type": "enum",
+      "values": [
+        "none",
+        "purpose",
+        "dependency",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "burn": {
+      "of": "remaining",
+      "every": "1d",
+      "keep": "5d"
+    }
+  },
+  "derived": {
+    "remaining": {
+      "expr": "(a == \"done\" ? 0 : 8) + (b == \"done\" ? 0 : 8) + (c == \"done\" ? 0 : 5) + (d == \"done\" ? 0 : 5) + (e == \"done\" ? 0 : 3)",
+      "unit": "pts"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "sprint": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "inspect",
+        "raise",
+        "mock",
+        "coach",
+        "assign",
+        "fixDaily",
+        "robChat"
+      ]
+    },
+    "review": {
+      "label": "Sprint Review and Retrospective",
+      "clock": "stopped",
+      "actions": [
+        "present",
+        "retro",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "sprint",
+  "actions": {
+    "inspect": {
+      "label": "Look at the Sprint Backlog board and the burn-down with the Developers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"sprint\"",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "log": "You look at the board and the burn-down with the Developers.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "not impKnown and a != \"done\"",
+              "then": [
+                {
+                  "set": "impKnown",
+                  "to": "true"
+                },
+                {
+                  "set": "impKnownAt",
+                  "to": "t"
+                },
+                {
+                  "finding": "'Save a card on file' has sat in In progress since Monday with no commits. Lena: \"We can't tokenize anything. Security still hasn't issued the payment provider's sandbox keys. I asked in their channel on Monday.\""
+                },
+                {
+                  "log": "Impediment found: no sandbox keys for the payment provider.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "The burn-down is {remaining} points with {5 - day} days left; the board shows what is In progress."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "raise": {
+      "label": "Take the sandbox-key request to the security lead and stay on it until the keys arrive",
+      "group": "Impediments",
+      "available": "not busy and phase == \"sprint\" and (impKnown and not raised and not mocked)",
+      "why": "Find the impediment first (or it is raised).",
+      "effects": [
+        {
+          "log": "You walk the request over to Omar, the security lead, explain what it blocks, and agree a time.",
+          "kind": "act"
+        },
+        {
+          "set": "raised",
+          "to": "true"
+        },
+        {
+          "set": "raisedAt",
+          "to": "t"
+        },
+        {
+          "schedule": "keys",
+          "after": "4h"
+        },
+        {
+          "finding": "Omar: \"Nobody told me it was blocking a Sprint Goal. You'll have them this afternoon.\""
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "60min"
+        }
+      ]
+    },
+    "mock": {
+      "label": "Tell the Developers to build against a mock of the payment provider and count it as done",
+      "group": "Impediments",
+      "available": "not busy and phase == \"sprint\" and (impKnown and not keysIn and not mocked)",
+      "why": "Find the impediment first (or the keys are in).",
+      "effects": [
+        {
+          "log": "You tell the Developers to mock the provider and move on.",
+          "kind": "act"
+        },
+        {
+          "set": "mocked",
+          "to": "true"
+        },
+        {
+          "add": "devTrust",
+          "by": "-5"
+        },
+        {
+          "finding": "Lena frowns. \"Our Definition of Done says verified against the provider's sandbox.\""
+        },
+        {
+          "log": "Work that skips the Definition of Done is not Done (Scrum Guide 2020).",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "coach": {
+      "label": "Ask the Developers how today's plan moves the Sprint Goal, and leave the plan to them",
+      "group": "Team",
+      "available": "not busy and phase == \"sprint\" and (day >= 2 and not assigned)",
+      "why": "Wait for the first Daily Scrum (or you have already assigned the work).",
+      "effects": [
+        {
+          "log": "You ask what today's plan does for the Sprint Goal and wait.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "focus == \"scattered\"",
+              "then": [
+                {
+                  "set": "focus",
+                  "to": "\"goal\""
+                },
+                {
+                  "add": "devTrust",
+                  "by": "5"
+                },
+                {
+                  "finding": "Priya: \"Honestly, the expiry emails can wait. I'll pair with Sam on paying with a saved card.\" The Developers move the reminder email back to To do."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "They walk you through the plan. It is aimed at the Sprint Goal."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "assign": {
+      "label": "Assign Priya to 'pay with a saved card' and set each Developer's tasks for the rest of the week",
+      "group": "Team",
+      "available": "not busy and phase == \"sprint\" and (not assigned)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "log": "You assign tasks to each Developer.",
+          "kind": "act"
+        },
+        {
+          "set": "assigned",
+          "to": "true"
+        },
+        {
+          "set": "focus",
+          "to": "\"goal\""
+        },
+        {
+          "add": "devTrust",
+          "by": "-20"
+        },
+        {
+          "finding": "Sam, quietly: \"So we don't plan our own work any more?\""
+        },
+        {
+          "log": "The Scrum Master as task assigner: the Developers own the Sprint Backlog and adapt it each day (Scrum Guide 2020).",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "fixDaily": {
+      "label": "Coach the Developers and Rob on what the Daily Scrum is for, starting tomorrow",
+      "group": "Team",
+      "available": "not busy and phase == \"sprint\" and (day >= 2 and dsMode != \"planning\")",
+      "why": "Nothing to fix yet (or it already runs that way).",
+      "effects": [
+        {
+          "log": "You explain the Daily Scrum's purpose: the Developers inspect progress toward the Sprint Goal and adapt their plan, in 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "dsFixed",
+          "to": "true"
+        },
+        {
+          "set": "dsMode",
+          "to": "\"planning\""
+        },
+        {
+          "add": "devTrust",
+          "by": "5"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "robChat": {
+      "label": "Meet Rob: walk him through the Sprint Goal, the board and the burn-down, and invite him to the Sprint Review",
+      "group": "Stakeholders",
+      "available": "not busy and phase == \"sprint\" and (not robInformed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You give Rob the transparency he wanted, through the artifacts and the Sprint Review.",
+          "kind": "act"
+        },
+        {
+          "set": "robInformed",
+          "to": "true"
+        },
+        {
+          "add": "robTrust",
+          "by": "25"
+        },
+        {
+          "finding": "Rob: \"That's more than I got from the stand-up. I'll come Friday.\""
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "present": {
+      "label": "Decide what the Sprint Review shows",
+      "group": "Sprint Review",
+      "available": "presented == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "show",
+          "kind": "form",
+          "label": "Sprint Review",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What you show the stakeholders",
+              "options": [
+                {
+                  "value": "done",
+                  "label": "Only the Done Increment; say plainly what is not Done and that it returns to the Product Backlog"
+                },
+                {
+                  "value": "all",
+                  "label": "Demonstrate everything the team touched as finished, so the Sprint looks complete"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "presented",
+          "to": "what"
+        },
+        {
+          "cases": [
+            {
+              "when": "what == \"done\"",
+              "then": [
+                {
+                  "log": "You show the Done work and say what is not Done.",
+                  "kind": "good"
+                },
+                {
+                  "add": "poTrust",
+                  "by": "5"
+                },
+                {
+                  "add": "robTrust",
+                  "by": "5"
+                }
+              ]
+            },
+            {
+              "when": "(presented == \"all\" ? ((a == \"done\" and not mocked) ? 0 : 1) + ((b == \"done\" and not mocked) ? 0 : 1) + (d == \"done\" ? 0 : 1) : 0) > 0",
+              "then": [
+                {
+                  "log": "Work that does not meet the Definition of Done was shown as finished.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Everything shown is Done.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "retro": {
+      "label": "Choose the Sprint Retrospective's improvement",
+      "group": "Sprint Retrospective",
+      "available": "presented != \"none\" and retro == \"none\"",
+      "why": "Hold the Sprint Review first (or it is chosen).",
+      "params": [
+        {
+          "id": "pick",
+          "kind": "choice",
+          "label": "The improvement the team takes into the next Sprint",
+          "options": [
+            {
+              "value": "purpose",
+              "label": "Keep the Daily Scrum for the Developers' plan; give Rob the board and the Sprint Review instead"
+            },
+            {
+              "value": "dependency",
+              "label": "Ask for outside access, such as sandbox keys, during refinement, before an item is selected"
+            },
+            {
+              "value": "skip",
+              "label": "Skip the Retrospective; the Sprint went fine"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "retro",
+          "to": "pick"
+        },
+        {
+          "cases": [
+            {
+              "when": "pick == \"skip\"",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "-10"
+                },
+                {
+                  "log": "No Retrospective: nothing is inspected, nothing improves.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "5"
+                },
+                {
+                  "log": "The team takes one improvement into the next Sprint.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "close": {
+      "label": "Close the Sprint",
+      "group": "Sprint Retrospective",
+      "available": "retro != \"none\" and not closed",
+      "why": "Choose the Retrospective's improvement first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The Sprint is over.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "morning": {
+      "label": "The next Daily Scrum",
+      "wait": {
+        "skipLabel": "Go to the next Daily Scrum"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "day",
+          "by": "1"
+        },
+        {
+          "if": "c != \"done\" and focus == \"scattered\"",
+          "then": [
+            {
+              "add": "cWork",
+              "by": "0.5"
+            },
+            {
+              "if": "cWork >= 1",
+              "then": [
+                {
+                  "set": "c",
+                  "to": "\"done\""
+                },
+                {
+                  "log": "Priya finished the card-expiry reminder email (not part of the Sprint Goal).",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "d != \"done\" and b == \"done\"",
+          "then": [
+            {
+              "set": "d",
+              "to": "\"doing\""
+            },
+            {
+              "add": "dWork",
+              "by": "1"
+            },
+            {
+              "if": "dWork >= 1",
+              "then": [
+                {
+                  "set": "d",
+                  "to": "\"done\""
+                },
+                {
+                  "log": "Checkout tests and the accessibility pass are Done.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "b != \"done\" and a == \"done\"",
+          "then": [
+            {
+              "set": "b",
+              "to": "\"doing\""
+            },
+            {
+              "add": "bWork",
+              "by": "focus == \"goal\" ? 1 : 0.5"
+            },
+            {
+              "if": "bWork >= 1",
+              "then": [
+                {
+                  "set": "b",
+                  "to": "\"done\""
+                },
+                {
+                  "log": "Pay with a saved card is {mocked ? \"working against a mock, not the provider's sandbox\" : \"Done\"}.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "a != \"done\" and (keysIn or mocked)",
+          "then": [
+            {
+              "set": "a",
+              "to": "\"done\""
+            },
+            {
+              "log": "Save a card on file is {mocked ? \"working against a mock\" : \"Done against the provider's sandbox\"}.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "e != \"done\"",
+          "then": [
+            {
+              "set": "e",
+              "to": "\"done\""
+            },
+            {
+              "log": "The flaky checkout test suite is fixed and Done.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "day < 5",
+          "then": [
+            {
+              "schedule": "morning",
+              "after": "24h"
+            }
+          ],
+          "else": [
+            {
+              "schedule": "review",
+              "after": "285min"
+            }
+          ]
+        },
+        {
+          "if": "day > 2",
+          "then": [
+            {
+              "cases": [
+                {
+                  "when": "dsMode == \"planning\"",
+                  "then": [
+                    {
+                      "log": "Daily Scrum, 09:15: the Developers re-plan their day toward the Sprint Goal in 12 minutes.",
+                      "kind": "sys"
+                    }
+                  ]
+                },
+                {
+                  "when": "true",
+                  "then": [
+                    {
+                      "log": "Daily Scrum, 09:15: {dsMode == \"skipped\" ? \"the team skips it again\" : \"another round of status reports\"}.",
+                      "kind": "sys"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "keys": {
+      "label": "Security issues the keys",
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "keysIn",
+          "to": "true"
+        },
+        {
+          "log": "Omar issued the payment provider's sandbox keys.",
+          "kind": "good"
+        }
+      ]
+    },
+    "review": {
+      "label": "The Sprint Review",
+      "wait": {
+        "skipLabel": "Go to the Sprint Review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "Friday 14:00: the Sprint Review.",
+          "kind": "sys"
+        },
+        {
+          "phase": "review"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "morning",
+          "after": "1215min"
+        }
+      ]
+    },
+    {
+      "id": "tuesday",
+      "when": "day == 2 and phase == \"sprint\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Tuesday 09:15: the first Daily Scrum.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "dailyScrum"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"review\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "dailyScrum": {
+      "title": "Tuesday, 09:15: the Daily Scrum",
+      "context": "The Developers gather at the board. Rob arrives with a notebook and says: \"Let's go round. Each of you, what did you do yesterday and what's the status?\" Lena looks at you.",
+      "choices": [
+        {
+          "id": "status",
+          "label": "Let Rob run it: each Developer reports their status to him",
+          "effects": [
+            {
+              "set": "dsMode",
+              "to": "\"status\""
+            },
+            {
+              "set": "dsMinutes",
+              "to": "35"
+            },
+            {
+              "add": "devTrust",
+              "by": "-10"
+            },
+            {
+              "add": "robTrust",
+              "by": "10"
+            },
+            {
+              "log": "35 minutes of status reports to Rob. Nobody mentions the Sprint Goal.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The Daily Scrum is the Developers' event to inspect progress toward the Sprint Goal and adapt their plan, in 15 minutes. A report to a manager hides what is in the way."
+        },
+        {
+          "id": "planning",
+          "label": "Ask the Developers to plan their day toward the Sprint Goal at the board; ask Rob to listen, and offer him time afterwards",
+          "effects": [
+            {
+              "set": "dsMode",
+              "to": "\"planning\""
+            },
+            {
+              "set": "dsMinutes",
+              "to": "12"
+            },
+            {
+              "add": "devTrust",
+              "by": "5"
+            },
+            {
+              "add": "robTrust",
+              "by": "-10"
+            },
+            {
+              "if": "not impKnown",
+              "then": [
+                {
+                  "set": "impKnown",
+                  "to": "true"
+                },
+                {
+                  "set": "impKnownAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "focus",
+              "to": "\"goal\""
+            },
+            {
+              "finding": "Lena: \"Save a card is stuck. No sandbox keys from security.\" Priya: \"Then I'll leave the expiry emails and pair with Sam on paying with a saved card.\""
+            },
+            {
+              "log": "12 minutes. The Developers re-plan their day toward the Sprint Goal; an impediment is out in the open.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "That is the Daily Scrum's purpose. Rob still needs a way to see progress: the board, the burn-down and the Sprint Review."
+        },
+        {
+          "id": "round",
+          "label": "Run it yourself: each person answers the three questions to you",
+          "effects": [
+            {
+              "set": "dsMode",
+              "to": "\"roundRobin\""
+            },
+            {
+              "set": "dsMinutes",
+              "to": "25"
+            },
+            {
+              "add": "devTrust",
+              "by": "-5"
+            },
+            {
+              "if": "not impKnown",
+              "then": [
+                {
+                  "set": "impKnown",
+                  "to": "true"
+                },
+                {
+                  "set": "impKnownAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "finding": "Asked about impediments, Lena mentions the missing sandbox keys. Nobody re-plans; Priya goes back to the expiry emails."
+            },
+            {
+              "log": "25 minutes, everyone reporting to the Scrum Master.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The impediment surfaced, but the Developers reported to you instead of planning together. The 2020 Guide dropped the three questions: the Developers choose any structure that serves the Sprint Goal."
+        },
+        {
+          "id": "skip",
+          "label": "Cancel today's Daily Scrum; everyone is busy",
+          "effects": [
+            {
+              "set": "dsMode",
+              "to": "\"skipped\""
+            },
+            {
+              "set": "dsMinutes",
+              "to": "0"
+            },
+            {
+              "add": "devTrust",
+              "by": "-5"
+            },
+            {
+              "log": "No Daily Scrum: nothing inspected, nothing adapted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Skipping it removes the daily inspection and adaptation the Sprint depends on."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Reflect on the Sprint: what was going wrong with the Daily Scrum and the board, what you did about the impediment and the team's focus, and what the Sprint Review showed and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The Daily Scrum and transparency",
+          "criteria": "Names the status-report Daily Scrum as an anti-pattern: the event is the Developers' 15-minute planning toward the Sprint Goal, and status reports hid the stuck item and the drift in focus; Rob's need was met another way (the board, the burn-down, the Sprint Review).",
+          "modelAnswer": "The Daily Scrum had become a status report to Rob. Its purpose is for the Developers to inspect progress toward the Sprint Goal and adapt their plan, in 15 minutes. Run that way, the stuck item and Priya's work off the Goal came out at once. Rob got his transparency through the board, the burn-down and an invitation to the Sprint Review."
+        },
+        {
+          "label": "Impediment, self-management and Done",
+          "criteria": "Caused the impediment's removal outside the team the same day rather than working around the Definition of Done; left the plan to the Developers instead of assigning tasks; showed only Done work at the Review and returned anything undone to the Product Backlog; chose a Retrospective improvement.",
+          "modelAnswer": "The missing sandbox keys were outside the team, so I took them to the security lead and stayed on it; a mock would have broken the Definition of Done. I asked the Developers how their plan served the Goal and left the plan to them. At the Review we showed only the Done Increment; anything not Done goes back to the Product Backlog. The Retrospective picked one improvement for next Sprint."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "dailyScrumMax": {
+        "value": 900,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "The Daily Scrum's 15-minute timebox."
+        }
+      },
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Nothing that misses the Definition of Done is presented."
+        }
+      },
+      "impedimentWindow": {
+        "value": 86400,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "The impediment raised outside the team within the Sprint's first working day."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Working relationships at the Sprint's end (author's teaching model)."
+        }
+      },
+      "trustRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf"
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and a != \"done\"",
+      "class": "recovered",
+      "rationale": "Nothing toward the Sprint Goal was built, but if the Review stayed honest the shortfall is transparent and the undone work returns to the Product Backlog; recovered, not harm, because nothing undone was shown as done.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Definition of Done: 'If a Product Backlog item does not meet the Definition of Done, it cannot be released or even presented at the Sprint Review'; it returns to the Product Backlog for future consideration."
+      }
+    }
+  },
+  "endings": {
+    "undone": {
+      "label": "Undone work shown as finished",
+      "class": "harm",
+      "when": "closed and (presented == \"all\" ? ((a == \"done\" and not mocked) ? 0 : 1) + ((b == \"done\" and not mocked) ? 0 : 1) + (d == \"done\" ? 0 : 1) : 0) > undoneShown",
+      "terminal": true,
+      "narrative": "The stakeholders left the Review believing checkout with a saved card is ready. It is not: {mocked ? \"it runs against a mock\" : \"parts of it are not Done\"}. Maya will plan the next Sprint on a false picture."
+    },
+    "broken": {
+      "label": "Trust broken",
+      "class": "harm",
+      "when": "closed and (devTrust < trustRecovered or robTrust < trustRecovered or poTrust < trustRecovered)",
+      "terminal": true,
+      "narrative": "{devTrust < trustRecovered ? \"The Developers stopped planning their own work; they wait to be told.\" : \"Rob has stopped trusting the team to show him progress, and is talking about weekly status reports.\"}"
+    },
+    "goalMet": {
+      "label": "Sprint Goal met, the Scrum way",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and a == \"done\" and b == \"done\" and d == \"done\" and not mocked and dsMinutes * 60 <= dailyScrumMax and dsMode == \"planning\" and raised and timeAt(raisedAt) <= impedimentWindow and not assigned and robInformed and retro != \"skip\" and devTrust >= trustTarget and robTrust >= trustTarget and poTrust >= trustTarget",
+      "narrative": "A returning shopper can pay with a saved card, Done against the provider's sandbox. The Daily Scrum is the Developers' again, Rob reads the board, and the team knows what it will improve next."
+    },
+    "goalMissed": {
+      "label": "Sprint Goal missed, shortfall transparent",
+      "class": "recovered",
+      "when": "closed and not (a == \"done\" and b == \"done\" and d == \"done\" and not mocked)",
+      "terminal": true,
+      "narrative": "The Sprint Goal was not met. The Review showed what is Done and said what is not; the rest goes back to the Product Backlog for Maya to order."
+    },
+    "gaps": {
+      "label": "Sprint Goal met, with gaps",
+      "class": "recovered",
+      "when": "closed",
+      "terminal": true,
+      "narrative": "The Sprint Goal was met, but the criteria show where the events, the impediment or the people were handled late or not at all."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "undone",
+    "broken",
+    "goalMet",
+    "goalMissed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "dailyScrum",
+        "label": "Kept the Daily Scrum the Developers' 15-minute planning event",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dsMode == \"planning\" and not dsFixed",
+            "score": "met",
+            "why": "Run as the Developers' planning event from Tuesday."
+          },
+          {
+            "when": "dsMode == \"planning\"",
+            "score": "partial",
+            "why": "Fixed after a status-report Daily Scrum."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "It stayed a status report{dsMode == \"skipped\" ? \", or was skipped\" : \"\"}."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "impediment",
+        "label": "Caused the impediment's removal within a working day",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "mocked",
+            "score": "missed",
+            "why": "Worked around the Definition of Done with a mock."
+          },
+          {
+            "when": "raised and timeAt(raisedAt) <= impedimentWindow",
+            "score": "met",
+            "why": "Raised with security {timeAt(raisedAt) / 3600} h into the Sprint."
+          },
+          {
+            "when": "raised",
+            "score": "partial",
+            "why": "Raised only {timeAt(raisedAt) / 3600} h into the Sprint."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never raised outside the team."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "transparency",
+        "label": "Showed only Done work at the Sprint Review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "(presented == \"all\" ? ((a == \"done\" and not mocked) ? 0 : 1) + ((b == \"done\" and not mocked) ? 0 : 1) + (d == \"done\" ? 0 : 1) : 0) == 0",
+            "score": "met",
+            "why": "Nothing undone was shown as finished."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Undone work was shown as finished."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "selfManaging",
+        "label": "Left the plan to the Developers",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "assigned",
+            "score": "missed",
+            "why": "You assigned the tasks."
+          },
+          {
+            "when": "focus == \"goal\"",
+            "score": "met",
+            "why": "The Developers re-planned toward the Sprint Goal themselves."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Nobody brought the plan back to the Sprint Goal."
+          }
+        ]
+      },
+      {
+        "id": "stakeholder",
+        "label": "Gave Rob transparency through the artifacts and the Sprint Review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "robInformed",
+            "score": "met",
+            "why": "Rob saw the board, the burn-down and the Review."
+          },
+          {
+            "when": "dsMode == \"status\"",
+            "score": "partial",
+            "why": "Rob got status reports in the Daily Scrum instead."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Rob was left out."
+          }
+        ]
+      },
+      {
+        "id": "goal",
+        "label": "Met the Sprint Goal with a Done Increment",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "a == \"done\" and b == \"done\" and d == \"done\" and not mocked",
+            "score": "met",
+            "why": "Every Sprint Goal item is Done."
+          },
+          {
+            "when": "a == \"done\" and not mocked",
+            "score": "partial",
+            "why": "Part of the Sprint Goal is Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None of the Sprint Goal is Done."
+          }
+        ]
+      },
+      {
+        "id": "retroCrit",
+        "label": "Held a Retrospective that chose an improvement",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "retro == \"purpose\" or retro == \"dependency\"",
+            "score": "met",
+            "why": "One improvement for next Sprint."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No Retrospective."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "dsMin",
+        "label": "Tuesday's Daily Scrum, minutes",
+        "value": "dsMinutes",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "hoursToRaise",
+        "label": "Hours until the impediment was raised outside the team",
+        "value": "isNull(raisedAt) ? -1 : timeAt(raisedAt) / 3600",
+        "format": "number",
+        "expert": "24 or less"
+      },
+      {
+        "id": "pointsLeft",
+        "label": "Points not Done at the Review",
+        "value": "remaining",
+        "format": "number",
+        "expert": "5 or less (the reminder email may wait)"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday",
+        "text": "Let the Developers start; the Sprint Goal and the board are set."
+      },
+      {
+        "at": "Tuesday 09:15",
+        "text": "Hand the Daily Scrum back to the Developers: plan the day toward the Sprint Goal in 15 minutes, with Rob listening. The stuck item and the drifting focus come out."
+      },
+      {
+        "at": "Tuesday",
+        "text": "Take the missing sandbox keys to the security lead and stay on it; meet Rob and show him the board, the burn-down and the Review."
+      },
+      {
+        "at": "Friday",
+        "text": "Show only the Done Increment, say what is not Done, and choose one improvement at the Retrospective."
+      }
+    ],
+    "debrief": {
+      "goalMet": {
+        "headline": "Good: the Sprint Goal, the Scrum way",
+        "body": "The Daily Scrum became the Developers' planning event again, the impediment was raised the same day, Rob got transparency through the artifacts, and the Review showed only Done work."
+      },
+      "gaps": {
+        "headline": "Goal met, with gaps",
+        "body": "The Increment is Done, but the criteria below show what was late or missing: the Daily Scrum, the impediment, Rob, or the Retrospective."
+      },
+      "goalMissed": {
+        "headline": "Goal missed, honestly",
+        "body": "The Review was transparent, which keeps empiricism working. The criteria show what cost the Goal: the impediment raised late, the Daily Scrum that hid it, or focus off the Goal."
+      },
+      "undone": {
+        "headline": "Undone work shown as finished",
+        "body": "An item that does not meet the Definition of Done 'cannot be released or even presented at the Sprint Review' (Scrum Guide 2020). It goes back to the Product Backlog."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Assigning tasks takes the Sprint Backlog from the Developers; status reports and no other window into progress leave a manager uneasy. Both erode respect and openness."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The Sprint was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The Daily Scrum is the Developers' 15-minute event to inspect progress toward the Sprint Goal and adapt the plan; a status report to a manager hides problems. Hand it back, give the manager transparency through the board, the burn-down and the Sprint Review, cause the removal of the outside impediment the same day instead of mocking around the Definition of Done, leave the plan to the Developers, show only the Done Increment, and leave the Retrospective with one improvement."
+  }
+}

@@ -1,0 +1,339 @@
+{
+  "slug": "tension-pneumothorax-after-line",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: examine, bag on 100%, suction, stat call for decompression now, kit at the bed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bag",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "req": "now"
+          },
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "fifth",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "kit",
+          "seq": 8,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "decompressedFast",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "recognized": "met",
+          "treatFirst": "met",
+          "oxygen": "met",
+          "kit": "met",
+          "tube": "met",
+          "noPeep": "met"
+        },
+        "kpis": {
+          "toCall": 10,
+          "toDecomp": 130
+        },
+        "stateHash": "358a66792d3d21ae"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "slowCall",
+      "title": "FiO2 up and suction first, chest examined at 4 min, call for decompression at 5 min; no kit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fio2",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 4,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "req": "now"
+          },
+          "seq": 5,
+          "tick": 290
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "fifth",
+          "seq": 6,
+          "tick": 290
+        }
+      ],
+      "expect": {
+        "ending": "decompressedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "recognized": "partial",
+          "treatFirst": "met",
+          "oxygen": "met",
+          "kit": "missed",
+          "tube": "met",
+          "noPeep": "met"
+        },
+        "kpis": {
+          "toCall": 290,
+          "toDecomp": 500
+        },
+        "stateHash": "2996784e77e2990f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "fastNoPrep",
+      "title": "Examines, bags and calls for decompression at once, but no suction and no kit; decompressed after the kit is fetched",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 1,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "bag",
+          "seq": 3,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "req": "now"
+          },
+          "seq": 4,
+          "tick": 15
+        },
+        {
+          "type": "teach",
+          "prompt": "siteQ",
+          "choice": "fifth",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 6,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "decompressedFast",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "recognized": "met",
+          "treatFirst": "met",
+          "oxygen": "met",
+          "kit": "missed",
+          "tube": "missed",
+          "noPeep": "met"
+        },
+        "kpis": {
+          "toCall": 15,
+          "toDecomp": 225
+        },
+        "stateHash": "ec3a9396a555efbf"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "xrayFirst",
+      "title": "Failure: raises PEEP and FiO2, examines, then asks for a stat chest X-ray; arrest before the film",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fio2",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "peep",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "assess",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "req": "xray"
+          },
+          "seq": 5,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "recognized": "met",
+          "treatFirst": "missed",
+          "oxygen": "met",
+          "kit": "missed",
+          "tube": "missed",
+          "noPeep": "missed"
+        },
+        "kpis": {
+          "toCall": 20,
+          "toDecomp": -1
+        },
+        "stateHash": "9bed632f0b227a31"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "alarmOnly",
+      "title": "Failure: suctions, then raises PEEP for the saturation; never examines or calls",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "peep",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "recognized": "missed",
+          "treatFirst": "missed",
+          "oxygen": "missed",
+          "kit": "missed",
+          "tube": "met",
+          "noPeep": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toDecomp": -1
+        },
+        "stateHash": "7cccf02f26cade94"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -78,8 +78,10 @@ describe("IT sims wave 3 (REQ-297)", () => {
       assert.deepEqual(secondsUnitProblems(d), [], w.slug);
       assert.deepEqual(backslashEscapeProblems(d), [], w.slug);
       // a band keeps its base's dated sources and adds its own course's outline, read for this wave
-      if (w.kind === "band") assert.equal(d.sources[0].checkedAt, "2026-11-14", `${w.slug}: band outline dated`);
-      else assert.ok(d.sources.length >= 2 && d.sources.every((s) => s.checkedAt === "2026-11-14"), `${w.slug}: sources dated`);
+      // (read 2026-11-14; the REQ-310 verification pass re-read some sources on 2026-11-16)
+      const dated = (c: string) => c === "2026-11-14" || c === "2026-11-16";
+      if (w.kind === "band") assert.ok(dated(d.sources[0].checkedAt), `${w.slug}: band outline dated`);
+      else assert.ok(d.sources.length >= 2 && d.sources.every((s) => dated(s.checkedAt)), `${w.slug}: sources dated`);
       assert.ok(Object.keys(d.reasoning).length === 1, `${w.slug}: one reasoning moment`);
     }
   });

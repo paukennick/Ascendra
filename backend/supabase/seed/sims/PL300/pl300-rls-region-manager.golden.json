@@ -1,0 +1,759 @@
+{
+  "slug": "pl300-rls-region-manager",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Access and roles first; managers to Viewer; the security group into the role; Priya confirms North only; tell the managers",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkAccess",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "checkRoles",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "setGroupRole",
+          "params": {
+            "role": "viewer"
+          },
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "mapRole",
+          "params": {
+            "who": "sg"
+          },
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "askPriya",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 13,
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 14,
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 13,
+          "tick": 14
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "member",
+            "check": "manager"
+          },
+          "seq": 15,
+          "tick": 14
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "viewer": "met",
+          "mapped": "met",
+          "tested": "met",
+          "model": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "regions": 1,
+          "sentAt": 13,
+          "broken": 0
+        },
+        "stateHash": "4d5f8c110bf69da3"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "shipAsIs",
+      "title": "Assumes the role works and tells the managers without changing anything",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkRoles",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "cache",
+            "check": "none"
+          },
+          "seq": 7,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "exposed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "looked": "missed",
+          "viewer": "missed",
+          "mapped": "missed",
+          "tested": "missed",
+          "model": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "regions": 4,
+          "sentAt": 2,
+          "broken": 0
+        },
+        "stateHash": "3dfdcef1e21f0ee4"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "dropMargins",
+      "title": "Removes the margin columns from the shared model to hide them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "dropMargin",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askPriya",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "filter",
+            "check": "manager"
+          },
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "brokeModel",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "looked": "missed",
+          "viewer": "missed",
+          "mapped": "missed",
+          "tested": "partial",
+          "model": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "regions": 4,
+          "sentAt": 11,
+          "broken": 3
+        },
+        "stateHash": "08483f3f8e742742"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "viewerOnly",
+      "title": "Makes the group Viewer, tries the Microsoft 365 group (refused), checks, and sends empty reports",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkAccess",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setGroupRole",
+          "params": {
+            "role": "viewer"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "mapRole",
+          "params": {
+            "who": "m365"
+          },
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "askPriya",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 11,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 9,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 12,
+          "seq": 10,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 11,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "member",
+            "check": "manager"
+          },
+          "seq": 13,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "looked": "met",
+          "viewer": "met",
+          "mapped": "missed",
+          "tested": "partial",
+          "model": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "regions": 0,
+          "sentAt": 11,
+          "broken": 0
+        },
+        "stateHash": "540c896ea6c5997a"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateUntested",
+      "title": "Fixes both settings without checking access first, waits, and tells the managers after 12:00 without a check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mapRole",
+          "params": {
+            "who": "sg"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setGroupRole",
+          "params": {
+            "role": "viewer"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "checkAccess",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 21,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 36,
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 36
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 51,
+          "seq": 12,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 66,
+          "seq": 14,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 66
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 81,
+          "seq": 16,
+          "tick": 66
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 17,
+          "tick": 81
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 96,
+          "seq": 18,
+          "tick": 81
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 96,
+          "seq": 19,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "ship",
+          "seq": 20,
+          "tick": 96
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 97,
+          "seq": 21,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 22,
+          "tick": 97
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 97
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "member",
+            "check": "desktop"
+          },
+          "seq": 24,
+          "tick": 97
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "looked": "partial",
+          "viewer": "met",
+          "mapped": "met",
+          "tested": "missed",
+          "model": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "regions": 1,
+          "sentAt": 96,
+          "broken": 0
+        },
+        "stateHash": "f49e512ecc75e13d"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "holdBack",
+      "title": "Removes the group from the workspace and sends nothing",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "checkAccess",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "setGroupRole",
+          "params": {
+            "role": "removed"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "askPriya",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "member",
+            "check": "none"
+          },
+          "seq": 9,
+          "tick": 9
+        }
+      ],
+      "expect": {
+        "ending": "notShipped",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "looked": "met",
+          "viewer": "partial",
+          "mapped": "missed",
+          "tested": "partial",
+          "model": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "regions": 0,
+          "sentAt": 0,
+          "broken": 0
+        },
+        "stateHash": "88d739ec80ebd306"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

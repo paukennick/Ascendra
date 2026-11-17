@@ -70,7 +70,8 @@ describe("REQ-239: NBCC client sessions", () => {
       assert.ok(d.scoring.kpis!.length >= 3 && d.scoring.kpis!.every((k) => k.expert), e.slug);
       assert.ok(d.scoring.expertPath!.length >= 4, e.slug);
       assert.ok(d.sources.length >= 2, e.slug);
-      for (const s of d.sources) assert.match(s.checkedAt, /^2026-11-1[01]$/, `${e.slug}: ${s.cite}`);
+      // FAIL-2126: REQ-310 re-read the trauma plan's sources on 2026-11-16.
+      for (const s of d.sources) assert.match(s.checkedAt, /^2026-11-1[016]$/, `${e.slug}: ${s.cite}`);
       assert.ok(d.sources.some((s) => /nbcc\.org/.test(s.url ?? "")), `${e.slug}: cites the NBCC outline`);
     }
   });

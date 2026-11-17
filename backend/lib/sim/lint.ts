@@ -28,6 +28,7 @@ export interface DocumentReport {
 export function safetyFamilyOf(doc: ScenarioDoc): SafetyFamily {
   if (doc.outcome?.profile === "clinical" || doc.outcome?.profile === "physical-therapy") return "clinical";
   if (doc.outcome?.profile === "fitness") return "fitness";
+  // REQ-314: the facility profile is a general-family (security) course's.
   return "general";
 }
 
@@ -159,6 +160,20 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
   (con?.events ?? []).forEach((e, i) => check(`screen.console.events[${i}].at`, e.at, "a console event's at"));
   // REQ-237: a terminal output line's `at` is sim seconds too.
   (doc.screen?.terminal?.lines ?? []).forEach((l, i) => check(`screen.terminal.lines[${i}].at`, l.at, "a terminal line's at"));
+  // REQ-311: the dashboard's issue and event times and the desk's ticket
+  // times and due times are sim seconds too.
+  (doc.screen?.dashboard?.issues ?? []).forEach((x, i) => check(`screen.dashboard.issues[${i}].at`, x.at, "a dashboard issue's at"));
+  (doc.screen?.dashboard?.events ?? []).forEach((x, i) => check(`screen.dashboard.events[${i}].at`, x.at, "a dashboard event's at"));
+  (doc.screen?.desk?.tickets ?? []).forEach((x, i) => {
+    check(`screen.desk.tickets[${i}].at`, x.at, "a ticket's at");
+    check(`screen.desk.tickets[${i}].due`, x.due, "a ticket's due");
+  });
+  // REQ-313: a tabletop inject's `at` is sim seconds of scenario time too.
+  (doc.screen?.tabletop?.injects ?? []).forEach((j, i) => check(`screen.tabletop.injects[${i}].at`, j.at, "a tabletop inject's at"));
+  // REQ-314: the facility console's alarms and door log, and the trainer's journal.
+  (doc.screen?.facility?.alarms ?? []).forEach((a, i) => check(`screen.facility.alarms[${i}].at`, a.at, "a facility alarm's at"));
+  (doc.screen?.facility?.doors ?? []).forEach((d, i) => check(`screen.facility.doors[${i}].at`, d.at, "a door log line's at"));
+  (doc.screen?.trainer?.journal ?? []).forEach((j, i) => check(`screen.trainer.journal[${i}].at`, j.at, "a trainer journal entry's at"));
   // one problem per place and name
   const seen = new Set<string>();
   return problems.filter((p) => {
@@ -186,6 +201,132 @@ export function backslashEscapeProblems(doc: ScenarioDoc): Problem[] {
     if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) walk(v, path ? `${path}.${k}` : k);
   };
   walk(doc, "");
+  return out;
+}
+
+// REQ-313 (docs/sims.md 22.26; Nick, 2026-11-16: limit trademarks): the
+// governance, exercise and professional-ethics sims name no certifying
+// body's mark in what a learner reads. The objective titles are the catalog's
+// (owned by the course, not the sim) and the sources are citations, so both
+// are left out; everything else a learner can see is checked.
+export const CERT_MARKS: readonly RegExp[] = [/\bISC2\b/i, /\(ISC\)/i, /\bISACA\b/i, /\bEC-Council\b/i, /\bCompTIA\b/i, /\bCISSP\b/, /\bCISM\b/, /\bCEH\b/, /\bSecurity\+/, /Certified in Cybersecurity/i];
+const MARK_PROFILES = new Set(["governance", "exercise", "professional-ethics"]);
+const NOT_LEARNER_TEXT = new Set(["objective", "secondaryObjectives", "sources", "source", "slug"]);
+
+// REQ-309 (wave 2026-11-17): every sim, whatever its profile, names no mark of
+// an exam body whose trademark policy allows no use without written
+// permission (the "permission" bodies of lib/catalog-trademarks.test.ts:
+// ISC2, EC-Council, ISACA, BCEN, NBCC, NASM, ACE, ASQ, ANCC, AANPCB, the
+// Python Institute, ABPTS/APTA and PeopleCert). One pattern per body, copied
+// from that test (lib/sim/cert-marks.test.ts fails if they drift), except
+// three acronyms that mean something else wherever sims use them and are
+// left out of the ABPTS and ISACA patterns: GCS (the Glasgow Coma Scale), ECS
+// (Amazon's container service) and CISA (the US Cybersecurity and
+// Infrastructure Security Agency). "ACE inhibitor" is a drug class, not the
+// American Council on Exercise. Sources stay out of the check: whether a
+// citation may name a publisher's document is Nick's decision (REQ-309).
+export const PERMISSION_BODY_MARKS: readonly { body: string; marks: RegExp }[] = [
+  { body: "ISC2", marks: /ISC2|\(ISC\)|CISSP|Certified in Cybersecurity|Certified Information Systems Security Professional|\bCC\b|\bCBK\b/ },
+  { body: "EC-Council", marks: /EC-Council|\bC\|?EH\b|Certified Ethical Hacker|312-50/ },
+  { body: "ISACA", marks: /ISACA|\bCISM\b|Certified Information Security Manager|COBIT/ },
+  { body: "BCEN", marks: /BCEN|\bCEN\b|Certified Emergency Nurse|Board of Certification for Emergency Nursing/ },
+  { body: "NBCC", marks: /NBCC|\bNCE\b|NCMHCE|National Counselor Examination|National Clinical Mental Health Counseling Examination|\bNCC\b/ },
+  { body: "NASM", marks: /NASM|AFAA|Certified Nutrition Coach|\bCNC\b/ },
+  { body: "ACE", marks: /\bACE\b|American Council on Exercise/ },
+  { body: "ASQ", marks: /\bASQ\b|American Society for Quality|CSSGB|Certified Six Sigma/ },
+  { body: "ANCC", marks: /ANCC|American Nurses Credentialing Center|FNP-BC|\bANA\b/ },
+  { body: "AANPCB", marks: /AANPCB|\bNPCB\b|\bAANP\b|American Academy of Nurse Practitioners|\bFNP-C\b|\bNP-C\b/ },
+  { body: "Python Institute", marks: /Python Institute|OpenEDG|PCEP|PCAP|PCPP/ },
+  { body: "ABPTS (APTA)", marks: /ABPTS|American Board of Physical Therapy Specialties|\bAPTA\b|\b(OCS|NCS|CCS|PCS|SCS|WCS|PWCS)\b/ },
+  { body: "PeopleCert", marks: /ITIL|PeopleCert|PRINCE2|AXELOS/ },
+];
+const MARK_HOMONYMS = /\bACE inhibitors?\b/g;
+
+export function certMarkProblems(doc: ScenarioDoc): Problem[] {
+  const strict = MARK_PROFILES.has(doc.outcome?.profile);
+  const out: Problem[] = [];
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      const hit = strict ? CERT_MARKS.find((r) => r.test(x)) : undefined;
+      if (hit) {
+        out.push({ level: "error", path, message: `names a certifying body's mark (${hit.source}); learner-facing sim text says "your professional code of ethics" or the course's topic instead (REQ-313)` });
+        return;
+      }
+      const plain = x.replace(MARK_HOMONYMS, "");
+      const body = PERMISSION_BODY_MARKS.find((b) => b.marks.test(plain));
+      if (body) out.push({ level: "error", path, message: `names a mark of ${body.body} (${plain.match(body.marks)?.[0]}), whose policy allows no use without written permission; describe the role or the topic instead (REQ-309)` });
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) if (!NOT_LEARNER_TEXT.has(k)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  return out;
+}
+
+// REQ-312 (docs/sims.md 22.25): on the data and code console nothing the
+// learner types reaches the engine. A data-screen document may not use the
+// typed `command` or `query` params; every learner input is a choice (an
+// editable cell is an action with one choice param, checked by the
+// validator), a form of choices, a pick or a slot.
+export function dataConsoleProblems(doc: ScenarioDoc): Problem[] {
+  if (doc.screen?.type !== "data") return [];
+  const out: Problem[] = [];
+  for (const [id, a] of Object.entries(doc.actions ?? {})) {
+    (a.params ?? []).forEach((p, i) => {
+      if (p.kind === "command" || p.kind === "query") out.push({ level: "error", path: `actions.${id}.params[${i}]`, message: `a ${p.kind} param takes typed text; on the data console every input is an authored choice and nothing typed is executed (REQ-312)` });
+    });
+  }
+  return out;
+}
+
+// REQ-314 (docs/sims.md 22.27): the sandbox report is defensive only. A
+// malware analysis sim teaches reading a report and acting on it; it never
+// carries anything a reader could run or reach. In every learner-visible
+// string (everything but `sources`, `safetyNote` and `scoring.modelReasoning`
+// is checked, which over-covers on purpose) of a document that uses the
+// sandbox screen: no live link (http:// or https:// must be defanged as
+// hxxp), no encoded blob (a run of 40 or more base64 characters), no
+// script-host switches that run encoded or downloaded code, no script tags
+// and no PE header bytes; every IPv4 address is from the documentation
+// ranges (RFC 5737) or private space, and every domain in the network calls
+// and the domain or URL indicators is a reserved name (RFC 2606, RFC 6761).
+// Other screens are not checked: the security console's incidents already
+// follow the documentation-range rule in their own tests.
+const DOC_IPV4 = [/^192\.0\.2\./, /^198\.51\.100\./, /^203\.0\.113\./, /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^127\./];
+const RESERVED_DOMAIN = /(^|\.)(example\.(com|net|org)|[a-z0-9-]+\.(example|test|invalid|localhost))$/;
+export function sandboxSafetyProblems(doc: ScenarioDoc): Problem[] {
+  if (!doc.screen?.sandbox && doc.screen?.type !== "sandbox-report") return [];
+  const out: Problem[] = [];
+  const bad = (path: string, message: string): void => {
+    out.push({ level: "error", path, message: `${message} (the sandbox report is defensive only, docs/sims.md 22.27)` });
+  };
+  const skip = new Set(["sources", "safetyNote", "modelReasoning", "source", "url"]);
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      if (/https?:\/\//i.test(x)) bad(path, "has a live link; defang it (hxxp://, example[.]com)");
+      if (/[A-Za-z0-9+/]{40,}={0,2}/.test(x) && !/^[0-9a-f]{40,64}$/i.test(x.match(/[A-Za-z0-9+/]{40,}={0,2}/)?.[0] ?? "")) bad(path, "has an encoded blob (40+ base64 characters); describe it instead");
+      if (/-e(nc(odedcommand)?)?\s+[A-Za-z0-9+/=]{8,}|downloadstring|invoke-expression|\biex\s*\(|frombase64string/i.test(x)) bad(path, "has a runnable script-host command line; describe what it does instead");
+      if (/<script|4d5a9000|\\x4d\\x5a/i.test(x)) bad(path, "has script or executable bytes");
+      for (const ip of x.match(/\b\d{1,3}(\.\d{1,3}){3}\b/g) ?? []) if (!DOC_IPV4.some((r) => r.test(ip))) bad(path, `IPv4 ${ip} is not a documentation (RFC 5737) or private address`);
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) if (!skip.has(k)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  const sb = doc.screen.sandbox;
+  const domainCheck = (text: string, path: string): void => {
+    const plain = text.replace(/\[\.\]/g, ".").replace(/\{[^}]*\}/g, "");
+    for (const m of plain.match(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}\b/gi) ?? []) {
+      if (/^\d+(\.\d+)+$/.test(m) || /\.(exe|dll|ps1|js|vbs|bat|cmd|tmp|dat|lnk|docm|xlsm|zip|iso|txt|log|evtx|pcap|json|yar|yml)$/i.test(m)) continue;
+      if (!RESERVED_DOMAIN.test(m.toLowerCase())) bad(path, `domain ${m} is not a reserved name (example.com, .example, .test, .invalid)`);
+    }
+  };
+  (sb?.network ?? []).forEach((n, i) => domainCheck(n.dest, `screen.sandbox.network[${i}].dest`));
+  (sb?.indicators ?? []).forEach((n, i) => {
+    if (n.type === "domain" || n.type === "url") domainCheck(n.value, `screen.sandbox.indicators[${i}].value`);
+  });
   return out;
 }
 
@@ -219,6 +360,9 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     problems.push(...endingOrderProblems(doc, golden));
     problems.push(...secondsUnitProblems(doc));
     problems.push(...backslashEscapeProblems(doc));
+    problems.push(...dataConsoleProblems(doc));
+    problems.push(...certMarkProblems(doc));
+    problems.push(...sandboxSafetyProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }

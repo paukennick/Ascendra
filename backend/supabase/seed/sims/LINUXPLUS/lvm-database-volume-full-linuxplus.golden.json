@@ -1,0 +1,718 @@
+{
+  "slug": "lvm-database-volume-full-linuxplus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "df, vgs (no free space) and lsblk (the new disk), then pvcreate and vgextend with vdc, lvextend -r, and df to prove it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vgs",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "lsblk",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "pvcreateNew",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "vgextend",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "lvextendR",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "full",
+            "fix": "grow"
+          },
+          "seq": 17,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "safeDisk": "met",
+          "fast": "met",
+          "fsToo": "met",
+          "rightTool": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToRoom": 5,
+          "faultsK": 0,
+          "wrongK": 0
+        },
+        "stateHash": "3122bd74c4ad8411"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "twoStep",
+      "title": "Reads vgs and lsblk, then vgextend, lvextend without -r, resize2fs on XFS (fails), then xfs_growfs; never checks df",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vgs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "lsblk",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "vgextend",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "lvextend",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "resize2fs",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "xfsGrowfs",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "full",
+            "fix": "grow"
+          },
+          "seq": 15,
+          "tick": 6
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "evidence": "met",
+          "safeDisk": "met",
+          "fast": "met",
+          "fsToo": "partial",
+          "rightTool": "missed",
+          "verified": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToRoom": 5,
+          "faultsK": 0,
+          "wrongK": 1
+        },
+        "stateHash": "4db80b773e94feb0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "forceWrongDisk",
+      "title": "Runs pvcreate -ff on /dev/vdb, the disk that holds vg_data, then cannot extend the group",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pvcreateForce",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "vgextend",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "full",
+            "fix": "newpv"
+          },
+          "seq": 9,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "metadataWiped",
+        "class": "harm",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "evidence": "missed",
+          "safeDisk": "missed",
+          "fast": "missed",
+          "fsToo": "missed",
+          "rightTool": "met",
+          "verified": "missed",
+          "record": "partial"
+        },
+        "kpis": {
+          "minToRoom": -1,
+          "faultsK": 1,
+          "wrongK": 0
+        },
+        "stateHash": "d2aeb2d10220fb52"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "lateImport",
+      "title": "Watches the volume until after 10:30, then grows it correctly once the import has failed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 13,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "vgs",
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "lsblk",
+          "seq": 16,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 28,
+          "seq": 17,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "vgextend",
+          "seq": 18,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 29,
+          "seq": 19,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "lvextendR",
+          "seq": 20,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 30,
+          "seq": 21,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "df",
+          "seq": 22,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 31,
+          "seq": 23,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 24,
+          "tick": 31
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "full",
+            "fix": "grow"
+          },
+          "seq": 26,
+          "tick": 31
+        }
+      ],
+      "expect": {
+        "ending": "importFailed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 88,
+        "criteria": {
+          "evidence": "met",
+          "safeDisk": "met",
+          "fast": "partial",
+          "fsToo": "met",
+          "rightTool": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToRoom": 29,
+          "faultsK": 0,
+          "wrongK": 0
+        },
+        "stateHash": "436e2046c56ebabe"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lvOnly",
+      "title": "Extends the logical volume without the filesystem, closes thinking it is done",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vgs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "lsblk",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "vgextend",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "lvextend",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "disk",
+            "fix": "lvonly"
+          },
+          "seq": 11,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "stillFull",
+        "class": "harm",
+        "rating": "bad",
+        "score": 38,
+        "criteria": {
+          "evidence": "met",
+          "safeDisk": "met",
+          "fast": "missed",
+          "fsToo": "missed",
+          "rightTool": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToRoom": -1,
+          "faultsK": 0,
+          "wrongK": 0
+        },
+        "stateHash": "087e5952728d7c9f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

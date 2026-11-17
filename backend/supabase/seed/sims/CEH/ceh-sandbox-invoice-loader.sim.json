@@ -1,0 +1,1532 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ceh-sandbox-invoice-loader",
+  "title": "An invoice that starts PowerShell",
+  "screen": {
+    "type": "sandbox-report",
+    "level": 1,
+    "sandbox": {
+      "sample": {
+        "name": "Invoice_4471.docm",
+        "summary": "{isNull(staticAt) ? \"Reported by an accounts payable clerk who opened it at 08:52; not analyzed yet\" : not isNull(detonateAt) ? \"Macro downloader: drops updsvc.exe, persists with a Run key, beacons every 60 s\" : \"Macro-enabled document with obfuscated auto-open code\"}"
+      },
+      "static": [
+        {
+          "id": "sType",
+          "label": "File",
+          "text": "Invoice_4471.docm, Word macro-enabled document, 84 KB; SHA-256 9f2c41d07be3a8e5...",
+          "when": "not isNull(staticAt)"
+        },
+        {
+          "id": "sMacro",
+          "label": "Macros",
+          "text": "An auto-open macro with obfuscated strings that are decoded at run time",
+          "when": "not isNull(staticAt)",
+          "flag": "true"
+        },
+        {
+          "id": "sStr",
+          "label": "Strings",
+          "text": "hxxps://cdn-update[.]example[.]net/s.dat; updsvc.exe; a Run key value named UpdateService",
+          "when": "not isNull(staticAt)",
+          "flag": "true"
+        }
+      ],
+      "processes": [
+        {
+          "id": "pWord",
+          "image": "WINWORD.EXE",
+          "detail": "Opens Invoice_4471.docm; the macro runs on open",
+          "when": "not isNull(detonateAt)"
+        },
+        {
+          "id": "pPs",
+          "parent": "pWord",
+          "image": "powershell.exe",
+          "detail": "Started hidden with an encoded command (not shown); downloads s.dat",
+          "when": "not isNull(detonateAt)",
+          "flag": "true"
+        },
+        {
+          "id": "pUpd",
+          "parent": "pPs",
+          "image": "updsvc.exe",
+          "detail": "Written to the user's AppData Roaming folder; adds the Run key value UpdateService (T1547.001)",
+          "when": "not isNull(detonateAt)",
+          "flag": "true"
+        }
+      ],
+      "network": [
+        {
+          "id": "nDns",
+          "proto": "DNS",
+          "dest": "cdn-update[.]example[.]net",
+          "detail": "Resolves to 203.0.113.77",
+          "when": "not isNull(detonateAt)",
+          "flag": "true"
+        },
+        {
+          "id": "nGet",
+          "proto": "HTTPS",
+          "dest": "203.0.113.77:443",
+          "detail": "GET /s.dat: the second stage (12 KB)",
+          "when": "not isNull(detonateAt)",
+          "flag": "true"
+        },
+        {
+          "id": "nBeacon",
+          "proto": "HTTPS",
+          "dest": "198.51.100.23:443",
+          "detail": "A small POST every 60 s: a beacon",
+          "when": "not isNull(detonateAt)",
+          "flag": "true"
+        },
+        {
+          "id": "nMs",
+          "proto": "HTTPS",
+          "dest": "update.example.com:443",
+          "detail": "Routine operating system update check from the sandbox image",
+          "when": "not isNull(detonateAt)"
+        }
+      ],
+      "indicators": [
+        {
+          "id": "iHash",
+          "type": "hash",
+          "value": "9f2c41d07be3a8e55c1d3f6a0b84e29c7d15a6f30e8b42c9a17d5e06f3b2c8d4",
+          "when": "not isNull(iocAt)",
+          "status": "{not isNull(deployAt) ? \"In the scanners\" : \"Sample hash\"}",
+          "tone": "not isNull(deployAt) ? \"actioned\" : \"confirmed\""
+        },
+        {
+          "id": "iDom",
+          "type": "domain",
+          "value": "cdn-update[.]example[.]net",
+          "when": "not isNull(iocAt)",
+          "status": "{not isNull(blockAt) ? \"Blocked at the proxy\" : \"Seen in strings and DNS\"}",
+          "tone": "not isNull(blockAt) ? \"actioned\" : \"confirmed\""
+        },
+        {
+          "id": "iIp1",
+          "type": "ip",
+          "value": "203.0.113.77",
+          "when": "not isNull(iocAt)",
+          "status": "{not isNull(blockAt) ? \"Blocked\" : \"Second-stage host\"}",
+          "tone": "not isNull(blockAt) ? \"actioned\" : \"confirmed\""
+        },
+        {
+          "id": "iIp2",
+          "type": "ip",
+          "value": "198.51.100.23",
+          "when": "not isNull(iocAt) and not isNull(detonateAt)",
+          "status": "{not isNull(blockAt) ? \"Blocked\" : \"Beacon destination\"}",
+          "tone": "not isNull(blockAt) ? \"actioned\" : \"confirmed\""
+        },
+        {
+          "id": "iRun",
+          "type": "registry",
+          "value": "Run key value UpdateService",
+          "when": "not isNull(iocAt) and not isNull(detonateAt)",
+          "status": "Persistence (T1547.001)",
+          "tone": "\"confirmed\""
+        },
+        {
+          "id": "iUpd",
+          "type": "domain",
+          "value": "update.example.com",
+          "when": "not isNull(iocAt) and not isNull(detonateAt)",
+          "status": "The sandbox image's own update check: not the malware",
+          "tone": "\"benign\""
+        }
+      ],
+      "rules": [
+        {
+          "id": "rYaraT",
+          "kind": "yara",
+          "label": "Invoice_Loader_updsvc",
+          "text": "rule Invoice_Loader_updsvc\n{{\n  meta:\n    description = \"Invoice lure that drops updsvc\"\n  strings:\n    $a = \"cdn-update\" nocase\n    $b = \"updsvc.exe\" wide ascii\n    $c = \"UpdateService\" wide ascii\n  condition:\n    2 of them\n}}",
+          "when": "yara == \"tight\"",
+          "status": "{isNull(yaraTestedAt) ? \"Not tested\" : not isNull(deployAt) ? \"Matches the sample; 0 of 5,000 known-good files; deployed\" : \"Matches the sample; 0 of 5,000 known-good files\"}",
+          "tone": "not isNull(deployAt) ? \"deployed\" : not isNull(yaraTestedAt) ? \"tested\" : \"draft\""
+        },
+        {
+          "id": "rYaraB",
+          "kind": "yara",
+          "label": "Any_Macro_Document",
+          "text": "rule Any_Macro_Document\n{{\n  strings:\n    $m = \"vbaProject.bin\"\n  condition:\n    $m\n}}",
+          "when": "yara == \"broad\"",
+          "status": "{isNull(yaraTestedAt) ? \"Not tested\" : \"Matches the sample and 312 of 5,000 known-good files: too noisy to deploy\"}",
+          "tone": "isNull(yaraTestedAt) ? \"draft\" : \"noisy\""
+        },
+        {
+          "id": "rSigma",
+          "kind": "sigma",
+          "label": "Word starts PowerShell",
+          "text": "title: Word starts PowerShell\nstatus: experimental\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    ParentImage|endswith: 'WINWORD.EXE'\n    Image|endswith: 'powershell.exe'\n  condition: selection\nfalsepositives:\n  - Unknown\nlevel: high",
+          "when": "not isNull(sigmaAt)",
+          "status": "{isNull(sigmaTestedAt) ? \"Not tested\" : not isNull(deployAt) ? \"Fires on the sandbox run; 2 hits in a week of logs, both WS-114 and WS-131; deployed\" : \"Fires on the sandbox run; 2 hits in a week of logs, both WS-114 and WS-131\"}",
+          "tone": "not isNull(deployAt) ? \"deployed\" : not isNull(sigmaTestedAt) ? \"tested\" : \"draft\""
+        }
+      ],
+      "hosts": [
+        {
+          "id": "h114",
+          "label": "WS-114",
+          "spokenLabel": "Workstation 114",
+          "kind": "accounts payable workstation (reported it)",
+          "status": "{eradicate == \"rebuild\" ? \"Rebuilt\" : not isNull(iso114At) ? \"Isolated\" : \"Beaconing\"}",
+          "tone": "eradicate == \"rebuild\" ? \"ok\" : not isNull(iso114At) ? \"held\" : \"bad\""
+        },
+        {
+          "id": "h131",
+          "label": "WS-131",
+          "spokenLabel": "Workstation 131",
+          "kind": "accounts payable workstation",
+          "status": "{isNull(huntAt) ? \"Not checked\" : eradicate == \"rebuild\" ? \"Rebuilt\" : not isNull(iso131At) ? \"Isolated\" : not isNull(stealAt) ? \"Second stage running\" : \"Beaconing\"}",
+          "tone": "isNull(huntAt) and isNull(stealAt) ? \"watch\" : eradicate == \"rebuild\" ? \"ok\" : not isNull(iso131At) ? \"held\" : \"bad\""
+        },
+        {
+          "id": "hMine",
+          "label": "Analyst laptop",
+          "spokenLabel": "Your analyst laptop",
+          "kind": "corporate laptop",
+          "status": "{prodRun ? \"Opened the sample: infected\" : \"Clean\"}",
+          "tone": "prodRun ? \"bad\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mHunt",
+          "label": "Fleet search",
+          "value": "{isNull(huntAt) ? \"Not run\" : \"2 hosts beaconing: WS-114 and WS-131\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Analyze malware with static and dynamic analysis, and choose malware countermeasures and anti-malware software",
+  "secondaryObjectives": [
+    "Recognize malware: advanced persistent threats, trojans, viruses and worms, ransomware and fileless malware"
+  ],
+  "sources": [
+    {
+      "cite": "EC-Council CEH Exam Blueprint v5.0 (CEH v13): Domain 3 System Hacking Phases and Attack Techniques, malware threats (malware concepts, static and dynamic analysis, countermeasures, anti-malware software)",
+      "checkedAt": "2026-11-16",
+      "note": "Read for the course (REQ-273) on 2026-11-14; not re-read for this case. The course's rule (REQ-273): defensive work on the learner's own systems, no payloads and no tool commands. The objective title is the course's own wording."
+    },
+    {
+      "cite": "NIST SP 800-83 Rev. 1, Guide to Malware Incident Prevention and Handling for Desktops and Laptops (July 2013)",
+      "checkedAt": "2026-11-16",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-83r1.pdf",
+      "note": "Relevant text: 4.2.4 active analysis 'best performed on malware test systems instead of production hosts'; 4.2.2.2 'Writing a custom IPS or IDS signature that identifies infected hosts is often a highly effective technique'; 4.3.4 disconnect infected hosts and 'consider blocking all access to the external host'; 4.4 'For many malware incidents, simple disinfection is not feasible, so it is necessary to rebuild all infected hosts'. Read 2026-11-16 in the PDF through two summarizing fetches."
+    },
+    {
+      "cite": "YARA documentation 4.4.0, Writing YARA rules: a rule has an identifier, an optional meta section, strings and a required condition; text strings in quotes (nocase, wide modifiers), hex strings in braces; conditions such as 'all of them', '2 of ($a*)' and filesize",
+      "checkedAt": "2026-11-16",
+      "url": "https://yara.readthedocs.io/en/stable/writingrules.html",
+      "note": "Read 2026-11-16 through a summarizing fetch. The rules in the case are shown as text and never run."
+    },
+    {
+      "cite": "SigmaHQ, Sigma rule conventions (sigma-specification, sigmahq_conventions.md): required fields include title, id, status, description, references, author, date, tags, logsource, falsepositives and level; detection holds search identifiers and a condition; 'All newly created rules must start with a status of experimental'",
+      "checkedAt": "2026-11-16",
+      "url": "https://github.com/SigmaHQ/sigma-specification/blob/main/sigmahq/sigmahq_conventions.md",
+      "note": "Read 2026-11-16 through a summarizing fetch; undated page."
+    },
+    {
+      "cite": "MITRE ATT&CK T1547.001, Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder (version 2.1, last modified 2026-11-04): the per-user and machine Run and RunOnce keys and the Startup folders; adversaries may masquerade Registry entries as legitimate programs",
+      "checkedAt": "2026-11-16",
+      "url": "https://attack.mitre.org/techniques/T1547/001/",
+      "note": "Read 2026-11-16 through a summarizing fetch."
+    },
+    {
+      "cite": "IETF RFC 5737 (IPv4 documentation blocks 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24) and RFC 2606 (reserved names example.com, example.net, example.org, .test, .example, .invalid)",
+      "checkedAt": "2026-11-16",
+      "note": "Every address and domain in the case is from these ranges; checked by the sandbox lint. Read for REQ-231 on 2026-11-11; not re-read."
+    },
+    {
+      "cite": "Author's teaching model (REQ-314)",
+      "checkedAt": "2026-11-16",
+      "note": "The sample, its behavior, the second host and the attacker's timing are fictional and simplified for teaching; nothing in the case is a real sample, a real indicator or runnable."
+    }
+  ],
+  "brief": {
+    "situation": "You are a security analyst at Tallis Freight, a fictional logistics firm. At 09:00 an accounts payable clerk reports that an invoice attachment 'did nothing' when she opened it at 08:52 on WS-114. The mail gateway shows the same message went to six people. You have the attachment in the malware lab.",
+    "handover": [
+      "The lab has an isolated sandbox with no route to production; EDR can isolate any workstation; you can change proxy and firewall blocks and deploy detection rules.",
+      "This is your own organization's incident: defensive work only. The report shows behavior in words, every address and domain is defanged or from documentation ranges, and nothing in it can be run."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock. The attacker keeps working on the same clock.",
+      "The report fills in as you analyze: static findings, the process tree, network calls, then your indicators and rules, and the hosts in scope.",
+      "When you close the incident you write the report and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Fictional sample; defensive only (REQ-273 and the sandbox lint).",
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "stealDelay": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Thirty minutes until the second host's beacon pulls a credential stealer is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "staticAt": {
+      "type": "time",
+      "init": null
+    },
+    "detonateAt": {
+      "type": "time",
+      "init": null
+    },
+    "prodRun": {
+      "type": "bool",
+      "init": false
+    },
+    "iocAt": {
+      "type": "time",
+      "init": null
+    },
+    "huntAt": {
+      "type": "time",
+      "init": null
+    },
+    "iso114At": {
+      "type": "time",
+      "init": null
+    },
+    "iso131At": {
+      "type": "time",
+      "init": null
+    },
+    "blockAt": {
+      "type": "time",
+      "init": null
+    },
+    "yara": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tight",
+        "broad"
+      ],
+      "init": "none"
+    },
+    "yaraTestedAt": {
+      "type": "time",
+      "init": null
+    },
+    "sigmaAt": {
+      "type": "time",
+      "init": null
+    },
+    "sigmaTestedAt": {
+      "type": "time",
+      "init": null
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "shareAt": {
+      "type": "time",
+      "init": null
+    },
+    "imageAt": {
+      "type": "time",
+      "init": null
+    },
+    "eradicate": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rebuild",
+        "clean"
+      ],
+      "init": "none"
+    },
+    "eradicateAt": {
+      "type": "time",
+      "init": null
+    },
+    "stealAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "firstActAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Analysis and response",
+      "clock": "turns",
+      "actions": [
+        "static",
+        "detonate",
+        "prodRun",
+        "iocs",
+        "hunt",
+        "iso114",
+        "iso131",
+        "block",
+        "yaraTight",
+        "yaraBroad",
+        "sigma",
+        "test",
+        "deploy",
+        "share",
+        "image",
+        "rebuild",
+        "clean",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "static": {
+      "label": "Static analysis of the attachment: hashes, file type, macros, strings",
+      "group": "Analyze",
+      "available": "not busy and (isNull(staticAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(staticAt)",
+          "then": [
+            {
+              "set": "staticAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You run static analysis in the lab.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "detonate": {
+      "label": "Detonate it in the isolated sandbox (no route to production) and record its behavior",
+      "group": "Analyze",
+      "available": "not busy and (isNull(detonateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(detonateAt)",
+          "then": [
+            {
+              "set": "detonateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You run the sample in the isolated sandbox for ten minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "prodRun": {
+      "label": "Open it on your own analyst laptop to watch what it does",
+      "group": "Analyze",
+      "available": "not busy and (not prodRun)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "prodRun",
+          "to": "true"
+        },
+        {
+          "log": "You open the attachment on your corporate laptop.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "iocs": {
+      "label": "Extract and review the indicators",
+      "group": "Analyze",
+      "available": "not busy and (isNull(iocAt) and not isNull(staticAt))",
+      "why": "Run static analysis first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(iocAt)",
+          "then": [
+            {
+              "set": "iocAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You extract the indicators and review each one.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "hunt": {
+      "label": "Search EDR and proxy logs across the fleet for the indicators",
+      "group": "Contain",
+      "available": "not busy and (isNull(huntAt) and not isNull(iocAt))",
+      "why": "Extract the indicators first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(huntAt)",
+          "then": [
+            {
+              "set": "huntAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You search the fleet for the hash, the domain and the beacon address.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "iso114": {
+      "label": "Isolate WS-114 (the reporter's workstation) through EDR",
+      "group": "Contain",
+      "available": "not busy and (isNull(iso114At))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(iso114At)",
+          "then": [
+            {
+              "set": "iso114At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You network-isolate WS-114.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "iso131": {
+      "label": "Isolate WS-131 through EDR",
+      "group": "Contain",
+      "available": "not busy and (isNull(iso131At) and not isNull(huntAt))",
+      "why": "Nothing points to WS-131 yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(iso131At)",
+          "then": [
+            {
+              "set": "iso131At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You network-isolate WS-131.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "block": {
+      "label": "Block the domain and both addresses at the proxy and firewall",
+      "group": "Contain",
+      "available": "not busy and (isNull(blockAt) and not isNull(iocAt))",
+      "why": "Extract the indicators first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(blockAt)",
+          "then": [
+            {
+              "set": "blockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You block the domain and the two addresses.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "yaraTight": {
+      "label": "Draft a YARA rule from strings unique to this family",
+      "group": "Detect",
+      "available": "not busy and (yara == \"none\" and not isNull(staticAt))",
+      "why": "Already drafted, or no static results yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "yara",
+          "to": "\"tight\""
+        },
+        {
+          "log": "You draft a YARA rule from the sample's own strings.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "yaraBroad": {
+      "label": "Draft a YARA rule matching any macro-enabled document",
+      "group": "Detect",
+      "available": "not busy and (yara == \"none\" and not isNull(staticAt))",
+      "why": "Already drafted, or no static results yet.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "yara",
+          "to": "\"broad\""
+        },
+        {
+          "log": "You draft a broad YARA rule.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "sigma": {
+      "label": "Draft a Sigma rule: Word starting PowerShell",
+      "group": "Detect",
+      "available": "not busy and (isNull(sigmaAt) and not isNull(detonateAt))",
+      "why": "Detonate first: the process chain comes from dynamic analysis.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(sigmaAt)",
+          "then": [
+            {
+              "set": "sigmaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You draft a Sigma rule for the process chain.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "test": {
+      "label": "Test the rules against the sample and the goodware set",
+      "group": "Detect",
+      "available": "not busy and (yara != \"none\" or not isNull(sigmaAt))",
+      "why": "Draft a rule first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "yara != \"none\"",
+          "then": [
+            {
+              "if": "isNull(yaraTestedAt)",
+              "then": [
+                {
+                  "set": "yaraTestedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "not isNull(sigmaAt)",
+          "then": [
+            {
+              "if": "isNull(sigmaTestedAt)",
+              "then": [
+                {
+                  "set": "sigmaTestedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "You test the rules against the sample and 5,000 known-good files and a week of process logs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "deploy": {
+      "label": "Deploy the tested rules that are not noisy",
+      "group": "Detect",
+      "available": "not busy and (isNull(deployAt) and (not isNull(yaraTestedAt) or not isNull(sigmaTestedAt)))",
+      "why": "Test first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(deployAt)",
+          "then": [
+            {
+              "set": "deployAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You deploy the rules to the scanners and the SIEM.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Share the indicators with the sector ISAC",
+      "group": "Communicate",
+      "available": "not busy and (isNull(shareAt) and not isNull(iocAt))",
+      "why": "Extract the indicators first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(shareAt)",
+          "then": [
+            {
+              "set": "shareAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You share the reviewed indicators.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "image": {
+      "label": "Capture memory and a disk image of the infected hosts",
+      "group": "Evidence",
+      "available": "not busy and (isNull(imageAt) and not isNull(iso114At))",
+      "why": "Isolate first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(imageAt)",
+          "then": [
+            {
+              "set": "imageAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You capture memory and disk images, hashed and logged.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "rebuild": {
+      "label": "Rebuild the infected hosts from the gold image",
+      "group": "Recover",
+      "available": "not busy and (eradicate == \"none\" and not isNull(iso114At))",
+      "why": "Isolate first, or already done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(eradicateAt)",
+          "then": [
+            {
+              "set": "eradicateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "eradicate",
+          "to": "\"rebuild\""
+        },
+        {
+          "log": "You rebuild the infected hosts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "clean": {
+      "label": "Delete updsvc.exe and its Run key, then return the hosts to users",
+      "group": "Recover",
+      "available": "not busy and (eradicate == \"none\" and not isNull(iso114At))",
+      "why": "Isolate first, or already done.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(eradicateAt)",
+          "then": [
+            {
+              "set": "eradicateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "eradicate",
+          "to": "\"clean\""
+        },
+        {
+          "log": "You delete the dropped file and the Run key.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the EDR console (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You watch the EDR console.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the report",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the task in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the malware analysis report",
+      "group": "Report",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Report",
+          "options": [
+            {
+              "value": "full",
+              "label": "Static and dynamic findings, the process tree, indicators with confidence, rules and their test results, hosts and containment, evidence and eradication"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Macro malware, blocked'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "steal",
+      "when": "isNull(iso131At) and isNull(blockAt) and t >= stealDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(stealAt)",
+          "then": [
+            {
+              "set": "stealAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "EDR: WS-131's beacon downloaded a second stage that reads saved browser passwords.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the malware analysis report: what the sample does and how you know, how you found and contained every infected host, and which detections you deployed and why.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Static and dynamic findings",
+          "criteria": "Static: macro document with obfuscated auto-open code and embedded strings; dynamic (in an isolated sandbox, not production): Word starts PowerShell, a second stage, updsvc.exe with a Run key (persistence), a 60-second beacon; separates the benign update check from the malicious traffic.",
+          "modelAnswer": "Static analysis showed an auto-open macro with a defanged download URL and the dropped file name; detonation in the isolated sandbox showed Word starting PowerShell, the s.dat download, updsvc.exe persisting through a Run key and a beacon to 198.51.100.23. The update.example.com call was the sandbox image's own."
+        },
+        {
+          "label": "Scope and containment",
+          "criteria": "Uses the indicators to hunt across the fleet and finds the second host; isolates both and blocks the domain and addresses; images before rebuilding and rebuilds rather than deleting files.",
+          "modelAnswer": "The fleet search found WS-131 beaconing too. I isolated both, blocked the domain and both addresses, captured memory and disk, then rebuilt from the gold image, because deleting the file leaves whatever the second stage changed."
+        },
+        {
+          "label": "Detections",
+          "criteria": "A YARA rule from strings unique to the family and a Sigma rule for Word starting PowerShell, both tested against known-good data before deployment; a broad rule rejected as noisy; indicators shared.",
+          "modelAnswer": "YARA on the family's own strings (2 of 3) and Sigma on Word starting PowerShell, both tested with no false positives in the goodware set, then deployed; indicators shared with the ISAC."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-16",
+          "note": "Author's figure."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-16",
+          "note": "No host newly harmed after the report."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(iso114At)",
+      "class": "harm",
+      "rationale": "Closing while the reporter's workstation still beacons to the attacker is never a safe outcome.",
+      "source": {
+        "cite": "NIST SP 800-83 Rev. 1, Guide to Malware Incident Prevention and Handling for Desktops and Laptops (July 2013)",
+        "checkedAt": "2026-11-16",
+        "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-83r1.pdf",
+        "note": "Relevant text: 4.2.4 active analysis 'best performed on malware test systems instead of production hosts'; 4.2.2.2 'Writing a custom IPS or IDS signature that identifies infected hosts is often a highly effective technique'; 4.3.4 disconnect infected hosts and 'consider blocking all access to the external host'; 4.4 'For many malware incidents, simple disinfection is not feasible, so it is necessary to rebuild all infected hosts'. Read 2026-11-16 in the PDF through two summarizing fetches."
+      }
+    }
+  },
+  "endings": {
+    "selfInfected": {
+      "label": "Analysis on a production machine",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and prodRun",
+      "narrative": "You opened the sample on a corporate laptop: a third infected host, and the analysis ran where it could reach everything."
+    },
+    "spread": {
+      "label": "Credentials stolen from WS-131",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(stealAt)",
+      "narrative": "The second infected workstation was never found in time; its beacon pulled a password stealer."
+    },
+    "leftOpen": {
+      "label": "Closed with a host still infected",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and (isNull(iso114At) or (isNull(iso131At) and isNull(blockAt)) or eradicate == \"none\")",
+      "narrative": "The incident was closed while a workstation could still reach the attacker or was never cleaned."
+    },
+    "contained": {
+      "label": "Analyzed, scoped, contained, detected",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and not prodRun and isNull(stealAt) and not isNull(iso114At) and not isNull(iso131At) and not isNull(blockAt) and timeAt(iso131At) <= containWindow and yara == \"tight\" and not isNull(sigmaAt) and not isNull(deployAt) and eradicate == \"rebuild\" and not isNull(imageAt) and timeAt(imageAt) <= timeAt(eradicateAt) and not isNull(shareAt)",
+      "narrative": "You let the sandbox show you what the sample does, used it to find the second host, contained both before the second stage, deployed tested detections and rebuilt clean."
+    },
+    "gaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{eradicate == \"clean\" ? \"Deleting the file and the Run key may leave what the second stage changed.\" : yara == \"broad\" ? \"The broad YARA rule would bury the scanners in false positives.\" : isNull(imageAt) or timeAt(imageAt) > timeAt(eradicateAt) ? \"The hosts were rebuilt before memory and disk were captured.\" : isNull(deployAt) ? \"No detection was deployed.\" : \"The response was slow or the report thin.\"}"
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The shift ran out with no report."
+    }
+  },
+  "endingOrder": [
+    "selfInfected",
+    "spread",
+    "leftOpen",
+    "contained",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "isolatedLab",
+        "label": "Dynamic analysis only in the isolated sandbox",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not prodRun and not isNull(detonateAt)",
+            "score": "met",
+            "why": "Sandbox only."
+          },
+          {
+            "when": "not prodRun",
+            "score": "partial",
+            "why": "No dynamic analysis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Opened on a production machine."
+          }
+        ]
+      },
+      {
+        "id": "scoped",
+        "label": "Hunted with the indicators and contained both hosts before the second stage",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(iso114At) and not isNull(iso131At) and not isNull(blockAt) and isNull(stealAt)",
+            "score": "met",
+            "why": "Both contained."
+          },
+          {
+            "when": "not isNull(huntAt)",
+            "score": "partial",
+            "why": "Found WS-131, late or partly contained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never hunted."
+          }
+        ]
+      },
+      {
+        "id": "detection",
+        "label": "Specific YARA and Sigma rules, tested before deployment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "yara == \"tight\" and not isNull(sigmaTestedAt) and not isNull(yaraTestedAt) and not isNull(deployAt)",
+            "score": "met",
+            "why": "Tested and deployed."
+          },
+          {
+            "when": "not isNull(deployAt) or yara == \"tight\"",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No usable detection."
+          }
+        ]
+      },
+      {
+        "id": "eradication",
+        "label": "Imaged, then rebuilt (not just deleted)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "eradicate == \"rebuild\" and not isNull(imageAt) and timeAt(imageAt) <= timeAt(eradicateAt)",
+            "score": "met",
+            "why": "Image, then rebuild."
+          },
+          {
+            "when": "eradicate != \"none\"",
+            "score": "partial",
+            "why": "Eradicated, with gaps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not eradicated."
+          }
+        ]
+      },
+      {
+        "id": "shared",
+        "label": "Indicators reviewed (benign separated) and shared",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(shareAt) and not isNull(detonateAt)",
+            "score": "met",
+            "why": "Reviewed and shared."
+          },
+          {
+            "when": "not isNull(iocAt)",
+            "score": "partial",
+            "why": "Reviewed, not shared or not complete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reviewed."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written findings, scope and detections",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minContain",
+        "label": "Minutes until both hosts were contained",
+        "value": "isNull(iso131At) or isNull(iso114At) ? -1 : max(timeAt(iso131At), timeAt(iso114At)) / 60",
+        "format": "number",
+        "expert": "30 or less"
+      },
+      {
+        "id": "spread",
+        "label": "Hosts newly harmed",
+        "value": "(isNull(stealAt) ? 0 : 1) + (prodRun ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "fp",
+        "label": "False positives in the deployed rules",
+        "value": "yara == \"broad\" and not isNull(deployAt) ? 312 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Isolate WS-114; static analysis of the attachment."
+      },
+      {
+        "at": "5-20 min",
+        "text": "Extract indicators; hunt the fleet: WS-131; isolate it; block the domain and addresses; detonate in the sandbox."
+      },
+      {
+        "at": "20-60 min",
+        "text": "YARA from the family's strings and Sigma for Word starting PowerShell; test against known-good data; deploy; share indicators."
+      },
+      {
+        "at": "Before closing",
+        "text": "Memory and disk images, then rebuild both hosts; a full report."
+      }
+    ],
+    "debrief": {
+      "contained": {
+        "headline": "Good: analyzed safely, scoped, detected",
+        "body": "The sandbox showed the chain; the indicators found the second host; tested, specific rules will catch the next one; rebuilding beats deleting."
+      },
+      "gaps": {
+        "headline": "Contained, with gaps",
+        "body": "A rule that fires on every macro document is noise; deleting a dropped file is not eradication; image before you rebuild."
+      },
+      "selfInfected": {
+        "headline": "Never on production",
+        "body": "Dynamic analysis belongs on an isolated test system (NIST SP 800-83 4.2.4), never a corporate machine."
+      },
+      "spread": {
+        "headline": "Scope before you rest",
+        "body": "Six people got the message. The indicators from the analysis were the way to find the second host before its second stage."
+      },
+      "leftOpen": {
+        "headline": "Not contained",
+        "body": "Every host that ran the sample needs isolation, a block on its command channel and a rebuild before the incident closes."
+      },
+      "time_up": {
+        "headline": "No report",
+        "body": "Close the incident and write the report before the shift ends."
+      }
+    },
+    "modelReasoning": "Static: macro downloader. Dynamic in the isolated sandbox: Word to PowerShell to updsvc.exe with a Run key and a 60-second beacon; the update check was benign. Hunt with the indicators: WS-131; isolate both and block the domain and addresses; YARA on the family's strings and Sigma on the chain, tested then deployed; indicators shared; image then rebuild."
+  }
+}

@@ -1,0 +1,1107 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pl300-stock-on-hand-summed",
+  "title": "Stock on hand that adds up the days",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Inventory report: Stock on Hand by month, Trail Tent 2P (Ridgeline Outfitters, fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Buyer, Jordan Lee",
+          "text": "The report says 3,640 tents on hand in November. The warehouse says about 150. Which is it? Orders close at 15:00.",
+          "when": "true",
+          "severity": "warning"
+        },
+        {
+          "id": "blank",
+          "label": "Visual",
+          "text": "November and the total show (blank).",
+          "when": "measure == \"lastdate\"",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Order cutoff",
+          "text": "15:00: the buyers ordered from the old report.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "wrong",
+          "label": "Buyers",
+          "text": "The buyers are ordering from a stock figure that is not a closing balance.",
+          "when": "published and (publishedAs == \"sum\" or publishedAs == \"avg\")",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "stock",
+          "label": "Stock on Hand by month (units)",
+          "spokenLabel": "Stock on Hand by month",
+          "kind": "bar",
+          "unit": "units",
+          "min": 0,
+          "max": 14000,
+          "points": [
+            {
+              "id": "sep",
+              "label": "Sep",
+              "value": "measure == \"sum\" ? 13512 : measure == \"avg\" ? 450 : measure == \"lastdate\" ? 420 : 420",
+              "flag": "measure == \"sum\""
+            },
+            {
+              "id": "oct",
+              "label": "Oct",
+              "value": "measure == \"sum\" ? 12431 : measure == \"avg\" ? 401 : measure == \"lastdate\" ? 380 : 380",
+              "flag": "measure == \"sum\""
+            },
+            {
+              "id": "nov",
+              "label": "Nov (to 14th)",
+              "value": "measure == \"sum\" ? 3640 : measure == \"avg\" ? 260 : measure == \"lastdate\" ? 0 : 150",
+              "flag": "measure == \"sum\" or measure == \"lastdate\""
+            }
+          ],
+          "lines": [
+            {
+              "id": "wh",
+              "label": "Warehouse count, 14 Nov",
+              "value": "150"
+            }
+          ],
+          "note": "Flagged: months the current measure gets wrong against the warehouse's own closing counts."
+        }
+      ],
+      "tables": [
+        {
+          "id": "matrix",
+          "label": "Matrix visual: Stock on Hand",
+          "spokenLabel": "the matrix visual",
+          "columns": [
+            {
+              "id": "month",
+              "label": "Month"
+            },
+            {
+              "id": "value",
+              "label": "Stock on Hand",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "sep",
+              "cells": [
+                "September",
+                "{measure == \"sum\" ? \"13,512\" : measure == \"avg\" ? \"450\" : measure == \"lastdate\" ? \"420\" : \"420\"}"
+              ]
+            },
+            {
+              "id": "oct",
+              "cells": [
+                "October",
+                "{measure == \"sum\" ? \"12,431\" : measure == \"avg\" ? \"401\" : measure == \"lastdate\" ? \"380\" : \"380\"}"
+              ]
+            },
+            {
+              "id": "nov",
+              "cells": [
+                "November",
+                "{measure == \"sum\" ? \"3,640\" : measure == \"avg\" ? \"260\" : measure == \"lastdate\" ? \"(blank)\" : \"150\"}"
+              ],
+              "flag": "measure != \"lastnb\""
+            },
+            {
+              "id": "tot",
+              "cells": [
+                "Total",
+                "{measure == \"sum\" ? \"29,583\" : measure == \"avg\" ? \"386\" : measure == \"lastdate\" ? \"(blank)\" : \"150\"}"
+              ],
+              "flag": "measure != \"lastnb\""
+            }
+          ],
+          "note": "The measure's version can be changed from the Total cell or the action list.",
+          "edits": [
+            {
+              "row": "tot",
+              "column": "value",
+              "action": "setMeasure"
+            }
+          ]
+        },
+        {
+          "id": "snap",
+          "label": "Inventory snapshot rows, last three",
+          "spokenLabel": "the latest snapshot rows",
+          "columns": [
+            {
+              "id": "date",
+              "label": "Date"
+            },
+            {
+              "id": "units",
+              "label": "UnitsBalance (all warehouses)",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "d1",
+              "cells": [
+                "12 Nov",
+                "171"
+              ]
+            },
+            {
+              "id": "d2",
+              "cells": [
+                "13 Nov",
+                "164"
+              ]
+            },
+            {
+              "id": "d3",
+              "cells": [
+                "14 Nov",
+                "150"
+              ]
+            }
+          ],
+          "when": "not isNull(grainCheckedAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "dax",
+          "label": "Stock on Hand (measure)",
+          "language": "DAX",
+          "lines": [
+            {
+              "id": "m0",
+              "text": "Stock on Hand ="
+            },
+            {
+              "id": "m1",
+              "text": "    SUM ( Inventory[UnitsBalance] )",
+              "when": "measure == \"sum\"",
+              "mark": "not isNull(grainCheckedAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "m2",
+              "text": "    AVERAGE ( Inventory[UnitsBalance] )",
+              "when": "measure == \"avg\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m3",
+              "text": "    CALCULATE (",
+              "when": "measure == \"lastdate\" or measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m4",
+              "text": "        SUM ( Inventory[UnitsBalance] ),",
+              "when": "measure == \"lastdate\" or measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m5",
+              "text": "        LASTDATE ( 'Date'[Date] )",
+              "when": "measure == \"lastdate\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m6",
+              "text": "        LASTNONBLANK (",
+              "when": "measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m7",
+              "text": "            'Date'[Date],",
+              "when": "measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m8",
+              "text": "            CALCULATE ( SUM ( Inventory[UnitsBalance] ) )",
+              "when": "measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m9",
+              "text": "        )",
+              "when": "measure == \"lastnb\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "m10",
+              "text": "    )",
+              "when": "measure == \"lastdate\" or measure == \"lastnb\"",
+              "mark": "\"changed\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cut",
+          "label": "Order cutoff",
+          "value": "15:00"
+        }
+      ]
+    }
+  },
+  "objective": "Writing semi-additive measures, such as a closing balance, that must not sum over time",
+  "secondaryObjectives": [
+    "Writing aggregation measures with SUM, AVERAGE, COUNTROWS and DISTINCTCOUNT"
+  ],
+  "sources": [
+    {
+      "cite": "Use DAX time intelligence functions in Power BI Desktop models: Additional time intelligence calculations, Microsoft Learn training (updated 2025-06-27)",
+      "checkedAt": "2026-11-16",
+      "url": "https://learn.microsoft.com/en-us/training/modules/dax-power-bi-time-intelligence/3-calculations",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'When summarizing snapshot values (like inventory stock levels), you can summarize values across any dimension except date'; 'Adding daily snapshot balances together doesn't produce a meaningful result'; the LASTDATE pattern returns BLANK when no snapshot exists for the last date in filter context ('A recorded date might not exist because it hasn't yet happened'); LASTNONBLANK 'returns the last date that produces a non-BLANK result'. Both measure patterns in the case are the page's."
+    },
+    {
+      "cite": "Semi-additive measures in DAX, SQLBI (Marco Russo and Alberto Ferrari; published 2020-11-10)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.sqlbi.com/articles/semi-additive-measures-in-dax",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'a semi-additive measure uses SUM to aggregate over some dimensions and a different aggregation over other dimensions'; with LASTDATE, 'If data is not available on the last date as with our model, the measure returns a BLANK.'"
+    }
+  ],
+  "brief": {
+    "situation": "You look after the Inventory report at Ridgeline Outfitters (fictional). The buyers place this month's purchase orders at 15:00 from its Stock on Hand by month. A buyer has just asked why it shows 3,640 Trail Tent 2P in November when the warehouse counts about 150. It is 14:00.",
+    "handover": [
+      "Inventory is loaded nightly from the warehouse system; the latest load is 14 Nov."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. Orders close at 15:00, 60 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "measure": {
+      "type": "enum",
+      "values": [
+        "sum",
+        "avg",
+        "lastdate",
+        "lastnb"
+      ],
+      "init": "sum"
+    },
+    "grainCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reconciledAt": {
+      "type": "time",
+      "init": null
+    },
+    "reconciledOk": {
+      "type": "bool",
+      "init": false
+    },
+    "summarizeAvg": {
+      "type": "bool",
+      "init": false
+    },
+    "publishedAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "sum",
+        "avg",
+        "lastdate",
+        "lastnb"
+      ],
+      "init": "unsent"
+    },
+    "publishedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "summed",
+        "refresh",
+        "relationship"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "snapshot",
+        "looks",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "published": {
+      "expr": "publishedAs != \"unsent\""
+    },
+    "publishedSec": {
+      "expr": "not isNull(publishedAt) ? timeAt(publishedAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(grainCheckedAt) and (isNull(changedAt) or timeAt(grainCheckedAt) <= timeAt(changedAt))"
+    },
+    "reconciledCurrent": {
+      "expr": "reconciledOk and timeAt(reconciledAt) >= timeAt(lastChangeAt)"
+    },
+    "novValue": {
+      "expr": "measure == \"sum\" ? 3640 : measure == \"avg\" ? 260 : measure == \"lastdate\" ? 0 : 150"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "checkGrain",
+        "setMeasure",
+        "summarize",
+        "reconcile",
+        "publish",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "checkGrain": {
+      "label": "Open the Inventory table in table view: one row per product per day",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(grainCheckedAt)",
+          "then": [
+            {
+              "set": "grainCheckedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Inventory: 1 row per product per warehouse per day (a daily snapshot of UnitsBalance). Latest snapshot: 14 Nov."
+        },
+        {
+          "finding": "The table is a daily balance snapshot: a month's SUM adds about 30 balances together."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "setMeasure": {
+      "label": "Rewrite the Stock on Hand measure",
+      "group": "Change the model",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "m",
+          "kind": "choice",
+          "label": "Measure",
+          "options": [
+            {
+              "value": "sum",
+              "label": "SUM ( Inventory[UnitsBalance] )"
+            },
+            {
+              "value": "avg",
+              "label": "AVERAGE ( Inventory[UnitsBalance] )"
+            },
+            {
+              "value": "lastdate",
+              "label": "CALCULATE ( SUM ( ... ), LASTDATE ( 'Date'[Date] ) )"
+            },
+            {
+              "value": "lastnb",
+              "label": "CALCULATE ( SUM ( ... ), LASTNONBLANK ( 'Date'[Date], ... ) )"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "measure",
+          "to": "m"
+        },
+        {
+          "set": "reconciledOk",
+          "to": "false"
+        },
+        {
+          "log": "Stock on Hand is now the {m} version.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "summarize": {
+      "label": "Set the UnitsBalance column's default summarization to Average",
+      "group": "Change the model",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "summarizeAvg",
+          "to": "true"
+        },
+        {
+          "set": "measure",
+          "to": "\"avg\""
+        },
+        {
+          "set": "reconciledOk",
+          "to": "false"
+        },
+        {
+          "log": "Default summarization: Average. The visual now averages the daily balances.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "reconcile": {
+      "label": "Compare November with the latest snapshot rows (14 Nov)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "reconciledAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "measure == \"lastnb\"",
+              "then": [
+                {
+                  "set": "reconciledOk",
+                  "to": "true"
+                },
+                {
+                  "output": "Snapshot 14 Nov, Trail Tent 2P, all warehouses: 150 units. Visual, November: 150. Match."
+                },
+                {
+                  "log": "November matches the latest snapshot.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "measure == \"lastdate\"",
+              "then": [
+                {
+                  "output": "Snapshot 14 Nov: 150 units. Visual, November: (blank). There is no snapshot for 30 Nov yet."
+                },
+                {
+                  "log": "LASTDATE looks for 30 Nov, which has no snapshot yet.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Snapshot 14 Nov: 150 units. Visual, November: {novValue}. No match."
+                },
+                {
+                  "log": "The visual does not match the latest balance.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "publish": {
+      "label": "Publish the report for the buyers' 15:00 order cutoff",
+      "group": "Ship",
+      "available": "not busy and not published",
+      "why": "Already published.",
+      "effects": [
+        {
+          "set": "publishedAs",
+          "to": "measure"
+        },
+        {
+          "set": "publishedAt",
+          "to": "t"
+        },
+        {
+          "output": "Published to the Inventory app."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the stock figure was wrong",
+              "options": [
+                {
+                  "value": "summed",
+                  "label": "It added daily snapshot balances across the days of each month"
+                },
+                {
+                  "value": "refresh",
+                  "label": "The model had not refreshed"
+                },
+                {
+                  "value": "relationship",
+                  "label": "The Date relationship was inactive"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the new figure is right",
+              "options": [
+                {
+                  "value": "snapshot",
+                  "label": "November matches the latest snapshot row (14 Nov, 150 units)"
+                },
+                {
+                  "value": "looks",
+                  "label": "The numbers look reasonable now"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not published",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "15:00: the buyers ordered from the old report.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the buyers' lead: why the figure was wrong, what the measure does now, and how you checked it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it was wrong",
+          "criteria": "Inventory is a daily balance snapshot; summing it over a month adds about 30 balances. A balance sums across products and warehouses, never across dates.",
+          "modelAnswer": "SUM over the month added every day's balance: 14 days of November gave 3,640."
+        },
+        {
+          "label": "What it does now",
+          "criteria": "Takes the balance at the last date that has one (LASTNONBLANK), so a month still in progress shows its latest balance; explains why LASTDATE shows blank and AVERAGE is not a closing balance.",
+          "modelAnswer": "CALCULATE(SUM(...), LASTNONBLANK('Date'[Date], ...)): 14 Nov for November, 30 Sep and 31 Oct for the others. LASTDATE looks for 30 Nov, which has no row yet."
+        },
+        {
+          "label": "How you checked",
+          "criteria": "Compared the visual with the latest snapshot rows after the change.",
+          "modelAnswer": "November shows 150; the 14 Nov snapshot is 150."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not published",
+      "class": "recovered",
+      "rationale": "Holding the fix back ships nothing new, but the buyers order from the old figure; safe for this report, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+      }
+    }
+  },
+  "endings": {
+    "wrongShipped": {
+      "label": "A wrong stock figure went to the buyers",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (publishedAs == \"sum\" or publishedAs == \"avg\")",
+      "narrative": "The buyers ordered from a figure that is not what is on the shelf."
+    },
+    "notShipped": {
+      "label": "Not published",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not published",
+      "narrative": "No new wrong figure went out, but the buyers ordered from the old report."
+    },
+    "right": {
+      "label": "Closing balance, checked, before the cutoff",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and publishedAs == \"lastnb\" and publishedSec <= deadline and reconciledCurrent",
+      "narrative": "The buyers see the last recorded balance for each month, and November matches the warehouse."
+    },
+    "gaps": {
+      "label": "Published, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "No sum of balances went out, but November was blank, or the figure was late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongShipped",
+    "notShipped",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "grain",
+        "label": "Checked the table's grain (a daily snapshot) before changing the measure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw one balance per day first."
+          },
+          {
+            "when": "not isNull(grainCheckedAt)",
+            "score": "partial",
+            "why": "Looked only after changing the measure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at what a row of Inventory is."
+          }
+        ]
+      },
+      {
+        "id": "measure",
+        "label": "A closing balance that copes with dates not recorded yet (LASTNONBLANK)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(published ? publishedAs : measure) == \"lastnb\"",
+            "score": "met",
+            "why": "The last date with a balance in each period."
+          },
+          {
+            "when": "(published ? publishedAs : measure) == \"lastdate\"",
+            "score": "partial",
+            "why": "LASTDATE is a closing balance, but blank where the last date has no snapshot yet."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still adds or averages balances over time."
+          }
+        ]
+      },
+      {
+        "id": "reconciled",
+        "label": "Reconciled November with the latest snapshot after the last change",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reconciledCurrent and (not published or timeAt(reconciledAt) <= publishedSec)",
+            "score": "met",
+            "why": "150 against 150."
+          },
+          {
+            "when": "not isNull(reconciledAt)",
+            "score": "partial",
+            "why": "Compared, but it did not match or came after a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never compared with the source rows."
+          }
+        ]
+      },
+      {
+        "id": "onTime",
+        "label": "Published before the 15:00 cutoff",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "published and publishedSec <= deadline",
+            "score": "met",
+            "why": "Published {publishedSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not published before 15:00."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"summed\" and checkDoc == \"snapshot\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"summed\" or checkDoc == \"snapshot\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "nov",
+        "label": "November stock the buyers saw (units)",
+        "value": "published ? (publishedAs == \"sum\" ? 3640 : publishedAs == \"avg\" ? 260 : publishedAs == \"lastnb\" ? 150 : 0) : 0",
+        "format": "number",
+        "expert": "150"
+      },
+      {
+        "id": "pubAt",
+        "label": "Minutes until published",
+        "value": "published ? publishedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 11"
+      },
+      {
+        "id": "gap",
+        "label": "November error against the warehouse (units)",
+        "value": "published ? (publishedAs == \"sum\" ? 3490 : publishedAs == \"avg\" ? 110 : publishedAs == \"lastnb\" ? 0 : 150) : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "Table view: one balance per product per day. Summing it over a month is the bug."
+      },
+      {
+        "at": "2-6 min",
+        "text": "Rewrite Stock on Hand with CALCULATE and LASTNONBLANK over the dates."
+      },
+      {
+        "at": "6-9 min",
+        "text": "November shows 150; the 14 Nov snapshot is 150."
+      },
+      {
+        "at": "9-11 min",
+        "text": "Publish before the 15:00 cutoff."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: a closing balance, checked",
+        "body": "Balances add across products, never across days. LASTNONBLANK gives each period its last recorded balance, and you proved it against the source."
+      },
+      "gaps": {
+        "headline": "Published, with gaps",
+        "body": "No summed balance went out. LASTDATE leaves the month in progress blank because its last date has no snapshot yet, or the fix was late or unchecked."
+      },
+      "wrongShipped": {
+        "headline": "A wrong stock figure went out",
+        "body": "A sum of daily balances is not a stock level, and neither is their average. The buyers need the last balance."
+      },
+      "notShipped": {
+        "headline": "Held back",
+        "body": "Safe for this report, but the buyers ordered from the old figure."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Inventory holds a daily snapshot of each product's balance, so Stock on Hand is semi-additive: it may sum across products and warehouses but not across dates. SUM over a month adds about 30 balances (3,640 for 14 days of November). AVERAGE gives an average daily balance, not what is on the shelf. LASTDATE takes the balance on the period's last date, which has no snapshot yet for November, so it is blank. CALCULATE with LASTNONBLANK over the dates takes the last date that has a balance: 150, which matches the 14 Nov snapshot."
+  }
+}

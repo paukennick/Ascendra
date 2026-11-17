@@ -1,0 +1,153 @@
+{
+  "band": "tsnode",
+  "label": "TypeScript & Node.js",
+  "base": {
+    "course": "JAVASCRIPT",
+    "slug": "js-rate-board-zero-percent"
+  },
+  "slug": "js-rate-board-zero-percent-tsnode",
+  "patch": {
+    "objective": "Call another service with fetch, check response.ok, and set a timeout with AbortSignal",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Using the Fetch API, MDN Web Docs (last modified 2025-08-20)",
+        "checkedAt": "2026-11-16",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch%5FAPI/Using%5FFetch",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'The promise returned by fetch() will reject on some errors, such as a network error or a bad scheme. However, if the server responds with an error like 404, then fetch() fulfills with a Response, so we have to check the status before we can read the response body'; 'A common pattern is to check the value of ok and throw if it is false'; json() 'will throw an exception if the response body is not in the appropriate format'."
+      },
+      {
+        "cite": "Response: ok property, MDN Web Docs (last modified 2025-03-13)",
+        "checkedAt": "2026-11-16",
+        "url": "https://developer.mozilla.org/docs/Web/API/Response/ok",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: ok 'contains a Boolean stating whether the response was successful (status in the range 200-299) or not'."
+      },
+      {
+        "cite": "AbortSignal: timeout() static method, MDN Web Docs (last modified 2026-09-01)",
+        "checkedAt": "2026-11-16",
+        "url": "https://developer.mozilla.org/docs/Web/API/AbortSignal/timeout_static",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: it 'returns an AbortSignal that will automatically abort after a specified time'; 'The signal will abort with its AbortSignal.reason property set to a TimeoutError DOMException on timeout'; the example passes { signal: AbortSignal.timeout(5000) } to fetch and checks err.name === \"TimeoutError\"."
+      },
+      {
+        "cite": "TypeScript & Node.js Programming Coach course outline (seed: backend/supabase/seed/tracks), objective 'Call another service with fetch, check response.ok, and set a timeout with AbortSignal'",
+        "checkedAt": "2026-11-16",
+        "note": "This band moves the JAVASCRIPT rate-board case to the TSNODE objective: the same fetch, ok check and AbortSignal.timeout, in the board's server-side proxy. Node.js's global fetch follows the same Fetch standard as the MDN pages above; the Node.js documentation itself was not re-read for this band (the TSNODE course's own Node.js sources were read for REQ-267)."
+      }
+    ],
+    "brief": {
+      "situation": "You maintain the small Node.js proxy (rates.ts, TypeScript) that the teller rate board at Lakeside Credit Union (fictional) calls for today's rates; the proxy fetches them from the internal rate service. Since 09:10 the service has been degraded, and twice this morning a branch board showed a 30-year fixed rate of 0.00%. The next deploy train leaves at 11:00. It is 10:15.",
+      "handover": [
+        "The proxy's error log is clean: whatever is going wrong is not being logged."
+      ]
+    },
+    "actions": {
+      "network": {
+        "label": "Read the proxy's outbound request log"
+      },
+      "console": {
+        "label": "Log the swallowed error in the catch and replay a request"
+      }
+    },
+    "screen": {
+      "data": {
+        "workspace": "rates.ts in the rate board's Node.js proxy (Lakeside Credit Union, fictional)",
+        "code": [
+          {
+            "id": "src",
+            "label": "rates.ts",
+            "language": "TypeScript",
+            "lines": [
+              {
+                "id": "j0",
+                "text": "async function loadRates() {"
+              },
+              {
+                "id": "j1",
+                "text": "  try {",
+                "when": "catchZero or okCheck"
+              },
+              {
+                "id": "j2",
+                "text": "    const res = await fetch(RATES_URL);",
+                "when": "not timeoutSet"
+              },
+              {
+                "id": "j3",
+                "text": "    const res = await fetch(RATES_URL, { signal: AbortSignal.timeout(5000) });",
+                "when": "timeoutSet",
+                "mark": "\"changed\""
+              },
+              {
+                "id": "j4",
+                "text": "    if (!res.ok) throw new Error(`rates: HTTP ${res.status}`);",
+                "when": "okCheck",
+                "mark": "\"changed\""
+              },
+              {
+                "id": "j5",
+                "text": "    while (!res.ok) res = await fetch(RATES_URL);",
+                "when": "retryLoop",
+                "mark": "\"warning\""
+              },
+              {
+                "id": "j6",
+                "text": "    const data = await res.json();",
+                "mark": "not isNull(netAt) and not okCheck ? \"error\" : \"none\""
+              },
+              {
+                "id": "j7",
+                "text": "    lastGood = { rates: data.rates, at: new Date() };",
+                "when": "okCheck",
+                "mark": "\"changed\""
+              },
+              {
+                "id": "j8",
+                "text": "    return data.rates;"
+              },
+              {
+                "id": "j9",
+                "text": "  } catch (e) {",
+                "when": "catchZero or okCheck"
+              },
+              {
+                "id": "j10",
+                "text": "    return {};",
+                "when": "catchZero",
+                "mark": "not isNull(netAt) ? \"error\" : \"none\""
+              },
+              {
+                "id": "j11",
+                "text": "    showBanner(`Rates unavailable. Showing ${lastGood.at}`);",
+                "when": "okCheck",
+                "mark": "\"changed\""
+              },
+              {
+                "id": "j12",
+                "text": "    return lastGood.rates;",
+                "when": "okCheck",
+                "mark": "\"changed\""
+              },
+              {
+                "id": "j13",
+                "text": "  }",
+                "when": "catchZero or okCheck"
+              },
+              {
+                "id": "j14",
+                "text": "}"
+              },
+              {
+                "id": "j15",
+                "text": ""
+              },
+              {
+                "id": "j16",
+                "text": "// render: (rates.mortgage30 ?? 0).toFixed(2) + \"%\""
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

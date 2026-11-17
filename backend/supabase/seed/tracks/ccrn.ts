@@ -504,8 +504,13 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
           // 2018 guideline and 2019 update. The full text refused automated
           // access; 185/110 and 180/105 were confirmed through the UIC Drug
           // Information Group's summary of it (April 2026), and the <140 mm Hg
-          // line from AHA's own "Top Things to Know" page. Unchanged values.
-          checkedAt: "2026-11-11",
+          // line from AHA's own "Top Things to Know" page. REQ-310: both read
+          // 2026-11-16 in the full text (a copy of the Stroke PDF posted by the
+          // Nebraska DHHS stroke task force), section 4.3: SBP <185 and DBP
+          // <110 before IVT (COR 1, LOE B-NR); <180/105 for at least the first
+          // 24 hours after (COR 1, LOE B-R); after successful EVT an SBP target
+          // <140 for 72 hours is harmful (COR 3: Harm, LOE A). Unchanged values.
+          checkedAt: "2026-11-16",
           keyValues: [
             "blood pressure below 185/110 mm Hg before IV thrombolysis, and below 180/105 mm Hg for at least 24 hours after it",
             "intensive systolic lowering to below 140 mm Hg is not recommended after reperfusion, even when reperfusion is complete",

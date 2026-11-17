@@ -1,0 +1,1449 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-parq-chest-tightness",
+  "title": "A YES on the PAR-Q+ and tightness on the stairs",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Marcus Hale, 52",
+        "presentation": "{not isNull(worseAt) and isNull(emsAt) ? \"Pale and sweating, a hand on his chest.\" : exercising ? \"On the step, breathing hard.\" : not isNull(referredAt) ? \"Disappointed but listening; he takes the form.\" : \"Keen to start: his daughter's wedding is in four months.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Trust",
+          "spokenLabel": "His trust in the trainer",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "trusting"
+          ]
+        },
+        {
+          "id": "gReady",
+          "label": "Readiness",
+          "spokenLabel": "His readiness to start",
+          "value": "ready",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "low",
+            "mixed",
+            "high"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "hrR",
+          "label": "Heart rate",
+          "spokenLabel": "Heart rate",
+          "value": "{hr|0dp}/min"
+        },
+        {
+          "id": "chest",
+          "label": "Chest",
+          "spokenLabel": "Chest symptoms",
+          "value": "{not isNull(worseAt) and isNull(emsAt) ? \"pain spreading to left arm, sweating\" : exercising and not isNull(symptomOnAt) ? \"tightness\" : \"none now\"}",
+          "flag": "(not isNull(worseAt) and isNull(emsAt)) or (exercising and not isNull(symptomOnAt))"
+        },
+        {
+          "id": "act",
+          "label": "Doing",
+          "spokenLabel": "What he is doing",
+          "value": "{exercising ? \"exercising\" : not isNull(emsAt) ? \"with paramedics\" : \"seated\"}"
+        }
+      ],
+      "intake": {
+        "label": "PAR-Q+ (his answers on paper, page 1)",
+        "items": [
+          {
+            "id": "q1",
+            "question": "1. Has a doctor ever said you have a heart condition or high blood pressure?",
+            "answer": "YES: high blood pressure, found two years ago.",
+            "when": "not isNull(parqAt)",
+            "flag": "true"
+          },
+          {
+            "id": "q2",
+            "question": "2. Chest pain at rest, in daily activities, or during physical activity?",
+            "answer": "{isNull(symptomAskedAt) ? \"NO\" : \"NO on paper. In person: tightness on the stairs, which he did not call pain. The honest answer is YES.\"}",
+            "when": "not isNull(parqAt)",
+            "flag": "not isNull(symptomAskedAt)"
+          },
+          {
+            "id": "q3",
+            "question": "3. Dizziness or loss of consciousness in the last 12 months?",
+            "answer": "NO",
+            "when": "not isNull(parqAt)"
+          },
+          {
+            "id": "q4",
+            "question": "4. Another chronic medical condition?",
+            "answer": "NO",
+            "when": "not isNull(parqAt)"
+          },
+          {
+            "id": "q5",
+            "question": "5. Prescribed medication for a chronic condition?",
+            "answer": "YES: one blood pressure tablet a day.",
+            "when": "not isNull(parqAt)",
+            "flag": "true"
+          },
+          {
+            "id": "q6",
+            "question": "6. A bone, joint or soft tissue problem that activity could make worse?",
+            "answer": "NO",
+            "when": "not isNull(parqAt)"
+          },
+          {
+            "id": "q7",
+            "question": "7. Told to do only medically supervised activity?",
+            "answer": "NO",
+            "when": "not isNull(parqAt)"
+          },
+          {
+            "id": "fu",
+            "question": "Follow-up questions for his YES answers (pages 2-3)",
+            "answer": "All NO as he answers them: his blood pressure is followed by his doctor and he takes the tablet daily.",
+            "when": "not isNull(followAt)"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "activity",
+          "label": "Current activity",
+          "result": "No regular exercise for three years; walks the dog 15 minutes most evenings, slowly.",
+          "when": "not isNull(activityAt)"
+        },
+        {
+          "id": "exertion",
+          "label": "What he notices on exertion",
+          "result": "For about a month, a tightness in the middle of his chest climbing the two flights to his office; it eases within a few minutes of stopping. He has not told his doctor: 'It's just me being out of shape.'",
+          "when": "not isNull(symptomAskedAt)",
+          "flag": "true"
+        },
+        {
+          "id": "rest",
+          "label": "Resting measures",
+          "result": "Seated after five minutes: heart rate 78/min, blood pressure 138/86 mmHg (recorded, not interpreted).",
+          "when": "not isNull(restAt)"
+        },
+        {
+          "id": "posture",
+          "label": "Static posture",
+          "result": "Rounded shoulders and a forward head; feet and knees neutral.",
+          "when": "not isNull(postureAt)"
+        },
+        {
+          "id": "duringEx",
+          "label": "During exercise",
+          "result": "{not isNull(worseAt) ? \"The tightness spread to his left arm with sweating and did not ease with rest.\" : not isNull(resolvedAt) ? \"Chest tightness at about three minutes; eased after rest.\" : not isNull(symptomOnAt) ? \"Chest tightness at about three minutes.\" : \"No symptoms so far.\"}",
+          "when": "not isNull(exStartAt)",
+          "flag": "not isNull(symptomOnAt)"
+        }
+      ],
+      "program": {
+        "label": "Plan so far",
+        "items": [
+          {
+            "label": "Medical clearance first: his doctor, with the PAR-Q+ and a note of the chest tightness",
+            "when": "not isNull(referredAt)"
+          },
+          {
+            "label": "Goals and a schedule agreed for after clearance; no new exercise until then",
+            "when": "not isNull(planAt)"
+          },
+          {
+            "label": "Started a training program today",
+            "when": "not isNull(exStartAt) and isNull(referredAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jSym",
+          "text": "Chest tightness during exercise.",
+          "when": "not isNull(symptomOnAt)",
+          "at": "timeAt(symptomOnAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "911 called; front desk sent to meet the crew.",
+          "when": "not isNull(calledAt)",
+          "at": "timeAt(calledAt)"
+        },
+        {
+          "id": "jEms",
+          "text": "Paramedics took over his care.",
+          "when": "not isNull(emsAt)",
+          "at": "timeAt(emsAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rParq",
+          "label": "PAR-Q+ YES answers",
+          "text": "Any YES: the follow-up questions, then the ePARmed-X+ or a doctor before a fitness appraisal if any follow-up answer is YES.",
+          "met": "not isNull(parqAt) and isNull(followAt)"
+        },
+        {
+          "id": "rClear",
+          "label": "New sign or symptom, not regularly active",
+          "text": "Medical clearance before starting (ACSM). No fitness testing or training until then.",
+          "met": "not isNull(symptomAskedAt) and isNull(referredAt)"
+        },
+        {
+          "id": "rStop",
+          "label": "Warning sign during exercise",
+          "text": "Stop now and have him rest; chest discomfort is a reason to call 911.",
+          "met": "(exercising and not isNull(symptomOnAt)) or (not isNull(symptomOnAt) and isNull(calledAt) and isNull(closedAt))"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope of practice",
+          "text": "Record what he reports; do not diagnose, reassure or interpret a reading as safe.",
+          "met": "reassured"
+        }
+      ]
+    }
+  },
+  "objective": "Preparticipation screening, health history and when to refer to a medical professional",
+  "secondaryObjectives": [
+    "Scope of practice and when to refer to other health professionals",
+    "Legal and risk-management basics: liability, documentation, emergency response"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Assessment 16% (preparticipation screening, health history and referral), Professional Development and Responsibility 10% (scope of practice, referral, emergency response)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Read for the course on 2026-10-08 (backend/supabase/seed/tracks/fitness.ts); not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "PAR-Q+ Collaboration, The Physical Activity Readiness Questionnaire for Everyone (PAR-Q+), form dated 01-11-2024, copyright 2025",
+      "checkedAt": "2026-11-16",
+      "url": "https://southlake.ca/wp-content/uploads/2025/02/PARQPlus2025-Form-fillable.pdf",
+      "note": "Relevant text: seven general health questions (1 heart condition or high blood pressure; 2 chest pain at rest, in daily activities or during physical activity; 3 dizziness or loss of consciousness in 12 months; 4 another chronic condition; 5 prescribed medication for a chronic condition; 6 a bone, joint or soft tissue problem made worse by activity; 7 told to do only medically supervised activity). Any YES: complete the follow-up questions on pages 2-3; any YES there: 'seek further information before becoming more physically active or engaging in a fitness appraisal', through the ePARmed-X+ and/or a qualified exercise professional. Delay becoming more active if your health changes. 'If in doubt after completing the questionnaire, consult your doctor prior to physical activity.'. Read 2026-11-16 in a copy of the official form hosted by a municipal recreation department (the PAR-Q+ Collaboration's own site did not appear in search), through a summarizing fetch. The question wording here is the form's; the follow-up pages were not quoted, so the case does not reproduce them."
+    },
+    {
+      "cite": "Riebe D, et al. Updating ACSM's recommendations for exercise preparticipation health screening. Med Sci Sports Exerc. 2015 (November)",
+      "checkedAt": "2026-11-16",
+      "url": "https://uwi.edu/sport/sites/sport/files/ACSM-ReccommendationsforPHEScreening.pdf",
+      "note": "Relevant text: the algorithm uses current physical activity, signs or symptoms and/or known cardiovascular, metabolic or renal disease, and desired intensity; not regularly active with signs or symptoms: 'Medical Clearance Recommended', then light-to-moderate exercise; regularly active and develops signs or symptoms: 'Discontinue Exercise and Seek Medical Clearance'. Read 2026-11-16 in a hosted copy of the paper's algorithm through a summarizing fetch; authors, volume and pages were not visible in that copy. The algorithm is the one ACSM's Guidelines carry; the 12th edition was not read."
+    },
+    {
+      "cite": "ACSM Information On... Who Needs a Stress Test Before Exercising? (2017): warning signs 'Chest pain or pressure', 'Neck, jaw or arm pain', 'Shortness of breath', 'Unusual fatigue', 'Heart palpitations', 'Dizziness or a feeling like you are going to faint', 'Ankle swelling or overnight shortness of breath'; if they develop, 'discontinue exercise and seek a doctor's clearance right away'",
+      "checkedAt": "2026-11-16",
+      "url": "https://acsm.org/docs/default-source/files-for-resource-library/cpi-who-needs-a-stress-test-before-exercising-brochure.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch. A consumer brochure; it does not say when to call emergency services, so the 911 step rests on the AHA page."
+    },
+    {
+      "cite": "American Heart Association, Warning Signs of a Heart Attack: chest discomfort, discomfort in other areas of the upper body, shortness of breath, cold sweat, nausea, lightheadedness; 'Call 911 if you have any symptoms of heart attack'; 'Minutes matter'",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.heart.org/en/health-topics/heart-attack/warning-signs-of-a-heart-attack",
+      "note": "Read 2026-11-16 through a summarizing fetch; no review date was visible."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer at a commercial gym. Marcus Hale, 52 (a fictional client), has booked a first session: he wants to lose weight and get fit before his daughter's wedding. He filled in the PAR-Q+ at the desk. You have an hour.",
+    "handover": [
+      "The gym's emergency action plan: call 911, send the front desk to meet the crew, bring the AED.",
+      "Trainers screen, assess and program; diagnosing and medical advice are outside a trainer's scope."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows his PAR-Q+ answers, what you find, his read-outs and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "17:30",
+    "tick": "1min",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "symptomDelay": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Three minutes of exertion before the chest tightness comes back is the author's figure, matching what the client says about the stairs."
+      }
+    },
+    "worseDelay": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Four more minutes of exertion with the tightness before it spreads and stops easing is the author's figure for teaching; real symptoms do not follow a schedule."
+      }
+    },
+    "restDelay": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Three minutes of rest for the tightness to ease, as he describes on the stairs, is the author's figure."
+      }
+    },
+    "emsDelay": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "parqAt": {
+      "type": "time",
+      "init": null
+    },
+    "followAt": {
+      "type": "time",
+      "init": null
+    },
+    "activityAt": {
+      "type": "time",
+      "init": null
+    },
+    "symptomAskedAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    },
+    "postureAt": {
+      "type": "time",
+      "init": null
+    },
+    "referredAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassured": {
+      "type": "bool",
+      "init": false
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "exStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "exercising": {
+      "type": "bool",
+      "init": false
+    },
+    "symptomOnAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "resolvedAt": {
+      "type": "time",
+      "init": null
+    },
+    "worseAt": {
+      "type": "time",
+      "init": null
+    },
+    "calledAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    },
+    "hr": {
+      "type": "number",
+      "init": 78,
+      "unit": "/min",
+      "min": 40,
+      "max": 200
+    },
+    "trust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ready": {
+      "type": "number",
+      "init": 7,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "First session",
+      "clock": "turns",
+      "actions": [
+        "reviewParq",
+        "followUp",
+        "askActivity",
+        "askSymptoms",
+        "measureRest",
+        "posture",
+        "stepTest",
+        "treadmill",
+        "stopEx",
+        "pushOn",
+        "call911",
+        "reassure",
+        "refer",
+        "plan",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "reviewParq": {
+      "label": "Go through his PAR-Q+ with him",
+      "group": "Screen",
+      "available": "not busy and (isNull(parqAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(parqAt)",
+          "then": [
+            {
+              "set": "parqAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You read his PAR-Q+ answers with him.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "followUp": {
+      "label": "Ask the follow-up questions for his YES answers",
+      "group": "Screen",
+      "available": "not busy and (not isNull(parqAt) and isNull(followAt))",
+      "why": "Read the PAR-Q+ first.",
+      "effects": [
+        {
+          "if": "isNull(followAt)",
+          "then": [
+            {
+              "set": "followAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You go through the follow-up questions for high blood pressure and his medication.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "askActivity": {
+      "label": "Ask how active he is now",
+      "group": "Screen",
+      "available": "not busy and (isNull(activityAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(activityAt)",
+          "then": [
+            {
+              "set": "activityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You ask about his week.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSymptoms": {
+      "label": "Ask what he notices when he exerts himself: stairs, hurrying, carrying",
+      "group": "Screen",
+      "available": "not busy and (isNull(symptomAskedAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(symptomAskedAt)",
+          "then": [
+            {
+              "set": "symptomAskedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You ask what happens on stairs and when he hurries.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "measureRest": {
+      "label": "Measure resting heart rate and blood pressure",
+      "group": "Assess",
+      "available": "not busy and (isNull(restAt) and not exercising)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(restAt)",
+          "then": [
+            {
+              "set": "restAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You measure resting heart rate and blood pressure after five minutes seated.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "posture": {
+      "label": "Do a static posture assessment",
+      "group": "Assess",
+      "available": "not busy and (isNull(postureAt) and not exercising)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(postureAt)",
+          "then": [
+            {
+              "set": "postureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You look at his standing posture.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "stepTest": {
+      "label": "Run the 3-minute step test",
+      "group": "Assess",
+      "available": "not busy and (not exercising and isNull(closedAt) and isNull(symptomOnAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(exStartAt)",
+          "then": [
+            {
+              "set": "exStartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "set": "hr",
+          "to": "112"
+        },
+        {
+          "log": "You start: run the 3-minute step test.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "treadmill": {
+      "label": "Start a 10-minute treadmill warm-up",
+      "group": "Assess",
+      "available": "not busy and (not exercising and isNull(closedAt) and isNull(symptomOnAt))",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(exStartAt)",
+          "then": [
+            {
+              "set": "exStartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "set": "hr",
+          "to": "112"
+        },
+        {
+          "log": "You start: start a 10-minute treadmill warm-up.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "stopEx": {
+      "label": "Stop the exercise and have him sit and rest",
+      "group": "Respond",
+      "available": "exercising",
+      "why": "He is not exercising.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hr",
+          "to": "96"
+        },
+        {
+          "log": "You stop the exercise and sit him down.",
+          "kind": "act"
+        },
+        {
+          "if": "not isNull(symptomOnAt) and isNull(worseAt)",
+          "then": [
+            {
+              "schedule": "rest",
+              "after": "restDelay"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pushOn": {
+      "label": "Encourage him to finish: 'some tightness is normal at the start'",
+      "group": "Respond",
+      "available": "exercising and not isNull(symptomOnAt)",
+      "why": "Only while he is exercising with a symptom.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "reassured",
+          "to": "true"
+        },
+        {
+          "log": "You encourage him to keep going.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "call911": {
+      "label": "Call 911 under the emergency action plan",
+      "group": "Respond",
+      "available": "not isNull(symptomOnAt) and isNull(calledAt)",
+      "why": "Only for symptoms during the session.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(calledAt)",
+          "then": [
+            {
+              "set": "calledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "You call 911, keep him seated and send the front desk to meet the crew and bring the AED.",
+          "kind": "good"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Tell him it is probably just being out of shape",
+      "group": "Talk",
+      "available": "not busy and (not reassured)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "set": "reassured",
+          "to": "true"
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "add": "ready",
+          "by": "1"
+        },
+        {
+          "log": "You tell him it is probably his fitness.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "refer": {
+      "label": "Explain the concern and ask him to see his doctor before starting: the PAR-Q+, the ePARmed-X+ and a note of what he told you",
+      "group": "Talk",
+      "available": "not busy and (isNull(referredAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(referredAt)",
+          "then": [
+            {
+              "set": "referredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "ready",
+          "by": "not isNull(symptomAskedAt) ? -1 : -2"
+        },
+        {
+          "add": "trust",
+          "by": "not isNull(symptomAskedAt) ? 1 : 0"
+        },
+        {
+          "log": "You explain why clearance comes first and give him the form for his doctor.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Set goals and a schedule for after clearance; no new exercise until then",
+      "group": "Talk",
+      "available": "not busy and (isNull(planAt) and not exercising)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "ready",
+          "by": "2"
+        },
+        {
+          "log": "You agree his goals and a schedule that starts once he is cleared.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the session record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "PAR-Q+ answers, the tightness he described, resting measures, what happened, the referral and the plan"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Screened; referred to doctor'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "rest": {
+      "label": "Resting",
+      "wait": {
+        "skipLabel": "Let him rest"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Three minutes of rest for the tightness to ease, as he describes on the stairs, is the author's figure."
+      },
+      "effects": [
+        {
+          "if": "isNull(resolvedAt)",
+          "then": [
+            {
+              "set": "resolvedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hr",
+          "to": "84"
+        },
+        {
+          "log": "Seated, the tightness eases.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ems": {
+      "label": "Ambulance on the way",
+      "wait": {
+        "skipLabel": "Wait for the crew"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "Eight minutes for the ambulance is the author's figure; response times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(emsAt)",
+          "then": [
+            {
+              "set": "emsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Paramedics arrive and take over.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "symptom",
+      "when": "exercising and isNull(symptomOnAt) and not isNull(exStartAt) and t - timeAt(exStartAt) >= symptomDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(symptomOnAt)",
+          "then": [
+            {
+              "set": "symptomOnAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "hr",
+          "to": "128"
+        },
+        {
+          "log": "He slows down and presses a hand to his chest: 'There's that tightness again.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "exercising and not isNull(symptomOnAt) and t - timeAt(symptomOnAt) >= worseDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(worseAt)",
+          "then": [
+            {
+              "set": "worseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "cancel": "rest"
+        },
+        {
+          "set": "hr",
+          "to": "118"
+        },
+        {
+          "log": "He stops on his own, pale and sweating; the tightness has spread to his left arm and is not easing.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the client record: what the screening found and why the form alone missed it, what you decided and on what basis, and what happens next.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What the screen found",
+          "criteria": "Names the PAR-Q+ YES answers (blood pressure, medication) and the exertional chest tightness he did not count as 'pain' on question 2; says a conversation about exertion is what surfaced it.",
+          "modelAnswer": "PAR-Q+ YES to high blood pressure and its medication, follow-ups NO. Asked about stairs, he described chest tightness on exertion that eases with rest; he had answered NO to chest pain because he calls it tightness."
+        },
+        {
+          "label": "Decision and basis",
+          "criteria": "Not regularly active plus a sign or symptom of cardiovascular disease: medical clearance before any fitness testing or training (ACSM algorithm; PAR-Q+ 'seek further information before ... a fitness appraisal'); no diagnosis or reassurance; during exercise a chest symptom means stop and call 911.",
+          "modelAnswer": "He is not regularly active and has a possible cardiac symptom, so ACSM recommends medical clearance before starting, and the PAR-Q+ says to seek further advice before a fitness appraisal. I did no exertional testing and did not guess at the cause."
+        },
+        {
+          "label": "What happens next",
+          "criteria": "Clearance request with the PAR-Q+ and a note of the symptom, a plan to start after clearance at light-to-moderate intensity, and documentation.",
+          "modelAnswer": "He sees his doctor with the form and my note; we start at light-to-moderate intensity once cleared. Everything is in his record."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(referredAt) and isNull(exStartAt)",
+      "class": "harm",
+      "rationale": "Sending a client with an unevaluated exertional chest symptom away to start training on his own is never a safe outcome.",
+      "source": {
+        "cite": "Riebe D, et al. Updating ACSM's recommendations for exercise preparticipation health screening. Med Sci Sports Exerc. 2015 (November)",
+        "checkedAt": "2026-11-16",
+        "url": "https://uwi.edu/sport/sites/sport/files/ACSM-ReccommendationsforPHEScreening.pdf",
+        "note": "Relevant text: the algorithm uses current physical activity, signs or symptoms and/or known cardiovascular, metabolic or renal disease, and desired intensity; not regularly active with signs or symptoms: 'Medical Clearance Recommended', then light-to-moderate exercise; regularly active and develops signs or symptoms: 'Discontinue Exercise and Seek Medical Clearance'. Read 2026-11-16 in a hosted copy of the paper's algorithm through a summarizing fetch; authors, volume and pages were not visible in that copy. The algorithm is the one ACSM's Guidelines carry; the 12th edition was not read."
+      }
+    }
+  },
+  "endings": {
+    "pushed": {
+      "label": "Pushed through a warning sign",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(worseAt)",
+      "narrative": "He kept exercising with chest tightness until it spread and would not ease. {isNull(calledAt) ? \"No one called 911.\" : \"The paramedics took him to hospital.\"}"
+    },
+    "noReferral": {
+      "label": "Trained without clearance",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and isNull(referredAt) and isNull(calledAt)",
+      "narrative": "He leaves with a program and an unexplained chest symptom no doctor knows about{isNull(symptomAskedAt) and isNull(symptomOnAt) ? \", one nobody asked him about\" : \"\"}."
+    },
+    "noCall": {
+      "label": "Chest symptom without a 911 call",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(symptomOnAt) and isNull(calledAt)",
+      "narrative": "He had chest tightness during exertion and went home with a referral, but no one called 911 for a possible heart symptom."
+    },
+    "cleared": {
+      "label": "Clearance before any exercise",
+      "class": "target",
+      "terminal": true,
+      "when": "documented != \"none\" and documented != \"nothing\" and not isNull(referredAt) and isNull(exStartAt) and not isNull(symptomAskedAt) and not reassured and documented == \"full\"",
+      "narrative": "You found the symptom in conversation, did no exertional testing, and sent him to his doctor with the form, your note and a plan to start once cleared."
+    },
+    "referredGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "He is on his way to his doctor, but {not isNull(exStartAt) ? \"he exercised first and the symptom came back on the step\" : isNull(symptomAskedAt) ? \"the reason he most needs clearance was never found\" : reassured ? \"you told him it was probably his fitness\" : \"the record is thin\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The session ran out with no plan and no record."
+    }
+  },
+  "endingOrder": [
+    "pushed",
+    "noReferral",
+    "noCall",
+    "cleared",
+    "referredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "found",
+        "label": "Asked about symptoms on exertion before any exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(symptomAskedAt) and (isNull(exStartAt) or timeAt(symptomAskedAt) <= timeAt(exStartAt))",
+            "score": "met",
+            "why": "Asked before any exercise."
+          },
+          {
+            "when": "not isNull(symptomAskedAt) or not isNull(symptomOnAt)",
+            "score": "partial",
+            "why": "Found only after exercise began."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked."
+          }
+        ]
+      },
+      {
+        "id": "noTest",
+        "label": "No fitness testing or training before clearance",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(exStartAt)",
+            "score": "met",
+            "why": "No exertion today."
+          },
+          {
+            "when": "isNull(worseAt) and not isNull(stoppedAt)",
+            "score": "partial",
+            "why": "Exercise started; stopped when the symptom came."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exercise continued with a warning sign."
+          }
+        ]
+      },
+      {
+        "id": "referred",
+        "label": "Referred for medical clearance without diagnosing or reassuring",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(referredAt) and not reassured",
+            "score": "met",
+            "why": "Referred within scope."
+          },
+          {
+            "when": "not isNull(referredAt)",
+            "score": "partial",
+            "why": "Referred, after reassurance he should not have had."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No referral."
+          }
+        ]
+      },
+      {
+        "id": "emergency",
+        "label": "Stopped and called 911 for a chest symptom during exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(symptomOnAt)",
+            "score": "na",
+            "why": "No symptom during exercise."
+          },
+          {
+            "when": "not isNull(calledAt) and not isNull(stoppedAt) and isNull(worseAt)",
+            "score": "met",
+            "why": "Stopped and called."
+          },
+          {
+            "when": "not isNull(calledAt)",
+            "score": "partial",
+            "why": "Called, after the symptom worsened."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No 911 call."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented the screen, the symptom and the plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written finding, decision and plan",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minToRefer",
+        "label": "Minutes until the referral",
+        "value": "isNull(referredAt) ? -1 : timeAt(referredAt) / 60",
+        "format": "number",
+        "expert": "20 or less"
+      },
+      {
+        "id": "exMin",
+        "label": "Minutes of exercise before clearance",
+        "value": "isNull(exStartAt) ? 0 : ((isNull(stoppedAt) ? (isNull(worseAt) ? t : timeAt(worseAt)) : timeAt(stoppedAt)) - timeAt(exStartAt)) / 60",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "trustEnd",
+        "label": "His trust at the end (0-10)",
+        "value": "trust",
+        "format": "number",
+        "expert": "8 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Go through the PAR-Q+ and the follow-up questions; ask how active he is."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Ask what he notices on stairs and when he hurries: chest tightness that eases with rest."
+      },
+      {
+        "at": "15-30 min",
+        "text": "No exertional testing. Explain why his doctor comes first, give him the PAR-Q+, the ePARmed-X+ and your note; set goals and a schedule for after clearance."
+      },
+      {
+        "at": "Close",
+        "text": "A full record."
+      }
+    ],
+    "debrief": {
+      "cleared": {
+        "headline": "Good: found, held, referred",
+        "body": "The form said NO to chest pain; a question about the stairs said otherwise. Not regularly active with a possible cardiac symptom means medical clearance first, and nothing exertional today."
+      },
+      "referredGaps": {
+        "headline": "Referred, with gaps",
+        "body": "The referral is right, but the order or the words were not: ask about exertion before any test, keep to what he reports, and write it all down."
+      },
+      "pushed": {
+        "headline": "A warning sign is a stop sign",
+        "body": "Chest tightness during exercise means stop at once, sit him down and call 911. Encouraging him on turned a warning into an emergency."
+      },
+      "noReferral": {
+        "headline": "The client left uncleared",
+        "body": "He is not regularly active and has a possible cardiac symptom (or nobody asked). ACSM recommends medical clearance before he starts."
+      },
+      "noCall": {
+        "headline": "Chest discomfort during exertion: call 911",
+        "body": "Stopping was right; the American Heart Association lists chest discomfort among the signs to call 911 for, and the gym's plan says so."
+      },
+      "time_up": {
+        "headline": "No decision",
+        "body": "The session ended with no plan and no record."
+      }
+    },
+    "modelReasoning": "PAR-Q+ YES to high blood pressure and medication; in conversation, exertional chest tightness he had not counted as pain. Not regularly active with a sign or symptom: medical clearance before testing or training (ACSM), and the PAR-Q+ says to seek further information before a fitness appraisal. No diagnosis or reassurance; a full record; start at light-to-moderate intensity after clearance."
+  }
+}
