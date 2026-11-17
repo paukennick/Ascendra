@@ -5709,7 +5709,11 @@ met and missed; every ending but `time_up`):
   NCLEX test plans, the CCRN handbook, the NNAAP outline, 42 CFR 483.152,
   NICE NG232 through a summary. Every disease course, effect size and local
   wait is an authored teaching value marked `FLAG`.
-- **Findings while authoring** (FAIL-2240): `NBCC_SESSION_DOCUMENTS` was
+- **Findings while authoring** (FAIL-2240, FAIL-2241): a state variable
+  named `scoring` in the CIWA-Ar case made the client document look as if
+  it carried the server-only scoring block (documents.test.ts); renamed, and
+  a cheap test now checks every document's client-visible ids against the
+  server-only key list. `NBCC_SESSION_DOCUMENTS` was
   every NCE and NCMHCE entry, so the two NBCC bands would have broken the
   REQ-239 tests; it now names the five REQ-239 slugs. A chapter whose
   condition is met only in the last minutes before a terminal ending is
