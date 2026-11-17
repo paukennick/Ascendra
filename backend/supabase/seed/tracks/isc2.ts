@@ -65,11 +65,9 @@
 // 2026-11-14) lists "ISC2, CISSP, ... CC, and CBK" as registered marks of
 // ISC2, Inc., says use of the marks and logos "is authorized for certified
 // individuals ONLY", and that "Unauthorized use of the ISC2 marks is strictly
-// prohibited". Titles follow the descriptive "Prep for the ... Exam" pattern
-// (REQ-194) with the registered symbol and an independence notice; whether
-// that descriptive use is acceptable under ISC2's policy is a decision for
-// Nick (REQ-194 hid the Red Hat and Docker courses on their owners'
-// guidelines). Not legal advice.
+// prohibited" (re-read 2026-11-16). REQ-309 (Nick: "LIMIT TRADEMARKS"):
+// titles and descriptions name neither ISC2 nor its marks, and the notice is
+// generic (backend/lib/catalog-trademarks.test.ts). Not legal advice.
 //
 // Objectives are our own wording; the units' `outline` lines carry ISC2's
 // numbered headings and the short terms under them (headings only; the
