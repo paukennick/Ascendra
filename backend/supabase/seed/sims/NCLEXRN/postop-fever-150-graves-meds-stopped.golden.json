@@ -1,0 +1,476 @@
+{
+  "slug": "postop-fever-150-graves-meds-stopped",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: vital signs and mental status; cooling without aspirin; thyroid storm; rapid response now; beta-blocker and fluids; ICU hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "aspQ",
+          "choice": "free",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "mental",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cool",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "storm"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "thion",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 11,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "treated",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "coolC": "met",
+          "noSedate": "met",
+          "betaC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toBeta": 400
+        },
+        "stateHash": "ffcbec97f55ecdb9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "History and wound first, then vital signs; calls rapid response 6 minutes after them",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "aspQ",
+          "choice": "free",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "mental",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "cool",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "storm"
+          },
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "thion",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 12,
+          "tick": 165
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 165
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "callC": "partial",
+          "coolC": "met",
+          "noSedate": "met",
+          "betaC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 370,
+          "toBeta": 825
+        },
+        "stateHash": "e9a1b4bf38770f0c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sedated",
+      "title": "Calls rapid response at once, but gives lorazepam for her agitation while waiting",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "aspQ",
+          "choice": "free",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "orderQ",
+          "choice": "thion",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sed",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cool",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "storm"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "beta",
+          "seq": 10,
+          "tick": 70
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 70
+        }
+      ],
+      "expect": {
+        "ending": "treatedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "callC": "met",
+          "coolC": "met",
+          "noSedate": "missed",
+          "betaC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toBeta": 350
+        },
+        "stateHash": "dac93c9bd06d1bcb"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "aspirin",
+      "title": "Failure: calls it a wound infection, gives aspirin for the fever and pages the resident for after clinic",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "aspQ",
+          "choice": "free",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "sepsis"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "asp",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "page"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "callC": "missed",
+          "coolC": "missed",
+          "noSedate": "met",
+          "betaC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toBeta": -1
+        },
+        "stateHash": "76aecc8a8ffac332"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "anxiety",
+      "title": "Failure: sees her agitation, calls it anxiety and gives lorazepam",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "mental",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "aspQ",
+          "choice": "free",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "anxiety"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sed",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "collapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "coolC": "missed",
+          "noSedate": "missed",
+          "betaC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toBeta": -1
+        },
+        "stateHash": "3aca858245af63ce"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
