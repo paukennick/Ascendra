@@ -447,7 +447,7 @@ const ITIL_STRUCTURE = [
 
 export const ITIL4FND_TRACK: SeedTrack = {
   code: "ITIL4FND",
-  title: "Prep for an IT service management foundation exam (2019 framework)",
+  title: "Prep for the ITIL 4 Foundation Exam",
   description:
     "Preparation for PeopleCert's ITIL 4 Foundation exam, weighted by the syllabus's marks: the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, the purpose of 15 practices and seven of them in depth. PeopleCert plans to sunset ITIL 4 at the end of 2027 and already offers ITIL Foundation (Version 5). Independently developed exam prep; not affiliated with or endorsed by PeopleCert or Axelos. ITIL is a registered trademark of PeopleCert.",
   trackType: "certification",

@@ -25,7 +25,7 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     for (const t of ALL) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1, t.code);
       assert.equal(t.trackType, "certification");
-      assert.match(t.title, /^Prep for an? /); // REQ-309
+      assert.match(t.title, /^Prep for (the|an?) /); // REQ-309 (ITIL titles are the itil5 branch's)
       assert.doesNotMatch(t.title, /\bCoach\b/, "REQ-194: no '<mark> Coach' title");
       // REQ-309: Scrum.org's own disclaimer reads "not affiliated with ... and does not constitute an endorsement".
       assert.match(t.description, /not affiliated with or endorsed by|not affiliated with Advanced Development Methods d\/b\/a Scrum\.org \(ADM\) and does not constitute an endorsement/);
