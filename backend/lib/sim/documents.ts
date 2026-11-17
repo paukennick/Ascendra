@@ -460,6 +460,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CMSRN", "bedside-debridement-sedation-quiet-capnograph"),
   entry("CMSRN", "found-on-floor-on-anticoagulant"),
   entry("CMSRN", "stroke-day-one-coffee-and-pills"),
+  entry("FNPANCC", "clinic-swollen-lip-years-on-lisinopril"),
+  band("FNPAANP", "clinic-swollen-lip-years-on-lisinopril-fnp-clinical"),
   // ---- end REQ-326 ----
 ];
 

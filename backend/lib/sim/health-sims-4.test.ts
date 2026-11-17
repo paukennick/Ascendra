@@ -32,9 +32,12 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "CMSRN", slug: "bedside-debridement-sedation-quiet-capnograph", screen: "bedside" },
   { course: "CMSRN", slug: "found-on-floor-on-anticoagulant", screen: "bedside" },
   { course: "CMSRN", slug: "stroke-day-one-coffee-and-pills", screen: "bedside" },
+  { course: "FNPANCC", slug: "clinic-swollen-lip-years-on-lisinopril", screen: "bedside" },
 ];
 
-export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
+export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [
+  { course: "FNPAANP", slug: "clinic-swollen-lip-years-on-lisinopril-fnp-clinical", base: "FNPANCC/clinic-swollen-lip-years-on-lisinopril" },
+];
 
 const BAND_PATCH_KEYS = ["brief", "objective", "secondaryObjectives", "sources"];
 // Permission-only marks and specialist letters (REQ-309/319). GCS is left out:
