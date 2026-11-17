@@ -40,4 +40,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "GCPPCA", slug: "public-bucket-customer-exports-pca", screen: "board", profile: "security", kind: "band", steps: "c20-gcppca-public-bucket-customer-exports-pca", base: "GCPACE/public-bucket-customer-exports" },
   { course: "GCPDEVOPS", slug: "bigquery-dashboard-bill-devops", screen: "board", profile: "cloud", kind: "band", steps: "c20-gcpdevops-bigquery-dashboard-bill-devops", base: "GCPCDL/bigquery-dashboard-bill" },
   { course: "GCPPDE", slug: "bigquery-dashboard-bill-pde", screen: "board", profile: "cloud", kind: "band", steps: "c20-gcppde-bigquery-dashboard-bill-pde", base: "GCPCDL/bigquery-dashboard-bill" },
+  { course: "CKS", slug: "falco-shell-in-catalog-pod", screen: "terminal", profile: "security", kind: "scenario", steps: "cks-falco" },
 ];

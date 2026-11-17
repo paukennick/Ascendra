@@ -438,6 +438,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("GCPPCA", "public-bucket-customer-exports-pca"),
   band("GCPDEVOPS", "bigquery-dashboard-bill-devops"),
   band("GCPPDE", "bigquery-dashboard-bill-pde"),
+  entry("CKS", "falco-shell-in-catalog-pod"),
   // ---- end REQ-320 ----
 ];
 

@@ -163,3 +163,26 @@ describe("cloud sims (REQ-320)", () => {
     }
   });
 });
+
+describe("what each new cloud case teaches (REQ-320)", () => {
+  const until = (r: ReturnType<typeof driver>, m: number) => {
+    while (r.minutes() < m && !r.run.state.ended && r.run.state.phase === "incident") r.act("watch");
+  };
+  test("CKS Falco: isolating the pod alone leaves the token good at 14:30; removing the RoleBinding cuts it off; deleting first loses the evidence", () => {
+    const d = docOf("falco-shell-in-catalog-pod");
+    const iso = driver(d);
+    iso.act("quarantine");
+    until(iso, 31);
+    assert.notEqual(iso.value("stolenAt"), null, "the ReplicaSet's replacement still carries the token");
+    const cut = driver(d);
+    cut.act("rbac");
+    until(cut, 31);
+    assert.equal(cut.value("stolenAt"), null);
+    const del = driver(d);
+    del.act("deletePod");
+    assert.equal(del.value("evidenceLost"), true);
+    const roll = driver(d);
+    roll.act("harden");
+    assert.equal(roll.value("evidenceLost"), true, "a rollout replaces the compromised pod too");
+  });
+});
