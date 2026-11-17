@@ -142,7 +142,7 @@ const BODIES: Body[] = [
     notice: /not affiliated with or endorsed by NCCPT or ISSA\. NCCPT is a mark of the National Council for Certified Personal Trainers\./, marks: /NCCPT|ISSA/ },
   { name: "Scrum Alliance", policy: "unstated", url: "https://www.scrumalliance.org/certification-and-license-terms-and-conditions", codes: ["CSM"],
     notice: /not affiliated with or endorsed by Scrum Alliance\. Certified ScrumMaster and CSM are marks of Scrum Alliance, Inc\./, marks: /Scrum Alliance|ScrumMaster|\bCSM\b/ },
-  // PeopleCert (ITIL) is handled on the itil5 branch (REQ-308), not here.
+  // PeopleCert (ITIL) is handled on the ITIL Foundation (Version 5) branch, not here.
 ];
 
 const ALL_CODES = BODIES.flatMap((b) => b.codes);
