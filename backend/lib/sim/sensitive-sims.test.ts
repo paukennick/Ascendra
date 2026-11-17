@@ -24,6 +24,8 @@ import type { GoldenFile } from "./engine/v1/validate.ts";
 // target, the harm-by-omission and the walk-out endings.
 export const REQ329_CASES: readonly { course: string; slug: string; harmPath: string }[] = [
   { course: "CEN", slug: "ed-screen-positive-wants-to-go-home", harmPath: "neverScreened" },
+  { course: "CEN", slug: "ed-threat-against-former-supervisor", harmPath: "secretAndSent" },
+  { course: "PCCN", slug: "new-heart-failure-better-off-without-me", harmPath: "leftForDay" },
 ];
 
 export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [];

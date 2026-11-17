@@ -476,6 +476,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // per-sim 18+ gate (REQ-327). Session screen, clinical-session profile; every
   // one is marked `mature: true`. Keep these entries together. ----
   entry("CEN", "ed-screen-positive-wants-to-go-home"),
+  entry("CEN", "ed-threat-against-former-supervisor"),
+  entry("PCCN", "new-heart-failure-better-off-without-me"),
   // ---- end REQ-329 ----
 ];
 
