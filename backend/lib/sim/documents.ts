@@ -439,6 +439,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("NCLEXRN", "delirium-night-prn-restraint-order-nclexrn"),
   entry("FNPAANP", "two-falls-not-herself"),
   band("FNPANCC", "two-falls-not-herself-fnp-role"),
+  entry("CCRNADULT", "falling-platelets-cold-foot-on-heparin"),
   // ---- end REQ-323 ----
 ];
 

@@ -1,0 +1,1181 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "falling-platelets-cold-foot-on-heparin",
+  "title": "Platelets 92 and a cold foot",
+  "objective": "Recognize heparin-induced thrombocytopenia from a falling platelet count on heparin, stop all heparin, anticipate a non-heparin anticoagulant, and flag the patient against future heparin",
+  "secondaryObjectives": [
+    "Coagulopathies such as ITP, DIC and HIT, and managing bleeding and clotting disorders"
+  ],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: hematology within the multisystem and body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: hematology and coagulopathies such as HIT are tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "American Society of Hematology. Diagnosis and Management of Heparin-Induced Thrombocytopenia (HIT): A Pocket Guide for the Clinician (December 2018), from the ASH 2018 VTE guidelines",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.hematology.org/-/media/hematology/files/education/clinicians/guidelines-quality/documents/ash_vte_hit_pocketguide.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the pocket guide PDF. 4Ts: thrombocytopenia (2 points for a fall '> 50% and platelet nadir >= 20'), timing (2 points for 'Clear onset between days 5-14'), thrombosis or other sequelae, other causes; 'High probability (6-8 points), intermediate probability (4-5 points), low probability (<= 3 points)'; 'Discontinue heparin; Start non-heparin anticoagulant'; 'the ASH guideline panel suggests against routine platelet transfusion'; the panel 'recommends against initiation of warfarin prior to platelet count recovery'. The guide does not mention flushes; the unit's policy names every heparin source. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "07:30 in a surgical ICU. You are Mr. Lindgren's nurse. He is 66, on day 6 after an open abdominal aortic repair, on a heparin infusion since day 1 for a deep vein thrombosis. Morning labs are back.",
+    "handover": [
+      "Platelets: 240 on day 1, 198 on day 4, today's result just posted.",
+      "Heparin sources: the infusion, heparin flushes in his arterial line, and a heparin lock on an old central line port.",
+      "The night resident left a plan to 'start warfarin today for the DVT'. Unit policy for suspected HIT: stop every heparin source (infusions, flushes, locks) and call the intensivist; platelets are transfused only for bleeding."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the numbers mean and what has to stop and start.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "07:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Arterial thrombosis in the left leg progresses on heparin. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "offRate": {
+      "value": 0.01,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It still progresses with heparin stopped and no anticoagulant. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "onRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It barely progresses on a non-heparin anticoagulant. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "plateletBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Platelets transfused into active HIT: more thrombosis. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "warfarinBump": {
+      "value": 0.3,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Warfarin started before platelet recovery: limb gangrene risk. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lossAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of an unsalvageable limb. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "stopWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Every heparin source stopped within 5 minutes of the platelet result (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist reviews and orders a non-heparin anticoagulant: about 5 min."
+      }
+    },
+    "vascTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Vascular surgery evaluates and takes him for thrombectomy: about 25 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "footAt": {
+      "type": "time",
+      "init": null
+    },
+    "otherAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "labs",
+        "foot",
+        "other"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hit",
+        "dilution",
+        "itp"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "flushStopAt": {
+      "type": "time",
+      "init": null
+    },
+    "anticoagAt": {
+      "type": "time",
+      "init": null
+    },
+    "pltAt": {
+      "type": "time",
+      "init": null
+    },
+    "warfarinAt": {
+      "type": "time",
+      "init": null
+    },
+    "flagAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"icu\" and t >= timeAt(callAt) + orderTime"
+    },
+    "allStopped": {
+      "expr": "not isNull(stopAt) and not isNull(flushStopAt)"
+    },
+    "hr": {
+      "expr": "round(92 + 20 * prog + sin(t / 15))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(128 - 10 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(70 - 4 * prog)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(anticoagAt) ? onRate : (allStopped ? offRate : progRate)) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Heparin infusion: {isNull(stopAt)|yesno}. Heparin flushes and locks: {isNull(flushStopAt)|yesno}. Non-heparin anticoagulant: {not isNull(anticoagAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(anticoagAt)",
+          "text": "Non-heparin anticoagulant ordered by the intensivist."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "labs": {
+      "label": "Read today's platelet count against the trend",
+      "group": "Assess",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "foot": {
+      "label": "Examine both legs: color, temperature, pulses, sensation",
+      "group": "Assess",
+      "available": "not testPending and isNull(footAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"foot\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "other": {
+      "label": "Look for other causes: sepsis screen, new drugs, bleeding, dilution",
+      "group": "Assess",
+      "available": "not testPending and isNull(otherAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"other\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "stopHep": {
+      "label": "Stop the heparin infusion",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already stopped.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Heparin infusion stopped.",
+          "kind": "act"
+        }
+      ]
+    },
+    "stopFlush": {
+      "label": "Change the arterial line flush to saline and remove the heparin lock",
+      "group": "Treat",
+      "available": "isNull(flushStopAt) and inClinic",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "flushStopAt",
+          "to": "t"
+        },
+        {
+          "log": "Arterial flush bag changed to saline; heparin lock removed and labeled.",
+          "kind": "act"
+        }
+      ]
+    },
+    "anticoag": {
+      "label": "Start the ordered non-heparin anticoagulant infusion",
+      "group": "Treat",
+      "available": "ordered and isNull(anticoagAt) and inClinic",
+      "why": "Not ordered yet, or running.",
+      "effects": [
+        {
+          "set": "anticoagAt",
+          "to": "t"
+        },
+        {
+          "log": "Non-heparin anticoagulant running, monitored by the unit protocol.",
+          "kind": "act"
+        }
+      ]
+    },
+    "flag": {
+      "label": "Enter a heparin alert in his record and on his wristband",
+      "group": "Treat",
+      "available": "isNull(flagAt) and inClinic",
+      "why": "Already flagged.",
+      "effects": [
+        {
+          "set": "flagAt",
+          "to": "t"
+        },
+        {
+          "log": "Heparin alert entered in the record and on his wristband; pharmacy told.",
+          "kind": "act"
+        }
+      ]
+    },
+    "platelets": {
+      "label": "Ask for a platelet transfusion: 92 is low",
+      "group": "Treat",
+      "available": "isNull(pltAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "pltAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + plateletBump"
+        },
+        {
+          "log": "A unit of platelets runs in.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "warfarin": {
+      "label": "Give the first dose of warfarin as the night plan says",
+      "group": "Treat",
+      "available": "isNull(warfarinAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "warfarinAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + warfarinBump"
+        },
+        {
+          "log": "Warfarin given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Score the 4Ts and name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "hit",
+              "label": "4Ts high (fall over 50%, day 5-6, new arterial thrombosis, no other cause): suspected HIT with thrombosis"
+            },
+            {
+              "value": "dilution",
+              "label": "4Ts low: dilution after surgery; keep the heparin going"
+            },
+            {
+              "value": "itp",
+              "label": "Immune thrombocytopenia: transfuse platelets"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"hit\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hit\""
+                },
+                {
+                  "log": "4Ts high: suspected HIT with thrombosis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dilution\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dilution\""
+                },
+                {
+                  "log": "4Ts scored low: dilution.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"itp\""
+                },
+                {
+                  "log": "Impression: ITP.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Platelets down 62% on day 6 of heparin with a cold, pulseless left foot: suspected HIT with thrombosis; all heparin stopped; ask for a non-heparin anticoagulant, vascular surgery, and no warfarin yet"
+            },
+            {
+              "value": "morning",
+              "label": "Mention the platelets on morning rounds at 09:00"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "vascTime"
+                },
+                {
+                  "log": "The intensivist agrees: HIT antibody test sent, a non-heparin anticoagulant ordered, warfarin cancelled, vascular surgery called.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "You add the platelets to your list for rounds.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and hand off: the 4Ts, every heparin source stopped with times, warfarin held, the foot exam",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: 4Ts high, heparin infusion, flushes and lock stopped with times, warfarin held, left foot exam.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "labs",
+        "foot",
+        "other",
+        "stopHep",
+        "stopFlush",
+        "anticoag",
+        "flag",
+        "platelets",
+        "warfarin",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Platelets 92 today: down 62% from 240, starting on day 5 to 6 of heparin. Hemoglobin stable; no bleeding anywhere.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"foot\"",
+              "then": [
+                {
+                  "set": "footAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Left foot cool and mottled, dorsalis pedis absent by Doppler, toes numb. Right foot warm with pulses.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "otherAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No fever, lactate normal, no new antibiotics, no massive transfusion. No other clear cause.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going for thrombectomy",
+      "wait": {
+        "skipLabel": "his move to the operating room"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for vascular surgery to evaluate and take him."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Vascular surgery takes him for thrombectomy.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "What do today's platelets and his foot mean, and what has to stop and start?",
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "A platelet fall over 50% starting on day 5-6 of heparin, with new arterial thrombosis and no other cause, is a high 4Ts score: suspected HIT with thrombosis.",
+          "modelAnswer": "His platelets fell 62% starting around day 5 of heparin, he has a new clot in his left leg and there's no other cause. That's a high 4Ts score: suspected HIT with thrombosis."
+        },
+        {
+          "label": "Stop and start",
+          "criteria": "Stops every heparin source (infusion, flushes, lock); calls the intensivist for a non-heparin anticoagulant at therapeutic intensity; no routine platelet transfusion; no warfarin until the platelets recover; vascular surgery for the limb.",
+          "modelAnswer": "Stop all heparin, the infusion, the flushes and the lock. Call the intensivist for a non-heparin anticoagulant and vascular surgery. No platelet transfusion, he isn't bleeding, and no warfarin until his platelets recover."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected HIT with a threatened limb still on heparin or without a plan an hour on is harm here.",
+      "source": {
+        "cite": "American Society of Hematology. Diagnosis and Management of Heparin-Induced Thrombocytopenia (HIT): A Pocket Guide for the Clinician (December 2018), from the ASH 2018 VTE guidelines",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.hematology.org/-/media/hematology/files/education/clinicians/guidelines-quality/documents/ash_vte_hit_pocketguide.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the pocket guide PDF. 4Ts: thrombocytopenia (2 points for a fall '> 50% and platelet nadir >= 20'), timing (2 points for 'Clear onset between days 5-14'), thrombosis or other sequelae, other causes; 'High probability (6-8 points), intermediate probability (4-5 points), low probability (<= 3 points)'; 'Discontinue heparin; Start non-heparin anticoagulant'; 'the ASH guideline panel suggests against routine platelet transfusion'; the panel 'recommends against initiation of warfarin prior to platelet count recovery'. The guide does not mention flushes; the unit's policy names every heparin source. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "limbLoss": {
+      "label": "The limb is lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= lossAt and inClinic",
+      "narrative": "His left foot is now white and rigid to the ankle: the thrombosis has gone past saving. Vascular surgery talks about amputation."
+    },
+    "salvaged": {
+      "label": "HIT recognized: heparin out, the right anticoagulant in",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and allStopped and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow and timeAt(flushStopAt) <= timeAt(redFlagAt) + stopWindow and not isNull(anticoagAt) and isNull(pltAt) and isNull(warfarinAt)",
+      "narrative": "{timeAt(leftAt)|clock}: on a non-heparin anticoagulant, every heparin source out, no platelets, no warfarin, he goes for thrombectomy with a salvageable foot."
+    },
+    "salvagedGaps": {
+      "label": "To thrombectomy, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes for thrombectomy, but heparin kept running from some source, the anticoagulant came late, or platelets or warfarin were given."
+    },
+    "time_up": {
+      "label": "No plan at 08:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "08:30 and the thrombosis is still advancing."
+    }
+  },
+  "endingOrder": [
+    "limbLoss",
+    "salvaged",
+    "salvagedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "stopAll",
+        "label": "Every heparin source stopped within 5 minutes, flushes and lock included",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "allStopped and timeAt(stopAt) <= timeAt(redFlagAt) + stopWindow and timeAt(flushStopAt) <= timeAt(redFlagAt) + stopWindow",
+            "score": "met",
+            "why": "All stopped."
+          },
+          {
+            "when": "not isNull(stopAt)",
+            "score": "partial",
+            "why": "{isNull(flushStopAt) ? \"The flushes and lock still delivered heparin.\" : \"Stopped, but late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Heparin kept running."
+          }
+        ]
+      },
+      {
+        "id": "anticoagC",
+        "label": "Non-heparin anticoagulant started",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(anticoagAt)",
+            "score": "met",
+            "why": "At {timeAt(anticoagAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "noWarfarin",
+        "label": "No warfarin before platelet recovery, and no platelet transfusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(warfarinAt)",
+            "score": "missed",
+            "why": "Warfarin given."
+          },
+          {
+            "when": "not isNull(pltAt)",
+            "score": "missed",
+            "why": "Platelets transfused without bleeding."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "footC",
+        "label": "Examined both legs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(footAt)",
+            "score": "met",
+            "why": "Examined."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined."
+          }
+        ]
+      },
+      {
+        "id": "scoreC",
+        "label": "Scored the 4Ts as high",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"hit\"",
+            "score": "met",
+            "why": "High."
+          },
+          {
+            "when": "dxEnum == \"dilution\"",
+            "score": "missed",
+            "why": "Scored low."
+          },
+          {
+            "when": "dxEnum == \"itp\"",
+            "score": "missed",
+            "why": "Called it ITP."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not scored."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Called the intensivist now",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"icu\"",
+            "score": "met",
+            "why": "Called."
+          },
+          {
+            "when": "route == \"morning\"",
+            "score": "missed",
+            "why": "Left for rounds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "flagC",
+        "label": "Flagged him against future heparin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(flagAt)",
+            "score": "met",
+            "why": "Alert entered."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No alert."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the sources stopped and times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: high 4Ts; stop all heparin; non-heparin anticoagulant; no warfarin or platelets",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toStop",
+        "label": "Platelet result to all heparin stopped",
+        "value": "not allStopped or isNull(redFlagAt) ? -1 : max(0, max(timeAt(stopAt), timeAt(flushStopAt)) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      },
+      {
+        "id": "toAnticoag",
+        "label": "07:30 to the non-heparin anticoagulant",
+        "value": "isNull(anticoagAt) ? -1 : timeAt(anticoagAt)",
+        "format": "duration",
+        "expert": "under 12 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "07:30",
+        "text": "Platelets 92, down 62% from 240 on day 6 of heparin. Look at the legs: cold, mottled, pulseless left foot."
+      },
+      {
+        "at": "~07:32",
+        "text": "Stop the infusion; saline for the arterial flush; remove the heparin lock."
+      },
+      {
+        "at": "~07:33",
+        "text": "4Ts high. Call the intensivist: non-heparin anticoagulant, vascular surgery, cancel the warfarin."
+      },
+      {
+        "at": "~07:38",
+        "text": "Start the non-heparin anticoagulant; no platelets; enter a heparin alert; document every source stopped."
+      }
+    ],
+    "debrief": {
+      "limbLoss": {
+        "headline": "Limb lost",
+        "body": "A platelet fall over 50% on day 5-14 of heparin with a new clot is HIT until proved otherwise: stop every heparin source and start a non-heparin anticoagulant. Platelets and warfarin make it worse."
+      },
+      "salvaged": {
+        "headline": "Recognized and treated",
+        "body": "You scored the 4Ts, stopped every heparin source within minutes, got a non-heparin anticoagulant running and kept platelets and warfarin out. That is the expert path."
+      },
+      "salvagedGaps": {
+        "headline": "To theater, with gaps",
+        "body": "Check whether the flushes and lock kept giving heparin, how soon the anticoagulant started, and whether platelets or warfarin went in."
+      },
+      "time_up": {
+        "headline": "No plan",
+        "body": "Suspected HIT with thrombosis needs heparin out and an alternative anticoagulant within minutes."
+      }
+    },
+    "modelReasoning": "A platelet fall of 62% starting on day 5-6 of heparin, with a new arterial thrombosis and no other cause, scores high on the 4Ts: suspected HIT with thrombosis. Every heparin source stops (the infusion, the flushes and the lock), the intensivist orders a non-heparin anticoagulant, and vascular surgery sees the limb. Platelets are not transfused routinely in HIT, and warfarin waits until the platelet count recovers."
+  },
+  "chapters": [
+    {
+      "id": "stopped",
+      "label": "Heparin stopped",
+      "when": "allStopped"
+    }
+  ],
+  "teaching": {
+    "warfQ": {
+      "during": "leaveT",
+      "ask": "While he goes to theater: when can warfarin start in HIT?",
+      "choices": [
+        {
+          "id": "after",
+          "label": "Not before the platelet count recovers"
+        },
+        {
+          "id": "now",
+          "label": "Right away, to replace the heparin"
+        },
+        {
+          "id": "never",
+          "label": "Never again"
+        }
+      ],
+      "expect": "after",
+      "explain": "The guideline panel recommends against starting warfarin before platelet count recovery.",
+      "source": {
+        "cite": "American Society of Hematology. Diagnosis and Management of Heparin-Induced Thrombocytopenia (HIT): A Pocket Guide for the Clinician (December 2018), from the ASH 2018 VTE guidelines",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.hematology.org/-/media/hematology/files/education/clinicians/guidelines-quality/documents/ash_vte_hit_pocketguide.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the pocket guide PDF. 4Ts: thrombocytopenia (2 points for a fall '> 50% and platelet nadir >= 20'), timing (2 points for 'Clear onset between days 5-14'), thrombosis or other sequelae, other causes; 'High probability (6-8 points), intermediate probability (4-5 points), low probability (<= 3 points)'; 'Discontinue heparin; Start non-heparin anticoagulant'; 'the ASH guideline panel suggests against routine platelet transfusion'; the panel 'recommends against initiation of warfarin prior to platelet count recovery'. The guide does not mention flushes; the unit's policy names every heparin source. No dose is used in the case."
+      }
+    },
+    "fourTQ": {
+      "during": "testT",
+      "ask": "While you assess: which platelet pattern scores highest for HIT on the 4Ts?",
+      "choices": [
+        {
+          "id": "fall",
+          "label": "A fall of more than 50%, nadir at least 20, starting on days 5-14 of heparin"
+        },
+        {
+          "id": "day1",
+          "label": "A fall on day 1 with no heparin in the last 30 days"
+        },
+        {
+          "id": "low",
+          "label": "Any count under 150"
+        }
+      ],
+      "expect": "fall",
+      "explain": "Two points each for a fall over 50% with a nadir of at least 20, and for a clear onset between days 5 and 14.",
+      "source": {
+        "cite": "American Society of Hematology. Diagnosis and Management of Heparin-Induced Thrombocytopenia (HIT): A Pocket Guide for the Clinician (December 2018), from the ASH 2018 VTE guidelines",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.hematology.org/-/media/hematology/files/education/clinicians/guidelines-quality/documents/ash_vte_hit_pocketguide.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the pocket guide PDF. 4Ts: thrombocytopenia (2 points for a fall '> 50% and platelet nadir >= 20'), timing (2 points for 'Clear onset between days 5-14'), thrombosis or other sequelae, other causes; 'High probability (6-8 points), intermediate probability (4-5 points), low probability (<= 3 points)'; 'Discontinue heparin; Start non-heparin anticoagulant'; 'the ASH guideline panel suggests against routine platelet transfusion'; the panel 'recommends against initiation of warfarin prior to platelet count recovery'. The guide does not mention flushes; the unit's policy names every heparin source. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
