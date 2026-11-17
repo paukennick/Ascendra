@@ -467,6 +467,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-three-falls-five-new-pills"),
   band("FNPANCC", "clinic-three-falls-five-new-pills-fnp-role"),
   entry("NPTEPTA", "pta-knee-replacement-calf-swollen"),
+  entry("NPTEPTA", "pta-gaze-exercises-new-double-vision"),
   // ---- end REQ-326 ----
 ];
 
