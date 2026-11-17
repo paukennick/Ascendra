@@ -440,6 +440,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "two-falls-not-herself"),
   band("FNPANCC", "two-falls-not-herself-fnp-role"),
   entry("CCRNADULT", "falling-platelets-cold-foot-on-heparin"),
+  entry("NCLEXPN", "ltc-critical-potassium-call"),
   // ---- end REQ-323 ----
 ];
 
