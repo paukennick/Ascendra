@@ -34,6 +34,10 @@ export const REQ323_BANDS: readonly { course: string; slug: string; base: string
   { course: "NCLEXRN", slug: "femoral-access-retroperitoneal-bleed-nclexrn", base: "PCCN/femoral-access-retroperitoneal-bleed" },
   { course: "FNPANCC", slug: "clinic-severe-bp-stroke-signs-fnp-role", base: "FNPAANP/clinic-severe-bp-stroke-signs" },
   { course: "FNPAANP", slug: "clinic-sulfonylurea-hypoglycemia-fnp-clinical", base: "FNPANCC/clinic-sulfonylurea-hypoglycemia" },
+  // Round 2 (docs/sims.md 22.32): bands of this round's own new cases.
+  { course: "NCLEXRN", slug: "hallway-head-injury-falling-gcs-nclexrn", base: "CEN/hallway-head-injury-falling-gcs" },
+  { course: "NCLEXRN", slug: "delirium-night-prn-restraint-order-nclexrn", base: "CMSRN/delirium-night-prn-restraint-order" },
+  { course: "FNPANCC", slug: "two-falls-not-herself-fnp-role", base: "FNPAANP/two-falls-not-herself" },
 ];
 
 export const REQ323_SCENARIOS: readonly { course: string; slug: string }[] = [
@@ -44,6 +48,28 @@ export const REQ323_SCENARIOS: readonly { course: string; slug: string }[] = [
   { course: "ABPTSOCS", slug: "acute-back-pain-mri-request-cauda-equina" },
   { course: "ABPTSONC", slug: "post-mastectomy-strength-start-back-pain" },
   { course: "ABPTSECS", slug: "carpal-tunnel-referral-demyelinating-gbs" },
+  // Round 2: the PTA musculoskeletal case.
+  { course: "NPTEPTA", slug: "pta-back-pain-new-bladder-symptoms" },
+];
+
+// Round 2 (docs/sims.md 22.32): new bedside cases for the emergency nursing
+// course, nursing depth and the launch courses, in the shape of the
+// treatment-session cases above (assess, recognize, act by the right route),
+// on the bedside screen with the clinical profile.
+export const REQ323_BEDSIDE: readonly { course: string; slug: string }[] = [
+  { course: "CEN", slug: "triage-indigestion-inferior-stemi" },
+  { course: "CEN", slug: "asthma-attack-quiet-chest" },
+  { course: "CEN", slug: "diving-injury-low-pressure-slow-pulse" },
+  { course: "CEN", slug: "bee-sting-anaphylaxis-triage" },
+  { course: "CEN", slug: "black-stools-then-hematemesis" },
+  { course: "CEN", slug: "tearing-pain-heparin-ordered" },
+  { course: "CEN", slug: "hallway-head-injury-falling-gcs" },
+  { course: "PCCN", slug: "pacing-wires-pulled-then-restless" },
+  { course: "PCCN", slug: "capnography-alarm-saturation-fine" },
+  { course: "CMSRN", slug: "delirium-night-prn-restraint-order" },
+  { course: "FNPAANP", slug: "two-falls-not-herself" },
+  { course: "CCRNADULT", slug: "falling-platelets-cold-foot-on-heparin" },
+  { course: "NCLEXPN", slug: "ltc-critical-potassium-call" },
 ];
 
 // The breadth courses of this round; each must have at least one sim.
@@ -159,3 +185,38 @@ for (const r of REQ323_SCENARIOS) {
   test(`${r.course}/${r.slug}: learner text names no permission-only mark and no specialist letters`, () => checkLearnerText(r.course, r.slug));
   test(`${r.course}/${r.slug}: goldens cover Good, Mediocre and Bad, every ending but time_up, every criterion met and missed`, () => checkGoldens(r.course, r.slug, true));
 }
+
+for (const r of REQ323_BEDSIDE) {
+  test(`${r.course}/${r.slug}: registered, valid, a running bedside case on engine 1.2`, () => {
+    const e = entryOf(r.course, r.slug);
+    assert.ok(e, "registered in ALL_DOCUMENTS");
+    assert.equal(e!.kind, "scenario");
+    const parsed = scenarioSchema.safeParse(JSON.parse(readFileSync(e!.file, "utf8")));
+    assert.ok(parsed.success, parsed.success ? "" : JSON.stringify(parsed.error.issues.slice(0, 3)));
+    const doc = loadDocument(e!);
+    assert.equal(doc.screen.type, "bedside");
+    assert.equal(doc.outcome.profile, "clinical");
+    assert.deepEqual(doc.engine, { major: 1, minor: 2 });
+    assert.ok(Object.values(doc.phases).some((p) => p.clock === "running"), "a running phase");
+    const keys = Object.keys((doc as unknown as { teaching?: Record<string, unknown> }).teaching ?? {});
+    assert.ok(keys.length >= 1, "a sourced teaching prompt");
+    assert.deepEqual(keys, [...keys].sort(jsonbOrder), "teaching keys in jsonb order (FAIL-1362)");
+    const critical = doc.scoring.criteria.filter((c) => c.critical);
+    assert.ok(critical.length >= 3 && critical.length <= 4, "three or four critical criteria");
+    assert.ok(Object.values(doc.endings).some((x) => x.class === "harm" && x.when), "a conditional harm ending");
+  });
+  test(`${r.course}/${r.slug}: objective and secondary objectives are the course's own`, () => checkObjectives(r.course, r.slug));
+  test(`${r.course}/${r.slug}: sources are dated and say how they were read`, () => checkSources(r.course, r.slug));
+  test(`${r.course}/${r.slug}: learner text names no permission-only mark and no specialist letters`, () => checkLearnerText(r.course, r.slug));
+  test(`${r.course}/${r.slug}: goldens cover Good, Mediocre and Bad, every ending but time_up, every criterion met and missed`, () => checkGoldens(r.course, r.slug, true));
+}
+
+// The emergency nursing course had no case of its own in its highest-weighted
+// categories; round 2 gives each of the four largest at least one.
+test("emergency nursing: a case in each of the four highest-weighted categories", () => {
+  const units = new Set(REQ323_BEDSIDE.filter((r) => r.course === "CEN").map((r) => {
+    const doc = loadDocument(entryOf(r.course, r.slug)!);
+    return courseObjectives("CEN").find((o) => o.objective === doc.objective)!.unitTitle;
+  }));
+  for (const u of ["Cardiovascular Emergencies", "Respiratory Emergencies", "Neurological Emergencies", "Medical Emergencies"]) assert.ok(units.has(u), `a case in ${u}`);
+});
