@@ -248,7 +248,7 @@ const NOTICE =
 
 export const PCEP_TRACK: SeedTrack = {
   code: "PCEP",
-  title: "Prep for the Certified Entry-Level Python Programmer (PCEP) Exam",
+  title: "Prep for an entry-level Python programmer certification exam",
   description: `PCEP™ – Certified Entry-Level Python Programmer, exam PCEP-30-03: reading, tracing and writing short Python programs -- literals, variables and operators, conditions and loops, lists, tuples, sets, dictionaries and strings, functions and basic exceptions, text and CSV files, and the math and random modules. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "programming-languages",
@@ -436,7 +436,7 @@ const PCAP_FORMAT = [
 
 export const PCAP_TRACK: SeedTrack = {
   code: "PCAP",
-  title: "Prep for the Certified Associate Python Programmer (PCAP) Exam",
+  title: "Prep for an associate Python programmer certification exam",
   description: `PCAP™ – Certified Associate Python Programmer, exam PCAP-31-04: modules, packages and pip; exception hierarchies and custom exceptions; Unicode and string analysis; classes, inheritance, MRO and introspection; comprehensions, match-case, lambdas, closures, files and pathlib; and testing, debugging, code review and checking AI-generated code. ${NOTICE}`,
   trackType: "certification",
   subcategorySlug: "programming-languages",

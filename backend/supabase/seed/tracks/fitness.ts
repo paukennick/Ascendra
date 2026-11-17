@@ -64,7 +64,7 @@ const COMMON = {
 export const NASM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCPT",
-  title: "Prep for the NASM Certified Personal Trainer (NASM-CPT) Exam",
+  title: "Prep for a personal trainer certification exam (exercise technique focus)",
   description:
     "NASM's NCCA-accredited personal trainer exam on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility.",
   sourceUrl: "https://www.nasm.org/certified-personal-trainer/exam-information",
@@ -172,7 +172,7 @@ export const NASM_CPT_TRACK: SeedTrack = {
 export const ACE_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACECPT",
-  title: "Prep for the ACE Certified Personal Trainer Exam",
+  title: "Prep for a personal trainer certification exam (client onboarding focus)",
   description:
     "ACE's NCCA-accredited personal trainer exam on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%).",
   sourceUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
@@ -256,7 +256,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
 export const ACSM_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "ACSMCPT",
-  title: "Prep for the ACSM Certified Personal Trainer (ACSM-CPT) Exam",
+  title: "Prep for a personal trainer certification exam (exercise programming focus)",
   description:
     "ACSM's NCCA-accredited personal trainer exam on the outline effective July 10, 2025: initial client consultation and assessment (25%), exercise programming and implementation (43%), exercise leadership and client education (22%), and legal and professional responsibilities (10%).",
   sourceUrl: "https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf",
@@ -339,7 +339,7 @@ export const ACSM_CPT_TRACK: SeedTrack = {
 export const NSCA_CSCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACSCS",
-  title: "Prep for the NSCA Certified Strength and Conditioning Specialist® (CSCS®) Exam",
+  title: "Prep for a strength and conditioning specialist certification exam",
   description:
     "NSCA's CSCS on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: two separately passed sections -- Scientific Foundations (exercise science, sport psychology, nutrition) and Practical/Applied (program design, exercise technique, program implementation, organization and administration).",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
@@ -468,7 +468,7 @@ export const NSCA_CSCS_TRACK: SeedTrack = {
 export const NSCA_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NSCACPT",
-  title: "Prep for the NSCA-Certified Personal Trainer® (NSCA-CPT®) Exam",
+  title: "Prep for a personal trainer certification exam (program execution focus)",
   description:
     "NSCA's NCCA-accredited personal trainer exam on the detailed content outline from the 2025 job task analysis, effective July 1, 2025: client consultation and assessment (23%), program planning (29%), program execution (36%), and safety, emergency procedures and legal issues (12%).",
   sourceUrl: "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
@@ -549,7 +549,7 @@ export const NSCA_CPT_TRACK: SeedTrack = {
 export const ISSA_NCCPT_CPT_TRACK: SeedTrack = {
   ...COMMON,
   code: "NCCPTCPT",
-  title: "Prep for the NCCPT Certified Personal Trainer (NCCPT-CPT) Exam",
+  title: "Prep for a personal trainer certification exam (applied science focus)",
   description:
     "The NCCA-accredited personal trainer exam behind ISSA's certification, administered by its subsidiary NCCPT, on the 2020 job analysis outline: applied science (25%), program design and implementation (25%), intake and ongoing evaluation (15%), exercise selection and instruction (15%), nutrition (10%) and professional practice (10%).",
   sourceUrl: "https://nccpt.issaonline.com/pages/exam-information",
@@ -746,7 +746,7 @@ export const NASMCNC_SIM_OBJECTIVES = {
 export const NASM_CNC_TRACK: SeedTrack = {
   ...COMMON,
   code: "NASMCNC",
-  title: "Prep for the NASM Nutrition Coaching Certification (NASM-CNC) Exam",
+  title: "Prep for a nutrition coaching certification exam",
   description:
     "Preparation for NASM's Certified Nutrition Coach exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. NASM publishes no exam weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by NASM.",
   sourceUrl: CNC_URL,

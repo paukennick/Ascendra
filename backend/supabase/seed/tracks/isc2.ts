@@ -198,7 +198,7 @@ const CISSP_INDEPENDENCE =
 
 export const ISC2CC_TRACK: SeedTrack = {
   code: "ISC2CC",
-  title: "Prep for the ISC2 Certified in Cybersecurity (CC®) Exam",
+  title: "Prep for an entry-level cybersecurity certification exam",
   description: `Entry-level preparation for ISC2's Certified in Cybersecurity exam on the outline effective September 1, 2026: security principles, governance, identity and access management, networking and cloud security, and security operations with incident response, weighted as the exam weights them, with practice for the adaptive (CAT) format. ${CC_INDEPENDENCE}`,
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,
@@ -445,7 +445,7 @@ const cisspUnit = (d: CisspDomain, gate: string, objectives: string[]) => ({
 
 export const CISSP_TRACK: SeedTrack = {
   code: "CISSP",
-  title: "Prep for the CISSP® Exam",
+  title: "Prep for an advanced information security professional certification exam",
   description: `Preparation for ISC2's Certified Information Systems Security Professional exam on the outline effective April 15, 2024: all eight domains weighted as the exam weights them, taught from a manager's and architect's view of risk, with practice for the adaptive (CAT) format. ISC2 replaces the outline on April 15, 2027; this course is reviewed before then. ${CISSP_INDEPENDENCE}`,
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,

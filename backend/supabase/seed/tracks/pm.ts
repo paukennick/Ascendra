@@ -52,7 +52,7 @@ const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CAPM_TRACK: SeedTrack = {
   code: "CAPM",
-  title: "Prep for the CAPM® Certification Exam",
+  title: "Prep for an entry-level project management associate certification exam",
   description:
     "PMI Certified Associate in Project Management (CAPM) exam prep across 4 weighted domains -- PM fundamentals, predictive/plan-based methods, agile methods, and business analysis frameworks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and CAPM are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -161,7 +161,7 @@ export const CAPM_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMP_TRACK: SeedTrack = {
   code: "PMP",
-  title: "Prep for the PMP® Certification Exam",
+  title: "Prep for a professional project management certification exam",
   description:
     "PMI Project Management Professional (PMP) exam prep across 3 weighted domains -- people, process, and business environment -- spanning predictive, agile, and hybrid ways of working. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -253,7 +253,7 @@ export const PMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIACP_TRACK: SeedTrack = {
   code: "PMIACP",
-  title: "Prep for the PMI-ACP® Certification Exam",
+  title: "Prep for an agile practitioner certification exam",
   description:
     "PMI Agile Certified Practitioner (PMI-ACP) exam prep across 4 weighted domains -- agile mindset, leadership, product, and delivery -- reframed by PMI's 2026 update around Enterprise Agility. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-ACP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -356,7 +356,7 @@ export const PMIACP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PGMP_TRACK: SeedTrack = {
   code: "PGMP",
-  title: "Prep for the PgMP® Certification Exam",
+  title: "Prep for a program management professional certification exam",
   description:
     "PMI Program Management Professional (PgMP) exam prep across 5 weighted domains -- strategic alignment, program life cycle management, benefits management, stakeholder engagement, and governance. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PgMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -474,7 +474,7 @@ export const PGMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PFMP_TRACK: SeedTrack = {
   code: "PFMP",
-  title: "Prep for the PfMP® Certification Exam",
+  title: "Prep for a portfolio management professional certification exam",
   description:
     "PMI Portfolio Management Professional (PfMP) exam prep across 5 weighted domains -- strategic alignment, governance, portfolio performance, portfolio risk management, and communications management. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PfMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -593,7 +593,7 @@ export const PFMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIRMP_TRACK: SeedTrack = {
   code: "PMIRMP",
-  title: "Prep for the PMI-RMP® Certification Exam",
+  title: "Prep for a project risk management certification exam",
   description:
     "PMI Risk Management Professional (PMI-RMP) exam prep across 5 weighted domains -- risk strategy and planning, identification, analysis, response, and monitoring/closing risks. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-RMP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -697,7 +697,7 @@ export const PMIRMP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMISP_TRACK: SeedTrack = {
   code: "PMISP",
-  title: "Prep for the PMI-SP® Certification Exam",
+  title: "Prep for a project scheduling certification exam",
   description:
     "PMI Scheduling Professional (PMI-SP) exam prep across 5 weighted domains -- schedule strategy, planning/development, monitoring/controlling, closeout, and stakeholder communications. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-SP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -811,7 +811,7 @@ export const PMISP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICP_TRACK: SeedTrack = {
   code: "PMICP",
-  title: "Prep for the PMI-CP™ Certification Exam",
+  title: "Prep for a construction project management certification exam",
   description:
     "PMI Construction Professional (PMI-CP) exam prep across 4 weighted domains -- contracts management, stakeholder engagement, strategy/scope management, and project governance for built-environment and capital projects. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -903,7 +903,7 @@ export const PMICP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPMOCP_TRACK: SeedTrack = {
   code: "PMIPMOCP",
-  title: "Prep for the PMI-PMOCP™ Certification Exam",
+  title: "Prep for a project management office certification exam",
   description:
     "PMI PMO Certified Professional (PMI-PMOCP) exam prep across 6 weighted domains -- organizational alignment, PMO strategy, design, operations, enhancement, and the people skills a PMO practitioner needs. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PMOCP are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -1018,7 +1018,7 @@ export const PMIPMOCP_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMIPBA_TRACK: SeedTrack = {
   code: "PMIPBA",
-  title: "Prep for the PMI-PBA® Certification Exam",
+  title: "Prep for a business analysis certification exam",
   description:
     "PMI Professional in Business Analysis (PMI-PBA) exam prep across 5 weighted domains -- needs assessment, planning, analysis, traceability/monitoring, and evaluation. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-PBA are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -1138,7 +1138,7 @@ export const PMIPBA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PMICPMAI_TRACK: SeedTrack = {
   code: "PMICPMAI",
-  title: "Prep for the PMI-CPMAI™ Certification Exam",
+  title: "Prep for an AI project management certification exam",
   description:
     "PMI Certified Professional in Managing AI (PMI-CPMAI) exam prep across 5 weighted domains -- responsible AI, identifying business and data needs, model development/evaluation, and operationalizing AI solutions. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI and PMI-CPMAI are marks of Project Management Institute, Inc.",
   trackType: "certification",
@@ -1258,7 +1258,7 @@ export const PMICPMAI_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CSPP_TRACK: SeedTrack = {
   code: "CSPP",
-  title: "Prep for the CSPP™ Certification Exam",
+  title: "Prep for a sustainable project management certification exam",
   description:
     "PMI & GPM Certified Sustainable Project Professional (CSPP) exam prep across 5 weighted domains -- sustainability foundations, the PRiSM life cycle, P5 impact analysis, sustainability management planning, and ESG reporting/governance. Modeled on the Certified Practitioner pathway (for candidates who already hold a qualifying PM credential); the Non-Certified Practitioner pathway adds a sixth domain and different weights for candidates without one. Independently developed exam prep; not affiliated with or endorsed by PMI. PMI is a mark of Project Management Institute, Inc.; CSPP is a mark of its owner.",
   trackType: "certification",

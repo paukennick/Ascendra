@@ -35,7 +35,7 @@ export const DCA_TRACK: SeedTrack = {
   hiddenAt: "2026-11-09T00:00:00Z",
   hiddenReason:
     "Docker trademark guidelines: the Docker mark may not be used in the title of a program (https://www.docker.com/legal/trademark-guidelines/, read 2026-11-09).",
-  title: "Prep for the Mirantis DCA Exam",
+  title: "Prep for a container platform associate certification exam",
   description:
     "DCA: Mirantis's Docker credential. Swarm orchestration and stacks, Dockerfiles, images and registries, engine installation and configuration, container networking, engine and swarm security with content trust, and storage and volumes -- plus the Kubernetes basics the 2025 study guide added. Independently developed exam prep; not affiliated with or endorsed by Docker, Inc. or Mirantis. Docker is a trademark or registered trademark of Docker, Inc. in the United States and/or other countries.",
   trackType: "certification",

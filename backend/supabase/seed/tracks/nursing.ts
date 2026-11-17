@@ -285,7 +285,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
   code: "NCLEXRN",
   // REQ-263 (Nick, 2026-11-13): level-aware lessons switched on once its Key terms were written.
   levelFlow: true,
-  title: "Prep for the NCLEX-RN Exam",
+  title: "Prep for a registered nurse licensure exam",
   description:
     "The registered nurse licensure examination, built on the 2026 NCSBN test plan: the four Client Needs categories and their eight subcategories, weighted as the exam weights them, with clinical judgment treated as the thing being tested rather than a topic to revise.",
   trackType: "certification",
@@ -873,7 +873,7 @@ export const NCLEX_PN_TRACK: SeedTrack = {
   code: "NCLEXPN",
   // REQ-263 (Nick, 2026-11-13): level-aware lessons switched on once its Key terms were written.
   levelFlow: true,
-  title: "Prep for the NCLEX-PN Exam",
+  title: "Prep for a practical nurse licensure exam",
   description:
     "The practical and vocational nurse licensure examination, built on the 2026 NCSBN test plan. Weighted as the exam weights it, and scoped as the license is scoped -- what the PN collects, reports and contributes, rather than what the RN decides.",
   trackType: "certification",
