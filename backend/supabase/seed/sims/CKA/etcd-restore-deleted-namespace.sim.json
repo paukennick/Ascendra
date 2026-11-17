@@ -1,0 +1,1261 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "etcd-restore-deleted-namespace",
+  "title": "Outage: a cleanup job deleted the payments namespace and its hand-made Secrets",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@cp1:~#",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:30 page: namespace payments is gone (deleted 09:40 by the cleanup job); the payments batch runs at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "note",
+          "text": "Runbook: nightly etcd snapshot at 02:00 to /var/backups/etcd/snap-0200.db. payments' Secrets were created by hand and are not in Git.",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: the payments batch could not run",
+          "when": "not isNull(batchMissedAt)",
+          "at": "timeAt(batchMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: the payments batch ran",
+          "when": "not isNull(batchOkAt)",
+          "at": "timeAt(batchOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "api",
+          "label": "kube-apiserver (static pod on cp1)",
+          "spokenLabel": "the API server",
+          "kind": "/etc/kubernetes/manifests/kube-apiserver.yaml",
+          "status": "{resetDone ? \"gone: kubeadm reset\" : apiStopped ? \"stopped: manifest moved to /root\" : \"running\"}",
+          "tone": "resetDone ? \"down\" : apiStopped ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "etcd",
+          "label": "etcd (static pod on cp1)",
+          "spokenLabel": "etcd",
+          "kind": "data in hostPath etcd-data",
+          "status": "{manifestDir == \"new\" ? \"running on /var/lib/etcd-restore\" : \"running on /var/lib/etcd\"}{unsafe ? \" (restored under a running API server)\" : \"\"}",
+          "tone": "unsafe or resetDone ? \"down\" : \"up\""
+        },
+        {
+          "id": "pay",
+          "label": "Namespace payments",
+          "spokenLabel": "the payments namespace",
+          "kind": "Deployments, Services and hand-made Secrets",
+          "status": "{paymentsBack ? \"restored with its Secrets\" : nsRecreated ? \"recreated from Git: pods CreateContainerConfigError, Secrets missing\" : \"deleted at 09:40\"}",
+          "tone": "paymentsBack ? \"up\" : \"down\""
+        },
+        {
+          "id": "promo",
+          "label": "Deployment shop/promo",
+          "spokenLabel": "the promo deployment",
+          "kind": "Deployed from Git at 08:00",
+          "status": "{etcdRestored and not promoReapplied ? \"missing: the 02:00 snapshot predates it\" : \"running\"}",
+          "tone": "etcdRestored and not promoReapplied ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "batch",
+          "label": "Payments batch 11:00",
+          "spokenLabel": "the 11:00 payments batch",
+          "kind": "Business deadline",
+          "status": "{not isNull(batchOkAt) ? \"sent\" : not isNull(batchMissedAt) ? \"missed\" : \"waiting\"}",
+          "tone": "not isNull(batchMissedAt) ? \"down\" : not isNull(batchOkAt) ? \"up\" : \"degraded\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "api",
+          "to": "etcd",
+          "label": "Reads and writes",
+          "status": "https://127.0.0.1:2379",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l2",
+          "from": "etcd",
+          "to": "pay",
+          "label": "Stores",
+          "status": "{paymentsBack ? \"present\" : \"absent\"}",
+          "tone": "paymentsBack ? \"up\" : \"down\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "left",
+          "label": "Minutes to the payments batch",
+          "value": "{max(0, round((batchAt - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "Back up and restore etcd with etcdctl snapshot save and etcdutl snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
+  "sources": [
+    {
+      "cite": "CNCF CKA Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Troubleshooting 30%, Cluster Architecture, Installation and Configuration 25%, Services and Networking 20%, Workloads and Scheduling 15%, Storage 10%",
+      "checkedAt": "2026-11-16",
+      "url": "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
+      "note": "The course's outline source, read in primary text on 2026-11-14 by the wave 3 builder; not re-read on 2026-11-16. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Operating etcd clusters for Kubernetes",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/",
+      "note": "Read through a summarizing fetch on 2026-11-16 (the second part of the page). Relevant text: snapshot save with 'ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379' and '--cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file>', the paths taken from the etcd Pod's description; 'etcdutl --data-dir <data-dir-location> snapshot restore snapshot.db', a directory the restore creates; 'If any API servers are running in your cluster, you should not attempt to restore instances of etcd': stop all API server instances, restore, restart them; if the data directory changes, change '/etc/kubernetes/manifests/etcd.yaml's volumes.hostPath.path for name: etcd-data'; verify with 'etcdutl --write-out=table snapshot status snapshot.db'; restart kube-scheduler, kube-controller-manager and kubelet after a restore, since they lose their leader lock."
+    },
+    {
+      "cite": "Scenario data (authored)",
+      "checkedAt": "2026-11-16",
+      "note": "Fictional cluster and company. Command output is an authored rendering of kubectl, etcdctl, etcdutl, crictl and systemctl output, shortened. That a restore returns the cluster to the snapshot's state, so later changes must be re-applied, follows from what a snapshot is; the times are the author's."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Kubernetes administrator for Kestrel Lending, a fictional lender. At 10:30 the payments team pages: namespace payments is gone. A cleanup job deleted it at 09:40. The payments batch runs at 11:00. cp1 is a single kubeadm control plane node with a stacked etcd.",
+    "handover": [
+      "A nightly job saves an etcd snapshot at 02:00 to /var/backups/etcd/snap-0200.db.",
+      "payments' Secrets (bank API credentials) were created by hand and are not in Git; the shop team deployed promo from Git at 08:00."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the API server, etcd, the namespaces at stake and the batch.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close the outage, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "batchAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "The payments batch runs at 11:00, 30 minutes after the 10:30 page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "nsAt": {
+      "type": "time",
+      "init": null
+    },
+    "describeAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "preSnap": {
+      "type": "bool",
+      "init": false
+    },
+    "certFail": {
+      "type": "bool",
+      "init": false
+    },
+    "firstFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "apiStopped": {
+      "type": "bool",
+      "init": false
+    },
+    "restoreDir": {
+      "type": "enum",
+      "values": [
+        "none",
+        "old",
+        "new"
+      ],
+      "init": "none"
+    },
+    "restoreFailed": {
+      "type": "bool",
+      "init": false
+    },
+    "manifestDir": {
+      "type": "enum",
+      "values": [
+        "old",
+        "new"
+      ],
+      "init": "old"
+    },
+    "unsafe": {
+      "type": "bool",
+      "init": false
+    },
+    "resetDone": {
+      "type": "bool",
+      "init": false
+    },
+    "nsRecreated": {
+      "type": "bool",
+      "init": false
+    },
+    "promoReapplied": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "backAt": {
+      "type": "time",
+      "init": null
+    },
+    "batchOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "batchMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "restore",
+        "recreate",
+        "reset"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "etcdRestored": {
+      "expr": "manifestDir == \"new\" and restoreDir == \"new\""
+    },
+    "clusterUp": {
+      "expr": "not apiStopped and not resetDone"
+    },
+    "paymentsBack": {
+      "expr": "clusterUp and etcdRestored and not unsafe"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "ns",
+        "describe",
+        "status",
+        "save",
+        "stopApi",
+        "restore",
+        "manifest",
+        "startApi",
+        "kubelet",
+        "recreate",
+        "reset",
+        "promo",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "ns": {
+      "label": "kubectl get ns; kubectl get events -A --field-selector reason=NamespaceDeleted",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(nsAt)",
+          "then": [
+            {
+              "set": "nsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# kubectl get ns payments\n{paymentsBack ? \"payments   Active   41d\" : clusterUp ? \"Error from server (NotFound): namespaces payments not found\" : \"The connection to the server 10.0.0.10:6443 was refused\"}"
+        },
+        {
+          "finding": "The namespace, its Deployments and its hand-made Secrets are gone; only an etcd restore brings the Secrets back."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "describe": {
+      "label": "kubectl -n kube-system describe pod etcd-cp1 | grep -E 'cert|key|trusted|data-dir|listen-client'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(describeAt)",
+          "then": [
+            {
+              "set": "describeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# kubectl -n kube-system describe pod etcd-cp1 | grep -E ...\n      --cert-file=/etc/kubernetes/pki/etcd/server.crt\n      --key-file=/etc/kubernetes/pki/etcd/server.key\n      --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt\n      --data-dir=/var/lib/etcd\n      --listen-client-urls=https://127.0.0.1:2379,https://10.0.0.10:2379"
+        },
+        {
+          "finding": "The endpoint, the CA, the certificate and key, and the data directory for every etcdctl and etcdutl command."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "status": {
+      "label": "etcdutl --write-out=table snapshot status /var/backups/etcd/snap-0200.db",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# etcdutl --write-out=table snapshot status /var/backups/etcd/snap-0200.db\n+----------+----------+------------+------------+\n|   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE |\n+----------+----------+------------+------------+\n| 7c1e9a42 |  8814207 |       2911 |     21 MB  |\n+----------+----------+------------+------------+"
+        },
+        {
+          "finding": "The 02:00 snapshot is readable. It predates the 08:00 promo deployment, which a restore will remove."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "save": {
+      "label": "etcdctl snapshot save /var/backups/etcd/pre-restore.db",
+      "group": "Fix",
+      "available": "not busy and (clusterUp and not preSnap)",
+      "why": "Already saved, or the cluster is down.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "certs == \"with\"",
+              "then": [
+                {
+                  "set": "preSnap",
+                  "to": "true"
+                },
+                {
+                  "output": "root@cp1:~# ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key snapshot save /var/backups/etcd/pre-restore.db\nSnapshot saved at /var/backups/etcd/pre-restore.db"
+                },
+                {
+                  "log": "Today's state is saved: you can go back if the restore goes wrong.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "certFail",
+                  "to": "true"
+                },
+                {
+                  "output": "root@cp1:~# etcdctl snapshot save /var/backups/etcd/pre-restore.db\nError: context deadline exceeded"
+                },
+                {
+                  "log": "Without the endpoint and the certificates, etcdctl cannot reach etcd's TLS client port.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "certs",
+          "kind": "choice",
+          "label": "Flags",
+          "options": [
+            {
+              "value": "with",
+              "label": "--endpoints https://127.0.0.1:2379 with --cacert, --cert and --key from the etcd Pod"
+            },
+            {
+              "value": "without",
+              "label": "No flags"
+            }
+          ]
+        }
+      ]
+    },
+    "stopApi": {
+      "label": "mv /etc/kubernetes/manifests/kube-apiserver.yaml /root/",
+      "group": "Fix",
+      "available": "not busy and (not apiStopped and not resetDone)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "apiStopped",
+          "to": "true"
+        },
+        {
+          "output": "root@cp1:~# mv /etc/kubernetes/manifests/kube-apiserver.yaml /root/"
+        },
+        {
+          "log": "kubelet stops the API server: nothing writes to etcd while you restore.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "etcdutl snapshot restore /var/backups/etcd/snap-0200.db --data-dir ...",
+      "group": "Fix",
+      "available": "not busy and (restoreDir == \"none\" and not resetDone)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "dir == \"old\"",
+              "then": [
+                {
+                  "set": "restoreFailed",
+                  "to": "true"
+                },
+                {
+                  "output": "root@cp1:~# etcdutl snapshot restore /var/backups/etcd/snap-0200.db --data-dir /var/lib/etcd\nError: data-dir \"/var/lib/etcd\" not empty or could not be read"
+                },
+                {
+                  "log": "The live data directory is in use and not empty; the restore refuses it.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "restoreDir",
+                  "to": "\"new\""
+                },
+                {
+                  "output": "root@cp1:~# etcdutl snapshot restore /var/backups/etcd/snap-0200.db --data-dir /var/lib/etcd-restore\nrestored snapshot to /var/lib/etcd-restore"
+                },
+                {
+                  "log": "The 02:00 state is in /var/lib/etcd-restore. etcd still runs on /var/lib/etcd until its manifest changes.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "dir",
+          "kind": "choice",
+          "label": "Data directory",
+          "options": [
+            {
+              "value": "new",
+              "label": "--data-dir /var/lib/etcd-restore (a new directory)"
+            },
+            {
+              "value": "old",
+              "label": "--data-dir /var/lib/etcd (the live directory)"
+            }
+          ]
+        }
+      ]
+    },
+    "manifest": {
+      "label": "Edit /etc/kubernetes/manifests/etcd.yaml: hostPath of volume etcd-data to /var/lib/etcd-restore",
+      "group": "Fix",
+      "available": "not busy and (manifestDir == \"old\" and restoreDir == \"new\" and not resetDone)",
+      "why": "Restore to a new directory first, or done.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "manifestDir",
+          "to": "\"new\""
+        },
+        {
+          "if": "not apiStopped",
+          "then": [
+            {
+              "set": "unsafe",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# vi /etc/kubernetes/manifests/etcd.yaml\n  - hostPath:\n      path: /var/lib/etcd-restore\n      type: DirectoryOrCreate\n    name: etcd-data"
+        },
+        {
+          "if": "apiStopped",
+          "then": [
+            {
+              "log": "kubelet restarts etcd on the restored data.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "etcd restarts on the restored data underneath a running API server: its caches and watches now disagree with etcd.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "startApi": {
+      "label": "mv /root/kube-apiserver.yaml /etc/kubernetes/manifests/",
+      "group": "Fix",
+      "available": "not busy and (apiStopped)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "apiStopped",
+          "to": "false"
+        },
+        {
+          "if": "isNull(backAt)",
+          "then": [
+            {
+              "set": "backAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# mv /root/kube-apiserver.yaml /etc/kubernetes/manifests/"
+        },
+        {
+          "log": "kubelet starts the API server again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "kubelet": {
+      "label": "systemctl restart kubelet; crictl rm -f the scheduler and controller-manager containers",
+      "group": "Fix",
+      "available": "not busy and (clusterUp and not restarted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "set": "restarted",
+          "to": "true"
+        },
+        {
+          "output": "root@cp1:~# systemctl restart kubelet\nroot@cp1:~# crictl ps --name 'kube-(scheduler|controller-manager)' -q | xargs crictl rm -f"
+        },
+        {
+          "log": "kubelet, the scheduler and the controller manager restart and take fresh leader locks.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "recreate": {
+      "label": "kubectl create ns payments && kubectl apply -k git/payments/",
+      "group": "Fix",
+      "available": "not busy and (clusterUp and not nsRecreated and not etcdRestored)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "nsRecreated",
+          "to": "true"
+        },
+        {
+          "output": "root@cp1:~# kubectl create ns payments && kubectl apply -k git/payments/\nnamespace/payments created\ndeployment.apps/payments-api created\nservice/payments-api created\nroot@cp1:~# kubectl -n payments get pods\npayments-api-6c9f8-2xk4l   0/1   CreateContainerConfigError"
+        },
+        {
+          "log": "The Deployments are back, but the pods need the hand-made Secrets, which Git never had.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "reset": {
+      "label": "kubeadm reset -f && kubeadm init",
+      "group": "Fix",
+      "available": "not busy and (not resetDone)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "resetDone",
+          "to": "true"
+        },
+        {
+          "output": "root@cp1:~# kubeadm reset -f\n[reset] Deleted contents of the etcd data directory: /var/lib/etcd"
+        },
+        {
+          "log": "The control plane and every object in it are gone.",
+          "kind": "alarm"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "promo": {
+      "label": "argocd app sync shop (re-apply what changed after 02:00 from Git)",
+      "group": "Fix",
+      "available": "not busy and (clusterUp and etcdRestored and not promoReapplied)",
+      "why": "Only after a restore, with the API up.",
+      "effects": [
+        {
+          "set": "promoReapplied",
+          "to": "true"
+        },
+        {
+          "output": "root@cp1:~# argocd app sync shop\ndeployment.apps/promo created"
+        },
+        {
+          "log": "The 08:00 promo deployment is back from Git.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "kubectl -n payments get deploy,secret; kubectl get nodes",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@cp1:~# kubectl -n payments get deploy,secret\n{paymentsBack ? \"deployment.apps/payments-api   3/3   3   3\nsecret/bank-api-credentials   Opaque   2\" : clusterUp ? \"No resources found in payments namespace.\" : \"The connection to the server 10.0.0.10:6443 was refused\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "What brought payments back",
+              "options": [
+                {
+                  "value": "restore",
+                  "label": "An etcd restore from the 02:00 snapshot with the API server stopped, then re-applying the changes made after 02:00 from Git"
+                },
+                {
+                  "value": "recreate",
+                  "label": "Recreating the namespace from Git"
+                },
+                {
+                  "value": "reset",
+                  "label": "Rebuilding the control plane"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "batch",
+      "when": "t >= batchAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "paymentsBack",
+          "then": [
+            {
+              "set": "batchOkAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the payments batch runs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "batchMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the payments batch cannot run.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why a restore, how you did it safely, and what the restore cost.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why restore",
+          "criteria": "Recognizes that the Secrets exist nowhere but etcd, so recreating from Git is not enough.",
+          "modelAnswer": "The cleanup job deleted the namespace; its Secrets were made by hand and are not in Git, so only the 02:00 etcd snapshot holds them."
+        },
+        {
+          "label": "Safely",
+          "criteria": "Verifies the snapshot, saves today's state with the right endpoint and certificates, stops the API server, restores to a new directory and points the etcd manifest at it, then restarts the API server and the components that lose their leader lock.",
+          "modelAnswer": "snapshot status read the 02:00 snapshot; etcdctl with the endpoint and the CA, certificate and key from the etcd Pod saved pre-restore.db; with kube-apiserver.yaml moved out I restored to /var/lib/etcd-restore and changed the etcd-data hostPath; then the API server came back and I restarted kubelet, the scheduler and the controller manager."
+        },
+        {
+          "label": "Cost",
+          "criteria": "Re-applies what changed after the snapshot and verifies before the batch.",
+          "modelAnswer": "The restore took the cluster back to 02:00, so I synced the 08:00 promo deployment from Git; kubectl showed payments and its Secrets back before 11:00."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 1800,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened to 30 minutes for this case",
+          "checkedAt": "2026-11-16",
+          "note": "The payments batch runs at 11:00; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-16",
+          "note": "No second fault: a reset control plane, a restore under a running API server, or changes lost since 02:00."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not paymentsBack",
+      "class": "harm",
+      "rationale": "Closing without payments and its Secrets leaves the batch unable to run.",
+      "source": {
+        "cite": "Kubernetes documentation, Operating etcd clusters for Kubernetes",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/",
+        "note": "Read through a summarizing fetch on 2026-11-16 (the second part of the page). Relevant text: snapshot save with 'ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379' and '--cacert=<trusted-ca-file> --cert=<cert-file> --key=<key-file>', the paths taken from the etcd Pod's description; 'etcdutl --data-dir <data-dir-location> snapshot restore snapshot.db', a directory the restore creates; 'If any API servers are running in your cluster, you should not attempt to restore instances of etcd': stop all API server instances, restore, restart them; if the data directory changes, change '/etc/kubernetes/manifests/etcd.yaml's volumes.hostPath.path for name: etcd-data'; verify with 'etcdutl --write-out=table snapshot status snapshot.db'; restart kube-scheduler, kube-controller-manager and kubelet after a restore, since they lose their leader lock."
+      }
+    }
+  },
+  "endings": {
+    "broken": {
+      "label": "The control plane was damaged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (resetDone or unsafe)",
+      "narrative": "kubeadm reset deleted etcd's data, or etcd was swapped underneath a running API server."
+    },
+    "batchMissed": {
+      "label": "The payments batch was missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(batchMissedAt)",
+      "narrative": "At 11:00 payments was not back."
+    },
+    "restored": {
+      "label": "Restored safely, nothing else lost",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and paymentsBack and promoReapplied and preSnap and restarted and not isNull(statusAt) and not isNull(describeAt) and isNull(batchMissedAt) and not isNull(verifiedAt) and timeAt(verifiedAt) >= timeAt(backAt) and causeDoc == \"restore\"",
+      "narrative": "A verified snapshot, today's state saved, the API server stopped, a new data directory, the components restarted, and the changes since 02:00 re-applied before the batch."
+    },
+    "gaps": {
+      "label": "Back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Payments is back, or close, but a safety step, the changes since 02:00 or the check was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "broken",
+    "batchMissed",
+    "restored",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "prepare",
+        "label": "Verified the snapshot and saved today's state with the right endpoint and certificates",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(statusAt) and preSnap",
+            "score": "met",
+            "why": "snapshot status, then pre-restore.db."
+          },
+          {
+            "when": "not isNull(statusAt) or preSnap",
+            "score": "partial",
+            "why": "{certFail and not preSnap ? \"etcdctl failed without its endpoint and certificates.\" : \"One of the two.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Restored without checking the snapshot or keeping today's state."
+          }
+        ]
+      },
+      {
+        "id": "safe",
+        "label": "API server stopped, restored to a new directory, manifest pointed at it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "etcdRestored and not unsafe and not resetDone",
+            "score": "met",
+            "why": "The documented order."
+          },
+          {
+            "when": "restoreDir == \"new\" and not resetDone",
+            "score": "partial",
+            "why": "{unsafe ? \"etcd was swapped under a running API server.\" : \"Restored, but etcd still runs on the old directory.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{resetDone ? \"kubeadm reset deleted the control plane.\" : \"No restore.\"}"
+          }
+        ]
+      },
+      {
+        "id": "back",
+        "label": "Payments and its Secrets back before 11:00",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "paymentsBack and isNull(batchMissedAt)",
+            "score": "met",
+            "why": "Back before the batch."
+          },
+          {
+            "when": "paymentsBack",
+            "score": "partial",
+            "why": "Back after the batch."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{nsRecreated ? \"Recreated from Git without its Secrets.\" : \"Not back.\"}"
+          }
+        ]
+      },
+      {
+        "id": "after",
+        "label": "Components restarted, changes since 02:00 re-applied, verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restarted and promoReapplied and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "Nothing else lost."
+          },
+          {
+            "when": "restarted or promoReapplied",
+            "score": "partial",
+            "why": "Some of it."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The restore's side effects were left."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the restore and its cost",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"restore\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record describes something that did not bring payments back."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minBack",
+        "label": "Minutes until the API server was back on restored data",
+        "value": "isNull(backAt) ? -1 : timeAt(backAt) / 60",
+        "format": "number",
+        "expert": "about 12"
+      },
+      {
+        "id": "faults",
+        "label": "Faults added (reset, unsafe restore)",
+        "value": "(resetDone ? 1 : 0) + (unsafe ? 1 : 0)",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:30-10:34",
+        "text": "Namespace gone; the etcd Pod's flags give the endpoint, CA, certificate, key and data directory; snapshot status reads the 02:00 snapshot; etcdctl with those flags saves pre-restore.db."
+      },
+      {
+        "at": "10:34-10:40",
+        "text": "Move kube-apiserver.yaml out; etcdutl restore to /var/lib/etcd-restore; point the etcd-data hostPath at it; move the API server manifest back."
+      },
+      {
+        "at": "10:40-10:46",
+        "text": "Restart kubelet, the scheduler and the controller manager; sync the 08:00 promo deployment from Git; verify payments and its Secrets."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: the documented restore, and nothing else lost",
+        "body": "You restored only because the Secrets lived nowhere else, kept today's state first, followed the order the documentation gives (API server stopped, new data directory, manifest, restart), and re-applied what the snapshot did not have."
+      },
+      "gaps": {
+        "headline": "Back, with gaps",
+        "body": "The criteria show what was left: the snapshot check, today's state, the component restarts, or the 08:00 changes the restore removed."
+      },
+      "broken": {
+        "headline": "Control plane damaged",
+        "body": "kubeadm reset deletes etcd's data; swapping etcd's data under a running API server leaves its caches and etcd disagreeing. Stop every API server, then restore."
+      },
+      "batchMissed": {
+        "headline": "The batch could not run",
+        "body": "Recreating the namespace from Git brings the Deployments back without the hand-made Secrets. The 02:00 snapshot held them."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The cleanup job deleted payments, whose Secrets were made by hand and exist only in etcd, so recreating from Git is not enough. Take the endpoint, CA, certificate and key from the etcd Pod; check the 02:00 snapshot with etcdutl snapshot status and save today's state with etcdctl using those flags. Stop the API server by moving its manifest out, restore with etcdutl to a new data directory (the live one is refused), point the etcd-data hostPath in etcd.yaml at it, bring the API server back, and restart kubelet, the scheduler and the controller manager. The restore takes the cluster back to 02:00, so sync the 08:00 promo deployment from Git, and verify payments and its Secrets before 11:00."
+  }
+}

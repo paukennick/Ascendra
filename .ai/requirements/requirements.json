@@ -11425,6 +11425,50 @@
         "docs/sims-coverage-it.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-316",
+      "category": "content",
+      "title": "IT sims wave 4: bands for launch courses and new sims on existing screens",
+      "description": "Nick (2026-11-16, 16:17 PT) approved the lead's sim recommendations: build a sim for every IT, cloud and security objective that fits the selection rule on an existing screen (terminal, security console, board), launch courses first; where another course's sim already teaches the objective, register a band (band() in lib/sim/documents.ts) instead of re-authoring the case. Order: launch courses (SECPLUS, AWSSAA, AWSMLA, AWSCLF, AWSSOA, GCPCDL, GCPACE, APLUS_CORE1/2, NETWORKPLUS, LINUXPLUS, KCNA, CKA), bands early, then the new security courses, the tech and depth candidates and everything else. Data/code, governance, tabletop, facility and sandbox objectives wait for the new screens other builders are making. Defensive security only. Exam facts checked against current official pages, dated. Teaching timings flagged. Every document: endingOrder, endings in all three outcome classes, goldens rated Good, Mediocre and Bad, tests selecting by slug (FAIL-2002). ISC2, EC-Council and ISACA marks stay out of sim text; courses are named by code.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-wave4.ts",
+        "backend/lib/sim/it-wave4.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each band carries its course's outline read 2026-11-16 as its first source and keeps its base's behavior and golden outcomes",
+        "no ISC2 EC-Council or ISACA mark outside a document's sources",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/it-wave4.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "backend npm test in parts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.29",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "bands across certification levels put a case written for one exam on another exam's objective",
+        "scenario timings are teaching values",
+        "sources read 2026-11-16 mostly through summarizing fetches",
+        "one source (IMDSv2 benchmark) marked to verify",
+        "new documents enter expert review"
+      ]
     }
   ]
 }

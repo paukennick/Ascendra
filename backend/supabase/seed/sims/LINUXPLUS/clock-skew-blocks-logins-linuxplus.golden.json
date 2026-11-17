@@ -1,0 +1,782 @@
+{
+  "slug": "clock-skew-blocks-logins-linuxplus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "timedatectl and chronyc sources (only the retired server, Reach 0), the server lines in chrony.conf; fix them, restart chronyd so makestep steps the clock; sources and a Kerberos login",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "timedatectl",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "sources",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "showConf",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "editConf",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "sources",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 6,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 13,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 7,
+          "seq": 14,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 15,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "source",
+            "fix": "chrony"
+          },
+          "seq": 17,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "persistent": "met",
+          "fast": "met",
+          "noWeaken": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 4
+        },
+        "stateHash": "de07633a3cc59541"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "runtimeOnly",
+      "title": "Adds ntp1 with chronyc add and steps with chronyc makestep; chrony.conf still names the retired server",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sources",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "addRuntime",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "tracking",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "makestep",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 5,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "source",
+            "fix": "chrony"
+          },
+          "seq": 13,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "evidence": "met",
+          "persistent": "partial",
+          "fast": "met",
+          "noWeaken": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 3
+        },
+        "stateHash": "0fa97a29dd61fedc"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "manualDate",
+      "title": "Sees the clock is slow and sets it by hand from another server",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "timedatectl",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "dateSet",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "source",
+            "fix": "manual"
+          },
+          "seq": 9,
+          "tick": 3
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "evidence": "met",
+          "persistent": "missed",
+          "fast": "partial",
+          "noWeaken": "met",
+          "verified": "met",
+          "record": "partial"
+        },
+        "kpis": {
+          "minOk": -1
+        },
+        "stateHash": "bd18682789d103e6"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "widenSkew",
+      "title": "Raises the Kerberos clock skew limit to an hour without looking at the clock",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "widenSkew",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "kerberos",
+            "fix": "skew"
+          },
+          "seq": 7,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "skewWidened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "persistent": "missed",
+          "fast": "missed",
+          "noWeaken": "missed",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minOk": -1
+        },
+        "stateHash": "e9b11124fd0d048c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "makestepNoSource",
+      "title": "Runs chronyc makestep and restarts chronyd with the retired server still configured, then closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "timedatectl",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "makestep",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 3,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 4,
+          "seq": 8,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "network",
+            "fix": "chrony"
+          },
+          "seq": 11,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "stillFailing",
+        "class": "harm",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "evidence": "met",
+          "persistent": "missed",
+          "fast": "missed",
+          "noWeaken": "met",
+          "verified": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minOk": -1
+        },
+        "stateHash": "d509ed990a339f1e"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Restarts chronyd blind, waits past payroll, then finds the retired server and fixes chrony.conf",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 11,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 21,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 26,
+          "seq": 12,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 14,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 31,
+          "seq": 15,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "sources",
+          "seq": 16,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 32,
+          "seq": 17,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "showConf",
+          "seq": 18,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 33,
+          "seq": 19,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "editConf",
+          "seq": 20,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 34,
+          "seq": 21,
+          "tick": 33
+        },
+        {
+          "type": "act",
+          "action": "restart",
+          "seq": 22,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 35,
+          "seq": 23,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 24,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 36,
+          "seq": 25,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 26,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 27,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "source",
+            "fix": "chrony"
+          },
+          "seq": 28,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "evidence": "partial",
+          "persistent": "met",
+          "fast": "partial",
+          "noWeaken": "met",
+          "verified": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minOk": 34
+        },
+        "stateHash": "a863aebb4d971d36"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

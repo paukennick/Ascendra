@@ -6373,3 +6373,114 @@ and handling lapses" and NASM-CNC T-C1 (twelve weeks of coaching) and T-C2
 (travel and a tight budget) on the trainer across weeks; NSCA-CSCS needs
 analysis and athlete referral; ACE 3.2 lapses. Coverage tables are in
 `docs/sim-coverage-pm-frameworks-cnc.md` and 22.19.
+
+### 22.29 IT sims wave 4: bands for the launch courses and six new cases (REQ-316)
+
+Nick, 2026-11-16 (16:17 PT), approving the lead's recommendations: build a
+sim for every IT, cloud and security objective that fits the selection rule
+on an existing screen, launch courses first, and where another course's sim
+already teaches the objective, register a band (4.7) instead of re-authoring
+the case. No engine, renderer, schema or migration change; everything is on
+the terminal, security console and board screens at engine 1.2. The list is
+`lib/sim/it-wave4.ts`; `lib/sim/it-wave4.test.ts` selects every document by
+slug (FAIL-2002) and checks: an active objective of its own course that no
+other sim of that course already sits on; `endingOrder`; endings in all
+three outcome classes with a debrief each; goldens that reach every ending
+but `time_up`, rate Good, Mediocre and Bad, start the expert path at
+`target`, and score every critical criterion both met and missed; no lint
+error; a first source read on 2026-11-16; and no ISC2, ISACA or EC-Council
+mark outside a document's `sources` (the trademark decision of the same
+day). A behavior test per new case checks the decision it teaches.
+
+**Bands (32).** Each band is a merge-patch that sets the course's objective,
+clears the base's secondary objectives (they belong to the base course) and
+replaces `sources` with the course's own outline, read 2026-11-16, followed by
+the base's technical sources minus the base course's exam outline. A base
+string outside `sources` that names another exam body's mark is patched (one:
+the CISSP recovery case's NIST SP 800-34 note). The golden paths are the
+base's own (`npm run sim:golden -- steps w4-<course>-<slug>` reuses the
+base's steps), and the test checks a band keeps its base's actions, endings,
+ending order and golden outcomes.
+
+| Course | Band | Base | Objective (abridged) |
+|---|---|---|---|
+| SECPLUS | ransomware-recovery-site-secplus | CISSP | Resilience and recovery (sites, backups, testing) |
+| SECPLUS | payroll-supplier-breach-secplus | CISM | Third-party risk assessment and management |
+| SECPLUS | arp-poisoning-finance-vlan-secplus | CEH | Indicators of malware, physical and network attacks |
+| SECPLUS | blind-sqli-search-secplus | CEH | Vulnerability types (web-based: SQLi, XSS) |
+| SECPLUS | triage-phish-correlation-secplus | ISC2CC | Security monitoring, log analysis, SIEM/SOAR |
+| SECPLUS | checkout-skimmer-containment-secplus | CISM | Enterprise mitigation techniques (isolation, segmentation) |
+| SECPLUS | web-tier-data-theft-secplus | CISSP | Data sources for an investigation |
+| SECPLUS | ot-segmentation-breach-secplus | SECURITYX | Endpoint, mobile, embedded/IoT/ICS considerations |
+| APLUS_CORE2 | firewall-change-backout-aplus2 | SECPLUS | Change-management best practices (220-1202 4.2) |
+| NETWORKPLUS | arp-poisoning-finance-vlan-netplus | CEH | Common attack types (ARP/DNS poisoning) |
+| NETWORKPLUS | firewall-change-backout-netplus | SECPLUS | Change and configuration management |
+| NETWORKPLUS | rogue-dhcp-soho-office-netplus | APLUS_CORE1 | Network services: DHCP ... |
+| NETWORKPLUS | ransomware-recovery-site-netplus | CISSP | Disaster recovery concepts (RPO, RTO, site types) |
+| LINUXPLUS | fstab-uuid-typo-emergency-linuxplus | LFCS | Diagnosing boot failures, rescue mode |
+| LINUXPLUS | report-workers-starve-api-linuxplus | LFCS | Diagnosing performance issues |
+| LINUXPLUS | lvm-database-volume-full-linuxplus | LFCS | Disk partitioning, LVM, filesystems |
+| LINUXPLUS | clock-skew-blocks-logins-linuxplus | LFCS | Common network services (time sync) |
+| LINUXPLUS | shared-folder-permission-denied-linuxplus | LINUXFUND | Special permissions: SUID, SGID, sticky bit |
+| LINUXPLUS | nightly-backup-missing-linuxplus | LINUXFUND | Reading and interpreting system logs |
+| KCNA | crashloop-bad-configmap-kcna | CKA | Troubleshooting: Pod phases and container states |
+| KCNA | apiserver-static-pod-bad-flag-kcna | CKA | Administration: control plane components |
+| AWSSOA | waf-login-flood-sqli-soa | AWSSAA | Auditing network protection services (5.1.3) |
+| AWSSOA | nat-gateway-bill-spike-soa | AWSSAA | Optimizing the cost of a network architecture (5.1.4) |
+| AWSSOA | canary-rollback-dlq-soa | AWSDVA | Implementing deployment strategies (3.1.5) |
+| AWSSOA | leaked-access-key-soa | AWSCLF | Troubleshooting and auditing access (4.1.2) |
+| AWSSAA | leaked-access-key-saa | AWSCLF | IAM security practices, root user, MFA (Task 1.1) |
+| AWSSAA | rds-update-without-where-pitr-saa | AWSSOA | Data durability and availability: backups (Task 2.2) |
+| AWSCLF | waf-login-flood-sqli-clf | AWSSAA | Network protection services: WAF, Shield |
+| AWSCLF | nat-gateway-bill-spike-clf | AWSSAA | VPC components (subnets, NAT gateways) |
+| GCPACE | bigquery-dashboard-bill-ace | GCPCDL | Establishing billing budgets and alerts (1.2) |
+| GCPCDL | public-bucket-customer-exports-cdl | GCPACE | Common cybersecurity threats (misconfiguration) |
+| GCPCDL | cloud-run-bad-revision-rollback-cdl | GCPACE | Core DevOps/SRE vocabulary (SLIs, SLOs) |
+
+**New cases (6).** Same pattern as 22.16: learner-paced `turns` phases,
+every task costs minutes through one `work` wait, the problem's next step an
+`interruptsSkip` trigger on the same clock, harm endings first in
+`endingOrder`, one three-part reasoning moment, six golden paths from
+`npm run sim:golden -- steps <name>`. Teaching timings carry an
+"Author's scenario timing (REQ-316)" source (FLAG: not measured values).
+
+| Course / slug | Screen, profile | Core of the case | Steps name |
+|---|---|---|---|
+| SECPLUS/spoofed-ceo-wire-dmarc | security console, security | A forged CEO wire request: headers show SPF fail, no DKIM, DMARC fail at p=none; hold the wire by phone before the 10:30 cutoff, gateway rule and purge, then the aggregate reports show PayrollCo sending unaligned: align it, then p=quarantine. Enforcing first breaks the 11:00 payslips; the gateway rule alone protects only your own staff | secplus-dmarc |
+| SECPLUS/departing-engineer-usb-evidence | security console, security | A leaver's laptop, a USB drive and an 11:00 offboarding job: legal hold first, custody form before collecting, memory before the disk with trusted tools (RFC 3227's order of volatility), write blockers and hashes; shutting down loses memory, browsing taints, confronting tips him off | secplus-forensics |
+| AWSSOA/alb-health-check-login-redirect | board, cloud | A release puts /health behind the login page: ResponseCodeMismatch 302 on every target, the group replacing instances, the load balancer failing open; point the check at /healthz with matcher 200 before the 10:00 campaign. Widening the matcher turns targets green and blind; suspending ReplaceUnhealthy only hides it | soa-elbhc |
+| AWSSAA/guardduty-role-credentials-macie | board, security | GuardDuty InstanceCredentialExfiltration.OutsideAWS on the web role; Macie shows the exports bucket holds card numbers; revoke the role's sessions, then require IMDSv2 (or turn off /preview) before the attacker takes fresh credentials through the request forgery; isolate and snapshot, not terminate | saa-guardduty |
+| LINUXPLUS/retired-dns-server-orders-stuck | terminal, infrastructure | Orders stuck after a DNS server retirement: ip, route, ping by address and traceroute prove the path; dig times out against the retired server; the NetworkManager profile pins it. A hand edit of resolv.conf is rewritten at a 14:10 reactivation; /etc/hosts fixes one name | linuxplus-dns |
+| CKA/etcd-restore-deleted-namespace | terminal, infrastructure | A cleanup job deleted a namespace whose Secrets exist only in etcd: endpoint and certificates from the etcd Pod, snapshot status, a pre-restore snapshot, API server stopped, etcdutl restore to a new directory, the etcd-data hostPath changed, components restarted, the 08:00 changes re-applied from Git | cka-etcd |
+
+**Sources** carry `checkedAt` 2026-11-16 and say how each was read (all
+through summarizing fetches unless noted): the CompTIA Security+ V7, Linux+
+and (copies of) Network+ N10-009 and A+ 220-1202 objectives; the Linux
+Foundation KCNA program changes page; the AWS SAA-C03 and SOA-C03 exam guide
+PDFs and a training provider's copy of the CLF-C02 guide (version 1.0); the
+Google Cloud ACE and Digital Leader exam guides; IETF RFC 9989 (DMARC, May
+2026, which obsoletes RFC 7489; the case uses no `pct` tag) and RFC 3227;
+the ELB target group health check, EC2 Auto Scaling health check, GuardDuty
+EC2 remediation, IAM session revocation and Macie finding types pages and
+the re:Post credential article; NetworkManager.conf(5); the Kubernetes
+"Operating etcd clusters" page. One source is marked "to verify": the CIS
+AWS benchmark recommendation on IMDSv2, of which only the title was seen.
+The CKA case reuses the CKA curriculum read on 2026-11-14.
+
+**Findings** (recorded; none needed a code fix):
+
+1. **DMARC has a new RFC.** RFC 9989 (May 2026) obsoletes RFC 7489 and
+   removes `pct` (replaced by the `t` test flag). Course content that
+   teaches `pct` should be checked by the verification pass (REQ-310).
+2. **Security+ V8.** The Security+ page says V8 comes in November and
+   SY0-701 retires in English on 2027-06-11. The SECPLUS bands and cases
+   are on SY0-701 objectives; SECPLUSV8 objectives are not covered here.
+3. **Bands across certification levels** (as 22.16 finding 6): CISSP, CISM
+   and SecurityX cases on Security+, LFCS cases on Linux+, CKA cases on
+   KCNA, Professional-level ideas on associate courses. The decisions
+   taught match each objective; the level is the base's. A decision for
+   Nick: keep, or replace with simpler cases later.
+4. **The A+ objectives say rollback plan,** where the course objective says
+   backout plan; the band teaches both (the base case calls it a backout
+   plan).
+5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").

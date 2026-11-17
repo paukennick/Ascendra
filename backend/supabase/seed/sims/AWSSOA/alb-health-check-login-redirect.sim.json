@@ -1,0 +1,1141 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "alb-health-check-login-redirect",
+  "title": "Health checks: a release puts /health behind the login page",
+  "screen": {
+    "type": "board",
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "lb",
+          "label": "Application Load Balancer and target group web-tg",
+          "spokenLabel": "the load balancer",
+          "items": [
+            {
+              "label": "Health check: path {pathFixed ? \"/healthz\" : \"/health\"}, success codes {matcherWide ? \"200-399\" : \"200\"}, every 30 s, healthy after 5, unhealthy after 2",
+              "when": "true"
+            },
+            {
+              "label": "Targets: {targetsHealthy ? \"6 healthy\" : \"0 of 6 healthy (Target.ResponseCodeMismatch: 302); failing open, so traffic still reaches every target\"}",
+              "when": "true"
+            },
+            {
+              "label": "Alarm: UnHealthyHostCount above 0 for 5 minutes, to the on-call topic",
+              "when": "alarmOn"
+            }
+          ]
+        },
+        {
+          "id": "asg",
+          "label": "Auto Scaling group web-asg (desired 6, ELB health checks, grace 300 s)",
+          "spokenLabel": "the Auto Scaling group",
+          "items": [
+            {
+              "label": "{suspended ? \"ReplaceUnhealthy suspended: no replacements\" : churnOn ? \"Replacing instances the load balancer marks unhealthy\" : \"Stable\"}",
+              "when": "true"
+            },
+            {
+              "label": "Instances replaced since 09:00: {replaced}",
+              "when": "replaced > 0"
+            },
+            {
+              "label": "Launch template: {rolledBack ? \"v3.3 (rolled back)\" : \"v3.4\"}",
+              "when": "true"
+            }
+          ]
+        },
+        {
+          "id": "app",
+          "label": "Application v3.4",
+          "spokenLabel": "the application",
+          "items": [
+            {
+              "label": "/health is now behind the login middleware and answers 302 to /login; the release added /healthz, unauthenticated, 200 when the app and its database are up",
+              "when": "not isNull(curlAt)"
+            }
+          ]
+        },
+        {
+          "id": "biz",
+          "label": "Business",
+          "spokenLabel": "the business",
+          "items": [
+            {
+              "label": "Spring campaign email to 400,000 customers at 10:00 (traffic triples)",
+              "when": "isNull(campaignAt)"
+            },
+            {
+              "label": "Campaign: {isNull(campaignFailedAt) ? \"site holding\" : \"errors at 40%, customers bouncing\"}",
+              "when": "not isNull(campaignAt)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "err",
+          "label": "HTTP 5xx",
+          "value": "{churnOn ? (isNull(campaignAt) ? \"12%\" : \"40%\") : \"under 0.5%\"}"
+        },
+        {
+          "id": "healthy",
+          "label": "Healthy targets",
+          "value": "{targetsHealthy ? 6 : 0}"
+        }
+      ]
+    }
+  },
+  "objective": "Configuring and troubleshooting Elastic Load Balancing health checks",
+  "sources": [
+    {
+      "cite": "AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide: Monitoring, logging, analysis, remediation, and performance optimization 22%, Reliability and business continuity 22%, Deployment, provisioning, and automation 22%, Security and compliance 16%, Networking and content delivery 18%",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.pdf",
+      "note": "Read through a summarizing fetch of the exam guide PDF on 2026-11-16. Relevant skill: 2.2.1 'Configure and troubleshoot Elastic Load Balancing (ELB) and Amazon Route 53 health checks.'"
+    },
+    {
+      "cite": "Elastic Load Balancing User Guide: Health checks for Application Load Balancer target groups",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+      "note": "Read through a summarizing fetch on 2026-11-16 (no last-updated date shown). Relevant text: interval 'The default is 30 seconds' for instance targets; timeout 5 seconds; HealthyThresholdCount 'The default is 5'; UnhealthyThresholdCount 'The default is 2'; Matcher 'The default value is 200'; reason code Target.ResponseCodeMismatch, 'Health checks failed with these codes: [code]'; 'If a target group contains only unhealthy registered targets, the load balancer routes requests to all those targets, regardless of their health status ... the load balancer fails open.'"
+    },
+    {
+      "cite": "Amazon EC2 Auto Scaling User Guide: Health checks for instances in an Auto Scaling group",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-health-checks.html",
+      "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: 'When Amazon EC2 Auto Scaling determines that an InService instance is unhealthy, it replaces it with a new instance to maintain the desired capacity of the group'; Elastic Load Balancing is one of the sources that can report an instance unhealthy; the checks begin after a health check grace period. The default grace period was not stated on the page, so the scenario gives the group's setting."
+    }
+  ],
+  "brief": {
+    "situation": "You are the CloudOps engineer for Ferncastle Outdoor, a fictional retailer. Release v3.4 went out at 08:20 by an instance refresh. Since then 5xx errors are at 12% and instances keep being replaced. The spring campaign email goes to 400,000 customers at 10:00 and will triple traffic.",
+    "handover": [
+      "The site is an Application Load Balancer in front of web-asg (6 instances, ELB health checks, 300 s grace period).",
+      "The campaign landing pages ship in v3.4."
+    ],
+    "howItWorks": [
+      "The board shows the load balancer, the Auto Scaling group, the application and the business, and updates as you work.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. The group and the campaign keep to the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "campaignAfter": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "The campaign email goes out at 10:00, an hour after the 09:00 start."
+      }
+    },
+    "churnEvery": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. With ELB health checks, every ten minutes two more instances are terminated and replaced; replacements fail the same check after the grace period."
+      }
+    },
+    "healthyDelay": {
+      "value": 150,
+      "unit": "s",
+      "source": {
+        "cite": "Elastic Load Balancing User Guide: Health checks for Application Load Balancer target groups",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+        "note": "Five consecutive successes at the default 30-second interval: about 150 seconds after the check is fixed. Read 2026-11-16."
+      }
+    },
+    "rollbackDur": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. An instance refresh back to the v3.3 launch template takes 25 minutes."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "healthAt": {
+      "type": "time",
+      "init": null
+    },
+    "activityAt": {
+      "type": "time",
+      "init": null
+    },
+    "curlAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "pathFixed": {
+      "type": "bool",
+      "init": false
+    },
+    "matcherWide": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "targetsHealthy": {
+      "type": "bool",
+      "init": false
+    },
+    "healthyAt": {
+      "type": "time",
+      "init": null
+    },
+    "suspended": {
+      "type": "bool",
+      "init": false
+    },
+    "graceRaised": {
+      "type": "bool",
+      "init": false
+    },
+    "rolledBack": {
+      "type": "bool",
+      "init": false
+    },
+    "rollbackStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "scaled": {
+      "type": "bool",
+      "init": false
+    },
+    "replaced": {
+      "type": "number",
+      "init": 14,
+      "min": 0,
+      "max": 1000
+    },
+    "lastChurnAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "alarmOn": {
+      "type": "bool",
+      "init": false
+    },
+    "campaignAt": {
+      "type": "time",
+      "init": null
+    },
+    "campaignFailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "stableAt": {
+      "type": "time",
+      "init": null
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "endpoint",
+        "matcher",
+        "asg"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "churnOn": {
+      "expr": "not targetsHealthy and not suspended"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "targetHealth",
+        "activity",
+        "curl",
+        "fixPath",
+        "widenMatcher",
+        "suspend",
+        "resume",
+        "grace",
+        "scaleOut",
+        "rollback",
+        "alarm",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "targetHealth": {
+      "label": "Describe target health for web-tg",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(healthAt)",
+          "then": [
+            {
+              "set": "healthAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "All six targets: unhealthy, Target.ResponseCodeMismatch, 'Health checks failed with these codes: [302]'. With every target unhealthy, the load balancer fails open and still sends traffic to all of them.",
+          "kind": "act"
+        },
+        {
+          "finding": "The instances answer; the health check gets a redirect where it expects 200."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "activity": {
+      "label": "Read the Auto Scaling group's activity history",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(activityAt)",
+          "then": [
+            {
+              "set": "activityAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Since the 09:00 release: 14 instances terminated with 'an Elastic Load Balancing health check' failure, each replaced and failing again after the 300 s grace period.",
+          "kind": "act"
+        },
+        {
+          "finding": "The errors come from instances being terminated mid-request. The group is doing what its health checks tell it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "curl": {
+      "label": "From one instance, request /health and /healthz",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(curlAt)",
+          "then": [
+            {
+              "set": "curlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "/health: 302 to /login (the release put it behind the login middleware). /healthz: 200, added by the same release for load balancers.",
+          "kind": "act"
+        },
+        {
+          "finding": "The right fix is the check, not the instances: point it at /healthz and keep 200 as the only success code."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "fixPath": {
+      "label": "Change the target group's health check path to /healthz, success code 200",
+      "group": "Fix",
+      "available": "not busy and (not pathFixed)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pathFixed",
+          "to": "true"
+        },
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Health check path is /healthz. Targets turn healthy after five passing checks.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "widenMatcher": {
+      "label": "Change the success codes to 200-399 so the redirect counts as healthy",
+      "group": "Fix",
+      "available": "not busy and (not matcherWide)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "matcherWide",
+          "to": "true"
+        },
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Targets will turn healthy, but a check that accepts the login redirect passes even when the app or its database is down.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "suspend": {
+      "label": "Suspend the Auto Scaling group's ReplaceUnhealthy process",
+      "group": "Fix",
+      "available": "not busy and (not suspended)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "suspended",
+          "to": "true"
+        },
+        {
+          "log": "Replacements stop and the errors drop, but the targets still fail their checks: the load balancer is failing open, and a real failure would not be replaced now.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "resume": {
+      "label": "Resume the ReplaceUnhealthy process",
+      "group": "Fix",
+      "available": "not busy and (suspended)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "suspended",
+          "to": "false"
+        },
+        {
+          "log": "The group replaces unhealthy instances again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "grace": {
+      "label": "Raise the health check grace period from 300 s to 900 s",
+      "group": "Fix",
+      "available": "not busy and (not graceRaised)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "graceRaised",
+          "to": "true"
+        },
+        {
+          "log": "New instances get 15 minutes before their first check. The checks still fail when it ends; the churn only slows.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "scaleOut": {
+      "label": "Raise desired capacity from 6 to 10",
+      "group": "Capacity",
+      "available": "not busy and (not scaled)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "scaled",
+          "to": "true"
+        },
+        {
+          "log": "Four more instances launch and fail the same health check; the churn grows.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rollback": {
+      "label": "Start an instance refresh back to launch template v3.3",
+      "group": "Fix",
+      "available": "not busy and (isNull(rollbackStartAt) and not targetsHealthy)",
+      "why": "Started already, or not needed.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rollbackStartAt",
+          "to": "t"
+        },
+        {
+          "log": "Instance refresh to v3.3 started; it takes about 25 minutes, and the campaign's new pages are in v3.4.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "alarm": {
+      "label": "Create a CloudWatch alarm on UnHealthyHostCount above 0 for 5 minutes, to the on-call topic",
+      "group": "Monitor",
+      "available": "not busy and (not alarmOn)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "alarmOn",
+          "to": "true"
+        },
+        {
+          "log": "The next failing health check pages someone before the group churns for an hour.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "lesson",
+              "label": "What changes so a release cannot break the health check again",
+              "options": [
+                {
+                  "value": "endpoint",
+                  "label": "Health checks use an unauthenticated endpoint that tests the app and its dependencies, with 200 as the only success code; release tests include it; alarm on unhealthy hosts"
+                },
+                {
+                  "value": "matcher",
+                  "label": "Accept 200-399 on every health check so redirects never fail it"
+                },
+                {
+                  "value": "asg",
+                  "label": "Use EC2 status checks only on the Auto Scaling group, so the load balancer cannot cause replacements"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "healthy",
+      "when": "(pathFixed or matcherWide) and not targetsHealthy and t >= timeAt(fixAt) + healthyDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "targetsHealthy",
+          "to": "true"
+        },
+        {
+          "set": "healthyAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(stableAt)",
+          "then": [
+            {
+              "set": "stableAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Five passing checks: the targets are healthy and the churn stops.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "rolled",
+      "when": "not isNull(rollbackStartAt) and not targetsHealthy and t >= timeAt(rollbackStartAt) + rollbackDur",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "rolledBack",
+          "to": "true"
+        },
+        {
+          "set": "targetsHealthy",
+          "to": "true"
+        },
+        {
+          "set": "healthyAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(stableAt)",
+          "then": [
+            {
+              "set": "stableAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Instance refresh done: v3.3 answers /health with 200 and the targets are healthy. The campaign's new pages are gone.",
+          "kind": "act"
+        }
+      ]
+    },
+    {
+      "id": "churn",
+      "when": "churnOn and t >= lastChurnAt + churnEvery and phase == \"incident\"",
+      "mode": "edge",
+      "effects": [
+        {
+          "set": "replaced",
+          "to": "replaced + (scaled ? 4 : 2)"
+        },
+        {
+          "set": "lastChurnAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "campaign",
+      "when": "t >= campaignAfter and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "campaignAt",
+          "to": "t"
+        },
+        {
+          "if": "churnOn",
+          "then": [
+            {
+              "set": "campaignFailedAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: the campaign triples traffic onto instances being terminated mid-request; errors reach 40%.",
+              "kind": "alarm"
+            }
+          ],
+          "else": [
+            {
+              "log": "10:00: the campaign triples traffic and the site holds.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what the health check was telling you, what you changed, and why that was the right layer.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Evidence",
+          "criteria": "Uses the target health reason (ResponseCodeMismatch 302) and the activity history to show the instances were healthy and the check was wrong.",
+          "modelAnswer": "Target health showed Target.ResponseCodeMismatch with 302 on every target, the activity history showed the group terminating instances for ELB health check failures, and a request from an instance showed /health redirecting to /login while /healthz returned 200."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Points the check at an unauthenticated health endpoint with 200 as the only success code, rather than accepting redirects or switching off replacement.",
+          "modelAnswer": "I changed the path to /healthz with matcher 200; widening the matcher would pass a dead app, and suspending ReplaceUnhealthy only hides the failure while the load balancer fails open."
+        },
+        {
+          "label": "Stability",
+          "criteria": "Stops the churn before the campaign, leaves automatic replacement working, and adds an alarm on unhealthy hosts.",
+          "modelAnswer": "Targets were healthy within about three minutes, before 10:00; replacement stayed on, and an UnHealthyHostCount alarm now pages on-call."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "cloud",
+    "thresholds": {},
+    "noProgress": {
+      "when": "documented and churnOn",
+      "class": "harm",
+      "rationale": "Closing while the group keeps terminating instances leaves the site failing.",
+      "source": {
+        "cite": "Amazon EC2 Auto Scaling User Guide: Health checks for instances in an Auto Scaling group",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-health-checks.html",
+        "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: 'When Amazon EC2 Auto Scaling determines that an InService instance is unhealthy, it replaces it with a new instance to maintain the desired capacity of the group'; Elastic Load Balancing is one of the sources that can report an instance unhealthy; the checks begin after a health check grace period. The default grace period was not stated on the page, so the scenario gives the group's setting."
+      }
+    }
+  },
+  "endings": {
+    "campaignFailed": {
+      "label": "The campaign hit a churning fleet",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(campaignFailedAt)",
+      "narrative": "At 10:00 tripled traffic met instances being terminated mid-request."
+    },
+    "stillChurning": {
+      "label": "Closed while the fleet still churns",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and churnOn",
+      "narrative": "The group is still replacing every instance the load balancer marks unhealthy."
+    },
+    "masked": {
+      "label": "Healthy on paper: the check accepts redirects",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and matcherWide",
+      "narrative": "The targets are green because the check now accepts the login redirect; it will pass a dead app too."
+    },
+    "fixed": {
+      "label": "Right check, stable fleet, alarm in place",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and pathFixed and not matcherWide and not rolledBack and targetsHealthy and not suspended and isNull(campaignFailedAt) and not isNull(healthAt) and timeAt(healthAt) <= timeAt(firstFixAt) and alarmOn and lessonDoc == \"endpoint\"",
+      "narrative": "The health check points at an endpoint that tests the app, replacement still works, and the next failing check pages someone."
+    },
+    "gaps": {
+      "label": "Stable, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The site holds, but by a rollback, a suspended process, a missing alarm or a lesson that will repeat it."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "campaignFailed",
+    "stillChurning",
+    "masked",
+    "fixed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read target health before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(healthAt) and timeAt(healthAt) <= timeAt(firstFixAt) and (not isNull(curlAt) or not isNull(activityAt))",
+            "score": "met",
+            "why": "Reason code first, and a second view."
+          },
+          {
+            "when": "not isNull(healthAt)",
+            "score": "partial",
+            "why": "Target health read, but late or alone."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading why the targets failed."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Health check on an unauthenticated endpoint, success code 200 only",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "pathFixed and not matcherWide",
+            "score": "met",
+            "why": "/healthz with 200."
+          },
+          {
+            "when": "rolledBack or pathFixed",
+            "score": "partial",
+            "why": "{rolledBack ? \"Rolled the release back instead.\" : \"Fixed the path but also widened the matcher.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{matcherWide ? \"The check accepts redirects now.\" : \"The check is still wrong.\"}"
+          }
+        ]
+      },
+      {
+        "id": "stable",
+        "label": "Churn stopped before 10:00 with automatic replacement still on",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(campaignFailedAt) and targetsHealthy and not suspended",
+            "score": "met",
+            "why": "Stable before the campaign."
+          },
+          {
+            "when": "isNull(campaignFailedAt)",
+            "score": "partial",
+            "why": "The campaign held, but replacement is suspended or targets still fail."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The campaign hit the churn."
+          }
+        ]
+      },
+      {
+        "id": "alarm",
+        "label": "Alarm on unhealthy hosts",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "alarmOn",
+            "score": "met",
+            "why": "Pages on the next failure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing would page before the next hour of churn."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Lesson names the health endpoint and strict success code",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lessonDoc == \"endpoint\"",
+            "score": "met",
+            "why": "Lesson right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lesson weakens the health check."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written evidence, fix and stability",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minHealthy",
+        "label": "Minutes until the targets were healthy",
+        "value": "isNull(healthyAt) ? -1 : timeAt(healthyAt) / 60",
+        "format": "number",
+        "expert": "under 20"
+      },
+      {
+        "id": "replaced",
+        "label": "Instances replaced",
+        "value": "replaced",
+        "format": "number",
+        "expert": "under 20"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00-09:10",
+        "text": "Target health: ResponseCodeMismatch 302 on every target; the activity history shows ELB-driven replacements."
+      },
+      {
+        "at": "09:10-09:15",
+        "text": "From an instance: /health redirects to /login, /healthz returns 200. Point the check at /healthz with matcher 200."
+      },
+      {
+        "at": "09:15-09:25",
+        "text": "Targets healthy after five checks; add an UnHealthyHostCount alarm; the campaign at 10:00 meets a stable fleet."
+      }
+    ],
+    "debrief": {
+      "fixed": {
+        "headline": "Good: the check measures the app again",
+        "body": "The instances were fine; the health check was asking the wrong question. /healthz with 200 fixed it at the right layer, replacement stays on for real failures, and an alarm now catches the next one in minutes."
+      },
+      "gaps": {
+        "headline": "Stable, with gaps",
+        "body": "The site holds, but the criteria show what was left: a rollback that lost the campaign pages, a suspended replacement process, no alarm, or a lesson that weakens the check."
+      },
+      "masked": {
+        "headline": "Green, and blind",
+        "body": "Accepting 200-399 made a redirect count as healthy. The check now passes whether or not the app works, so the next real failure stays in service."
+      },
+      "campaignFailed": {
+        "headline": "Churn met the campaign",
+        "body": "Target health named the problem in the first minutes: a 302 where the check wanted 200. Fixing the path was a five-minute change."
+      },
+      "stillChurning": {
+        "headline": "Still churning",
+        "body": "The group keeps replacing instances the load balancer marks unhealthy. Fix the check, then close."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Every target is unhealthy with Target.ResponseCodeMismatch 302, and the group, which uses ELB health checks, keeps terminating and replacing instances; with all targets unhealthy the load balancer fails open, so the errors come from instances being terminated mid-request. A request from an instance shows /health now redirects to /login while the release added /healthz. Change the health check path to /healthz with 200 as the only success code; the targets turn healthy after five passing checks (about 150 seconds), well before the 10:00 campaign. Do not widen the matcher (it would pass a dead app) or leave ReplaceUnhealthy suspended (real failures would stay in service); add an UnHealthyHostCount alarm and make the health endpoint part of release tests."
+  }
+}

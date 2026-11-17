@@ -1,0 +1,1291 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "retired-dns-server-orders-stuck",
+  "title": "Outage: orders stuck after yesterday's DNS server retirement",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "root@app01:~#",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:40 alert: order-sync has failed every run since 13:00; 140 orders queued for the partner, cutoff for same-day shipping 14:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "chg",
+          "text": "Change log, yesterday: 'retired DNS server 10.0.5.53; DHCP scope now hands out 10.0.5.2'",
+          "when": "true",
+          "at": "0"
+        },
+        {
+          "id": "revert",
+          "text": "NetworkManager reactivated eth0 after a link flap and rewrote /etc/resolv.conf from the connection profile",
+          "when": "not isNull(revertAt)",
+          "at": "timeAt(revertAt)",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:30: same-day cutoff passed with orders still queued",
+          "when": "not isNull(cutoffMissedAt)",
+          "at": "timeAt(cutoffMissedAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:30: every order reached the partner before the cutoff",
+          "when": "not isNull(cutoffOkAt)",
+          "at": "timeAt(cutoffOkAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "app01 (10.0.5.20)",
+          "spokenLabel": "app01",
+          "kind": "Runs order-sync",
+          "status": "{resolves ? \"resolving names\" : \"name lookups time out\"}",
+          "tone": "resolves ? \"up\" : \"down\""
+        },
+        {
+          "id": "gw",
+          "label": "Gateway 10.0.5.1",
+          "spokenLabel": "the gateway",
+          "kind": "Default route",
+          "status": "reachable",
+          "tone": "\"up\""
+        },
+        {
+          "id": "dnsOld",
+          "label": "DNS 10.0.5.53",
+          "spokenLabel": "the old DNS server",
+          "kind": "Retired yesterday",
+          "status": "powered off",
+          "tone": "\"down\""
+        },
+        {
+          "id": "dnsNew",
+          "label": "DNS 10.0.5.2",
+          "spokenLabel": "the current DNS server",
+          "kind": "In service",
+          "status": "answering",
+          "tone": "\"up\""
+        },
+        {
+          "id": "partner",
+          "label": "api.partner.example (203.0.113.10)",
+          "spokenLabel": "the partner API",
+          "kind": "Takes orders until 14:30 for same-day shipping",
+          "status": "{not isNull(cutoffOkAt) ? \"all orders received\" : not isNull(cutoffMissedAt) ? \"cutoff missed\" : queued > 0 ? \"orders waiting\" : \"up to date\"}",
+          "tone": "not isNull(cutoffMissedAt) ? \"down\" : queued > 0 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "gw",
+          "label": "Default route",
+          "status": "via eth0",
+          "tone": "\"up\""
+        },
+        {
+          "id": "l2",
+          "from": "app",
+          "to": "dnsOld",
+          "label": "Resolver in use",
+          "status": "{dnsLive == \"old\" ? \"in use: no answer\" : \"not used\"}",
+          "tone": "dnsLive == \"old\" ? \"down\" : \"up\""
+        },
+        {
+          "id": "l3",
+          "from": "app",
+          "to": "dnsNew",
+          "label": "Resolver in use",
+          "status": "{dnsLive == \"new\" ? \"in use\" : \"not used\"}",
+          "tone": "dnsLive == \"new\" ? \"up\" : \"degraded\""
+        },
+        {
+          "id": "l4",
+          "from": "gw",
+          "to": "partner",
+          "label": "Path",
+          "status": "open on 443",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "left",
+          "label": "Minutes to the 14:30 cutoff",
+          "value": "{max(0, round((cutoffAt - t) / 60))}"
+        },
+        {
+          "id": "q",
+          "label": "Orders queued",
+          "value": "{queued}"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnosing network issues: ip, ping, traceroute, ss, DNS resolution",
+  "sources": [
+    {
+      "cite": "CompTIA Linux+ (V8), exam XK0-006, launched 2025-07-15: System management 23%, Services and user management 20%, Security 18%, Automation, orchestration, and scripting 17%, Troubleshooting 22%",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.comptia.org/en/certifications/linux/",
+      "note": "Read through a summarizing fetch on 2026-11-16. The page lists the five domains and weights above; Troubleshooting covers diagnosing problems across the system. The objectives PDF was not opened; the course objective title is the course seed's."
+    },
+    {
+      "cite": "NetworkManager.conf(5), manual page (man.archlinux.org)",
+      "checkedAt": "2026-11-16",
+      "url": "https://man.archlinux.org/man/NetworkManager.conf.5",
+      "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: dns=default, 'NetworkManager will update /etc/resolv.conf to reflect the nameservers provided by currently active connections'; rc-manager is 'about how NetworkManager writes to /etc/resolv.conf, if at all', and with a regular file NetworkManager writes it directly. That a hand edit is replaced the next time the connection is reactivated is the author's reading of that behavior."
+    },
+    {
+      "cite": "Scenario data (authored)",
+      "checkedAt": "2026-11-16",
+      "note": "Fictional hosts and addresses: the private range 10.0.5.0/24, the documentation range 203.0.113.0/24 (IETF RFC 5737) and the reserved .example names (IETF RFC 2606). Command output is an authored rendering of ip, ping, traceroute, ss, dig and nmcli output, shortened."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Linux administrator for Brackett Foods, a fictional producer. At 13:40 monitoring reports that order-sync on app01 has failed every run since 13:00. It sends orders to a partner's API every 5 minutes; orders received by 14:30 ship the same day.",
+    "handover": [
+      "Yesterday the network team retired the DNS server 10.0.5.53; DHCP now hands out 10.0.5.2.",
+      "app01 is a RHEL-family server whose network is managed by NetworkManager."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows app01, its gateway, both DNS servers and the partner.",
+      "Each command takes a minute; the clock moves only when you act or wait.",
+      "When you close the outage, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cutoffAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "The partner's same-day cutoff is 14:30, 50 minutes after the 13:40 alert."
+      }
+    },
+    "syncEvery": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "order-sync runs every 5 minutes and sends everything queued when it can resolve the partner's name."
+      }
+    },
+    "flapAfter": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. A brief link flap at 14:10 makes NetworkManager reactivate eth0 and rewrite /etc/resolv.conf from the connection profile."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "ipAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pingGwAt": {
+      "type": "time",
+      "init": null
+    },
+    "pingIpAt": {
+      "type": "time",
+      "init": null
+    },
+    "traceAt": {
+      "type": "time",
+      "init": null
+    },
+    "digAt": {
+      "type": "time",
+      "init": null
+    },
+    "ssAt": {
+      "type": "time",
+      "init": null
+    },
+    "nmAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstFixAt": {
+      "type": "time",
+      "init": null
+    },
+    "dnsProfile": {
+      "type": "enum",
+      "values": [
+        "old",
+        "new"
+      ],
+      "init": "old"
+    },
+    "dnsLive": {
+      "type": "enum",
+      "values": [
+        "old",
+        "new"
+      ],
+      "init": "old"
+    },
+    "hostsPinned": {
+      "type": "bool",
+      "init": false
+    },
+    "rebooted": {
+      "type": "bool",
+      "init": false
+    },
+    "restarted": {
+      "type": "bool",
+      "init": false
+    },
+    "queued": {
+      "type": "number",
+      "init": 140,
+      "min": 0,
+      "max": 1000
+    },
+    "lastSyncAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "revertAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "cutoffOkAt": {
+      "type": "time",
+      "init": null
+    },
+    "cutoffMissedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dns",
+        "route",
+        "partner"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "resolves": {
+      "expr": "dnsLive == \"new\" or hostsPinned"
+    },
+    "durable": {
+      "expr": "dnsProfile == \"new\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "ip",
+        "route",
+        "pingGw",
+        "pingIp",
+        "trace",
+        "ss",
+        "dig",
+        "nm",
+        "fix",
+        "reboot",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "ip": {
+      "label": "ip -br addr",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ipAt)",
+          "then": [
+            {
+              "set": "ipAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# ip -br addr\nlo               UNKNOWN        127.0.0.1/8 ::1/128\neth0             UP             10.0.5.20/24"
+        },
+        {
+          "finding": "eth0 is up with its address: layer 1 to 3 on the host look fine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "ip route",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(routeAt)",
+          "then": [
+            {
+              "set": "routeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# ip route\ndefault via 10.0.5.1 dev eth0 proto static metric 100\n10.0.5.0/24 dev eth0 proto kernel scope link src 10.0.5.20 metric 100"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pingGw": {
+      "label": "ping -c 3 10.0.5.1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pingGwAt)",
+          "then": [
+            {
+              "set": "pingGwAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# ping -c 3 10.0.5.1\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "pingIp": {
+      "label": "ping -c 3 203.0.113.10 (the partner's address from the runbook)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(pingIpAt)",
+          "then": [
+            {
+              "set": "pingIpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# ping -c 3 203.0.113.10\n3 packets transmitted, 3 received, 0% packet loss, time 2004ms"
+        },
+        {
+          "finding": "The partner is reachable by address: routing and the path are fine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "trace": {
+      "label": "traceroute -n 203.0.113.10",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(traceAt)",
+          "then": [
+            {
+              "set": "traceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# traceroute -n 203.0.113.10\n 1  10.0.5.1  0.4 ms\n 2  198.51.100.1  2.1 ms\n 3  203.0.113.10  9.8 ms"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ss": {
+      "label": "ss -tnp '( dport = :443 )'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ssAt)",
+          "then": [
+            {
+              "set": "ssAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# ss -tnp '( dport = :443 )'\n{resolves ? \"10.0.5.20:51644  203.0.113.10:443  users:(order-sync)\" : \"(no connections to port 443: order-sync never gets as far as connecting)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "dig": {
+      "label": "dig api.partner.example",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(digAt)",
+          "then": [
+            {
+              "set": "digAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# dig api.partner.example\n{dnsLive == \"new\" ? \";; ANSWER SECTION:\napi.partner.example. 300 IN A 203.0.113.10\n;; SERVER: 10.0.5.2#53\" : \";; communications error to 10.0.5.53#53: timed out\n;; no servers could be reached\"}"
+        },
+        {
+          "finding": "Name lookups go to 10.0.5.53, the DNS server retired yesterday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nm": {
+      "label": "nmcli -f ipv4.dns,ipv4.ignore-auto-dns connection show eth0; cat /etc/resolv.conf",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(nmAt)",
+          "then": [
+            {
+              "set": "nmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# nmcli -f ipv4.dns,ipv4.ignore-auto-dns connection show eth0\nipv4.dns:                {dnsProfile == \"new\" ? \"10.0.5.2\" : \"10.0.5.53\"}\nipv4.ignore-auto-dns:    yes\nroot@app01:~# cat /etc/resolv.conf\n# Generated by NetworkManager\nnameserver {dnsLive == \"new\" ? \"10.0.5.2\" : \"10.0.5.53\"}"
+        },
+        {
+          "finding": "The connection profile pins the old server and ignores the DHCP one; NetworkManager writes resolv.conf from that profile."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "fix": {
+      "label": "change something",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "change == \"nmcli\"",
+              "then": [
+                {
+                  "set": "dnsProfile",
+                  "to": "\"new\""
+                },
+                {
+                  "set": "dnsLive",
+                  "to": "\"new\""
+                },
+                {
+                  "if": "isNull(fixedAt)",
+                  "then": [
+                    {
+                      "set": "fixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "root@app01:~# nmcli connection modify eth0 ipv4.dns 10.0.5.2\nroot@app01:~# nmcli connection up eth0\nConnection successfully activated"
+                },
+                {
+                  "log": "The profile now names 10.0.5.2, and reactivating the connection rewrote resolv.conf from it.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "change == \"resolv\"",
+              "then": [
+                {
+                  "set": "dnsLive",
+                  "to": "\"new\""
+                },
+                {
+                  "if": "isNull(fixedAt)",
+                  "then": [
+                    {
+                      "set": "fixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "root@app01:~# vi /etc/resolv.conf\n(nameserver 10.0.5.2; saved)"
+                },
+                {
+                  "log": "Lookups work now. The file says 'Generated by NetworkManager', and the profile still names 10.0.5.53.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "change == \"hosts\"",
+              "then": [
+                {
+                  "set": "hostsPinned",
+                  "to": "true"
+                },
+                {
+                  "if": "isNull(fixedAt)",
+                  "then": [
+                    {
+                      "set": "fixedAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "output": "root@app01:~# echo '203.0.113.10 api.partner.example' >> /etc/hosts"
+                },
+                {
+                  "log": "This one name resolves from /etc/hosts. Every other lookup still times out, and the partner's address is now hard-coded.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "restarted",
+                  "to": "true"
+                },
+                {
+                  "output": "root@app01:~# systemctl restart order-sync"
+                },
+                {
+                  "log": "order-sync restarts and fails its next lookup the same way.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ],
+      "params": [
+        {
+          "id": "change",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "nmcli",
+              "label": "nmcli connection modify eth0 ipv4.dns 10.0.5.2, then nmcli connection up eth0"
+            },
+            {
+              "value": "resolv",
+              "label": "Edit /etc/resolv.conf to nameserver 10.0.5.2"
+            },
+            {
+              "value": "hosts",
+              "label": "Add api.partner.example to /etc/hosts"
+            },
+            {
+              "value": "restart",
+              "label": "systemctl restart order-sync"
+            }
+          ]
+        }
+      ]
+    },
+    "reboot": {
+      "label": "systemctl reboot",
+      "group": "Fix",
+      "available": "not busy and (not rebooted)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(firstFixAt)",
+          "then": [
+            {
+              "set": "firstFixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rebooted",
+          "to": "true"
+        },
+        {
+          "set": "dnsLive",
+          "to": "dnsProfile"
+        },
+        {
+          "output": "root@app01:~# systemctl reboot"
+        },
+        {
+          "log": "app01 comes back 5 minutes later with the same connection profile, so the same resolver.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "getent hosts api.partner.example && journalctl -u order-sync -n 3",
+      "group": "Verify",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(verifiedAt)",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "root@app01:~# getent hosts api.partner.example\n{resolves ? \"203.0.113.10    api.partner.example\" : \"(no output, exit status 2)\"}\nroot@app01:~# journalctl -u order-sync -n 3\n{resolves ? \"order-sync: connected to api.partner.example; sending queued orders\" : \"order-sync: Temporary failure in name resolution (api.partner.example)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Root cause",
+              "options": [
+                {
+                  "value": "dns",
+                  "label": "app01's NetworkManager profile pinned the retired DNS server (and ignored DHCP's), so name resolution failed while the network path was fine"
+                },
+                {
+                  "value": "route",
+                  "label": "A routing fault between app01 and the partner"
+                },
+                {
+                  "value": "partner",
+                  "label": "The partner's API was down"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sync",
+      "when": "resolves and queued > 0 and t >= lastSyncAt + syncEvery and phase == \"incident\"",
+      "mode": "edge",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "queued",
+          "to": "0"
+        },
+        {
+          "set": "lastSyncAt",
+          "to": "t"
+        },
+        {
+          "log": "order-sync runs and sends every queued order.",
+          "kind": "good"
+        }
+      ]
+    },
+    {
+      "id": "orders",
+      "when": "not resolves and t >= lastSyncAt + syncEvery and phase == \"incident\"",
+      "mode": "edge",
+      "effects": [
+        {
+          "set": "queued",
+          "to": "queued + 15"
+        },
+        {
+          "set": "lastSyncAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "flap",
+      "when": "t >= flapAfter and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "dnsLive != dnsProfile",
+          "then": [
+            {
+              "set": "dnsLive",
+              "to": "dnsProfile"
+            },
+            {
+              "set": "revertAt",
+              "to": "t"
+            },
+            {
+              "log": "14:10: a link flap; NetworkManager reactivates eth0 and rewrites /etc/resolv.conf with 10.0.5.53 from the profile.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cutoff",
+      "when": "t >= cutoffAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "queued == 0",
+          "then": [
+            {
+              "set": "cutoffOkAt",
+              "to": "t"
+            }
+          ],
+          "else": [
+            {
+              "set": "cutoffMissedAt",
+              "to": "t"
+            },
+            {
+              "log": "14:30: the cutoff passes with orders still queued.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you narrowed it down layer by layer, why your fix lasts, and how you checked it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Narrowing",
+          "criteria": "Shows the link, address, route and path are fine (ip, ping to the gateway and the partner's address, traceroute) and that name resolution fails (dig times out to 10.0.5.53).",
+          "modelAnswer": "ip showed eth0 up with its address and a default route; the gateway and 203.0.113.10 answered pings and traceroute reached the partner, so the path was fine. dig timed out against 10.0.5.53, the server retired yesterday; ss showed order-sync never connecting."
+        },
+        {
+          "label": "Lasting fix",
+          "criteria": "Fixes the NetworkManager profile (not resolv.conf by hand, which NetworkManager rewrites; not /etc/hosts, which fixes one name) and reactivates it.",
+          "modelAnswer": "nmcli showed the profile pinned 10.0.5.53 and ignored DHCP's server; I set ipv4.dns 10.0.5.2 and brought the connection up, so resolv.conf is generated correctly and survives a reactivation."
+        },
+        {
+          "label": "Verified",
+          "criteria": "Checks resolution and the service's next run, and that the queue empties before the cutoff.",
+          "modelAnswer": "getent resolved the partner and order-sync's log showed it sending; the queue was empty before 14:30."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), set to the 50-minute cutoff",
+          "checkedAt": "2026-11-16",
+          "note": "Orders must reach the partner by 14:30; the scenario's own timing."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-16",
+          "note": "No second fault: a hard-coded hosts entry or a fix that reverts."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not resolves",
+      "class": "harm",
+      "rationale": "Closing while app01 cannot resolve names leaves orders queued; it is never a safe outcome.",
+      "source": {
+        "cite": "NetworkManager.conf(5), manual page (man.archlinux.org)",
+        "checkedAt": "2026-11-16",
+        "url": "https://man.archlinux.org/man/NetworkManager.conf.5",
+        "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: dns=default, 'NetworkManager will update /etc/resolv.conf to reflect the nameservers provided by currently active connections'; rc-manager is 'about how NetworkManager writes to /etc/resolv.conf, if at all', and with a regular file NetworkManager writes it directly. That a hand edit is replaced the next time the connection is reactivated is the author's reading of that behavior."
+      }
+    }
+  },
+  "endings": {
+    "cutoffMissed": {
+      "label": "Orders missed the same-day cutoff",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(cutoffMissedAt)",
+      "narrative": "Orders were still queued at 14:30."
+    },
+    "stillBroken": {
+      "label": "Closed with name resolution still broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not resolves",
+      "narrative": "app01 still cannot resolve names."
+    },
+    "restored": {
+      "label": "Narrowed to DNS, fixed in the profile, verified",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and durable and not hostsPinned and not rebooted and isNull(cutoffMissedAt) and queued == 0 and not isNull(digAt) and timeAt(digAt) <= timeAt(firstFixAt) and not isNull(pingIpAt) and timeAt(pingIpAt) <= timeAt(firstFixAt) and not isNull(verifiedAt) and timeAt(verifiedAt) >= timeAt(fixedAt) and causeDoc == \"dns\"",
+      "narrative": "You proved the path was fine and resolution was not, fixed the resolver where NetworkManager reads it, and saw the orders go."
+    },
+    "restoredGaps": {
+      "label": "Working, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Orders are moving, but the fix is fragile, a check was skipped, or a reboot cost time."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "cutoffMissed",
+    "stillBroken",
+    "restored",
+    "restoredGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Showed the path works by address and that DNS fails, before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(digAt) and not isNull(pingIpAt) and timeAt(digAt) <= timeAt(firstFixAt) and timeAt(pingIpAt) <= timeAt(firstFixAt)",
+            "score": "met",
+            "why": "Path fine, resolution broken: proved first."
+          },
+          {
+            "when": "not isNull(digAt) or not isNull(pingIpAt)",
+            "score": "partial",
+            "why": "Half the picture, or after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The fix was a guess."
+          }
+        ]
+      },
+      {
+        "id": "durable",
+        "label": "Resolver fixed in the NetworkManager profile, not by hand",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "durable and not hostsPinned",
+            "score": "met",
+            "why": "ipv4.dns in the profile."
+          },
+          {
+            "when": "resolves",
+            "score": "partial",
+            "why": "{hostsPinned ? \"One name pinned in /etc/hosts.\" : \"resolv.conf edited by hand; NetworkManager rewrites it.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Names still do not resolve."
+          }
+        ]
+      },
+      {
+        "id": "cutoff",
+        "label": "Every order sent before 14:30",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(cutoffMissedAt) and queued == 0",
+            "score": "met",
+            "why": "Queue empty before the cutoff."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Orders missed the cutoff, or are still queued."
+          }
+        ]
+      },
+      {
+        "id": "verify",
+        "label": "Checked resolution and the service after the fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(verifiedAt) and not isNull(fixedAt) and timeAt(verifiedAt) >= timeAt(fixedAt)",
+            "score": "met",
+            "why": "getent and the service log after the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No check after the change."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the pinned resolver",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"dns\"",
+            "score": "met",
+            "why": "Cause right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record blames something that was fine."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written narrowing, fix and verification",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minFix",
+        "label": "Minutes until names resolved",
+        "value": "isNull(fixedAt) ? -1 : timeAt(fixedAt) / 60",
+        "format": "number",
+        "expert": "about 8"
+      },
+      {
+        "id": "queued",
+        "label": "Orders still queued",
+        "value": "queued",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:40-13:44",
+        "text": "ip -br addr and ip route; ping the gateway and 203.0.113.10: the path is fine."
+      },
+      {
+        "at": "13:44-13:47",
+        "text": "dig times out to 10.0.5.53; nmcli shows the profile pins the retired server and ignores DHCP's."
+      },
+      {
+        "at": "13:47-13:55",
+        "text": "nmcli connection modify eth0 ipv4.dns 10.0.5.2, connection up; getent and the order-sync log; the queue empties on the next run."
+      }
+    ],
+    "debrief": {
+      "restored": {
+        "headline": "Good: layer by layer, fixed at the source",
+        "body": "Ping by address and traceroute ruled out the path, dig showed lookups timing out against the retired server, and nmcli showed why. Fixing the profile makes NetworkManager write the right resolver every time."
+      },
+      "restoredGaps": {
+        "headline": "Working, with gaps",
+        "body": "Orders moved, but the criteria show the fragile fix (a hand-edited resolv.conf or a hosts entry), the skipped check, or the reboot."
+      },
+      "cutoffMissed": {
+        "headline": "The cutoff passed",
+        "body": "The partner answered by address from the first minutes; only name resolution was broken. A hand edit of resolv.conf is undone the next time NetworkManager reactivates the connection."
+      },
+      "stillBroken": {
+        "headline": "Still broken",
+        "body": "app01 cannot resolve names. The connection profile still points at the retired DNS server."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Work up the stack: ip -br addr shows eth0 up with its address, ip route a default route, and the gateway and the partner's address answer pings (traceroute reaches it), so the network path is fine. dig api.partner.example times out against 10.0.5.53, the DNS server retired yesterday, and ss shows order-sync never connecting. nmcli shows the eth0 profile pins 10.0.5.53 with ignore-auto-dns, and NetworkManager writes resolv.conf from the profile, so fix the profile (ipv4.dns 10.0.5.2) and reactivate it. A hand edit of resolv.conf works until NetworkManager rewrites it; an /etc/hosts entry fixes one name and hard-codes an address. Verify with getent and the service log; the queue empties on the next run, before 14:30."
+  }
+}
