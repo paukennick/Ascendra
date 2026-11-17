@@ -97,7 +97,7 @@
         {
           "id": "iHash",
           "type": "hash",
-          "value": "9f2c41d07be3a8e55c1d3f6a0b84e29c7d15a6f30e8b42c9a17d5e06f3b2c8d41",
+          "value": "9f2c41d07be3a8e55c1d3f6a0b84e29c7d15a6f30e8b42c9a17d5e06f3b2c8d4",
           "when": "not isNull(iocAt)",
           "status": "{not isNull(deployAt) ? \"In the scanners\" : \"Sample hash\"}",
           "tone": "not isNull(deployAt) ? \"actioned\" : \"confirmed\""
@@ -148,7 +148,7 @@
           "id": "rYaraT",
           "kind": "yara",
           "label": "Invoice_Loader_updsvc",
-          "text": "rule Invoice_Loader_updsvc\n{\n  meta:\n    description = \"Invoice lure that drops updsvc\"\n  strings:\n    $a = \"cdn-update\" nocase\n    $b = \"updsvc.exe\" wide ascii\n    $c = \"UpdateService\" wide ascii\n  condition:\n    2 of them\n}",
+          "text": "rule Invoice_Loader_updsvc\n{{\n  meta:\n    description = \"Invoice lure that drops updsvc\"\n  strings:\n    $a = \"cdn-update\" nocase\n    $b = \"updsvc.exe\" wide ascii\n    $c = \"UpdateService\" wide ascii\n  condition:\n    2 of them\n}}",
           "when": "yara == \"tight\"",
           "status": "{isNull(yaraTestedAt) ? \"Not tested\" : not isNull(deployAt) ? \"Matches the sample; 0 of 5,000 known-good files; deployed\" : \"Matches the sample; 0 of 5,000 known-good files\"}",
           "tone": "not isNull(deployAt) ? \"deployed\" : not isNull(yaraTestedAt) ? \"tested\" : \"draft\""
@@ -157,7 +157,7 @@
           "id": "rYaraB",
           "kind": "yara",
           "label": "Any_Macro_Document",
-          "text": "rule Any_Macro_Document\n{\n  strings:\n    $m = \"vbaProject.bin\"\n  condition:\n    $m\n}",
+          "text": "rule Any_Macro_Document\n{{\n  strings:\n    $m = \"vbaProject.bin\"\n  condition:\n    $m\n}}",
           "when": "yara == \"broad\"",
           "status": "{isNull(yaraTestedAt) ? \"Not tested\" : \"Matches the sample and 312 of 5,000 known-good files: too noisy to deploy\"}",
           "tone": "isNull(yaraTestedAt) ? \"draft\" : \"noisy\""

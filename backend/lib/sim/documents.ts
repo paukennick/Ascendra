@@ -232,6 +232,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCNC", "cnc-ambivalent-food-record"),
   entry("CISSP", "cissp-datahall-tailgate-cooling"),
   band("SECPLUS", "datahall-tailgate-cooling-secplus"),
+  entry("CEH", "ceh-sandbox-invoice-loader"),
+  band("CYSAPLUS", "sandbox-invoice-loader-cysa"),
   // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
@@ -389,7 +391,7 @@ export const REQ314_SLUGS = {
     "cnc-ambivalent-food-record",
   ],
   facility: ["cissp-datahall-tailgate-cooling", "datahall-tailgate-cooling-secplus"],
-  sandbox: [] as string[],
+  sandbox: ["ceh-sandbox-invoice-loader", "sandbox-invoice-loader-cysa"],
 } as const;
 export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
 
