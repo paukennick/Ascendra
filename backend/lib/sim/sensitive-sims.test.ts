@@ -36,6 +36,7 @@ export const REQ329_CASES: readonly { course: string; slug: string; harmPath: st
   { course: "NCLEXPN", slug: "rehab-resident-no-use-to-anyone", harmPath: "secretAndLeft" },
   { course: "NCLEXPN", slug: "day-room-threat-then-emergency-medicine", harmPath: "forceAndLeft" },
   { course: "NCLEXPN", slug: "clinic-eviction-no-way-out", harmPath: "waitingRoom" },
+  { course: "NCLEXRN", slug: "voices-say-he-should-die", harmPath: "argueAndLeave" },
 ];
 
 export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [
