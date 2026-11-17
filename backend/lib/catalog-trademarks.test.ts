@@ -315,6 +315,29 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
       }
   });
 
+  // REQ-324 follow-up (Nick, 2026-11-17 08:59 PT): a permission body's course
+  // description names its exam as the title does (the title's exam name,
+  // without a "(... focus)" tag), with the same symbols and evidence as the
+  // title, and no other ® or ™ before the disclaimer.
+  test("REQ-324: 'permission' bodies: the description names the exam as the title does, with the title's symbols only", () => {
+    const examInTitle = (title: string) => title.replace(/^Exam Prep for /, "").replace(/ \((?:[a-z ]+ focus|with professional role topics)\)$/, "");
+    for (const b of BODIES.filter((x) => x.policy === "permission"))
+      for (const code of b.codes) {
+        const t = byCode.get(code)!;
+        const exam = examInTitle(t.title);
+        const ref = examReferenceForCode(code)!;
+        const body = t.description.slice(0, -ref.disclaimer.length);
+        assert.ok(body.includes(exam), `${b.name} ${code}: the description does not name "${exam}"`);
+        assert.equal(body.split(exam).length - 1, 1, `${code}: the exam is named once`);
+        const allowed = [COURSE_REFERENCES[code].exam, COURSE_REFERENCES[code].markSentence].join(" ").match(/[^ (]+[®™]/g) ?? [];
+        for (const m of body.matchAll(/[®™]/g)) {
+          const upto = body.slice(0, m.index! + 1);
+          assert.ok(allowed.some((a) => upto.endsWith(a)), `${code}: "${upto.slice(-40)}" -- no evidence the owner marks it so`);
+        }
+      }
+    assert.equal(byCode.get("ITIL5FND")!.description.startsWith("Preparation for the ITIL® Foundation (Version 5) exam"), true);
+  });
+
   test("'nominative' and 'unstated' bodies: the description carries the body's notice", () => {
     for (const b of BODIES.filter((x) => x.policy !== "permission"))
       for (const code of b.codes) assert.match(byCode.get(code)!.description, b.notice!, `${b.name} ${code}`);

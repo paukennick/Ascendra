@@ -179,7 +179,7 @@ export const FNPAANP_TRACK: SeedTrack = {
   code: "FNPAANP",
   title: "Exam Prep for Family Nurse Practitioner (NP-C®) (clinical practice focus)",
   description:
-    "A family nurse practitioner board certification exam, built on its 2024 examination blueprint: assess, diagnose, plan and evaluate across the lifespan, weighted as the blueprint weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The Family Nurse Practitioner (NP-C®) board certification exam, built on its 2024 examination blueprint: assess, diagnose, plan and evaluate across the lifespan, weighted as the blueprint weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "advanced-practice-nursing",
   freshnessModel: "certification_aligned",
@@ -324,7 +324,7 @@ export const FNPANCC_TRACK: SeedTrack = {
   code: "FNPANCC",
   title: "Exam Prep for FNP-BC™ (with professional role topics)",
   description:
-    "A family nurse practitioner board certification exam, built on its test content outline effective October 30, 2026: assessment, diagnosis, planning, implementation and evaluation across the lifespan, weighted as the outline weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The FNP-BC™ family nurse practitioner board certification exam, built on its test content outline effective October 30, 2026: assessment, diagnosis, planning, implementation and evaluation across the lifespan, weighted as the outline weights them. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "advanced-practice-nursing",
   freshnessModel: "certification_aligned",

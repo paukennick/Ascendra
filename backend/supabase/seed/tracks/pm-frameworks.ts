@@ -457,7 +457,7 @@ export const ITIL4FND_TRACK: SeedTrack = {
     "Replaced by ITIL5FND (Nick, 2026-11-16). PeopleCert sells ITIL Foundation (Version 5) and plans to sunset all ITIL 4 modules on 2027-12-31 (https://peoplecert.org/help-and-support/faq-itil, read 2026-11-16).",
   title: "Exam Prep for ITIL® 4 Foundation",
   description:
-    "Preparation for an IT service management foundation exam (version 4): the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, and the purpose of the management practices, with seven in depth. Replaced by the version 5 course. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the ITIL® 4 Foundation exam: the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, and the purpose of the management practices, with seven in depth. Replaced by the version 5 course. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
@@ -683,7 +683,7 @@ export const ITIL5FND_TRACK: SeedTrack = {
   code: "ITIL5FND",
   title: "Exam Prep for ITIL® Foundation (Version 5)",
   description:
-    "Preparation for an IT service management foundation exam (version 5), weighted as the syllabus publishes: the key terms of digital product and service management, the four dimensions, the product and service lifecycle, the value system (guiding principles, governance, value chain, management practices and continual improvement), value streams, AI in service management, and how the framework works with DevOps and project management methods. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the ITIL® Foundation (Version 5) exam, weighted as the syllabus publishes: the key terms of digital product and service management, the four dimensions, the product and service lifecycle, the value system (guiding principles, governance, value chain, management practices and continual improvement), value streams, AI in service management, and how the framework works with DevOps and project management methods. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
@@ -883,7 +883,7 @@ export const CSSGB_TRACK: SeedTrack = {
   code: "CSSGB",
   title: "Exam Prep for Certified Six Sigma Green Belt (CSSGB)",
   description:
-    "Preparation for a process improvement green belt certification exam on the 2022 body of knowledge, weighted by its question counts: the method and the organization, then Define, Measure, Analyze, Improve and Control, with the statistics worked through -- capability indices, hypothesis tests, control charts and the yield and defect metrics. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the Certified Six Sigma Green Belt (CSSGB) exam on the 2022 Body of Knowledge, weighted by its question counts: the method and the organization, then Define, Measure, Analyze, Improve and Control, with the statistics worked through -- capability indices, hypothesis tests, control charts and the yield and defect metrics. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "quality-six-sigma-certifications",
   freshnessModel: "certification_aligned",

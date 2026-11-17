@@ -439,7 +439,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
   code: "ABPTSOCS",
   title: "Exam Prep for ABPTS Orthopedic Clinical Specialist (OCS)",
   description:
-    "Board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Orthopedic Clinical Specialist (OCS) exam, board certification in orthopedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
   credential: abptsCredential({
@@ -559,7 +559,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
   code: "ABPTSGCS",
   title: "Exam Prep for ABPTS Geriatric Clinical Specialist",
   description:
-    "Board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Geriatric Clinical Specialist exam, board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
   credential: abptsCredential({
@@ -678,7 +678,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
   code: "ABPTSNCS",
   title: "Exam Prep for ABPTS Neurologic Clinical Specialist",
   description:
-    "Board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Neurologic Clinical Specialist exam, board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
   credential: abptsCredential({
@@ -783,7 +783,7 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
   code: "ABPTSCCS",
   title: "Exam Prep for ABPTS Cardiovascular and Pulmonary Clinical Specialist",
   description:
-    "Board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Cardiovascular and Pulmonary Clinical Specialist exam, board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
   credential: {
     ...abptsCredential({
@@ -920,7 +920,7 @@ export const ABPTS_PCS_TRACK: SeedTrack = {
   code: "ABPTSPCS",
   title: "Exam Prep for ABPTS Pediatric Clinical Specialist",
   description:
-    "Board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Pediatric Clinical Specialist exam, board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics",
   credential: abptsCredential({
@@ -1035,7 +1035,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
   code: "ABPTSSCS",
   title: "Exam Prep for ABPTS Sports Clinical Specialist",
   description:
-    "Board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Sports Clinical Specialist exam, board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
   credential: abptsCredential({
@@ -1141,7 +1141,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
   code: "ABPTSONC",
   title: "Exam Prep for ABPTS Oncologic Clinical Specialist",
   description:
-    "Board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Oncologic Clinical Specialist exam, board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology",
   credential: abptsCredential({
@@ -1262,7 +1262,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
   code: "ABPTSECS",
   title: "Exam Prep for ABPTS Clinical Electrophysiologic Specialist",
   description:
-    "Board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Clinical Electrophysiologic Specialist exam, board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
   credential: abptsCredential({
@@ -1377,7 +1377,7 @@ export const ABPTS_PWCS_TRACK: SeedTrack = {
   code: "ABPTSPWCS",
   title: "Exam Prep for ABPTS Pelvic and Women's Health Clinical Specialist (PWCS)",
   description:
-    "Board certification in pelvic and women's health physical therapy (renamed from women's health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Pelvic and Women's Health Clinical Specialist (PWCS) exam, board certification in pelvic and women's health physical therapy (renamed from women's health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health",
   credential: abptsCredential({
@@ -1463,7 +1463,7 @@ export const ABPTS_WMS_TRACK: SeedTrack = {
   code: "ABPTSWMS",
   title: "Exam Prep for ABPTS Wound Management Clinical Specialist",
   description:
-    "Board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ABPTS Wound Management Clinical Specialist exam, board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl:
     "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
   credential: abptsCredential({

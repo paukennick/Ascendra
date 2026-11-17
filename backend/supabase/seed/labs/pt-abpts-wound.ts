@@ -209,7 +209,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the exercise prescription for the casting period and the plan for after closure, following the physical therapy diabetic foot ulcer guideline.",
+          ask: "Write the exercise prescription for the casting period and the plan for after closure, following the APTA diabetic foot ulcer guideline.",
           parts: [
             part(
               "During casting",

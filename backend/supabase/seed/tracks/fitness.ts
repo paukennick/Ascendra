@@ -66,7 +66,7 @@ export const NASM_CPT_TRACK: SeedTrack = {
   code: "NASMCPT",
   title: "Exam Prep for NASM® Certified Personal Trainer (exercise technique focus)",
   description:
-    "An NCCA-accredited personal trainer exam on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The NASM® Certified Personal Trainer exam, NCCA-accredited, on its current six-domain blueprint: exercise technique and training instruction (24%), program design (20%), assessment (16%), sciences and nutrition, client relations, and professional responsibility. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://www.nasm.org/certified-personal-trainer/exam-information",
   credential: {
     providerSlug: "nasm",
@@ -174,7 +174,7 @@ export const ACE_CPT_TRACK: SeedTrack = {
   code: "ACECPT",
   title: "Exam Prep for ACE® Certified Personal Trainer (client onboarding focus)",
   description:
-    "An NCCA-accredited personal trainer exam on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%). Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "The ACE® Certified Personal Trainer exam, NCCA-accredited, on its 2022 role delineation study: client onboarding and assessments (23%), program design and implementation (31%), program modification and progression (27%), and risk management, professional conduct and ethical business practices (19%). Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
   credential: {
     providerSlug: "ace",
@@ -748,7 +748,7 @@ export const NASM_CNC_TRACK: SeedTrack = {
   code: "NASMCNC",
   title: "Exam Prep for NASM® Certified Nutrition Coach",
   description:
-    "Preparation for a nutrition coaching certification exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. The exam publishes no weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the NASM® Certified Nutrition Coach exam across its four course sections -- professional practice, nutrition science, behavior change strategies and practical nutrition coaching -- with the current Dietary Guidelines and Dietary Reference Intakes. Stays inside a coach's scope: general, evidence-based guidance and habit coaching, with referral to a registered dietitian nutritionist or physician for medical nutrition therapy, diagnosed conditions and suspected eating disorders. The exam publishes no weights, so the unit weights are our study emphasis. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   sourceUrl: CNC_URL,
   sourceVerifiedAt: CNC_VERIFIED_AT,
   contentReviewDueAt: "2027-11-14T00:00:00Z",

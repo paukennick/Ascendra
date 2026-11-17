@@ -168,7 +168,7 @@ export const CISM_TRACK: SeedTrack = {
   code: "CISM",
   title: "Exam Prep for CISM®",
   description:
-    "Preparation for an information security management certification exam on the content outline used from November 3, 2026: information security governance, risk management, the security program and incident management, weighted 18/20/33/29 as the exam weights them, answered the way a security manager answers -- business first. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
+    "Preparation for the CISM® exam on the content outline used from November 3, 2026: information security governance, risk management, the security program and incident management, weighted 18/20/33/29 as the exam weights them, answered the way a security manager answers -- business first. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "it-certifications",
   freshnessModel: "certification_aligned",
