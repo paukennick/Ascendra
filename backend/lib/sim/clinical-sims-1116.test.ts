@@ -156,3 +156,18 @@ test("FAIL-2240: the REQ-239 NBCC session list is named by slug, so NCE and NCMH
   ]);
   assert.ok(ALL_DOCUMENTS.some((e) => e.course === "NCE" && e.slug === "nce-suicide-safety-plan"), "an NCE band exists beside the list");
 });
+
+// FAIL-2241: a state variable named "scoring" (the CIWA-Ar case's scoring-in-
+// progress flag) made the client document look as if it carried the
+// server-only scoring block, and documents.test.ts failed; that test is heavy
+// and runs late. This cheap check names the clash at authoring time for every
+// document: no id in the maps the client receives may be a server-only key.
+test("FAIL-2241: no client-visible id is a server-only key name", () => {
+  const SERVER_ONLY = new Set(["scoring", "parts", "modelAnswer", "modelReasoning", "debrief", "expertPath", "checkedAt", "recheckBy"]);
+  for (const e of ALL_DOCUMENTS) {
+    const doc = loadDocument(e) as unknown as Record<string, Record<string, unknown> | undefined>;
+    for (const map of ["state", "derived", "params", "actions", "timers", "phases", "endings"]) {
+      for (const id of Object.keys(doc[map] ?? {})) assert.ok(!SERVER_ONLY.has(id), `${e.course}/${e.slug}: ${map}.${id} is a server-only key name`);
+    }
+  }
+});

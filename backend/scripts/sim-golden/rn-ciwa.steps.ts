@@ -20,7 +20,7 @@ function act(c: Ctl, a: string, p?: Record<string, string>): void {
 // Score and wait for the result.
 function score(c: Ctl): void {
   act(c, "ciwa");
-  until(c, (x) => x.value("scoring") === false || ended(x));
+  until(c, (x) => x.value("scoringNow") === false || ended(x));
   teach(c);
 }
 

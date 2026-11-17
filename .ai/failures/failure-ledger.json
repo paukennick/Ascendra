@@ -18165,6 +18165,31 @@
       "prevention_rules": [],
       "prevention_notes": "Sim tests select by slug from their requirement's own list (pre-completion checklist, FAIL-2002); the new regression test pins the NBCC list",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2241",
+      "date": "2026-11-16",
+      "title": "A sim state variable named scoring looked like the server-only scoring block in the client document",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: 'NCLEXRN/alcohol-withdrawal-ciwa: client document has key \"scoring\"'",
+      "how_detected": "lib/sim/documents.test.ts in the end-of-work run under the shared lock",
+      "root_cause": "The CIWA-Ar case named its scoring-in-progress flag state.scoring; the client-leak test checks key names anywhere in the client document, so a client-visible id that equals a server-only key fails it. Neither the schema nor sims:lint checks ids against that list, and documents.test.ts is heavy and was run only at the end",
+      "requirement": "REQ-315",
+      "affected": [
+        "backend/supabase/seed/sims/NCLEXRN/alcohol-withdrawal-ciwa.sim.json",
+        "backend/scripts/sim-golden/rn-ciwa.steps.ts"
+      ],
+      "fix_summary": "Renamed the state to scoringNow and rebuilt the goldens",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/clinical-sims-1116.test.ts::FAIL-2241: no client-visible id is a server-only key name",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A cheap test over every document names the clash at authoring time, before the heavy documents test runs",
+      "recurrence_of": ""
     }
   ]
 }
