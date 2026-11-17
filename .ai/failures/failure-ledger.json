@@ -18141,6 +18141,30 @@
       "prevention_rules": [],
       "prevention_notes": "Watch the seed's duration in the post-deploy log; make it faster before it nears 75 minutes.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2200",
+      "date": "2026-11-16",
+      "title": "A critical criterion of the CISM exception case was never missed by any golden path",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: ERROR scoring.criteria.governed: missed by no golden path (cism-risk-appetite-exception)",
+      "how_detected": "npm run sims:lint (scratch runner over the REQ-313 documents)",
+      "root_cause": "The no-conditions path still recorded the exception in the register, so 'governed' scored partial, never missed; the golden set could not show the criterion separates a governed exception from an ungoverned one. Same class as FAIL-1823.",
+      "requirement": "REQ-313",
+      "affected": [
+        "backend/scripts/sim-golden/cism-exception.steps.ts"
+      ],
+      "fix_summary": "The asAsked path no longer records the exception, so governed is missed there; goldens rebuilt",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/governance-screens.test.ts (every criterion met and missed in every REQ-313 golden file)",
+        "sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-313 test checks met-and-missed per criterion for every document, so a path change that hides a criterion fails npm test, not only sims:lint",
+      "recurrence_of": ""
     }
   ]
 }

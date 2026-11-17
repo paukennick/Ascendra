@@ -5624,3 +5624,189 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.26 The governance board, the tabletop exercise and professional-ethics conversations (REQ-313)
+
+Nick, 2026-11-16: "build all the proposed screens". This section builds three
+of the security builder's proposals in 22.19 (the facility console and the
+sandbox report screen belong to other builders): a **governance board**, a
+**tabletop exercise**, and a **conversation for professional-ethics
+dilemmas**, which runs on the existing client `session` screen rather than a
+new one. Each follows the terminal (22.10) and console (22.7) pattern:
+schema, validator, profile, renderer, negotiation, tests, docs. Display and
+lint only: no stepping change, no engine minor, no migration; every existing
+hash is unchanged.
+
+#### Design
+
+**Why the ethics dilemmas use the session screen (decision for the record).**
+The session screen (22.5) is already a conversation: a named person with a
+presentation over state, gauges read in words, notes with an alert flag, the
+record so far, learner-paced exchanges that cost conversation minutes, and the
+other person's answer shown as "Last said". None of that is clinical; the
+clinical parts are in the documents and the `clinical-session` profile. The
+one client-bound thing in the renderer is the read-aloud button ("Read the
+client"). So the dilemmas use the session screen with a new profile,
+`professional-ethics`, and one new optional binding, `screen.session.readLabel`
+("Read the conversation"). A document that sets it must declare
+`screen.level: 2` (validator rule), and the app now advertises `session@2`, so
+an older app is told to update instead of saying "Read the client" to a
+manager. Older session documents stay level 1 and run on every app.
+
+**Governance board** (`screen.type: "governance-board"`, `governance-board@1`,
+binding `screen.governance`; `GovernancePanel`, view model
+`governanceView`/`governanceAlarmTexts`/`governanceNews`/`governanceSentence`
+in `mobile/src/sim/runtime/governanceView.ts`). For decisions over a quarter,
+not minutes. Four blocks in reading and web keyboard order:
+
+- **Risk register**: `risks` (`label`, `spokenLabel`, `owner` and `status`
+  templates, `rating` an enum expression over critical, high, medium, low,
+  `appetite` an enum over `within`, `above` and `excepted` (above appetite
+  under an approved, time-limited exception), optional `when`). Risks above
+  appetite sort first.
+- **Support**: `stakeholders`, numeric gauges read in words exactly like the
+  session's (`value`, `max`, `bands`, `words`; one more word than bands).
+- **Budget and meters**: `budget` (`label`, `spent` and `total` expressions,
+  `unit` in words) and `meters`.
+- **Docket**: `docket` items (`kind` such as Business case, Exception request,
+  Board request, Vendor offer; `label`, `status`, `when`; `flag` marks one the
+  screen reader must hear at once, such as a deadline).
+
+**Tabletop exercise** (`screen.type: "tabletop"`, `tabletop@1`, binding
+`screen.tabletop`; `TabletopPanel`, view model in
+`mobile/src/sim/runtime/tabletopView.ts`). The clock is scenario time.
+
+- **Injects**: the facilitator's timeline, oldest first (`title`, `text`,
+  `when`, `at` in sim seconds, checked by the seconds-unit lint; `open` marks
+  one still waiting for the team's decision).
+- **Around the table**: `roles` with a tone `engaged`, `waiting` or `gap` (the
+  plan does not cover it), read as "engaged", "not yet involved", "gap: not
+  covered by the plan".
+- **Communications**: `comms` by audience with a tone `none`, `draft`,
+  `cleared`, `sent` or `late`.
+- **Meters and the decision log** (`decisions`, items shown while `when`
+  holds).
+
+Ids are unique across each screen's lists; tones and ratings are enum
+expressions the validator types (`governanceCheck`, `tabletopCheck` in
+`engine/v1/validate.ts`).
+
+**Accessibility**, equal to the console: every risk, stakeholder, docket item,
+inject, role, communication and meter is one accessible element whose label
+says its state in words (rating, appetite and tone are a word plus a color,
+never color alone); every element is at least 48 dp. Alarms, spoken at once
+and again as cleared: a risk above appetite, a flagged docket item, a budget
+overrun; an inject waiting for a decision, a late communication. Polite news
+through the announcer (at most one polite sentence per 10 s): a risk's rating
+or appetite moving, support moving into another word, a docket item's new
+status, a role or communication changing, a new decision. "Read the board"
+and "Read the table" speak the whole screen. Keyboard order on web is the
+order on screen, then the actions (ActionBar). JavaScript only.
+
+**Pacing: learner-paced** (`turns`), as on the console. A board task costs
+days (`tick` 1 d, calendar `week`: quantifying a risk with Finance 5 d, a
+meeting 1-2 d, "Let the week pass" 7 d); the board meeting, a vendor's
+offer, the chair's question and the attack are triggers on the same calendar
+that stop the skip (`interruptsSkip`). A tabletop discussion costs scenario
+minutes (`tick` 10 min; a decision 20 min, a question to the table 10 min,
+"Move the scenario on" 1 h); the next inject arrives on the same clock. A
+conversation exchange costs 1-4 minutes. The general family is not
+pace-eligible.
+
+**Outcome profiles** (9.2, defaults in `PROFILE_THRESHOLDS`):
+
+| Profile | Defaults | Target / recovered / harm |
+|---|---|---|
+| `governance` | `budgetCap` 100 (% of the approved budget, lower is tighter), `aboveAppetite` 0, `supportTarget` 6 of 10 (higher is tighter) | target: within budget, nothing above appetite without a treatment or the owner's time-limited acceptance, key stakeholders supportive; recovered: a stakeholder below target, a late or ungoverned decision; harm: overspend past the cap, an untreated risk above appetite that materializes, a decision taken outside its owner's authority |
+| `exercise` | `decisionWindow` 3600 s of scenario time per inject, `unownedGaps` 0 | target: each inject decided in time, the plan's roles engaged, outside communications cleared, every gap found given an owner and a date; recovered: late, a role missing, gaps unowned; harm: in the scenario, a statement or payment outside the plan or the law, people put at risk, an uncontrolled outage, or no after-action at all |
+| `professional-ethics` | `actWindow` 86400 s, `canonBreaches` 0 | target: the duty acted on in time through the proper channel with no canon breached; recovered: late, a refusal with no way forward, the wrong channel or a damaged relationship; harm: the unethical act done or a confidence broken |
+
+**Trademarks** (Nick, 2026-11-16). Learner-facing sim text names no
+certifying body's mark: the ethics briefs say "your professional code of
+ethics" and paraphrase the four canons. New lint error `certMarkProblems`
+(`lib/sim/lint.ts`, run by `sims:lint`) checks every string of a
+`governance`, `exercise` or `professional-ethics` document except
+`objective`, `secondaryObjectives` and `sources` (catalog titles and
+citations). Code refers to courses by code.
+
+#### Cases
+
+Authored (each: one written-reasoning moment, endings in all three classes,
+`endingOrder` with harm first, four critical criteria, three KPIs, an expert
+path, a debrief per ending, six golden paths with Good, Mediocre and Bad and
+every criterion met and missed; `npm run sim:golden -- steps <name>`):
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| CISM/cism-security-business-case-budget | governance board | 1.7 Build a business case, budget and resource plan ... | Ransomware and wire fraud above appetite; quantify with Finance, map proposals to the strategy and the risk each treats, CFO and COO first, a 550-thousand package within the 600 budget approved in week 7; the SIEM premium tier treats neither risk; the COO (not you) accepts the residual wire risk; the chair answered in business terms; the week-11 attack is a 9-hour restore or a 3-day outage | cism-budget |
+| CISM/cism-risk-appetite-exception | governance board | 2.3 Assess and analyze risk against appetite and tolerance | A six-month exception for an unencrypted legacy handheld app; rate it, compare with the appetite and tolerance, recommend 90 days with encryption, remote wipe and a purge live before the launch; the VP signs as owner; steering review, register entry, a replacement plan; the week-8 theft is wiped or a breach | cism-exception |
+| CISM/cism-ransomware-tabletop | tabletop | 4.5 Train, test and evaluate incident management with tabletop ... exercises | Five injects over two scenario days; declare, counsel at the leak claim, a holding statement counsel has reviewed before the reporter's 13:00 deadline, restore from clean copies in impact order, payment to the executive with counsel, law enforcement, the insurer and a sanctions check; three plan gaps to find and own | cism-tabletop |
+| CISSP/cissp-flood-continuity-tabletop | tabletop | 7.10 Participate in business continuity planning and exercises | People first at the flood warning; declare and fail over while the generator runs (six hours of fuel); recover in the BIA's order; the payment processor's allow-list (an external dependency) fixed under contract; customers updated; three gaps | cissp-bcp-tabletop |
+| ISC2CC/cc-ethics-shared-credentials | session@2 | 1.8 Apply the code of ethics canons, due care and due diligence | A team lead asks for your admin password and, later, audit logging off on a patient records server; due diligence first, decline with the emergency-change route that meets the deadline, keep logging, escalate to the on-call security manager only if he insists, a factual note | cc-ethics |
+| CISSP/cissp-ethics-audit-finding-pressure | session@2 | 1.1 Apply the professional and an organizational code of ethics | The CIO asks you to rate a critical finding medium and offers you a program to lead; find the facts, keep it critical with a three-week fix and the owner's acceptance, disclose the conflict, the chief audit executive if she moves to edit the draft; never leak it | cissp-ethics |
+
+Bands (4.7; same case and paths, the other course's objective;
+`npm run sim:golden -- steps <name>`):
+
+| Band | Base | Objective | Steps |
+|---|---|---|---|
+| ISC2CC/cc-ransomware-tabletop | CISM tabletop | 5.5 Implement an incident response plan and test it with exercises such as tabletops | cc-tabletop |
+| SECPLUS/ransomware-tabletop-secplus | CISM tabletop | 4.20 Incident response activities (testing: tabletop exercise) | secplus-tabletop |
+| SECPLUSV8/ransomware-tabletop-v8 | CISM tabletop | 4.27 Incident response preparation: training, testing, tabletop exercises ... | secplus-tabletop-v8 |
+| SECPLUS/risk-exception-appetite-secplus | CISM exception | 5.10 Risk management strategies (accept: exemption, exception) and BIA | secplus-exception |
+| SECPLUSV8/risk-exception-appetite-v8 | CISM exception | 5.7 Business-level considerations: BIA, risk appetite, residual risk ... | secplus-exception-v8 |
+| ISC2CC/cc-flood-continuity-tabletop | CISSP flood | 2.2 Distinguish business continuity from disaster recovery, and interpret recovery objectives | cc-bcp-tabletop |
+| SECPLUS/flood-continuity-tabletop-secplus | CISSP flood | 3.13 Resilience and recovery (testing: tabletop exercises; generators) | secplus-bcp-tabletop |
+| SECPLUSV8/flood-continuity-tabletop-v8 | CISSP flood | 3.17 Resilience testing, disaster recovery, business continuity | secplus-bcp-tabletop-v8 |
+
+`GOVERNANCE_DOCUMENTS` (lib/sim/documents.ts) lists all fourteen. Checked by
+`lib/sim/governance-screens.test.ts` (18 tests: bindings, profiles, the
+readLabel level rule, the switch and negotiation, every document's shape,
+catalog objectives, goldens, the trademark rule, one behavior per case),
+`mobile/src/sim/governance.test.ts` (12: the view models, alarms and news,
+the Read sentences, the read button, caps, golden replays through the app's
+engine copy) and `lib/sims-governance.dbtest.ts` (17, run 2026-11-16 on a
+throwaway Postgres 16 with every migration: all fourteen seeded by course and
+title and idempotent, an app from before REQ-313 told to update, the switch,
+pacing refused, thirteen golden paths through the routes to one attempt each).
+
+#### Coverage after this section (22.19 table, updated)
+
+- **CISM**: 1.7, 2.3 and 4.5 built here. Still **Screen → now fits the
+  governance board, not built**: 1.1, 1.2, 1.4 (secondary in 1.7's case), 1.5,
+  1.6, 2.1, 2.2, 2.6, 3.1-3.10, 3.12 (secondary in 1.7's case). 2.5 is now
+  secondary in the exception case (it also stays a console candidate).
+- **CISSP**: 1.1 and 7.10 built (7.9 and 1.7 secondary).
+- **CC**: 1.8 built; 5.5 and 2.2 as bands.
+- **Security+**: SY0-701 4.20, 5.10 and 3.13 and SY0-801 4.27, 5.7 and 3.17
+  as bands.
+- No CISM objective names a code of ethics, so the second professional code
+  is cited for comparison in the CISSP case and nothing is registered to it.
+
+**Sources** (on each document with `checkedAt` and how each was read; read
+2026-11-16 unless noted): the ethics code's page (canons, the complaint duty;
+summarizing fetch); the second professional code's page (summarizing fetch);
+NIST's CSF 2.0 Implementation Examples PDF for GV.RM-02, GV.RR-02 and GV.OV
+(summarizing fetch; CSWP 29 itself not opened); CISA's CTEP page and FEMA's
+HSEEP page (summarizing fetches; HSEEP does not itself say corrective actions
+get owners and dates, which the cases mark as the author's reading); NIST SP
+800-84's publication page (title and dates only; the guide's text not read,
+"to verify"); a law firm's summary of the SEC's 2023 Item 1.05 rule (not the
+SEC's text; cited only for why counsel starts early, nothing scored); the
+CISM, CISSP and CC outlines and SP 800-34 Rev. 1 as read 2026-11-14 for
+REQ-270 to REQ-274, not re-read. Every amount, time, count and organization
+is the author's and says so on its param.
+
+**Findings** (recorded, not worked around):
+
+1. **A criterion never missed (FAIL-2200)**: the exception case's `governed`
+   was never missed by a golden path; the path was changed and the REQ-313
+   test now checks met-and-missed for every criterion of every document.
+2. **Authoring note**: a template slot cannot hold another slot inside a
+   string literal (`"Package: {pkg}"` inside `{...}` renders the braces); write
+   adjacent slots instead.
+3. **`time_up`** is reached by no golden path in any case, as elsewhere.
+
+**Ships over the air.** Everything on the app side is JavaScript (two panels,
+two view models, a caps change, the session button label); no native module,
+permission or asset, so no store build is needed.
