@@ -11140,6 +11140,35 @@
       "risk_notes": [
         "A seed that grows past 75 minutes needs to be made faster (batching), not given more time"
       ]
+    },
+    {
+      "id": "REQ-317",
+      "category": "legal",
+      "title": "Privacy Policy 2026-11-17 names predicted recall",
+      "description": "Nick 2026-11-16: the Privacy Policy should name the predicted-recall data (REQ-301 shadow mode). Section 1 lists, per review, the memory model's predicted recall and the numbers it used; section 3 says it is used to check the model before it schedules reviews, shown to no one meanwhile. Privacy moves to 2026-11-17; Terms stay 2026-11-13; Cookies stay 2026-11-16.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/lib/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "Privacy section 1 names predicted recall and the model numbers",
+        "Privacy section 3 says why and that no one sees them",
+        "LEGAL_VERSIONS.privacy 2026-11-17; 2026-11-16 previous; 2026-11-14 and older in EARLIER"
+      ],
+      "validation_required": [
+        "cd backend && npx tsx --test lib/terms-enforcement.test.ts lib/legal.test.ts",
+        "cd mobile && node --test src/lib/legalPrivacy.test.ts",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Everyone is asked to agree to the Privacy Policy once more (second time in two days)"
+      ]
     }
   ]
 }
