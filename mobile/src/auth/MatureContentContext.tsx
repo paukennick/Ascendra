@@ -25,7 +25,10 @@ import {
 //   - when the API client gets a 403 "mature_content_required" (a mental
 //     health course opened or started without an acknowledgement for it),
 //     through the handler registered here, after which the client sends the
-//     request once more.
+//     request once more;
+//   - REQ-327: when the API client gets that 403 with scope "sims" (an 18+
+//     simulation of a course outside mental health): the sims notice, and the
+//     acknowledgement is sent with scope "sims".
 // The notice asks for a date of birth only while none is on file, and shows a
 // closed, kind message instead of a form when the account is under 18. Every
 // caller waiting while the sheet is open is answered together. The
@@ -61,7 +64,7 @@ export function MatureContentProvider({ children }: { children: React.ReactNode 
   const acknowledgedThisSession = useRef(new Set<string>());
   const waiting = useRef<((answer: MatureAnswer) => void)[]>([]);
   const pending = useRef<{ target: MatureTarget; source: MatureSource; title?: string } | null>(null);
-  const [shown, setShown] = useState<{ title?: string } | null>(null);
+  const [shown, setShown] = useState<{ title?: string; scope?: "sims" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +84,7 @@ export function MatureContentProvider({ children }: { children: React.ReactNode 
     return new Promise<MatureAnswer>((resolve) => {
       waiting.current.push(resolve);
       pending.current ??= { target, source, title };
-      setShown({ title: pending.current.title });
+      setShown({ title: pending.current.title, scope: pending.current.target.scope });
     });
   }, []);
 
@@ -118,11 +121,14 @@ export function MatureContentProvider({ children }: { children: React.ReactNode 
           trackId: p.target.trackId,
           version: MATURE_CONTENT_NOTICE_VERSION,
           source: p.source,
+          // REQ-327: an 18+ sim acknowledges that course's sims.
+          ...(p.target.scope === "sims" ? { scope: "sims" } : {}),
           ...form,
         });
         const next = parseMatureState(d);
         if (next) setState(next);
-        acknowledgedThisSession.current.add(p.target.trackId);
+        // Course acknowledgements only: needs() is asked about courses.
+        if (p.target.scope !== "sims") acknowledgedThisSession.current.add(p.target.trackId);
         settle("confirmed");
       } catch (err) {
         const failure = err instanceof ApiError ? acceptFailure(err.status, err.data) : { kind: "other" as const };
@@ -163,6 +169,7 @@ export function MatureContentProvider({ children }: { children: React.ReactNode 
       <MatureContentSheet
         visible={!!shown}
         mode={mode}
+        scope={shown?.scope}
         courseTitle={shown?.title}
         busy={busy}
         error={error}

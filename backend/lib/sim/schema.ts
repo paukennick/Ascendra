@@ -467,6 +467,7 @@ export const scenarioSchema = z.object({
   sources: z.array(sourceSchema),
   brief: z.object({ situation: z.string().max(6000), handover: z.array(z.string()).optional(), howItWorks: z.array(z.string()).optional() }),
   safetyNote: z.string().max(600).optional(),
+  mature: z.boolean().optional(), // REQ-327: the per-sim 18+ gate
   clock: z.object({ start: z.string(), tick: duration, maxDuration: duration, calendar: z.enum(["clock", "date", "week"]).optional() }),
   random: z.object({ streams: z.array(id) }).optional(),
   params: z.record(id, paramSchema),

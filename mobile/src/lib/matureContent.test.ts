@@ -14,7 +14,10 @@ import {
   MATURE_ATTESTATION_STATEMENT,
   MATURE_CONTENT_NOTICE_VERSION,
   MATURE_NOTICE_LINES,
+  MATURE_SIM_NOTICE_LINES,
+  MATURE_SIM_NOTICE_TITLE,
   MATURE_UNDERAGE_LINES,
+  noticeText,
   MatureContentBlockedError,
   MatureContentDeclinedError,
   matureRefusalTarget,
@@ -240,5 +243,71 @@ describe("where the app asks first", () => {
     const src = read("mobile/src/components/MatureContentNotice.tsx");
     assert.match(src, /mode === "form_with_dob" \?/);
     assert.match(src, /<Checkbox checked=\{ticked\}[^>]*label=\{MATURE_ATTESTATION_STATEMENT\}/);
+  });
+});
+
+// REQ-327 (Nick, 2026-11-17): an 18+ simulation in a course outside the mental
+// health category. The server's 403 carries scope "sims" and the sim; the app
+// shows the sims notice for that course, acknowledges with scope "sims" and
+// resends once; closing it or an under-18 account gets the simulation's words.
+describe("REQ-327: 18+ simulations", () => {
+  const SIM = "00000000-0000-4000-8000-0000000000b1";
+  const SIM_REFUSAL = { code: "mature_content_required", scope: "sims", category: "healthcare-nursing", trackId: TRACK2, simId: SIM, noticeVersion: MATURE_CONTENT_NOTICE_VERSION, minAge: 18, error: "x" };
+  function simGatedFetch(state: { confirmed: boolean }): typeof fetch {
+    return (async (url: string) => {
+      fetched.push(String(url));
+      if (!state.confirmed) return new Response(JSON.stringify(SIM_REFUSAL), { status: 403 });
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }) as unknown as typeof fetch;
+  }
+  test("the refusal names the course and the sim, with scope sims; a course refusal is unchanged", () => {
+    assert.deepEqual(matureRefusalTarget(403, SIM_REFUSAL), { trackId: TRACK2, category: "mental-health", scope: "sims", simId: SIM });
+    assert.deepEqual(matureRefusalTarget(403, REFUSAL), { trackId: TRACK, category: "mental-health" });
+    assert.deepEqual(matureRefusalTarget(403, { ...SIM_REFUSAL, scope: "elsewhere" }), { trackId: TRACK2, category: "mental-health" }, "an unknown scope is read as the course; the server answers 400 if wrong");
+  });
+  test("the sims notice has its own words, the same crisis line, and says the rest of the course is open", () => {
+    assert.equal(noticeText("sims").title, MATURE_SIM_NOTICE_TITLE);
+    assert.equal(noticeText(undefined).lines, MATURE_NOTICE_LINES);
+    assert.equal(noticeText("course").lines, MATURE_NOTICE_LINES);
+    const all = MATURE_SIM_NOTICE_LINES.join(" ");
+    assert.match(all, /suicide or homicide risk/);
+    assert.match(all, /988/);
+    assert.match(all, /rest of the course doesn't need/);
+    assert.doesNotMatch(all, /Mental health courses/);
+    assert.match(noticeText("sims").underageLines("help@example.test").join(" "), /help@example\.test/);
+  });
+  test("a refused sim request asks with the sims target, and is sent once more", async () => {
+    const state = { confirmed: false };
+    globalThis.fetch = simGatedFetch(state);
+    const asked: string[] = [];
+    registerMatureContentHandler(async (target, source) => {
+      asked.push(`${target.scope}:${target.trackId}:${target.simId}:${source}`);
+      state.confirmed = true;
+      return "confirmed";
+    });
+    assert.deepEqual(await api.post(`/api/sims/${SIM}/runs`, { restart: false }), { ok: true });
+    assert.deepEqual(asked, [`sims:${TRACK2}:${SIM}:course`]);
+    assert.equal(fetched.length, 2);
+  });
+  test("closing it, or an under-18 account, says simulation, not course", async () => {
+    globalThis.fetch = simGatedFetch({ confirmed: false });
+    registerMatureContentHandler(async () => "declined");
+    await assert.rejects(api.get(`/api/sims/${SIM}`), (e: unknown) => e instanceof MatureContentDeclinedError && /simulation/.test((e as Error).message));
+    registerMatureContentHandler(async () => "blocked");
+    await assert.rejects(api.get(`/api/sims/${SIM}`), (e: unknown) => e instanceof MatureContentBlockedError && /simulation.*Support/.test((e as Error).message));
+    assert.match(friendlyError(new MatureContentBlockedError("sims")), /simulation is for learners who are 18/);
+  });
+  test("the state reads the sims acknowledgments, and an older server's answer still parses", () => {
+    const base = { noticeVersion: MATURE_CONTENT_NOTICE_VERSION, dateOfBirthOnFile: true, ageStatus: "adult", acknowledgedTrackIds: [] };
+    assert.deepEqual(parseMatureState({ ...base, acknowledgedSimTrackIds: [TRACK2, 3] })?.acknowledgedSimTrackIds, [TRACK2]);
+    assert.equal(parseMatureState(base)?.acknowledgedSimTrackIds, undefined);
+  });
+  test("the provider sends scope sims for a sims target, and the sheet takes the scope; the list and the sim screen badge 18+ sims", () => {
+    const ctx = read("mobile/src/auth/MatureContentContext.tsx");
+    assert.match(ctx, /p\.target\.scope === "sims" \? \{ scope: "sims" \} : \{\}/);
+    assert.match(ctx, /scope=\{shown\?\.scope\}/);
+    assert.match(read("mobile/src/components/MatureContentNotice.tsx"), /noticeText\(scope\)/);
+    assert.match(read("mobile/app/(app)/course/[trackId]/sims.tsx"), /s\.mature \? <Badge label="Adults \(18\+\)"/);
+    assert.match(read("mobile/app/(app)/course/[trackId]/sim/[simId].tsx"), /info\.sim\.mature \? <Badge label="Adults \(18\+\)"/);
   });
 });

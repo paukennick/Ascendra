@@ -158,12 +158,82 @@ for (const b of REQ326_BANDS) {
   test(`${b.course}/${b.slug}: goldens cover Good, Mediocre and Bad and all three outcome classes`, () => checkGoldens(b.course, b.slug, false));
 }
 
-// The CEN suicide and homicide objective is deliberately not built this round:
-// the 18+ gate is per course (mental health category, lib/visibility.ts
-// startableTrack), and CEN is not in that category (decision for Nick).
-test("no emergency nursing sim teaches suicide or homicide risk until a per-sim 18+ gate exists", () => {
-  for (const e of ALL_DOCUMENTS.filter((x) => x.course === "CEN")) {
-    const doc = loadDocument(e);
-    assert.notEqual(doc.objective, "Screen for suicide and homicide risk, and keep a patient at risk safe in the department", e.slug);
+// REQ-327 (Nick, 2026-11-17): the per-sim 18+ gate exists, so a sim on suicide
+// or homicide risk, or self-harm, may live in a course outside the mental
+// health category (CEN, PCCN, the FNP courses, CCRN, NCLEX-RN) -- but only
+// marked `mature: true`, which the server enforces (lib/sims.ts requireNotice).
+// This replaces the REQ-326 guard that kept CEN off the suicide objective until
+// the gate existed. Mental health courses are gated whole, so their sims need
+// no mark. (The CEN suicide case itself is assigned separately.)
+//
+// Both the main and the secondary objectives are read, so it fails safe. Some
+// course objectives are lists of topics that name suicide once among others
+// ("... ectopic pregnancy and suicidal intent", "... hourly rounding and
+// suicide risk"); a case registered to one of them that is about something
+// else (a stroke, a fall) is not 18+ material. Such a case is listed in
+// NOT_MATURE_REVIEWED with what it is about, after reading its brief and
+// learner text; anything not listed must be marked.
+export const NOT_MATURE_REVIEWED: Readonly<Record<string, string>> = {
+  "FNPAANP/clinic-severe-bp-stroke-signs": "a severe blood pressure with stroke signs in clinic; the red-flags objective lists suicidal intent among others",
+  "FNPANCC/clinic-severe-bp-stroke-signs-fnp-role": "the same stroke-signs case for the other FNP course",
+  "CMSRN/delirium-night-prn-restraint-order": "night delirium and a restraint order; the safety-protocols objective lists suicide risk among others",
+  "CMSRN/found-on-floor-on-anticoagulant": "a fall on an anticoagulant; the same safety-protocols objective",
+};
+export const BEHAVIORAL_EMERGENCY = /suicid|homicid|self-harm|self harm/i;
+export const MENTAL_HEALTH_SUBCATEGORIES = ["psychology-licensure", "counseling-licensure", "social-work-licensure"] as const;
+
+export function unmarkedBehavioralEmergencies(
+  entries: readonly { course: string; slug: string; doc: { objective: string; secondaryObjectives?: string[]; mature?: boolean } }[],
+  subcategoryOf: (course: string) => string | undefined
+): string[] {
+  const out: string[] = [];
+  for (const { course, slug, doc } of entries) {
+    if ((MENTAL_HEALTH_SUBCATEGORIES as readonly string[]).includes(subcategoryOf(course) ?? "")) continue;
+    if (NOT_MATURE_REVIEWED[`${course}/${slug}`]) continue;
+    const objectives = [doc.objective, ...(doc.secondaryObjectives ?? [])];
+    if (objectives.some((o) => BEHAVIORAL_EMERGENCY.test(o)) && doc.mature !== true) out.push(`${course}/${slug}`);
+  }
+  return out;
+}
+
+test("REQ-327: every sim outside mental health on a suicide, homicide or self-harm objective is marked mature (or reviewed as not about it)", async () => {
+  const { CATALOG_TRACKS } = await import("../../supabase/seed/catalog.ts");
+  const sub = new Map(CATALOG_TRACKS.map((t) => [t.code, (t as { subcategorySlug?: string }).subcategorySlug]));
+  for (const code of ["EPPP", "NCE", "NCMHCE", "ASWBCLINICAL"]) {
+    assert.ok((MENTAL_HEALTH_SUBCATEGORIES as readonly string[]).includes(sub.get(code) ?? ""), `${code} is a mental health course`);
+  }
+  assert.equal(sub.has("CEN"), true, "CEN is seeded");
+  assert.ok(!(MENTAL_HEALTH_SUBCATEGORIES as readonly string[]).includes(sub.get("CEN") ?? ""), "CEN is not a mental health course");
+  const entries = ALL_DOCUMENTS.map((e) => ({ course: e.course, slug: e.slug, doc: loadDocument(e) }));
+  assert.deepEqual(unmarkedBehavioralEmergencies(entries, (c) => sub.get(c)), []);
+});
+
+test("REQ-327: the check refuses an unmarked CEN suicide case and accepts it marked, or in a mental health course", () => {
+  const sub = (c: string) => ({ CEN: "emergency-nursing", EPPP: "psychology-licensure" })[c];
+  const doc = { objective: "Screen for suicide and homicide risk, and keep a patient at risk safe in the department" };
+  assert.deepEqual(unmarkedBehavioralEmergencies([{ course: "CEN", slug: "x", doc }], sub), ["CEN/x"]);
+  assert.deepEqual(unmarkedBehavioralEmergencies([{ course: "CMSRN", slug: "x", doc: { objective: "Assess self-harm risk on a medical unit" } }], () => "medical-surgical-nursing"), ["CMSRN/x"]);
+  assert.deepEqual(unmarkedBehavioralEmergencies([{ course: "CEN", slug: "x", doc: { objective: "Triage", secondaryObjectives: [doc.objective] } }], sub), ["CEN/x"]);
+  assert.deepEqual(unmarkedBehavioralEmergencies([{ course: "CEN", slug: "x", doc: { ...doc, mature: true } }], sub), []);
+  assert.deepEqual(unmarkedBehavioralEmergencies([{ course: "EPPP", slug: "x", doc }], sub), []);
+});
+
+test("REQ-327: the schema takes mature as a boolean only", () => {
+  const base = loadDocument(ALL_DOCUMENTS.find((e) => e.slug === REQ326_CASES[0].slug)!);
+  assert.equal(scenarioSchema.safeParse({ ...base, mature: true }).success, true);
+  assert.equal(scenarioSchema.safeParse({ ...base, mature: false }).success, true);
+  assert.equal(scenarioSchema.safeParse({ ...base, mature: "yes" }).success, false);
+});
+
+test("REQ-327: every reviewed exception still exists and still names the topic only in a list", async () => {
+  for (const key of Object.keys(NOT_MATURE_REVIEWED)) {
+    const [course, slug] = key.split("/");
+    const e = ALL_DOCUMENTS.find((x) => x.course === course && x.slug === slug);
+    assert.ok(e, `${key} is registered`);
+    const doc = loadDocument(e!);
+    assert.notEqual(doc.mature, true, `${key} is marked mature; drop it from the list`);
+    const hits = [doc.objective, ...(doc.secondaryObjectives ?? [])].filter((o) => BEHAVIORAL_EMERGENCY.test(o));
+    assert.ok(hits.length > 0, `${key} no longer has such an objective; drop it from the list`);
+    for (const h of hits) assert.ok((h.match(/,/g) ?? []).length >= 2, `${key}: "${h}" is not a list of topics`);
   }
 });

@@ -314,7 +314,8 @@ export function isReauthRefusal(data: unknown): boolean {
 // that course) shows the mature-content notice for it and, once it is
 // acknowledged and recorded, sends the request once more. Closing the notice
 // throws MatureContentDeclinedError, an under-18 account MatureContentBlockedError;
-// nothing else is sent.
+// nothing else is sent. REQ-327: the same for an 18+ sim (scope "sims"):
+// the notice for that course's 18+ simulations, and their own words.
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -355,8 +356,8 @@ async function request<T>(
     const mature = err instanceof ApiError ? matureRefusalTarget(err.status, err.data) : null;
     if (mature && !matureAsked && hasMatureContentHandler() && !path.startsWith("/api/mature-content")) {
       const answer = await askMatureConfirmation(mature, path.startsWith("/api/intake") ? "intake" : "course");
-      if (answer === "blocked") throw new MatureContentBlockedError();
-      if (answer !== "confirmed") throw new MatureContentDeclinedError();
+      if (answer === "blocked") throw new MatureContentBlockedError(mature.scope);
+      if (answer !== "confirmed") throw new MatureContentDeclinedError(mature.scope);
       return request<T>(path, options, opts, alreadyRetried, true);
     }
     throw err;

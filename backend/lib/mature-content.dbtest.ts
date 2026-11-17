@@ -153,6 +153,7 @@ describe("per-course 18+ acknowledgment (REQ-259, REQ-224)", () => {
       dateOfBirthOnFile: false,
       ageStatus: "unknown",
       acknowledgedTrackIds: [],
+      acknowledgedSimTrackIds: [], // REQ-327
     });
   });
 

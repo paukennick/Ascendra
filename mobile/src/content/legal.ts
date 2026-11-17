@@ -55,6 +55,17 @@
 // accept the Privacy Policy once more and nothing else. The sentence that
 // says analytics must be disclosed alongside the cookieless and Global Privacy
 // Control facts is tested (src/lib/legalPrivacy.test.ts).
+//
+// 2026-11-18 (REQ-327, Nick, 2026-11-17 09:18 PT: "The gate should work across
+// sensitive sims regardless of profession. Update the policy and terms"): a
+// simulation on a sensitive topic (suicide-risk assessment, a behavioral
+// emergency) in ANY course is 18+, with the same date of birth asked once and
+// the same attestation, recorded per course for that course's 18+ sims
+// (mature_course_acknowledgements.scope, migration 087). No new kind of data.
+// Terms section 2 and Privacy sections 1, 3 and 8 (children) say so; retention
+// is unchanged. Both documents are one new version, 2026-11-18 (the Privacy
+// Policy was already 2026-11-17): everyone agrees once more. No lawyer has
+// reviewed this text.
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -91,8 +102,8 @@ export const AI_COUNTS_MONTHS = 12;
 
 export const TERMS: LegalDoc = {
   title: "Terms of Service",
-  version: "2026-11-13",
-  updated: "November 13, 2026",
+  version: "2026-11-18",
+  updated: "November 18, 2026",
   intro:
     "These terms are the agreement between you and Ascendra's operator when you use Ascendra on the web or in the app. Please read them; creating an account means you accept them.",
   sections: [
@@ -106,7 +117,7 @@ export const TERMS: LegalDoc = {
     {
       title: "2. Who can use it",
       body: [
-        `You must be at least ${OWNER.minimumAge} to create an account, and you confirm that you are when you sign up. Mental health courses are for adults only: before you start each one you confirm that you are 18 or older and that what you've told us is true to the best of your knowledge, and the first time you also give your date of birth (see the Privacy Policy). If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
+        `You must be at least ${OWNER.minimumAge} to create an account, and you confirm that you are when you sign up. Mental health courses, and simulations on sensitive topics (such as suicide-risk assessment or behavioral emergencies) in any course, are for adults only. Before you open or start each mental health course, or the first such simulation in a course, you confirm that you are 18 or older and that what you've told us is true to the best of your knowledge. The first time you are asked, you also give your date of birth, once; you can't change it in the app afterwards (see the Privacy Policy). If it shows you are under 18, that content stays locked. If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
         "One person per account. Keep your sign-in details to yourself.",
       ],
     },
@@ -214,8 +225,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-17",
-  updated: "November 17, 2026",
+  version: "2026-11-18",
+  updated: "November 18, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -230,7 +241,7 @@ export const PRIVACY: LegalDoc = {
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
         "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
         "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when.",
-        "• Age for mental health courses: if you start one, your date of birth (asked once, the first time) and when you entered it; and, for each mental health course, that you confirmed you are 18 or older and that what you entered is true to the best of your knowledge, with the date and the version of the notice you saw. We use your date of birth only to check that you're old enough for these courses.",
+        "• Age for adults-only content (mental health courses, and simulations on sensitive topics such as suicide-risk assessment or behavioral emergencies in any course): when you first open or start any of it, your date of birth (asked once, the first time) and when you entered it; you can't change it in the app afterwards. Then, per course, that you confirmed you are 18 or older and that what you entered is true to the best of your knowledge, with the date, the version of the notice you saw, where you were asked, and whether it was for a whole mental health course or for that course's adults-only simulations. Nothing is asked until you open such a course or simulation. We use your date of birth only to check that you're old enough for this content.",
         "• Questions you report: when you use “Report a problem” on a question, the reason you chose and any note you write, with the question it is about.",
       ],
     },
@@ -244,7 +255,7 @@ export const PRIVACY: LegalDoc = {
       title: "3. Why we use it",
       body: [
         "• To run your account and keep it secure: sign-in, two-factor checks, the session list, and spotting abuse.",
-        "• To check you're old enough for courses meant for adults (mental health courses).",
+        "• To check you're old enough for content meant for adults (mental health courses, and simulations on sensitive topics such as suicide-risk assessment or behavioral emergencies in any course).",
         "• To teach: tracking progress, choosing what to show next, grading answers and running the AI coach.",
         "• To improve review timing: we compare predicted recall with how you actually did, to check the memory model before it is used to schedule reviews. While we check it, no one is shown these numbers and they change nothing in your study.",
         "• To check, in aggregate and only ourselves, that Ascendra is actually helping people learn.",
@@ -314,7 +325,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "8. Children",
       body: [
-        `Ascendra is not meant for anyone under ${OWNER.minimumAge} and doesn't knowingly collect their data. Creating an account asks you to confirm that you are ${OWNER.minimumAge} or older. Mental health courses are for adults: each one asks you to confirm you are 18 or older, and the first one also asks for your date of birth. If a date of birth shows someone under 18, those courses stay locked; if it shows someone under ${OWNER.minimumAge}, we also review the account. If you think someone under ${OWNER.minimumAge} has created an account, contact us and we will delete it.`,
+        `Ascendra is not meant for anyone under ${OWNER.minimumAge} and doesn't knowingly collect their data. Creating an account asks you to confirm that you are ${OWNER.minimumAge} or older. Mental health courses, and simulations on sensitive topics (such as suicide-risk assessment or behavioral emergencies) in any course, are for adults: each mental health course, and the first such simulation in each course, asks you to confirm you are 18 or older, and the first time you're asked you also give your date of birth, which can't be changed in the app. If a date of birth shows someone under 18, that content stays locked and the rest of Ascendra stays open; if it shows someone under ${OWNER.minimumAge}, we also review the account (our team is told the account and its email address, not the date of birth). If you think someone under ${OWNER.minimumAge} has created an account, contact us and we will delete it.`,
       ],
     },
     {
@@ -472,8 +483,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-16",
-  updated: "November 16, 2026",
+  version: "2026-11-17",
+  updated: "November 17, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -508,10 +519,11 @@ export const FAQ: LegalDoc = {
       ],
     },
     {
-      title: "Why do mental health courses ask my age and date of birth?",
+      title: "Why do some courses and simulations ask my age and date of birth?",
       body: [
         "Mental health courses (psychology, counseling and social work licensure exams) include frank clinical material, such as suicide risk, abuse, violence and trauma, because those exams test it. They are for adults, so before you open or start each one you confirm that the information you've given is true and that you're 18 or older.",
         "The first time, you also enter your date of birth. It is stored on your account and used only to check your age; later courses don't ask again, and you can't change it in the app. If you're under 18 the course stays locked. If the date on your account is wrong, write to us at the address in Support and we'll look at it.",
+        "Simulations on sensitive topics in any course, such as suicide-risk assessment or a behavioral emergency in a nursing course, are marked 18+ for the same reason. Opening the first one in a course asks you to confirm you're 18 or older, once for that course's 18+ simulations, with the same date of birth (asked only if you haven't given it already). The rest of the course doesn't ask.",
       ],
     },
     {

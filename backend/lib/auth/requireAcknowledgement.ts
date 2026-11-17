@@ -4,7 +4,9 @@ import {
   isMatureCategory,
   matureContentNeededSql,
   matureContentRequiredBody,
+  matureSimRequiredBody,
   MATURE_CONTENT_REQUIRED_MESSAGE,
+  MATURE_SIM_REQUIRED_MESSAGE,
   type MatureCategory,
 } from "@/lib/mature-content";
 
@@ -36,6 +38,17 @@ export class MatureContentError extends AcknowledgementError {
   constructor(readonly category: MatureCategory, readonly trackId: string) {
     super(MATURE_CONTENT_REQUIRED_MESSAGE, matureContentRequiredBody(category, trackId));
     this.name = "MatureContentError";
+  }
+}
+
+// REQ-327: a sim marked `mature: true` used before the learner acknowledged
+// that course's 18+ sims (scope "sims", lib/mature-content.ts). Same 403 code
+// and shape as the course gate, plus scope and simId. A subclass too, so every
+// route that maps AcknowledgementError answers it with a 403, never a 500.
+export class MatureSimError extends AcknowledgementError {
+  constructor(readonly trackId: string, readonly simId: string, readonly category: string | null) {
+    super(MATURE_SIM_REQUIRED_MESSAGE, matureSimRequiredBody(trackId, simId, category));
+    this.name = "MatureSimError";
   }
 }
 

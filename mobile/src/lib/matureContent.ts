@@ -38,6 +38,11 @@ export const MATURE_CONTENT_MIN_AGE = 18;
 export const MATURE_CATEGORIES = ["mental-health"] as const;
 export type MatureCategory = (typeof MATURE_CATEGORIES)[number];
 export type MatureSource = "intake" | "course";
+// REQ-327: what an acknowledgement covers. "course": a whole mental health
+// course. "sims": the 18+ simulations (marked mature) of a course outside the
+// mental health category -- CEN, PCCN, the FNP courses and so on; the rest of
+// that course is not gated. Same attestation, same date of birth asked once.
+export type MatureScope = "course" | "sims";
 
 export function isMatureCategory(slug: unknown): slug is MatureCategory {
   return typeof slug === "string" && (MATURE_CATEGORIES as readonly string[]).includes(slug);
@@ -50,6 +55,26 @@ export const MATURE_NOTICE_LINES: readonly string[] = [
   "The cases are fictional exam practice, not advice about you or anyone you know, and not a substitute for care.",
   "If you're struggling yourself, you can stop at any time. In the US, call or text 988 (Suicide & Crisis Lifeline); elsewhere, contact your local emergency number.",
 ];
+
+// REQ-327: the notice for a course's 18+ simulations.
+export const MATURE_SIM_NOTICE_TITLE = "Adults only: simulations on sensitive topics";
+export const MATURE_SIM_NOTICE_LINES: readonly string[] = [
+  "Some simulations in this course are marked 18+. To teach what the exam tests, they involve suicide or homicide risk, self-harm or other behavioral emergencies, described frankly and in detail. The rest of the course doesn't need this confirmation.",
+  "The cases are fictional exam practice, not advice about you or anyone you know, and not a substitute for care.",
+  "If you're struggling yourself, you can stop at any time. In the US, call or text 988 (Suicide & Crisis Lifeline); elsewhere, contact your local emergency number.",
+];
+export const MATURE_SIM_UNDERAGE_TITLE = "This simulation is for adults";
+export const MATURE_SIM_UNDERAGE_LINES = (supportEmail: string): readonly string[] => [
+  `Simulations marked 18+ are for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so they stay locked on your account for now. The rest of the course is open.`,
+  `That's based on the date of birth on your account, which can't be changed in the app. If it's wrong, contact ${supportEmail} and we'll look at it.`,
+];
+
+// The words the notice shows for a scope.
+export function noticeText(scope: MatureScope | undefined) {
+  return scope === "sims"
+    ? { title: MATURE_SIM_NOTICE_TITLE, lines: MATURE_SIM_NOTICE_LINES, underageTitle: MATURE_SIM_UNDERAGE_TITLE, underageLines: MATURE_SIM_UNDERAGE_LINES }
+    : { title: MATURE_NOTICE_TITLE, lines: MATURE_NOTICE_LINES, underageTitle: MATURE_UNDERAGE_TITLE, underageLines: MATURE_UNDERAGE_LINES };
+}
 
 // Asked once per account, with the first course (no date of birth on file).
 export const MATURE_DOB_INTRO =
@@ -72,8 +97,12 @@ export const MATURE_UNDERAGE_CLOSE_LABEL = "Close";
 // its message (friendlyError reads `friendly`) beside their own Retry.
 export class MatureContentDeclinedError extends Error {
   friendly = true;
-  constructor() {
-    super("This course has mature clinical content for adults. Open it again whenever you're ready to confirm you're 18 or older.");
+  constructor(scope?: MatureScope) {
+    super(
+      scope === "sims"
+        ? "This simulation covers a sensitive topic and is for adults. Open it again whenever you're ready to confirm you're 18 or older."
+        : "This course has mature clinical content for adults. Open it again whenever you're ready to confirm you're 18 or older."
+    );
     this.name = "MatureContentDeclinedError";
   }
 }
@@ -82,8 +111,12 @@ export class MatureContentDeclinedError extends Error {
 // course stays locked and there is nothing to confirm.
 export class MatureContentBlockedError extends Error {
   friendly = true;
-  constructor() {
-    super(`This course is for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so it stays locked on your account. If the date of birth on your account is wrong, contact Support from the app.`);
+  constructor(scope?: MatureScope) {
+    super(
+      scope === "sims"
+        ? `This simulation is for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so it stays locked on your account. If the date of birth on your account is wrong, contact Support from the app.`
+        : `This course is for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so it stays locked on your account. If the date of birth on your account is wrong, contact Support from the app.`
+    );
     this.name = "MatureContentBlockedError";
   }
 }
@@ -94,14 +127,23 @@ export class MatureContentBlockedError extends Error {
 export interface MatureTarget {
   trackId: string;
   category: MatureCategory;
+  // REQ-327: present for an 18+ sim (403 with scope "sims"): acknowledge that
+  // course's 18+ sims, not the course. Absent means the course.
+  scope?: "sims";
+  simId?: string;
 }
 
 export function matureRefusalTarget(status: number, data: unknown): MatureTarget | null {
   if (status !== 403 || !data || typeof data !== "object") return null;
-  const d = data as { code?: unknown; category?: unknown; trackId?: unknown };
+  const d = data as { code?: unknown; category?: unknown; trackId?: unknown; scope?: unknown; simId?: unknown };
   if (d.code !== "mature_content_required") return null;
   if (typeof d.trackId !== "string" || !d.trackId) return null;
-  return { trackId: d.trackId, category: isMatureCategory(d.category) ? d.category : "mental-health" };
+  const target: MatureTarget = { trackId: d.trackId, category: isMatureCategory(d.category) ? d.category : "mental-health" };
+  if (d.scope === "sims") {
+    target.scope = "sims";
+    if (typeof d.simId === "string" && d.simId) target.simId = d.simId;
+  }
+  return target;
 }
 
 export type AgeStatus = "unknown" | "adult" | "under_18";
@@ -112,6 +154,9 @@ export interface MatureState {
   dateOfBirthOnFile: boolean;
   ageStatus: AgeStatus;
   acknowledgedTrackIds: string[];
+  // REQ-327: courses whose 18+ sims are acknowledged. A server before REQ-327
+  // does not send it: empty, so the app asks (the server decides anyway).
+  acknowledgedSimTrackIds?: string[];
 }
 
 export function parseMatureState(data: unknown): MatureState | null {
@@ -124,6 +169,9 @@ export function parseMatureState(data: unknown): MatureState | null {
     dateOfBirthOnFile: d.dateOfBirthOnFile === true,
     ageStatus,
     acknowledgedTrackIds: d.acknowledgedTrackIds.filter((x): x is string => typeof x === "string"),
+    ...(Array.isArray(d.acknowledgedSimTrackIds)
+      ? { acknowledgedSimTrackIds: d.acknowledgedSimTrackIds.filter((x): x is string => typeof x === "string") }
+      : {}),
   };
 }
 

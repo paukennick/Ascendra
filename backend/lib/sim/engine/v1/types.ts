@@ -33,6 +33,12 @@ export interface ScenarioDoc {
   sources: Source[];
   brief: { situation: string; handover?: string[]; howItWorks?: string[] };
   safetyNote?: string; // author-facing context only; never shown as a disclaimer (REQ-165: one study notice covers every sim)
+  // REQ-327: for adults only (18+): suicide or homicide risk and other
+  // behavioral emergencies. The server refuses the sim without the learner's
+  // 18+ acknowledgement of the course's sims (lib/mature-content.ts) and offers
+  // it only to builds that can ask for it (x-sim-caps features=mature). The
+  // engine never reads it. docs/sims.md, "Marking a sim 18+".
+  mature?: boolean;
   clock: {
     start: string; // "14:00", or "2027-02-01T09:00" for dated sims; display only
     tick: Duration;
