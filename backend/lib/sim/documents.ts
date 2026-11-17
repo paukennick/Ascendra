@@ -297,6 +297,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("SECPLUS", "departing-engineer-usb-evidence"),
   entry("AWSSOA", "alb-health-check-login-redirect"),
   entry("AWSSAA", "guardduty-role-credentials-macie"),
+  entry("LINUXPLUS", "retired-dns-server-orders-stuck"),
   // ---- end REQ-316 ----
 ];
 

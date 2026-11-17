@@ -251,4 +251,21 @@ describe("what each wave 4 case teaches (2)", () => {
     iso.act("terminate");
     assert.equal(iso.value("attackerActive"), true, "terminating one instance stops nothing");
   });
+  test("Linux+ DNS: a hand-edited resolv.conf is rewritten from the NetworkManager profile at the 14:10 reactivation; fixing the profile lasts; a reboot changes nothing", () => {
+    const d = docOf("retired-dns-server-orders-stuck");
+    const hand = driver(d);
+    hand.act("fix", { change: "resolv" });
+    assert.equal(hand.value("resolves"), true);
+    while (hand.minutes() < 31) hand.act("watch");
+    assert.equal(hand.value("resolves"), false, "NetworkManager wrote the old server back");
+    const prof = driver(d);
+    prof.act("fix", { change: "nmcli" });
+    while (prof.minutes() < 51) prof.act("watch");
+    assert.equal(prof.value("resolves"), true);
+    assert.equal(prof.value("queued"), 0);
+    assert.notEqual(prof.value("cutoffOkAt"), null);
+    const rb = driver(d);
+    rb.act("reboot");
+    assert.equal(rb.value("resolves"), false);
+  });
 });
