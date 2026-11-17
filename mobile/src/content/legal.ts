@@ -472,8 +472,8 @@ export const ABOUT: LegalDoc = {
 
 export const FAQ: LegalDoc = {
   title: "FAQ",
-  version: "2026-11-16",
-  updated: "November 16, 2026",
+  version: "2026-11-17",
+  updated: "November 17, 2026",
   sections: [
     {
       title: "What is Ascendra?",
@@ -512,6 +512,7 @@ export const FAQ: LegalDoc = {
       body: [
         "Mental health courses (psychology, counseling and social work licensure exams) include frank clinical material, such as suicide risk, abuse, violence and trauma, because those exams test it. They are for adults, so before you open or start each one you confirm that the information you've given is true and that you're 18 or older.",
         "The first time, you also enter your date of birth. It is stored on your account and used only to check your age; later courses don't ask again, and you can't change it in the app. If you're under 18 the course stays locked. If the date on your account is wrong, write to us at the address in Support and we'll look at it.",
+        "Some simulations in other courses, such as suicide-risk assessment in an emergency nursing course, are marked 18+ for the same reason. Opening the first one in a course asks you to confirm you're 18 or older, once for that course's 18+ simulations, with the same date of birth (asked only if you haven't given it already). The rest of the course doesn't ask.",
       ],
     },
     {
