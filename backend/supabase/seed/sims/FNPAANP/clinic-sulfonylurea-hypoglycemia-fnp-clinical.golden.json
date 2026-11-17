@@ -1,0 +1,531 @@
+{
+  "slug": "clinic-sulfonylurea-hypoglycemia-fnp-clinical",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: fingerstick, 15 g glucose, recheck at 15 minutes, a meal, the regimen reviewed and the glipizide stopped, note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 4,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "gQ",
+          "choice": "no",
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 6,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 8,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "meal",
+          "seq": 9,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "stop"
+          },
+          "seq": 10,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 11,
+          "tick": 920
+        }
+      ],
+      "expect": {
+        "ending": "fixedTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "treat": "met",
+          "recheck": "met",
+          "cause": "met",
+          "meal": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toTreat": 20,
+          "glu": 92
+        },
+        "stateHash": "41bcd612a4d14cbd"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "slowTreat",
+      "title": "History first, glucose tablets at 7 minutes, recheck at 15 minutes after, meal, glipizide stopped; no note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 420
+        },
+        {
+          "type": "teach",
+          "prompt": "gQ",
+          "choice": "no",
+          "seq": 4,
+          "tick": 420
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 7,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "meal",
+          "seq": 8,
+          "tick": 1320
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "stop"
+          },
+          "seq": 9,
+          "tick": 1320
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "treat": "partial",
+          "recheck": "met",
+          "cause": "met",
+          "meal": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toTreat": 420,
+          "glu": 89
+        },
+        "stateHash": "1a2d921dde766675"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "chocolate",
+      "title": "Chocolate from her bag first, glucose at 8 minutes, a recheck at 40, the glipizide stopped without a review",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "chocolate",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 480
+        },
+        {
+          "type": "teach",
+          "prompt": "gQ",
+          "choice": "no",
+          "seq": 4,
+          "tick": 480
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 2400
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 7,
+          "tick": 2400
+        },
+        {
+          "type": "act",
+          "action": "meal",
+          "seq": 8,
+          "tick": 2400
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "stop"
+          },
+          "seq": 9,
+          "tick": 2400
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 10,
+          "tick": 2400
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 42,
+        "criteria": {
+          "treat": "partial",
+          "recheck": "partial",
+          "cause": "partial",
+          "meal": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "toTreat": 480,
+          "glu": 106
+        },
+        "stateHash": "5a3f369be651172d"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "sameDose",
+      "title": "Treated and rechecked on time, then 'don't skip breakfast' on the same dose",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "gQ",
+          "choice": "no",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "treated",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 6,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "meal",
+          "seq": 7,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "same"
+          },
+          "seq": 8,
+          "tick": 920
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "treat": "met",
+          "recheck": "met",
+          "cause": "missed",
+          "meal": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "toTreat": 20,
+          "glu": 92
+        },
+        "stateHash": "bd714b4d59fdf9fe"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "glucagonFirst",
+      "title": "Glucagon although she can swallow, no recheck, insulin tonight",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "glucagon",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "insulin"
+          },
+          "seq": 5,
+          "tick": 1800
+        }
+      ],
+      "expect": {
+        "ending": "fixedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "treat": "partial",
+          "recheck": "missed",
+          "cause": "missed",
+          "meal": "partial",
+          "note": "missed"
+        },
+        "kpis": {
+          "toTreat": -1,
+          "glu": 121
+        },
+        "stateHash": "0292decbb6d4f274"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "planWhileLow",
+      "title": "Failure: a plan written while she is still low; she leaves",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "params": {
+            "choice": "stop"
+          },
+          "seq": 2,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "wentLow",
+        "class": "harm",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "treat": "missed",
+          "recheck": "missed",
+          "cause": "met",
+          "meal": "partial",
+          "note": "missed"
+        },
+        "kpis": {
+          "toTreat": -1,
+          "glu": 52
+        },
+        "stateHash": "68ec4ca3b62b761f"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "noTreatment",
+      "title": "Failure: history and a note while she waits; no glucose",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "severe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "treat": "missed",
+          "recheck": "missed",
+          "cause": "missed",
+          "meal": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "toTreat": -1,
+          "glu": 40
+        },
+        "stateHash": "54bf966d762d8dd5"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

@@ -406,6 +406,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("ABPTSOCS", "tka-gait-dvt-red-flag-ortho"),
   band("NPTEPTA", "icu-early-mobility-pta"),
   band("NSCACSCS", "cscs-squat-knees-cave"),
+  band("CMSRN", "post-op-transfusion-reaction-cmsrn"),
+  band("CMSRN", "pca-oversedation-naloxone-cmsrn"),
+  band("CMSRN", "med-surg-deterioration-sbar-cmsrn"),
+  band("PCCN", "postop-hemorrhage-early-signs-pccn"),
+  band("PCCN", "sepsis-to-septic-shock-pccn"),
+  band("PCCN", "status-epilepticus-after-craniotomy-pccn"),
+  band("NCLEXRN", "femoral-access-retroperitoneal-bleed-nclexrn"),
+  band("FNPANCC", "clinic-severe-bp-stroke-signs-fnp-role"),
+  band("FNPAANP", "clinic-sulfonylurea-hypoglycemia-fnp-clinical"),
   // ---- end REQ-323 ----
 ];
 

@@ -1,0 +1,479 @@
+{
+  "slug": "postop-hemorrhage-early-signs-pccn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: assess, urine output, bolus, stat labs, an SBAR that names bleeding, an objective note while the blood is crossmatched, both units hung on arrival",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "bleed",
+            "bg": "full",
+            "asmt": "bleed",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 8,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 9,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 10,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 11,
+          "tick": 1710
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 12,
+          "tick": 1710
+        }
+      ],
+      "expect": {
+        "ending": "orTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "escalate": "met",
+          "urine": "met",
+          "volume": "met",
+          "blood": "met",
+          "noMask": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toCall": 30,
+          "nadir": 91,
+          "lost": 1567
+        },
+        "stateHash": "dae0f6a867216b9c"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "slowCall",
+      "title": "Assessed early, a first call about pain, urine output and a bolus at 12 minutes, bleeding named at 18 minutes, blood hung on arrival",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "pain",
+            "bg": "min",
+            "asmt": "pain",
+            "rec": "prn"
+          },
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 4,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 5,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 6,
+          "tick": 720
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 7,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "bleed",
+            "bg": "full",
+            "asmt": "bleed",
+            "rec": "come"
+          },
+          "seq": 8,
+          "tick": 1080
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "late",
+          "seq": 9,
+          "tick": 1080
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 2760
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 11,
+          "tick": 2760
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 12,
+          "tick": 2760
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 13,
+          "tick": 2760
+        }
+      ],
+      "expect": {
+        "ending": "orLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "escalate": "partial",
+          "urine": "partial",
+          "volume": "met",
+          "blood": "met",
+          "noMask": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "toCall": 1080,
+          "nadir": 90,
+          "lost": 1952
+        },
+        "stateHash": "850937e95db3a47b"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "teamCalls",
+      "title": "Fast urine check and bolus, then the rapid response team instead of a call; blood never hung",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "urine",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "rrt",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "late",
+          "seq": 6,
+          "tick": 330
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 7,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "orLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "escalate": "partial",
+          "urine": "met",
+          "volume": "met",
+          "blood": "missed",
+          "noMask": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "toCall": 330,
+          "nadir": 90,
+          "lost": 1677
+        },
+        "stateHash": "e09a74ac96ebbc82"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "opioidFirst",
+      "title": "Hydromorphone for the restlessness first, then a clear SBAR and blood, but no urine check or bolus",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "bleed",
+            "bg": "full",
+            "asmt": "bleed",
+            "rec": "come"
+          },
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "bpQ",
+          "choice": "late",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 1740
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 7,
+          "tick": 1740
+        },
+        {
+          "type": "act",
+          "action": "transfuse",
+          "seq": 8,
+          "tick": 1740
+        }
+      ],
+      "expect": {
+        "ending": "orLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "escalate": "met",
+          "urine": "missed",
+          "volume": "missed",
+          "blood": "met",
+          "noMask": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toCall": 60,
+          "nadir": 90,
+          "lost": 1578
+        },
+        "stateHash": "6974817c78a88c51"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "waitHgb",
+      "title": "Failure: labs and hydromorphone, a call about pain, then a wait for the hemoglobin; no bolus",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "opioid",
+          "seq": 2,
+          "tick": 300
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "sit": "pain",
+            "bg": "min",
+            "asmt": "pain",
+            "rec": "prn"
+          },
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "teach",
+          "prompt": "hgbQ",
+          "choice": "lags",
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 5,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "escalate": "missed",
+          "urine": "missed",
+          "volume": "missed",
+          "blood": "missed",
+          "noMask": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "nadir": 65,
+          "lost": 2524
+        },
+        "stateHash": "d623d9f834ec2d45"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}
