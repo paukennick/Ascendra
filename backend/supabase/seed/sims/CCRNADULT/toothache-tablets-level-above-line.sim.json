@@ -1,0 +1,1024 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "toothache-tablets-level-above-line",
+  "title": "Seven hours since the tablets",
+  "objective": "Manage acetaminophen overdose: establish the time of ingestion, check a level timed to the nomogram, give N-acetylcysteine early, and watch for liver and kidney failure",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: toxic ingestions within the multisystem category",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: toxic ingestions within the multisystem category is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Merck Manual Professional Edition. Acetaminophen Poisoning (O'Malley GF, O'Malley R; reviewed April 2025, updated March 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: stage I (first 24 hours) brings 'Anorexia, nausea, vomiting', and 'Mild poisoning may not cause symptoms'; the Rumack-Matthew nomogram applies to a single acute ingestion with levels 'measured >= 4 hours after ingestion', and 'Serum levels drawn before 4 hours may not represent peak levels'; acetylcysteine 'is most effective if given within 8 hours of acetaminophen ingestion', and is given until toxicity is ruled out when it is uncertain; liver tests and, in suspected severe poisoning, prothrombin time; stage III at 72-96 hours brings the peak of AST, ALT, bilirubin and INR. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:00 in a medical ICU. You are Mr. Tan's nurse. He is 31, admitted from the emergency department at 07:30 for monitoring after taking a large number of extra-strength acetaminophen tablets over half an hour for a dental abscess, not knowing the daily limit. He feels nauseated and otherwise well.",
+    "handover": [
+      "The emergency department note says 'ingestion about 01:00?' and 'acetaminophen level drawn 05:00, pending'.",
+      "Order: the ordered IV acetylcysteine protocol 'if the level is above the treatment line'. Liver tests and INR have not been sent.",
+      "Unit policy: the nurse plots a timed level on the nomogram and starts an acetylcysteine order as soon as its condition is met, then tells the intensivist."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Liver injury accrues the longer acetylcysteine is delayed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "nacRate": {
+      "value": 0.0,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It stops accruing once acetylcysteine is running. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "windowEnd": {
+      "value": 3540,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The 8-hour mark after a 01:00 ingestion falls at 09:00; 08:59 is the authored last moment to start inside it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "earlyWindow": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Acetylcysteine within 20 minutes of the level being plotted (authored target). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist told within 5 minutes of plotting the level (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "reviewTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist reviews him with the liver tests: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "ingestAt": {
+      "type": "time",
+      "init": null
+    },
+    "levelAt": {
+      "type": "time",
+      "init": null
+    },
+    "symptomsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ingest",
+        "level",
+        "symptoms"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "toxic",
+        "fine",
+        "unclear"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "nacAt": {
+      "type": "time",
+      "init": null
+    },
+    "lftAt": {
+      "type": "time",
+      "init": null
+    },
+    "repeatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(94 + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(124)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(76)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "98",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(nacAt) ? progRate : nacRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Acetylcysteine running: {not isNull(nacAt)|yesno}. Liver tests and INR sent: {not isNull(lftAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"icu\" and inClinic",
+          "text": "The intensivist knows; liver tests, INR and kidney function every 12 hours are ordered."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ingest": {
+      "label": "Pin down the time of ingestion with him and his partner",
+      "group": "Assess",
+      "available": "not testPending and isNull(ingestAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ingest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "level": {
+      "label": "Find the 05:00 level and plot it on the nomogram",
+      "group": "Assess",
+      "available": "not testPending and isNull(levelAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"level\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "symptoms": {
+      "label": "Assess him: nausea, vomiting, right upper quadrant pain, mental status",
+      "group": "Assess",
+      "available": "not testPending and isNull(symptomsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"symptoms\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "nac": {
+      "label": "Start the ordered IV acetylcysteine protocol now",
+      "group": "Treat",
+      "available": "not isNull(levelAt) and isNull(nacAt) and inClinic",
+      "why": "Plot the level first, or already running.",
+      "effects": [
+        {
+          "set": "nacAt",
+          "to": "t"
+        },
+        {
+          "log": "Acetylcysteine running per the protocol; you watch for a reaction.",
+          "kind": "act"
+        }
+      ]
+    },
+    "lft": {
+      "label": "Send liver tests, INR and kidney function as a baseline",
+      "group": "Treat",
+      "available": "isNull(lftAt) and inClinic",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "lftAt",
+          "to": "t"
+        },
+        {
+          "log": "Liver tests, INR, creatinine sent.",
+          "kind": "act"
+        }
+      ]
+    },
+    "repeat": {
+      "label": "Send a repeat acetaminophen level and wait for it before starting anything",
+      "group": "Treat",
+      "available": "isNull(repeatAt) and isNull(nacAt) and inClinic",
+      "why": "Already sent, or treatment running.",
+      "effects": [
+        {
+          "set": "repeatAt",
+          "to": "t"
+        },
+        {
+          "log": "A repeat level sent; the lab says about 90 minutes.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "toxic",
+              "label": "A toxic single acute ingestion: the 4-hour level is above the treatment line and the 8-hour mark is close; acetylcysteine now"
+            },
+            {
+              "value": "fine",
+              "label": "He looks well, so the ingestion was not toxic"
+            },
+            {
+              "value": "unclear",
+              "label": "Can't tell without a repeat level"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"toxic\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"toxic\""
+                },
+                {
+                  "log": "Toxic ingestion: treat now.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Impression: not toxic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"unclear\""
+                },
+                {
+                  "log": "Impression: needs a repeat level.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Tell the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Single acute ingestion at about 01:00; the 05:00 level is well above the treatment line; acetylcysteine started per the order at 7 hours; baseline liver tests, INR and creatinine sent"
+            },
+            {
+              "value": "later",
+              "label": "Report the level on morning rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "reviewTime"
+                },
+                {
+                  "log": "The intensivist agrees and orders liver tests, INR and kidney function every 12 hours and a toxicology consult.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "You add the level to your rounds list.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the time of ingestion, the level and its time, the nomogram reading and the start time",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: ingestion about 01:00, level drawn 05:00 above the line, acetylcysteine started, baseline labs.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "ingest",
+        "level",
+        "symptoms",
+        "nac",
+        "lft",
+        "repeat",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ingest\"",
+              "then": [
+                {
+                  "set": "ingestAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He took them between 00:45 and 01:15, after a text to his partner at 00:40 about the pain: a single acute ingestion at about 01:00. The 05:00 level was drawn 4 hours after it.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"level\"",
+              "then": [
+                {
+                  "set": "levelAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The level has posted. Plotted at 4 hours after ingestion, it is well above the treatment line. The 8-hour mark is 09:00.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "symptomsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Mild nausea, vomited once; abdomen soft, no right upper quadrant tenderness; alert. Few symptoms early is typical.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the intensivist's review",
+      "wait": {
+        "skipLabel": "the intensivist's review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min until the intensivist reviews him."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The intensivist reviews him: acetylcysteine running inside the 8-hour window.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why does the time of ingestion matter, what does the level mean, and how soon must he be treated?",
+      "parts": [
+        {
+          "label": "Time and level",
+          "criteria": "The nomogram needs a single acute ingestion and a known time; a level drawn 4 hours or more after it is plotted; his 4-hour level is above the treatment line; looking well early is typical and reassures nothing.",
+          "modelAnswer": "The nomogram only works with a known time and a single ingestion, so I pinned it at 01:00. His level was drawn 4 hours later and plots well above the treatment line. Feeling fairly well now doesn't mean much: early symptoms are often mild."
+        },
+        {
+          "label": "How soon",
+          "criteria": "Acetylcysteine now, ideally within 8 hours of ingestion (09:00); does not wait for a repeat level; baseline liver tests, INR and kidney function; tells the intensivist.",
+          "modelAnswer": "Start the acetylcysteine now; it works best within 8 hours, and that's 09:00. I won't wait for a repeat level. Send baseline liver tests, INR and creatinine and tell the intensivist."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A toxic acetaminophen level untreated past 8 hours is harm here.",
+      "source": {
+        "cite": "Merck Manual Professional Edition. Acetaminophen Poisoning (O'Malley GF, O'Malley R; reviewed April 2025, updated March 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stage I (first 24 hours) brings 'Anorexia, nausea, vomiting', and 'Mild poisoning may not cause symptoms'; the Rumack-Matthew nomogram applies to a single acute ingestion with levels 'measured >= 4 hours after ingestion', and 'Serum levels drawn before 4 hours may not represent peak levels'; acetylcysteine 'is most effective if given within 8 hours of acetaminophen ingestion', and is given until toxicity is ruled out when it is uncertain; liver tests and, in suspected severe poisoning, prothrombin time; stage III at 72-96 hours brings the peak of AST, ALT, bilirubin and INR. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "windowLost": {
+      "label": "The 8-hour window lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "isNull(nacAt) and t >= windowEnd and inClinic",
+      "narrative": "09:00 arrives with no acetylcysteine. Started late, it protects his liver less; over the next three days his liver tests and INR climb toward liver failure."
+    },
+    "protected": {
+      "label": "Treated inside the window",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and not isNull(ingestAt) and not isNull(nacAt) and timeAt(nacAt) <= timeAt(redFlagAt) + earlyWindow and not isNull(lftAt) and route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+      "narrative": "{timeAt(leftAt)|clock}: acetylcysteine has been running since well before 09:00, the time is documented, and baselines are in for the liver and kidneys."
+    },
+    "protectedGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: acetylcysteine is running, but the time of ingestion was never pinned down, the start came late, baselines were missed, or the intensivist was told late."
+    },
+    "time_up": {
+      "label": "Untreated at 09:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:00 and no acetylcysteine."
+    }
+  },
+  "endingOrder": [
+    "windowLost",
+    "protected",
+    "protectedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "nacC",
+        "label": "Acetylcysteine within 20 minutes of plotting the level; no waiting for a repeat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(nacAt) and timeAt(nacAt) <= timeAt(redFlagAt) + earlyWindow",
+            "score": "met",
+            "why": "At {timeAt(nacAt)|clock}."
+          },
+          {
+            "when": "not isNull(nacAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not started."
+          }
+        ]
+      },
+      {
+        "id": "timeC",
+        "label": "Established the time of ingestion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ingestAt)",
+            "score": "met",
+            "why": "About 01:00."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left as a question mark."
+          }
+        ]
+      },
+      {
+        "id": "lftC",
+        "label": "Sent baseline liver tests, INR and kidney function",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lftAt)",
+            "score": "met",
+            "why": "Sent."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not sent."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Told the intensivist within 5 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "route == \"icu\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized a toxic ingestion despite few symptoms",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"toxic\"",
+            "score": "met",
+            "why": "Recognized."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Reassured by symptoms."
+          },
+          {
+            "when": "dxEnum == \"unclear\"",
+            "score": "missed",
+            "why": "Waited for a repeat."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: known time, 4-hour level above the line, acetylcysteine within 8 hours, baselines",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toNac",
+        "label": "Level plotted to acetylcysteine",
+        "value": "isNull(nacAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(nacAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "hoursIn",
+        "label": "08:00 to acetylcysteine (01:00 ingestion)",
+        "value": "isNull(nacAt) ? -1 : timeAt(nacAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:00",
+        "text": "Pin the time of ingestion: about 01:00, a single acute ingestion."
+      },
+      {
+        "at": "~08:01",
+        "text": "Plot the 05:00 level: well above the treatment line. The 8-hour mark is 09:00."
+      },
+      {
+        "at": "~08:02",
+        "text": "Start the ordered acetylcysteine; send liver tests, INR, creatinine; tell the intensivist; document."
+      }
+    ],
+    "debrief": {
+      "windowLost": {
+        "headline": "Window lost",
+        "body": "Acetylcysteine is most effective within 8 hours of ingestion. With a level above the treatment line, start it now; a repeat level or a well-looking patient is no reason to wait."
+      },
+      "protected": {
+        "headline": "Treated in time",
+        "body": "You pinned the time, plotted the level, started acetylcysteine well inside 8 hours, sent baselines and told the intensivist. That is the expert path."
+      },
+      "protectedGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check whether the time was established, how soon acetylcysteine started, and whether baselines were sent."
+      },
+      "time_up": {
+        "headline": "Untreated",
+        "body": "A level above the line needs acetylcysteine before the 8-hour mark."
+      }
+    },
+    "modelReasoning": "The nomogram applies to a single acute ingestion with a known time, using a level drawn 4 hours or more after it. Mr. Tan took the tablets between 00:45 and 01:15, so the 05:00 level is a 4-hour level, and it plots well above the treatment line. He looks fairly well, which is typical early and reassures nothing. Acetylcysteine is most effective within 8 hours of ingestion, which is 09:00, so start the ordered protocol now rather than waiting for a repeat level, send baseline liver tests, INR and kidney function, tell the intensivist, and document the times. Liver injury peaks at 3 to 4 days, so the monitoring continues."
+  },
+  "chapters": [
+    {
+      "id": "nac",
+      "label": "Acetylcysteine running",
+      "when": "not isNull(nacAt)"
+    }
+  ],
+  "teaching": {
+    "nomoQ": {
+      "during": "testT",
+      "ask": "While you check: when can an acetaminophen level be plotted on the nomogram?",
+      "choices": [
+        {
+          "id": "four",
+          "label": "From 4 hours after a single acute ingestion"
+        },
+        {
+          "id": "any",
+          "label": "Any time after any ingestion"
+        },
+        {
+          "id": "one",
+          "label": "One hour after ingestion"
+        }
+      ],
+      "expect": "four",
+      "explain": "The nomogram applies to a single acute ingestion with levels measured 4 hours or more after it; earlier levels may not represent the peak.",
+      "source": {
+        "cite": "Merck Manual Professional Edition. Acetaminophen Poisoning (O'Malley GF, O'Malley R; reviewed April 2025, updated March 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stage I (first 24 hours) brings 'Anorexia, nausea, vomiting', and 'Mild poisoning may not cause symptoms'; the Rumack-Matthew nomogram applies to a single acute ingestion with levels 'measured >= 4 hours after ingestion', and 'Serum levels drawn before 4 hours may not represent peak levels'; acetylcysteine 'is most effective if given within 8 hours of acetaminophen ingestion', and is given until toxicity is ruled out when it is uncertain; liver tests and, in suspected severe poisoning, prothrombin time; stage III at 72-96 hours brings the peak of AST, ALT, bilirubin and INR. No dose is used in the case."
+      }
+    },
+    "eightQ": {
+      "during": "leaveT",
+      "ask": "While the intensivist reviews him: when is acetylcysteine most effective?",
+      "choices": [
+        {
+          "id": "eight",
+          "label": "Within 8 hours of ingestion"
+        },
+        {
+          "id": "day3",
+          "label": "When liver tests rise on day 3"
+        },
+        {
+          "id": "any",
+          "label": "Timing doesn't matter"
+        }
+      ],
+      "expect": "eight",
+      "explain": "Acetylcysteine is most effective if given within 8 hours of acetaminophen ingestion.",
+      "source": {
+        "cite": "Merck Manual Professional Edition. Acetaminophen Poisoning (O'Malley GF, O'Malley R; reviewed April 2025, updated March 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: stage I (first 24 hours) brings 'Anorexia, nausea, vomiting', and 'Mild poisoning may not cause symptoms'; the Rumack-Matthew nomogram applies to a single acute ingestion with levels 'measured >= 4 hours after ingestion', and 'Serum levels drawn before 4 hours may not represent peak levels'; acetylcysteine 'is most effective if given within 8 hours of acetaminophen ingestion', and is given until toxicity is ruled out when it is uncertain; liver tests and, in suspected severe poisoning, prothrombin time; stage III at 72-96 hours brings the peak of AST, ALT, bilirubin and INR. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
