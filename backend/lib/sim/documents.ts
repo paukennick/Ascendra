@@ -482,6 +482,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("FNPANCC", "clinic-depression-follow-up-item-nine-fnp-role"),
   entry("FNPANCC", "clinic-widower-thoughts-right-now"),
   band("FNPAANP", "clinic-widower-thoughts-right-now-fnp-clinical"),
+  entry("CCRNADULT", "sah-day-six-not-herself-on-levetiracetam"),
+  entry("CCRNADULT", "icu-threatens-staff-pulls-cannula"),
   // ---- end REQ-329 ----
 ];
 

@@ -28,6 +28,8 @@ export const REQ329_CASES: readonly { course: string; slug: string; harmPath: st
   { course: "PCCN", slug: "new-heart-failure-better-off-without-me", harmPath: "leftForDay" },
   { course: "FNPAANP", slug: "clinic-depression-follow-up-item-nine", harmPath: "listOnly" },
   { course: "FNPANCC", slug: "clinic-widower-thoughts-right-now", harmPath: "nextWeek" },
+  { course: "CCRNADULT", slug: "sah-day-six-not-herself-on-levetiracetam", harmPath: "writtenOff" },
+  { course: "CCRNADULT", slug: "icu-threatens-staff-pulls-cannula", harmPath: "restrainedFirst" },
 ];
 
 export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [
