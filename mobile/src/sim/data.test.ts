@@ -24,6 +24,8 @@ const seed = join(here, "..", "..", "..", "backend", "supabase", "seed", "sims")
 const CASES: [string, string][] = [
   ["PYTHON", "py-report-too-slow-profile"],
   ["PL300", "pl300-rls-region-manager"],
+  ["PL300", "pl300-stock-on-hand-summed"],
+  ["CSSGB", "cssgb-fill-weight-chart"],
 ];
 const course = (slug: string) => CASES.find((c) => c[1] === slug)![0];
 const doc = (slug: string): ScenarioDoc => JSON.parse(readFileSync(join(seed, course(slug), `${slug}.sim.json`), "utf8")) as ScenarioDoc;
@@ -121,6 +123,28 @@ describe("data console view model", () => {
     assert.equal(c.flaggedCount, 0);
     assert.deepEqual(c.points.map((p) => p.value), [312, 0, 0, 0]);
     assert.match(c.summary, /none flagged/);
+  });
+
+  test("the CSSGB case: picking the chart in its cell swaps an attribute chart for X-bar and R with limits", () => {
+    const slug = "cssgb-fill-weight-chart";
+    let run = createRun(doc(slug), 1);
+    let v = dataView(run, actionViews(run))!;
+    assert.deepEqual(v.charts.map((c) => c.id), ["p"]);
+    assert.equal(v.charts[0].flaggedCount, 0, "the p chart shows nothing");
+    run = play(slug, [["setChart", { kind: "xbar" }], "rules"]);
+    v = dataView(run, actionViews(run))!;
+    assert.deepEqual(v.charts.map((c) => c.id), ["xbar", "r"]);
+    const x = v.charts[0];
+    assert.equal(x.kind, "control");
+    assert.deepEqual(x.lines.map((l) => [l.label, l.value]), [["UCL", 503.8], ["CL", 502], ["LCL", 500.2]]);
+    assert.equal(x.flaggedCount, 8, "the run of 8 below the center line");
+    assert.ok(x.lines[1].pos > 0.4 && x.lines[1].pos < 0.6);
+    assert.match(x.summary, /X-bar chart of mean fill, control chart, 20 points/);
+    assert.equal(v.tables.find((t) => t.id === "setup")!.flaggedCount, 0);
+    run = play(slug, ["wait", "wait"], run);
+    v = dataView(run)!;
+    assert.equal(v.charts[0].points.length, 22, "new subgroups appear over time");
+    assert.ok(dataAlarmTexts(v).some((a) => a.includes("below the lower control limit")));
   });
 
   test("numbers read naturally", () => {

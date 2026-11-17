@@ -464,6 +464,10 @@
       "type": "time",
       "init": null
     },
+    "measuredAt": {
+      "type": "time",
+      "init": null
+    },
     "fixAt": {
       "type": "time",
       "init": null
@@ -568,7 +572,7 @@
       "expr": "not isNull(mailedAt) ? timeAt(mailedAt) : -1"
     },
     "measuredFirst": {
-      "expr": "not isNull(profiledAt) and (isNull(fixAt) or timeAt(profiledAt) <= timeAt(fixAt))"
+      "expr": "not isNull(measuredAt) and (isNull(fixAt) or timeAt(measuredAt) <= timeAt(fixAt))"
     },
     "verifiedMailed": {
       "expr": "mailed and verifiedFor == mailedAs and mailedAs != \"none\""
@@ -620,6 +624,15 @@
           ]
         },
         {
+          "if": "isNull(measuredAt)",
+          "then": [
+            {
+              "set": "measuredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
           "output": "$ python -m timeit -s \"from overdue_report import *; b = load_blocked()\" \"is_blocked('P-48213', b)\"\n100 loops, best of 5: 2.3 msec per loop"
         },
         {
@@ -646,6 +659,15 @@
           "then": [
             {
               "set": "profiledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(measuredAt)",
+          "then": [
+            {
+              "set": "measuredAt",
               "to": "t"
             }
           ]
@@ -1264,7 +1286,7 @@
       "label": "Right file, on time, checked",
       "class": "target",
       "terminal": true,
-      "when": "documented and mailedRight and mailedSec <= deadline and verifiedMailed",
+      "when": "documented and mailedRight and mailedSec <= deadline and verifiedMailed and not isNull(measuredAt)",
       "narrative": "The notice file reached the branches before they opened, and it matches what the job produced before it slowed down."
     },
     "rightGaps": {
@@ -1272,7 +1294,7 @@
       "class": "recovered",
       "terminal": true,
       "when": "documented",
-      "narrative": "The file is right, but late or not checked against a known good output."
+      "narrative": "The file is right, but late, unmeasured, or not checked against a known good output."
     },
     "time_up": {
       "label": "Time up",
@@ -1298,12 +1320,12 @@
           {
             "when": "measuredFirst",
             "score": "met",
-            "why": "Profiled first: the time is in is_blocked."
+            "why": "Measured first: the time is in is_blocked."
           },
           {
-            "when": "not isNull(profiledAt)",
+            "when": "not isNull(measuredAt)",
             "score": "partial",
-            "why": "Profiled, but only after changing the code."
+            "why": "Measured, but only after changing the code."
           },
           {
             "when": "true",
