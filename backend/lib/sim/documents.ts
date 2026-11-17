@@ -266,6 +266,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CISM", "cism-ransomware-tabletop"),
   entry("ISC2CC", "cc-ethics-shared-credentials"),
   entry("CISSP", "cissp-ethics-audit-finding-pressure"),
+  entry("CISSP", "cissp-flood-continuity-tabletop"),
   // REQ-313 bands (docs/sims.md 4.7): the same case on another course's
   // objective that it teaches.
   band("ISC2CC", "cc-ransomware-tabletop"),
@@ -273,6 +274,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("SECPLUSV8", "ransomware-tabletop-v8"),
   band("SECPLUS", "risk-exception-appetite-secplus"),
   band("SECPLUSV8", "risk-exception-appetite-v8"),
+  band("ISC2CC", "cc-flood-continuity-tabletop"),
+  band("SECPLUS", "flood-continuity-tabletop-secplus"),
+  band("SECPLUSV8", "flood-continuity-tabletop-v8"),
   // ---- end REQ-313 ----
 ];
 
