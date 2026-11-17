@@ -990,3 +990,34 @@ Sims on objectives the screen does not pass:
 - Apply ethical standards to supervision and training (none)
 - Apply ethical standards to technology-assisted services and social media (none)
 
+
+## REQ-315 progress (2026-11-16)
+
+Nick approved building every fitting objective, launch courses first, with
+bands where another course's sim already teaches it (docs/sims.md 22.28).
+The tables above are the REQ-296 counts and were not recomputed; this
+section lists what REQ-315 added as a main objective.
+
+- **NCLEXRN** (+7): six bands (supervising delegated care; monitoring for
+  bleeding; fluid volume overload during IV therapy; opioid therapy and
+  naloxone; oxygen saturation targets; distributive shock) and the alcohol
+  withdrawal case (CIWA-Ar screening).
+- **NCLEXPN** (+3): two bands (the six clinical judgment steps in the PN
+  role; ranking explanations and taking the most urgent to the RN) and the
+  head-strike case (rising intracranial pressure).
+- **CCRNADULT** (+5): four bands (COPD and CO2 retention; transfusion
+  reactions; opioid toxicity; heart failure) and the tension pneumothorax
+  case.
+- **CNA** (+1): the sundowning case (responding to behavior without
+  escalating it; the restraint objective as secondary).
+- **NPTEPT** (+5): the five DPT sessions as bands.
+- **NCE** (+1), **NCMHCE** (+1): one band each.
+- **DPT, PTPREREQ**: nothing new (no fitting objective left that an
+  existing PT screen case could carry without new authoring).
+
+Still to build, in the approved order: the rest of the launch courses'
+fitting objectives listed above as `none` (NCLEX-RN about 90, NCLEX-PN
+about 35, CCRN Adult about 70, CNA 2, NPTE-PT about 25, NCE 7, NCMHCE 7,
+DPT about 8); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
+123 open); the ABPTS courses (none yet); ASWB and the remaining mental
+health objectives (docs/sims-coverage-mental-health-wave.md).

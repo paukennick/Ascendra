@@ -5624,3 +5624,91 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.28 Clinical sims of the 2026-11-16 round: bands across courses and four new bedside cases (REQ-315)
+
+Nick, 2026-11-16 (16:17 PT), approved the lead's recommendations: a sim for
+every clinical objective that fits the selection rule (12.2) on an existing
+screen, launch courses first, and a **band** (4.7) wherever another course's
+sim already teaches the objective, instead of re-authoring the case. No
+engine, renderer, schema or migration change; engine 1.2 throughout.
+
+**Bands (19).** Each registers an existing case to a fitting catalog
+objective of a launch course (the objective passes the selection screen;
+`lib/sim/clinical-sims-1116.test.ts`). A band's patch changes only
+`objective`, `secondaryObjectives`, `sources` and, once, `brief`, so its
+scoring, outcome thresholds and endings are the base's (the test compares
+them). Sources are the target course's outline, relayed from the course seed
+or earlier cases with their dates, plus the base's clinical sources, each
+note starting "Relayed from the <course> case <slug>, not re-read for this
+band". Golden paths are the base's steps, rebuilt against the band
+(`scripts/sim-golden/*-band-*.steps.ts`).
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| NCLEXRN/delegation-morning-assignment-nclexrn | CMSRN | Supervising delegated care and evaluating the outcome |
+| NCLEXRN/postop-hemorrhage-early-signs-nclexrn | CMSRN | Monitoring for signs of bleeding |
+| NCLEXRN/heart-failure-pulmonary-edema-nclexrn | ADNRN | Recognize fluid volume overload during IV therapy ... and act on it |
+| NCLEXRN/pca-oversedation-naloxone-nclexrn | ADNRN | Monitor opioid therapy (NARCS U) ... naloxone |
+| NCLEXRN/copd-exacerbation-niv-nclexrn | PCCN | Oxygen saturation targets in an acute respiratory exacerbation |
+| NCLEXRN/sepsis-to-septic-shock-nclexrn | CCRNADULT | Recognize distributive shock ... report a falling BP with a rising HR |
+| NCLEXPN/ltc-insulin-hypoglycemia-nclexpn | LPNVN | The six clinical judgment steps within the PN role |
+| NCLEXPN/ltc-pressure-injury-infection-nclexpn | LPNVN | Rank the possible explanations ... take the most urgent to the RN |
+| CCRNADULT/copd-exacerbation-niv-ccrn | PCCN | COPD exacerbation: titrate oxygen, follow gases for CO2 retention |
+| CCRNADULT/post-op-transfusion-reaction-ccrn | NCLEXRN | Differentiate transfusion reactions, TRALI and TACO |
+| CCRNADULT/pca-oversedation-naloxone-ccrn | ADNRN | Manage opioid toxicity ... sedation can return after naloxone |
+| CCRNADULT/heart-failure-pulmonary-edema-ccrn | ADNRN | Heart failure: decompensation, fluid overload, medications |
+| NPTEPT/tka-gait-dvt-red-flag-npte | DPT | Total knee arthroplasty rehab per the 2026 APTA guideline |
+| NPTEPT/parkinson-freezing-session-npte | DPT | The strong Parkinson disease recommendations |
+| NPTEPT/dizziness-central-red-flags-npte | DPT | Signs of neurological emergency that need immediate referral |
+| NPTEPT/icu-early-mobility-npte | DPT | Cardiopulmonary decompensation that requires stopping treatment |
+| NPTEPT/stroke-balance-fall-risk-npte | DPT | The neurologic core outcome set |
+| NCE/nce-suicide-safety-plan | NCMHCE | Develop a collaborative safety plan with a client at risk |
+| NCMHCE/ncmhce-boundary-dual-relationship | NCE | Apply the ACA Code of Ethics and the law to a counseling decision |
+
+Not banded, and why: the NCLEX-RN hyperkalemia case to the NCLEX-PN
+potassium objective (the RN gives IV calcium and insulin, outside the PN
+scope; it needs a PN case or a re-authored band); the PT prerequisites cycle
+test to NPTE-PT (a student lab with an instructor, not a licensed PT); the
+EMS STEMI and anaphylaxis cases to CCRN Adult (prehospital scope and
+destination decisions).
+
+**New cases (4)**, each with `endingOrder`, endings in all three outcome
+classes, three or four critical criteria inside the `target` condition, a
+reasoning moment, a sourced teaching prompt where a named wait exists, a
+chapter, and five or six golden paths (Good, Mediocre, Bad; every criterion
+met and missed; every ending but `time_up`):
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| NCLEXRN/alcohol-withdrawal-ciwa | Screen for alcohol withdrawal on admission and use the CIWA-Ar | drinking history within 10 min; a score before any dose and every dose backed by 10 or more; lorazepam within 15 min of a qualifying score; rescored within about an hour | rn-ciwa |
+| CNA/sundowning-at-the-exit-door | Responding to behavior without escalating it | no hold, locked tray or sedative for convenience; validation instead of correction; unmet needs checked within 15 min | cna-sundown |
+| CCRNADULT/tension-pneumothorax-after-line | Recognize tension pneumothorax ... treated before imaging | chest examined within 3 min; decompression asked for now, not a film, within 5 min; 100% oxygen within 3 min | ccrn-ptx |
+| NCLEXPN/head-strike-on-apixaban | Recognize and report signs of rising intracranial pressure | neuro check within 5 min; the RN told with the data and 911 within 10 min; no opioid or sedating antiemetic | pn-icp |
+
+- **Harm endings** are outcomes (a seizure, oversedation, a fall at the
+  door, cardiac arrest, herniation, aspiration while flat), never an action
+  alone. The x-ray-first choice in the tension pneumothorax case ends in
+  arrest only because the 15-minute film is too slow for the authored
+  course of the tension.
+- **Scope.** The RN and PN act on standing protocols named in the brief
+  (the withdrawal protocol's dose is "the protocol dose", not a number; the
+  facility's 911 policy); the aide reports observations to the nurse.
+- **Sources**, read 2026-11-16 through summarizing fetches with quotes: the
+  ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (2020;
+  CIWA-Ar bands under 10, 10-18 and 19, with the severe band's comparison
+  sign lost in the extracted text), StatPearls on alcohol withdrawal (no
+  title or date shown), one hospital's CIWA-Ar flowsheet (items and the
+  10-point trigger; not a guideline), 42 CFR 483.12 (Cornell LII), Open RN
+  Nursing Assistant 10.5, StatPearls Tension Pneumothorax (2025-07-07) and
+  Increased Intracranial Pressure (2025-09-14). Relayed with their dates: the
+  NCLEX test plans, the CCRN handbook, the NNAAP outline, 42 CFR 483.152,
+  NICE NG232 through a summary. Every disease course, effect size and local
+  wait is an authored teaching value marked `FLAG`.
+- **Findings while authoring** (FAIL-2240): `NBCC_SESSION_DOCUMENTS` was
+  every NCE and NCMHCE entry, so the two NBCC bands would have broken the
+  REQ-239 tests; it now names the five REQ-239 slugs. A chapter whose
+  condition is met only in the last minutes before a terminal ending is
+  unreachable in the goldens (the linter said so); the tension pneumothorax
+  chapter is the stat call instead.
+- **What remains** is in docs/sims-coverage-clinical.md, "REQ-315 progress".
