@@ -54,4 +54,5 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "GCPGAIL", slug: "rag-assistant-data-leak-gail", screen: "security-console", profile: "security", kind: "band", steps: "c20-gcpgail-rag-assistant-data-leak-gail", base: "SECAIPLUS/rag-assistant-data-leak" },
   { course: "AWSDEA", slug: "kinesis-poison-record-blocks-shard", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dea-kinesis" },
   { course: "GCPNET", slug: "gke-pod-range-exhausted-before-promo", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpnet-podrange" },
+  { course: "GCPDBE", slug: "cloud-run-exhausts-sql-connections", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "gcpdbe-pooling" },
 ];
