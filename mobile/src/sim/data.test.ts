@@ -26,6 +26,11 @@ const CASES: [string, string][] = [
   ["PL300", "pl300-rls-region-manager"],
   ["PL300", "pl300-stock-on-hand-summed"],
   ["CSSGB", "cssgb-fill-weight-chart"],
+  ["CSSGB", "cssgb-capability-tool-wear"],
+  ["PYTHON", "py-import-crash-traceback"],
+  ["JAVASCRIPT", "js-rate-board-zero-percent"],
+  ["JAVASCRIPT", "js-checkout-shipping-concatenated"],
+  ["SQL", "sql-not-in-null-empty-list"],
 ];
 const course = (slug: string) => CASES.find((c) => c[1] === slug)![0];
 const doc = (slug: string): ScenarioDoc => JSON.parse(readFileSync(join(seed, course(slug), `${slug}.sim.json`), "utf8")) as ScenarioDoc;
