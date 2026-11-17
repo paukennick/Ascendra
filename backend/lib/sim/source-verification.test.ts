@@ -55,6 +55,9 @@ export const VERIFIED_20261116: readonly (readonly [string, string])[] = [
   ["duty-to-protect-threat", "Volk v. DeMeerleer"],
   ["resident-chokes-at-lunch", "42 CFR 483.24(a)(3)"],
   ["resident-found-on-floor", "42 CFR 483.12(c)"],
+  ["apiserver-static-pod-bad-flag", "Kubernetes documentation, Ports and Protocols"],
+  ["cloud-run-bad-revision-rollback", "Google Cloud, Associate Cloud Engineer certification exam guide"],
+  ["public-bucket-customer-exports", "Google Cloud, Associate Cloud Engineer certification exam guide"],
 ];
 
 for (const [slug, prefix] of VERIFIED_20261116) {
@@ -95,5 +98,16 @@ test("FAIL-2132: the Volk v. DeMeerleer citation quotes the opinion's own words"
   for (const c of cites) {
     assert.doesNotMatch(c.cite, /'reasonable care, consistent with the standards of the mental health profession'/);
     assert.match(c.cite, /'under a duty of reasonable care to act consistent with the standards of the mental health profession and to protect the foreseeable victims'/);
+  }
+});
+
+test("FAIL-2133: GCPACE sims cite the ACE guide's current four-section numbering", () => {
+  for (const slug of ["cloud-run-bad-revision-rollback", "public-bucket-customer-exports"]) {
+    const cites = sourcesOf(rawOf(slug)).filter((x) => x.cite.startsWith("Google Cloud, Associate Cloud Engineer certification exam guide"));
+    assert.ok(cites.length > 0, slug);
+    for (const c of cites) {
+      assert.doesNotMatch(c.cite, /Section 4 Ensuring|4\.4 Managing/, `${slug}: old five-section numbering`);
+      assert.match(c.cite, /Section 3 Ensuring the successful operation of a cloud solution \(~30%\), 3\.[12] /, slug);
+    }
   }
 });
