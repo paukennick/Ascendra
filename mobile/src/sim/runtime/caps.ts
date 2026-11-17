@@ -6,15 +6,19 @@
 // REQ-225: the client session (screen.session bindings), level 1.
 // REQ-232: the PT treatment session (screen.treatment bindings), level 1.
 // REQ-237: the terminal and network screen (screen.terminal bindings), level 1.
+// REQ-313: the session at level 2 (screen.session.readLabel), the governance
+// board (screen.governance) and the tabletop exercise (screen.tabletop), level 1.
 import { ENGINE_MAJOR, ENGINE_MINOR } from "../engine/v1/engine.ts";
 
 export const SIM_RENDERERS = [
   { type: "bedside", level: 3 },
   { type: "board", level: 3 },
-  { type: "session", level: 1 },
+  { type: "session", level: 2 }, // REQ-313: level 2 names the read button (readLabel)
   { type: "security-console", level: 1 }, // REQ-231 (screen.console bindings)
   { type: "treatment-session", level: 1 },
   { type: "terminal", level: 1 }, // REQ-237 (screen.terminal bindings)
+  { type: "governance-board", level: 1 }, // REQ-313 (screen.governance bindings)
+  { type: "tabletop", level: 1 }, // REQ-313 (screen.tabletop bindings)
 ] as const;
 
 export const SIM_CAPS_HEADER = "x-sim-caps";

@@ -159,6 +159,8 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
   (con?.events ?? []).forEach((e, i) => check(`screen.console.events[${i}].at`, e.at, "a console event's at"));
   // REQ-237: a terminal output line's `at` is sim seconds too.
   (doc.screen?.terminal?.lines ?? []).forEach((l, i) => check(`screen.terminal.lines[${i}].at`, l.at, "a terminal line's at"));
+  // REQ-313: a tabletop inject's `at` is sim seconds of scenario time too.
+  (doc.screen?.tabletop?.injects ?? []).forEach((j, i) => check(`screen.tabletop.injects[${i}].at`, j.at, "a tabletop inject's at"));
   // one problem per place and name
   const seen = new Set<string>();
   return problems.filter((p) => {

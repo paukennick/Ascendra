@@ -35,8 +35,10 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // SIMS_RENDERERS=bedside,board turns it off again without a release.
 // REQ-231 adds the security operations console ("security-console").
 // REQ-232 adds the PT treatment session ("treatment-session") the same way.
-// REQ-237 adds the terminal and network screen ("terminal").
-export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal"] as const;
+// REQ-237 adds the terminal and network screen ("terminal"). REQ-313 adds the
+// governance board ("governance-board") and the tabletop exercise
+// ("tabletop"); the session's level 2 needs no switch of its own.
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "governance-board", "tabletop"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];
