@@ -367,9 +367,6 @@ export const NBCC_SOURCES = {
 
 const S = NBCC_SOURCES;
 
-const DESCRIPTION_TAIL =
-  "Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the National Board for Certified Counselors (NBCC).";
-
 const nbccCredential = (o: {
   slug: string;
   name: string;
@@ -560,7 +557,8 @@ const unitWith = (base: string[], extra: string[]): string[] => [...base, ...ext
 export const NCE_TRACK: SeedTrack = {
   code: "NCE",
   title: "Prep for a counselor licensure and certification knowledge exam",
-  description: `Preparation for the National Counselor Examination: NBCC's six domains, from professional practice and ethics to counseling skills and interventions, weighted as the exam weights them, with the eight CACREP core areas the questions align to. ${DESCRIPTION_TAIL} NCE is a registered trademark of NBCC.`,
+  description:
+    "Preparation for a national counselor licensure and certification exam: six domains, from professional practice and ethics to counseling skills and interventions, weighted as the exam weights them, with the eight CACREP core areas the questions align to. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "counseling-licensure",
   freshnessModel: "certification_aligned",
@@ -643,7 +641,8 @@ export const NCE_TRACK: SeedTrack = {
 export const NCMHCE_TRACK: SeedTrack = {
   code: "NCMHCE",
   title: "Prep for a case-based clinical mental health counseling licensure exam",
-  description: `Preparation for the National Clinical Mental Health Counseling Examination: clinical case studies, each an intake summary and two counseling sessions, testing NBCC's domains from intake, assessment and diagnosis to counseling skills and interventions, weighted as the exam weights them. ${DESCRIPTION_TAIL} NCMHCE is a registered trademark of NBCC.`,
+  description:
+    "Preparation for a case-based clinical mental health counseling licensure exam: clinical case studies, each an intake summary and two counseling sessions, testing domains from intake, assessment and diagnosis to counseling skills and interventions, weighted as the exam weights them. Includes frank clinical material (suicide risk, abuse, substance use, trauma) where the exam tests it, behind an 18+ content notice. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "counseling-licensure",
   freshnessModel: "certification_aligned",

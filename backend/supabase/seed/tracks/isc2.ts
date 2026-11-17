@@ -191,15 +191,11 @@ export const ISC2_SOURCES = {
   cissp2027: src("ISC2, CISSP Certification Exam Outline effective April 15, 2027 (not yet taught)", CISSP_2027_OUTLINE_URL, "exam_outline", CISSP_RECHECK),
 } as const;
 
-const CC_INDEPENDENCE =
-  "Independently developed exam prep; not affiliated with or endorsed by ISC2. ISC2 and CC are registered marks of ISC2, Inc.";
-const CISSP_INDEPENDENCE =
-  "Independently developed exam prep; not affiliated with or endorsed by ISC2. ISC2 and CISSP are registered marks of ISC2, Inc.";
-
 export const ISC2CC_TRACK: SeedTrack = {
   code: "ISC2CC",
   title: "Prep for an entry-level cybersecurity certification exam",
-  description: `Entry-level preparation for ISC2's Certified in Cybersecurity exam on the outline effective September 1, 2026: security principles, governance, identity and access management, networking and cloud security, and security operations with incident response, weighted as the exam weights them, with practice for the adaptive (CAT) format. ${CC_INDEPENDENCE}`,
+  description:
+    "Entry-level preparation for a cybersecurity certification exam on the outline effective September 1, 2026: security principles, governance, identity and access management, networking and cloud security, and security operations with incident response, weighted as the exam weights them, with practice for the adaptive (CAT) format. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",
@@ -446,7 +442,8 @@ const cisspUnit = (d: CisspDomain, gate: string, objectives: string[]) => ({
 export const CISSP_TRACK: SeedTrack = {
   code: "CISSP",
   title: "Prep for an advanced information security professional certification exam",
-  description: `Preparation for ISC2's Certified Information Systems Security Professional exam on the outline effective April 15, 2024: all eight domains weighted as the exam weights them, taught from a manager's and architect's view of risk, with practice for the adaptive (CAT) format. ISC2 replaces the outline on April 15, 2027; this course is reviewed before then. ${CISSP_INDEPENDENCE}`,
+  description:
+    "Preparation for an advanced information security professional certification exam on the outline effective April 15, 2024: all eight domains weighted as the exam weights them, taught from a manager's and architect's view of risk, with practice for the adaptive (CAT) format. The outline is replaced on April 15, 2027; this course is reviewed before then. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: ISC2.subcategorySlug,
   freshnessModel: "certification_aligned",

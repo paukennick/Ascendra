@@ -33,6 +33,10 @@ export const TRADEMARK_OWNERS: readonly string[] = [
   // marks B named in brackets. Rendered by the Disclaimer and Sources &
   // Trademarks pages (src/content/legal.ts). Add a line when a course from a
   // new provider is added.
+  // REQ-309 (2026-11-16): bodies whose trademark policy allows no use of
+  // their marks without written permission (ABPTS via APTA, NASM, ACE, ISC2,
+  // ISACA, EC-Council, BCEN, NBCC, ASQ, ANCC, AANPCB, the Python Institute)
+  // are left off this list; backend/lib/catalog-trademarks.test.ts checks it.
   "CompTIA",
   "Amazon Web Services (AWS)",
   "Microsoft",
@@ -41,14 +45,11 @@ export const TRADEMARK_OWNERS: readonly string[] = [
   "National Council of State Boards of Nursing (NCSBN, NCLEX)",
   "AACN Certification Corporation and the American Association of Critical-Care Nurses (CCRN)",
   "American Association of Colleges of Nursing (The Essentials)",
-  "American Board of Physical Therapy Specialties (ABPTS)",
   "Federation of State Boards of Physical Therapy (FSBPT, NPTE)",
   "Commission on Accreditation in Physical Therapy Education (CAPTE)",
   "Commission on Accreditation for Health Informatics and Information Management Education (CAHIIM)",
   "Centers for Medicare & Medicaid Services (CMS)",
   "National Strength and Conditioning Association (NSCA)",
-  "National Academy of Sports Medicine (NASM)",
   "International Sports Sciences Association (ISSA) and the National Council for Certified Personal Trainers (NCCPT)",
-  "American Council on Exercise (ACE)",
   "American College of Sports Medicine (ACSM)",
 ];

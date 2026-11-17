@@ -170,7 +170,7 @@ export const PCCN_TRACK: SeedTrack = {
   code: "PCCN",
   title: "Prep for a progressive care nursing certification exam",
   description:
-    "AACN's progressive care nursing specialty certification for nurses caring for acutely ill adults, built on the PCCN Test Plan in force since February 6 2024: ten body-system clinical judgment categories (80%) and Professional Caring & Ethical Practice through the Synergy Model (20%), weighted as AACN weights them. Independent exam prep; not affiliated with or endorsed by AACN Certification Corporation.",
+    "AACN's progressive care nursing specialty certification for nurses caring for acutely ill adults, built on the PCCN Test Plan in force since February 6 2024: ten body-system clinical judgment categories (80%) and Professional Caring & Ethical Practice through the Synergy Model (20%), weighted as AACN weights them. Independent exam prep; not affiliated with or endorsed by AACN Certification Corporation. CCRN and PCCN are registered service marks of AACN Certification Corporation.",
   trackType: "certification",
   subcategorySlug: "nursing-specialty-certifications",
   freshnessModel: "certification_aligned",

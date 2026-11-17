@@ -243,13 +243,11 @@ const PYTHON_INSTITUTE = {
   credentialType: "certification",
 } as const satisfies Partial<SeedCredential>;
 
-const NOTICE =
-  "Independently developed exam prep; not affiliated with or endorsed by the OpenEDG Python Institute. PCEP™ and PCAP™ are marks of the OpenEDG Python Institute; Python is a trademark of the Python Software Foundation.";
-
 export const PCEP_TRACK: SeedTrack = {
   code: "PCEP",
   title: "Prep for an entry-level Python programmer certification exam",
-  description: `PCEP™ – Certified Entry-Level Python Programmer, exam PCEP-30-03: reading, tracing and writing short Python programs -- literals, variables and operators, conditions and loops, lists, tuples, sets, dictionaries and strings, functions and basic exceptions, text and CSV files, and the math and random modules. ${NOTICE}`,
+  description:
+    "An entry-level Python programmer certification exam: reading, tracing and writing short Python programs -- literals, variables and operators, conditions and loops, lists, tuples, sets, dictionaries and strings, functions and basic exceptions, text and CSV files, and the math and random modules. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "programming-languages",
   freshnessModel: "certification_aligned",
@@ -437,7 +435,8 @@ const PCAP_FORMAT = [
 export const PCAP_TRACK: SeedTrack = {
   code: "PCAP",
   title: "Prep for an associate Python programmer certification exam",
-  description: `PCAP™ – Certified Associate Python Programmer, exam PCAP-31-04: modules, packages and pip; exception hierarchies and custom exceptions; Unicode and string analysis; classes, inheritance, MRO and introspection; comprehensions, match-case, lambdas, closures, files and pathlib; and testing, debugging, code review and checking AI-generated code. ${NOTICE}`,
+  description:
+    "An associate Python programmer certification exam: modules, packages and pip; exception hierarchies and custom exceptions; Unicode and string analysis; classes, inheritance, MRO and introspection; comprehensions, match-case, lambdas, closures, files and pathlib; and testing, debugging, code review and checking AI-generated code. Python is a trademark of the Python Software Foundation. Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam.",
   trackType: "certification",
   subcategorySlug: "programming-languages",
   freshnessModel: "certification_aligned",

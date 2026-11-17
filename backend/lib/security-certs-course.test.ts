@@ -23,17 +23,21 @@ const weights = (t: SeedTrack) => activeUnits(t).map((u) => [u.title, u.weight])
 
 describe("REQ-270..274: ISC2, ISACA and EC-Council security courses", () => {
   test("each is in the catalog once, under IT & Software > IT Certifications, titled descriptively with an independence notice", () => {
+    // REQ-309: ISC2, ISACA and EC-Council allow no use of their marks without
+    // written permission, so neither the title nor the notice names a mark.
+    const notice = /Independently developed exam prep; not affiliated with or endorsed by the organization that owns or administers this exam\.$/;
     const want: Record<string, [string, RegExp]> = {
-      ISC2CC: ["Prep for the ISC2 Certified in Cybersecurity (CC®) Exam", /not affiliated with or endorsed by ISC2\. ISC2 and CC are registered marks of ISC2, Inc\.$/],
-      CISSP: ["Prep for the CISSP® Exam", /not affiliated with or endorsed by ISC2\. ISC2 and CISSP are registered marks of ISC2, Inc\.$/],
-      CISM: ["Prep for the CISM® Exam", /not affiliated with or endorsed by ISACA\. CISM is a registered trademark of ISACA\.$/],
-      CEH: ["Prep for the CEH® Exam", /not affiliated with or endorsed by EC-Council\. CEH and Certified Ethical Hacker are registered trademarks of EC-Council\.$/],
+      ISC2CC: ["Prep for an entry-level cybersecurity certification exam", notice],
+      CISSP: ["Prep for an advanced information security professional certification exam", notice],
+      CISM: ["Prep for an information security management certification exam", notice],
+      CEH: ["Prep for an ethical hacking knowledge certification exam", notice],
     };
     for (const t of TRACKS) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1, t.code);
       assert.equal(t.title, want[t.code][0]);
-      assert.match(t.title, /^Prep for the .+ Exam$/);
+      assert.match(t.title, /^Prep for an? .+ exam$/);
       assert.match(t.description, want[t.code][1], t.code);
+      assert.doesNotMatch(`${t.title} ${t.description}`, /ISC2|CISSP|\bCC\b|ISACA|CISM|EC-Council|\bCEH\b|Ethical Hacker/, t.code);
       assert.equal(t.subcategorySlug, "it-certifications");
       assert.equal(t.credential?.subcategorySlug, "it-certifications");
       assert.equal(t.freshnessModel, "certification_aligned");

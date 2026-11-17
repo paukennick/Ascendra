@@ -241,7 +241,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
   code: "NPTEPT",
   title: "Prep for a physical therapist licensure exam",
   description:
-    "The physical therapist licensure examination, built on FSBPT's current NPTE-PT Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
+    "The physical therapist licensure examination, built on FSBPT's current NPTE-PT Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges. Independently developed exam prep; not affiliated with or endorsed by the Federation of State Boards of Physical Therapy (FSBPT). NPTE and FSBPT are registered trademarks of FSBPT.",
   trackType: "certification",
   subcategorySlug: "physical-therapy",
   freshnessModel: "certification_aligned",
@@ -496,7 +496,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
   code: "NPTEPTA",
   title: "Prep for a physical therapist assistant licensure exam",
   description:
-    "The physical therapist assistant licensure examination, built on FSBPT's current NPTE-PTA Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
+    "The physical therapist assistant licensure examination, built on FSBPT's current NPTE-PTA Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges. Independently developed exam prep; not affiliated with or endorsed by the Federation of State Boards of Physical Therapy (FSBPT). NPTE and FSBPT are registered trademarks of FSBPT.",
   trackType: "certification",
   subcategorySlug: "physical-therapy",
   freshnessModel: "certification_aligned",

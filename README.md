@@ -28,16 +28,16 @@ Ascendra runs on iPhone, Android and the web.
 
 Learners preparing for a specific exam who want to know whether they're actually ready. The catalog has **149 courses**:
 
-- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications from ISC2 (CC, CISSP), ISACA (CISM) and EC-Council (CEH); Linux Fundamentals and the Linux Foundation LFCS; ITIL 4 Foundation; Red Hat (2) and Docker (1) container certifications
-- **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
-- **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and the ASQ Six Sigma Green Belt
-- **Nursing and critical care (15):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, CEN, PCCN, the AANP and ANCC family nurse practitioner exams, and MS Health Informatics
-- **Fitness (7):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications, and the NASM Certified Nutrition Coach
+- **IT and cloud (78):** 18 CompTIA, 15 Kubernetes and CNCF, 13 Microsoft (Azure, Power BI and Cloud and AI Security), 11 AWS and 11 Google Cloud certifications; 4 security certifications (entry-level cybersecurity, advanced information security professional, information security management and ethical hacking); Linux Fundamentals and the Linux Foundation LFCS; ITIL 4 Foundation; Red Hat (2) and Docker (1) container certifications
+- **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, 10 physical therapy specialist board certifications and a PT school prerequisites refresher
+- **Project management (15):** PMI certifications, Scrum (Scrum.org PSM I and Scrum Alliance CSM) and a process improvement green belt certification
+- **Nursing and critical care (15):** CNA through BSN, NCLEX-RN and NCLEX-PN, CCRN (adult, pediatric, neonatal), CMSRN, emergency nursing, PCCN, the two family nurse practitioner board exams, and MS Health Informatics
+- **Fitness (7):** five personal trainer certifications (including the ACSM, NSCA and NCCPT exams), the NSCA strength and conditioning exam, and a nutrition coaching certification
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
-- **Software development (10):** Python, Python for Automation and Scripting, Python for Data Analysis, JavaScript, TypeScript and Node.js, SQL, the Python Institute's PCEP and PCAP exams, Computer Science Degree Foundations and MSCS foundations
-- **Mental health (6):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), the NCE and NCMHCE (counselor licensure), and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
+- **Software development (10):** Python, Python for Automation and Scripting, Python for Data Analysis, JavaScript, TypeScript and Node.js, SQL, entry-level and associate Python programmer certification exams, Computer Science Degree Foundations and MSCS foundations
+- **Mental health (6):** the EPPP and the Washington psychology jurisprudence exam (psychology licensure), two counselor licensure exams, and the ASWB Clinical and Masters exams (social work licensure), each behind its own 18+ acknowledgment
 
-Exam-prep courses are named "Prep for the <official exam name> Exam"; Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
+Exam-prep courses have descriptive names ("Prep for an associate cloud solutions architect certification exam") that use no exam body's trademark (REQ-309); where a body's policy allows it, the course description names the exam, and Ascendra is not the exam body. Certification courses carry the exam's own domain weights, so you spend your time where the exam does.
 
 ## How learning works
 
@@ -62,7 +62,7 @@ Every course runs the same loop. You learn a topic, practice it with help, prove
 - **CCRN (Adult):** five bedside cases on a patient monitor, including tamponade after heart surgery, sepsis, diabetic ketoacidosis, stroke and bleeding after surgery
 - **Certified Nursing Assistant:** a resident who chokes at lunch and a resident found on the floor
 - **EPPP:** three sessions where you lead a fictional client through a suicide risk assessment, a duty-to-protect decision and a diagnostic intake
-- **NCE and NCMHCE:** five counseling sessions: boundaries in a small town and a court-referred substance use assessment (NCE); a diagnostic intake, a suicide risk assessment with a safety plan, and a trauma-informed treatment plan built and then revised over two sessions, as NCMHCE cases run (NCMHCE)
+- **The two counselor licensure courses:** five counseling sessions: boundaries in a small town and a court-referred substance use assessment; a diagnostic intake, a suicide risk assessment with a safety plan, and a trauma-informed treatment plan built and then revised over two sessions, as case-based licensure exams run
 - **AWS Solutions Architect Associate, and Professional:** TicketBurst launch day on a design board, with a harder version in the Professional course
 - **CompTIA Security+ (SY0-701 and V8):** three incidents on a security operations console: a phished account, ransomware on a file server and a leaked cloud key
 - **CompTIA Linux+, CompTIA Network+ and CKA:** two outages each on a terminal and network screen, where you run commands from a fixed set and watch a map of hosts, switches or cluster nodes: a full disk that stops a database, an SELinux denial after a move, a VLAN missing from a trunk, a DNS failure worked with the troubleshooting method, a crash-looping rollout and a NotReady node with a drain
@@ -109,7 +109,7 @@ Captured from a local build of the web app with a demo account and sample practi
 - Practice content is written to resemble real exam style and coverage but is not sourced from, and is not a copy of, any live exam.
 - Course objectives are authored from publicly published exam guides, accreditation standards and licensure requirements, never copied from paid course platforms.
 - Labs and practice content may contain errors and are not professional advice; every lab says so, and lessons, questions and labs carry a "Report a problem" link.
-- Ascendra is not affiliated with, and not endorsed by, AWS, Microsoft, Google Cloud, CompTIA, PMI, NCSBN, AACN, FSBPT, ABPTS or any other credentialing body named in the catalog. Names are used only to identify the exams a course prepares for.
+- Ascendra is not affiliated with, and not endorsed by, AWS, Microsoft, Google Cloud, CompTIA, PMI, NCSBN, AACN, FSBPT or any other credentialing body named in the catalog. Names are used only to identify the exams a course prepares for.
 
 ## For developers
 

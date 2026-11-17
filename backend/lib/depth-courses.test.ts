@@ -101,7 +101,7 @@ describe("REQ-292: Python and Linux depth courses", () => {
     assert.equal(c.providerName, cka.providerName);
     assert.equal(c.providerUrl, cka.providerUrl);
     assert.equal(LFCS_TRACK.subcategorySlug, "cncf-certifications");
-    assert.match(LFCS_TRACK.title, /^Prep for the .+ Exam$/);
+    assert.match(LFCS_TRACK.title, /^Prep for an? [^®™]+ (exam|assessment|test)( \(.+\))?$/); // REQ-309
     assert.match(LFCS_TRACK.description, /not affiliated with or endorsed by The Linux Foundation\./);
     assert.ok(dayOf(LFCS_TRACK.contentReviewDueAt)! > dayOf(LFCS_TRACK.sourceVerifiedAt)!);
   });

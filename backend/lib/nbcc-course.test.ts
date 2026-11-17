@@ -26,8 +26,8 @@ const DOMAINS = [
 describe("REQ-239: Prep for the NCE and Prep for the NCMHCE", () => {
   test("each is in the catalog once, under counseling licensure, as a gated certification course", () => {
     for (const [t, title] of [
-      [NCE_TRACK, "Prep for the NCE"],
-      [NCMHCE_TRACK, "Prep for the NCMHCE"],
+      [NCE_TRACK, "Prep for a counselor licensure and certification knowledge exam"],
+      [NCMHCE_TRACK, "Prep for a case-based clinical mental health counseling licensure exam"],
     ] as const) {
       assert.equal(CATALOG_TRACKS.filter((c) => c.code === t.code).length, 1);
       assert.equal(t.title, title);
@@ -36,7 +36,8 @@ describe("REQ-239: Prep for the NCE and Prep for the NCMHCE", () => {
       assert.equal(t.trackType, "certification");
       assert.equal(t.requiresAcknowledgement, true);
       assert.equal(t.disclaimerKey, "mental-health-clinical-content");
-      assert.match(t.description, /not affiliated with or endorsed by the National Board for Certified Counselors/);
+      // REQ-309: NBCC's trademark policy lets no business use its marks, so the notice names no mark.
+      assert.match(t.description, /not affiliated with or endorsed by the organization that owns or administers this exam\./);
       assert.match(t.description, /18\+/);
       assert.equal(t.credential?.basis, "regulatory_licensure");
       assert.equal(t.credential?.providerSlug, "nbcc");

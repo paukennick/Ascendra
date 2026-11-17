@@ -111,7 +111,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         icon: "book-open",
         headline: "28 new courses",
-        body: "Python and Linux, SQL, TypeScript, Power BI and Microsoft security, CISSP, CISM and CEH, nursing specialties and FNP, Scrum, ITIL, Six Sigma, nutrition coaching, and social work licensure.",
+        body: "Python and Linux, SQL, TypeScript, Power BI and Microsoft security, security management and ethical hacking, nursing specialties and FNP, Scrum, ITIL, Six Sigma, nutrition coaching, and social work licensure.",
       },
       {
         icon: "compass",
@@ -282,9 +282,9 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       },
       {
         icon: "book-open",
-        headline: "Prep for the NCE and NCMHCE",
+        headline: "Two counselor licensure courses",
         body:
-          "Two new counseling courses built on NBCC's current outlines, with 12 labs each and five client " +
+          "Two new counseling courses built on the current exam outlines, with 12 labs each and five client " +
           "sessions, from a first intake to a substance use assessment. For learners 18 and over.",
       },
       {
@@ -415,7 +415,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     items: [
       {
         icon: "book-open",
-        headline: "New course: Prep for the EPPP",
+        headline: "New course for the EPPP",
         body:
           "Our first mental health course follows the eight EPPP Part 1 domains at their published weights. " +
           "Mental health courses ask you once to confirm that you're 18 or older.",
@@ -445,7 +445,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "check-circle",
         headline: "Course corrections",
         body:
-          "Security+ now covers every official sub-objective, physical therapy follows the 2026 APTA Code of Ethics, " +
+          "Security+ now covers every official sub-objective, physical therapy follows the profession's 2026 Code of Ethics, " +
           "nursing and critical care lessons use current guideline values, and all text is in US English.",
       },
       {

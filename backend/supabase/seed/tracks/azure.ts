@@ -1401,7 +1401,7 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
 
 export const AZURE_AZ120_TRACK: SeedTrack = {
   code: "AZ120",
-  title: "Prep for a cloud specialty certification exam on enterprise resource planning workloads",
+  title: "Prep for a cloud ERP workloads specialty certification exam",
   description:
     "Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120): planning, migrating, and administering SAP landscapes on Azure -- migration strategy and SAP RISE integration, compute/networking/storage infrastructure for SAP virtual machines, high availability and disaster recovery (clustering, Pacemaker, Site Recovery), and ongoing performance optimization and monitoring. Independently developed exam prep; not affiliated with or endorsed by Microsoft. Microsoft and Azure are trademarks of the Microsoft group of companies.",
   trackType: "certification",

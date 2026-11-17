@@ -17,7 +17,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 describe("REQ-224: Prep for the EPPP", () => {
   test("is in the catalog once, under psychology licensure, titled the way Nick asked", () => {
     assert.equal(CATALOG_TRACKS.filter((t) => t.code === "EPPP").length, 1);
-    assert.equal(EPPP_TRACK.title, "Prep for the EPPP");
+    assert.equal(EPPP_TRACK.title, "Prep for a psychology licensure knowledge exam"); // REQ-309: no mark in the title
     assert.equal(EPPP_TRACK.subcategorySlug, "psychology-licensure");
     assert.equal(EPPP_TRACK.trackType, "certification");
     assert.equal(EPPP_TRACK.requiresAcknowledgement, true);
