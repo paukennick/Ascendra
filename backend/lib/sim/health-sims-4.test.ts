@@ -34,11 +34,13 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "CMSRN", slug: "stroke-day-one-coffee-and-pills", screen: "bedside" },
   { course: "FNPANCC", slug: "clinic-swollen-lip-years-on-lisinopril", screen: "bedside" },
   { course: "FNPAANP", slug: "clinic-calf-ache-after-flight-now-breathless", screen: "bedside" },
+  { course: "FNPAANP", slug: "clinic-three-falls-five-new-pills", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [
   { course: "FNPAANP", slug: "clinic-swollen-lip-years-on-lisinopril-fnp-clinical", base: "FNPANCC/clinic-swollen-lip-years-on-lisinopril" },
   { course: "FNPANCC", slug: "clinic-calf-ache-after-flight-now-breathless-fnp-role", base: "FNPAANP/clinic-calf-ache-after-flight-now-breathless" },
+  { course: "FNPANCC", slug: "clinic-three-falls-five-new-pills-fnp-role", base: "FNPAANP/clinic-three-falls-five-new-pills" },
 ];
 
 const BAND_PATCH_KEYS = ["brief", "objective", "secondaryObjectives", "sources"];
