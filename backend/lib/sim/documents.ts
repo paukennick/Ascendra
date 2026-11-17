@@ -217,6 +217,24 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NASMCNC", "cnc-crash-diet-request"),
   entry("NASMCNC", "cnc-greens-powder-warfarin"),
   // ---- end REQ-282 ----
+  // ---- REQ-314: the client trainer, the facility console and the sandbox
+  // report (docs/sims.md 22.27). Keep these entries together. ----
+  entry("NASMCPT", "cpt-parq-chest-tightness"),
+  band("ACECPT", "ace-parq-chest-tightness"),
+  band("ACSMCPT", "acsm-parq-chest-tightness"),
+  band("NSCACPT", "nscacpt-parq-chest-tightness"),
+  band("NCCPTCPT", "nccpt-parq-chest-tightness"),
+  entry("NASMCPT", "cpt-squat-knees-cave"),
+  band("ACECPT", "ace-squat-knees-cave"),
+  band("ACSMCPT", "acsm-squat-knees-cave"),
+  band("NSCACPT", "nscacpt-squat-knees-cave"),
+  band("NCCPTCPT", "nccpt-squat-knees-cave"),
+  entry("NASMCNC", "cnc-ambivalent-food-record"),
+  entry("CISSP", "cissp-datahall-tailgate-cooling"),
+  band("SECPLUS", "datahall-tailgate-cooling-secplus"),
+  entry("CEH", "ceh-sandbox-invoice-loader"),
+  band("CYSAPLUS", "sandbox-invoice-loader-cysa"),
+  // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
   // below). Keep these entries together. ----
@@ -424,7 +442,28 @@ export { entry as documentEntry, band as bandEntry };
 // REQ-282: the NASM-CNC coaching-session documents and the objective titles
 // they are registered to (active objectives of course NASMCNC; the course
 // seed exports the same titles as NASMCNC_SIM_OBJECTIVES).
-export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC");
+// REQ-314 (docs/sims.md 22.27): the documents on the three new screens, by
+// slug (bands included), for lib/sim/screens-misc.test.ts.
+export const REQ314_SLUGS: { trainer: readonly string[]; facility: readonly string[]; sandbox: readonly string[] } = {
+  trainer: [
+    "cpt-parq-chest-tightness",
+    "ace-parq-chest-tightness",
+    "acsm-parq-chest-tightness",
+    "nscacpt-parq-chest-tightness",
+    "nccpt-parq-chest-tightness",
+    "cpt-squat-knees-cave",
+    "ace-squat-knees-cave",
+    "acsm-squat-knees-cave",
+    "nscacpt-squat-knees-cave",
+    "nccpt-squat-knees-cave",
+    "cnc-ambivalent-food-record",
+  ],
+  facility: ["cissp-datahall-tailgate-cooling", "datahall-tailgate-cooling-secplus"],
+  sandbox: ["ceh-sandbox-invoice-loader", "sandbox-invoice-loader-cysa"],
+};
+export const REQ314_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => [...REQ314_SLUGS.trainer, ...REQ314_SLUGS.facility, ...REQ314_SLUGS.sandbox].includes(e.slug));
+
+export const CNC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NASMCNC" && e.slug.startsWith("cnc-") && !REQ314_SLUGS.trainer.includes(e.slug));
 export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
   "cnc-crash-diet-request":
     "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",

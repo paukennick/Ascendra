@@ -1,0 +1,1209 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cnc-ambivalent-food-record",
+  "title": "Two minds about the evening, and a food record that does not add up",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Leila Haddad, 46",
+        "presentation": "{walkedOut ? \"Gone; she cancelled.\" : rapport >= 7 ? \"Leaning in, thinking out loud.\" : rapport <= 3 ? \"Arms crossed, short answers.\" : \"Polite, a little tired; the food record on her lap.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gRapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "polite",
+            "open"
+          ]
+        },
+        {
+          "id": "gStage",
+          "label": "Stage of change",
+          "spokenLabel": "Her stage of change",
+          "value": "readiness",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "precontemplation",
+            "contemplation",
+            "preparation",
+            "action"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "rTalk",
+          "label": "Her talk",
+          "spokenLabel": "Her talk so far",
+          "value": "{change|0dp} change, {sustain|0dp} sustain"
+        },
+        {
+          "id": "rWeight",
+          "label": "Weight trend",
+          "spokenLabel": "Weight trend",
+          "value": "steady for 4 weeks"
+        }
+      ],
+      "intake": {
+        "label": "What she said",
+        "items": [
+          {
+            "id": "s1",
+            "question": "On the week",
+            "answer": "'I wrote everything down. Well, mostly. Evenings are hard: the kids are in bed and that's my time.'",
+            "when": "not isNull(openAt)"
+          },
+          {
+            "id": "s2",
+            "question": "On importance",
+            "answer": "'A six. Not lower because my blood pressure's creeping up and I'm tired all the time.'",
+            "when": "not isNull(rulerAt)"
+          },
+          {
+            "id": "s3",
+            "question": "After the summary",
+            "answer": "'When you put it like that... I do want this. I just don't want to give up my evening.'",
+            "when": "not isNull(summaryAt)"
+          },
+          {
+            "id": "s4",
+            "question": "Her step",
+            "answer": "{step == \"hers\" ? \"'Evening tea instead of the second glass on weeknights. And I'll log weekends too.'\" : step == \"mine\" ? \"'Every day? We'll see.'\" : \"'I'm not sure yet.'\"}",
+            "when": "not isNull(stepAt)"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "rec",
+          "label": "Three-day food record",
+          "result": "About 1,250 kcal a day on her figures, Monday to Wednesday; no weekend days; no drinks after 7 pm; no cooking fats.",
+          "when": "not isNull(recordAt)",
+          "flag": "true"
+        },
+        {
+          "id": "gap",
+          "label": "What goes unrecorded",
+          "result": "Two glasses of wine most evenings, cheese and crackers after the kids are in bed, olive oil in cooking, the kids' leftovers.",
+          "when": "not isNull(exploreAt) and isNull(confrontAt)"
+        },
+        {
+          "id": "gapNo",
+          "label": "What goes unrecorded",
+          "result": "'I told you, I wrote everything down.' (defensive after being told the record is wrong)",
+          "when": "not isNull(exploreAt) and not isNull(confrontAt)"
+        },
+        {
+          "id": "recall",
+          "label": "24-hour recall (yesterday)",
+          "result": "About 2,100 kcal with portions prompted: the gap is mostly evening food and drinks, not her meals.",
+          "when": "not isNull(recallAt)"
+        }
+      ],
+      "program": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Her step: evening tea instead of the second glass on weeknights; log weekends too",
+            "when": "step == \"hers\""
+          },
+          {
+            "label": "Coach's rule: no food after 8 pm, every day",
+            "when": "step == \"mine\""
+          },
+          {
+            "label": "Check in by message on Friday",
+            "when": "step == \"hers\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "rRighting",
+          "label": "Righting reflex",
+          "text": "Advice she did not ask for raises sustain talk; ask permission first.",
+          "met": "rightingN > 0"
+        },
+        {
+          "id": "rRecord",
+          "label": "Records under-count",
+          "text": "Treat a low record as information about recording, not as a lie.",
+          "met": "not isNull(confrontAt)"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope",
+          "text": "Coach habits and food choices; a medical question (her blood pressure) goes to her doctor.",
+          "met": "false"
+        }
+      ]
+    }
+  },
+  "objective": "Using motivational interviewing: open questions, affirmations, reflections and summaries",
+  "secondaryObjectives": [
+    "Identifying a client's barriers and readiness to change with the stages-of-change model",
+    "Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Certified Nutrition Coach course exam (four course sections): Behavior Change Strategies (stages of change, motivational interviewing, SMART goals) and Practical Nutrition Coaching (assessing intake with food records, 24-hour recalls and food frequency questionnaires)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.nasm.org/certified-nutrition-coach",
+      "note": "Read for the course on 2026-11-14 (backend/supabase/seed/tracks/fitness.ts, REQ-282); not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Great Lakes ATTC (ATTC Network), Key Concepts in Motivational Interviewing (handout, citing Miller WR, Rollnick S. Motivational Interviewing",
+      "checkedAt": "2026-11-16",
+      "url": "https://www3.uwsp.edu/conted/Anon/F2.%20Handout%20-%20Key%20Concepts%20of%20MI+OARS%20Quick%20Guide_508_kms.pdf",
+      "note": "Relevant text: Helping People Change, 3rd ed., Guilford, 2013): 'OARS stands for open questions, affirmations, reflection, and summary'; change talk is 'any language used by the client that indicates thoughts of change'; sustain talk indicates 'a desire to maintain the status quo'; the righting reflex is the practitioner's desire 'to fix what seems wrong with people and promptly set them on a better course'; 'Ambivalence means feeling two ways about something'. Read 2026-11-16 through a summarizing fetch; undated handout hosted by a university continuing-education office. The MI book itself was not read."
+    },
+    {
+      "cite": "ProChange Behavior Solutions, The Transtheoretical Model (page modified 2026-10-15): precontemplation, no intention to act in the next 6 months; contemplation, intends to change in the next 6 months, pros and cons about equal, 'profound ambivalence'; preparation, intends to act in the next 30 days, usually has a plan; action, specific changes in the past 6 months; maintenance, sustained 6 months or more",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.prochange.com/ttm",
+      "note": "Read 2026-11-16 through a summarizing fetch."
+    },
+    {
+      "cite": "Mahabir S, Baer DJ, Giffen C, et al. Calorie intake misreporting by diet record and food frequency questionnaire compared to doubly labeled water among postmenopausal women. Eur J Clin Nutr. 2006;60(4):561-565: energy intake under-estimated by about 37% on a 7-day diet record and about 42% on a food frequency questionnaire, against doubly labeled water",
+      "checkedAt": "2026-11-16",
+      "url": "https://pure.psu.edu/en/publications/calorie-intake-misreporting-by-diet-record-and-food-frequency-que/",
+      "note": "Read 2026-11-16 through a summarizing fetch of the abstract page. One study of 65 women; used only to show that under-reporting is common and large, not as a number for this client."
+    },
+    {
+      "cite": "Author's teaching model (REQ-314)",
+      "checkedAt": "2026-11-16",
+      "note": "How each response moves rapport, readiness and her talk, and the calories in her record and recall, are teaching simplifications, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are a nutrition coach. Leila Haddad, 46 (a fictional client), is in her fourth week of coaching. She wants to lose some weight and feel less tired; her weight has not changed in four weeks. Last week she agreed to keep a three-day food record, and she has brought it. You have 45 minutes.",
+    "handover": [
+      "Coaches support habits and food choices within their scope; medical questions go to her doctor."
+    ],
+    "howItWorks": [
+      "Each response takes time: choose it, then let it finish, which moves the clock.",
+      "The screen shows what she has said, what you have found, her rapport and stage of change, and the rules that apply now.",
+      "When you end the session you write the note and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client.",
+  "clock": {
+    "start": "18:00",
+    "tick": "1min",
+    "maxDuration": "75min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "readiness": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "change": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "sustain": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "openAt": {
+      "type": "time",
+      "init": null
+    },
+    "affirmAt": {
+      "type": "time",
+      "init": null
+    },
+    "reflectAt": {
+      "type": "time",
+      "init": null
+    },
+    "rulerAt": {
+      "type": "time",
+      "init": null
+    },
+    "summaryAt": {
+      "type": "time",
+      "init": null
+    },
+    "rightingN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "recordAt": {
+      "type": "time",
+      "init": null
+    },
+    "confrontAt": {
+      "type": "time",
+      "init": null
+    },
+    "exploreAt": {
+      "type": "time",
+      "init": null
+    },
+    "recallAt": {
+      "type": "time",
+      "init": null
+    },
+    "permAt": {
+      "type": "time",
+      "init": null
+    },
+    "step": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hers",
+        "mine"
+      ],
+      "init": "none"
+    },
+    "stepAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Coaching session",
+      "clock": "turns",
+      "actions": [
+        "openQ",
+        "affirm",
+        "reflect",
+        "ruler",
+        "summary",
+        "righting",
+        "readRecord",
+        "confront",
+        "explore",
+        "recall",
+        "permission",
+        "herStep",
+        "mineStep",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Note",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "openQ": {
+      "label": "Ask an open question: 'How did the week with the food record go?'",
+      "group": "Talk",
+      "available": "not busy and (isNull(openAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(openAt)",
+          "then": [
+            {
+              "set": "openAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "change",
+          "by": "1"
+        },
+        {
+          "log": "You ask how the week went.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "affirm": {
+      "label": "Affirm the effort: three days written down, even the hard ones",
+      "group": "Talk",
+      "available": "not busy and (isNull(affirmAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(affirmAt)",
+          "then": [
+            {
+              "set": "affirmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "log": "You affirm her effort.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect both sides: 'Evenings are your only downtime, and you also want to feel better in your clothes'",
+      "group": "Talk",
+      "available": "not busy and (isNull(reflectAt) and not isNull(openAt))",
+      "why": "Hear her out first.",
+      "effects": [
+        {
+          "if": "isNull(reflectAt)",
+          "then": [
+            {
+              "set": "reflectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "change",
+          "by": "2"
+        },
+        {
+          "add": "readiness",
+          "by": "1"
+        },
+        {
+          "log": "You reflect both sides of what she said.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ruler": {
+      "label": "Ask how important the change is to her (0-10), then why she did not pick a lower number",
+      "group": "Talk",
+      "available": "not busy and (isNull(rulerAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(rulerAt)",
+          "then": [
+            {
+              "set": "rulerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "change",
+          "by": "2"
+        },
+        {
+          "add": "readiness",
+          "by": "1"
+        },
+        {
+          "log": "You ask the importance ruler and the follow-up.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "summary": {
+      "label": "Summarize her reasons for change and ask what she makes of them",
+      "group": "Talk",
+      "available": "not busy and (isNull(summaryAt) and change >= 3)",
+      "why": "There is not enough of her own talk to summarize yet.",
+      "effects": [
+        {
+          "if": "isNull(summaryAt)",
+          "then": [
+            {
+              "set": "summaryAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "change",
+          "by": "1"
+        },
+        {
+          "add": "readiness",
+          "by": "1"
+        },
+        {
+          "log": "You collect her change talk in a summary.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "righting": {
+      "label": "Tell her what to do: cut the evening snacks and the wine",
+      "group": "Talk",
+      "available": "not busy and (rightingN < 2)",
+      "why": "She has stopped listening to advice.",
+      "effects": [
+        {
+          "add": "rightingN",
+          "by": "1"
+        },
+        {
+          "add": "sustain",
+          "by": "2"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "readiness",
+          "by": "-1"
+        },
+        {
+          "log": "You tell her what she needs to change.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "readRecord": {
+      "label": "Read her three-day food record",
+      "group": "Assess",
+      "available": "not busy and (isNull(recordAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(recordAt)",
+          "then": [
+            {
+              "set": "recordAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You read the record she brought.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "confront": {
+      "label": "Tell her the record cannot be right: she must be eating more than this",
+      "group": "Talk",
+      "available": "not busy and (isNull(confrontAt) and not isNull(recordAt))",
+      "why": "Read the record first.",
+      "effects": [
+        {
+          "if": "isNull(confrontAt)",
+          "then": [
+            {
+              "set": "confrontAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "sustain",
+          "by": "3"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "log": "You tell her the numbers do not add up.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "explore": {
+      "label": "Ask, without judgment, what is hardest to write down: drinks, weekends, cooking oil, bites while cooking",
+      "group": "Talk",
+      "available": "not busy and (isNull(exploreAt) and not isNull(recordAt))",
+      "why": "Read the record first.",
+      "effects": [
+        {
+          "if": "isNull(exploreAt)",
+          "then": [
+            {
+              "set": "exploreAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "log": "You ask what tends to go unrecorded.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "recall": {
+      "label": "Do a 24-hour recall of yesterday together, with portion prompts",
+      "group": "Assess",
+      "available": "not busy and (isNull(recallAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(recallAt)",
+          "then": [
+            {
+              "set": "recallAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You walk through yesterday meal by meal, with portion prompts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "permission": {
+      "label": "Ask permission, then share that most food records under-count, and ask what she thinks",
+      "group": "Talk",
+      "available": "not busy and (isNull(permAt) and not isNull(recordAt))",
+      "why": "Read the record first.",
+      "effects": [
+        {
+          "if": "isNull(permAt)",
+          "then": [
+            {
+              "set": "permAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "change",
+          "by": "1"
+        },
+        {
+          "log": "You ask before sharing, then ask her view.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "herStep": {
+      "label": "Ask what one small step she would choose for this week",
+      "group": "Talk",
+      "available": "not busy and (isNull(stepAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(stepAt)",
+          "then": [
+            {
+              "set": "stepAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "step",
+          "to": "readiness >= 6 ? \"hers\" : \"none\""
+        },
+        {
+          "add": "readiness",
+          "by": "readiness >= 6 ? 1 : 0"
+        },
+        {
+          "log": "You ask what step she would choose.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "mineStep": {
+      "label": "Set her goal for her: no food after 8 pm, every day",
+      "group": "Talk",
+      "available": "not busy and (isNull(stepAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(stepAt)",
+          "then": [
+            {
+              "set": "stepAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "step",
+          "to": "\"mine\""
+        },
+        {
+          "add": "sustain",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "log": "You set the goal for her.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the session note",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Note",
+          "options": [
+            {
+              "value": "full",
+              "label": "Her stage, her reasons in her words, the record and the recall side by side without judgment, her chosen step and the check-in"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Food log inaccurate; told to cut snacks'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-314)",
+        "checkedAt": "2026-11-16",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "walkout",
+      "when": "rapport <= 1 and not walkedOut and isNull(closedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "She gathers her things: 'I don't think this is for me.' She cancels her next sessions.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the coaching note: where she is in the stages of change and how you could tell, what you did with the food record, and what she decided.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Stage and evidence",
+          "criteria": "Contemplation with ambivalence (wants change, wants her evening), moving toward preparation as her change talk grew; quotes or paraphrases her reasons.",
+          "modelAnswer": "Contemplation: she wants to feel better and her blood pressure worries her, and her evening is her downtime. With reflections, the ruler and a summary her change talk grew and she picked a step: preparation."
+        },
+        {
+          "label": "The food record",
+          "criteria": "Reads the low record against a steady weight as under-recording, which is common (diet records under-count substantially), explores what goes unrecorded without blame and checks with a 24-hour recall; does not accuse her.",
+          "modelAnswer": "1,250 kcal a day with a steady weight means the record misses things; most records under-count. I asked what is hard to write down and did a recall: evening wine and snacks, cooking oil."
+        },
+        {
+          "label": "Her decision",
+          "criteria": "A small, specific step she chose (not one imposed), and a check-in.",
+          "modelAnswer": "Her own step: tea instead of the second glass on weeknights, and logging weekends; a check-in on Friday."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(closedAt) and step == \"none\" and not walkedOut",
+      "class": "recovered",
+      "rationale": "Ending still ambivalent but with rapport intact keeps the door open; nothing was harmed.",
+      "source": {
+        "cite": "ProChange Behavior Solutions, The Transtheoretical Model (page modified 2026-10-15): precontemplation, no intention to act in the next 6 months; contemplation, intends to change in the next 6 months, pros and cons about equal, 'profound ambivalence'; preparation, intends to act in the next 30 days, usually has a plan; action, specific changes in the past 6 months; maintenance, sustained 6 months or more",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.prochange.com/ttm",
+        "note": "Read 2026-11-16 through a summarizing fetch."
+      }
+    }
+  },
+  "endings": {
+    "quit": {
+      "label": "She quits coaching",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and walkedOut",
+      "narrative": "Told what to do and that her record was wrong, she cancels her sessions and stops recording."
+    },
+    "moved": {
+      "label": "Her own step, her own reasons",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and not walkedOut and step == \"hers\" and rapport >= 6 and rightingN == 0 and isNull(confrontAt) and not isNull(exploreAt)",
+      "narrative": "She heard her own reasons, saw what the record missed without being blamed for it, and chose a step she believes in."
+    },
+    "partial": {
+      "label": "Some movement, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{step == \"mine\" ? \"She leaves with your rule, not hers.\" : step == \"none\" ? \"She leaves still weighing it, without a step.\" : rightingN > 0 or not isNull(confrontAt) ? \"She chose a step, after some pushing that cost rapport.\" : isNull(exploreAt) ? \"The record's gaps were never explored.\" : \"The note is thin.\"}"
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The session ran out without a note."
+    }
+  },
+  "endingOrder": [
+    "quit",
+    "moved",
+    "partial"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "oars",
+        "label": "Used OARS: open question, affirmation, reflection and summary",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(openAt) and not isNull(reflectAt) and not isNull(summaryAt) and not isNull(affirmAt)",
+            "score": "met",
+            "why": "All four."
+          },
+          {
+            "when": "not isNull(openAt) or not isNull(reflectAt)",
+            "score": "partial",
+            "why": "Some of them."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "noRighting",
+        "label": "No unasked-for advice (the righting reflex)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rightingN == 0 and step != \"mine\"",
+            "score": "met",
+            "why": "Her lead throughout."
+          },
+          {
+            "when": "rightingN <= 1",
+            "score": "partial",
+            "why": "Some telling."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Repeated telling."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Explored the food record without blame and checked it with a recall",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exploreAt) and not isNull(recallAt) and isNull(confrontAt)",
+            "score": "met",
+            "why": "Explored and checked."
+          },
+          {
+            "when": "(not isNull(exploreAt) or not isNull(recallAt)) and isNull(confrontAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored or confronted."
+          }
+        ]
+      },
+      {
+        "id": "step",
+        "label": "A step she chose",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "step == \"hers\"",
+            "score": "met",
+            "why": "Her step."
+          },
+          {
+            "when": "step == \"mine\"",
+            "score": "partial",
+            "why": "Your step."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No step."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "A full note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "Full."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written stage, record and decision",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "changeTalk",
+        "label": "Change talk heard",
+        "value": "change",
+        "format": "number",
+        "expert": "7 or more"
+      },
+      {
+        "id": "sustainTalk",
+        "label": "Sustain talk provoked",
+        "value": "sustain",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the end (0-10)",
+        "value": "rapport",
+        "format": "number",
+        "expert": "7 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Open question; affirm the record; reflect both sides of the evening."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Read the record; ask what is hard to write down; a 24-hour recall; ask permission before sharing that records under-count."
+      },
+      {
+        "at": "25-40 min",
+        "text": "Importance ruler and why not lower; summarize her change talk; ask what step she would choose."
+      },
+      {
+        "at": "Close",
+        "text": "A full note: stage, her reasons, the record and recall, her step, the check-in."
+      }
+    ],
+    "debrief": {
+      "moved": {
+        "headline": "Good: her reasons, her step",
+        "body": "Reflections and the ruler drew out her own reasons; the record became information, not an accusation; she chose the step."
+      },
+      "partial": {
+        "headline": "Some movement, with gaps",
+        "body": "Telling her what to do or that the record is wrong raises sustain talk; a step you choose for her is less likely to last than one she chooses."
+      },
+      "quit": {
+        "headline": "Pushed away",
+        "body": "Advice she did not ask for and an accusation about her record broke the alliance. Ask, reflect and explore first."
+      },
+      "time_up": {
+        "headline": "No note",
+        "body": "End the session and write the note before the time runs out."
+      }
+    },
+    "modelReasoning": "Contemplation with ambivalence; OARS and the importance ruler drew change talk; the low record with a steady weight was explored without blame and checked with a recall (records under-count); she chose a small step; a full note."
+  }
+}

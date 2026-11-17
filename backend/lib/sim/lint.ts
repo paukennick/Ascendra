@@ -28,6 +28,7 @@ export interface DocumentReport {
 export function safetyFamilyOf(doc: ScenarioDoc): SafetyFamily {
   if (doc.outcome?.profile === "clinical" || doc.outcome?.profile === "physical-therapy") return "clinical";
   if (doc.outcome?.profile === "fitness") return "fitness";
+  // REQ-314: the facility profile is a general-family (security) course's.
   return "general";
 }
 
@@ -169,6 +170,10 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
   });
   // REQ-313: a tabletop inject's `at` is sim seconds of scenario time too.
   (doc.screen?.tabletop?.injects ?? []).forEach((j, i) => check(`screen.tabletop.injects[${i}].at`, j.at, "a tabletop inject's at"));
+  // REQ-314: the facility console's alarms and door log, and the trainer's journal.
+  (doc.screen?.facility?.alarms ?? []).forEach((a, i) => check(`screen.facility.alarms[${i}].at`, a.at, "a facility alarm's at"));
+  (doc.screen?.facility?.doors ?? []).forEach((d, i) => check(`screen.facility.doors[${i}].at`, d.at, "a door log line's at"));
+  (doc.screen?.trainer?.journal ?? []).forEach((j, i) => check(`screen.trainer.journal[${i}].at`, j.at, "a trainer journal entry's at"));
   // one problem per place and name
   const seen = new Set<string>();
   return problems.filter((p) => {
@@ -240,6 +245,56 @@ export function dataConsoleProblems(doc: ScenarioDoc): Problem[] {
   return out;
 }
 
+// REQ-314 (docs/sims.md 22.27): the sandbox report is defensive only. A
+// malware analysis sim teaches reading a report and acting on it; it never
+// carries anything a reader could run or reach. In every learner-visible
+// string (everything but `sources`, `safetyNote` and `scoring.modelReasoning`
+// is checked, which over-covers on purpose) of a document that uses the
+// sandbox screen: no live link (http:// or https:// must be defanged as
+// hxxp), no encoded blob (a run of 40 or more base64 characters), no
+// script-host switches that run encoded or downloaded code, no script tags
+// and no PE header bytes; every IPv4 address is from the documentation
+// ranges (RFC 5737) or private space, and every domain in the network calls
+// and the domain or URL indicators is a reserved name (RFC 2606, RFC 6761).
+// Other screens are not checked: the security console's incidents already
+// follow the documentation-range rule in their own tests.
+const DOC_IPV4 = [/^192\.0\.2\./, /^198\.51\.100\./, /^203\.0\.113\./, /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^127\./];
+const RESERVED_DOMAIN = /(^|\.)(example\.(com|net|org)|[a-z0-9-]+\.(example|test|invalid|localhost))$/;
+export function sandboxSafetyProblems(doc: ScenarioDoc): Problem[] {
+  if (!doc.screen?.sandbox && doc.screen?.type !== "sandbox-report") return [];
+  const out: Problem[] = [];
+  const bad = (path: string, message: string): void => {
+    out.push({ level: "error", path, message: `${message} (the sandbox report is defensive only, docs/sims.md 22.27)` });
+  };
+  const skip = new Set(["sources", "safetyNote", "modelReasoning", "source", "url"]);
+  const walk = (x: unknown, path: string): void => {
+    if (typeof x === "string") {
+      if (/https?:\/\//i.test(x)) bad(path, "has a live link; defang it (hxxp://, example[.]com)");
+      if (/[A-Za-z0-9+/]{40,}={0,2}/.test(x) && !/^[0-9a-f]{40,64}$/i.test(x.match(/[A-Za-z0-9+/]{40,}={0,2}/)?.[0] ?? "")) bad(path, "has an encoded blob (40+ base64 characters); describe it instead");
+      if (/-e(nc(odedcommand)?)?\s+[A-Za-z0-9+/=]{8,}|downloadstring|invoke-expression|\biex\s*\(|frombase64string/i.test(x)) bad(path, "has a runnable script-host command line; describe what it does instead");
+      if (/<script|4d5a9000|\\x4d\\x5a/i.test(x)) bad(path, "has script or executable bytes");
+      for (const ip of x.match(/\b\d{1,3}(\.\d{1,3}){3}\b/g) ?? []) if (!DOC_IPV4.some((r) => r.test(ip))) bad(path, `IPv4 ${ip} is not a documentation (RFC 5737) or private address`);
+      return;
+    }
+    if (Array.isArray(x)) return x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    if (x && typeof x === "object") for (const [k, v] of Object.entries(x as Record<string, unknown>)) if (!skip.has(k)) walk(v, path ? `${path}.${k}` : k);
+  };
+  walk(doc, "");
+  const sb = doc.screen.sandbox;
+  const domainCheck = (text: string, path: string): void => {
+    const plain = text.replace(/\[\.\]/g, ".").replace(/\{[^}]*\}/g, "");
+    for (const m of plain.match(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}\b/gi) ?? []) {
+      if (/^\d+(\.\d+)+$/.test(m) || /\.(exe|dll|ps1|js|vbs|bat|cmd|tmp|dat|lnk|docm|xlsm|zip|iso|txt|log|evtx|pcap|json|yar|yml)$/i.test(m)) continue;
+      if (!RESERVED_DOMAIN.test(m.toLowerCase())) bad(path, `domain ${m} is not a reserved name (example.com, .example, .test, .invalid)`);
+    }
+  };
+  (sb?.network ?? []).forEach((n, i) => domainCheck(n.dest, `screen.sandbox.network[${i}].dest`));
+  (sb?.indicators ?? []).forEach((n, i) => {
+    if (n.type === "domain" || n.type === "url") domainCheck(n.value, `screen.sandbox.indicators[${i}].value`);
+  });
+  return out;
+}
+
 // `full` false = schema only (sims:validate); true adds the semantic and
 // content layers, golden replays and the path search (sims:lint).
 export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?: string; searchNodes?: number }): DocumentReport {
@@ -272,6 +327,7 @@ export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?:
     problems.push(...backslashEscapeProblems(doc));
     problems.push(...dataConsoleProblems(doc));
     problems.push(...certMarkProblems(doc));
+    problems.push(...sandboxSafetyProblems(doc));
   }
   return { entry, doc, golden, problems, goldenResults };
 }

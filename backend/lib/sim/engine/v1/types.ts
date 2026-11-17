@@ -277,7 +277,7 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // roles engaged, communications cleared, gaps owned); "professional-ethics"
 // is a dilemma conversation on the session screen (the duty acted on in
 // time, no canon breached).
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy" | "scrum" | "service" | "governance" | "exercise" | "professional-ethics";
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy" | "scrum" | "service" | "governance" | "exercise" | "professional-ethics" | "facility";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -326,7 +326,10 @@ export interface ScreenSpec {
   // (screen.desk).
   // REQ-313: "governance-board" (screen.governance) and "tabletop"
   // (screen.tabletop), docs/sims.md 22.26.
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session" | "project-dashboard" | "service-desk" | "governance-board" | "tabletop";
+  // REQ-314: "facility-console" (physical security and the building's alarms),
+  // "sandbox-report" (reading a malware analysis report; defensive only) and
+  // "trainer" (the client trainer, the design's placeholder name, now built).
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session" | "project-dashboard" | "service-desk" | "governance-board" | "tabletop" | "facility-console" | "sandbox-report";
   level?: number;
   bedside?: {
     tiles: VitalTile[];
@@ -519,7 +522,76 @@ export interface ScreenSpec {
     decisions?: { label: string; items: { label: Template; when: Expr }[] };
     meters?: { id: Id; label: string; value: Template }[];
   };
+  // REQ-314: the facility console (docs/sims.md 22.27), display-only like the
+  // security console. `site` names the building and its state now. `zones`
+  // are areas (lobby, server room, loading dock) with a status in words and a
+  // tone (secure, watch, alarm, locked). `alarms` are the alarm panel: a kind
+  // (intrusion, door, duress, fire, power, hvac, water, other), a severity,
+  // a status in words and `open` (an open alarm is spoken at once). `doors`
+  // is the badge and door log, newest first, each with a result (granted,
+  // denied, forced, held, tailgate). `cameras` are CCTV views described in
+  // words (never video). `environment` holds numeric read-outs (temperature,
+  // humidity, UPS charge, generator fuel) with an optional safe range; out of
+  // range is spoken at once. `people` are visitors and staff on site.
+  facility?: {
+    site: { name: string; status: Template };
+    zones: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    alarms: { id: Id; kind: FacilityAlarmKind; severity: ConsoleSeverity; title: Template; detail?: Template; when: Expr; at: Expr; status: Template; open: Expr }[];
+    doors: { id: Id; reader: string; text: Template; result: Expr; when: Expr; at: Expr }[];
+    cameras: { id: Id; label: string; spokenLabel: string; view: Template; when?: Expr }[];
+    environment: { id: Id; label: string; spokenLabel: string; value: Expr; unit: string; precision?: number; low?: number; high?: number }[];
+    people?: { id: Id; label: Template; status: Template; when: Expr; flag?: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-314: the sandbox report (docs/sims.md 22.27): reading a malware
+  // analysis report and acting on it. Defensive only: no payload, no runnable
+  // command, no live address; the linter enforces it (sandboxSafetyProblems).
+  // `sample` is the file under analysis and the verdict so far. `static` is
+  // static-analysis findings, `processes` the process tree (`parent` names an
+  // earlier process), `network` the calls the sample made (defanged), each
+  // shown once `when` holds and `flag` marking a malicious finding. The
+  // analyst's `indicators` and draft detection `rules` (YARA or Sigma style,
+  // shown as text, never run) carry a status in words and a tone; `hosts` are
+  // the endpoints in scope with the console's tones.
+  sandbox?: {
+    sample: { name: string; summary: Template };
+    static: { id: Id; label: string; text: Template; when: Expr; flag?: Expr }[];
+    processes: { id: Id; parent?: Id; image: string; detail: Template; when: Expr; flag?: Expr }[];
+    network: { id: Id; proto: string; dest: Template; detail: Template; when: Expr; flag?: Expr }[];
+    indicators: { id: Id; type: IndicatorType; value: Template; when: Expr; status: Template; tone: Expr }[];
+    rules: { id: Id; kind: "yara" | "sigma" | "other"; label: string; text: Template; when: Expr; status: Template; tone: Expr }[];
+    hosts: { id: Id; label: string; spokenLabel: string; kind: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-314: the client trainer (docs/sims.md 20, 22.27), display-only like
+  // the session and the treatment session. The client and how they present
+  // now; gauges banded into words as on the session (trust, readiness,
+  // confidence, adherence); `readings` are short read-outs (heart rate, RPE,
+  // the talk test, blood pressure) with `flag` spoken at once; `intake` is
+  // the screening form (PAR-Q+ questions paraphrased, answers as given);
+  // `findings` the assessment results; `program` the current program;
+  // `journal` the check-ins, food records and weeks, newest first; `rules`
+  // the scope-of-practice and stop rules, always shown, `met` spoken at once.
+  trainer?: {
+    client: { name: string; presentation: Template };
+    gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
+    readings?: { id: Id; label: string; spokenLabel: string; value: Template; when?: Expr; flag?: Expr }[];
+    intake?: { label: string; items: { id: Id; question: string; answer: Template; when: Expr; flag?: Expr }[] };
+    findings?: { id: Id; label: string; result: Template; when: Expr; flag?: Expr }[];
+    program?: { label: string; items: { label: Template; when: Expr }[] };
+    journal?: { id: Id; text: Template; when: Expr; at: Expr }[];
+    rules: { id: Id; label: string; text: Template; met: Expr }[];
+  };
 }
+
+// REQ-314: the facility console's kinds and tones, the sandbox report's
+// indicator types and tones, and the door log's results.
+export type FacilityAlarmKind = "intrusion" | "door" | "duress" | "fire" | "power" | "hvac" | "water" | "other";
+export type FacilityTone = "secure" | "watch" | "alarm" | "locked";
+export type DoorResult = "granted" | "denied" | "forced" | "held" | "tailgate";
+export type IndicatorType = "hash" | "domain" | "ip" | "url" | "file" | "registry" | "mutex" | "other";
+export type IndicatorTone = "unreviewed" | "confirmed" | "benign" | "actioned";
+export type RuleTone = "draft" | "tested" | "noisy" | "deployed";
 
 // REQ-312: the data and code console's parts (ScreenSpec.data).
 export type DataSeverity = "error" | "warning" | "info";

@@ -27,7 +27,10 @@ const SLUGS = [
   "ceh-arp-poisoning-finance-vlan",
   "ceh-blind-sqli-search",
 ];
-const DOCS = ALL_DOCUMENTS.filter((e) => SLUGS.includes(e.slug) && (COURSES as readonly string[]).includes(e.course));
+// FAIL-2221 (a recurrence of FAIL-2002): REQ-314 put CISSP and CEH cases on the
+// facility console and the sandbox report, so the course alone no longer
+// selects the console cases this file checks; the screen does.
+const DOCS = ALL_DOCUMENTS.filter((e) => SLUGS.includes(e.slug) && (COURSES as readonly string[]).includes(e.course) && loadDocument(e).screen.type === "security-console");
 const docOf = (slug: string): ScenarioDoc => loadDocument(DOCS.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {

@@ -279,6 +279,15 @@ terminal (REQ-237).
    (5), ACSM (3), NSCA-CPT (7), NSCA-CSCS (8), NCCPT (7). The deferred Dana
    knee valgus prototype (NASMCPT) is the first scenario.
 
+   **Built in REQ-314** (`trainer@1`, docs/sims.md 22.27): NASMCPT
+   `cpt-parq-chest-tightness` (screening and referral) and
+   `cpt-squat-knees-cave` (the Dana knee valgus case, authored without the
+   prototype), each with bands for ACECPT, ACSMCPT, NSCACPT and NCCPTCPT, and
+   NASMCNC `cnc-ambivalent-food-record`. The rest of the fitness fits above
+   remain candidates on this screen. REQ-314 also built the facility console
+   (CISSP, with a SECPLUS 1.10 band) and the sandbox report (CEH, with a
+   CYSAPLUS 5.17 band); their coverage is in docs/sims.md 22.19 and 22.27.
+
 ## What remains on existing screens
 
 Ordered by launch status, then fits left: SECPLUS (22 fits open, console),

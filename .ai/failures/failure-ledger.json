@@ -18213,6 +18213,87 @@
       "prevention_rules": [],
       "prevention_notes": "Round rule: sim tests select documents by slug, never by course code",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2220",
+      "date": "2026-11-16",
+      "title": "Sandbox case sample hash had 65 hex characters",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint: screen.sandbox.indicators[0].value has an encoded blob (40+ base64 characters)",
+      "how_detected": "sandboxSafetyProblems (lint) while authoring",
+      "root_cause": "The fictional SHA-256 was typed with one extra character; a SHA-256 digest is 64 hex characters and the defensive lint only exempts 40-64 hex digests, so the malformed value was reported as a blob",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/supabase/seed/sims/CEH/ceh-sandbox-invoice-loader.sim.json"
+      ],
+      "fix_summary": "Hash corrected to 64 characters",
+      "fix_commits": [
+        "5df424e9"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/screens-misc.test.ts::FAIL-2220: a SHA-256 is 64 hex characters; a 65-character one is caught as a blob"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "sandboxSafetyProblems runs in sims:lint and the REQ-314 test; the exemption is exact on length",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2221",
+      "date": "2026-11-16",
+      "title": "Security console tests selected documents by course",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "security-certs-sims.test.ts: screen 'facility-console' !== 'security-console'; security-w2.test.ts: CYSAPLUS 3 !== 2",
+      "how_detected": "running the existing sim tests after adding REQ-314 documents",
+      "root_cause": "Both tests took every document of their courses as console cases; a new CISSP case on the facility console, a CEH case on the sandbox report and a CySA+ band broke the counts and screen asserts",
+      "requirement": "REQ-314",
+      "affected": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "Select by course and screen type security-console",
+      "fix_commits": [
+        "25029f1d"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/security-certs-sims.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests select sim documents by slug or screen, never by course alone (FAIL-2002); REQ-314's own test selects by slug lists (REQ314_SLUGS)",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2222",
+      "date": "2026-11-16",
+      "title": "time_up debrief text equal to the ending narrative leaked as server-only text",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts: server-only text reaches the client: The case ran out without a record. (and two more cases)",
+      "how_detected": "lib/sim/documents.test.ts",
+      "root_cause": "Three cases used the same sentence for the time_up ending's narrative (sent to the app) and its debrief body (server-only), so the leak test saw debrief text in the client document",
+      "requirement": "REQ-314",
+      "affected": [
+        "NASMCPT/cpt-squat-knees-cave",
+        "NASMCNC/cnc-ambivalent-food-record",
+        "CEH/ceh-sandbox-invoice-loader"
+      ],
+      "fix_summary": "Debrief bodies rewritten as advice, distinct from the narrative",
+      "fix_commits": [
+        "a0820ee1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/screens-misc.test.ts::no debrief",
+        "model answer or expert path text appears in what the app receives",
+        "backend/lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The REQ-314 test runs the leak check on its own documents, so it fails fast without the heavy documents test",
+      "recurrence_of": ""
     }
   ]
 }

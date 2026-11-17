@@ -13,6 +13,7 @@
 // REQ-312: the data and code console (screen.data bindings), level 1.
 // REQ-313: the session at level 2 (screen.session.readLabel), the governance
 // board (screen.governance) and the tabletop exercise (screen.tabletop), level 1.
+// REQ-314: the facility console, the sandbox report and the client trainer, level 1.
 import { ENGINE_MAJOR, ENGINE_MINOR } from "../engine/v1/engine.ts";
 
 export const SIM_RENDERERS = [
@@ -27,6 +28,9 @@ export const SIM_RENDERERS = [
   { type: "data", level: 1 }, // REQ-312 (screen.data bindings)
   { type: "governance-board", level: 1 }, // REQ-313 (screen.governance bindings)
   { type: "tabletop", level: 1 }, // REQ-313 (screen.tabletop bindings)
+  { type: "facility-console", level: 1 }, // REQ-314 (screen.facility bindings)
+  { type: "sandbox-report", level: 1 }, // REQ-314 (screen.sandbox bindings)
+  { type: "trainer", level: 1 }, // REQ-314 (screen.trainer bindings)
 ] as const;
 
 export const SIM_CAPS_HEADER = "x-sim-caps";

@@ -10,6 +10,9 @@ import { parseCached } from "../engine/v1/parser.ts";
 import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
+import { facilityView, type FacilityView } from "./facilityView.ts";
+import { sandboxView, type SandboxView } from "./sandboxView.ts";
+import { trainerView, type TrainerView } from "./trainerView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
 import { dashboardView, type DashboardView } from "./dashboardView.ts";
 import { deskView, type DeskView } from "./deskView.ts";
@@ -383,6 +386,9 @@ export interface RunView {
   data: DataView | null; // REQ-312: the data and code console
   governance: GovernanceView | null; // REQ-313: the governance board
   tabletop: TabletopView | null; // REQ-313: the tabletop exercise
+  facility: FacilityView | null; // REQ-314: the facility console
+  sandbox: SandboxView | null; // REQ-314: the sandbox report
+  trainer: TrainerView | null; // REQ-314: the client trainer
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -416,6 +422,9 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
+    facility: facilityView(run),
+    sandbox: sandboxView(run),
+    trainer: trainerView(run),
     governance: governanceView(run),
     tabletop: tabletopView(run),
     dashboard: dashboardView(run),
