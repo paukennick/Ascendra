@@ -448,6 +448,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // sims-pm-2 (docs/sims.md 22.31, second part): new cases for the courses
   // that still had none, their bands, then depth (launch courses first).
   entry("PGMP", "pgmp-transit-program-steering-review"),
+  entry("PFMP", "pfmp-water-utility-rebalance"),
+  band("PMIPMOCP", "water-utility-rebalance-pmipmocp"),
   // ---- end REQ-321 ----
 ];
 

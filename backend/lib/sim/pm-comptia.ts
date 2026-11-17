@@ -50,4 +50,6 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "PMIRMP", slug: "clinic-fitout-contingency-pmirmp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmirmp-clinic-fitout-contingency-pmirmp", base: "PMP/pmp-clinic-fitout-schedule-variance" },
   // sims-pm-2: the second part of 22.31.
   { course: "PGMP", slug: "pgmp-transit-program-steering-review", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pgmp-steering" },
+  { course: "PFMP", slug: "pfmp-water-utility-rebalance", screen: "governance-board", profile: "governance", kind: "scenario", steps: "pfmp-rebalance" },
+  { course: "PMIPMOCP", slug: "water-utility-rebalance-pmipmocp", screen: "governance-board", profile: "governance", kind: "band", steps: "pmc-pmipmocp-water-utility-rebalance-pmipmocp", base: "PFMP/pfmp-water-utility-rebalance" },
 ];
