@@ -211,3 +211,27 @@ describe("what each wave 4 case teaches", () => {
   });
 });
 
+
+describe("what each wave 4 case teaches (2)", () => {
+  test("CloudOps health checks: the right path makes the targets healthy; widening the matcher also turns them green; suspending only stops the churn", () => {
+    const d = docOf("alb-health-check-login-redirect");
+    const ok = driver(d);
+    ok.act("fixPath");
+    while (ok.minutes() < 9) ok.act("watch");
+    assert.equal(ok.value("targetsHealthy"), true);
+    assert.equal(ok.value("churnOn"), false);
+    const wide = driver(d);
+    wide.act("widenMatcher");
+    while (wide.minutes() < 9) wide.act("watch");
+    assert.equal(wide.value("targetsHealthy"), true);
+    assert.equal(wide.value("matcherWide"), true);
+    const sus = driver(d);
+    sus.act("suspend");
+    assert.equal(sus.value("churnOn"), false);
+    assert.equal(sus.value("targetsHealthy"), false);
+    const late = driver(d);
+    while (late.minutes() < 61) late.act("watch");
+    assert.notEqual(late.value("campaignFailedAt"), null);
+    assert.ok((late.value("replaced") as number) > 14, "the group keeps replacing");
+  });
+});

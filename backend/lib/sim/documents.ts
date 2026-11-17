@@ -295,6 +295,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("GCPCDL", "cloud-run-bad-revision-rollback-cdl"),
   entry("SECPLUS", "spoofed-ceo-wire-dmarc"),
   entry("SECPLUS", "departing-engineer-usb-evidence"),
+  entry("AWSSOA", "alb-health-check-login-redirect"),
   // ---- end REQ-316 ----
 ];
 
