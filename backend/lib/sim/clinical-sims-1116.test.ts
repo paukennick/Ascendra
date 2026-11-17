@@ -42,6 +42,7 @@ export const REQ315_BANDS: readonly { course: string; slug: string; base: string
 export const REQ315_SCENARIOS: readonly { course: string; slug: string; screen: string }[] = [
   { course: "NCLEXRN", slug: "alcohol-withdrawal-ciwa", screen: "bedside" },
   { course: "CNA", slug: "sundowning-at-the-exit-door", screen: "bedside" },
+  { course: "CCRNADULT", slug: "tension-pneumothorax-after-line", screen: "bedside" },
 ];
 
 const BAND_PATCH_KEYS = ["brief", "objective", "secondaryObjectives", "sources"];

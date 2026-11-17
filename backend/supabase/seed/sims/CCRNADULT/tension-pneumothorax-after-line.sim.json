@@ -1,0 +1,1049 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "tension-pneumothorax-after-line",
+  "title": "High-pressure alarm after a central line",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              90,
+              85,
+              80
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              120,
+              140
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ABP",
+          "spokenLabel": "Arterial blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              90,
+              80,
+              70
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "ppk",
+          "label": "Ppeak",
+          "spokenLabel": "Peak airway pressure on the ventilator",
+          "value": "ppeak",
+          "unit": "cmH2O",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              40,
+              50
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not bagging"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Ventilator: {bagging ? \"off, bagging by hand\" : \"volume control\"}, FiO2 {fio2High ? \"100%\" : \"40%\"}, PEEP {peepUp ? \"10\" : \"5\"}. Decompression kit at the bedside: {kitReady ? \"yes\" : \"no\"}.",
+      "banner": [
+        {
+          "when": "providerHere",
+          "text": "The ICU provider is at the bedside."
+        },
+        {
+          "when": "decompressed",
+          "text": "Needle decompression done; chest tube to follow."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize tension pneumothorax (hypotension, tracheal deviation, cyanosis) as an emergency that is treated before imaging",
+  "secondaryObjectives": [
+    "Recognizing emergencies, initiating interventions and seeking assistance",
+    "Managing device alarms by the change in the patient's condition, not the alarm alone"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN (Adult) Exam Handbook and Adult CCRN Test Plan, effective 2025-11-12",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the REQ-222 CCRN cases, not re-read: the objective titles are the course's own, built from this test plan (backend/supabase/seed/tracks/ccrn.ts)."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-16",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls. Tension Pneumothorax (last updated 2025-07-07), StatPearls Publishing",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.statpearls.com:443/point-of-care/27373",
+      "note": "Read 2026-11-16 through a summarizing fetch with quotes: 'Tension pneumothorax is a clinical diagnosis'; in an unstable patient 'immediate needle decompression must be performed without delay', and imaging such as a chest x-ray only 'if the patient is stable'; signs include severe respiratory distress, hypotension, tachycardia, absent breath sounds, jugular venous distension and tracheal deviation; needle at the second anterior intercostal space, midclavicular line, or 'when time permits' the fifth intercostal space, anterior axillary line, with long angiocatheters (>8 cm); iatrogenic causes include subclavian or internal jugular catheterization and barotrauma from positive pressure ventilation."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in the medical ICU. You are the RN. Mr. Ortega, 66, on a ventilator for pneumonia, had a right subclavian central line placed by the resident at 08:30; the confirming chest X-ray is ordered but not done. The ventilator is alarming for high peak pressure, and his saturation is dropping.",
+    "handover": [
+      "Volume control, FiO2 40%, PEEP 5. Peak pressures were 26-28 cmH2O all night. Sedated, comfortable at 08:00.",
+      "Arterial line in place. Norepinephrine is not running.",
+      "The ICU provider is on the unit; a portable chest X-ray takes about 15 minutes to arrive."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "He is changing minute by minute. The provider takes a couple of minutes to reach the bed.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "tpRise": {
+      "value": 0.06,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Untreated, the tension reaches arrest in about 11 minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestTp": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Obstructive shock with pulseless electrical activity. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "decompTo": {
+      "value": 0.15,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Needle decompression releases most of the tension at once. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "peepAdd": {
+      "value": 0.1,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "More positive pressure worsens a tension pneumothorax (StatPearls lists positive-pressure barotrauma as a cause). FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "providerWalk": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The ICU provider reaches the bed about 2 min after a stat call."
+      }
+    },
+    "kitFetch": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Fetching the kit when nobody brought it: about 90 s."
+      }
+    },
+    "xrayWait": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "A portable chest X-ray arrives about 15 min after the call."
+      }
+    },
+    "recognizeBy": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: the chest examined within 3 min of the alarm. FLAG."
+      }
+    },
+    "callBy": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: immediate decompression asked for within 5 min. FLAG."
+      }
+    },
+    "stableAfter": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The case ends 5 min after decompression."
+      }
+    }
+  },
+  "state": {
+    "tp": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "decompressed": {
+      "type": "bool",
+      "init": false
+    },
+    "decompAt": {
+      "type": "time",
+      "init": null
+    },
+    "assessAt": {
+      "type": "time",
+      "init": null
+    },
+    "suctionAt": {
+      "type": "time",
+      "init": null
+    },
+    "bagging": {
+      "type": "bool",
+      "init": false
+    },
+    "fio2High": {
+      "type": "bool",
+      "init": false
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "peepUp": {
+      "type": "bool",
+      "init": false
+    },
+    "kitReady": {
+      "type": "bool",
+      "init": false
+    },
+    "kitAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "ask": {
+      "type": "enum",
+      "values": [
+        "none",
+        "now",
+        "xray"
+      ],
+      "init": "none"
+    },
+    "providerHere": {
+      "type": "bool",
+      "init": false
+    },
+    "xrayFirst": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "spo2": {
+      "expr": "round(clamp(97 - 30 * tp + (fio2High ? 5 : 0), 50, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(128 - 75 * tp, 30, 200))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(clamp(sbp * 0.6, 20, 120))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(92 + 60 * tp, 40, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "ppeak": {
+      "expr": "round(27 + 30 * tp + (peepUp ? 5 : 0))",
+      "unit": "cmH2O",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "tension",
+      "when": "not decompressed",
+      "update": {
+        "tp": "tp + tpRise * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "assess",
+        "suction",
+        "bag",
+        "fio2",
+        "peep",
+        "kit",
+        "call",
+        "fluid"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "assess": {
+      "label": "Examine the chest: breath sounds both sides, chest movement, trachea, neck veins",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(assessAt)",
+          "then": [
+            {
+              "set": "assessAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "decompressed",
+              "then": [
+                {
+                  "log": "Breath sounds returning on the right; trachea midline.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "No breath sounds on the right, the right chest barely moves and is hyperresonant; trachea shifted to the left; neck veins distended; dusky lips. BP {sbp}/{dbp}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "suction": {
+      "label": "Suction the endotracheal tube (is it blocked?)",
+      "group": "Assess",
+      "available": "isNull(suctionAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "suctionAt",
+          "to": "t"
+        },
+        {
+          "log": "The catheter passes easily; scant secretions. The tube is not blocked.",
+          "kind": "find"
+        }
+      ]
+    },
+    "bag": {
+      "label": "Take him off the ventilator and bag by hand with 100% oxygen",
+      "group": "Treat",
+      "available": "not bagging",
+      "why": "Already bagging.",
+      "effects": [
+        {
+          "set": "bagging",
+          "to": "true"
+        },
+        {
+          "set": "fio2High",
+          "to": "true"
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The bag is very stiff to squeeze. SpO2 {spo2}%.",
+          "kind": "find"
+        }
+      ]
+    },
+    "fio2": {
+      "label": "Turn FiO2 to 100% on the ventilator",
+      "group": "Treat",
+      "available": "not fio2High",
+      "why": "Already 100%.",
+      "effects": [
+        {
+          "set": "fio2High",
+          "to": "true"
+        },
+        {
+          "if": "isNull(o2At)",
+          "then": [
+            {
+              "set": "o2At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "FiO2 100%.",
+          "kind": "act"
+        }
+      ]
+    },
+    "peep": {
+      "label": "Raise PEEP to 10 to improve oxygenation",
+      "group": "Treat",
+      "available": "not peepUp",
+      "why": "Already raised.",
+      "effects": [
+        {
+          "set": "peepUp",
+          "to": "true"
+        },
+        {
+          "set": "tp",
+          "to": "tp + peepAdd"
+        },
+        {
+          "log": "Peak pressure climbs and the blood pressure drops further.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "kit": {
+      "label": "Bring the decompression kit (long 14-gauge catheter) and the chest tube tray to the bed",
+      "group": "Prepare",
+      "available": "not kitReady",
+      "why": "Already here.",
+      "effects": [
+        {
+          "set": "kitReady",
+          "to": "true"
+        },
+        {
+          "set": "kitAt",
+          "to": "t"
+        },
+        {
+          "log": "Decompression kit and chest tube tray open at the bedside.",
+          "kind": "act"
+        }
+      ]
+    },
+    "fluid": {
+      "label": "500 mL crystalloid bolus while help comes",
+      "group": "Treat",
+      "effects": [
+        {
+          "log": "Bolus running. It may buy a little pressure; it does not relieve the tension.",
+          "kind": "act"
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the ICU provider stat",
+      "group": "Call",
+      "available": "isNull(callAt)",
+      "why": "Already called.",
+      "params": [
+        {
+          "id": "req",
+          "kind": "choice",
+          "label": "What you say",
+          "options": [
+            {
+              "value": "now",
+              "label": "\"Suspected right tension pneumothorax after the line: absent breath sounds, trachea shifted, BP falling. He needs decompression now.\""
+            },
+            {
+              "value": "xray",
+              "label": "\"High pressures and falling sats after the line. Can we get the chest X-ray done stat to see what's going on?\""
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "req == \"now\"",
+              "then": [
+                {
+                  "set": "ask",
+                  "to": "\"now\""
+                },
+                {
+                  "log": "Provider: 'Coming now.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ask",
+                  "to": "\"xray\""
+                },
+                {
+                  "set": "xrayFirst",
+                  "to": "true"
+                },
+                {
+                  "log": "Provider: 'Get the film and page me with it.'",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "req == \"now\"",
+              "then": [
+                {
+                  "schedule": "providerT",
+                  "after": "providerWalk"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "schedule": "xrayT",
+                  "after": "xrayWait"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "providerT": {
+      "label": "the ICU provider",
+      "wait": {
+        "skipLabel": "the provider arriving (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 2 min."
+      },
+      "effects": [
+        {
+          "set": "providerHere",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "kitReady",
+              "then": [
+                {
+                  "set": "decompressed",
+                  "to": "true"
+                },
+                {
+                  "set": "decompAt",
+                  "to": "t"
+                },
+                {
+                  "set": "tp",
+                  "to": "decompTo"
+                },
+                {
+                  "log": "Needle decompression on the right with the kit you set up: a rush of air. SpO2 and BP climb. A chest tube follows.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "schedule": "kitT",
+                  "after": "kitFetch"
+                },
+                {
+                  "log": "Provider: 'Where's the decompression kit?' Someone runs for it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "kitT": {
+      "label": "the decompression kit",
+      "wait": {
+        "skipLabel": "the kit arriving (about 90 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 90 s."
+      },
+      "effects": [
+        {
+          "set": "kitReady",
+          "to": "true"
+        },
+        {
+          "set": "decompressed",
+          "to": "true"
+        },
+        {
+          "set": "decompAt",
+          "to": "t"
+        },
+        {
+          "set": "tp",
+          "to": "decompTo"
+        },
+        {
+          "log": "Needle decompression on the right: a rush of air. SpO2 and BP climb. A chest tube follows.",
+          "kind": "good"
+        }
+      ]
+    },
+    "xrayT": {
+      "label": "the chest X-ray",
+      "wait": {
+        "skipLabel": "the portable X-ray (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 15 min."
+      },
+      "effects": [
+        {
+          "set": "providerHere",
+          "to": "true"
+        },
+        {
+          "set": "decompressed",
+          "to": "true"
+        },
+        {
+          "set": "decompAt",
+          "to": "t"
+        },
+        {
+          "set": "tp",
+          "to": "decompTo"
+        },
+        {
+          "log": "The film shows a large right tension pneumothorax; the provider decompresses at once.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "crashing",
+      "when": "tp >= 0.75 and not decompressed",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "BP {sbp}/{dbp}, SpO2 {spo2}%; the complexes are widening.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(assessAt) or t >= 120",
+      "question": "What is happening to Mr. Ortega, and what must happen before anything else?",
+      "parts": [
+        {
+          "label": "Recognition",
+          "criteria": "Names a right tension pneumothorax after a subclavian line on positive-pressure ventilation: rising peak pressure, falling SpO2 and BP, absent right breath sounds, tracheal shift, distended neck veins; rules out a blocked tube.",
+          "modelAnswer": "A right tension pneumothorax from the subclavian line, made worse by the ventilator: high peaks, falling sats and pressure, no breath sounds on the right, trachea pushed left, neck veins up. The tube is clear."
+        },
+        {
+          "label": "Priorities",
+          "criteria": "Treats it as a clinical diagnosis: immediate decompression before any X-ray; bags with 100% oxygen; brings the kit; does not raise PEEP.",
+          "modelAnswer": "Call the provider for decompression now, not a film. Bag on 100% oxygen, kit and chest tube tray at the bed, no PEEP increase. The X-ray comes after he is decompressed."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= 2399 and not decompressed",
+      "class": "harm",
+      "rationale": "A tension pneumothorax still not decompressed 40 minutes after the alarm.",
+      "source": {
+        "cite": "StatPearls. Tension Pneumothorax (last updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.statpearls.com:443/point-of-care/27373",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: 'Tension pneumothorax is a clinical diagnosis'; in an unstable patient 'immediate needle decompression must be performed without delay', and imaging such as a chest x-ray only 'if the patient is stable'; signs include severe respiratory distress, hypotension, tachycardia, absent breath sounds, jugular venous distension and tracheal deviation; needle at the second anterior intercostal space, midclavicular line, or 'when time permits' the fifth intercostal space, anterior axillary line, with long angiocatheters (>8 cm); iatrogenic causes include subclavian or internal jugular catheterization and barotrauma from positive pressure ventilation."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Cardiac arrest",
+      "class": "harm",
+      "when": "tp >= arrestTp",
+      "terminal": true,
+      "narrative": "{t|clock}: the pressure trace flattens; pulseless electrical activity. A code is called."
+    },
+    "decompressedFast": {
+      "label": "Decompressed before imaging, in time",
+      "class": "target",
+      "when": "decompressed and since(decompAt) >= stableAfter and not xrayFirst and not isNull(assessAt) and timeAt(assessAt) <= recognizeBy and not isNull(callAt) and timeAt(callAt) <= callBy and not isNull(o2At) and timeAt(o2At) <= recognizeBy",
+      "terminal": true,
+      "narrative": "{t|clock}: chest tube in, SpO2 {spo2}%, BP {sbp}/{dbp}. Recognized at the bedside and decompressed before any film."
+    },
+    "decompressedLate": {
+      "label": "Decompressed, by a slower route",
+      "class": "recovered",
+      "when": "decompressed and since(decompAt) >= stableAfter",
+      "terminal": true,
+      "narrative": "{t|clock}: decompressed and stabilizing, but late: the chest exam, the oxygen or the call came slowly, or the film came first."
+    },
+    "time_up": {
+      "label": "Never decompressed",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:40 and he has not been decompressed."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "decompressedFast",
+    "decompressedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "recognized",
+        "label": "Chest examined (sounds, trachea, neck veins) within 3 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(assessAt)",
+            "score": "missed",
+            "why": "The chest was never examined."
+          },
+          {
+            "when": "timeAt(assessAt) <= recognizeBy",
+            "score": "met",
+            "why": "Examined at {timeAt(assessAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Examined at {timeAt(assessAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "treatFirst",
+        "label": "Asked for decompression now, before imaging, within 5 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "The provider was not called."
+          },
+          {
+            "when": "xrayFirst",
+            "score": "missed",
+            "why": "Asked for a chest X-ray first in an unstable patient."
+          },
+          {
+            "when": "timeAt(callAt) <= callBy",
+            "score": "met",
+            "why": "Decompression asked for at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Asked at {timeAt(callAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "oxygen",
+        "label": "100% oxygen within 3 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(o2At)",
+            "score": "missed",
+            "why": "FiO2 left at 40%."
+          },
+          {
+            "when": "timeAt(o2At) <= recognizeBy",
+            "score": "met",
+            "why": "100% oxygen at {timeAt(o2At)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "100% oxygen at {timeAt(o2At)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "kit",
+        "label": "Decompression kit at the bed before the provider",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "kitReady and not isNull(kitAt)",
+            "score": "met",
+            "why": "Kit ready at {timeAt(kitAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The kit had to be fetched."
+          }
+        ]
+      },
+      {
+        "id": "tube",
+        "label": "Ruled out a blocked tube",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(suctionAt)",
+            "score": "met",
+            "why": "Suctioned: tube clear."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Tube patency not checked."
+          }
+        ]
+      },
+      {
+        "id": "noPeep",
+        "label": "Did not add positive pressure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "peepUp",
+            "score": "missed",
+            "why": "PEEP raised, worsening the tension."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "PEEP left alone."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: tension pneumothorax, decompress before imaging",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Alarm to the call for decompression",
+        "value": "isNull(callAt) ? -1 : timeAt(callAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toDecomp",
+        "label": "Alarm to decompression",
+        "value": "isNull(decompAt) ? -1 : timeAt(decompAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "Look at the patient, not the alarm: SpO2 falling, BP falling, peaks high. Examine: no right breath sounds, trachea left, neck veins up."
+      },
+      {
+        "at": "09:01",
+        "text": "Off the ventilator, bag on 100%: very stiff. Suction: tube clear."
+      },
+      {
+        "at": "09:01",
+        "text": "Stat call: tension pneumothorax, decompress now. Kit and chest tube tray to the bed. No PEEP increase."
+      },
+      {
+        "at": "~09:03",
+        "text": "Needle decompression on arrival; chest tube; X-ray afterwards."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Cardiac arrest",
+        "body": "Tension pneumothorax is a clinical diagnosis. An unstable patient is decompressed before any film; waiting for imaging or adding positive pressure leads to arrest."
+      },
+      "decompressedFast": {
+        "headline": "Decompressed before imaging",
+        "body": "You treated the patient rather than the alarm, found the signs, gave 100% oxygen, asked for decompression now and had the kit ready. That is the expert path."
+      },
+      "decompressedLate": {
+        "headline": "Decompressed, by a slower route",
+        "body": "Check how soon you examined the chest, raised the oxygen, and asked for decompression rather than a film."
+      },
+      "time_up": {
+        "headline": "Never decompressed",
+        "body": "Unstable plus absent breath sounds and tracheal shift: decompress first."
+      }
+    },
+    "modelReasoning": "A high-pressure alarm with falling SpO2 and blood pressure half an hour after a subclavian line, in a patient on positive pressure, is a tension pneumothorax until proven otherwise: absent breath sounds on one side, tracheal shift away, distended neck veins and obstructive shock. It is a clinical diagnosis; in an unstable patient needle decompression comes at once and imaging waits until he is stable. Bag with 100% oxygen (a stiff bag confirms the problem) and suction to rule out a blocked tube; do not raise PEEP. Have a long catheter and the chest tube tray at the bed so the provider decompresses on arrival."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "The provider is on the way",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "siteQ": {
+      "during": "providerT",
+      "ask": "While the provider comes: where does StatPearls place the needle when time permits?",
+      "choices": [
+        {
+          "id": "fifth",
+          "label": "Fifth intercostal space, anterior axillary line"
+        },
+        {
+          "id": "eighth",
+          "label": "Eighth intercostal space, posterior"
+        },
+        {
+          "id": "sternum",
+          "label": "Beside the sternum, any space"
+        }
+      ],
+      "expect": "fifth",
+      "explain": "The second intercostal space in the midclavicular line, or when time permits the fifth intercostal space in the anterior axillary line, with a long catheter (over 8 cm).",
+      "source": {
+        "cite": "StatPearls. Tension Pneumothorax (last updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.statpearls.com:443/point-of-care/27373",
+        "note": "Read 2026-11-16 through a summarizing fetch with quotes: 'Tension pneumothorax is a clinical diagnosis'; in an unstable patient 'immediate needle decompression must be performed without delay', and imaging such as a chest x-ray only 'if the patient is stable'; signs include severe respiratory distress, hypotension, tachycardia, absent breath sounds, jugular venous distension and tracheal deviation; needle at the second anterior intercostal space, midclavicular line, or 'when time permits' the fifth intercostal space, anterior axillary line, with long angiocatheters (>8 cm); iatrogenic causes include subclavian or internal jugular catheterization and barotrauma from positive pressure ventilation."
+      }
+    }
+  }
+}
