@@ -126,6 +126,33 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     ],
   },
   {
+    // REQ-322 (Nick, 2026-11-17: "start the desktop web updates"): step 2 of
+    // the desktop sizing work. Web only, wide windows only; phones and the
+    // apps are unchanged. Not gated.
+    id: "2026-11-17-c",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-322"],
+    title: "A better fit on a big screen",
+    items: [
+      {
+        icon: "compass",
+        headline: "Two courses per row",
+        body: "In a wide browser window, Explore and your favorites on Home show two course cards side by side, so you see more without scrolling.",
+      },
+      {
+        icon: "eye",
+        headline: "See where you are with the keyboard",
+        body: "Pressing Tab now shows a clear outline around the button or link you are on, and buttons light up a little when your mouse is over them.",
+      },
+      {
+        icon: "check-circle",
+        headline: "Tidier screens on a wide window",
+        body: "The top bar lines up with the page, the course page puts its practice, lab and simulation buttons in one row, and the connection screen no longer stretches.",
+      },
+    ],
+  },
+  {
     // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
     // plain reference line with a specific disclaimer, and show its published
     // facts; the six courses REQ-318 hid are listed again. Not gated.

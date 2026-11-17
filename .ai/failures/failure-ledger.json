@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -18935,6 +18935,119 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Unit titles copy the owner's domain names; course-verification-2.test.ts pins Project+, CNPE and PCA unit titles and weights.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2340",
+      "date": "2026-11-17",
+      "title": "Root 'We couldn't reach Ascendra' screen stretched across a wide monitor and said 'on this phone'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "On a 1440px browser window the session-retry screen put its title at the left edge, the error banner and both buttons 1,400px wide, and told a desktop user they were signed in on this phone.",
+      "how_detected": "Playwright screenshot (session refresh answered 503) during REQ-322",
+      "root_cause": "SessionRetry is an absolute overlay drawn by the root layout, outside every stack, so REQ-304's column (a stack screenLayout) never reached it; its copy was written for the phone app before the web build existed.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/src/components/SessionRetry.tsx"
+      ],
+      "fix_summary": "sessionRetryLayout caps the content at 440px and centers it on wide web windows and says 'This browser is still signed in'; phones and narrow windows keep the old layout and text.",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Overlays drawn outside the stacks (retry, lock, update, banners) are listed in mobile/src/lib/webColumn.ts comments and covered by desktopWeb.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2341",
+      "date": "2026-11-17",
+      "title": "Desktop header buttons and title sat at the window edges, 240-480px away from the centered column",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "At 1440 and 1920px the back and menu buttons and title were at x=0-16 and the settings button at the far right edge, while the content sat in a 960px column in the middle.",
+      "how_detected": "Playwright screenshots during REQ-322",
+      "root_cause": "REQ-304 wrapped only the screen body (screenLayout); the native-stack header is drawn outside it and kept its window-edge layout.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(auth)/_layout.tsx",
+        "mobile/app/(legal)/_layout.tsx"
+      ],
+      "fix_summary": "useColumnScreenOptions adds headerLeft/RightContainerStyle padding equal to the column gutter on screens that have the column (webHeaderInsets).",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2342",
+      "date": "2026-11-17",
+      "title": "Idle sign-out warning and update banner spanned the whole monitor",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Both bottom banners used left/right 16px of the window, so on a wide window they ran the full width under a 960px column.",
+      "how_detected": "Code review of root overlays during REQ-322",
+      "root_cause": "They are absolute overlays in the root layout and UpdateBanner, outside the stacks the column wraps.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/app/_layout.tsx",
+        "mobile/src/components/UpdateBanner.tsx"
+      ],
+      "fix_summary": "bottomBannerInsets puts them over the column on wide web windows; 16px edges elsewhere.",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2343",
+      "date": "2026-11-17",
+      "title": "Keyboard focus was hard to see on the web and nothing showed on hover",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Tabbing on the web showed only the browser's default thin dark outline, barely visible on the dark theme; buttons, cards and links had no hover state.",
+      "how_detected": "Playwright keyboard-focus screenshot during REQ-322",
+      "root_cause": "react-native-web draws no hover or focus styles and the app never added any.",
+      "requirement": "REQ-322",
+      "affected": [
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/lib/webDesktopStyles.ts",
+        "mobile/app/_layout.tsx"
+      ],
+      "fix_summary": "A style sheet adds a 2px link-color :focus-visible ring and a faint hover wash for buttons and links, inside a min-width 901px media query (hover also needs a fine pointer).",
+      "fix_commits": [
+        "3e9456de"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/desktopWeb.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Decision for Nick: extend the focus ring to narrow windows (currently wide only to keep narrow windows unchanged).",
       "recurrence_of": ""
     }
   ]

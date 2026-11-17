@@ -44,6 +44,7 @@ import { CourseLevelPanel, useCourseLevel } from "@/components/CourseLevelPanel"
 import { GoalStartSheet } from "@/components/LearnerLevel";
 import { asksAtStart, goalAnswerBody, parseLevelState, type CourseGoal, type Level } from "@/lib/learnerLevel";
 import { friendlyError } from "@/lib/errorMessage";
+import { useWideWeb } from "@/components/WebColumn";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -57,6 +58,8 @@ const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label
 export default function CourseDashboard() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
   const router = useRouter();
+  // REQ-322: wide web windows lay the course actions out in a row.
+  const wide = useWideWeb();
   const goBack = useGoBack(HOME);
   const [notFound, setNotFound] = useState(false);
   const [track, setTrack] = useState<Track | null>(null);
@@ -280,7 +283,11 @@ export default function CourseDashboard() {
               />
             ) : null}
 
+            {/* REQ-322: on a wide web window Practice exam, Labs and
+                Simulations sit in one row instead of three full-width bars. */}
+            <View style={wide ? { flexDirection: "row", gap: spacing.sm } : { gap: spacing.sm }}>
             {/* REQ-109: timed sprints and mock exams. */}
+            <View style={wide ? { flex: 1 } : undefined}>
             <Button
               label="Practice exam"
               accessibilityLabel="Practice exam: timed sprint or mock exam"
@@ -290,9 +297,11 @@ export default function CourseDashboard() {
                 router.push({ pathname: `/course/${trackId}/exam`, params: { trackTitle: track.title } })
               }
             />
+            </View>
 
             {/* REQ-123: hands-on labs, only on courses that have them. */}
             {totalLabs > 0 ? (
+              <View style={wide ? { flex: 1 } : undefined}>
               <Button
                 label={`Hands-on labs (${totalLabs})`}
                 accessibilityLabel={`Hands-on labs: ${totalLabs} build and case labs`}
@@ -300,10 +309,12 @@ export default function CourseDashboard() {
                 variant="ghost"
                 onPress={() => router.push({ pathname: `/course/${trackId}/labs`, params: { trackTitle: track.title } })}
               />
+              </View>
             ) : null}
 
             {/* REQ-190: simulations, only on courses that have them. */}
             {simCount > 0 ? (
+              <View style={wide ? { flex: 1 } : undefined}>
               <Button
                 label={`Simulations (${simCount})`}
                 accessibilityLabel={`Simulations: ${simCount} interactive ${simCount === 1 ? "case" : "cases"} that respond over time`}
@@ -311,7 +322,9 @@ export default function CourseDashboard() {
                 variant="ghost"
                 onPress={() => router.push({ pathname: `/course/${trackId}/sims`, params: { trackTitle: track.title } })}
               />
+              </View>
             ) : null}
+            </View>
 
             {/* REQ-113 (Audit 3 mobile H3, H4): five fixed 72 dp items needed
                 360 dp but a 360 dp phone has about 294 here, so "Compare" sat

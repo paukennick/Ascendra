@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, type ViewStyle } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Badge, Card, FavoriteButton, H2, Muted, ProgressBar } from "@/components/ui";
 import { colors, getCourseIcon, spacing } from "@/lib/theme";
@@ -33,10 +33,13 @@ export function CourseCard({
   track,
   onPress,
   onToggleFavorite,
+  style,
 }: {
   track: Track;
   onPress: () => void;
   onToggleFavorite: () => void;
+  // REQ-322: a grid cell passes { flex: 1 } so cards in a row match heights.
+  style?: ViewStyle;
 }) {
   const { emoji, icon, accent, iconColor } = getCourseIcon(track);
   // REQ-249: a course with sims says so. The badge row below is left out of
@@ -49,7 +52,7 @@ export function CourseCard({
     // surface: the title area is the one button that opens the course, the
     // star is its sibling, and the lower half is a mouse/touch extension of the
     // same button that is left out of the tab order and the reading order.
-    <Card>
+    <Card style={style}>
       <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
         <Pressable
           onPress={onPress}

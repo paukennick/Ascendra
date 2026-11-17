@@ -11644,6 +11644,53 @@
         "Objective retitles invalidate stored lessons for those objectives (FAIL-893)",
         "Scrum.org ™ read only from a search result title"
       ]
+    },
+    {
+      "id": "REQ-322",
+      "category": "ux",
+      "title": "Desktop web: header, grids, root screens and hover/focus on wide windows (step 2)",
+      "description": "Nick 2026-11-17: start the desktop web updates (step 2 after REQ-304). On the web in a window wider than 900px: the header's buttons and title line up with the 960px column (the header background still spans the window); Home favorites and the Explore catalog show two course cards per row; on Home, Review and Browse sit side by side; the course page's Practice exam, Labs and Simulations buttons sit in one row; the root 'We couldn't reach Ascendra' screen is a centered 440px column and names the browser; the idle warning and update banners sit over the column; buttons and links get a hover wash and a visible 2px keyboard focus ring. Phones, the native apps and windows 900px or narrower are unchanged. Sims, exams, labs and the PBQ simulator keep the full width and edge-aligned header.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/webColumn.ts",
+        "mobile/src/lib/desktopWebCss.ts",
+        "mobile/src/lib/webDesktopStyles.ts",
+        "mobile/src/components/WebColumn.tsx",
+        "mobile/src/components/SessionRetry.tsx",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/app/(auth)/_layout.tsx",
+        "mobile/app/(legal)/_layout.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "backend/lib/release-notes.ts"
+      ],
+      "acceptance_criteria": [
+        "isWideWeb is false on iOS and Android at every width and on the web at 900px and below",
+        "Header insets are empty unless the screen has the column (none on sims/exams/labs/PBQ)",
+        "Course lists use one column except on wide web windows where they use two",
+        "The retry screen keeps its layout and wording off wide web; on wide web it is capped at 440px and names the browser",
+        "Every desktop CSS rule is inside a min-width 901px media query; hover also needs (hover: hover) and (pointer: fine)",
+        "Narrow screenshots (390x844 and 800x900) before and after differ by at most 2 intensity levels (font rendering noise)",
+        "What's new 2026-11-17-c covers REQ-304 and REQ-322"
+      ],
+      "validation_required": [
+        "cd mobile && node --test src/lib/desktopWeb.test.ts src/lib/webColumn.test.ts",
+        "cd mobile && npx tsc --noEmit",
+        "Playwright screenshots at 1440x900 1920x1080 800x900 390x844 against production API",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Hover wash and focus ring are CSS selectors on react-native-web roles; a control without a role gets neither",
+        "Header alignment uses the stack's header container styles; a screen that renders its own header option overrides would not be aligned"
+      ]
     }
   ]
 }

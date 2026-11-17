@@ -8,9 +8,10 @@
 // same kind of object when either appears.
 
 import React from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
+import { bottomBannerInsets } from "@/lib/webColumn";
 
 export function UpdateBanner({
   onApply,
@@ -20,12 +21,15 @@ export function UpdateBanner({
   onDismiss: () => void;
 }) {
   const web = Platform.OS === "web";
+  // REQ-322: over the column on a wide web window, not across the monitor.
+  const { width } = useWindowDimensions();
+  const sides = bottomBannerInsets(Platform.OS, width, spacing.lg);
   return (
     <View
       style={{
         position: "absolute",
-        left: spacing.lg,
-        right: spacing.lg,
+        left: sides.left,
+        right: sides.right,
         bottom: spacing.lg,
         backgroundColor: colors.accentDim,
         borderWidth: 1,
