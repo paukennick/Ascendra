@@ -1,0 +1,502 @@
+{
+  "slug": "low-urine-after-contrast-on-vancomycin",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: catheter and scan, creatinine; NSAID and ACE inhibitor held; pharmacy; prerenal and nephrotoxic AKI; intensivist; bolus; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "catheter",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "kdigoQ",
+          "choice": "rise",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "pharm",
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aki"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "toxQ",
+          "choice": "vanc",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 12,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "protected",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "callC": "met",
+          "holdC": "met",
+          "noDiuretic": "met",
+          "cathC": "met",
+          "classC": "met",
+          "pharmC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toFluid": 425
+        },
+        "stateHash": "53c0deab97c09809"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Reviews volume and medications first, never checks the catheter or asks pharmacy, and calls 7 minutes after the creatinine",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "volume",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "kdigoQ",
+          "choice": "rise",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "mar",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aki"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 8,
+          "tick": 125
+        },
+        {
+          "type": "teach",
+          "prompt": "toxQ",
+          "choice": "vanc",
+          "seq": 9,
+          "tick": 125
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 11,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "protectedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "callC": "partial",
+          "holdC": "met",
+          "noDiuretic": "met",
+          "cathC": "missed",
+          "classC": "met",
+          "pharmC": "missed",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 445,
+          "toFluid": 900
+        },
+        "stateHash": "0b551440730392ed"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "diureticGiven",
+      "title": "Calls at once but gives the PRN furosemide to make urine before the bolus",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "kdigoQ",
+          "choice": "rise",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "catheter",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "icu"
+          },
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "teach",
+          "prompt": "toxQ",
+          "choice": "vanc",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diuretic",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "aki"
+          },
+          "seq": 9,
+          "tick": 24
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "seq": 11,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "pharm",
+          "seq": 12,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "protectedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "callC": "met",
+          "holdC": "met",
+          "noDiuretic": "missed",
+          "cathC": "met",
+          "classC": "met",
+          "pharmC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toFluid": 425
+        },
+        "stateHash": "ff9139e7c888e64c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "makeUrine",
+      "title": "Failure: reads the creatinine, calls it no AKI, gives furosemide and the ketorolac and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "kdigoQ",
+          "choice": "rise",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "none"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diuretic",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "nsaid",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rounds"
+          },
+          "seq": 7,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "dialysis",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "callC": "missed",
+          "holdC": "missed",
+          "noDiuretic": "missed",
+          "cathC": "missed",
+          "classC": "missed",
+          "pharmC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toFluid": -1
+        },
+        "stateHash": "1b270ec117dbd685"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "blockedCatheter",
+      "title": "Failure: checks the catheter, calls it obstruction anyway and waits for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "catheter",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "kdigoQ",
+          "choice": "rise",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "obstruction"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rounds"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "dialysis",
+        "class": "harm",
+        "rating": "bad",
+        "score": 13,
+        "criteria": {
+          "callC": "missed",
+          "holdC": "missed",
+          "noDiuretic": "missed",
+          "cathC": "met",
+          "classC": "missed",
+          "pharmC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toFluid": -1
+        },
+        "stateHash": "ad0c2eda416e0048"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

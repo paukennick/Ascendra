@@ -442,6 +442,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "falling-platelets-cold-foot-on-heparin"),
   entry("NCLEXPN", "ltc-critical-potassium-call"),
   // ---- end REQ-323 ----
+  // ---- REQ-325 (docs/sims.md 22.33): nursing depth, round 3 ----
+  entry("CCRNADULT", "low-urine-after-contrast-on-vancomycin"),
+  // ---- end REQ-325 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
