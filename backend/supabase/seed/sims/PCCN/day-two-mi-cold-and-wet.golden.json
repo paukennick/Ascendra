@@ -1,0 +1,434 @@
+{
+  "slug": "day-two-mi-cold-and-wet",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: sit up, oxygen, hourly urine, perfusion, reassess; at the shock criteria rapid response now; hand-off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "uo",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "cold",
+          "seq": 5,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cs"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "wetQ",
+          "choice": "wet",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fixC": "met",
+          "callC": "met",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "uoC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 5,
+          "toCall": 0
+        },
+        "stateHash": "c028b61256d493a6"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Treats well and sees the shock, but calls more than 5 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "uo",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "cold",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "cs"
+          },
+          "seq": 8,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 9,
+          "tick": 138
+        },
+        {
+          "type": "teach",
+          "prompt": "wetQ",
+          "choice": "wet",
+          "seq": 10,
+          "tick": 138
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 138
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 89,
+        "criteria": {
+          "fixC": "met",
+          "callC": "partial",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "met",
+          "uoC": "met",
+          "impression": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 390
+        },
+        "stateHash": "51b64ee7add7ecf3"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "wrongRoute",
+      "title": "Failure: sits her up and checks perfusion, then reads it as dehydration and leaves it for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fix",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "cold",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reassess",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "dry"
+          },
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "wetQ",
+          "choice": "wet",
+          "seq": 8,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "wrongRoute",
+        "class": "harm",
+        "rating": "bad",
+        "score": 39,
+        "criteria": {
+          "fixC": "met",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "partial",
+          "uoC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": 0,
+          "toCall": 0
+        },
+        "stateHash": "f691f3c9207e3873"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "unsafe",
+      "title": "Failure: listens to the chest, then runs a large fluid bolus",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "cold",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "unsafe",
+          "seq": 3,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "unsafe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "missed",
+          "assessC": "missed",
+          "reassessC": "missed",
+          "uoC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "38f53b46a6d95ca6"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noAction",
+      "title": "Failure: chest, history and perfusion, calls it delirium; no positioning and no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "chest",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "sigQ",
+          "choice": "cold",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "perf",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "delirium"
+          },
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 168
+        }
+      ],
+      "expect": {
+        "ending": "worsened",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "fixC": "missed",
+          "callC": "missed",
+          "safeC": "met",
+          "assessC": "met",
+          "reassessC": "missed",
+          "uoC": "missed",
+          "impression": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toFix": -1,
+          "toCall": -1
+        },
+        "stateHash": "569c18dd1a4cd2a9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "day-two-mi-cold-and-wet",
+  "title": "Cold hands, wet lungs",
+  "objective": "Cardiogenic shock recognized on a progressive care unit and escalated",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Cardiovascular (20% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Cardiovascular is 20% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "UCSF Hospitalist Handbook, Cardiogenic Shock (undated web page; references to 2020)",
+      "checkedAt": "2026-11-17",
+      "url": "https://hospitalhandbook.ucsf.edu/node/2366",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Cardiac dysfunction leading to insufficient cardiac output and tissue hypoperfusion'; consider when 'SBP <90 mmHg sustained for >30 min (or vasopressors required)'; 'Clinical: altered mental status, cold/clammy skin or extremities, decreased urine output'; 'Objective: lactate >2.0mmol/L, UOP <30mL/hr'; the wet profile has 'elevated JVP, pulmonary congestion (crackles, pulmonary edema on CXR), orthopnea' and is decongested; fluid only a small bolus for right ventricular failure; 'ACS – emergent indication for revascularization'. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "02:40 on a progressive care unit. Mrs. Duarte, 76, is day two after a large anterior myocardial infarction treated with a stent. She is restless and says she can't get comfortable lying down.",
+    "handover": [
+      "Echo yesterday: ejection fraction 30%. Blood pressure 104/66 at midnight, heart rate 98, urine about 40 mL an hour until then.",
+      "Orders: oxygen to keep SpO2 at or above 90%, strict intake and output, and the rapid response team called for a systolic under 90, new confusion or urine under 30 mL an hour.",
+      "The night provider and the rapid response team are reachable at once."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:40",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.04,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The failing ventricle loses ground overnight. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sitting up and oxygen ease her breathing; they do not restore cardiac output. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of shock: systolic under 90, cold and clammy, confused, little urine. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of cardiac arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response called within 5 minutes of the shock criteria (unit order)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sat up with oxygen titrated within 5 minutes (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team and cardiology to start support and move her to the cardiac ICU; a routine plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A large fluid bolus into a wet, failing left ventricle: flash pulmonary edema within minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.35,
+      "min": 0,
+      "max": 2
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "chestAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "perf",
+        "chest",
+        "hx"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rrt",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cs",
+        "dry",
+        "delirium"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "uoAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(98 + 25 * prog + sin(t / 9))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 12 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(isNull(fixAt) ? 92 - 8 * prog : 95 - 6 * prog, 70, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(106 - 40 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(66 - 20 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30,
+            "low": 10
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Sitting up with oxygen titrated: {not isNull(fixAt)|yesno}. Hourly urine measured: {not isNull(uoAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"rrt\" and inCare",
+          "text": "Rapid response and cardiology are at the bedside."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "perf": {
+      "label": "Perfusion: skin, capillary refill, mental status, urine since midnight",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "chest": {
+      "label": "Chest and neck: lung sounds, neck veins, heart sounds",
+      "group": "Assess",
+      "available": "not testPending and isNull(chestAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"chest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): chest pain, breathlessness lying flat",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: blood pressure, mental status, skin, urine",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, heart rate {hr}. She is confused and picking at the sheets; skin cold and mottled.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, heart rate {hr}. Restless but oriented.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Sit her up and titrate oxygen to SpO2 at or above 90%",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Sitting up; oxygen titrated.",
+          "kind": "act"
+        }
+      ]
+    },
+    "uo": {
+      "label": "Measure the hourly urine output",
+      "group": "Treat",
+      "available": "isNull(uoAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "uoAt",
+          "to": "t"
+        },
+        {
+          "log": "Urine measured hourly.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Run a large IV fluid bolus wide open for the low pressure",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "A large fluid bolus is running wide open.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "cs",
+              "label": "Cardiogenic shock after a large MI: low output, cold and wet"
+            },
+            {
+              "value": "dry",
+              "label": "She is dry; she needs fluid"
+            },
+            {
+              "value": "delirium",
+              "label": "Night-time delirium; reorient her"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"cs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"cs\""
+                },
+                {
+                  "log": "Impression: cardiogenic shock.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dry\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dry\""
+                },
+                {
+                  "log": "Impression: hypovolemia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"delirium\""
+                },
+                {
+                  "log": "Impression: delirium.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "rrt",
+              "label": "Rapid response and cardiology now: systolic under 90, cold, confused, oliguric, wet lungs after an anterior MI"
+            },
+            {
+              "value": "morning",
+              "label": "Reorient her and ask the day team to review in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rrt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rrt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "The rapid response team and cardiology come; vasoactive support and a cardiac ICU bed are arranged.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "A note for the day team.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: the MI and ejection fraction, the pressure and urine trend with times, the lungs, the confusion",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: anterior MI, EF 30%, pressure and urine trends with times, crackles and raised neck veins, confusion from its time.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "perf",
+        "chest",
+        "hx",
+        "reassess",
+        "fix",
+        "uo",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"perf\"",
+              "then": [
+                {
+                  "set": "perfAt",
+                  "to": "t"
+                },
+                {
+                  "cases": [
+                    {
+                      "when": "red",
+                      "then": [
+                        {
+                          "if": "isNull(redFlagAt)",
+                          "then": [
+                            {
+                              "set": "redFlagAt",
+                              "to": "t"
+                            }
+                          ]
+                        },
+                        {
+                          "log": "Cold, clammy, mottled knees; capillary refill 5 seconds; muddled; 15 mL of urine in the last hour.",
+                          "kind": "find"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "true",
+                      "then": [
+                        {
+                          "log": "Cool hands; capillary refill 3 seconds; alert; 35 mL of urine in the last hour.",
+                          "kind": "find"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"chest\"",
+              "then": [
+                {
+                  "set": "chestAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Crackles halfway up both lungs; neck veins raised; a third heart sound.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No new chest pain. Breathless lying flat since 01:00.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "moving to the cardiac ICU",
+      "wait": {
+        "skipLabel": "the team taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team and cardiology to start support and move her to the cardiac ICU; a routine plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She goes to the cardiac ICU on vasoactive support.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The blood pressure alarm sounds. Mrs. Duarte asks why there are people in her room; there are none.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 840",
+      "question": "Mrs. Duarte is confused, cold and barely making urine. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Systolic under 90, cold clammy skin, confusion and urine under 30 mL an hour after a large MI with an EF of 30%, with crackles and raised neck veins, are cardiogenic shock (cold and wet).",
+          "modelAnswer": "This is cardiogenic shock: low pressure, cold and clammy, confused, hardly any urine, after a big MI with an EF of 30%. She's also wet: crackles and raised neck veins."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Rapid response and cardiology now for vasoactive support and the cardiac ICU; keep her up on oxygen; no large fluid bolus; hand off.",
+          "modelAnswer": "Rapid response and cardiology now for support and the cardiac ICU, keep her sitting up on oxygen, no fluid bolus into wet lungs, and hand off."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "Cardiogenic shock still on a progressive care unit an hour on is harm here.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, Cardiogenic Shock (undated web page; references to 2020)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/2366",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Cardiac dysfunction leading to insufficient cardiac output and tissue hypoperfusion'; consider when 'SBP <90 mmHg sustained for >30 min (or vasopressors required)'; 'Clinical: altered mental status, cold/clammy skin or extremities, decreased urine output'; 'Objective: lactate >2.0mmol/L, UOP <30mL/hr'; the wet profile has 'elevated JVP, pulmonary congestion (crackles, pulmonary edema on CXR), orthopnea' and is decongested; fluid only a small bolus for right ventricular failure; 'ACS – emergent indication for revascularization'. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Flash pulmonary edema after fluid",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Minutes into the bolus she is drowning: pink froth, SpO2 falling fast. The wet, failing ventricle could not take the fluid."
+    },
+    "worsened": {
+      "label": "Cardiac arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Blood pressure {sbp}/{dbp}: she becomes unresponsive and pulseless."
+    },
+    "wrongRoute": {
+      "label": "Left until morning",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"morning\")",
+      "narrative": "By 05:00 she is unresponsive and pulseless; a code is called."
+    },
+    "target": {
+      "label": "Cardiogenic shock recognized and escalated in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"rrt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(perfAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches the cardiac ICU on support. Cold and wet read for what it was and called within minutes."
+    },
+    "recovered": {
+      "label": "To the cardiac ICU, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"rrt\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she gets support, but positioning and oxygen came late or the shock went minutes before the call."
+    },
+    "time_up": {
+      "label": "Still on the unit at 03:40",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "03:40 and Mrs. Duarte is still on the unit in shock."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Sat up with oxygen titrated within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Rapid response called within 5 minutes of the shock criteria",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"rrt\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rrt\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left for the day team."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No large fluid bolus into a wet, failing heart",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "A large fluid bolus run wide open."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "Perfusion assessed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(perfAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "uoC",
+        "label": "Hourly urine measured",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(uoAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named cardiogenic shock",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"cs\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"dry\"",
+            "score": "missed",
+            "why": "Called a wet, cold patient dry."
+          },
+          {
+            "when": "dxEnum == \"delirium\"",
+            "score": "missed",
+            "why": "Called shock delirium."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the MI, the trends and the confusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: cold and wet after a large MI is cardiogenic shock; escalate; no fluid bolus",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Start to sitting up with oxygen",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Shock criteria to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:40",
+        "text": "Sit up; oxygen titrated; hourly urine."
+      },
+      {
+        "at": "~02:41",
+        "text": "Perfusion: cool, oliguria starting. Reassess."
+      },
+      {
+        "at": "~02:46",
+        "text": "Systolic under 90, confused, mottled."
+      },
+      {
+        "at": "~02:47",
+        "text": "Rapid response and cardiology now; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "Fluid into a wet heart",
+        "body": "Cold and wet means the pump has failed, not the tank. A large bolus can cause flash pulmonary edema."
+      },
+      "worsened": {
+        "headline": "Arrest",
+        "body": "Falling pressure with poor perfusion after a large MI is cardiogenic shock; call at the first criterion."
+      },
+      "wrongRoute": {
+        "headline": "Left until morning",
+        "body": "New confusion with hypotension and oliguria is shock, not night-time delirium."
+      },
+      "target": {
+        "headline": "Escalated in time",
+        "body": "You sat her up, checked perfusion and urine, and called the shock within minutes. That is the expert path."
+      },
+      "recovered": {
+        "headline": "ICU, with delays",
+        "body": "Check how long the shock criteria went before the call."
+      },
+      "time_up": {
+        "headline": "Still in shock",
+        "body": "Cardiogenic shock is escalated within minutes."
+      }
+    },
+    "modelReasoning": "A large anterior MI with an EF of 30% is at risk of cardiogenic shock. She sits up on oxygen, her urine is measured hourly, and her perfusion checked. A systolic under 90 with cold, clammy skin, confusion and urine under 30 mL an hour, with crackles and raised neck veins, is cardiogenic shock, cold and wet: rapid response and cardiology now. A large fluid bolus would flood her lungs."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "sigQ": {
+      "during": "testT",
+      "ask": "While you assess: which set of findings fits cardiogenic shock?",
+      "choices": [
+        {
+          "id": "cold",
+          "label": "Low pressure, cold clammy skin, confusion, low urine"
+        },
+        {
+          "id": "warm",
+          "label": "Low pressure with warm, flushed skin"
+        },
+        {
+          "id": "htn",
+          "label": "High pressure and a headache"
+        }
+      ],
+      "expect": "cold",
+      "explain": "Clinical signs: altered mental status, cold or clammy skin or extremities, decreased urine output; objectively a lactate over 2 and urine under 30 mL an hour.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, Cardiogenic Shock (undated web page; references to 2020)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/2366",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Cardiac dysfunction leading to insufficient cardiac output and tissue hypoperfusion'; consider when 'SBP <90 mmHg sustained for >30 min (or vasopressors required)'; 'Clinical: altered mental status, cold/clammy skin or extremities, decreased urine output'; 'Objective: lactate >2.0mmol/L, UOP <30mL/hr'; the wet profile has 'elevated JVP, pulmonary congestion (crackles, pulmonary edema on CXR), orthopnea' and is decongested; fluid only a small bolus for right ventricular failure; 'ACS – emergent indication for revascularization'. No dose is used in the case."
+      }
+    },
+    "wetQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: crackles and raised neck veins mean the patient is what?",
+      "choices": [
+        {
+          "id": "wet",
+          "label": "Congested ('wet'): fluid is not the answer"
+        },
+        {
+          "id": "dry",
+          "label": "Dry: give fluid"
+        },
+        {
+          "id": "ok",
+          "label": "Neither"
+        }
+      ],
+      "expect": "wet",
+      "explain": "Elevated JVP and pulmonary congestion define the wet profile, which is decongested rather than given fluid.",
+      "source": {
+        "cite": "UCSF Hospitalist Handbook, Cardiogenic Shock (undated web page; references to 2020)",
+        "checkedAt": "2026-11-17",
+        "url": "https://hospitalhandbook.ucsf.edu/node/2366",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Cardiac dysfunction leading to insufficient cardiac output and tissue hypoperfusion'; consider when 'SBP <90 mmHg sustained for >30 min (or vasopressors required)'; 'Clinical: altered mental status, cold/clammy skin or extremities, decreased urine output'; 'Objective: lactate >2.0mmol/L, UOP <30mL/hr'; the wet profile has 'elevated JVP, pulmonary congestion (crackles, pulmonary edema on CXR), orthopnea' and is decongested; fluid only a small bolus for right ventricular failure; 'ACS – emergent indication for revascularization'. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
