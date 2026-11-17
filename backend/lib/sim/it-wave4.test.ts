@@ -199,7 +199,7 @@ describe("what each wave 4 case teaches", () => {
     const off = driver(d);
     off.act("shutdown");
     assert.equal(off.value("memLost"), true);
-    assert.equal(d.actions.memory.available.includes("not memLost"), true);
+    assert.equal(d.actions.memory.available?.includes("not memLost"), true);
     const br = driver(d);
     br.act("browse");
     assert.equal(br.value("tainted"), true);
