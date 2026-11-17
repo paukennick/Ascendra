@@ -89,6 +89,19 @@ export function spec(): StepsSpec {
           c.act("document", { cause: "cpu" });
         },
       },
+      {
+        id: "watchOnly",
+        title: "Diagnoses correctly but changes nothing before the peak",
+        reasoning: "partial",
+        drive: (c) => {
+          run(c, "errors");
+          run(c, "runInfo");
+          run(c, "activity");
+          waitUntil(c, 41);
+          close(c);
+          c.act("document", { cause: "connections" });
+        },
+      },
     ],
   };
 }
