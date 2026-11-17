@@ -305,6 +305,8 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 // it is hidden (kept mounted, so its course list survives) and those screens
 // keep the whole window.
 export const APP_CONTENT_ID = "app-content";
+// data-skip-link on the web (react-native-web's dataSet; not in RN's types).
+const SKIP_LINK_PROPS: object = { dataSet: { skipLink: "" } };
 
 export function DesktopSidebar({ hidden }: { hidden: boolean }) {
   const pathname = usePathname();
@@ -341,7 +343,7 @@ export function DesktopSidebar({ hidden }: { hidden: boolean }) {
   return (
     <View role="navigation" aria-label="Main" style={[styles.pane, hidden && styles.paneHidden]}>
       {/* Keyboard users can pass the menu; hidden until it has focus (desktopWebCss). */}
-      <Pressable role="link" aria-label="Skip to content" onPress={skipToContent} dataSet={{ skipLink: "" }} style={styles.skipLink}>
+      <Pressable role="link" aria-label="Skip to content" onPress={skipToContent} {...SKIP_LINK_PROPS} style={styles.skipLink}>
         <Text style={styles.paneLabel}>Skip to content</Text>
       </Pressable>
       <Text style={styles.paneBrand}>Ascendra</Text>
