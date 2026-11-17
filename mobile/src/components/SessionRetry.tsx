@@ -15,8 +15,8 @@ export function SessionRetry() {
   const [busy, setBusy] = useState(false);
   // REQ-322 (FAIL-2340): on a wide web window this sat across the whole
   // monitor (title at the left edge, buttons 1,400px wide) and said "on this
-  // phone". It now sits in a narrow centered column and says "in this
-  // browser". Phones and narrow windows are unchanged.
+  // phone". It now sits in a narrow centered column and names the browser.
+  // Phones and narrow windows are unchanged.
   const wide = useWideWeb();
   const layout = sessionRetryLayout(Platform.OS, wide);
   return (
@@ -25,7 +25,7 @@ export function SessionRetry() {
         <View style={layout.maxWidth ? { width: "100%", maxWidth: layout.maxWidth, alignSelf: "center", gap: spacing.md } : { gap: spacing.md }}>
         <BrandMark />
         <H1>We couldn't reach Ascendra</H1>
-        <Muted>You're still signed in {layout.where}. Check your connection and try again.</Muted>
+        <Muted>{layout.message}</Muted>
         {restoreError ? <ErrorBanner message={restoreError} /> : null}
         <Button
           label="Try again"

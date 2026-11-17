@@ -93,7 +93,9 @@ export const SESSION_RETRY_MAX_WIDTH = 440;
  * content is capped and centered, and it names the browser rather than a
  * phone. Everywhere else it is exactly as before.
  */
-export function sessionRetryLayout(platform: string, wide: boolean): { maxWidth: number | null; where: string } {
-  if (platform === "web" && wide) return { maxWidth: SESSION_RETRY_MAX_WIDTH, where: "in this browser" };
-  return { maxWidth: null, where: "on this phone" };
+export function sessionRetryLayout(platform: string, wide: boolean): { maxWidth: number | null; message: string } {
+  if (platform === "web" && wide) {
+    return { maxWidth: SESSION_RETRY_MAX_WIDTH, message: "This browser is still signed in. Check your connection and try again." };
+  }
+  return { maxWidth: null, message: "You're still signed in on this phone. Check your connection and try again." };
 }

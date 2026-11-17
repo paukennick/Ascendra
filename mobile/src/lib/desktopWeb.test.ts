@@ -43,9 +43,10 @@ describe("nothing changes on phones, native apps or narrow windows", () => {
     assert.deepEqual(bottomBannerInsets("ios", 1440, 16), { left: 16, right: 16 });
   });
 
-  test("the retry screen is uncapped and says 'on this phone' off wide web", () => {
-    assert.deepEqual(sessionRetryLayout("ios", false), { maxWidth: null, where: "on this phone" });
-    assert.deepEqual(sessionRetryLayout("web", false), { maxWidth: null, where: "on this phone" });
+  test("the retry screen is uncapped and keeps its wording off wide web", () => {
+    const before = "You're still signed in on this phone. Check your connection and try again.";
+    assert.deepEqual(sessionRetryLayout("ios", false), { maxWidth: null, message: before });
+    assert.deepEqual(sessionRetryLayout("web", false), { maxWidth: null, message: before });
   });
 
   test("every CSS rule is inside a min-width query above the breakpoint", () => {
@@ -81,7 +82,10 @@ describe("wide web windows", () => {
   });
 
   test("FAIL-2340: the retry screen is capped, centered and names the browser", () => {
-    assert.deepEqual(sessionRetryLayout("web", true), { maxWidth: SESSION_RETRY_MAX_WIDTH, where: "in this browser" });
+    const wide = sessionRetryLayout("web", true);
+    assert.equal(wide.maxWidth, SESSION_RETRY_MAX_WIDTH);
+    assert.match(wide.message, /browser/);
+    assert.doesNotMatch(wide.message, /phone|\bin in\b/);
     const src = readFileSync("src/components/SessionRetry.tsx", "utf8");
     assert.match(src, /sessionRetryLayout\(/);
     assert.doesNotMatch(src, /signed in on this phone/);
