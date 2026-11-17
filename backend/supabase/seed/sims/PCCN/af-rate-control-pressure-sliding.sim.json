@@ -1,0 +1,1174 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "af-rate-control-pressure-sliding",
+  "title": "Rate down, pressure down",
+  "objective": "Recognize atrial fibrillation with a rapid ventricular response, weigh rate control, rhythm control and anticoagulation, and monitor for hypotension during IV rate control",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Cardiovascular (20% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Cardiovascular is 20% of the exam. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Long B. ED Management of Atrial Fibrillation with Rapid Ventricular Response. American Board of Emergency Medicine MyEMCert Key Advance (reconfirmed July 2025), summarizing the 2023 ACC/AHA/ACCP/HRS AF guideline",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.abem.org/wp-content/uploads/2024/10/Key-Advances_ED-Management-of-A-Fib-with-RVR_Practice-Advance.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF (a secondary summary; the 2023 guideline itself was not read). Beta-blockers or non-dihydropyridine calcium channel blockers 'may be used as first-line agents for rate control in patients without significant left ventricle (LV) dysfunction'; patients with 'EF (< 40%) or hypotension should be managed with amiodarone or digoxin'; 'avoiding these medications in patients with acute decompensated heart failure'; 'AF causing hypotension' is unstable and 'should undergo synchronized DCCV'; anticoagulation before cardioversion when planned. No dose is used in the case."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:30 on a progressive care unit. Mr. Castellano, 66, is two days after a hip replacement. Telemetry shows a new irregular, narrow rhythm at 150. He feels his heart 'fluttering'.",
+    "handover": [
+      "Echo last year: ejection fraction 55%. Blood pressure 118/74 a moment ago, SpO2 95%.",
+      "The provider has ordered the IV rate-control infusion with blood pressure every 5 minutes during it, to stop the infusion and call for a systolic below 90 or any dizziness, and is deciding about anticoagulation with the surgeons.",
+      "The rapid response team and the provider are reachable at once."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Assess and act as you think the patient needs. Each assessment takes the time on its button.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:30",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Untreated, the fast rate wears him down slowly. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "fixRate": {
+      "value": 0.025,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The rate-control drug brings the rate down and the pressure with it: this patient drops his pressure on it. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "redAt": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypotension on the drug: systolic under 90 with dizziness. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of shock with a collapse. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The infusion stopped and the provider called within 5 minutes of hypotension (unit order)."
+      }
+    },
+    "fixWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The ordered rate-control infusion started within 5 minutes, with the blood pressure checks (unit practice)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment or question: about 1 min."
+      }
+    },
+    "careTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team to support the pressure and the provider to change the plan; a routine plan about 10 minutes."
+      }
+    },
+    "unsafeDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A rate-control drug pushed fast on top of the infusion: profound hypotension within minutes. FLAG. Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "lytesAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ecg",
+        "hx",
+        "lytes"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stop",
+        "continue"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hypo",
+        "fine",
+        "pe"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "cycleAt": {
+      "type": "time",
+      "init": null
+    },
+    "unsafeAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassessN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 99
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(fixAt) ? 150 + 5 * prog : 150 - 60 * min(1, prog))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(95 - 3 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(118 - 70 * max(0, prog - 0.2))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(74 - 34 * max(0, prog - 0.2))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "red": {
+      "expr": "prog >= redAt"
+    },
+    "inCare": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inCare",
+      "update": {
+        "prog": "prog + (isNull(fixAt) ? progRate : fixRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130,
+            "low": 50
+          },
+          "announce": {
+            "bands": [
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92,
+              90
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Rate-control infusion: {not isNull(fixAt) and isNull(callAt) ? \"running\" : (isNull(fixAt) ? \"not started\" : \"stopped\")}. Blood pressure every 5 minutes: {not isNull(cycleAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"stop\" and inCare",
+          "text": "Infusion stopped; the rapid response team is here."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ecg": {
+      "label": "12-lead ECG",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask (yes/no questions): chest pain, breathlessness, dizziness, past AF",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "lytes": {
+      "label": "Review the morning labs",
+      "group": "Assess",
+      "available": "not testPending and isNull(lytesAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"lytes\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "reassess": {
+      "label": "Reassess: blood pressure, heart rate, dizziness, skin",
+      "group": "Assess",
+      "available": "inCare",
+      "why": "The patient has left.",
+      "effects": [
+        {
+          "add": "reassessN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "red",
+              "then": [
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, heart rate {hr}. He says the room is spinning; clammy and pale.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Blood pressure {sbp}/{dbp}, heart rate {hr}. Alert, a little anxious.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fix": {
+      "label": "Start the ordered IV rate-control infusion, cycling the blood pressure every 5 minutes",
+      "group": "Treat",
+      "available": "isNull(fixAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "fixAt",
+          "to": "t"
+        },
+        {
+          "log": "Infusion running; blood pressure cycling every 5 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "cycle": {
+      "label": "Set the cuff to cycle every 5 minutes and stay with him",
+      "group": "Treat",
+      "available": "isNull(cycleAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "cycleAt",
+          "to": "t"
+        },
+        {
+          "log": "Cuff cycling every 5 minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "unsafe": {
+      "label": "Give an extra fast push of the rate-control drug to get the rate under 100 sooner",
+      "group": "Treat",
+      "available": "isNull(unsafeAt) and inCare",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "unsafeAt",
+          "to": "t"
+        },
+        {
+          "log": "Extra push given fast.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "hypo",
+              "label": "Hypotension from IV rate control in new atrial fibrillation: stop the drug and get help"
+            },
+            {
+              "value": "fine",
+              "label": "The rate is coming down; the drug is working as planned"
+            },
+            {
+              "value": "pe",
+              "label": "A pulmonary embolism after surgery"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"hypo\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hypo\""
+                },
+                {
+                  "log": "Impression: drug-related hypotension.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Impression: working.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pe\""
+                },
+                {
+                  "log": "Impression: PE.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Act on the change",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you ask for",
+          "options": [
+            {
+              "value": "stop",
+              "label": "Stop the infusion now and call the provider and rapid response: systolic under 90 and dizzy on rate control"
+            },
+            {
+              "value": "continue",
+              "label": "Keep the infusion going and recheck in 30 minutes; the rate is improving"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"stop\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"stop\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "careTime"
+                },
+                {
+                  "log": "Infusion stopped. The rapid response team arrives and the provider comes to change the plan.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"continue\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "600"
+                },
+                {
+                  "log": "The infusion continues.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Hand off: onset time, ECG, infusion start and stop, the pressure trend, the surgeons' bleeding concern",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Hand-off: AF since this afternoon, ECG, infusion times, pressure trend, anticoagulation still being decided with the surgeons.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "ecg",
+        "hx",
+        "lytes",
+        "reassess",
+        "fix",
+        "cycle",
+        "unsafe",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ecg\"",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Atrial fibrillation with a ventricular rate of about 150; no ST changes; QRS narrow.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No chest pain. A little breathless. Never had this before. Started this afternoon.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "lytesAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Potassium 3.4, magnesium low-normal, hemoglobin 10.1 after surgery.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the team taking over",
+      "wait": {
+        "skipLabel": "the rapid response team taking over"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 minutes for the rapid response team to support the pressure and the provider to change the plan; a routine plan about 10 minutes."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The pressure recovers off the drug; the provider changes the rate-control plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "cue",
+      "when": "red",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "The blood pressure alarm sounds. Mr. Castellano says he feels faint.",
+          "kind": "sys"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 1260",
+      "question": "Mr. Castellano's rate is falling, but so is his pressure, and he is dizzy. What is happening, and what do you do?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "IV rate control for new AF has caused hypotension with symptoms; that is the danger to watch for; unstable AF with hypotension may need cardioversion, and anticoagulation must be weighed against surgical bleeding.",
+          "modelAnswer": "The rate-control drug is dropping his pressure: systolic under 90 and dizzy. That's the complication we were watching for. If he's unstable from the AF itself, cardioversion becomes the question, with anticoagulation weighed against his surgery."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stop the infusion now; call the provider and rapid response; lay him flat; keep monitoring; hand off.",
+          "modelAnswer": "Stop the infusion, lay him flat, call the provider and the rapid response team now, and hand off the times."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inCare and t >= 3599",
+      "class": "harm",
+      "rationale": "New AF with hypotension still unresolved an hour on is harm here.",
+      "source": {
+        "cite": "Long B. ED Management of Atrial Fibrillation with Rapid Ventricular Response. American Board of Emergency Medicine MyEMCert Key Advance (reconfirmed July 2025), summarizing the 2023 ACC/AHA/ACCP/HRS AF guideline",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.abem.org/wp-content/uploads/2024/10/Key-Advances_ED-Management-of-A-Fib-with-RVR_Practice-Advance.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF (a secondary summary; the 2023 guideline itself was not read). Beta-blockers or non-dihydropyridine calcium channel blockers 'may be used as first-line agents for rate control in patients without significant left ventricle (LV) dysfunction'; patients with 'EF (< 40%) or hypotension should be managed with amiodarone or digoxin'; 'avoiding these medications in patients with acute decompensated heart failure'; 'AF causing hypotension' is unstable and 'should undergo synchronized DCCV'; anticoagulation before cardioversion when planned. No dose is used in the case."
+      }
+    }
+  },
+  "endings": {
+    "unsafe": {
+      "label": "Collapse after a fast push",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(unsafeAt) and t >= timeAt(unsafeAt) + unsafeDelay",
+      "narrative": "Minutes after the push his pressure falls through the floor and he slumps in the chair, unresponsive."
+    },
+    "worsened": {
+      "label": "Shock and a collapse",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inCare",
+      "narrative": "Blood pressure {sbp}/{dbp}, heart rate {hr}: he loses consciousness in the chair."
+    },
+    "wrongRoute": {
+      "label": "Infusion left running",
+      "class": "harm",
+      "terminal": true,
+      "when": "not inCare and (route == \"continue\")",
+      "narrative": "Thirty minutes on, the recheck finds him grey and barely responsive with a pressure in the 60s."
+    },
+    "target": {
+      "label": "Hypotension caught and the drug stopped in time",
+      "class": "target",
+      "terminal": true,
+      "when": "not inCare and route == \"stop\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(fixAt) and timeAt(fixAt) <= fixWindow and isNull(unsafeAt) and not isNull(ecgAt)",
+      "narrative": "{timeAt(leftAt)|clock}: the drug stopped within minutes of the fall, the team in, and the plan changed safely."
+    },
+    "recovered": {
+      "label": "Recovered, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inCare and (route == \"stop\") and isNull(unsafeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: his pressure recovers, but the infusion started late or the hypotension went minutes before you stopped it."
+    },
+    "time_up": {
+      "label": "Still unresolved at 16:30",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:30 and Mr. Castellano's rhythm and pressure are still unresolved."
+    }
+  },
+  "endingOrder": [
+    "unsafe",
+    "worsened",
+    "wrongRoute",
+    "target",
+    "recovered"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fixC",
+        "label": "Ordered rate control started within 5 minutes, with pressure checks",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(fixAt) and timeAt(fixAt) <= fixWindow",
+            "score": "met",
+            "why": "Done at {timeAt(fixAt)|clock}."
+          },
+          {
+            "when": "not isNull(fixAt)",
+            "score": "partial",
+            "why": "Done, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "callC",
+        "label": "Infusion stopped and help called within 5 minutes of hypotension",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(callAt)",
+            "score": "missed",
+            "why": "No one called."
+          },
+          {
+            "when": "route == \"stop\" and redSeen and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"stop\"",
+            "score": "partial",
+            "why": "Called, but late or before the finding was in hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Kept the infusion running."
+          }
+        ]
+      },
+      {
+        "id": "safeC",
+        "label": "No extra fast push",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(unsafeAt)",
+            "score": "missed",
+            "why": "An extra fast push of the rate-control drug."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Avoided."
+          }
+        ]
+      },
+      {
+        "id": "assessC",
+        "label": "12-lead ECG obtained",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(ecgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "reassessC",
+        "label": "Reassessed at least twice",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reassessN >= 2",
+            "score": "met",
+            "why": "{reassessN|0dp} reassessments."
+          },
+          {
+            "when": "reassessN == 1",
+            "score": "partial",
+            "why": "Once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never."
+          }
+        ]
+      },
+      {
+        "id": "cycleC",
+        "label": "Blood pressure cycled every 5 minutes",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cycleAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named hypotension from IV rate control",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"hypo\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Missed the hypotension."
+          },
+          {
+            "when": "dxEnum == \"pe\"",
+            "score": "missed",
+            "why": "Chased another cause and kept the drug running."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Handed off the onset, infusion times and the pressure trend",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Handed off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No hand-off."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: hypotension on IV rate control means stop and escalate",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFix",
+        "label": "Start to the rate-control infusion",
+        "value": "isNull(fixAt) ? -1 : timeAt(fixAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Hypotension to stopping and calling",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:30",
+        "text": "Ordered infusion with the cuff cycling every 5 minutes."
+      },
+      {
+        "at": "~15:31",
+        "text": "12-lead: AF at 150. Reassess."
+      },
+      {
+        "at": "~15:40",
+        "text": "Systolic under 90, dizzy."
+      },
+      {
+        "at": "~15:41",
+        "text": "Stop the infusion; provider and rapid response; hand off."
+      }
+    ],
+    "debrief": {
+      "unsafe": {
+        "headline": "A fast extra push",
+        "body": "IV rate control is titrated by order and watched for hypotension; it is never pushed faster to chase a number."
+      },
+      "worsened": {
+        "headline": "Shock on the infusion",
+        "body": "Cycle the pressure during IV rate control and stop at the threshold the order sets."
+      },
+      "wrongRoute": {
+        "headline": "Left running",
+        "body": "A falling rate doesn't make a falling pressure acceptable. Stop and call."
+      },
+      "target": {
+        "headline": "Stopped in time",
+        "body": "Pressure cycled, ECG read, and the infusion stopped within minutes of hypotension. That is the expert path."
+      },
+      "recovered": {
+        "headline": "Recovered, with delays",
+        "body": "Check how long the hypotension went before the infusion stopped."
+      },
+      "time_up": {
+        "headline": "Unresolved",
+        "body": "New AF with a falling pressure needs a decision within minutes."
+      }
+    },
+    "modelReasoning": "New AF at 150 after surgery with a normal ejection fraction: the ordered IV rate control is appropriate, with the pressure cycling every 5 minutes. The danger is hypotension. When the systolic falls under 90 and he is dizzy, the infusion stops at once and the provider and rapid response team come; cardioversion and anticoagulation, weighed against his surgical bleeding, are the provider's next decisions."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "efQ": {
+      "during": "testT",
+      "ask": "While you assess: in which patient should a non-dihydropyridine calcium channel blocker be avoided for rate control?",
+      "choices": [
+        {
+          "id": "hf",
+          "label": "Ejection fraction under 40% or decompensated heart failure"
+        },
+        {
+          "id": "post",
+          "label": "Anyone after surgery"
+        },
+        {
+          "id": "old",
+          "label": "Anyone over 65"
+        }
+      ],
+      "expect": "hf",
+      "explain": "Patients with EF < 40% or hypotension should be managed with amiodarone or digoxin; avoid calcium channel blockers in acute decompensated heart failure.",
+      "source": {
+        "cite": "Long B. ED Management of Atrial Fibrillation with Rapid Ventricular Response. American Board of Emergency Medicine MyEMCert Key Advance (reconfirmed July 2025), summarizing the 2023 ACC/AHA/ACCP/HRS AF guideline",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.abem.org/wp-content/uploads/2024/10/Key-Advances_ED-Management-of-A-Fib-with-RVR_Practice-Advance.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF (a secondary summary; the 2023 guideline itself was not read). Beta-blockers or non-dihydropyridine calcium channel blockers 'may be used as first-line agents for rate control in patients without significant left ventricle (LV) dysfunction'; patients with 'EF (< 40%) or hypotension should be managed with amiodarone or digoxin'; 'avoiding these medications in patients with acute decompensated heart failure'; 'AF causing hypotension' is unstable and 'should undergo synchronized DCCV'; anticoagulation before cardioversion when planned. No dose is used in the case."
+      }
+    },
+    "unstQ": {
+      "during": "leaveT",
+      "ask": "While the team takes over: AF that itself causes hypotension is treated how?",
+      "choices": [
+        {
+          "id": "dccv",
+          "label": "Synchronized cardioversion"
+        },
+        {
+          "id": "more",
+          "label": "More rate-control drug"
+        },
+        {
+          "id": "wait",
+          "label": "Wait for it to convert"
+        }
+      ],
+      "expect": "dccv",
+      "explain": "AF causing hypotension is unstable and should undergo synchronized cardioversion, with anticoagulation considered.",
+      "source": {
+        "cite": "Long B. ED Management of Atrial Fibrillation with Rapid Ventricular Response. American Board of Emergency Medicine MyEMCert Key Advance (reconfirmed July 2025), summarizing the 2023 ACC/AHA/ACCP/HRS AF guideline",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.abem.org/wp-content/uploads/2024/10/Key-Advances_ED-Management-of-A-Fib-with-RVR_Practice-Advance.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the PDF (a secondary summary; the 2023 guideline itself was not read). Beta-blockers or non-dihydropyridine calcium channel blockers 'may be used as first-line agents for rate control in patients without significant left ventricle (LV) dysfunction'; patients with 'EF (< 40%) or hypotension should be managed with amiodarone or digoxin'; 'avoiding these medications in patients with acute decompensated heart failure'; 'AF causing hypotension' is unstable and 'should undergo synchronized DCCV'; anticoagulation before cardioversion when planned. No dose is used in the case."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
