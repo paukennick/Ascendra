@@ -19,7 +19,7 @@ describe("REQ-319: exam facts on the course page", () => {
   test("every published fact gets a row, in a fixed order", () => {
     assert.deepEqual(examFactRows(facts).map((r) => r.label), ["Questions", "Time", "Format", "Passing standard", "Eligibility"]);
     assert.match(examFactRows(facts)[2].value, /^Adaptive/);
-    assert.match(examFactRows({ ...facts, delivery: "linear" })[2].value, /^Linear/);
+    assert.match(examFactRows({ ...facts, delivery: "linear" })[2].value, /^Fixed length/);
   });
 
   test("a missing fact is left out, never shown empty", () => {

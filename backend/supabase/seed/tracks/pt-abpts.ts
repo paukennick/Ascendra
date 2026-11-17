@@ -357,7 +357,7 @@ const ABPTS_PROVIDER = {
 const PT_DISCLAIMER_KEY = "pt-clinical-content";
 
 const EXAM_FORMAT =
-  "Approximately 200 four-option multiple-choice items, standalone or tied to case scenarios, linear (every candidate answers the full form), delivered at PSI test centers in four 50-question blocks of up to 90 minutes each";
+  "Approximately 200 four-option multiple-choice items, standalone or tied to case scenarios, fixed length (every candidate answers the same number of questions), delivered at PSI test centers in four 50-question blocks of up to 90 minutes each";
 const PASSING = "Scaled score of 500; criterion-referenced standard set by the certifying body from a PSI standard-setting study.";
 const DURATION = 360;
 

@@ -39,7 +39,7 @@ export const TRADEMARK_OWNERS: readonly string[] = [
   // plain, disclaimed way as their course pages: the owner's legal name and
   // the marks with the symbol the owner's own site uses (evidence in
   // backend/lib/unbranded.ts MARK_EVIDENCE). The physical therapy specialty
-  // board stays off until its marks are verified (REFERENCE_LINE_ON).
+  // board is named with no marks: neither it nor APTA publishes their status.
   // backend/lib/catalog-trademarks.test.ts checks this list.
   "CompTIA",
   "Amazon Web Services (AWS)",
@@ -68,4 +68,5 @@ export const TRADEMARK_OWNERS: readonly string[] = [
   "American Academy of Nurse Practitioners Certification Board, Inc. (NP-C®)",
   "Open Education and Development Group, LLC (PCEP™, PCAP™)",
   "PeopleCert International Limited (ITIL®)",
+  "American Board of Physical Therapy Specialties and the American Physical Therapy Association",
 ];

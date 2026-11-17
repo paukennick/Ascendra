@@ -190,7 +190,7 @@ export const PUBLISHED_FACTS_HEADING = "This course follows an exam with these p
 // the facts test fails for it.
 export function deliveryOf(questionFormat: string | null | undefined): "adaptive" | "linear" | null {
   const t = questionFormat ?? "";
-  if (/\bnot adaptive\b|\bnon-adaptive\b|\blinear\b/i.test(t)) return "linear";
+  if (/\bnot adaptive\b|\bnon-adaptive\b|\blinear\b|\bfixed[- ]length\b/i.test(t)) return "linear";
   if (/\badaptive\b/i.test(t)) return "adaptive";
   return null;
 }
@@ -300,9 +300,10 @@ export const MARK_EVIDENCE: Readonly<Record<string, readonly MarkEvidence[]>> = 
     finding: "\"ITIL®, ... are registered trademarks of PeopleCert\"; \"PeopleCert International Limited and its affiliates (\"PeopleCert\")\"." }],
 };
 
-// Per body: on, or off pending Nick. ABPTS is off: neither APTA nor ABPTS
-// publishes which specialist designations are marks or registered, so its
-// courses keep the generic notice rather than a guessed mark sentence.
+// Per body: on, or off pending Nick. ABPTS is on in plain words (Nick
+// 2026-11-16): neither APTA nor ABPTS publishes which specialist designations
+// are marks or registered, so its line names the specialty with no symbol and
+// its disclaimer makes no ownership claim.
 export const REFERENCE_LINE_ON: Readonly<Record<string, boolean>> = Object.freeze({
   ISC2: true,
   "EC-Council": true,
@@ -315,14 +316,19 @@ export const REFERENCE_LINE_ON: Readonly<Record<string, boolean>> = Object.freez
   ANCC: true,
   AANPCB: true,
   "Python Institute": true,
-  "ABPTS (APTA)": false,
+  "ABPTS (APTA)": true, // plain words only (Nick 2026-11-16)
   PeopleCert: true,
 });
 
 interface CourseReference {
   exam: string; // the exam as the line names it, with the symbol its owner uses
   owner: string; // who offers it, as the line and disclaimer name them
-  markSentence: string; // the first sentence of the disclaimer
+  // The first sentence of the disclaimer; empty when the owner publishes no
+  // mark status (ABPTS, Nick 2026-11-16): then no mark or ownership is claimed.
+  markSentence: string;
+  // Who the disclaimer says Ascendra is not affiliated with, when wider than
+  // the owner (ABPTS is governed by APTA).
+  disclaimerOwner?: string;
 }
 
 const ISC2_INC = "ISC2, Inc.";
@@ -330,7 +336,27 @@ const NBCC_INC = "National Board for Certified Counselors, Inc.";
 const NASM_SENTENCE = "NASM® is a registered trademark of National Academy of Sports Medicine, LLC.";
 const PY_SENTENCE = (m: string) => `${m}™ is a trademark of Open Education and Development Group, LLC.`;
 
+// ABPTS (Nick 2026-11-16): plain words, no symbol, no ownership sentence,
+// because neither ABPTS nor APTA publishes the designations' mark status.
+const ABPTS_OWNER = "the American Board of Physical Therapy Specialties";
+const abpts = (specialty: string): CourseReference => ({
+  exam: `${specialty} physical therapy specialist certification`,
+  owner: ABPTS_OWNER,
+  markSentence: "",
+  disclaimerOwner: `${ABPTS_OWNER} or the American Physical Therapy Association`,
+});
+
 export const COURSE_REFERENCES: Readonly<Record<string, CourseReference>> = {
+  ABPTSOCS: abpts("orthopedic"),
+  ABPTSGCS: abpts("geriatric"),
+  ABPTSNCS: abpts("neurologic"),
+  ABPTSCCS: abpts("cardiovascular and pulmonary"),
+  ABPTSPCS: abpts("pediatric"),
+  ABPTSSCS: abpts("sports"),
+  ABPTSONC: abpts("oncologic"),
+  ABPTSECS: abpts("clinical electrophysiologic"),
+  ABPTSPWCS: abpts("pelvic and women's health"),
+  ABPTSWMS: abpts("wound management"),
   ISC2CC: { exam: "CC®", owner: "ISC2", markSentence: `CC® is a registered mark of ${ISC2_INC}` },
   CISSP: { exam: "CISSP®", owner: "ISC2", markSentence: `CISSP® is a registered mark of ${ISC2_INC}` },
   CEH: { exam: "CEH®", owner: "EC-Council", markSentence: "CEH® is a registered trademark of EC-Council International Limited." },
@@ -366,7 +392,7 @@ export function examReferenceForCode(
   if (!body || !ref || !on[body.name]) return null;
   return {
     line: `Prepares you for the ${ref.exam} exam offered by ${ref.owner}.`,
-    disclaimer: `${ref.markSentence} Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.owner}.`,
+    disclaimer: `${ref.markSentence ? `${ref.markSentence} ` : ""}Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.disclaimerOwner ?? ref.owner}.`,
   };
 }
 

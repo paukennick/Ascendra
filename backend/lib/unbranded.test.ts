@@ -175,6 +175,7 @@ describe("REQ-319: learners still know which exam it is", () => {
     assert.deepEqual(adaptive, ["CISSP", "ISC2CC"]);
     assert.equal(deliveryOf("Computerized Adaptive Testing (CAT): 100-125 items"), "adaptive");
     assert.equal(deliveryOf("120 questions, linear (every candidate answers the full form)"), "linear");
+    assert.equal(deliveryOf("40 questions, fixed length (every candidate answers the same number of questions)"), "linear");
     assert.equal(deliveryOf("120 questions"), null);
     assert.equal(timeLabel(180), "3 hours");
     assert.equal(timeLabel(60), "1 hour");
@@ -270,9 +271,15 @@ describe("REQ-319: the reference line (Nick, 2026-11-16, Option 2)", () => {
     }
   });
 
-  test("on for every body whose marks were verified; the physical therapy specialty board is off pending Nick", () => {
-    assert.deepEqual(Object.entries(REFERENCE_LINE_ON).filter(([, on]) => !on).map(([n]) => n), ["ABPTS (APTA)"]);
-    for (const code of UNBRANDED_BODIES.find((b) => b.name === "ABPTS (APTA)")!.codes) assert.equal(examReferenceForCode(code), null, code);
+  test("on for every body; the physical therapy specialty board in plain words with no mark claim (Nick 2026-11-16)", () => {
+    assert.deepEqual(Object.entries(REFERENCE_LINE_ON).filter(([, on]) => !on).map(([n]) => n), []);
+    for (const code of UNBRANDED_BODIES.find((b) => b.name === "ABPTS (APTA)")!.codes) {
+      const ref = examReferenceForCode(code);
+      assert.ok(ref, code);
+      assert.doesNotMatch(ref.line + ref.disclaimer, /[®™]|\bmark\b|\btrademark\b/, code);
+      assert.match(ref.line, /^Prepares you for the [a-z' ]+ physical therapy specialist certification exam offered by the American Board of Physical Therapy Specialties\.$/, code);
+      assert.equal(ref.disclaimer, "Ascendra is independent and is not affiliated with, sponsored by or endorsed by the American Board of Physical Therapy Specialties or the American Physical Therapy Association.", code);
+    }
   });
 
   test("every course of a body that is on has its line and disclaimer, with the owner's symbol rules", () => {
@@ -282,7 +289,7 @@ describe("REQ-319: the reference line (Nick, 2026-11-16, Option 2)", () => {
         assert.ok(r, code);
         const ref = COURSE_REFERENCES[code];
         assert.equal(r.line, `Prepares you for the ${ref.exam} exam offered by ${ref.owner}.`);
-        assert.equal(r.disclaimer, `${ref.markSentence} Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.owner}.`);
+        assert.equal(r.disclaimer, `${ref.markSentence ? `${ref.markSentence} ` : ""}Ascendra is independent and is not affiliated with, sponsored by or endorsed by ${ref.disclaimerOwner ?? ref.owner}.`);
         // "registered" only with ®, a ™ mark is a "trademark", no symbol no claim of either.
         if (/registered/.test(ref.markSentence)) assert.match(ref.markSentence, /®/, code);
         if (/™/.test(ref.markSentence)) assert.doesNotMatch(ref.markSentence, /registered/, code);

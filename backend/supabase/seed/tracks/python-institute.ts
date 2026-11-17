@@ -269,7 +269,7 @@ export const PCEP_TRACK: SeedTrack = {
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience: "None required; this is the entry point of the certifying body's general-purpose Python programming path.",
     durationMinutes: 50,
-    questionFormat: "35 questions, linear (every candidate answers the full form): single-select, multiple-select, interactive and scenario-based, taken online through the certifying body's own testing service",
+    questionFormat: "35 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive and scenario-based, taken online through the certifying body's own testing service",
     passingScorePolicy: "70%",
   },
   units: [
@@ -458,7 +458,7 @@ export const PCAP_TRACK: SeedTrack = {
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience: "No formal prerequisite; entry-level knowledge of Python fundamentals is recommended.",
     durationMinutes: 65,
-    questionFormat: "42 questions, linear (every candidate answers the full form): single-select, multiple-select, interactive, code-based and scenario-based, taken online through the certifying body's own testing service",
+    questionFormat: "42 questions, fixed length (every candidate answers the same number of questions): single-select, multiple-select, interactive, code-based and scenario-based, taken online through the certifying body's own testing service",
     passingScorePolicy: "72%",
   },
   units: [

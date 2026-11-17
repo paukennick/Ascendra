@@ -24,7 +24,7 @@ export interface ExamFactRow {
 
 const DELIVERY: Record<"adaptive" | "linear", string> = {
   adaptive: "Adaptive: each question is chosen from how you answered the last ones, and the exam can end early",
-  linear: "Linear: every candidate answers the full set of questions",
+  linear: "Fixed length: every candidate answers the same number of questions",
 };
 
 export function examFactRows(f: ExamFactsPayload): ExamFactRow[] {

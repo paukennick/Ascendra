@@ -578,7 +578,7 @@ export const NCE_TRACK: SeedTrack = {
     objectivesRevision: "Six domains, tasks lettered A-X / A-U / A-AX / A-P / A-AW / A-M",
     versionNote: NCE_VERSION_NOTE,
     format:
-      "200 multiple-choice items with four answer choices, of which 160 are scored and 40 are unscored field-test items you cannot tell apart, in one non-sectioned, linear exam (every candidate answers the full form): 225 minutes of testing in a 255-minute session, with one 15-minute break after question 100. Computer-based at Pearson VUE or online (OnVUE). (The exam's content outline, 2023, and candidate handbook, revised 2024-09-24.) A new blueprint with 170 three-option items takes effect 2027-07-01.",
+      "200 multiple-choice items with four answer choices, of which 160 are scored and 40 are unscored field-test items you cannot tell apart, in one non-sectioned, fixed-length exam (every candidate answers the same number of questions): 225 minutes of testing in a 255-minute session, with one 15-minute break after question 100. Computer-based at Pearson VUE or online (OnVUE). (The exam's content outline, 2023, and candidate handbook, revised 2024-09-24.) A new blueprint with 170 three-option items takes effect 2027-07-01.",
     passing:
       "Each scored item is one point (160 in all). The certifying body sets the cut score with a modified Angoff method and equates it across forms, so it can differ slightly from form to form; your score report shows it. A candidate who does not pass may retest after 30 days, within the state board's limits. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
   }),
@@ -662,7 +662,7 @@ export const NCMHCE_TRACK: SeedTrack = {
     objectivesRevision: "Six domains, tasks lettered A-X / A-U / A-AX / A-P / A-AW / A-M",
     versionNote: NCMHCE_VERSION_NOTE,
     format:
-      "11 clinical case studies, one of them unscored. Each case is one narrative told in three sections -- an initial intake summary and two later counseling sessions -- and each section is followed by multiple-choice questions about it: 9 to 15 per case, each with four options and one correct answer, most asking you to apply or evaluate rather than recall. 130-150 items in all, 100 scored. 225 minutes of testing in a 255-minute session, with one 15-minute break after the fifth case; linear (every candidate works every case). (The exam's content outline, revised 2025-10-08, and candidate handbook, 2025.) From 2027-07-01 the exam has 10 case studies.",
+      "11 clinical case studies, one of them unscored. Each case is one narrative told in three sections -- an initial intake summary and two later counseling sessions -- and each section is followed by multiple-choice questions about it: 9 to 15 per case, each with four options and one correct answer, most asking you to apply or evaluate rather than recall. 130-150 items in all, 100 scored. 225 minutes of testing in a 255-minute session, with one 15-minute break after the fifth case; fixed length (every candidate works every case). (The exam's content outline, revised 2025-10-08, and candidate handbook, 2025.) From 2027-07-01 the exam has 10 case studies.",
     passing:
       "Each of the 100 scored items is one point. The certifying body sets the cut score by standard setting and equates it across forms, so it can differ slightly from form to form. A candidate who does not pass may retest after 30 days, within the state board's approval window. From 2027-07-01 scores are scaled 100-500 with 360 passing.",
   }),

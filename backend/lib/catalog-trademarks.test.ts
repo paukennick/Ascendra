@@ -212,7 +212,7 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
         }
         assert.ok(ref, `${b.name} ${code}: no reference line`);
         assert.match(ref.line, /^Prepares you for the .+ exam offered by .+\.$/, code);
-        assert.match(ref.disclaimer, /^.+ is a (registered (certification )?)?(mark|trademark|certification mark) of .+\. Ascendra is independent and is not affiliated with, sponsored by or endorsed by .+\.$/, code);
+        assert.match(ref.disclaimer, /^(.+ is a (registered (certification )?)?(mark|trademark|certification mark) of .+\. )?Ascendra is independent and is not affiliated with, sponsored by or endorsed by .+\.$/, code);
         assert.ok(t.description.endsWith(` ${ref.disclaimer}`), `${code}: the description ends with the specific disclaimer`);
         assert.doesNotMatch(t.description, GENERIC_NOTICE, code);
         assert.doesNotMatch(t.description.slice(0, -ref.disclaimer.length), PERMISSION_MARKS, `${code}: a mark outside the disclaimer`);
@@ -273,7 +273,7 @@ describe("REQ-309: app copy, README and What's new", () => {
     const list = vendor.slice(vendor.indexOf("TRADEMARK_OWNERS")).replace(/\/\/.*$/gm, "");
     const entries = [...list.matchAll(/^\s*"([^"]+)",$/gm)].map((m) => m[1]);
     for (const b of BODIES.filter((x) => x.policy === "permission")) {
-      const named = entries.filter((e) => b.marks.test(e) || b.codes.some((c) => COURSE_REFERENCES[c] && e.includes(COURSE_REFERENCES[c].markSentence.match(/ of (.+)\.$/)![1].replace(/^the /, ""))));
+      const named = entries.filter((e) => b.marks.test(e) || b.codes.some((c) => COURSE_REFERENCES[c] && e.includes((COURSE_REFERENCES[c].markSentence.match(/ of (.+)\.$/)?.[1] ?? COURSE_REFERENCES[c].owner).replace(/^the /, ""))));
       if (REFERENCE_LINE_ON[b.name]) assert.ok(named.length >= 1, `${b.name} is missing from TRADEMARK_OWNERS`);
       else assert.deepEqual(named, [], `${b.name} is listed before its marks are verified`);
     }

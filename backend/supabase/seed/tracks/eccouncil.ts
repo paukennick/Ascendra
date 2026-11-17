@@ -174,7 +174,7 @@ export const CEH_TRACK: SeedTrack = {
       "The certifying body's official training, or at least two years of work experience in information security with an approved eligibility application (USD 100, non-refundable).",
     durationMinutes: 240,
     questionFormat:
-      "125 multiple-choice questions in 4 hours, linear (every candidate answers the full form), through the certifying body's own exam portal with remote proctoring, or at Pearson VUE. (The certification page and the exam blueprint v5.0, read 2026-11-14.) A 6-hour, 20-challenge practical exam is separate.",
+      "125 multiple-choice questions in 4 hours, fixed length (every candidate answers the same number of questions), through the certifying body's own exam portal with remote proctoring, or at Pearson VUE. (The certification page and the exam blueprint v5.0, read 2026-11-14.) A 6-hour, 20-challenge practical exam is separate.",
     passingScorePolicy:
       "The certifying body sets the cut score per exam form from each question's rated difficulty; depending on the form, passing ranges from 60% to 85%.",
     publishedWeightsNote:

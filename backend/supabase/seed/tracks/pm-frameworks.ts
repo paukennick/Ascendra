@@ -489,7 +489,7 @@ export const ITIL4FND_TRACK: SeedTrack = {
     recommendedExperience: "None required. Training with an accredited training organization is common but not mandatory.",
     durationMinutes: 60,
     questionFormat:
-      "40 multiple-choice questions in 60 minutes, linear (every candidate answers the full form), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 12 languages (25% extra time when not taken in your first language, per the syllabus copy).",
+      "40 multiple-choice questions in 60 minutes, fixed length (every candidate answers the same number of questions), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 12 languages (25% extra time when not taken in your first language, per the syllabus copy).",
     passingScorePolicy: "65%: 26 of 40 correct. Renew every three years with 60 CPD points.",
   },
   units: [
@@ -713,7 +713,7 @@ export const ITIL5FND_TRACK: SeedTrack = {
     recommendedExperience: "None required. The certifying body does not mandate training for the foundation exam; version 4 foundation holders can take a shorter bridge exam instead.",
     durationMinutes: 60,
     questionFormat:
-      "40 multiple-choice questions in 60 minutes, linear (every candidate answers the full form), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 9 languages (75 minutes when not taken in your native language, per the syllabus).",
+      "40 multiple-choice questions in 60 minutes, fixed length (every candidate answers the same number of questions), closed book, one mark each, no negative marking; questions test recall and understanding. Available in 9 languages (75 minutes when not taken in your native language, per the syllabus).",
     passingScorePolicy: "65%: 26 of 40 correct. Renew every three years with 60 CPD points or by passing another exam in the same product suite.",
   },
   units: [
@@ -909,7 +909,7 @@ export const CSSGB_TRACK: SeedTrack = {
       "Three years of full-time, paid work experience in one or more areas of the green belt body of knowledge; the certifying body grants no educational waivers.",
     durationMinutes: 258,
     questionFormat:
-      "Computer-delivered (Prometric, or online with a remote proctor), linear (every candidate answers the full form): 110 multiple-choice questions, 100 scored and 10 unscored, in 4 hours 18 minutes within a 4.5-hour appointment; open book with bound references; English. A 100-question, 4-hour paper exam is offered in Mandarin in some locations.",
+      "Computer-delivered (Prometric, or online with a remote proctor), fixed length (every candidate answers the same number of questions): 110 multiple-choice questions, 100 scored and 10 unscored, in 4 hours 18 minutes within a 4.5-hour appointment; open book with bound references; English. A 100-question, 4-hour paper exam is offered in Mandarin in some locations.",
     passingScorePolicy: "550 of 750 points, against a fixed standard rather than other candidates. Exam fee $483 ($100 less for members); retake $283.",
   },
   units: [

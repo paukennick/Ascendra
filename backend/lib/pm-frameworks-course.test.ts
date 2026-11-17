@@ -109,7 +109,7 @@ describe("REQ-280/281: Scrum, ITIL, Six Sigma and nutrition coach courses", () =
     assert.match(CSSGB_TRACK.credential!.questionFormat!, /110 multiple-choice questions, 100 scored and 10 unscored/);
     assert.match(CSSGB_TRACK.credential!.passingScorePolicy!, /550 of 750/);
     assert.equal(NASM_CNC_TRACK.credential!.durationMinutes, 90);
-    assert.match(NASM_CNC_TRACK.credential!.questionFormat!, /100 multiple-choice questions, linear \(every candidate answers the full form\), online and open book/);
+    assert.match(NASM_CNC_TRACK.credential!.questionFormat!, /100 multiple-choice questions, fixed length \(every candidate answers the same number of questions\), online and open book/);
     assert.equal(NASM_CNC_TRACK.credential!.passingScorePolicy, "70% or higher.");
   });
 
@@ -169,7 +169,7 @@ describe("REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 Foundation", () =
   test("format as read on PeopleCert's page on 2026-11-16", () => {
     const c = ITIL5FND_TRACK.credential!;
     assert.equal(c.durationMinutes, 60);
-    assert.match(c.questionFormat!, /^40 multiple-choice questions in 60 minutes, linear \(every candidate answers the full form\), closed book/);
+    assert.match(c.questionFormat!, /^40 multiple-choice questions in 60 minutes, fixed length \(every candidate answers the same number of questions\), closed book/);
     assert.match(c.questionFormat!, /9 languages/);
     assert.match(c.passingScorePolicy!, /^65%: 26 of 40/);
     assert.equal(c.lastVendorVerifiedAt, "2026-11-16T00:00:00Z");

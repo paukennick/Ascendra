@@ -160,7 +160,7 @@ export const CEN_TRACK: SeedTrack = {
     recommendedExperience:
       "A current, unencumbered RN license. The certifying body recommends at least two years in emergency nursing before testing but does not require it.",
     durationMinutes: 180,
-    questionFormat: "175 multiple-choice items in 180 minutes of seat time, linear (every candidate answers the full form): 150 scored and 25 unscored pretest items.",
+    questionFormat: "175 multiple-choice items in 180 minutes of seat time, fixed length (every candidate answers the same number of questions): 150 scored and 25 unscored pretest items.",
     passingScorePolicy:
       "Criterion-referenced, not curved: the certifying body's FAQ (read 2026-11-14) says a candidate must answer 99 of the 150 scored items correctly, a standard it reviews every few years. Retest after a 90-day wait.",
   },
