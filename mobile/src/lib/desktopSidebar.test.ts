@@ -210,6 +210,16 @@ describe("wiring", () => {
     assert.match(src, /role="navigation"/);
   });
 
+  test("FAIL-2441: every sidebar link is a real anchor, so Enter opens it", () => {
+    const src = readFileSync("src/components/Sidebar.tsx", "utf8");
+    const pane = src.slice(src.indexOf("export function DesktopSidebar("), src.indexOf("function NavRow("));
+    const links = pane.match(/<Pressable[\s\S]*?>/g)?.filter((t) => /role="link"/.test(t)) ?? [];
+    assert.equal(links.length, 3, "skip link, destination row and course row; found " + links.length);
+    for (const tag of links) assert.match(tag, /\{\.\.\.webLink\(/, tag);
+    // onPress stops the browser's page load unless a modifier asks for a new tab.
+    assert.match(src, /if \(e\?\.metaKey \|\| e\?\.ctrlKey \|\| e\?\.shiftKey\) return;\s*e\?\.preventDefault\?\.\(\);/);
+  });
+
   test("the signed-in layout draws the sidebar on the web only, before the stack, without remounting it", () => {
     const src = readFileSync("app/(app)/_layout.tsx", "utf8");
     assert.match(src, /if \(Platform\.OS !== "web"\) return <BillingProvider>\{stack\}<\/BillingProvider>;/);

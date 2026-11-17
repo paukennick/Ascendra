@@ -305,8 +305,25 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 // it is hidden (kept mounted, so its course list survives) and those screens
 // keep the whole window.
 export const APP_CONTENT_ID = "app-content";
-// data-skip-link on the web (react-native-web's dataSet; not in RN's types).
-const SKIP_LINK_PROPS: object = { dataSet: { skipLink: "" } };
+
+// FAIL-2441: react-native-web leaves Enter on an element with role="link" to
+// the browser, which does nothing for an anchor without an href, so the first
+// build's sidebar links could be focused but not opened from the keyboard.
+// Each link is a real <a href> (react-native-web renders one for `href`):
+// Enter and a click both arrive as a click, which calls onPress; onPress stops
+// the browser's own page load and navigates in the app instead. A click with
+// Ctrl, Cmd or Shift is left to the browser (a new tab or window).
+type ClickLike = { preventDefault?: () => void; metaKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean };
+function webLink(href: string, activate: () => void): object {
+  return {
+    href,
+    onPress: (e: ClickLike) => {
+      if (e?.metaKey || e?.ctrlKey || e?.shiftKey) return;
+      e?.preventDefault?.();
+      activate();
+    },
+  };
+}
 
 export function DesktopSidebar({ hidden }: { hidden: boolean }) {
   const pathname = usePathname();
@@ -343,20 +360,26 @@ export function DesktopSidebar({ hidden }: { hidden: boolean }) {
   return (
     <View role="navigation" aria-label="Main" style={[styles.pane, hidden && styles.paneHidden]}>
       {/* Keyboard users can pass the menu; hidden until it has focus (desktopWebCss). */}
-      <Pressable role="link" aria-label="Skip to content" onPress={skipToContent} {...SKIP_LINK_PROPS} style={styles.skipLink}>
+      <Pressable
+        role="link"
+        aria-label="Skip to content"
+        {...webLink(`#${APP_CONTENT_ID}`, skipToContent)}
+        {...({ dataSet: { skipLink: "" } } as object)}
+        style={styles.skipLink}
+      >
         <Text style={styles.paneLabel}>Skip to content</Text>
       </Pressable>
       <Text style={styles.paneBrand}>Ascendra</Text>
       <ScrollView style={styles.paneScroll} contentContainerStyle={styles.paneList} showsVerticalScrollIndicator={false}>
         {SIDEBAR_PRIMARY.map((item) => (
-          <PaneRow key={item.key} item={item} current={navMatch(pathname, item)} onPress={() => go(item.path)} />
+          <PaneRow key={item.key} item={item} current={navMatch(pathname, item)} onGo={() => go(item.path)} />
         ))}
         {tracks ? (
           <>
             <Text style={styles.paneGroup}>RECENT</Text>
             {recent.length ? (
               recent.map((t) => (
-                <PaneCourseRow key={t.id} track={t} current={courseMatch(pathname, t.id)} onPress={() => go(`/course/${t.id}`)} />
+                <PaneCourseRow key={t.id} track={t} current={courseMatch(pathname, t.id)} onGo={() => go(`/course/${t.id}`)} />
               ))
             ) : (
               <Text style={styles.paneHint}>Courses you study will show up here.</Text>
@@ -364,7 +387,7 @@ export function DesktopSidebar({ hidden }: { hidden: boolean }) {
             <Text style={styles.paneGroup}>FAVORITES</Text>
             {favorites.length ? (
               favorites.map((t) => (
-                <PaneCourseRow key={t.id} track={t} current={courseMatch(pathname, t.id)} onPress={() => go(`/course/${t.id}`)} />
+                <PaneCourseRow key={t.id} track={t} current={courseMatch(pathname, t.id)} onGo={() => go(`/course/${t.id}`)} />
               ))
             ) : (
               <Text style={styles.paneHint}>Star a course to pin it here.</Text>
@@ -374,17 +397,17 @@ export function DesktopSidebar({ hidden }: { hidden: boolean }) {
       </ScrollView>
       <View style={styles.paneFooter}>
         {SIDEBAR_FOOTER.map((item) => (
-          <PaneRow key={item.key} item={item} current={navMatch(pathname, item)} onPress={() => go(item.path)} />
+          <PaneRow key={item.key} item={item} current={navMatch(pathname, item)} onGo={() => go(item.path)} />
         ))}
       </View>
     </View>
   );
 }
 
-function PaneRow({ item, current, onPress }: { item: NavItem; current: "page" | "section" | null; onPress: () => void }) {
+function PaneRow({ item, current, onGo }: { item: NavItem; current: "page" | "section" | null; onGo: () => void }) {
   const on = current !== null;
   return (
-    <Pressable role="link" aria-label={item.label} aria-current={ariaCurrent(current)} onPress={onPress} style={[styles.paneRow, on && styles.paneRowOn]}>
+    <Pressable role="link" aria-label={item.label} aria-current={ariaCurrent(current)} {...webLink(item.path, onGo)} style={[styles.paneRow, on && styles.paneRowOn]}>
       <Feather name={item.icon} size={16} color={on ? colors.link : colors.muted} />
       <Text style={[styles.paneLabel, on && styles.paneLabelOn]} numberOfLines={1}>
         {item.label}
@@ -393,11 +416,11 @@ function PaneRow({ item, current, onPress }: { item: NavItem; current: "page" | 
   );
 }
 
-function PaneCourseRow({ track, current, onPress }: { track: Track; current: "page" | "section" | null; onPress: () => void }) {
+function PaneCourseRow({ track, current, onGo }: { track: Track; current: "page" | "section" | null; onGo: () => void }) {
   const on = current !== null;
   const { emoji, icon, iconColor } = getCourseIcon(track);
   return (
-    <Pressable role="link" aria-label={track.title} aria-current={ariaCurrent(current)} onPress={onPress} style={[styles.paneRow, on && styles.paneRowOn]}>
+    <Pressable role="link" aria-label={track.title} aria-current={ariaCurrent(current)} {...webLink(`/course/${track.id}`, onGo)} style={[styles.paneRow, on && styles.paneRowOn]}>
       {emoji ? <Text style={{ fontSize: 15 }}>{emoji}</Text> : <Feather name={icon as IconName} size={16} color={iconColor} />}
       <Text style={[styles.paneLabel, on && styles.paneLabelOn]} numberOfLines={2}>
         {track.title}
