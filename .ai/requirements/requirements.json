@@ -11249,6 +11249,53 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-311",
+      "category": "feature",
+      "title": "Sims: project dashboard (predictive and Sprint modes) and ITIL service desk screens, with the first Scrum and ITIL cases",
+      "description": "Two screen types behind SIMS_RENDERERS and on by default: project-dashboard (screen.dashboard: commitments, a board by column, a chart from histories and a fixed plan line, impediments or risks, people as gauges in words, events; predictive mode for the PMI courses, Sprint mode for Scrum) and service-desk (screen.desk: the organization's priority matrix and targets, a queue of incidents, requests, problems and changes with impact, urgency, priority, status and due time, services with a tone). Outcome profiles scrum (Scrum Guide 2020 commitments instead of earned value) and service (service level breaches by correct priority). Older app builds get Update the app. First cases: two PSM I Sprints with CSM bands, and one ITIL Foundation (Version 5) service-desk shift at Foundation depth registered to ITIL5FND (REQ-308).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/PSMI",
+        "backend/supabase/seed/sims/CSM",
+        "backend/supabase/seed/sims/ITIL5FND",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md",
+        "docs/sim-coverage-pm-frameworks-cnc.md"
+      ],
+      "acceptance_criteria": [
+        "project-dashboard@1 and service-desk@1 capabilities; an older build is not offered either screen",
+        "accessibility to the console standard: open impediments and breaches spoken at once and news polite and Read the dashboard and Read the queue and 48 dp and words plus color",
+        "scrum profile justified from the Scrum Guide 2020 and refusing looser thresholds",
+        "each case with endings in all three classes and 3 critical criteria and golden paths with Good Mediocre and Bad and endingOrder",
+        "learner-paced",
+        "no engine stepping change and no engine minor"
+      ],
+      "validation_required": [
+        "lib/sim/project-dashboard.test.ts",
+        "mobile src/sim/dashboard.test.ts",
+        "sim lint of the new documents",
+        "backend sim tests",
+        "mobile tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.24",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "ITIL5FND is on feature/itil5: the seed needs it first",
+        "The problem/error/known error definitions were read in a secondary source; the official ITIL (Version 5) glossary was not reachable",
+        "impedimentWindow (one working day) is an author's threshold derived from the Daily Scrum cadence; the Guide gives no number",
+        "The predictive mode has a renderer and validator but no PMI case yet; most Scrum objectives (P-S1 to P-S16) are not built",
+        "Third PSM I Sprint added (sprint-release-before-review, with its CSM band): releasing a Done Increment before the Review, an item not Done on Friday, the Review as a working session, the Retrospective's most helpful improvement."
+      ]
     }
   ]
 }

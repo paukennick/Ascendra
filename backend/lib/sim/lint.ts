@@ -159,6 +159,14 @@ export function secondsUnitProblems(doc: ScenarioDoc): Problem[] {
   (con?.events ?? []).forEach((e, i) => check(`screen.console.events[${i}].at`, e.at, "a console event's at"));
   // REQ-237: a terminal output line's `at` is sim seconds too.
   (doc.screen?.terminal?.lines ?? []).forEach((l, i) => check(`screen.terminal.lines[${i}].at`, l.at, "a terminal line's at"));
+  // REQ-311: the dashboard's issue and event times and the desk's ticket
+  // times and due times are sim seconds too.
+  (doc.screen?.dashboard?.issues ?? []).forEach((x, i) => check(`screen.dashboard.issues[${i}].at`, x.at, "a dashboard issue's at"));
+  (doc.screen?.dashboard?.events ?? []).forEach((x, i) => check(`screen.dashboard.events[${i}].at`, x.at, "a dashboard event's at"));
+  (doc.screen?.desk?.tickets ?? []).forEach((x, i) => {
+    check(`screen.desk.tickets[${i}].at`, x.at, "a ticket's at");
+    check(`screen.desk.tickets[${i}].due`, x.due, "a ticket's due");
+  });
   // one problem per place and name
   const seen = new Set<string>();
   return problems.filter((p) => {

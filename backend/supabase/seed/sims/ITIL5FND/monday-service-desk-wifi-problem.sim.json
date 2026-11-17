@@ -1,0 +1,1801 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "monday-service-desk-wifi-problem",
+  "title": "Monday morning on the service desk: an outage, a request and Wi-Fi that keeps dropping",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "1 high: a whole service or many users",
+          "2 medium: a branch or a team",
+          "3 low: one person"
+        ],
+        "urgencies": [
+          "1 high: work stopped now",
+          "2 medium: slowed, a workaround exists",
+          "3 low: can wait"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "restore within 1 hour"
+          },
+          {
+            "priority": 2,
+            "label": "within 2 hours"
+          },
+          {
+            "priority": 3,
+            "label": "within 8 hours"
+          },
+          {
+            "priority": 4,
+            "label": "within 3 days"
+          },
+          {
+            "priority": 5,
+            "label": "within 5 days"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "w1",
+          "ref": "INC-2101",
+          "kind": "incident",
+          "title": "Public Wi-Fi keeps dropping at Main Library",
+          "when": "t >= 300",
+          "at": "300",
+          "impact": "w1Imp",
+          "urgency": "w1Urg",
+          "priority": "(w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0)",
+          "status": "{not isNull(w1Res) ? \"Resolved with the access-point restart\" : w1Imp > 0 ? \"Assessed; waiting for the workaround\" : \"New\"}",
+          "open": "isNull(w1Res)",
+          "due": "(w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) > 0 ? 300 + ((w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) == 1 ? 3600 : (w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) == 2 ? 7200 : (w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) == 3 ? 28800 : (w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "Service desk"
+        },
+        {
+          "id": "w2",
+          "ref": "INC-2103",
+          "kind": "incident",
+          "title": "Public Wi-Fi keeps dropping at Eastside branch",
+          "when": "t >= 1800",
+          "at": "1800",
+          "impact": "w2Imp",
+          "urgency": "w2Urg",
+          "priority": "(w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0)",
+          "status": "{not isNull(w2Res) ? \"Resolved with the access-point restart\" : w2Imp > 0 ? \"Assessed; waiting for the workaround\" : \"New\"}",
+          "open": "isNull(w2Res)",
+          "due": "(w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) > 0 ? 1800 + ((w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) == 1 ? 3600 : (w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) == 2 ? 7200 : (w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) == 3 ? 28800 : (w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "Service desk"
+        },
+        {
+          "id": "w3",
+          "ref": "INC-2105",
+          "kind": "incident",
+          "title": "Public Wi-Fi keeps dropping at Westside branch",
+          "when": "t >= 4200",
+          "at": "4200",
+          "impact": "w3Imp",
+          "urgency": "w3Urg",
+          "priority": "(w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0)",
+          "status": "{not isNull(w3Res) ? \"Resolved with the access-point restart\" : w3Imp > 0 ? \"Assessed; waiting for the workaround\" : \"New\"}",
+          "open": "isNull(w3Res)",
+          "due": "(w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) > 0 ? 4200 + ((w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) == 1 ? 3600 : (w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) == 2 ? 7200 : (w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) == 3 ? 28800 : (w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "Service desk"
+        },
+        {
+          "id": "w4",
+          "ref": "INC-2107",
+          "kind": "incident",
+          "title": "Public Wi-Fi keeps dropping at Main Library",
+          "when": "t >= 9000",
+          "at": "9000",
+          "impact": "w4Imp",
+          "urgency": "w4Urg",
+          "priority": "(w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0)",
+          "status": "{not isNull(w4Res) ? \"Resolved with the access-point restart\" : w4Imp > 0 ? \"Assessed; waiting for the workaround\" : \"New\"}",
+          "open": "isNull(w4Res)",
+          "due": "(w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) > 0 ? 9000 + ((w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) == 1 ? 3600 : (w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) == 2 ? 7200 : (w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) == 3 ? 28800 : (w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "Service desk"
+        },
+        {
+          "id": "w5",
+          "ref": "INC-2108",
+          "kind": "incident",
+          "title": "Public Wi-Fi keeps dropping at Eastside branch",
+          "when": "t >= 11700",
+          "at": "11700",
+          "impact": "w5Imp",
+          "urgency": "w5Urg",
+          "priority": "(w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0)",
+          "status": "{not isNull(w5Res) ? \"Resolved with the access-point restart\" : w5Imp > 0 ? \"Assessed; waiting for the workaround\" : \"New\"}",
+          "open": "isNull(w5Res)",
+          "due": "(w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) > 0 ? 11700 + ((w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) == 1 ? 3600 : (w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) == 2 ? 7200 : (w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) == 3 ? 28800 : (w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "Service desk"
+        },
+        {
+          "id": "cat",
+          "ref": "INC-2102",
+          "kind": "incident",
+          "title": "Catalog search and the website's search are down for every branch",
+          "when": "t >= 1200",
+          "at": "1200",
+          "impact": "catImp",
+          "urgency": "catUrg",
+          "priority": "(catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0)",
+          "status": "{not isNull(catRes) ? \"Restored by the applications team\" : catEsc ? \"With the applications team\" : catImp > 0 ? \"Assessed\" : \"New\"}",
+          "open": "isNull(catRes)",
+          "due": "(catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) > 0 ? 1200 + ((catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 1 ? 3600 : (catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 2 ? 7200 : (catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 3 ? 28800 : (catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 4 ? 259200 : 432000) : -1",
+          "assignee": "{catEsc ? \"Applications team\" : \"Service desk\"}"
+        },
+        {
+          "id": "acc",
+          "ref": "REQ-2104",
+          "kind": "request",
+          "title": "New staff account for a librarian starting Tuesday",
+          "when": "t >= 2700",
+          "at": "2700",
+          "impact": "accImp",
+          "urgency": "accUrg",
+          "priority": "(accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0)",
+          "status": "{accHow == \"request\" ? \"Fulfilled through the new-starter workflow\" : accHow == \"incident\" ? \"Bounced back by the identity team\" : \"New\"}",
+          "open": "accHow != \"request\"",
+          "due": "(accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) > 0 ? 2700 + ((accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) == 1 ? 3600 : (accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) == 2 ? 7200 : (accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) == 3 ? 28800 : (accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) == 4 ? 259200 : 432000) : -1"
+        },
+        {
+          "id": "prb",
+          "ref": "PRB-0412",
+          "kind": "problem",
+          "title": "Repeated Wi-Fi drops across branches",
+          "when": "problem == \"problem\"",
+          "at": "timeAt(problemAt)",
+          "impact": "0",
+          "urgency": "0",
+          "priority": "0",
+          "status": "{ke == \"knownError\" ? \"Known error KE-0098 recorded; fix planned tonight\" : ke == \"closed\" ? \"Closed (cause still present)\" : causeFound ? \"Cause found: firmware 7.2 memory leak\" : \"Network team investigating\"}",
+          "open": "ke != \"closed\"",
+          "due": "-1",
+          "assignee": "Network team"
+        },
+        {
+          "id": "chg",
+          "ref": "CHG-0331",
+          "kind": "change",
+          "title": "Roll the access points back to firmware 7.1 tonight",
+          "when": "ke == \"knownError\"",
+          "at": "timeAt(problemAt) + 3600",
+          "impact": "0",
+          "urgency": "0",
+          "priority": "0",
+          "status": "Planned for 22:00, authorized by the change authority",
+          "open": "true",
+          "due": "-1",
+          "assignee": "Network team"
+        }
+      ],
+      "services": [
+        {
+          "id": "wifi",
+          "label": "Public Wi-Fi",
+          "spokenLabel": "Public Wi-Fi",
+          "status": "{ke == \"knownError\" ? \"Drops matched to a known error; fix tonight\" : \"Dropping at branches since the weekend\"}",
+          "tone": "ke == \"knownError\" ? \"degraded\" : \"down\""
+        },
+        {
+          "id": "catalog",
+          "label": "Catalog and website search",
+          "spokenLabel": "Catalog search",
+          "status": "{not isNull(catRes) ? \"Restored\" : t >= 1200 ? \"Down for every branch\" : \"Normal\"}",
+          "tone": "not isNull(catRes) or t < 1200 ? \"ok\" : \"down\""
+        },
+        {
+          "id": "backup",
+          "label": "Backup storage",
+          "spokenLabel": "Backup storage",
+          "status": "{t >= 3600 ? \"Monitoring event: disk 80% full; backups still running\" : \"Normal\"}",
+          "tone": "t >= 3600 and eventHow == \"none\" ? \"degraded\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "breaches",
+          "label": "Incidents past the agreed target (by their correct priority)",
+          "value": "{slaBreaches}"
+        }
+      ]
+    }
+  },
+  "objective": "Distinguishing a problem, an error and a known error in an operational scenario",
+  "secondaryObjectives": [
+    "Explaining the value chain's terms: product specifications and prototypes, events and incidents, releases and tests, service requests, disasters and operating models",
+    "Explaining the service journey, service quality, service levels and what a service level agreement records"
+  ],
+  "sources": [
+    {
+      "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+      "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions."
+    },
+    {
+      "cite": "MindMesh Academy, ITIL 5 Foundation study guide 5.4.4, 'Problem, error and known error'",
+      "url": "https://mindmeshacademy.firebaseapp.com/certifications/itil/itil-5-foundation/study-guide/5-4-4-problem-error-and-known-error",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 through a summary of the page. A secondary source, not the official glossary: 'a problem is a cause, or potential cause, of one or more incidents'; 'an error is a flaw or vulnerability that may cause incidents'; 'a known error is a problem that has been analyzed and whose cause is understood' (US spelling here), often with a documented workaround. To verify against the ITIL (Version 5) publication's glossary."
+    },
+    {
+      "cite": "Scenario data (authored): Cedar County Libraries' priority matrix and service level targets",
+      "checkedAt": "2026-11-16",
+      "note": "Priority from impact and urgency, and the targets per priority, are the fictional organization's own, agreed with its customers in its SLA; ITIL Foundation (Version 5) does not prescribe a matrix or targets."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the Monday-morning shift on the IT service desk of Cedar County Libraries, a fictional public library system with a main library and two branches. Over the weekend the network team updated the firmware on every Wi-Fi access point. It is 08:00; your shift ends at 12:00.",
+    "handover": [
+      "The service level agreement with the library's managers sets a priority from impact and urgency, and a restore target for each priority: the matrix is on the desk screen.",
+      "The applications team runs the catalog; the network team runs the Wi-Fi; routine requests have predefined workflows."
+    ],
+    "howItWorks": [
+      "Tickets arrive in the queue over the morning. Assess impact and urgency to set each priority, restore what you can, escalate what you cannot, and record what links incidents together.",
+      "Each action takes the minutes it would. Watch the queue to let time pass; the resolver teams work while you do.",
+      "At 12:00 you hand over and write a short note on what happened."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T08:00",
+    "tick": "5min",
+    "maxDuration": "5h",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "w1Imp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w1Urg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w1Res": {
+      "type": "time",
+      "init": null
+    },
+    "w2Imp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w2Urg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w2Res": {
+      "type": "time",
+      "init": null
+    },
+    "w3Imp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w3Urg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w3Res": {
+      "type": "time",
+      "init": null
+    },
+    "w4Imp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w4Urg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w4Res": {
+      "type": "time",
+      "init": null
+    },
+    "w5Imp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w5Urg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "w5Res": {
+      "type": "time",
+      "init": null
+    },
+    "catImp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "catUrg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "catRes": {
+      "type": "time",
+      "init": null
+    },
+    "accImp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "accUrg": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "accRes": {
+      "type": "time",
+      "init": null
+    },
+    "catEsc": {
+      "type": "bool",
+      "init": false
+    },
+    "catEscAt": {
+      "type": "time",
+      "init": null
+    },
+    "mgrTold": {
+      "type": "bool",
+      "init": false
+    },
+    "problem": {
+      "type": "enum",
+      "values": [
+        "none",
+        "problem",
+        "incident",
+        "knownError"
+      ],
+      "init": "none"
+    },
+    "problemAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeFound": {
+      "type": "bool",
+      "init": false
+    },
+    "ke": {
+      "type": "enum",
+      "values": [
+        "none",
+        "knownError",
+        "closed"
+      ],
+      "init": "none"
+    },
+    "accHow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "request",
+        "incident"
+      ],
+      "init": "none"
+    },
+    "eventHow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "housekeeping",
+        "incident"
+      ],
+      "init": "none"
+    },
+    "wifiMatched": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    }
+  },
+  "derived": {
+    "slaBreaches": {
+      "expr": "((t >= 300 and (not isNull(w1Res) ? timeAt(w1Res) > 7500 : t > 7500)) ? 1 : 0) + ((t >= 1800 and (not isNull(w2Res) ? timeAt(w2Res) > 9000 : t > 9000)) ? 1 : 0) + ((t >= 4200 and (not isNull(w3Res) ? timeAt(w3Res) > 11400 : t > 11400)) ? 1 : 0) + ((t >= 9000 and (not isNull(w4Res) ? timeAt(w4Res) > 16200 : t > 16200)) ? 1 : 0) + ((t >= 11700 and (not isNull(w5Res) ? timeAt(w5Res) > 18900 : t > 18900)) ? 1 : 0) + ((t >= 1200 and (not isNull(catRes) ? timeAt(catRes) > 4800 : t > 4800)) ? 1 : 0)"
+    },
+    "prioritiesRight": {
+      "expr": "(not (t >= 300) or (w1Imp > 0 and w1Urg > 0 ? w1Imp + w1Urg - 1 : 0) == 2) and (not (t >= 1800) or (w2Imp > 0 and w2Urg > 0 ? w2Imp + w2Urg - 1 : 0) == 2) and (not (t >= 4200) or (w3Imp > 0 and w3Urg > 0 ? w3Imp + w3Urg - 1 : 0) == 2) and (not (t >= 9000) or (w4Imp > 0 and w4Urg > 0 ? w4Imp + w4Urg - 1 : 0) == 2) and (not (t >= 11700) or (w5Imp > 0 and w5Urg > 0 ? w5Imp + w5Urg - 1 : 0) == 2) and (not (t >= 1200) or (catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 1) and (not (t >= 2700) or (accImp > 0 and accUrg > 0 ? accImp + accUrg - 1 : 0) >= 4)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "shift": {
+      "label": "Monday-morning shift",
+      "clock": "turns",
+      "actions": [
+        "classify",
+        "restore",
+        "escalate",
+        "manager",
+        "raiseProblem",
+        "recordKE",
+        "request",
+        "event"
+      ]
+    },
+    "handover": {
+      "label": "Handover",
+      "clock": "stopped",
+      "actions": [
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "shift",
+  "actions": {
+    "classify": {
+      "label": "Assess a ticket's impact and urgency (sets its priority)",
+      "group": "Queue",
+      "available": "not busy and phase == \"shift\"",
+      "why": "Finish what you are doing first.",
+      "params": [
+        {
+          "id": "assess",
+          "kind": "form",
+          "label": "Assessment",
+          "fields": [
+            {
+              "id": "which",
+              "label": "Ticket",
+              "options": [
+                {
+                  "value": "w1",
+                  "label": "INC-2101 Wi-Fi down at Main Library"
+                },
+                {
+                  "value": "w2",
+                  "label": "INC-2103 Wi-Fi down at Eastside branch"
+                },
+                {
+                  "value": "w3",
+                  "label": "INC-2105 Wi-Fi down at Westside branch"
+                },
+                {
+                  "value": "w4",
+                  "label": "INC-2107 Wi-Fi down at Main Library"
+                },
+                {
+                  "value": "w5",
+                  "label": "INC-2108 Wi-Fi down at Eastside branch"
+                },
+                {
+                  "value": "cat",
+                  "label": "INC-2102 Catalog and website search down"
+                },
+                {
+                  "value": "acc",
+                  "label": "REQ-2104 New staff account"
+                }
+              ]
+            },
+            {
+              "id": "imp",
+              "label": "Impact",
+              "options": [
+                {
+                  "value": "1",
+                  "label": "1 (high)"
+                },
+                {
+                  "value": "2",
+                  "label": "2 (medium)"
+                },
+                {
+                  "value": "3",
+                  "label": "3 (low)"
+                }
+              ]
+            },
+            {
+              "id": "urg",
+              "label": "Urgency",
+              "options": [
+                {
+                  "value": "1",
+                  "label": "1 (high)"
+                },
+                {
+                  "value": "2",
+                  "label": "2 (medium)"
+                },
+                {
+                  "value": "3",
+                  "label": "3 (low)"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "which == \"w1\" and not (t >= 300)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w2\" and not (t >= 1800)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w3\" and not (t >= 4200)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w4\" and not (t >= 9000)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w5\" and not (t >= 11700)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"cat\" and not (t >= 1200)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"acc\" and not (t >= 2700)",
+              "then": [
+                {
+                  "log": "That ticket is not in the queue yet.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w1\"",
+              "then": [
+                {
+                  "set": "w1Imp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "w1Urg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2101 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w2\"",
+              "then": [
+                {
+                  "set": "w2Imp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "w2Urg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2103 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w3\"",
+              "then": [
+                {
+                  "set": "w3Imp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "w3Urg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2105 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w4\"",
+              "then": [
+                {
+                  "set": "w4Imp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "w4Urg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2107 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"w5\"",
+              "then": [
+                {
+                  "set": "w5Imp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "w5Urg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2108 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"cat\"",
+              "then": [
+                {
+                  "set": "catImp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "catUrg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "INC-2102 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "which == \"acc\"",
+              "then": [
+                {
+                  "set": "accImp",
+                  "to": "num(imp)"
+                },
+                {
+                  "set": "accUrg",
+                  "to": "num(urg)"
+                },
+                {
+                  "log": "REQ-2104 set to priority {num(imp) + num(urg) - 1} (impact {imp}, urgency {urg}).",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Restore a branch's Wi-Fi with the access-point restart (the workaround)",
+      "group": "Incidents",
+      "available": "not busy and phase == \"shift\"",
+      "why": "Finish what you are doing first.",
+      "params": [
+        {
+          "id": "which",
+          "kind": "choice",
+          "label": "Which incident",
+          "options": [
+            {
+              "value": "w1",
+              "label": "INC-2101, Main Library"
+            },
+            {
+              "value": "w2",
+              "label": "INC-2103, Eastside branch"
+            },
+            {
+              "value": "w3",
+              "label": "INC-2105, Westside branch"
+            },
+            {
+              "value": "w4",
+              "label": "INC-2107, Main Library"
+            },
+            {
+              "value": "w5",
+              "label": "INC-2108, Eastside branch"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "which == \"w1\" and t >= 300 and isNull(w1Res)",
+              "then": [
+                {
+                  "set": "w1Res",
+                  "to": "t"
+                },
+                {
+                  "if": "ke == \"knownError\"",
+                  "then": [
+                    {
+                      "add": "wifiMatched",
+                      "by": "1"
+                    },
+                    {
+                      "log": "INC-2101 matched to the known error; the branch restarts its access point with the documented workaround.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "You talk Main Library through restarting its access point. Wi-Fi is back.",
+                      "kind": "act"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "which == \"w2\" and t >= 1800 and isNull(w2Res)",
+              "then": [
+                {
+                  "set": "w2Res",
+                  "to": "t"
+                },
+                {
+                  "if": "ke == \"knownError\"",
+                  "then": [
+                    {
+                      "add": "wifiMatched",
+                      "by": "1"
+                    },
+                    {
+                      "log": "INC-2103 matched to the known error; the branch restarts its access point with the documented workaround.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "You talk Eastside branch through restarting its access point. Wi-Fi is back.",
+                      "kind": "act"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "which == \"w3\" and t >= 4200 and isNull(w3Res)",
+              "then": [
+                {
+                  "set": "w3Res",
+                  "to": "t"
+                },
+                {
+                  "if": "ke == \"knownError\"",
+                  "then": [
+                    {
+                      "add": "wifiMatched",
+                      "by": "1"
+                    },
+                    {
+                      "log": "INC-2105 matched to the known error; the branch restarts its access point with the documented workaround.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "You talk Westside branch through restarting its access point. Wi-Fi is back.",
+                      "kind": "act"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "which == \"w4\" and t >= 9000 and isNull(w4Res)",
+              "then": [
+                {
+                  "set": "w4Res",
+                  "to": "t"
+                },
+                {
+                  "if": "ke == \"knownError\"",
+                  "then": [
+                    {
+                      "add": "wifiMatched",
+                      "by": "1"
+                    },
+                    {
+                      "log": "INC-2107 matched to the known error; the branch restarts its access point with the documented workaround.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "You talk Main Library through restarting its access point. Wi-Fi is back.",
+                      "kind": "act"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "which == \"w5\" and t >= 11700 and isNull(w5Res)",
+              "then": [
+                {
+                  "set": "w5Res",
+                  "to": "t"
+                },
+                {
+                  "if": "ke == \"knownError\"",
+                  "then": [
+                    {
+                      "add": "wifiMatched",
+                      "by": "1"
+                    },
+                    {
+                      "log": "INC-2108 matched to the known error; the branch restarts its access point with the documented workaround.",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "You talk Eastside branch through restarting its access point. Wi-Fi is back.",
+                      "kind": "act"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Nothing to restore there.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Escalate the catalog outage to the applications team (functional escalation)",
+      "group": "Incidents",
+      "available": "not busy and phase == \"shift\" and (t >= 1200 and not catEsc)",
+      "why": "The outage is not reported yet (or it is escalated).",
+      "effects": [
+        {
+          "set": "catEsc",
+          "to": "true"
+        },
+        {
+          "set": "catEscAt",
+          "to": "t"
+        },
+        {
+          "schedule": "appsFix",
+          "after": "(catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 1 ? 2700 : 9000"
+        },
+        {
+          "cases": [
+            {
+              "when": "(catImp > 0 and catUrg > 0 ? catImp + catUrg - 1 : 0) == 1",
+              "then": [
+                {
+                  "log": "The applications team swarms it as a priority 1.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The applications team queues it behind their priority 1 and 2 work.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "manager": {
+      "label": "Tell the IT manager about the catalog outage (hierarchical escalation)",
+      "group": "Incidents",
+      "available": "not busy and phase == \"shift\" and (t >= 1200 and not mgrTold)",
+      "why": "Not reported yet (or done).",
+      "effects": [
+        {
+          "set": "mgrTold",
+          "to": "true"
+        },
+        {
+          "log": "The IT manager is told, and updates the branches every 30 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "raiseProblem": {
+      "label": "Record what links the Wi-Fi incidents",
+      "group": "Problems",
+      "available": "not busy and phase == \"shift\" and (problem == \"none\" and t >= 1800)",
+      "why": "Wait until there is a pattern (or it is recorded).",
+      "effects": [
+        {
+          "set": "problem",
+          "to": "what"
+        },
+        {
+          "set": "problemAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "what == \"problem\"",
+              "then": [
+                {
+                  "log": "Problem PRB-0412 raised: the unknown cause behind repeated Wi-Fi drops. The network team investigates.",
+                  "kind": "good"
+                },
+                {
+                  "schedule": "rootCause",
+                  "after": "1h"
+                }
+              ]
+            },
+            {
+              "when": "what == \"knownError\"",
+              "then": [
+                {
+                  "log": "Recorded as a known error before anyone knows the cause.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Logged as one more incident; nobody looks for the cause.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ],
+      "params": [
+        {
+          "id": "rec",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "what",
+              "label": "What the repeated Wi-Fi drops are",
+              "options": [
+                {
+                  "value": "problem",
+                  "label": "A problem: the unknown cause behind several incidents"
+                },
+                {
+                  "value": "incident",
+                  "label": "Another incident, linked to the others"
+                },
+                {
+                  "value": "knownError",
+                  "label": "A known error"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "recordKE": {
+      "label": "Record what the network team found",
+      "group": "Problems",
+      "available": "not busy and phase == \"shift\" and (causeFound and ke == \"none\")",
+      "why": "The cause is not found yet (or it is recorded).",
+      "effects": [
+        {
+          "set": "ke",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"knownError\"",
+              "then": [
+                {
+                  "log": "Known error KE-0098: the access points' new firmware leaks memory; workaround: restart the access point. A change to roll the firmware back is planned for tonight.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "The problem was closed as if solved. The firmware is still on every access point.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ],
+      "params": [
+        {
+          "id": "kerec",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you record it",
+              "options": [
+                {
+                  "value": "knownError",
+                  "label": "A known error: cause understood (firmware 7.2 leaks memory), workaround documented, fix still to come"
+                },
+                {
+                  "value": "closed",
+                  "label": "Close the problem: the cause is found"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "request": {
+      "label": "Handle the new staff account",
+      "group": "Requests",
+      "available": "not busy and phase == \"shift\" and (t >= 2700 and accHow == \"none\")",
+      "why": "Not in the queue yet (or handled).",
+      "effects": [
+        {
+          "set": "accHow",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"request\"",
+              "then": [
+                {
+                  "set": "accRes",
+                  "to": "t"
+                },
+                {
+                  "log": "Fulfilled through the standard new-starter workflow; the account is ready for Tuesday.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Logged as an incident and escalated to the identity team, who send it back: this is a request.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ],
+      "params": [
+        {
+          "id": "reqf",
+          "kind": "form",
+          "label": "Handling",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How",
+              "options": [
+                {
+                  "value": "request",
+                  "label": "As a service request, through the predefined new-starter workflow"
+                },
+                {
+                  "value": "incident",
+                  "label": "As an incident, escalated to the identity team"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "event": {
+      "label": "Handle the backup-storage alert",
+      "group": "Monitoring",
+      "available": "not busy and phase == \"shift\" and (t >= 3600 and eventHow == \"none\")",
+      "why": "No alert yet (or handled).",
+      "effects": [
+        {
+          "set": "eventHow",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"housekeeping\"",
+              "then": [
+                {
+                  "log": "An event, not an incident: nothing is disrupted. It goes to the storage team's routine housekeeping.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "A priority 1 incident is opened for a disk that is 80% full; the storage team is paged off its work.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ],
+      "params": [
+        {
+          "id": "evf",
+          "kind": "form",
+          "label": "Handling",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How",
+              "options": [
+                {
+                  "value": "housekeeping",
+                  "label": "As an event: no service is disrupted; pass it to routine housekeeping"
+                },
+                {
+                  "value": "incident",
+                  "label": "As a priority 1 incident; page the storage team"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "close": {
+      "label": "Hand over the queue to the afternoon shift",
+      "group": "Handover",
+      "available": "not closed",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "Shift handed over.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working the ticket",
+      "wait": {
+        "skipLabel": "Finish the current ticket"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each desk action takes and how fast resolver teams work are teaching simplifications, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch the queue",
+      "wait": {
+        "skipLabel": "Watch the queue for 15 minutes"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each desk action takes and how fast resolver teams work are teaching simplifications, not measured values."
+      },
+      "effects": [
+        {
+          "schedule": "watch",
+          "after": "15min"
+        }
+      ]
+    },
+    "appsFix": {
+      "label": "The applications team restores the catalog",
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each desk action takes and how fast resolver teams work are teaching simplifications, not measured values."
+      },
+      "effects": [
+        {
+          "set": "catRes",
+          "to": "t"
+        },
+        {
+          "log": "The applications team restarted the catalog's search index. Search is back for every branch.",
+          "kind": "good"
+        }
+      ]
+    },
+    "rootCause": {
+      "label": "The network team finds the cause",
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each desk action takes and how fast resolver teams work are teaching simplifications, not measured values."
+      },
+      "effects": [
+        {
+          "set": "causeFound",
+          "to": "true"
+        },
+        {
+          "log": "Network team: firmware 7.2 on the access points leaks memory until they drop clients. Restarting clears it for a few hours.",
+          "kind": "find"
+        }
+      ]
+    },
+    "shiftEnd": {
+      "label": "End of the shift",
+      "wait": {
+        "skipLabel": "Go to the end of the shift"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each desk action takes and how fast resolver teams work are teaching simplifications, not measured values."
+      },
+      "effects": [
+        {
+          "cancel": "watch"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "12:00: handover to the afternoon shift.",
+          "kind": "sys"
+        },
+        {
+          "phase": "handover"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "watch",
+          "after": "15min"
+        },
+        {
+          "schedule": "shiftEnd",
+          "after": "4h"
+        }
+      ]
+    },
+    {
+      "id": "catIn",
+      "when": "t >= 1200",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "08:20: INC-2102, catalog search is down at every branch and on the website.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "pattern",
+      "when": "t >= 4200",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "09:10: a third branch reports Wi-Fi dropping.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "eventIn",
+      "when": "t >= 3600",
+      "mode": "once",
+      "effects": [
+        {
+          "log": "09:00: monitoring event, backup storage disk 80% full.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"handover\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "note"
+        }
+      ]
+    }
+  ],
+  "prompts": {},
+  "reasoning": {
+    "note": {
+      "question": "Write your handover note: what the Wi-Fi drops were in ITIL terms (incidents, a problem, an error, a known error), how you set priorities, and where the morning stands against the service level agreement.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Problem, error, known error",
+          "criteria": "Each Wi-Fi drop is an incident; the unknown cause behind several is a problem; the firmware's memory leak is the error; once analyzed with its cause understood and a workaround documented, it is a known error, which stays open until the fix (the firmware change) removes it.",
+          "modelAnswer": "Each branch's Wi-Fi drop was an incident, restored with the access-point restart. Three in an hour were one problem: an unknown cause behind several incidents. The network team found the error, a memory leak in firmware 7.2. With the cause understood and the restart documented as the workaround, it is a known error, KE-0098; it stays open until tonight's firmware rollback removes the error."
+        },
+        {
+          "label": "Priorities and service levels",
+          "criteria": "Priority from impact and urgency per the matrix (catalog down everywhere = P1, a branch's Wi-Fi = P2, the new account = a low-priority service request through its workflow); the backup alert is an event, not an incident; where each ticket stands against its SLA target.",
+          "modelAnswer": "Catalog search down for every branch was high impact and high urgency, priority 1, escalated to the applications team and restored inside its 1-hour target. Each branch's Wi-Fi was priority 2 and restored inside 2 hours. The new account is a service request fulfilled through its workflow. The backup disk alert is an event: nothing was disrupted, so it went to housekeeping."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Service outcome profile (docs/sims.md 9.2, 22.24)",
+          "checkedAt": "2026-11-16",
+          "note": "Incidents restored after their agreed target, judged by their correct priority."
+        }
+      },
+      "slaBreachRecovered": {
+        "value": 1,
+        "source": {
+          "cite": "Service outcome profile (docs/sims.md 9.2, 22.24)",
+          "checkedAt": "2026-11-16"
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and problem != \"problem\" and slaBreaches == 0",
+      "class": "recovered",
+      "rationale": "Every incident was restored in time, but nobody looked for the cause, so the Wi-Fi will keep dropping; recovered, not harm, because no service level was missed this morning.",
+      "source": {
+        "cite": "MindMesh Academy, ITIL 5 Foundation study guide 5.4.4, 'Problem, error and known error'",
+        "url": "https://mindmeshacademy.firebaseapp.com/certifications/itil/itil-5-foundation/study-guide/5-4-4-problem-error-and-known-error",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 through a summary of the page. A secondary source, not the official glossary: 'a problem is a cause, or potential cause, of one or more incidents'; 'an error is a flaw or vulnerability that may cause incidents'; 'a known error is a problem that has been analyzed and whose cause is understood' (US spelling here), often with a documented workaround. To verify against the ITIL (Version 5) publication's glossary."
+      }
+    }
+  },
+  "endings": {
+    "p1Breached": {
+      "label": "The priority 1 outage ran past its target",
+      "class": "harm",
+      "when": "closed and (t >= 1200 and (not isNull(catRes) ? timeAt(catRes) > 4800 : t > 4800))",
+      "terminal": true,
+      "narrative": "Catalog search was down for every branch for more than an hour. The managers' service level agreement was missed on the one ticket that mattered most."
+    },
+    "breaches": {
+      "label": "Several targets missed",
+      "class": "harm",
+      "when": "closed and slaBreaches > slaBreachRecovered",
+      "terminal": true,
+      "narrative": "{slaBreaches} incidents ran past their agreed targets this morning."
+    },
+    "clean": {
+      "label": "Targets met, the cause found and recorded",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and slaBreaches <= slaBreachTarget and prioritiesRight and catEsc and mgrTold and problem == \"problem\" and ke == \"knownError\" and accHow == \"request\" and eventHow == \"housekeeping\"",
+      "narrative": "Every incident was restored inside its target. The Wi-Fi drops are a known error with a workaround the branches use, and tonight's change removes the error."
+    },
+    "gaps": {
+      "label": "A workable morning, with gaps",
+      "class": "recovered",
+      "when": "closed",
+      "terminal": true,
+      "narrative": "The queue is in hand, but the criteria show what was mis-prioritized, missed or recorded under the wrong name."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "p1Breached",
+    "breaches",
+    "clean",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "p1",
+        "label": "Met the service level agreement's 1-hour target for the outage",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(catRes) and not (t >= 1200 and (not isNull(catRes) ? timeAt(catRes) > 4800 : t > 4800))",
+            "score": "met",
+            "why": "Restored {(timeAt(catRes) - 1200) / 60} minutes after it was reported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not restored within 1 hour."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "terms",
+        "label": "Recorded the repeated drops as a problem and the analyzed cause as a known error",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "problem == \"problem\" and ke == \"knownError\"",
+            "score": "met",
+            "why": "Problem PRB-0412, known error KE-0098."
+          },
+          {
+            "when": "problem == \"problem\"",
+            "score": "partial",
+            "why": "A problem was raised, but the known error was not recorded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{problem == \"knownError\" ? \"A known error was recorded before the cause was known.\" : \"The pattern was never recorded as a problem.\"}"
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "priority",
+        "label": "Set every priority from impact and urgency",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "prioritiesRight",
+            "score": "met",
+            "why": "Every ticket's priority matches the matrix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "At least one ticket's priority is wrong or never set."
+          }
+        ]
+      },
+      {
+        "id": "request",
+        "label": "Handled the new account as a service request",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "accHow == \"request\"",
+            "score": "met",
+            "why": "Through the predefined workflow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{accHow == \"incident\" ? \"Logged as an incident.\" : \"Not handled.\"}"
+          }
+        ]
+      },
+      {
+        "id": "eventCrit",
+        "label": "Treated the backup alert as an event, not an incident",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "eventHow == \"housekeeping\"",
+            "score": "met",
+            "why": "Passed to routine housekeeping."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{eventHow == \"incident\" ? \"Opened as a priority 1 incident.\" : \"Left unhandled.\"}"
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "escalation",
+        "label": "Escalated the outage to the right team and told the IT manager",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "catEsc and mgrTold",
+            "score": "met",
+            "why": "Functional and hierarchical escalation."
+          },
+          {
+            "when": "catEsc",
+            "score": "partial",
+            "why": "Functional escalation only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "note",
+        "label": "Handover note",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "breachesK",
+        "label": "Incidents past their target",
+        "value": "slaBreaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "catMin",
+        "label": "Minutes to restore catalog search",
+        "value": "isNull(catRes) ? -1 : (timeAt(catRes) - 1200) / 60",
+        "format": "number",
+        "expert": "60 or less"
+      },
+      {
+        "id": "matched",
+        "label": "Wi-Fi incidents matched to the known error",
+        "value": "wifiMatched",
+        "format": "number",
+        "expert": "Every one after it was recorded"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:05-08:30",
+        "text": "Assess each ticket as it arrives: a branch's Wi-Fi is impact 2, urgency 1 (priority 2); catalog search down everywhere is impact 1, urgency 1 (priority 1). Escalate the outage to the applications team and tell the IT manager."
+      },
+      {
+        "at": "08:30-09:15",
+        "text": "Restore each branch's Wi-Fi with the access-point restart; once the drops repeat, raise a problem. Fulfil the new account through its workflow; pass the backup alert to housekeeping."
+      },
+      {
+        "at": "10:15",
+        "text": "When the network team finds the firmware leak, record the known error with its workaround; match later drops to it."
+      },
+      {
+        "at": "12:00",
+        "text": "Hand over with every target met and the error's fix planned."
+      }
+    ],
+    "debrief": {
+      "clean": {
+        "headline": "Good: targets met, and the cause on record",
+        "body": "Priorities came from impact and urgency, the outage was escalated and restored in time, and the repeated drops became a problem and then a known error with a workaround."
+      },
+      "gaps": {
+        "headline": "A workable morning, with gaps",
+        "body": "The criteria below show what was mis-prioritized, handled under the wrong name or left out."
+      },
+      "p1Breached": {
+        "headline": "The priority 1 ran long",
+        "body": "A whole service down for every user is high impact and high urgency: priority 1, escalated at once to the team that can restore it, and the manager told."
+      },
+      "breaches": {
+        "headline": "Targets missed",
+        "body": "Incidents ran past their agreed targets. Restore first (a workaround counts), then look for the cause."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The shift was not handed over before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Set priority from impact and urgency using the organization's matrix: catalog search down everywhere is priority 1, escalated functionally to the applications team and hierarchically to the IT manager; a branch's Wi-Fi is priority 2, restored with the access-point restart. Repeated drops are incidents with one unknown cause: a problem. The network team's finding, firmware 7.2 leaking memory, is the error; analyzed, with its cause understood and a workaround documented, it is a known error until tonight's change removes it. The new account is a service request through its workflow; the backup disk alert is an event, not an incident."
+  }
+}

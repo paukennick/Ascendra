@@ -258,6 +258,22 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-311: Scrum Sprints on the project dashboard's Sprint mode
+  // (project-dashboard renderer, scrum profile), course PSMI, each also a
+  // band on the same CSM objective (docs/sims.md 22.24). Keep these entries
+  // together. ----
+  entry("PSMI", "sprint-status-meeting-daily-scrum"),
+  band("CSM", "csm-sprint-status-meeting-daily-scrum"),
+  entry("PSMI", "sprint-goal-becomes-obsolete"),
+  band("CSM", "csm-sprint-goal-becomes-obsolete"),
+  entry("PSMI", "sprint-release-before-review"),
+  band("CSM", "csm-sprint-release-before-review"),
+  // The ITIL service desk, course ITIL5FND. That course is built on another
+  // branch (REQ-308, feature/itil5); until it is in the catalog the seed
+  // stops here with a clear error, and lib/sim/objectives.test.ts checks
+  // the titles against ITIL5_DESK_OBJECTIVES below instead.
+  entry("ITIL5FND", "monday-service-desk-wifi-problem"),
+  // ---- end REQ-311 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -376,6 +392,33 @@ export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbc-boundaries-small-town": "Manage boundaries, dual relationships, conflicts of interest and self-disclosure, including power differences and online contact",
   "aswbm-termination-nonpayment": "End services ethically: planned termination, transfer, nonpayment and avoiding abandonment",
   "aswbm-suicide-violence-risk": "Assess risk of harm to self and others and act on what you find",
+};
+
+// REQ-311: the Scrum Sprint documents on the project dashboard (Sprint mode)
+// and the objective titles they are registered to (active objectives of PSMI
+// and CSM; a CSM document is a band of the PSMI one).
+export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "PSMI" || e.course === "CSM");
+export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
+  "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+  "sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "csm-sprint-goal-becomes-obsolete": "Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint",
+  "sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "csm-sprint-release-before-review": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+};
+
+// REQ-311: the ITIL service-desk documents and the ITIL Foundation (Version 5)
+// objective titles they are registered to, as the itil5 builder gave them
+// (REQ-308; Version 5 has no practices-in-detail unit, so the desk serves the
+// problem, error and known error outcome and the value chain and service
+// level terms).
+export const DESK_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ITIL5FND");
+export const ITIL5_DESK_OBJECTIVES: Readonly<Record<string, readonly string[]>> = {
+  "monday-service-desk-wifi-problem": [
+    "Distinguishing a problem, an error and a known error in an operational scenario",
+    "Explaining the value chain's terms: product specifications and prototypes, events and incidents, releases and tests, service requests, disasters and operating models",
+    "Explaining the service journey, service quality, service levels and what a service level agreement records",
+  ],
 };
 
 // REQ-289: the Washington psychology jurisprudence session (a band of the EPPP

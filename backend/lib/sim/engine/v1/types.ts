@@ -265,7 +265,13 @@ export type OutcomeClass = "target" | "recovered" | "harm";
 // 9.2, 22.8): a PT session where the outcome is what the patient was left
 // with (the session's goal reached inside the stopping rules, a red flag
 // acted on, no fall, syncope or embolism).
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy";
+// REQ-311: "scrum" is the project dashboard's Sprint mode profile (docs/sims.md
+// 9.2, 22.24): the outcome is the Sprint Goal and a Done Increment, judged by
+// the Scrum Guide 2020's commitments, not by earned value. "service" is the
+// service desk's profile: incidents restored within their service level,
+// changes authorized by the right change authority, repeat incidents raised as
+// a problem.
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session" | "physical-therapy" | "scrum" | "service";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -307,7 +313,11 @@ export interface ScreenSpec {
   // (the design's "security" placeholder stays unused). REQ-232:
   // "treatment-session" is the PT treatment session. REQ-237: "terminal" is
   // the terminal and network screen as built (screen.terminal bindings).
-  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session";
+  // REQ-311: "project-dashboard" is the project dashboard as built (the
+  // design's "dashboard" placeholder stays unused), with a predictive mode and
+  // a Sprint mode (screen.dashboard); "service-desk" is the ITIL service desk
+  // (screen.desk).
+  type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data" | "security-console" | "treatment-session" | "project-dashboard" | "service-desk";
   level?: number;
   bedside?: {
     tiles: VitalTile[];
@@ -387,7 +397,59 @@ export interface ScreenSpec {
     links: { id: Id; from: Id; to: Id; label: string; status: Template; tone: Expr }[];
     meters?: { id: Id; label: string; value: Template }[];
   };
+  // REQ-311: the project dashboard (docs/sims.md 20, 22.24), display-only
+  // like the console. `mode` is "predictive" (a plan-driven project run week
+  // by week: schedule, earned value, risks and issues) or "sprint" (one Scrum
+  // Sprint day by day: the Sprint Backlog as a board, the Sprint Goal and the
+  // other commitments, the Daily Scrum and the other events, impediments, a
+  // burn-down). `commitments` are the Product Goal, Sprint Goal and Definition
+  // of Done (or a project's objective and baseline), shown while `when`
+  // holds. `columns` are the board's columns in order; each item names its
+  // column by id over state (an item whose column is not a column id is shown
+  // in the first), `flag` marking one blocked or at risk (spoken at once).
+  // `chart` draws series across `slots` samples: an actual series is a
+  // history (the burn-down, earned value, actual cost), sampled as the run
+  // goes; a plan series is fixed `values` (the plan line as planned, the
+  // baseline's planned value), one per slot.
+  // `issues` are impediments (sprint) or risks and issues (predictive), each
+  // with a status in words; an open one is spoken at once, like an alarm.
+  // `people` are the team and stakeholders as gauges read in words, like the
+  // client session's. `events` are the Daily Scrums, the Review and the
+  // Retrospective (or milestones and gates), each with a status in words.
+  dashboard?: {
+    mode: "predictive" | "sprint";
+    heading: Template;
+    commitments: { id: Id; label: string; text: Template; when?: Expr }[];
+    columns: { id: Id; label: string }[];
+    items: { id: Id; label: Template; column: Expr; when: Expr; size?: Template; note?: Template; flag?: Expr }[];
+    chart?: { label: string; unit: string; slots: number; slotLabel: string; series: { id: Id; label: string; style: "actual" | "plan"; history?: Id; values?: number[] }[] };
+    issues: { id: Id; label: Template; when: Expr; at: Expr; status: Template; open: Expr }[];
+    people: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
+    events: { id: Id; label: string; at: Expr; status: Template; when?: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-311: the ITIL service desk (docs/sims.md 22.24), display-only. The
+  // queue lists the tickets whose `when` holds: incidents, service requests,
+  // problems and changes, each with a reference, an impact and an urgency
+  // (1 is the highest; 0 is not yet assessed), the priority the scenario
+  // assigned from them, a status in words, `open`, and `due`, the sim second
+  // its service level target falls due (negative when none applies). `matrix` is
+  // the organization's priority matrix (rows by impact, columns by urgency,
+  // 1 = P1), shown as the reference the learner assigns priority by; the
+  // tests check every ticket's priority against it. An open ticket past its
+  // due time is spoken at once, like an alarm. `services` are the services
+  // the desk supports, each with a status in words and a tone.
+  desk?: {
+    matrix: { impacts: string[]; urgencies: string[]; priorities: number[][]; targets: { priority: number; label: string }[] };
+    tickets: { id: Id; ref: string; kind: DeskKind; title: Template; when: Expr; at: Expr; impact: Expr; urgency: Expr; priority: Expr; status: Template; open: Expr; due: Expr; assignee?: Template }[];
+    services: { id: Id; label: string; spokenLabel: string; status: Template; tone: Expr }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
+
+// REQ-311: the service desk's ticket kinds and service tones.
+export type DeskKind = "incident" | "request" | "problem" | "change";
+export type DeskTone = "ok" | "degraded" | "down" | "maintenance";
 
 export type ConsoleSeverity = "critical" | "high" | "medium" | "low";
 export type ConsoleTone = "ok" | "watch" | "bad" | "held";
