@@ -258,6 +258,13 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-311: Scrum Sprints on the project dashboard's Sprint mode
+  // (project-dashboard renderer, scrum profile), course PSMI, each also a
+  // band on the same CSM objective (docs/sims.md 22.24). Keep these entries
+  // together. ----
+  entry("PSMI", "sprint-status-meeting-daily-scrum"),
+  band("CSM", "csm-sprint-status-meeting-daily-scrum"),
+  // ---- end REQ-311 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -376,6 +383,15 @@ export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbc-boundaries-small-town": "Manage boundaries, dual relationships, conflicts of interest and self-disclosure, including power differences and online contact",
   "aswbm-termination-nonpayment": "End services ethically: planned termination, transfer, nonpayment and avoiding abandonment",
   "aswbm-suicide-violence-risk": "Assess risk of harm to self and others and act on what you find",
+};
+
+// REQ-311: the Scrum Sprint documents on the project dashboard (Sprint mode)
+// and the objective titles they are registered to (active objectives of PSMI
+// and CSM; a CSM document is a band of the PSMI one).
+export const SCRUM_DASHBOARD_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "PSMI" || e.course === "CSM");
+export const SCRUM_OBJECTIVES: Readonly<Record<string, string>> = {
+  "sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
+  "csm-sprint-status-meeting-daily-scrum": "Running a Daily Scrum as the Developers' planning event rather than a status report",
 };
 
 // REQ-289: the Washington psychology jurisprudence session (a band of the EPPP
