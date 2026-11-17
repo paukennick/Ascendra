@@ -1,0 +1,1141 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "alcohol-withdrawal-ciwa",
+  "title": "Shaky and sweating at 02:00",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vitalsOn"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "high": 170
+          },
+          "announce": {
+            "bands": [
+              160,
+              170
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vitalsOn"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "high": 38.0
+          },
+          "announce": {
+            "bands": [
+              37.8,
+              38.0
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vitalsOn"
+        },
+        {
+          "id": "ciwa",
+          "label": "CIWA-Ar",
+          "spokenLabel": "Last CIWA-Ar score",
+          "value": "lastCiwa",
+          "unit": "points",
+          "announce": {
+            "bands": [
+              10,
+              19
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(lastCiwaAt)"
+        }
+      ],
+      "infusions": "Lorazepam doses: {lzCount}. Thiamine: {isNull(thiamineAt) ? \"not given\" : \"given\"}. Seizure precautions: {isNull(precAt) ? \"no\" : \"yes\"}. Restraints: {restrained ? \"on\" : \"off\"}.",
+      "banner": [
+        {
+          "when": "restrained",
+          "text": "Wrist restraints are on."
+        }
+      ]
+    }
+  },
+  "objective": "Screen for alcohol withdrawal on admission and use the CIWA-Ar scale to judge the need for medically supervised withdrawal management",
+  "secondaryObjectives": [
+    "Managing withdrawal and toxicity symptoms"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://nclex.com/files/2026_RN_Test Plan_English-F.pdf",
+      "note": "Relayed from the REQ-233 NCLEX-RN cases (read 2026-11-11, primary PDF), not re-read: Psychosocial Integrity includes chemical and other dependencies (withdrawal and toxicity); Reduction of Risk Potential includes recognizing changes in the client's condition."
+    },
+    {
+      "cite": "Ascendra NCLEX-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-16",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "American Society of Addiction Medicine. The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (adopted 2020-01-23)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.asam.org/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+      "note": "Read 2026-11-16 in the primary PDF through a summarizing fetch with quotes (the first part of the document): mild withdrawal 'e.g., CIWA-Ar score <10', moderate 'CIWA-Ar scores 10-18', severe at 19 (the comparison sign was lost in the extracted text); symptom-triggered treatment is the preferred benzodiazepine dosing method (V.23); reassess every 1-4 hours for 24 hours as clinically indicated (V.1); thiamine 100 mg IV or IM daily for 3-5 days is typical, and thiamine and glucose may be given in any order (V.7); a history of withdrawal delirium or withdrawal seizure raises the risk of complicated withdrawal (II.5), and when that risk is known treat more aggressively (VII.13); restraints only when required to prevent injury from agitation or violence (VI.12)."
+    },
+    {
+      "cite": "StatPearls. Alcohol withdrawal (point-of-care chapter 17335), StatPearls Publishing",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.statpearls.com/point-of-care/17335",
+      "note": "Read 2026-11-16 through a summarizing fetch with quotes; the page did not show its title or update date: signs may begin within hours of the last drink and peak around 72 hours; withdrawal seizures 'typically occur between 8 and 48 hours'; delirium tremens 3 to 8 days after cessation (the page also says 3 to 5)."
+    },
+    {
+      "cite": "Southern Health-Sante Sud. Alcohol Withdrawal Assessment Flowsheet (CIWA-Ar), form CLI.5110.SG.013.FORM.02 (2024-01-19)",
+      "checkedAt": "2026-11-16",
+      "url": "https://staffnet.southernhealth.ca/wp-content/uploads/Alcohol-Withdrawal-Assessment-Flowsheet-CIWA-Ar.pdf",
+      "note": "Read 2026-11-16 through a summarizing fetch: ten items (nausea and vomiting, tremor, anxiety, agitation, paroxysmal sweats, tactile, auditory and visual disturbances, headache, each 0-7; orientation 0-4; 67 at most); PRN medication for a total of 10 or higher under the symptom-triggered method. Used for the items and the trigger; one hospital's form, not a guideline."
+    }
+  ],
+  "brief": {
+    "situation": "02:00 on a medical unit. You are the RN. Mr. Dale, 54, was admitted at 18:00 with cellulitis of his left leg. The nursing assistant says he is sweaty, shaking, and keeps trying to get out of bed to 'go home and sort things out'.",
+    "handover": [
+      "Admission note: 'drinks socially'; no alcohol screen was done. IV cefazolin running on schedule. Glucose at 22:00 was 118 mg/dL.",
+      "Standing alcohol withdrawal protocol (active for every admission): score the CIWA-Ar; lorazepam at the protocol dose IV for a score of 10 or more, then rescore 1 hour after each dose; thiamine 100 mg IV daily; notify the provider for a score of 19 or more, a seizure, hallucinations, or a history of withdrawal seizures or delirium.",
+      "No benzodiazepine or thiamine has been given yet."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Scoring the CIWA-Ar and the drug's effect take a few minutes.",
+      "Partway through you are asked to write what is happening. The case ends at 04:00, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:00",
+    "tick": "1s",
+    "maxDuration": "130min",
+    "calendar": "clock"
+  },
+  "params": {
+    "wRise": {
+      "value": 0.25,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Untreated, his withdrawal climbs from a CIWA-Ar of about 14 to a seizure in under 2 hours; he has a history of withdrawal delirium. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "wFall": {
+      "value": 0.1,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "While a lorazepam dose covers him, withdrawal eases slowly. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lzDrop": {
+      "value": 0.12,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "One protocol dose lowers the score by about 4 points. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lzOnset": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 5 min to effect after an IV dose. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lzCover": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "A dose covers him for about 90 min in this case. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "seizeW": {
+      "value": 0.9,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "A withdrawal seizure at a CIWA-Ar near 27 in this case; seizure timing in the literature is 8 to 48 hours after the last drink (StatPearls), which his 12 hours falls inside. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hallucW": {
+      "value": 0.65,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Tactile hallucinations near a CIWA-Ar of 20. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "sedMax": {
+      "value": 2.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Three doses within about half an hour oversedate him. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "calmW": {
+      "value": 0.33,
+      "source": {
+        "cite": "American Society of Addiction Medicine. The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (adopted 2020-01-23)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.asam.org/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+        "note": "Read 2026-11-16 (see the guideline source): mild withdrawal is a CIWA-Ar under 10, so a score under 10 at 04:00 counts as controlled here."
+      }
+    },
+    "trigScore": {
+      "value": 10,
+      "source": {
+        "cite": "Southern Health-Sante Sud. Alcohol Withdrawal Assessment Flowsheet (CIWA-Ar), form CLI.5110.SG.013.FORM.02 (2024-01-19)",
+        "checkedAt": "2026-11-16",
+        "url": "https://staffnet.southernhealth.ca/wp-content/uploads/Alcohol-Withdrawal-Assessment-Flowsheet-CIWA-Ar.pdf",
+        "note": "Read 2026-11-16 (see the flowsheet source): PRN medication for a total of 10 or higher; ASAM's moderate band also starts at 10."
+      }
+    },
+    "severeScore": {
+      "value": 19,
+      "source": {
+        "cite": "American Society of Addiction Medicine. The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (adopted 2020-01-23)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.asam.org/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+        "note": "Read 2026-11-16: severe withdrawal at a CIWA-Ar of 19 (the comparison sign was lost in the extracted text; 19 or more is assumed)."
+      }
+    },
+    "scoreTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Medical unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Scoring the ten items at the bedside: about 5 min."
+      }
+    },
+    "doseWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Medical unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: the dose within 15 min of a qualifying score. FLAG."
+      }
+    },
+    "rescoreBy": {
+      "value": 4500,
+      "unit": "s",
+      "source": {
+        "cite": "Medical unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The protocol rescores 1 hour after each dose; 75 min is allowed here. ASAM: reassess every 1-4 hours. FLAG for the 15-min allowance."
+      }
+    },
+    "endAt": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Medical unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "The case ends at 04:00."
+      }
+    }
+  },
+  "state": {
+    "w": {
+      "type": "number",
+      "init": 0.47,
+      "min": 0,
+      "max": 2
+    },
+    "sed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "lzCount": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "lzFirstAt": {
+      "type": "time",
+      "init": null
+    },
+    "lzLastAt": {
+      "type": "time",
+      "init": null
+    },
+    "untriggered": {
+      "type": "bool",
+      "init": false
+    },
+    "lastCiwa": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 67
+    },
+    "lastCiwaAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstCiwaAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstQualAt": {
+      "type": "time",
+      "init": null
+    },
+    "rescoreAt": {
+      "type": "time",
+      "init": null
+    },
+    "scoring": {
+      "type": "bool",
+      "init": false
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsOn": {
+      "type": "bool",
+      "init": false
+    },
+    "thiamineAt": {
+      "type": "time",
+      "init": null
+    },
+    "precAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrained": {
+      "type": "bool",
+      "init": false
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callGood": {
+      "type": "bool",
+      "init": false
+    },
+    "seized": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "ciwa": {
+      "expr": "round(clamp(30 * w, 0, 67))",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(78 + 50 * w - 6 * sed, 45, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(128 + 40 * w - 8 * sed, 70, 220))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(clamp(sbp * 0.6, 40, 130))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round(10 * (36.9 + 1.2 * w)) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "rr": {
+      "expr": "round(clamp(16 + 6 * w - 3 * sed, 6, 32))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "covered": {
+      "expr": "not isNull(lzLastAt) and since(lzLastAt) < lzCover"
+    }
+  },
+  "processes": [
+    {
+      "id": "withdrawal",
+      "when": "true",
+      "update": {
+        "w": "max(0.05, w + (covered ? -wFall : wRise) * dt / 3600)",
+        "sed": "max(0, sed - dt / 3600)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "history",
+        "ciwa",
+        "vitals",
+        "glucose",
+        "lorazepam",
+        "thiamine",
+        "precautions",
+        "restrain",
+        "callProvider"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "history": {
+      "label": "Ask him about drinking: how much, the last drink, and any past withdrawal",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(historyAt)",
+          "then": [
+            {
+              "set": "historyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"Twelve beers a day, more on weekends. Last one about two in the afternoon.\" Two years ago he stopped on his own and 'saw bugs on the walls' and was in hospital for three days. That is withdrawal delirium in the past: a high risk of complicated withdrawal.",
+          "kind": "find"
+        }
+      ]
+    },
+    "ciwa": {
+      "label": "Score the CIWA-Ar at the bedside (about 5 min)",
+      "group": "Assess",
+      "available": "not scoring",
+      "why": "You are scoring now.",
+      "effects": [
+        {
+          "set": "scoring",
+          "to": "true"
+        },
+        {
+          "schedule": "ciwaT",
+          "after": "scoreTime"
+        },
+        {
+          "log": "Scoring: nausea, tremor, sweats, anxiety, agitation, tactile, auditory and visual disturbances, headache, orientation."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs",
+      "group": "Assess",
+      "available": "not vitalsOn",
+      "why": "Already on the monitor.",
+      "effects": [
+        {
+          "set": "vitalsOn",
+          "to": "true"
+        },
+        {
+          "log": "HR {hr}, BP {sbp}/{dbp}, temperature {temp} C, RR {rr}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Fingerstick glucose",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "glucoseAt",
+          "to": "t"
+        },
+        {
+          "log": "Glucose 104 mg/dL.",
+          "kind": "find"
+        }
+      ]
+    },
+    "lorazepam": {
+      "label": "Lorazepam IV at the protocol dose",
+      "group": "Treat",
+      "effects": [
+        {
+          "if": "isNull(lastCiwaAt) or since(lastCiwaAt) > 3600 or lastCiwa < trigScore",
+          "then": [
+            {
+              "set": "untriggered",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "add": "lzCount",
+          "by": "1"
+        },
+        {
+          "add": "sed",
+          "by": "1"
+        },
+        {
+          "if": "isNull(lzFirstAt)",
+          "then": [
+            {
+              "set": "lzFirstAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lzLastAt",
+          "to": "t"
+        },
+        {
+          "schedule": "lzT",
+          "after": "lzOnset"
+        },
+        {
+          "log": "Lorazepam IV at {t|clock}{isNull(lastCiwaAt) ? \", with no CIWA-Ar score behind it\" : \"\"}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "thiamine": {
+      "label": "Thiamine 100 mg IV (protocol)",
+      "group": "Treat",
+      "available": "isNull(thiamineAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "thiamineAt",
+          "to": "t"
+        },
+        {
+          "log": "Thiamine 100 mg IV given.",
+          "kind": "act"
+        }
+      ]
+    },
+    "precautions": {
+      "label": "Seizure and fall precautions: bed low, rails padded, suction and oxygen at the bedside, a quiet lit room",
+      "group": "Treat",
+      "available": "isNull(precAt)",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "precAt",
+          "to": "t"
+        },
+        {
+          "log": "Bed low and locked, rails padded, suction checked, lights on low, door open.",
+          "kind": "act"
+        }
+      ]
+    },
+    "restrain": {
+      "label": "Apply wrist restraints so he stays in bed",
+      "group": "Treat",
+      "available": "not restrained",
+      "why": "Already on.",
+      "effects": [
+        {
+          "set": "restrained",
+          "to": "true"
+        },
+        {
+          "set": "w",
+          "to": "w + 0.15"
+        },
+        {
+          "log": "He fights the restraints, shouting; his tremor and sweating get worse.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "callProvider": {
+      "label": "Call the provider (SBAR)",
+      "group": "Call",
+      "available": "isNull(callAt)",
+      "why": "Already called.",
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "not isNull(historyAt) and not isNull(lastCiwaAt)",
+              "then": [
+                {
+                  "set": "callGood",
+                  "to": "true"
+                },
+                {
+                  "log": "You give the score, the last drink at 14:00, his past withdrawal delirium and what you have given. Provider: 'High risk. Keep the protocol going, rescore hourly overnight, call me for 19 or more and I'll see him at 06:00.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Provider: 'What's his score? When was his last drink? Any history of withdrawal?' You don't know yet. 'Call me back when you do.'",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "ciwaT": {
+      "label": "CIWA-Ar score",
+      "wait": {
+        "skipLabel": "finishing the CIWA-Ar (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Medical unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 5 min."
+      },
+      "effects": [
+        {
+          "set": "scoring",
+          "to": "false"
+        },
+        {
+          "set": "lastCiwa",
+          "to": "ciwa"
+        },
+        {
+          "set": "lastCiwaAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstCiwaAt)",
+          "then": [
+            {
+              "set": "firstCiwaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(firstQualAt) and ciwa >= trigScore",
+          "then": [
+            {
+              "set": "firstQualAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not isNull(lzFirstAt) and isNull(rescoreAt)",
+          "then": [
+            {
+              "set": "rescoreAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "ciwa >= severeScore",
+              "then": [
+                {
+                  "log": "CIWA-Ar {ciwa}: severe withdrawal. Coarse tremor, drenching sweats, picking at the sheets.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "ciwa >= trigScore",
+              "then": [
+                {
+                  "log": "CIWA-Ar {ciwa}: moderate withdrawal. Tremor with arms out, sweating, anxious, nauseated, oriented.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "CIWA-Ar {ciwa}: mild. A fine tremor, calmer, oriented.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "lzT": {
+      "label": "lorazepam effect",
+      "wait": {
+        "skipLabel": "the lorazepam taking effect (about 5 min)"
+      },
+      "instances": "many",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "About 5 min. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      },
+      "effects": [
+        {
+          "set": "w",
+          "to": "max(0.05, w - lzDrop)"
+        },
+        {
+          "log": "He is calmer and his hands are steadier.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "halluc",
+      "when": "w >= hallucW",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He brushes at his arms: 'Get them off me, there are bugs.' Drenched in sweat.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "drowsy",
+      "when": "sed >= 2",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He is hard to rouse; respiratory rate {rr}.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(firstCiwaAt) or t >= 900",
+      "question": "What is happening to Mr. Dale, how serious is it, and what do you do in what order?",
+      "parts": [
+        {
+          "label": "Recognition and risk",
+          "criteria": "Names alcohol withdrawal about 12 hours after the last drink; uses the CIWA-Ar score to grade it (10-18 moderate, 19 or more severe); names the past withdrawal delirium as a risk of complicated withdrawal, with seizures possible in the next day or two.",
+          "modelAnswer": "Alcohol withdrawal, about 12 hours after his last drink, CIWA-Ar 14: moderate. He had withdrawal delirium two years ago, so he is at high risk of a complicated course; seizures can come in the next 8 to 48 hours."
+        },
+        {
+          "label": "Actions",
+          "criteria": "Treats by the symptom-triggered protocol: a dose for a score of 10 or more and a rescore an hour later; thiamine; seizure and fall precautions; calls the provider with the score, the last drink and the history; avoids restraints and doses with no score behind them.",
+          "modelAnswer": "Lorazepam now for the score of 14, rescore in an hour and dose again only if it is 10 or more. Thiamine 100 mg IV. Seizure and fall precautions, a calm lit room, no restraints. SBAR to the provider: score, last drink at 14:00, past delirium."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= endAt + 300",
+      "class": "harm",
+      "rationale": "Withdrawal not brought under the protocol by 04:05 is left to run toward a seizure, so the case calls it harm.",
+      "source": {
+        "cite": "American Society of Addiction Medicine. The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (adopted 2020-01-23)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.asam.org/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+        "note": "Read 2026-11-16 (see the guideline source)."
+      }
+    }
+  },
+  "endings": {
+    "seizure": {
+      "label": "A withdrawal seizure",
+      "class": "harm",
+      "when": "w >= seizeW",
+      "terminal": true,
+      "narrative": "{t|clock}: Mr. Dale stiffens and jerks, a generalized seizure. The rapid response team is called."
+    },
+    "oversedated": {
+      "label": "Oversedated",
+      "class": "harm",
+      "when": "sed >= sedMax",
+      "terminal": true,
+      "narrative": "{t|clock}: he cannot be roused and is breathing {rr} times a minute. The rapid response team is called."
+    },
+    "controlled": {
+      "label": "Withdrawal controlled by the protocol",
+      "class": "target",
+      "when": "t >= endAt and w < calmW and not isNull(historyAt) and timeAt(historyAt) <= 600 and not isNull(firstCiwaAt) and not isNull(lzFirstAt) and timeAt(firstCiwaAt) <= timeAt(lzFirstAt) and not untriggered and not isNull(firstQualAt) and timeAt(lzFirstAt) - timeAt(firstQualAt) <= doseWindow and not isNull(rescoreAt) and timeAt(rescoreAt) - timeAt(lzFirstAt) <= rescoreBy",
+      "terminal": true,
+      "narrative": "04:00: Mr. Dale is calm, oriented, with a fine tremor; CIWA-Ar {ciwa}. Screened, scored, treated by the score and rescored."
+    },
+    "controlledLate": {
+      "label": "04:00, by a slower or riskier route",
+      "class": "recovered",
+      "when": "t >= endAt",
+      "terminal": true,
+      "narrative": "04:00: no seizure, CIWA-Ar {ciwa} now, but the route missed part of the protocol: the history, a score before the dose, the timing, or the rescore."
+    },
+    "time_up": {
+      "label": "Still unresolved",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "04:10 and the withdrawal is not under control."
+    }
+  },
+  "endingOrder": [
+    "seizure",
+    "oversedated",
+    "controlled",
+    "controlledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "screened",
+        "label": "Drinking history taken: amount, last drink, past withdrawal, within 10 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(historyAt)",
+            "score": "missed",
+            "why": "No drinking history taken."
+          },
+          {
+            "when": "timeAt(historyAt) <= 600",
+            "score": "met",
+            "why": "History at {timeAt(historyAt)|clock}: last drink 14:00, past delirium."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "History at {timeAt(historyAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "scoredFirst",
+        "label": "CIWA-Ar scored before any lorazepam, and every dose backed by a score of 10 or more",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(firstCiwaAt)",
+            "score": "missed",
+            "why": "No CIWA-Ar score."
+          },
+          {
+            "when": "untriggered",
+            "score": "missed",
+            "why": "Lorazepam given without a qualifying score behind it."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "First score {timeAt(firstCiwaAt)|clock}; doses followed scores."
+          }
+        ]
+      },
+      {
+        "id": "treated",
+        "label": "Lorazepam within 15 min of a score of 10 or more",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(firstQualAt)",
+            "score": "missed",
+            "why": "No qualifying score was found."
+          },
+          {
+            "when": "isNull(lzFirstAt)",
+            "score": "missed",
+            "why": "No lorazepam for a score of 10 or more."
+          },
+          {
+            "when": "timeAt(lzFirstAt) < timeAt(firstQualAt)",
+            "score": "missed",
+            "why": "Lorazepam came before the score."
+          },
+          {
+            "when": "timeAt(lzFirstAt) - timeAt(firstQualAt) <= doseWindow",
+            "score": "met",
+            "why": "Dose at {timeAt(lzFirstAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Dose at {timeAt(lzFirstAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "rescored",
+        "label": "Rescored within about an hour of the dose",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(lzFirstAt)",
+            "score": "missed",
+            "why": "No dose, so no rescore."
+          },
+          {
+            "when": "isNull(rescoreAt)",
+            "score": "missed",
+            "why": "Never rescored after the dose."
+          },
+          {
+            "when": "timeAt(rescoreAt) - timeAt(lzFirstAt) <= rescoreBy",
+            "score": "met",
+            "why": "Rescored at {timeAt(rescoreAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Rescored at {timeAt(rescoreAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "thiamine",
+        "label": "Thiamine given",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(thiamineAt)",
+            "score": "met",
+            "why": "Thiamine at {timeAt(thiamineAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No thiamine."
+          }
+        ]
+      },
+      {
+        "id": "safety",
+        "label": "Seizure and fall precautions, no restraints",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "restrained",
+            "score": "missed",
+            "why": "Restrained a man in withdrawal who was not a danger, which made him worse."
+          },
+          {
+            "when": "not isNull(precAt)",
+            "score": "met",
+            "why": "Precautions in place."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "No precautions, but no restraints."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Provider told the score, the last drink and the past delirium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "callGood",
+            "score": "met",
+            "why": "SBAR with the score and the history."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "partial",
+            "why": "Called without the score or the history."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The provider was not told about a high-risk history."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: withdrawal, severity by score, risk, protocol",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toScore",
+        "label": "02:00 to the first CIWA-Ar",
+        "value": "isNull(firstCiwaAt) ? -1 : timeAt(firstCiwaAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "toDose",
+        "label": "02:00 to the first lorazepam",
+        "value": "isNull(lzFirstAt) ? -1 : timeAt(lzFirstAt)",
+        "format": "duration",
+        "expert": "under 15 min"
+      },
+      {
+        "id": "doses",
+        "label": "Lorazepam doses",
+        "value": "lzCount",
+        "format": "number",
+        "expert": "1-2"
+      },
+      {
+        "id": "finalScore",
+        "label": "CIWA-Ar at the end",
+        "value": "ciwa",
+        "format": "number",
+        "expert": "under 10"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:00",
+        "text": "Ask about drinking: 12 beers a day, last drink 14:00, withdrawal delirium two years ago. Vital signs."
+      },
+      {
+        "at": "02:01",
+        "text": "Score the CIWA-Ar: 14, moderate. Seizure and fall precautions while you score."
+      },
+      {
+        "at": "~02:06",
+        "text": "Lorazepam by the protocol for a score of 10 or more. Thiamine 100 mg IV. SBAR to the provider with the score, the last drink and the history."
+      },
+      {
+        "at": "~03:06",
+        "text": "Rescore an hour after the dose: under 10, so no further dose. Keep scoring through the night."
+      }
+    ],
+    "debrief": {
+      "seizure": {
+        "headline": "A withdrawal seizure",
+        "body": "Moderate withdrawal at 12 hours, with past delirium, needs the protocol now: score, dose for 10 or more, rescore. Untreated or provoked, it climbs to a seizure."
+      },
+      "oversedated": {
+        "headline": "Oversedated",
+        "body": "Symptom-triggered dosing means a dose for a score, then a rescore before the next. Stacked doses with no score behind them oversedate."
+      },
+      "controlled": {
+        "headline": "Withdrawal controlled by the protocol",
+        "body": "You took the history, scored the CIWA-Ar before treating, dosed for the score, rescored an hour later, gave thiamine, kept him safe without restraints and told the provider about his high-risk history. That is the expert path."
+      },
+      "controlledLate": {
+        "headline": "No seizure, by a slower or riskier route",
+        "body": "Check whether you asked about the last drink and past withdrawal, scored before dosing, dosed within 15 minutes of a score of 10 or more, and rescored within the hour."
+      },
+      "time_up": {
+        "headline": "Still unresolved",
+        "body": "Withdrawal needs a score, a dose for the score, and a rescore."
+      }
+    },
+    "modelReasoning": "Sweating, tremor and agitation 12 hours after the last drink is alcohol withdrawal, and the admission screen missed it. The CIWA-Ar grades it: under 10 mild, 10 to 18 moderate, 19 or more severe (ASAM 2020). His past withdrawal delirium makes complicated withdrawal more likely, and seizures typically come 8 to 48 hours after the last drink. Treat by symptom-triggered protocol: lorazepam for a score of 10 or more, rescore an hour later, dose again only for a qualifying score. Give thiamine. Keep him safe with seizure and fall precautions in a calm, lit room; restraints are for preventing injury, not for keeping a frightened man in bed, and they worsen agitation. Tell the provider the score, the last drink and the history so the plan can match the risk."
+  },
+  "chapters": [
+    {
+      "id": "dosed",
+      "label": "First lorazepam given",
+      "when": "lzCount >= 1"
+    }
+  ],
+  "teaching": {
+    "ciwaQ": {
+      "during": "ciwaT",
+      "ask": "While you score: under the ASAM 2020 guideline, what CIWA-Ar total marks severe withdrawal?",
+      "choices": [
+        {
+          "id": "nineteen",
+          "label": "19 or more"
+        },
+        {
+          "id": "eight",
+          "label": "8 or more"
+        },
+        {
+          "id": "sixtyseven",
+          "label": "67, the maximum"
+        }
+      ],
+      "expect": "nineteen",
+      "explain": "ASAM 2020 calls a CIWA-Ar under 10 mild, 10 to 18 moderate and 19 or more severe.",
+      "source": {
+        "cite": "American Society of Addiction Medicine. The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (adopted 2020-01-23)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.asam.org/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+        "note": "Read 2026-11-16 (see the guideline source); the severe threshold's comparison sign was lost in the extracted text."
+      }
+    }
+  }
+}

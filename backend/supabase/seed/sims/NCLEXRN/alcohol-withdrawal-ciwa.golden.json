@@ -1,0 +1,470 @@
+{
+  "slug": "alcohol-withdrawal-ciwa",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, vital signs, precautions, CIWA-Ar 14, lorazepam, thiamine, SBAR with the history, rescore at the hour",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "precautions",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "ciwaQ",
+          "choice": "nineteen",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 8,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "thiamine",
+          "seq": 9,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 10,
+          "tick": 305
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 3960
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 12,
+          "tick": 3960
+        }
+      ],
+      "expect": {
+        "ending": "controlled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "screened": "met",
+          "scoredFirst": "met",
+          "treated": "met",
+          "rescored": "met",
+          "thiamine": "met",
+          "safety": "met",
+          "escalate": "met"
+        },
+        "kpis": {
+          "toScore": 305,
+          "toDose": 305,
+          "doses": 1,
+          "finalScore": 10
+        },
+        "stateHash": "9be0a18b09f580e9"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "noHistory",
+      "title": "Scores and treats by the protocol with precautions and thiamine, rescores at the hour, but never asks about drinking and calls without the history",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "ciwaQ",
+          "choice": "nineteen",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 5,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "precautions",
+          "seq": 6,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "thiamine",
+          "seq": 7,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "callProvider",
+          "seq": 8,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 3960
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 10,
+          "tick": 3960
+        }
+      ],
+      "expect": {
+        "ending": "controlledLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "screened": "missed",
+          "scoredFirst": "met",
+          "treated": "met",
+          "rescored": "met",
+          "thiamine": "met",
+          "safety": "met",
+          "escalate": "partial"
+        },
+        "kpis": {
+          "toScore": 310,
+          "toDose": 310,
+          "doses": 1,
+          "finalScore": 10
+        },
+        "stateHash": "3a950740e2fe7b01"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "doseFirst",
+      "title": "Lorazepam before any score, then history and a score, thiamine; never rescored",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "ciwaQ",
+          "choice": "nineteen",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "thiamine",
+          "seq": 7,
+          "tick": 310
+        }
+      ],
+      "expect": {
+        "ending": "controlledLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "screened": "met",
+          "scoredFirst": "missed",
+          "treated": "missed",
+          "rescored": "met",
+          "thiamine": "met",
+          "safety": "partial",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toScore": 310,
+          "toDose": 10,
+          "doses": 1,
+          "finalScore": 10
+        },
+        "stateHash": "dfbe14bf0dcc8f59"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateRescore",
+      "title": "History, score and dose on time, but no thiamine or precautions, no call, and the rescore at 1 h 45 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "ciwaQ",
+          "choice": "nineteen",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 310
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 5,
+          "tick": 310
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 6600
+        },
+        {
+          "type": "act",
+          "action": "ciwa",
+          "seq": 7,
+          "tick": 6600
+        }
+      ],
+      "expect": {
+        "ending": "controlledLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 56,
+        "criteria": {
+          "screened": "met",
+          "scoredFirst": "met",
+          "treated": "met",
+          "rescored": "partial",
+          "thiamine": "missed",
+          "safety": "partial",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toScore": 310,
+          "toDose": 310,
+          "doses": 1,
+          "finalScore": 10
+        },
+        "stateHash": "b19e8d731722017f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "restrained",
+      "title": "Failure: restrains him and waits for the provider's morning round; a seizure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "restrain",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "screened": "missed",
+          "scoredFirst": "missed",
+          "treated": "missed",
+          "rescored": "missed",
+          "thiamine": "missed",
+          "safety": "missed",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toScore": -1,
+          "toDose": -1,
+          "doses": 0,
+          "finalScore": 27
+        },
+        "stateHash": "3853a8a6d2a83647"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "stacked",
+      "title": "Failure: three doses in a row to settle him, no score; oversedated",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "chapter",
+          "chapter": "dosed",
+          "choice": "continue",
+          "seq": 2,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 3,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "lorazepam",
+          "seq": 4,
+          "tick": 400
+        }
+      ],
+      "expect": {
+        "ending": "oversedated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "screened": "missed",
+          "scoredFirst": "missed",
+          "treated": "missed",
+          "rescored": "missed",
+          "thiamine": "missed",
+          "safety": "partial",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toScore": -1,
+          "toDose": 30,
+          "doses": 3,
+          "finalScore": 10
+        },
+        "stateHash": "8ffcf8ea55f71284"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
