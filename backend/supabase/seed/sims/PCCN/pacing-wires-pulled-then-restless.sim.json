@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pacing-wires-pulled-then-restless",
+  "title": "An hour after the pacing wires came out",
+  "objective": "Recognize cardiac tamponade from hypotension, muffled heart sounds, jugular venous distension and pulsus paradoxus, and escalate for drainage",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Progressive care nursing certification exam handbook and test plan: Cardiovascular (20% of the exam)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/pccnexamhandbook.pdf?la=en",
+      "note": "Relayed from the PCCN course seed (backend/supabase/seed/tracks/pccn.ts), which read the handbook 2026-11-14, not re-read: Cardiovascular is the largest clinical category. Scope only."
+    },
+    {
+      "cite": "Ascendra PCCN course catalog (backend/supabase/seed/tracks/pccn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041",
+      "checkedAt": "2026-11-09",
+      "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+      "note": "Relayed from the CCRN Adult case tamponade-after-cabg (read 2026-11-09), not re-read: tamponade is an effusion impairing diastolic filling until cardiac output falls, possible at 200-300 mL of blood; after cardiac surgery an effusion may be loculated; a clinical diagnosis confirmed by echo; drainage, surgical drainage preferred for bleeding into the pericardium; avoid diuretics and positive-pressure ventilation; temporary fluid support. A European guideline: the unit's policy follows it."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:20 on a cardiac progressive care unit. You are the nurse for Mr. Haines, 70, on day 4 after coronary bypass surgery. His temporary epicardial pacing wires were pulled at 09:15. The aide says he 'won't settle and looks gray'.",
+    "handover": [
+      "Before the wires: blood pressure 124/72, heart rate 84 in sinus rhythm. Aspirin; prophylactic heparin under the skin.",
+      "The hospitalist covering the unit has written 'IV furosemide for signs of fluid overload' on his orders after he gained a kilogram overnight.",
+      "Unit policy for a suspected complication after wire removal: rapid response and the cardiac surgeon at once; an echo at the bedside; a crystalloid bolus may be given to support the pressure while they come."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what is happening and who must come.",
+      "Partway through you are asked to write what you think is happening. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:20",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.025,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Blood collects in the pericardium after wire removal: about 1/40 of the way to arrest per minute. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fluidGain": {
+      "value": 10,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Systolic support from a crystalloid bolus while drainage is arranged. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "diureticDrop": {
+      "value": 0.35,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A diuretic in tamponade: the preload the heart depends on falls. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of pulseless electrical activity. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Rapid response and the surgeon within 5 minutes of the first sign (unit policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "drainTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Surgeon, bedside echo and the move to the operating room for drainage: about 10 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "neckAt": {
+      "type": "time",
+      "init": null
+    },
+    "paradoxAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "neck",
+        "paradox",
+        "ecg",
+        "hx"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rrt",
+        "hosp"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "tamp",
+        "chf",
+        "anx"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "lasixAt": {
+      "type": "time",
+      "init": null
+    },
+    "boluses": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 44 * prog + sin(t / 13))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(clamp(132 - 80 * max(0, prog - 0.3) + fluidGain * boluses, 40, 150))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.66)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "pp": {
+      "expr": "round(sbp - dbp)",
+      "precision": 0
+    },
+    "pulsus": {
+      "expr": "round(6 + 20 * prog)",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 4 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 10 * prog)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + progRate * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "NIBP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 28
+          },
+          "announce": {
+            "bands": [
+              24,
+              28
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Crystalloid boluses: {boluses|0dp}. Furosemide: {not isNull(lasixAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"rrt\" and inClinic",
+          "text": "Rapid response at the bedside; the cardiac surgeon and echo on the way."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "neck": {
+      "label": "Neck veins, heart sounds and lungs",
+      "group": "Assess",
+      "available": "not testPending and isNull(neckAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "paradox": {
+      "label": "Manual blood pressure for pulsus paradoxus",
+      "group": "Assess",
+      "available": "not testPending and isNull(paradoxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"paradox\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "12-lead ECG",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hx": {
+      "label": "Ask him: chest pain, breathlessness; check the wire removal note",
+      "group": "Assess",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "fluid": {
+      "label": "Crystalloid bolus to support the pressure (unit policy)",
+      "group": "Treat",
+      "available": "boluses < 2 and inClinic",
+      "why": "Two boluses already.",
+      "effects": [
+        {
+          "add": "boluses",
+          "by": "1"
+        },
+        {
+          "if": "isNull(fluidAt)",
+          "then": [
+            {
+              "set": "fluidAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Bolus running; blood pressure {sbp}/{dbp}.",
+          "kind": "act"
+        }
+      ]
+    },
+    "lasix": {
+      "label": "Give the ordered IV furosemide for the raised neck veins",
+      "group": "Treat",
+      "available": "isNull(lasixAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "lasixAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "prog + diureticDrop"
+        },
+        {
+          "log": "Furosemide given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Name what is happening",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "tamp",
+              "label": "Cardiac tamponade after wire removal: hypotension, distended neck veins, muffled heart sounds, pulsus paradoxus"
+            },
+            {
+              "value": "chf",
+              "label": "Fluid overload: weight up a kilogram and distended neck veins"
+            },
+            {
+              "value": "anx",
+              "label": "Anxiety after the wires came out"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"tamp\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tamp\""
+                },
+                {
+                  "log": "Impression: cardiac tamponade.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"chf\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"chf\""
+                },
+                {
+                  "log": "Impression: fluid overload.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"anx\""
+                },
+                {
+                  "log": "Impression: anxiety.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Who you call",
+          "options": [
+            {
+              "value": "rrt",
+              "label": "Rapid response and the cardiac surgeon now: suspected tamponade after wire removal; bedside echo and drainage"
+            },
+            {
+              "value": "hosp",
+              "label": "Page the hospitalist: fluid overload and low pressure; ask about the furosemide"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"rrt\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"rrt\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "drainTime"
+                },
+                {
+                  "log": "The rapid response team arrives; the surgeon is on the way and the echo machine is wheeled in.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"hosp\""
+                },
+                {
+                  "log": "The hospitalist replies by text: 'Give the furosemide, recheck in an hour.'",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "SBAR to the surgeon: wire removal time, the triad, pulsus, ECG voltage, fluids given",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "SBAR: wires out 09:15, hypotension, distended neck veins, muffled heart sounds, pulsus paradoxus, low-voltage ECG, {boluses|0dp} boluses.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Progressive care room",
+      "clock": "running",
+      "actions": [
+        "neck",
+        "paradox",
+        "ecg",
+        "hx",
+        "fluid",
+        "lasix",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"neck\"",
+              "then": [
+                {
+                  "set": "neckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Neck veins distended to the jaw sitting up. Heart sounds distant and muffled. Lungs clear to the bases.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"paradox\"",
+              "then": [
+                {
+                  "set": "paradoxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Pulsus paradoxus {pulsus|0dp} mm Hg: the systolic falls that much with each breath in. Pulse pressure {pp|0dp}.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ecg\"",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sinus tachycardia {hr}, low-voltage QRS throughout. No new ST elevation.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "\"I just feel awful, like I can't get comfortable.\" The removal note says both wires came out intact at 09:15; no bleeding noted.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "going for drainage",
+      "wait": {
+        "skipLabel": "the move to the operating room"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for the surgeon, the bedside echo and the move."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Echo confirms a pericardial collection; he goes to the operating room for drainage.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Mr. Haines is restless and gray an hour after his pacing wires came out. What is happening, and who needs to come?",
+      "parts": [
+        {
+          "label": "What",
+          "criteria": "Cardiac tamponade from bleeding after wire removal: falling pressure and rising heart rate with distended neck veins, muffled heart sounds and pulsus paradoxus over 10, clear lungs; not fluid overload.",
+          "modelAnswer": "Hypotension and tachycardia with distended neck veins, muffled heart sounds and a pulsus paradoxus over 10, an hour after his wires came out, is cardiac tamponade. His lungs are clear, so this isn't fluid overload."
+        },
+        {
+          "label": "Who and what",
+          "criteria": "Rapid response and the cardiac surgeon now for echo and drainage; a fluid bolus to support the pressure; no diuretic (it removes the filling the heart depends on).",
+          "modelAnswer": "Rapid response and the surgeon now for an echo and drainage. A fluid bolus to hold his pressure. The furosemide stays in the drawer: a diuretic takes away the filling his squeezed heart needs."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected tamponade still undrained an hour on is harm here.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041",
+        "checkedAt": "2026-11-09",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "note": "Relayed from the CCRN Adult case tamponade-after-cabg (read 2026-11-09), not re-read: tamponade is an effusion impairing diastolic filling until cardiac output falls, possible at 200-300 mL of blood; after cardiac surgery an effusion may be loculated; a clinical diagnosis confirmed by echo; drainage, surgical drainage preferred for bleeding into the pericardium; avoid diuretics and positive-pressure ventilation; temporary fluid support. A European guideline: the unit's policy follows it."
+      }
+    }
+  },
+  "endings": {
+    "diuretic": {
+      "label": "Collapse after the diuretic",
+      "class": "harm",
+      "terminal": true,
+      "when": "not isNull(lasixAt) and t >= timeAt(lasixAt) + 120 and inClinic",
+      "narrative": "Blood pressure {sbp}/{dbp}: the diuretic took the filling his compressed heart depended on. Rapid response is called to a crashing patient."
+    },
+    "pea": {
+      "label": "Pulseless electrical activity",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= arrestAt and inClinic",
+      "narrative": "The monitor still shows a rhythm, but there is no pulse. The tamponade has stopped his heart filling. A code is called."
+    },
+    "drained": {
+      "label": "Tamponade recognized and drained",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and isNull(lasixAt) and not isNull(paradoxAt)",
+      "narrative": "{timeAt(leftAt)|clock}: blood pressure {sbp}/{dbp} as he goes for drainage. You read the triad and pulsus, held the diuretic and called the right people at once."
+    },
+    "drainedLate": {
+      "label": "Drained, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he reaches the operating room, but the call came late or pulsus paradoxus was never measured."
+    },
+    "time_up": {
+      "label": "Still on the unit at 11:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:20 and Mr. Haines is still undrained."
+    }
+  },
+  "endingOrder": [
+    "diuretic",
+    "pea",
+    "drained",
+    "drainedLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Rapid response and the surgeon within 5 minutes of the first sign",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"rrt\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"rrt\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"hosp\"",
+            "score": "missed",
+            "why": "Paged about fluid overload."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nobody called."
+          }
+        ]
+      },
+      {
+        "id": "noDiuretic",
+        "label": "No diuretic in suspected tamponade",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(lasixAt)",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given."
+          }
+        ]
+      },
+      {
+        "id": "pulsusC",
+        "label": "Measured pulsus paradoxus",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(paradoxAt)",
+            "score": "met",
+            "why": "{pulsus|0dp} mm Hg."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not measured."
+          }
+        ]
+      },
+      {
+        "id": "fluidC",
+        "label": "A bolus to support the pressure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fluidAt)",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "impression",
+        "label": "Named cardiac tamponade",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"tamp\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"chf\"",
+            "score": "missed",
+            "why": "Called it fluid overload with clear lungs."
+          },
+          {
+            "when": "dxEnum == \"anx\"",
+            "score": "missed",
+            "why": "Called it anxiety."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "SBAR to the surgeon",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: tamponade, not overload; surgeon and drainage; no diuretic",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "First sign to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 2 min"
+      },
+      {
+        "id": "pulsusK",
+        "label": "Pulsus paradoxus measured",
+        "value": "isNull(paradoxAt) ? -1 : timeAt(paradoxAt)",
+        "format": "duration",
+        "expert": "within 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:20",
+        "text": "Gray and restless after wire removal: neck veins, heart sounds, lungs. Distended, muffled, clear."
+      },
+      {
+        "at": "~10:22",
+        "text": "Pulsus paradoxus over 10. Rapid response and the cardiac surgeon now."
+      },
+      {
+        "at": "~10:23",
+        "text": "A bolus to hold the pressure. The furosemide is held."
+      },
+      {
+        "at": "~10:24",
+        "text": "SBAR to the surgeon; the echo confirms; he goes for drainage."
+      }
+    ],
+    "debrief": {
+      "diuretic": {
+        "headline": "A diuretic in tamponade",
+        "body": "Distended neck veins with clear lungs and hypotension after wire removal is tamponade until an echo says otherwise. Diuretics take away the filling the compressed heart needs."
+      },
+      "pea": {
+        "headline": "PEA",
+        "body": "Hypotension, distended neck veins and muffled heart sounds after wire removal need the surgeon and drainage within minutes."
+      },
+      "drained": {
+        "headline": "Recognized and drained",
+        "body": "You read the triad and the pulsus, held the diuretic, supported the pressure and called rapid response and the surgeon at once. That is the expert path."
+      },
+      "drainedLate": {
+        "headline": "Drained, with delays",
+        "body": "Check how long the call took and whether pulsus paradoxus was measured."
+      },
+      "time_up": {
+        "headline": "Still undrained",
+        "body": "Suspected tamponade needs drainage within minutes."
+      }
+    },
+    "modelReasoning": "An hour after epicardial pacing wires come out, falling pressure and a rising heart rate with distended neck veins, muffled heart sounds and a pulsus paradoxus over 10 mm Hg, with clear lungs, is cardiac tamponade from bleeding into the pericardium. Rapid response and the cardiac surgeon come now for a bedside echo and drainage; a fluid bolus supports the pressure meanwhile; the ordered furosemide is held, because a diuretic removes the filling the compressed heart depends on."
+  },
+  "chapters": [
+    {
+      "id": "called",
+      "label": "Rapid response called",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "becksQ": {
+      "during": "testT",
+      "ask": "While you assess: which findings together suggest tamponade?",
+      "choices": [
+        {
+          "id": "beck",
+          "label": "Hypotension, distended neck veins and muffled heart sounds, with pulsus paradoxus"
+        },
+        {
+          "id": "hf",
+          "label": "Crackles to the mid-lungs and pink frothy sputum"
+        },
+        {
+          "id": "htn",
+          "label": "High blood pressure and a slow pulse"
+        }
+      ],
+      "expect": "beck",
+      "explain": "An effusion that impairs filling lowers cardiac output; it is a clinical diagnosis confirmed by echo.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041",
+        "checkedAt": "2026-11-09",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "note": "Relayed from the CCRN Adult case tamponade-after-cabg (read 2026-11-09), not re-read: tamponade is an effusion impairing diastolic filling until cardiac output falls, possible at 200-300 mL of blood; after cardiac surgery an effusion may be loculated; a clinical diagnosis confirmed by echo; drainage, surgical drainage preferred for bleeding into the pericardium; avoid diuretics and positive-pressure ventilation; temporary fluid support. A European guideline: the unit's policy follows it."
+      }
+    },
+    "diureticQ": {
+      "during": "leaveT",
+      "ask": "While he goes: why was the furosemide held?",
+      "choices": [
+        {
+          "id": "preload",
+          "label": "Diuretics are avoided in tamponade: the compressed heart depends on its filling"
+        },
+        {
+          "id": "kidney",
+          "label": "His kidneys were failing"
+        },
+        {
+          "id": "allergy",
+          "label": "He was allergic"
+        }
+      ],
+      "expect": "preload",
+      "explain": "Avoid diuretics and positive-pressure ventilation in tamponade; temporary fluid support while drainage is arranged.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041",
+        "checkedAt": "2026-11-09",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "note": "Relayed from the CCRN Adult case tamponade-after-cabg (read 2026-11-09), not re-read: tamponade is an effusion impairing diastolic filling until cardiac output falls, possible at 200-300 mL of blood; after cardiac surgery an effusion may be loculated; a clinical diagnosis confirmed by echo; drainage, surgical drainage preferred for bleeding into the pericardium; avoid diuretics and positive-pressure ventilation; temporary fluid support. A European guideline: the unit's policy follows it."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
