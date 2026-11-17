@@ -31,6 +31,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "PCCN", slug: "found-down-dark-urine", screen: "bedside" },
   { course: "CMSRN", slug: "bedside-debridement-sedation-quiet-capnograph", screen: "bedside" },
   { course: "CMSRN", slug: "found-on-floor-on-anticoagulant", screen: "bedside" },
+  { course: "CMSRN", slug: "stroke-day-one-coffee-and-pills", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
