@@ -1024,3 +1024,16 @@ of 11, DPT 13 of 15, PTPREREQ 1 of 2; many of these are already secondary
 objectives of a sim); nursing specialty and FNP (docs/sims-coverage-nursing-specialty.md,
 123 open); the ABPTS courses (none yet); ASWB and the remaining mental
 health objectives (docs/sims-coverage-mental-health-wave.md).
+
+## REQ-323 round 2 (2026-11-17)
+
+Launch courses, new main objectives (docs/sims.md 22.32, "Round 2"):
+**NCLEXRN** +2 bands (Cushing's triad with a falling level of
+consciousness, from the emergency head injury case; assessing whether a
+restraint is appropriate, from the med-surg delirium case); **NCLEXPN** +1
+case (high potassium reported as a risk of dysrhythmia, in a skilled
+nursing facility); **CCRNADULT** +1 case (heparin-induced thrombocytopenia).
+**NPTEPTA** +1 case (red flags in back pain reported to the supervising PT,
+Musculoskeletal). Counted again from the seeded catalog: NCLEX-RN 97,
+NCLEX-PN 38 and CCRN Adult 72 fitting objectives are no sim's main
+objective (secondary-only included).
