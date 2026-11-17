@@ -453,6 +453,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PCCN", "af-rate-control-pressure-sliding"),
   entry("PCCN", "telemetry-st-rising-inferior-leads"),
   entry("PCCN", "pressure-crisis-headache-titration"),
+  entry("PCCN", "groin-swelling-after-cath"),
   // ---- end REQ-326 ----
 ];
 

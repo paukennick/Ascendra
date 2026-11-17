@@ -25,6 +25,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "PCCN", slug: "af-rate-control-pressure-sliding", screen: "bedside" },
   { course: "PCCN", slug: "telemetry-st-rising-inferior-leads", screen: "bedside" },
   { course: "PCCN", slug: "pressure-crisis-headache-titration", screen: "bedside" },
+  { course: "PCCN", slug: "groin-swelling-after-cath", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
