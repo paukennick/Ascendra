@@ -1,0 +1,1541 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cssgb-fill-weight-chart",
+  "title": "Nothing over the limit on Line 3",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Line 3 filler: 500 g rice bags, subgroups of 5 every 15 minutes (Riverside Foods, fictional)",
+      "flags": [
+        {
+          "id": "sup",
+          "label": "Shift supervisor",
+          "text": "Chart's fine, nothing over the limit. Can we sign off pallets P1 to P4 for the 12:00 truck?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "wrongType",
+          "label": "Chart setup",
+          "text": "{chartType == \"p\" ? \"A p chart of bags under 500 g, with only 5 bags a subgroup, cannot show a drifting mean.\" : \"A c chart counts defects; fill weight is a measurement.\"}",
+          "when": "chartType != \"xbar\" and not isNull(rulesAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "below",
+          "label": "X-bar chart",
+          "text": "Subgroup 21 or 22 is below the lower control limit.",
+          "when": "chartType == \"xbar\" and ((t >= 900 and m21 < 500.2) or (t >= 1800 and m22 < 500.2))",
+          "severity": "error"
+        },
+        {
+          "id": "above",
+          "label": "X-bar chart",
+          "text": "Subgroup 21 or 22 is above the upper control limit after the set point change.",
+          "when": "chartType == \"xbar\" and ((t >= 900 and m21 > 503.8) or (t >= 1800 and m22 > 503.8))",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Warehouse",
+          "text": "12:00: the truck left without a release decision; all four pallets stay.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "xbar",
+          "label": "X-bar chart: subgroup mean fill (g)",
+          "spokenLabel": "X-bar chart of mean fill",
+          "kind": "control",
+          "unit": "g",
+          "min": 499,
+          "max": 505,
+          "when": "chartType == \"xbar\"",
+          "points": [
+            {
+              "id": "s1",
+              "label": "1 (06:00)",
+              "value": "502.4",
+              "flag": "false"
+            },
+            {
+              "id": "s2",
+              "label": "2 (06:15)",
+              "value": "501.6",
+              "flag": "false"
+            },
+            {
+              "id": "s3",
+              "label": "3 (06:30)",
+              "value": "502.9",
+              "flag": "false"
+            },
+            {
+              "id": "s4",
+              "label": "4 (06:45)",
+              "value": "501.8",
+              "flag": "false"
+            },
+            {
+              "id": "s5",
+              "label": "5 (07:00)",
+              "value": "502.2",
+              "flag": "false"
+            },
+            {
+              "id": "s6",
+              "label": "6 (07:15)",
+              "value": "501.3",
+              "flag": "false"
+            },
+            {
+              "id": "s7",
+              "label": "7 (07:30)",
+              "value": "502.7",
+              "flag": "false"
+            },
+            {
+              "id": "s8",
+              "label": "8 (07:45)",
+              "value": "502.1",
+              "flag": "false"
+            },
+            {
+              "id": "s9",
+              "label": "9 (08:00)",
+              "value": "501.9",
+              "flag": "false"
+            },
+            {
+              "id": "s10",
+              "label": "10 (08:15)",
+              "value": "502.6",
+              "flag": "false"
+            },
+            {
+              "id": "s11",
+              "label": "11 (08:30)",
+              "value": "501.5",
+              "flag": "false"
+            },
+            {
+              "id": "s12",
+              "label": "12 (08:45)",
+              "value": "502.3",
+              "flag": "false"
+            },
+            {
+              "id": "s13",
+              "label": "13 (09:00)",
+              "value": "501.4",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s14",
+              "label": "14 (09:15)",
+              "value": "501.1",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s15",
+              "label": "15 (09:30)",
+              "value": "501.3",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s16",
+              "label": "16 (09:45)",
+              "value": "500.9",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s17",
+              "label": "17 (10:00)",
+              "value": "501.0",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s18",
+              "label": "18 (10:15)",
+              "value": "500.8",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s19",
+              "label": "19 (10:30)",
+              "value": "500.6",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s20",
+              "label": "20 (10:45)",
+              "value": "500.4",
+              "flag": "runSeen"
+            },
+            {
+              "id": "s21",
+              "label": "21 (11:15)",
+              "value": "m21",
+              "when": "t >= 900",
+              "flag": "m21 < 500.2 or m21 > 503.8"
+            },
+            {
+              "id": "s22",
+              "label": "22 (11:30)",
+              "value": "m22",
+              "when": "t >= 1800",
+              "flag": "m22 < 500.2 or m22 > 503.8"
+            }
+          ],
+          "lines": [
+            {
+              "id": "ucl",
+              "label": "UCL",
+              "value": "503.8"
+            },
+            {
+              "id": "cl",
+              "label": "CL",
+              "value": "502.0"
+            },
+            {
+              "id": "lcl",
+              "label": "LCL",
+              "value": "500.2"
+            }
+          ],
+          "note": "Flagged: points in a run-rule signal (after the rules are applied) or beyond a control limit."
+        },
+        {
+          "id": "r",
+          "label": "R chart: subgroup range (g)",
+          "spokenLabel": "R chart of subgroup range",
+          "kind": "control",
+          "unit": "g",
+          "min": 0,
+          "max": 7,
+          "when": "chartType == \"xbar\"",
+          "points": [
+            {
+              "id": "r1",
+              "label": "1",
+              "value": "3.2"
+            },
+            {
+              "id": "r2",
+              "label": "2",
+              "value": "2.8"
+            },
+            {
+              "id": "r3",
+              "label": "3",
+              "value": "3.5"
+            },
+            {
+              "id": "r4",
+              "label": "4",
+              "value": "2.9"
+            },
+            {
+              "id": "r5",
+              "label": "5",
+              "value": "3.4"
+            },
+            {
+              "id": "r6",
+              "label": "6",
+              "value": "3.0"
+            },
+            {
+              "id": "r7",
+              "label": "7",
+              "value": "3.3"
+            },
+            {
+              "id": "r8",
+              "label": "8",
+              "value": "2.7"
+            },
+            {
+              "id": "r9",
+              "label": "9",
+              "value": "3.1"
+            },
+            {
+              "id": "r10",
+              "label": "10",
+              "value": "3.6"
+            },
+            {
+              "id": "r11",
+              "label": "11",
+              "value": "2.9"
+            },
+            {
+              "id": "r12",
+              "label": "12",
+              "value": "3.2"
+            },
+            {
+              "id": "r13",
+              "label": "13",
+              "value": "3.0"
+            },
+            {
+              "id": "r14",
+              "label": "14",
+              "value": "3.3"
+            },
+            {
+              "id": "r15",
+              "label": "15",
+              "value": "2.8"
+            },
+            {
+              "id": "r16",
+              "label": "16",
+              "value": "3.1"
+            },
+            {
+              "id": "r17",
+              "label": "17",
+              "value": "3.4"
+            },
+            {
+              "id": "r18",
+              "label": "18",
+              "value": "2.9"
+            },
+            {
+              "id": "r19",
+              "label": "19",
+              "value": "3.2"
+            },
+            {
+              "id": "r20",
+              "label": "20",
+              "value": "2.7"
+            },
+            {
+              "id": "r21",
+              "label": "21",
+              "value": "tampered ? 4.1 : 3.0",
+              "when": "t >= 900"
+            },
+            {
+              "id": "r22",
+              "label": "22",
+              "value": "tampered ? 4.4 : 3.2",
+              "when": "t >= 1800"
+            }
+          ],
+          "lines": [
+            {
+              "id": "rucl",
+              "label": "UCL",
+              "value": "6.55"
+            },
+            {
+              "id": "rcl",
+              "label": "CL",
+              "value": "3.1"
+            },
+            {
+              "id": "rlcl",
+              "label": "LCL",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "id": "p",
+          "label": "p chart: share of bags under 500 g",
+          "spokenLabel": "p chart of bags under 500 grams",
+          "kind": "control",
+          "unit": "",
+          "min": 0,
+          "max": 1,
+          "when": "chartType == \"p\"",
+          "points": [
+            {
+              "id": "p1",
+              "label": "1 (06:00)",
+              "value": "0"
+            },
+            {
+              "id": "p2",
+              "label": "2 (06:15)",
+              "value": "0"
+            },
+            {
+              "id": "p3",
+              "label": "3 (06:30)",
+              "value": "0"
+            },
+            {
+              "id": "p4",
+              "label": "4 (06:45)",
+              "value": "0"
+            },
+            {
+              "id": "p5",
+              "label": "5 (07:00)",
+              "value": "0"
+            },
+            {
+              "id": "p6",
+              "label": "6 (07:15)",
+              "value": "0.2"
+            },
+            {
+              "id": "p7",
+              "label": "7 (07:30)",
+              "value": "0"
+            },
+            {
+              "id": "p8",
+              "label": "8 (07:45)",
+              "value": "0"
+            },
+            {
+              "id": "p9",
+              "label": "9 (08:00)",
+              "value": "0"
+            },
+            {
+              "id": "p10",
+              "label": "10 (08:15)",
+              "value": "0"
+            },
+            {
+              "id": "p11",
+              "label": "11 (08:30)",
+              "value": "0"
+            },
+            {
+              "id": "p12",
+              "label": "12 (08:45)",
+              "value": "0"
+            },
+            {
+              "id": "p13",
+              "label": "13 (09:00)",
+              "value": "0"
+            },
+            {
+              "id": "p14",
+              "label": "14 (09:15)",
+              "value": "0"
+            },
+            {
+              "id": "p15",
+              "label": "15 (09:30)",
+              "value": "0.2"
+            },
+            {
+              "id": "p16",
+              "label": "16 (09:45)",
+              "value": "0"
+            },
+            {
+              "id": "p17",
+              "label": "17 (10:00)",
+              "value": "0.2"
+            },
+            {
+              "id": "p18",
+              "label": "18 (10:15)",
+              "value": "0.2"
+            },
+            {
+              "id": "p19",
+              "label": "19 (10:30)",
+              "value": "0.2"
+            },
+            {
+              "id": "p20",
+              "label": "20 (10:45)",
+              "value": "0.4"
+            },
+            {
+              "id": "p21",
+              "label": "21 (11:15)",
+              "value": "p21",
+              "when": "t >= 900",
+              "flag": "p21 > 0.41"
+            },
+            {
+              "id": "p22",
+              "label": "22 (11:30)",
+              "value": "p22",
+              "when": "t >= 1800",
+              "flag": "p22 > 0.41"
+            }
+          ],
+          "lines": [
+            {
+              "id": "pucl",
+              "label": "UCL",
+              "value": "0.41"
+            },
+            {
+              "id": "pcl",
+              "label": "CL",
+              "value": "0.07"
+            },
+            {
+              "id": "plcl",
+              "label": "LCL",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "tables": [
+        {
+          "id": "setup",
+          "label": "Chart setup",
+          "spokenLabel": "the chart setup",
+          "columns": [
+            {
+              "id": "what",
+              "label": "Characteristic"
+            },
+            {
+              "id": "chart",
+              "label": "Chart"
+            }
+          ],
+          "rows": [
+            {
+              "id": "fill",
+              "cells": [
+                "Fill weight (g), 5 bags every 15 min",
+                "{chartType == \"xbar\" ? \"X-bar and R\" : chartType == \"p\" ? \"p chart\" : \"c chart\"}"
+              ],
+              "flag": "chartType != \"xbar\""
+            }
+          ],
+          "edits": [
+            {
+              "row": "fill",
+              "column": "chart",
+              "action": "setChart"
+            }
+          ]
+        },
+        {
+          "id": "pallets",
+          "label": "Pallets for the 12:00 truck",
+          "spokenLabel": "the pallets",
+          "columns": [
+            {
+              "id": "pallet",
+              "label": "Pallet"
+            },
+            {
+              "id": "filled",
+              "label": "Filled"
+            },
+            {
+              "id": "status",
+              "label": "Status"
+            }
+          ],
+          "rows": [
+            {
+              "id": "p1",
+              "cells": [
+                "P1",
+                "06:00-08:00",
+                "{decision == \"all\" ? \"held\" : decision == \"none\" ? \"waiting\" : \"release\"}"
+              ]
+            },
+            {
+              "id": "p2",
+              "cells": [
+                "P2",
+                "08:00-09:00",
+                "{decision == \"all\" ? \"held\" : decision == \"none\" ? \"waiting\" : \"release\"}"
+              ]
+            },
+            {
+              "id": "p3",
+              "cells": [
+                "P3",
+                "09:00-10:00",
+                "{decision == \"shipall\" ? \"release\" : decision == \"none\" ? \"waiting\" : \"held\"}"
+              ],
+              "flag": "runSeen"
+            },
+            {
+              "id": "p4",
+              "cells": [
+                "P4",
+                "10:00-11:00",
+                "{decision == \"shipall\" ? \"release\" : decision == \"none\" ? \"waiting\" : \"held\"}"
+              ],
+              "flag": "runSeen"
+            }
+          ]
+        }
+      ],
+      "code": [],
+      "meters": [
+        {
+          "id": "truck",
+          "label": "Truck",
+          "value": "12:00"
+        },
+        {
+          "id": "spec",
+          "label": "Label weight",
+          "value": "500 g"
+        }
+      ]
+    }
+  },
+  "objective": "Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u",
+  "secondaryObjectives": [
+    "Explaining the aims of SPC and telling common-cause from special-cause variation"
+  ],
+  "sources": [
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar chart UCL = x-double-bar + A2 R-bar, center line x-double-bar, LCL = x-double-bar - A2 R-bar; R chart UCL = R-bar D4, center line R-bar, LCL = R-bar D3; A2 = 3/(d2 sqrt(n)). The factor values used (A2 = 0.577, D3 = 0, D4 = 2.114 for subgroups of 5) are the standard table values and were not on the fetched page; the limits in the case (R-bar 3.1 g: 500.2 to 503.8 g, R up to 6.55 g) are computed from them."
+    },
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2 What are Variables Control Charts? (WECO rules)",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc32.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: the WECO rules, among them '8 Consecutive Points on This Side of Control Line' and '2 Out of the Last 3 Points Below -2 Sigma'; for a point outside the control limits 'we conclude the process has shifted and is unstable'. The page gives no corrective procedure; finding and removing the cause before adjusting is the case's teaching, consistent with the objective."
+    },
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.3.2 Proportions Control Charts",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc332.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: p 'is the fraction defective in a lot or population'; 'the control chart for proportion or fraction nonconforming ... is called the p-chart'. The p-chart limits in the case (p-bar 0.07, n = 5, UCL 0.41) are computed with the usual three-sigma binomial form, which was not on the fetched text."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Green Belt on shift at Riverside Foods (fictional). Line 3 fills 500 g bags of rice; every 15 minutes the operator weighs 5 bags. The supervisor charts them on a p chart of bags under 500 g and wants to release pallets P1 to P4 for the 12:00 truck because 'nothing is over the limit'. It is 11:00.",
+    "handover": [
+      "The hopper was cleaned at 08:50."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The fill weights, the sensor fault and the pallets are invented. The truck leaves at 12:00, 60 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "chartType": {
+      "type": "enum",
+      "values": [
+        "p",
+        "c",
+        "xbar"
+      ],
+      "init": "p"
+    },
+    "chartSetAt": {
+      "type": "time",
+      "init": null
+    },
+    "rulesAt": {
+      "type": "time",
+      "init": null
+    },
+    "runSeen": {
+      "type": "bool",
+      "init": false
+    },
+    "rRead": {
+      "type": "bool",
+      "init": false
+    },
+    "askedAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "tamperedAt": {
+      "type": "time",
+      "init": null
+    },
+    "decision": {
+      "type": "enum",
+      "values": [
+        "none",
+        "since09",
+        "all",
+        "shipall"
+      ],
+      "init": "none"
+    },
+    "decidedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "signalDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "run",
+        "noise",
+        "spread"
+      ],
+      "init": "unset"
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sensor",
+        "operator",
+        "unknown"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "decided": {
+      "expr": "decision != \"none\""
+    },
+    "decidedSec": {
+      "expr": "not isNull(decidedAt) ? timeAt(decidedAt) : -1"
+    },
+    "tampered": {
+      "expr": "not isNull(tamperedAt)"
+    },
+    "m21": {
+      "expr": "(not isNull(fixedAt) and timeAt(fixedAt) <= 900) ? ((not isNull(tamperedAt) and timeAt(tamperedAt) <= 900) ? 503.1 : 502.0) : (not isNull(tamperedAt) and timeAt(tamperedAt) <= 900) ? 501.3 : 500.1"
+    },
+    "m22": {
+      "expr": "(not isNull(fixedAt) and timeAt(fixedAt) <= 1800) ? ((not isNull(tamperedAt) and timeAt(tamperedAt) <= 1800) ? 504.0 : 502.3) : (not isNull(tamperedAt) and timeAt(tamperedAt) <= 1800) ? 503.9 : 499.8"
+    },
+    "p21": {
+      "expr": "(not isNull(fixedAt) and timeAt(fixedAt) <= 900) ? 0 : 0.4"
+    },
+    "p22": {
+      "expr": "(not isNull(fixedAt) and timeAt(fixedAt) <= 1800) ? 0 : 0.6"
+    },
+    "causeFirst": {
+      "expr": "not isNull(askedAt) and (isNull(fixedAt) or timeAt(askedAt) <= timeAt(fixedAt)) and not tampered"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "setChart",
+        "rules",
+        "readR",
+        "ask",
+        "fixSensor",
+        "tamper",
+        "decide",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "setChart": {
+      "label": "Change the chart used for fill weight",
+      "group": "Chart",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "kind",
+          "kind": "choice",
+          "label": "Chart",
+          "options": [
+            {
+              "value": "p",
+              "label": "p chart: share of bags under 500 g"
+            },
+            {
+              "value": "c",
+              "label": "c chart: count of defects per subgroup"
+            },
+            {
+              "value": "xbar",
+              "label": "X-bar and R: mean and range of the 5 weights"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "chartType",
+          "to": "kind"
+        },
+        {
+          "if": "isNull(chartSetAt)",
+          "then": [
+            {
+              "set": "chartSetAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "runSeen",
+          "to": "false"
+        },
+        {
+          "log": "Chart for fill weight: {kind}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rules": {
+      "label": "Apply the WECO run rules to the chart",
+      "group": "Read",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "rulesAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "chartType == \"xbar\"",
+              "then": [
+                {
+                  "set": "runSeen",
+                  "to": "true"
+                },
+                {
+                  "output": "X-bar: subgroups 13-20 (09:00-10:45) are 8 consecutive points below the center line; 19 and 20 are 2 of the last 3 below -2 sigma."
+                },
+                {
+                  "finding": "A run of 8 below the center line from 09:00: the mean has shifted down."
+                }
+              ]
+            },
+            {
+              "when": "chartType == \"p\"",
+              "then": [
+                {
+                  "output": "p chart: no point above the UCL (0.41); no rule fires with subgroups of 5."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "c chart: a fill weight is not a count of defects; nothing to read."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "readR": {
+      "label": "Read the R chart",
+      "group": "Read",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "chartType == \"xbar\"",
+          "then": [
+            {
+              "set": "rRead",
+              "to": "true"
+            },
+            {
+              "output": "R chart: every range inside 0 to 6.55 g (R-bar 3.1 g). The spread has not changed; only the mean moved."
+            }
+          ],
+          "else": [
+            {
+              "output": "This chart type has no range chart."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "ask": {
+      "label": "Ask the line operator what changed around 09:00",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(askedAt)",
+          "then": [
+            {
+              "set": "askedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Operator: 'We cleaned the hopper at 08:50. The level sensor bracket came off and went back on; it might sit a bit lower.'"
+        },
+        {
+          "finding": "A lower level sensor keeps less product in the hopper, so the auger fills lighter."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "fixSensor": {
+      "label": "Reset the hopper level sensor to its marked height",
+      "group": "Act",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixedAt)",
+          "then": [
+            {
+              "set": "fixedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The sensor is back at its mark; fills should return to the center line.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "tamper": {
+      "label": "Raise the filler set point by 1 g",
+      "group": "Act",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(tamperedAt)",
+          "then": [
+            {
+              "set": "tamperedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Set point raised 1 g.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "decide": {
+      "label": "Send the release decision for the 12:00 truck",
+      "group": "Ship",
+      "available": "not busy and not decided",
+      "why": "Already decided.",
+      "params": [
+        {
+          "id": "d",
+          "kind": "choice",
+          "label": "Decision",
+          "options": [
+            {
+              "value": "since09",
+              "label": "Hold P3 and P4 (filled since 09:00) for 100% check-weighing; ship P1 and P2"
+            },
+            {
+              "value": "all",
+              "label": "Hold all four pallets"
+            },
+            {
+              "value": "shipall",
+              "label": "Ship all four pallets: no bag is outside the limits"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "decision",
+          "to": "d"
+        },
+        {
+          "set": "decidedAt",
+          "to": "t"
+        },
+        {
+          "output": "Release decision sent to the warehouse: {d}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes for the next subgroup",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait for the next subgroup.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the signal and the cause",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "signal",
+              "label": "What the chart showed",
+              "options": [
+                {
+                  "value": "run",
+                  "label": "From 09:00, eight subgroup means in a row below the center line, the range unchanged: the mean shifted"
+                },
+                {
+                  "value": "noise",
+                  "label": "Normal variation: every point is inside the limits"
+                },
+                {
+                  "value": "spread",
+                  "label": "The spread of the weights grew"
+                }
+              ]
+            },
+            {
+              "id": "cause",
+              "label": "The special cause",
+              "options": [
+                {
+                  "value": "sensor",
+                  "label": "The hopper level sensor, refitted lower after cleaning at 08:50"
+                },
+                {
+                  "value": "operator",
+                  "label": "The operator"
+                },
+                {
+                  "value": "unknown",
+                  "label": "Not found"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "signalDoc",
+          "to": "signal"
+        },
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: signal {signal}, cause {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The fill weights, the sensor fault and the pallets are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not decided",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the truck left without a release decision.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "sub21",
+      "when": "t >= 900",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "11:15: subgroup 21 is on the chart.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "sub22",
+      "when": "t >= 1800",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "11:30: subgroup 22 is on the chart.",
+          "kind": "sys"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the quality manager: which chart fits these data and why, what it showed, what you did about the cause, and which product you held.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The chart",
+          "criteria": "Weights measured in subgroups of 5 call for X-bar and R (or s); a p chart of bags under 500 g with n = 5 cannot show the mean drifting.",
+          "modelAnswer": "X-bar and R: the mean and the range of each subgroup of 5."
+        },
+        {
+          "label": "The signal",
+          "criteria": "Eight consecutive means below the center line from 09:00 (and 2 of 3 below -2 sigma) with the range unchanged: a special cause shifted the mean, though no point was beyond a limit yet.",
+          "modelAnswer": "Subgroups 13-20, all below 502.0; R stable. The mean shifted at 09:00."
+        },
+        {
+          "label": "The response",
+          "criteria": "Found and removed the cause (the sensor refitted at 08:50) rather than moving the set point, and held only the product made since 09:00.",
+          "modelAnswer": "Sensor reset; P3 and P4 held for 100% check-weighing, P1 and P2 released."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The fill weights, the sensor fault and the pallets are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not decided",
+      "class": "recovered",
+      "rationale": "No decision ships nothing suspect, but good product misses the truck; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The fill weights, the sensor fault and the pallets are invented."
+      }
+    }
+  },
+  "endings": {
+    "shippedSuspect": {
+      "label": "Suspect pallets shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and decision == \"shipall\"",
+      "narrative": "P3 and P4, filled while the mean ran low, left on the truck unchecked: underweight bags under a 500 g label went to the customer."
+    },
+    "noDecision": {
+      "label": "No release decision",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not decided",
+      "narrative": "Nothing suspect shipped, but neither did the good pallets."
+    },
+    "right": {
+      "label": "Right chart, cause removed, suspect product held",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and decision == \"since09\" and decidedSec <= deadline and not isNull(fixedAt) and not tampered and chartType == \"xbar\"",
+      "narrative": "The X-bar chart showed the shift, the cause is removed, and only the pallets filled since 09:00 are held for check-weighing."
+    },
+    "gaps": {
+      "label": "Safe, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Nothing suspect shipped, but good product was held, the cause was not removed, the set point was moved instead, or the decision was late."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "shippedSuspect",
+    "noDecision",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "chart",
+        "label": "Chose the chart that fits subgrouped measurements (X-bar and R)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "chartType == \"xbar\"",
+            "score": "met",
+            "why": "Weights in subgroups of 5: X-bar and R."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "An attribute chart cannot show a drifting mean."
+          }
+        ]
+      },
+      {
+        "id": "cause",
+        "label": "Found the special cause before changing the process; no set point tampering",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "causeFirst",
+            "score": "met",
+            "why": "Asked what changed at 09:00 first."
+          },
+          {
+            "when": "not isNull(askedAt) and not tampered",
+            "score": "partial",
+            "why": "Found the cause only after acting."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{tampered ? \"Moved the set point instead of removing the cause.\" : \"Never looked for what changed.\"}"
+          }
+        ]
+      },
+      {
+        "id": "hold",
+        "label": "Held the product made since the shift, and only that",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "decision == \"since09\"",
+            "score": "met",
+            "why": "P3 and P4 held; P1 and P2 shipped."
+          },
+          {
+            "when": "decision == \"all\"",
+            "score": "partial",
+            "why": "Safe, but P1 and P2 were made before the shift."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{decision == \"shipall\" ? \"Shipped the pallets made during the shift.\" : \"No decision.\"}"
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Removed the cause (sensor reset)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fixedAt)",
+            "score": "met",
+            "why": "Sensor back at its mark."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The line kept running with the sensor low."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the signal and the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "signalDoc == \"run\" and causeDoc == \"sensor\"",
+            "score": "met",
+            "why": "Signal and cause both right."
+          },
+          {
+            "when": "signalDoc == \"run\" or causeDoc == \"sensor\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "held",
+        "label": "Pallets held",
+        "value": "decision == \"since09\" ? 2 : decision == \"all\" ? 4 : 0",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "suspect",
+        "label": "Suspect pallets shipped",
+        "value": "decision == \"shipall\" ? 2 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "decAt",
+        "label": "Minutes until the release decision",
+        "value": "decided ? decidedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 25"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Chart the weights as X-bar and R (subgroups of 5)."
+      },
+      {
+        "at": "3-8 min",
+        "text": "Run rules: 8 means below the center line from 09:00; the R chart is stable, so the mean moved."
+      },
+      {
+        "at": "8-13 min",
+        "text": "Ask what changed at 09:00: the hopper sensor refitted after cleaning."
+      },
+      {
+        "at": "13-23 min",
+        "text": "Reset the sensor; do not move the set point."
+      },
+      {
+        "at": "23-25 min",
+        "text": "Hold P3 and P4 for check-weighing; release P1 and P2."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the right chart, read right, acted on",
+        "body": "X-bar and R showed a shift no p chart of five bags could; you found the cause, removed it, and held only the product made since it began."
+      },
+      "gaps": {
+        "headline": "Safe, with gaps",
+        "body": "Nothing suspect shipped. The criteria show the gap: good pallets held, the set point moved instead of the cause removed, or the cause left in place."
+      },
+      "shippedSuspect": {
+        "headline": "Suspect product shipped",
+        "body": "No point beyond a limit is not the same as in control: a run of 8 below the center line is a signal, and the product made during it is suspect."
+      },
+      "noDecision": {
+        "headline": "No decision",
+        "body": "Safe, but P1 and P2 were good and missed the truck."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Fill weights measured in subgroups of 5 are variables data: X-bar and R charts the subgroup mean and range. A p chart of bags under 500 g with n = 5 can only take the values 0, 0.2, 0.4 ..., so its limits are too wide to show a drift. On the X-bar chart, subgroups 13-20 (from 09:00) are 8 consecutive points below the center line, and 2 of the last 3 are below -2 sigma: a special cause shifted the mean, while the stable R chart shows the spread did not change. The cause (the sensor refitted at 08:50) is removed, not compensated by the set point; product made since 09:00 is held for check-weighing and earlier pallets released."
+  }
+}

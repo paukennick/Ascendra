@@ -78,7 +78,8 @@ engine and the practice-lab acknowledgement).
 21. Review resolution
 22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
     CNA cases (REQ-223), the client session (REQ-225), the security console
-    (REQ-231) and the PT treatment session (REQ-232)
+    (REQ-231) and the PT treatment session (REQ-232); later screens and waves
+    to 22.27 (the facility console, sandbox report and client trainer, REQ-314)
 
 ---
 
@@ -2665,7 +2666,9 @@ testers see the client session; `bedside,board,session,security-console`
 since REQ-231; `bedside,board,session,security-console,treatment-session`
 since REQ-232, for the PT treatment session;
 `bedside,board,session,security-console,treatment-session,terminal` since
-REQ-237, for the terminal and network screen). A renderer can be launched, or pulled after a bad
+REQ-237, for the terminal and network screen;
+`...,terminal,project-dashboard,service-desk` since REQ-311, for the
+project dashboard and the ITIL service desk). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3608,7 +3611,7 @@ cover the whole catalog (95 courses):
 | **Security operations console** (REQ-231, 22.7) | Security: Security+ (SY0-701 and V8) now; CySA+, PenTest+, SecurityX, SecAI+ later | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
 | **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
-| **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
+| **Data and code console** (REQ-312, 22.25) | Data, AI and development: Python, JavaScript, PCEP, PCAP, TypeScript & Node.js, SQL, Python for Data Analysis and PL-300 now; the process and data side of ASQ CSSGB; Data+, DataAI, AI-901, DP-300, DP-900, MS Health Informatics, MSCS later | Guided: pick the query, profile, test or fix, change a cell by choosing a value, read authored tables, charts (control charts included) and code, reason in writing about a dataset, a model or a failing program under a deadline; no learner code or SQL is ever run |
 
 Order (each renderer ships behind `SIMS_ENABLED` with its first 3-5
 scenarios; no external review gate):
@@ -5439,9 +5442,9 @@ OAuth consent phishing grant, 6.4 a critical test finding and its
 disclosure, 7.3 privileged account misuse, 7.6 IDS tuning and a honeypot hit,
 7.7 an emergency patch under change management, 8.2 a poisoned CI/CD
 pipeline, 8.4 a vulnerable acquired component. Fits (terminal and network):
-4.2 segmentation. Screen: 1.1 ethics (conversation), 3.7 and 7.11 a facility
-or physical-security console (fire suppression, duress, tailgating), 7.10 a
-tabletop exercise. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
+4.2 segmentation. Screen: 1.1 ethics (conversation), 7.10 a tabletop
+exercise. REQ-314 (22.27): 3.7 built on the facility console
+(`cissp-datahall-tailgate-cooling`), 7.11 and 5.1 secondary in it. No: 1.2-1.6, 1.9-1.11, 1.13, 2.1-2.5, 3.1-3.3, 3.8, 4.1,
 4.5, 5.1, 5.2, 5.4, 6.1-6.3, 6.5, 7.4, 8.1, 8.3, 8.5.
 
 ISACA CISM (36): Built 3.11, 4.8. Secondary 2.4, 4.2, 4.7, 4.9. Fits
@@ -5462,8 +5465,8 @@ compromised mobile device under MDM, 7.2 an IoT botnet, 7.3 an OT intrusion,
 8.2 a cloud misconfiguration exploited, 9.2 a PKI or disk-encryption key
 incident. Fits (terminal and network): 2.4, 2.5, 2.6 scanning, scan output
 and enumeration in an authorized engagement (needs the REQ-273 no-payload
-rule applied to terminal commands; a decision for Nick). Screen: 3.5 malware
-analysis (a sandbox report screen). No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
+rule applied to terminal commands; a decision for Nick). REQ-314 (22.27): 3.5
+built on the sandbox report (`ceh-sandbox-invoice-loader`), 3.4 secondary. No: 1.1, 1.2, 1.4, 1.5, 2.1-2.3, 6.1,
 8.1, 9.1, 9.3.
 
 Totals over 162 objectives: 8 built; 46 fit an existing screen and are not
@@ -5624,3 +5627,957 @@ opened and the report case does not rely on it.
    only where the people and the law in it still fit: the EPPP case already
    is a Washington psychologist, so it fits the jurisprudence objective; an
    ASWB session could not be reused for it without rewriting the actors.
+
+### 22.24 The project dashboard (Sprint mode), the ITIL service desk, and the first Scrum and ITIL cases (REQ-311)
+
+Nick, 2026-11-16: build all the proposed screens. Two of them are here. No
+project dashboard existed for the PMI courses (section 20 planned one; the
+`project` profile and the `dashboard` placeholder type were all there was,
+and no sim used either), so this builds the dashboard with both its modes,
+plus the service desk the REQ-282 coverage proposed for ITIL. As with the
+terminal (22.10) and the console (22.7): schema, validator, renderer,
+`SIMS_RENDERERS` negotiation, tests, docs. Display only: nothing changes
+stepping, so there is no engine minor; documents stay engine 1.2.
+
+**Screen types.** `project-dashboard` (bindings `screen.dashboard`) and
+`service-desk` (`screen.desk`). The design's `dashboard` placeholder stays
+unused, like `security`. Both are in `DEFAULT_RENDERERS`, and the app
+advertises `project-dashboard@1,service-desk@1`. An older build does not
+advertise them, so `runnable()` is false, the server offers no version and
+the app shows "Update the app to open this simulation". It never sends an
+older build a screen that build cannot draw (`lib/sim/project-dashboard.test.ts`
+checks this with REQ-237's capability header).
+
+**`screen.dashboard`.**
+- `mode` is `predictive` (a plan-driven project week by week) or `sprint`
+  (one Scrum Sprint day by day).
+- `heading` is a template.
+- `commitments` are the Product Goal, the Sprint Goal and the Definition of
+  Done, or a project's objective and baseline. The linter requires a
+  commitment labeled "Sprint Goal" in Sprint mode.
+- `columns` are the board's columns. Each item's `column` must type-check
+  as one of the column ids. An item can carry a `size`, a `note` and a
+  `flag` (blocked or at risk).
+- `chart` draws series across `slots`. An actual series is a `history`,
+  sampled as the run goes. A plan series is fixed `values`, one per slot.
+  This allows a burn-down with its plan line, or planned value against
+  earned value and actual cost.
+- `issues` are impediments or risks, each with a status in words and `open`.
+- `people` are gauges read in words, the same as the client session's.
+- `events` are the Daily Scrums, the Review and the Retrospective, or
+  milestones, each with a status.
+- `meters` are short read-outs.
+
+**`screen.desk`.**
+- `matrix` is the organization's priority matrix: rows by impact, columns by
+  urgency, priority 1 the highest. The highest impact and urgency must be
+  P1. `targets` gives a service level target for every priority used.
+- `tickets` are incidents, requests, problems and changes. Each has a
+  reference, `at`, `impact`, `urgency`, the `priority` the scenario assigned
+  (0 until assessed), a status, `open`, and `due` (sim seconds; negative when
+  no target applies).
+- `services` each have a tone: ok, degraded, down or maintenance.
+
+The renderer never computes priority. The mobile test checks every ticket's
+priority against the matrix at every command of every golden path. The
+seconds-unit lint covers dashboard `issues[].at` and `events[].at` and desk
+`tickets[].at` and `.due`.
+
+**Renderers** (`mobile/src/sim/DashboardPanel.tsx`, `DeskPanel.tsx`; view
+models `runtime/dashboardView.ts`, `runtime/deskView.ts`).
+
+The dashboard reads in this order (web keyboard order too): the heading and
+commitments, the board by column, the chart, the impediments, the people,
+then the events. The chart is drawn as bars (actual) with plan markers, and
+is hidden from the screen reader. In its place the reader gets a summary in
+words ("Points remaining, Day 3 of 5: 13 points; Plan 15.") and a per-slot
+text line, which sighted users see too.
+
+The desk reads the queue first: open tickets, then breached ones, then by
+priority, then by due time. Each ticket shows its priority, a breach and
+the due time in words ("Due in 1 h 20 min", "Breached 10 min ago"). The
+services and the matrix follow; the matrix is spoken as sentences.
+
+A flag, a breach and a tone are always a word plus a color, never color
+alone. Every element is at least 48 dp. "Read the dashboard" and "Read the
+queue" speak the whole screen.
+
+What each screen announces:
+- Dashboard, assertive: open impediments and flagged items.
+- Dashboard, polite: column moves, gauge band changes, event status
+  changes, a changed commitment, and a new chart sample.
+- Desk, assertive: breached tickets and down services.
+- Desk, polite: new tickets, priority and status changes, and tone changes.
+
+The learner acts through the scenario's action groups. Those are buttons,
+so they are keyboard-reachable on the web, and Space pauses under REQ-290
+as on every screen. The panels hold no rule.
+
+**Outcome profiles** (`PROFILE_THRESHOLDS`):
+
+*`scrum`.* The earlier builder was right that the `project` profile is
+earned value (CPI and SPI against a baseline). The Scrum Guide 2020 does not
+use earned value. Its commitments are the Sprint Goal and the Definition of
+Done, and it says forecasts like burn-downs "do not replace the importance
+of empiricism". So the Scrum profile scores what the Guide makes binding:
+- `dailyScrumMax` 900 s. "The Daily Scrum is a 15-minute event."
+- `undoneShown` 0. An item that misses the Definition of Done "cannot be
+  released or even presented at the Sprint Review."
+- `impedimentWindow` 86400 s (author's threshold). An impediment to the
+  Sprint Goal is acted on within one working day, before the next Daily
+  Scrum, the event that inspects progress toward the Goal every day. The
+  Scrum Master's accountability is "Causing the removal of impediments".
+- `trustTarget` 60 and `trustRecovered` 40. These are working relationships
+  at the Sprint's end, the author's teaching model, in line with the
+  `project` profile's stakeholder gauges.
+
+The classes:
+- **target**: the Sprint Goal met with a Done Increment, or, when the Goal
+  is obsolete, the Sprint cancelled by the Product Owner.
+- **recovered**: the Goal missed but the shortfall transparent, or a
+  timebox or an impediment handled late.
+- **harm**: undone work shown or released as done, quality cut, the Sprint
+  cancelled by anyone but the Product Owner, or a working relationship
+  broken.
+
+The predictive mode keeps the `project` profile unchanged.
+
+*`service`.* `slaBreachTarget` 0, `slaBreachRecovered` 1,
+`unauthorizedChanges` 0. Breaches are counted against each incident's
+**correct** priority. If a priority 1 is assessed as priority 3, the
+service is still down past the agreement, even if the ticket looks green.
+
+**ITIL depth (Nick's decision, relayed by the lead, 2026-11-16).** ITIL
+Foundation (Version 5), syllabus v5.0 of February 2026, has no
+practices-in-detail unit. It tests incident, event, service request,
+problem, error, known error, service level and SLA only as terms (outcomes
+1.5.5-1.5.6 and 4.4.3-4.4.10). It has no change enablement or service desk
+objective.
+
+The desk sim therefore stays at Foundation depth:
+- Its critical criteria are the terms, applied: the service level target
+  met, the problem and the known error named correctly, and the event told
+  apart from an incident.
+- The priority matrix and escalation appear as the fictional organization's
+  own agreement, never as ITIL doctrine. Their criteria are not critical.
+
+The screen keeps the full ITIL 4 mechanics (priority from impact and
+urgency, targets, escalation, problems, changes), so it can serve CompTIA
+A+ help-desk cases later.
+
+**Cases** (all learner-paced `turns`, engine 1.2 with an explicit
+`endingOrder`, sources read 2026-11-16):
+
+| Course / slug | Objective | What happens |
+|---|---|---|
+| PSMI / `sprint-status-meeting-daily-scrum` (CSM band `csm-sprint-status-meeting-daily-scrum`) | Running a Daily Scrum as the Developers' planning event rather than a status report (+6 PSMI and 8 CSM secondary objectives) | A one-week Sprint. The engineering manager runs the Daily Scrum as status reports. Handing it back to the Developers surfaces a missing sandbox key and drift off the Sprint Goal. The Scrum Master can raise the key with security, mock around the Definition of Done, assign tasks, or show the manager the board. The Review shows Done work only, or everything. Then the Retrospective. 6 golden paths. |
+| PSMI / `sprint-goal-becomes-obsolete` (CSM band `csm-sprint-goal-becomes-obsolete`) | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint (+3 secondary each) | An item is bigger than planned: renegotiate scope, cut quality, stretch the Sprint, or add overtime. A VP goes round the Product Owner. On Wednesday the partner bank ends the points scheme, and the Product Owner (only she) cancels. Done work is kept, discarded or shipped half-built. 8 golden paths. |
+| PSMI / `sprint-release-before-review` (CSM band `csm-sprint-release-before-review`) | Creating more than one Increment in a Sprint and releasing before the Sprint Review (+4 secondary each) | A size filter is Done on Wednesday: release it now, hold it for the Review, or ship it with a half-built filter. On Friday the mobile filters fail the keyboard accessibility check: return them to the Product Backlog, stretch the Sprint, or show them as done. Then the Review (working session, presentation or sign-off gate) and the Retrospective (one improvement at the cause, ten, blame or none). 7 golden paths. |
+| ITIL5FND / `monday-service-desk-wifi-problem` | Distinguishing a problem, an error and a known error in an operational scenario (+ the value chain terms and service levels/SLA titles) | A 4-hour shift. Catalog search goes down everywhere (P1 under a 1-hour target); restoring it needs an escalation. Wi-Fi drops at branch after branch after a weekend firmware update; each drop is an incident with a workaround, together they are a problem, the firmware leak is the error, and the analysed cause is a known error. Also a new-starter service request and a backup-disk event. 7 golden paths. |
+
+Every case:
+- has endings in all three classes and 3 critical criteria;
+- has KPIs with expert values, an expert path and a debrief for each ending;
+- has golden paths that reach every ending but `time_up`, score every
+  criterion both met and missed, and include a Good, a Mediocre and a Bad
+  run.
+
+Golden paths are built with `npm run sim:golden -- steps
+psm-daily|csm-daily|psm-obsolete|csm-obsolete|psm-release|csm-release|itil-desk`.
+
+The scenario documents are written by Python generators in the screens-pm
+scratchpad. Those are not committed; the JSON is the source of record, as
+it is for the other waves.
+
+**ITIL5FND course order.** The ITIL5FND course is built on `feature/itil5`
+(REQ-308). Until it is in the catalog, `objectives.test.ts` skips the
+catalog check for the desk sim, and `project-dashboard.test.ts` checks the
+sim against the titles REQ-308 gave (`ITIL5_DESK_OBJECTIVES`). The seed
+needs ITIL5FND seeded first. Merge REQ-308 before or with this branch.
+
+**Sources** (read 2026-11-16):
+- The Scrum Guide, November 2020: scrumguides.org PDF, read directly.
+- PeopleCert ITIL Foundation Syllabus v5.0 (February 2026): read directly as
+  printed in Van Haren's ITIL 5 Foundation Courseware sample (July 2026).
+  The syllabus gives the outcomes, not the definitions.
+- MindMesh Academy's ITIL 5 study guide 5.4.4: read through a summary of
+  the page. It gives the problem, error and known error definitions. It is
+  secondary and must be verified against the official glossary.
+- The AXELOS ITIL 4 Problem Management syllabus (February 2023): read
+  directly. It has no definitions.
+
+**Coverage.** The REQ-282 table (`docs/sim-coverage-pm-frameworks-cnc.md`)
+is updated for the objectives these cases cover. The rest of the Scrum list
+(P-S1 to P-S16, less P-S5, P-S8 and P-S9 built here) and the predictive PMI cases are open; REQ-311's report
+lists them.
+
+### 22.25 The data and code console, and the first code, data and process sims (REQ-312)
+
+Nick, 2026-11-16: build all the proposed screens. This is the data and code
+console that 20.1 designed (decision R3), built so that one screen also
+carries the "process and data console" proposed for CSSGB
+(`docs/sim-coverage-pm-frameworks-cnc.md`): a control chart is a chart with
+reference lines, a capability study is a table, a DMAIC decision is an
+action. `screen.type: "data"`, `data@1`, behind `SIMS_RENDERERS` and on by
+default (`bedside,board,session,security-console,treatment-session,terminal,data`).
+
+**The hard rule: nothing the learner types is executed.** There is no editor
+and no interpreter. Running a query, a profile, a test, a dry run or a fix is
+one of the phase's actions; what it shows is authored (its `output` effects,
+shown as the results, and the screen bindings below over state). An edit is a
+choice: an editable cell names an action whose one param is a `choice`, and
+picking an option sends that action like any other. Every check is the
+engine's: criteria, endings and flags read state that each action's effects
+write at command time (20.1: end conditions read counters, never catalogues).
+The typed `command` and `query` params (4.1) stay unused, as on the terminal
+(22.10 finding 1).
+
+**Bindings** (`screen.data` in `engine/v1/types.ts`, the zod schema and
+`validate.ts` `dataCheck`; display and lint only, no stepping change, no
+engine minor, every existing hash unchanged):
+
+- `workspace` (template): what is open ("overdue_report.py, the nightly
+  overdue-notice job", "Line 3 filler").
+- `flags`: quality flags, failing checks and stakeholder messages, each
+  `label`, `text` (template), `when`, and a fixed `severity` (`error`,
+  `warning`, `info`).
+- `tables`: `columns` (`numeric` aligns right), `rows` (one template `cells`
+  per column, optional `when`, optional `flag`), optional `note`, and `edits`
+  (`row`, `column`, `action`): the action must exist, be listed in a phase and
+  have exactly one param, of kind `choice`; a cell is editable once. At most
+  60 rows on screen; a larger dataset is a catalogue shown through an output
+  table.
+- `charts`: `kind` `bar`, `line` or `control`, a `unit`, a fixed axis
+  (`min` < `max`), up to 60 `points` (number expressions, optional `when`
+  and `flag`) and reference `lines` (center line, control or spec limits, a
+  target); a control chart must have lines. The renderer flags only what the
+  document flags: a run-rule signal is the author's `flag`, never computed in
+  the app.
+- No `command` or `query` param anywhere in a data-screen document (`dataConsoleProblems`, lib/sim/lint.ts, an error in `sims:lint` and the generator's lint gate).
+- `code`: read-only files or cells (`label`, `language`), each line literal
+  text (never a template, so braces are code), at most 160 characters, no
+  newline or tab, optional `when` (a fix swaps one line for another) and a
+  `mark` expression over `none`, `error`, `warning`, `changed`, `focus`. A
+  line's number is its place among the lines shown.
+- `meters` as elsewhere.
+
+Ids are unique across flags, tables, charts, code and meters.
+
+**The renderer** (`DataPanel`, `mobile/src/sim/DataPanel.tsx`; view model
+`dataView`, `dataAlarmTexts`, `dataNews`, `dataSentence`, `editCommand`,
+`numberText` in `src/sim/runtime/dataView.ts`). Reading and web keyboard
+order: workspace, flags, charts, tables (each followed by the open cell's
+options), code, meters, results (newest first, text or a table), "Read the
+console". Charts are drawn with plain views, no chart library: bars, or dots
+on the chart's axis, with dashed reference lines labeled at the right; a
+flagged point is larger, ringed and marked "!" (never color alone). Every
+chart has "Show as table", which lists each point and line as an accessible
+row. A table wider than the phone scrolls sideways inside its card, never
+the page; a flagged row has a "!" column and a tinted background. An
+editable cell is a button ("value ✎", spoken as "editable"); it opens its
+options under the table ("Pick a value; it runs at once") and Cancel; an
+unavailable cell says why and sends nothing. Code is monospace with line
+numbers and the mark as a word beside the line. Every element is at least 48
+dp except the code lines and chart labels inside one accessible block.
+
+**Accessibility**, to the terminal's standard: an `error` flag is an alarm
+(spoken at once, and again as cleared); a new warning or note, new results
+(one sentence, a burst summarized with the newest), a new chart or table, or
+more flagged points or rows are polite news, at most one sentence per 10 s; a
+chart's summary ("X-bar chart of mean fill, control chart, 22 points, from
+... to ..., UCL 503.8 g, CL 502 g, LCL 500.2 g, 8 flagged: ...") is its
+accessible label; "Read the console" speaks the workspace, the flags, every
+chart's summary, each table's size and flagged rows, the marked code lines,
+the meters and the latest result. JavaScript only: it ships over the air,
+and an app without `data@1` is not offered these sims and is told to update
+(5.10).
+
+**Pacing**: learner-paced like the terminal. Every phase is `turns` (a work
+phase and a stopped report phase); each step costs working minutes through
+one `work` wait, and the deadline is a trigger on the same clock that stops a
+skip (`interruptsSkip`). A long run (the full job) is its own timer. The
+general family is not pace-eligible.
+
+**Outcome profile `data`** (9.2, the 20.1 drafts now defaults):
+`deliverWindow` 7200 s (the right result delivered within two hours of the
+request) and `alteredRowsMax` 0 (named `rowsAlteredOutsideFix` until
+2026-11-17). Target: the right root cause found
+and the right result delivered in the window, checked, with no data altered
+beyond the fix; recovered: late, unchecked, held back, or with a safe but
+costly side effect; harm: a wrong result shipped to the stakeholder (a
+report, a deployed change, a release on a misleading number) or data deleted
+beyond recovery. Each case tightens `deliverWindow` to its own deadline (45
+to 90 minutes). Thresholds are bound as names, so a state counter cannot
+share a threshold's name; the profile's `alteredRowsMax` leaves the name
+`rowsAlteredOutsideFix` free for the SQL case's counter.
+
+**Cases** (golden paths by `npm run sim:golden -- steps <name>`, shared
+driver `scripts/sim-golden/data-helpers.ts`; checked by
+`lib/sim/data-console.test.ts` and `mobile/src/sim/data.test.ts`; listed in
+`DATA_CONSOLE_SLUGS`, lib/sim/documents.ts):
+
+| Course / slug | Objective (catalog title, abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| PYTHON/py-report-too-slow-profile | Basic performance profiling (timeit, cProfile) before optimizing | measured first; fixed the hot spot (a set for the membership test); diffed against a known good output | py-profile |
+| PYTHON/py-import-crash-traceback | Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs | read the traceback first; fixed the parsing, no row skipped or zeroed by a broad except; dry run matched the control trailer | py-trace |
+| PCAP/py-import-crash-traceback-pcap (band) | Diagnose syntax, runtime and logic errors from tracebacks and step-by-step tracing, then verify the fix with tests | as the base | py-trace-pcap |
+| PCEP/py-import-crash-traceback-pcep (band) | Handle runtime errors with try and one or more specific except branches, and trace the flow when one is raised | as the base | py-trace-pcep |
+| JAVASCRIPT/js-checkout-shipping-concatenated | Primitive types, typeof, and type coercion pitfalls (== vs. ===) | checked the operands' types first; Number() at the boundary with a NaN check; tested 0, 5.00 and 5.99 | js-coerce |
+| JAVASCRIPT/js-rate-board-zero-percent | Fetching data with the Fetch API and handling JSON responses | looked at the responses first; checks response.ok and shows the failure; a mocked 503 test after the last change | js-fetch |
+| TSNODE/js-rate-board-zero-percent-tsnode (band) | Call another service with fetch, check response.ok, and set a timeout with AbortSignal | as the base, in the board's Node.js proxy | js-fetch-tsnode |
+| PL300/pl300-rls-region-manager | Implementing row-level security roles with DAX filters and mapping groups to them | checked workspace access first; managers are Viewers; a security group mapped to the role | pl300-rls |
+| PL300/pl300-stock-on-hand-summed | Writing semi-additive measures, such as a closing balance, that must not sum over time | checked the grain first; LASTNONBLANK; reconciled with the latest snapshot | pl300-semi |
+| CSSGB/cssgb-fill-weight-chart | Selecting and interpreting a control chart: X-bar and R, ... p, np, c and u | X-bar and R chosen; special cause found before acting, no set point tampering; only the product made since the shift held | cssgb-chart |
+| CSSGB/cssgb-capability-tool-wear | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | stability charted first; Ppk reported, not a cherry-picked or within-only Cpk; the cause put under control | cssgb-cap |
+| SQL/sql-not-in-null-empty-list | Diagnose a NOT IN filter that returns nothing because the list contains a NULL, and fix it with NOT EXISTS | looked for NULLs first; a NULL-safe filter; no data changed | sql-notin |
+
+Each authored case has one three-part written-reasoning moment, endings in
+all three classes with `endingOrder` (harm first), three critical criteria
+and two more, three KPIs with expert values, an expert path, a debrief per
+ending and six or seven golden paths reaching every ending but `time_up`,
+each rating (Good, Mediocre, Bad) and every criterion met and missed. The
+editable cells are used where an edit is the skill: the managers' workspace
+role and the role's members (PL300 RLS), the measure version (PL300
+semi-additive) and the chart type (CSSGB control chart). Places, people and
+data are fictional and use documentation domains.
+
+**Bands** (4.7; the round's rule: where another course already teaches the
+objective, register a band): the Python traceback case on PCAP and PCEP, and
+the fetch case on TSNODE, each patching objective, secondaries, sources and,
+for TSNODE, the brief, two action labels and the code file's name and
+language. No existing terminal sim teaches an objective of the courses this
+screen serves (PYTHON, JAVASCRIPT, PL300, CSSGB have no sims; PYDATA's
+groupby case and the SQL and TSNODE terminal cases are on objectives none of
+these courses share), so no terminal case was banded.
+
+**Sources** carry `checkedAt` 2026-11-16, read that day through summarizing
+fetches of URLs that appeared in a search result: Python 3.15 profile,
+pstats (3.16 dev) and "Time complexity of operations on built-in types";
+the Python tutorial's Errors and Exceptions; MDN Using the Fetch API,
+Response.ok, AbortSignal.timeout() and the Addition (+) reference; Microsoft Learn "Row-level security
+(RLS) with Power BI" and the DAX time intelligence training unit
+("Additional time intelligence calculations"); SQLBI "Semi-additive measures
+in DAX"; NIST/SEMATECH e-Handbook 6.1.6, 6.3.2, 6.3.2.1 and 6.3.3.2;
+PostgreSQL 16 "Subquery Expressions". Not on the fetched pages, and marked so
+in each source note: the pstats column definitions, the X-bar and R factor
+values (A2, D3, D4) and the Pp/Ppk definitions (standard values), a NOT
+EXISTS paragraph, and the bands' vendor syllabi (the course seeds' wording
+is used). Every dataset, run time, deadline and total is invented; outputs,
+tracebacks, profiles and query results are authored renderings in each
+tool's style, and the facts they carry are the sources'.
+
+**Findings** (recorded, not worked around):
+
+1. **A sim test selected its documents by course code (FAIL-2180,
+   recurrence of FAIL-2002).** `lib/sim/tech-courses-sims.test.ts` built its
+   set with `e.course in SCREEN` and failed when this change added a third
+   SQL sim and a TSNODE band; it now lists its REQ-269 slugs.
+2. **A target ending reached with a critical criterion missed is a lint
+   error** (9.2). The first PYTHON profiling draft let an unmeasured run end
+   on target; the target condition now requires a measurement. Not a defect
+   of the engine; recorded as an authoring note.
+3. **Thresholds are bound as names**, so a state counter cannot share a
+   threshold's name (`rowsAlteredOutsideFix`); 20.1 suggested both. The SQL
+   case keeps the counter. Nick approved the rename on 2026-11-16: the
+   profile threshold is now `alteredRowsMax` (FAIL-2123), so a case can bind
+   both the counter and the threshold.
+4. **`time_up`** stays unreached in every case, as on the other learner-paced
+   screens.
+5. **Literal braces in code** are why code lines are not templates; a brace
+   in any other text (a finding, an output) is still a template slot and is
+   written `{{` / `}}` (22.21).
+
+**Still to build on this screen** (candidates; coverage in
+`docs/sims-coverage-tech.md` and `docs/sim-coverage-pm-frameworks-cnc.md`):
+PL300 Performance Analyzer, gateway and refresh, CALCULATE and filter
+modifiers, relationship cross-filtering, storage mode, Power Query cleaning,
+workspace roles and sensitivity labels; PCEP CSV conversion; PCAP review and
+CI, AI-generated code, merge conflicts; SQL row multiplication, safe UPDATE
+and DELETE, transactions, foreign key actions, multicolumn index; PYDATA
+merge validation, hidden notebook state, time zones; PYTHON mutable default
+argument, file handling, pytest, asyncio, decorators; JAVASCRIPT async
+error handling, DOM and Jest objectives; CSSGB gauge R&R,
+FMEA, hypothesis tests, regression, multi-vari, DOE plots, pilots, lean flow
+and the control plan cases (P-Q1 to P-Q8).
+
+### 22.26 The governance board, the tabletop exercise and professional-ethics conversations (REQ-313)
+
+Nick, 2026-11-16: "build all the proposed screens". This section builds three
+of the security builder's proposals in 22.19 (the facility console and the
+sandbox report screen belong to other builders): a **governance board**, a
+**tabletop exercise**, and a **conversation for professional-ethics
+dilemmas**, which runs on the existing client `session` screen rather than a
+new one. Each follows the terminal (22.10) and console (22.7) pattern:
+schema, validator, profile, renderer, negotiation, tests, docs. Display and
+lint only: no stepping change, no engine minor, no migration; every existing
+hash is unchanged.
+
+#### Design
+
+**Why the ethics dilemmas use the session screen (decision for the record).**
+The session screen (22.5) is already a conversation: a named person with a
+presentation over state, gauges read in words, notes with an alert flag, the
+record so far, learner-paced exchanges that cost conversation minutes, and the
+other person's answer shown as "Last said". None of that is clinical; the
+clinical parts are in the documents and the `clinical-session` profile. The
+one client-bound thing in the renderer is the read-aloud button ("Read the
+client"). So the dilemmas use the session screen with a new profile,
+`professional-ethics`, and one new optional binding, `screen.session.readLabel`
+("Read the conversation"). A document that sets it must declare
+`screen.level: 2` (validator rule), and the app now advertises `session@2`, so
+an older app is told to update instead of saying "Read the client" to a
+manager. Older session documents stay level 1 and run on every app.
+
+**Governance board** (`screen.type: "governance-board"`, `governance-board@1`,
+binding `screen.governance`; `GovernancePanel`, view model
+`governanceView`/`governanceAlarmTexts`/`governanceNews`/`governanceSentence`
+in `mobile/src/sim/runtime/governanceView.ts`). For decisions over a quarter,
+not minutes. Four blocks in reading and web keyboard order:
+
+- **Risk register**: `risks` (`label`, `spokenLabel`, `owner` and `status`
+  templates, `rating` an enum expression over critical, high, medium, low,
+  `appetite` an enum over `within`, `above` and `excepted` (above appetite
+  under an approved, time-limited exception), optional `when`). Risks above
+  appetite sort first.
+- **Support**: `stakeholders`, numeric gauges read in words exactly like the
+  session's (`value`, `max`, `bands`, `words`; one more word than bands).
+- **Budget and meters**: `budget` (`label`, `spent` and `total` expressions,
+  `unit` in words) and `meters`.
+- **Docket**: `docket` items (`kind` such as Business case, Exception request,
+  Board request, Vendor offer; `label`, `status`, `when`; `flag` marks one the
+  screen reader must hear at once, such as a deadline).
+
+**Tabletop exercise** (`screen.type: "tabletop"`, `tabletop@1`, binding
+`screen.tabletop`; `TabletopPanel`, view model in
+`mobile/src/sim/runtime/tabletopView.ts`). The clock is scenario time.
+
+- **Injects**: the facilitator's timeline, oldest first (`title`, `text`,
+  `when`, `at` in sim seconds, checked by the seconds-unit lint; `open` marks
+  one still waiting for the team's decision).
+- **Around the table**: `roles` with a tone `engaged`, `waiting` or `gap` (the
+  plan does not cover it), read as "engaged", "not yet involved", "gap: not
+  covered by the plan".
+- **Communications**: `comms` by audience with a tone `none`, `draft`,
+  `cleared`, `sent` or `late`.
+- **Meters and the decision log** (`decisions`, items shown while `when`
+  holds).
+
+Ids are unique across each screen's lists; tones and ratings are enum
+expressions the validator types (`governanceCheck`, `tabletopCheck` in
+`engine/v1/validate.ts`).
+
+**Accessibility**, equal to the console: every risk, stakeholder, docket item,
+inject, role, communication and meter is one accessible element whose label
+says its state in words (rating, appetite and tone are a word plus a color,
+never color alone); every element is at least 48 dp. Alarms, spoken at once
+and again as cleared: a risk above appetite, a flagged docket item, a budget
+overrun; an inject waiting for a decision, a late communication. Polite news
+through the announcer (at most one polite sentence per 10 s): a risk's rating
+or appetite moving, support moving into another word, a docket item's new
+status, a role or communication changing, a new decision. "Read the board"
+and "Read the table" speak the whole screen. Keyboard order on web is the
+order on screen, then the actions (ActionBar). JavaScript only.
+
+**Pacing: learner-paced** (`turns`), as on the console. A board task costs
+days (`tick` 1 d, calendar `week`: quantifying a risk with Finance 5 d, a
+meeting 1-2 d, "Let the week pass" 7 d); the board meeting, a vendor's
+offer, the chair's question and the attack are triggers on the same calendar
+that stop the skip (`interruptsSkip`). A tabletop discussion costs scenario
+minutes (`tick` 10 min; a decision 20 min, a question to the table 10 min,
+"Move the scenario on" 1 h); the next inject arrives on the same clock. A
+conversation exchange costs 1-4 minutes. The general family is not
+pace-eligible.
+
+**Outcome profiles** (9.2, defaults in `PROFILE_THRESHOLDS`):
+
+| Profile | Defaults | Target / recovered / harm |
+|---|---|---|
+| `governance` | `budgetCap` 100 (% of the approved budget, lower is tighter), `aboveAppetite` 0, `supportTarget` 6 of 10 (higher is tighter) | target: within budget, nothing above appetite without a treatment or the owner's time-limited acceptance, key stakeholders supportive; recovered: a stakeholder below target, a late or ungoverned decision; harm: overspend past the cap, an untreated risk above appetite that materializes, a decision taken outside its owner's authority |
+| `exercise` | `decisionWindow` 3600 s of scenario time per inject, `unownedGaps` 0 | target: each inject decided in time, the plan's roles engaged, outside communications cleared, every gap found given an owner and a date; recovered: late, a role missing, gaps unowned; harm: in the scenario, a statement or payment outside the plan or the law, people put at risk, an uncontrolled outage, or no after-action at all |
+| `professional-ethics` | `actWindow` 86400 s, `canonBreaches` 0 | target: the duty acted on in time through the proper channel with no canon breached; recovered: late, a refusal with no way forward, the wrong channel or a damaged relationship; harm: the unethical act done or a confidence broken |
+
+**Trademarks** (Nick, 2026-11-16). Learner-facing sim text names no
+certifying body's mark: the ethics briefs say "your professional code of
+ethics" and paraphrase the four canons. New lint error `certMarkProblems`
+(`lib/sim/lint.ts`, run by `sims:lint`) checks every string of a
+`governance`, `exercise` or `professional-ethics` document except
+`objective`, `secondaryObjectives` and `sources` (catalog titles and
+citations). Code refers to courses by code.
+
+#### Cases
+
+Authored (each: one written-reasoning moment, endings in all three classes,
+`endingOrder` with harm first, four critical criteria, three KPIs, an expert
+path, a debrief per ending, six golden paths with Good, Mediocre and Bad and
+every criterion met and missed; `npm run sim:golden -- steps <name>`):
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| CISM/cism-security-business-case-budget | governance board | 1.7 Build a business case, budget and resource plan ... | Ransomware and wire fraud above appetite; quantify with Finance, map proposals to the strategy and the risk each treats, CFO and COO first, a 550-thousand package within the 600 budget approved in week 7; the SIEM premium tier treats neither risk; the COO (not you) accepts the residual wire risk; the chair answered in business terms; the week-11 attack is a 9-hour restore or a 3-day outage | cism-budget |
+| CISM/cism-risk-appetite-exception | governance board | 2.3 Assess and analyze risk against appetite and tolerance | A six-month exception for an unencrypted legacy handheld app; rate it, compare with the appetite and tolerance, recommend 90 days with encryption, remote wipe and a purge live before the launch; the VP signs as owner; steering review, register entry, a replacement plan; the week-8 theft is wiped or a breach | cism-exception |
+| CISM/cism-ransomware-tabletop | tabletop | 4.5 Train, test and evaluate incident management with tabletop ... exercises | Five injects over two scenario days; declare, counsel at the leak claim, a holding statement counsel has reviewed before the reporter's 13:00 deadline, restore from clean copies in impact order, payment to the executive with counsel, law enforcement, the insurer and a sanctions check; three plan gaps to find and own | cism-tabletop |
+| CISSP/cissp-flood-continuity-tabletop | tabletop | 7.10 Participate in business continuity planning and exercises | People first at the flood warning; declare and fail over while the generator runs (six hours of fuel); recover in the BIA's order; the payment processor's allow-list (an external dependency) fixed under contract; customers updated; three gaps | cissp-bcp-tabletop |
+| ISC2CC/cc-ethics-shared-credentials | session@2 | 1.8 Apply the code of ethics canons, due care and due diligence | A team lead asks for your admin password and, later, audit logging off on a patient records server; due diligence first, decline with the emergency-change route that meets the deadline, keep logging, escalate to the on-call security manager only if he insists, a factual note | cc-ethics |
+| CISSP/cissp-ethics-audit-finding-pressure | session@2 | 1.1 Apply the professional and an organizational code of ethics | The CIO asks you to rate a critical finding medium and offers you a program to lead; find the facts, keep it critical with a three-week fix and the owner's acceptance, disclose the conflict, the chief audit executive if she moves to edit the draft; never leak it | cissp-ethics |
+
+Bands (4.7; same case and paths, the other course's objective;
+`npm run sim:golden -- steps <name>`):
+
+| Band | Base | Objective | Steps |
+|---|---|---|---|
+| ISC2CC/cc-ransomware-tabletop | CISM tabletop | 5.5 Implement an incident response plan and test it with exercises such as tabletops | cc-tabletop |
+| SECPLUS/ransomware-tabletop-secplus | CISM tabletop | 4.20 Incident response activities (testing: tabletop exercise) | secplus-tabletop |
+| SECPLUSV8/ransomware-tabletop-v8 | CISM tabletop | 4.27 Incident response preparation: training, testing, tabletop exercises ... | secplus-tabletop-v8 |
+| SECPLUS/risk-exception-appetite-secplus | CISM exception | 5.10 Risk management strategies (accept: exemption, exception) and BIA | secplus-exception |
+| SECPLUSV8/risk-exception-appetite-v8 | CISM exception | 5.7 Business-level considerations: BIA, risk appetite, residual risk ... | secplus-exception-v8 |
+| ISC2CC/cc-flood-continuity-tabletop | CISSP flood | 2.2 Distinguish business continuity from disaster recovery, and interpret recovery objectives | cc-bcp-tabletop |
+| SECPLUS/flood-continuity-tabletop-secplus | CISSP flood | 3.13 Resilience and recovery (testing: tabletop exercises; generators) | secplus-bcp-tabletop |
+| SECPLUSV8/flood-continuity-tabletop-v8 | CISSP flood | 3.17 Resilience testing, disaster recovery, business continuity | secplus-bcp-tabletop-v8 |
+
+`GOVERNANCE_DOCUMENTS` (lib/sim/documents.ts) lists all fourteen. Checked by
+`lib/sim/governance-screens.test.ts` (18 tests: bindings, profiles, the
+readLabel level rule, the switch and negotiation, every document's shape,
+catalog objectives, goldens, the trademark rule, one behavior per case),
+`mobile/src/sim/governance.test.ts` (12: the view models, alarms and news,
+the Read sentences, the read button, caps, golden replays through the app's
+engine copy) and `lib/sims-governance.dbtest.ts` (17, run 2026-11-16 on a
+throwaway Postgres 16 with every migration: all fourteen seeded by course and
+title and idempotent, an app from before REQ-313 told to update, the switch,
+pacing refused, thirteen golden paths through the routes to one attempt each).
+
+#### Coverage after this section (22.19 table, updated)
+
+- **CISM**: 1.7, 2.3 and 4.5 built here. Still **Screen → now fits the
+  governance board, not built**: 1.1, 1.2, 1.4 (secondary in 1.7's case), 1.5,
+  1.6, 2.1, 2.2, 2.6, 3.1-3.10, 3.12 (secondary in 1.7's case). 2.5 is now
+  secondary in the exception case (it also stays a console candidate).
+- **CISSP**: 1.1 and 7.10 built (7.9 and 1.7 secondary).
+- **CC**: 1.8 built; 5.5 and 2.2 as bands.
+- **Security+**: SY0-701 4.20, 5.10 and 3.13 and SY0-801 4.27, 5.7 and 3.17
+  as bands.
+- No CISM objective names a code of ethics, so the second professional code
+  is cited for comparison in the CISSP case and nothing is registered to it.
+
+**Sources** (on each document with `checkedAt` and how each was read; read
+2026-11-16 unless noted): the ethics code's page (canons, the complaint duty;
+summarizing fetch); the second professional code's page (summarizing fetch);
+NIST's CSF 2.0 Implementation Examples PDF for GV.RM-02, GV.RR-02 and GV.OV
+(summarizing fetch; CSWP 29 itself not opened); CISA's CTEP page and FEMA's
+HSEEP page (summarizing fetches; HSEEP does not itself say corrective actions
+get owners and dates, which the cases mark as the author's reading); NIST SP
+800-84's publication page (title and dates only; the guide's text not read,
+"to verify"); a law firm's summary of the SEC's 2023 Item 1.05 rule (not the
+SEC's text; cited only for why counsel starts early, nothing scored); the
+CISM, CISSP and CC outlines and SP 800-34 Rev. 1 as read 2026-11-14 for
+REQ-270 to REQ-274, not re-read. Every amount, time, count and organization
+is the author's and says so on its param.
+
+**Findings** (recorded, not worked around):
+
+1. **A criterion never missed (FAIL-2200)**: the exception case's `governed`
+   was never missed by a golden path; the path was changed and the REQ-313
+   test now checks met-and-missed for every criterion of every document.
+2. **Authoring note**: a template slot cannot hold another slot inside a
+   string literal (`"Package: {pkg}"` inside `{...}` renders the braces); write
+   adjacent slots instead.
+3. **`time_up`** is reached by no golden path in any case, as elsewhere.
+4. **Selection by course code (FAIL-2201, a recurrence of FAIL-2002)**:
+   `lib/sim/security-certs-sims.test.ts` and `lib/sims-security-certs.dbtest.ts`
+   took every document of the CC, CISSP, CISM and CEH courses, so the new
+   sims in those courses failed the console test. Both now name their eight
+   slugs.
+
+**Ships over the air.** Everything on the app side is JavaScript (two panels,
+two view models, a caps change, the session button label); no native module,
+permission or asset, so no store build is needed.
+
+### 22.27 Three more screens: the facility console, the sandbox report and the client trainer (REQ-314)
+
+Nick, 2026-11-16: build all the proposed screens. This section is the design
+of three of them (the 22.19 proposals *facility console* and *sandbox
+report*, and the client trainer of 20 and `docs/sim-coverage-pm-frameworks-cnc.md`)
+and what was built. Each follows how the terminal screen (22.10) and the
+security console (22.7) were added: bindings in `engine/v1/types.ts`, the zod
+schema and `validate.ts`; a renderer and a pure view model in the app; a
+`SIMS_RENDERERS` capability with negotiation; tests and lint rules. **Display
+and lint only**: stepping, the corpus and every existing hash are unchanged,
+and there is no engine minor. An app without a screen's capability is not
+offered its sims and is told to update (5.10).
+
+#### Design
+
+**Screen types and capabilities.** `facility-console@1`, `sandbox-report@1`
+and `trainer@1` (the design's placeholder name `trainer` is used as built, as
+`terminal` was). `SIMS_RENDERERS` now defaults to
+`bedside,board,session,security-console,treatment-session,terminal,facility-console,sandbox-report,trainer`;
+the app's `x-sim-caps` header adds the three at level 1. `parseCaps` already
+takes hyphens (FAIL-1320, FAIL-1340).
+
+**Pacing: learner-paced on all three.** Every phase is `turns` (or `stopped`
+for the write-up), with one `work` wait per task, and outside events
+(an intruder's next step, a cooling unit's breaker, a second-stage download, a
+symptom three minutes into a step test) are triggers on the same sim clock that
+stop the skip early (`interruptsSkip`). What these objectives test is the
+order and choice of actions, not reading speed, as on the console (22.7). The
+trainer is in the fitness family, but with no running phase `pacingEligible`
+is false and the server refuses pace commands, as for the client session.
+
+**Facility console** (`screen.facility`). For physical security, badge and
+door logs, CCTV, visitor control and environmental alarms. Reading order:
+
+- `site`: the building and its state now (a template).
+- `alarms`: the alarm panel, as the console's alerts plus a `kind` (`intrusion`,
+  `door`, `duress`, `fire`, `power`, `hvac`, `water`, `other`); open alarms
+  first, newest first. An open alarm is spoken at once.
+- `zones`: areas with a status in words and a tone (`secure`, `watch`,
+  `alarm`, `locked`: "secure", "under watch", "in alarm", "locked down").
+- `environment`: numeric read-outs (temperature, humidity, UPS, generator
+  fuel) with an optional safe range (`low`, `high`); out of range is spoken at
+  once ("Row C inlet temperature too high").
+- `cameras`: CCTV described in words, never video, so the screen works for a
+  screen reader and costs nothing to ship.
+- `people`: visitors and staff on site; `flag` (needs attention) is spoken at once.
+- `doors`: the badge and door log, newest first, each with a result
+  (`granted`, `denied`, `forced`, `held`, `tailgate`) read in words.
+- `meters` (optional).
+
+Outcome profile **`facility`** (new, 9.2): `responseWindow` 600 s (the first
+alarm acted on within 10 minutes) and `peopleAtRisk` 0. Target: life safety
+first, the alarm acted on in the window, the breach or failure contained and
+the evidence kept; recovered: late or at a cost; harm: a person put in danger,
+a breach left open, or the critical room lost. Safety family general.
+
+**Sandbox report** (`screen.sandbox`). For reading a malware analysis report
+and acting on it: `sample` (name and verdict so far), `static` findings, the
+`processes` tree (`parent` must name an earlier process; the view model gives
+each its depth and the label says the parent and the level), the `network`
+calls, the analyst's `indicators` (type `hash`, `domain`, `ip`, `url`, `file`,
+`registry`, `mutex`, `other`; tone `unreviewed`, `confirmed`, `benign`,
+`actioned`), draft detection `rules` (kind `yara`, `sigma`, `other`; tone
+`draft`, `tested`, `noisy`, `deployed`; the rule body is shown and read as
+text), and the `hosts` in scope with the console's tones (read "infected" for
+`bad`). An infected host is spoken at once; new report lines are polite, a
+burst summarized. It uses the existing `security` profile.
+
+**Defensive only, enforced.** New lint error `sandboxSafetyProblems`
+(`lib/sim/lint.ts`, run by `sims:lint`) on any document with the sandbox
+screen: no `http://` or `https://` outside the sources (defang as `hxxp`,
+`example[.]com`); no run of 40 or more base64 characters (a hex digest of 40
+to 64 characters is allowed); no script-host switches that run encoded or
+downloaded code (`-enc`, `-EncodedCommand`, `DownloadString`,
+`Invoke-Expression`, `FromBase64String`); no script tags or PE header bytes;
+every IPv4 address from the documentation ranges (RFC 5737) or private space;
+every domain in the network calls and the domain and URL indicators a reserved
+name (RFC 2606). Processes are described ("started hidden with an encoded
+command (not shown)"); rules are display text and never run. This also keeps
+the CEH course's REQ-273 rule (no payloads, no tool commands).
+
+**Client trainer** (`screen.trainer`). For a fitness or nutrition coaching
+session, and for coaching across weeks: the `client` and how they present now;
+`gauges` banded into words as on the session (trust, readiness, a stage of
+change); `readings` (heart rate, the symptom now, knee discomfort) with `flag`
+spoken at once; `rules` (scope-of-practice and stop rules, always shown, `met`
+spoken at once, at least one required); `intake` (the PAR-Q+ questions
+paraphrased, with the answers as given; `flag` on a YES); assessment
+`findings`; the current `program`; and the `journal` (check-ins, weeks,
+events), newest first. Weeks pass through one wait (four weeks of training is
+one skip), with `calendar: "date"`.
+
+The **fitness** profile gains `stopWindow` 120 s (exercise stopped or eased
+within 2 minutes of a warning sign; a teaching figure, as for physical
+therapy). Its earlier keys stay. The study notice (REQ-165) and the fitness
+tracks' disclaimer gate (REQ-114) cover these sims; documents carry an
+author-facing `safetyNote` only.
+
+**Accessibility and web keyboard** (13): every alarm, zone, reading, process,
+indicator, rule, person and log line is one accessible element whose label
+says its state in words (a word plus a color, never color alone), at least 48
+dp, and `focusable`, so Tab on web reaches each in screen order
+(react-native-web maps `focusable` to `tabIndex` 0). Each screen has a Read
+button ("Read the facility", "Read the report", "Read the client"); urgent
+items go through the announcer's alarm channel, the rest are polite news at
+most one sentence per 10 s. JavaScript only: **ships over the air; no store
+build is needed.**
+
+**Code.** Types and checks: `ScreenSpec.facility`, `.sandbox`, `.trainer` and
+`facilityCheck`, `sandboxCheck`, `trainerCheck` in `engine/v1/validate.ts`
+(mirrored to the app by `npm run sim:sync-engine`); schema in
+`lib/sim/schema.ts`; lint in `lib/sim/lint.ts` (`sandboxSafetyProblems`, and
+the seconds-unit check for the new `at` fields). App: `src/sim/runtime/bindings.ts`,
+`facilityView.ts`, `sandboxView.ts`, `trainerView.ts`; panels
+`FacilityPanel.tsx`, `SandboxPanel.tsx`, `TrainerPanel.tsx` with `PanelBits.tsx`;
+wired in `app/(app)/course/[trackId]/sim/[simId].tsx`.
+
+#### Cases as built
+
+Golden paths by `npm run sim:golden -- steps <name>`; the bands reuse their
+base's exported `paths()`. Each authored case has one three-part reasoning
+moment, endings in all three classes with `endingOrder` (harm first), three or
+four critical criteria, KPIs, an expert path, a debrief per ending, and five to
+seven golden paths reaching every ending but `time_up`, Good, Mediocre and Bad,
+and every criterion both met and missed (`lib/sim/screens-misc.test.ts`). The
+documents are listed in `REQ314_SLUGS` (`lib/sim/documents.ts`).
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NASMCPT/cpt-parq-chest-tightness | trainer | Preparticipation screening, health history and when to refer | A sedentary 52-year-old, PAR-Q+ YES to blood pressure and its medication, NO to chest pain on paper; asked about stairs he describes exertional chest tightness. Not regularly active with a symptom: medical clearance before any testing (ACSM); a step test brings the tightness back at 3 min: stop and call 911; "some tightness is normal" lets it spread | cpt-parq |
+| bands: ACECPT 1.2, ACSMCPT 1.3, NSCACPT 1.1, NCCPTCPT 3.1 | trainer | the course's screening objective | same case | ace-parq, acsm-parq, nscacpt-parq, nccpt-parq |
+| NASMCPT/cpt-squat-knees-cave | trainer | Static and dynamic postural assessments and the compensations they reveal | Knees move inward on the overhead squat; with heels raised they still do, so the hip, not the ankle; a hip plan, a cue and box squats, no load until the knees track; a 16 kg goblet squat brings a knee ache (stop); naming a condition is out of scope; reassessment four weeks on | cpt-valgus |
+| bands: ACECPT 1.4, ACSMCPT 2.7, NSCACPT 3.3, NCCPTCPT 5.2 | trainer | the course's movement or technique objective | same case | ace-valgus, acsm-valgus, nscacpt-valgus, nccpt-valgus |
+| NASMCNC/cnc-ambivalent-food-record | trainer | Using motivational interviewing (secondary: stages of change; food records and their limits) | Contemplation: she wants change and her evening; OARS and the importance ruler draw change talk, the righting reflex draws sustain talk; a 1,250 kcal record with a steady weight is explored without blame and checked with a 24-hour recall; her own step | cnc-mi |
+| CISSP/cissp-datahall-tailgate-cooling | facility-console | Design site and facility security (secondary: physical security and personnel safety; physical and logical access) | One badge, two people into the data hall; two guards escort (a lone guard is hurt); suspend badge-in but keep exit free (locking both ways traps two technicians); the cage at 15 min, a device at 25; a breaker trips CRAC-2 at 10 min: start the standby unit from the BMS (the engineer takes 30 min; propped doors defeat access control); clips and badge log with custody; police | cissp-facility |
+| band: SECPLUS 1.10 physical security controls | facility-console | | same case | secplus-facility |
+| CEH/ceh-sandbox-invoice-loader | sandbox-report | Analyze malware with static and dynamic analysis, and choose countermeasures | An invoice .docm: an auto-open macro, Word starts PowerShell, updsvc.exe with a Run key, a 60 s beacon; detonate only in the isolated sandbox (opening it on the analyst's laptop is harm); the indicators find WS-131 before its second stage at 30 min; a YARA rule on the family's strings (a "any macro document" rule tests as noisy) and a Sigma rule for Word starting PowerShell, tested then deployed; image, then rebuild rather than delete | ceh-sandbox |
+| band: CYSAPLUS 5.17 file analysis and sandboxing | sandbox-report | | same case | cysa-sandbox |
+
+**Sources**, read 2026-11-16 (each on the documents with how it was read):
+the PAR-Q+ (form dated 01-11-2024, copyright 2025; a municipal copy of the
+official form, summarizing fetch); Riebe et al. 2015, ACSM's preparticipation
+screening algorithm (a hosted copy of the algorithm, summarizing fetch; authors
+and pages not visible); ACSM's "Who Needs a Stress Test Before Exercising?"
+(2017); the AHA's heart attack warning signs; NASM's overhead squat assessment
+blog (undated; NASM's muscle table was not on the page and is not used); the
+Great Lakes ATTC MI handout (citing Miller and Rollnick 2013, 3rd ed.; the book
+was not read); ProChange's Transtheoretical Model page; Mahabir et al. 2006
+(abstract); NIST SP 800-83 Rev. 1 (PDF, two summarizing fetches); YARA 4.4.0
+"Writing YARA rules"; the SigmaHQ conventions; MITRE ATT&CK T1547.001 (v2.1);
+an Allegion I Dig Hardware article on free egress under the IBC and NFPA 101
+(the codes themselves were not read); an Upsite summary of ASHRAE's thermal
+guidelines, 4th edition (the ASHRAE book was not read). Exam outlines are the
+courses' own readings (not re-read). Every timing and effect size is the
+author's teaching figure and says so on its param or source.
+
+**Findings** (recorded, not worked around):
+
+1. **A malformed hash (FAIL-2220).** The sandbox case's sample hash had 65
+   hex characters; `sandboxSafetyProblems` reported it as an encoded blob,
+   because the 40-64 hex exemption is exact. Fixed to 64; a test pins it.
+2. **Console tests selected by course (FAIL-2221, a recurrence of
+   FAIL-2002).** `security-certs-sims.test.ts` and `security-w2.test.ts`
+   counted every CISSP, CEH and CySA+ document as a console case; they now
+   also select by screen.
+3. **A brace in a rule body** is a template slot; YARA bodies write `{{` and
+   `}}` (22.21's note). Caught by the validator while building.
+4. **A peak tracked by an edge trigger** fires once while the value keeps
+   rising; a `process` (`peakTemp: max(peakTemp, temp)`) is the way. Caught
+   by the golden paths.
+5. **A debrief equal to its ending's narrative (FAIL-2222).** Three time_up
+   debriefs repeated the narrative the app shows, which the leak test counts
+   as server-only text reaching the client; rewritten as advice.
+6. **`time_up`** stays unreached, as in every earlier case.
+
+**Still open** (candidates on these screens, not built in this round):
+CISSP 7.11 a duress or evacuation case, 3.7 a clean-agent discharge with
+people in the room; ISC2 CC physical access; Security+ 2.13 malware
+indicators (sandbox band candidate); NASM-CPT "Facilitating lifestyle change
+and handling lapses" and NASM-CNC T-C1 (twelve weeks of coaching) and T-C2
+(travel and a tight budget) on the trainer across weeks; NSCA-CSCS needs
+analysis and athlete referral; ACE 3.2 lapses. Coverage tables are in
+`docs/sim-coverage-pm-frameworks-cnc.md` and 22.19.
+
+### 22.28 Clinical sims of the 2026-11-16 round: bands across courses and four new bedside cases (REQ-315)
+
+Nick, 2026-11-16 (16:17 PT), approved the lead's recommendations: a sim for
+every clinical objective that fits the selection rule (12.2) on an existing
+screen, launch courses first, and a **band** (4.7) wherever another course's
+sim already teaches the objective, instead of re-authoring the case. No
+engine, renderer, schema or migration change; engine 1.2 throughout.
+
+**Bands (19).** Each registers an existing case to a fitting catalog
+objective of a launch course (the objective passes the selection screen;
+`lib/sim/clinical-sims-1116.test.ts`). A band's patch changes only
+`objective`, `secondaryObjectives`, `sources` and, once, `brief`, so its
+scoring, outcome thresholds and endings are the base's (the test compares
+them). Sources are the target course's outline, relayed from the course seed
+or earlier cases with their dates, plus the base's clinical sources, each
+note starting "Relayed from the <course> case <slug>, not re-read for this
+band". Golden paths are the base's steps, rebuilt against the band
+(`scripts/sim-golden/*-band-*.steps.ts`).
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| NCLEXRN/delegation-morning-assignment-nclexrn | CMSRN | Supervising delegated care and evaluating the outcome |
+| NCLEXRN/postop-hemorrhage-early-signs-nclexrn | CMSRN | Monitoring for signs of bleeding |
+| NCLEXRN/heart-failure-pulmonary-edema-nclexrn | ADNRN | Recognize fluid volume overload during IV therapy ... and act on it |
+| NCLEXRN/pca-oversedation-naloxone-nclexrn | ADNRN | Monitor opioid therapy (NARCS U) ... naloxone |
+| NCLEXRN/copd-exacerbation-niv-nclexrn | PCCN | Oxygen saturation targets in an acute respiratory exacerbation |
+| NCLEXRN/sepsis-to-septic-shock-nclexrn | CCRNADULT | Recognize distributive shock ... report a falling BP with a rising HR |
+| NCLEXPN/ltc-insulin-hypoglycemia-nclexpn | LPNVN | The six clinical judgment steps within the PN role |
+| NCLEXPN/ltc-pressure-injury-infection-nclexpn | LPNVN | Rank the possible explanations ... take the most urgent to the RN |
+| CCRNADULT/copd-exacerbation-niv-ccrn | PCCN | COPD exacerbation: titrate oxygen, follow gases for CO2 retention |
+| CCRNADULT/post-op-transfusion-reaction-ccrn | NCLEXRN | Differentiate transfusion reactions, TRALI and TACO |
+| CCRNADULT/pca-oversedation-naloxone-ccrn | ADNRN | Manage opioid toxicity ... sedation can return after naloxone |
+| CCRNADULT/heart-failure-pulmonary-edema-ccrn | ADNRN | Heart failure: decompensation, fluid overload, medications |
+| NPTEPT/tka-gait-dvt-red-flag-npte | DPT | Total knee arthroplasty rehab per the 2026 APTA guideline |
+| NPTEPT/parkinson-freezing-session-npte | DPT | The strong Parkinson disease recommendations |
+| NPTEPT/dizziness-central-red-flags-npte | DPT | Signs of neurological emergency that need immediate referral |
+| NPTEPT/icu-early-mobility-npte | DPT | Cardiopulmonary decompensation that requires stopping treatment |
+| NPTEPT/stroke-balance-fall-risk-npte | DPT | The neurologic core outcome set |
+| NCE/nce-suicide-safety-plan | NCMHCE | Develop a collaborative safety plan with a client at risk |
+| NCMHCE/ncmhce-boundary-dual-relationship | NCE | Apply the ACA Code of Ethics and the law to a counseling decision |
+
+Not banded, and why: the NCLEX-RN hyperkalemia case to the NCLEX-PN
+potassium objective (the RN gives IV calcium and insulin, outside the PN
+scope; it needs a PN case or a re-authored band); the PT prerequisites cycle
+test to NPTE-PT (a student lab with an instructor, not a licensed PT); the
+EMS STEMI and anaphylaxis cases to CCRN Adult (prehospital scope and
+destination decisions).
+
+**New cases (5)**, each with `endingOrder`, endings in all three outcome
+classes, three or four critical criteria inside the `target` condition, a
+reasoning moment, a sourced teaching prompt where a named wait exists, a
+chapter, and five or six golden paths (Good, Mediocre, Bad; every criterion
+met and missed; every ending but `time_up`):
+
+| Course / slug | Objective (abridged) | Critical criteria | Steps name |
+|---|---|---|---|
+| NCLEXRN/alcohol-withdrawal-ciwa | Screen for alcohol withdrawal on admission and use the CIWA-Ar | drinking history within 10 min; a score before any dose and every dose backed by 10 or more; lorazepam within 15 min of a qualifying score; rescored within about an hour | rn-ciwa |
+| CNA/sundowning-at-the-exit-door | Responding to behavior without escalating it | no hold, locked tray or sedative for convenience; validation instead of correction; unmet needs checked within 15 min | cna-sundown |
+| CCRNADULT/tension-pneumothorax-after-line | Recognize tension pneumothorax ... treated before imaging | chest examined within 3 min; decompression asked for now, not a film, within 5 min; 100% oxygen within 3 min | ccrn-ptx |
+| NCLEXPN/head-strike-on-apixaban | Recognize and report signs of rising intracranial pressure | neuro check within 5 min; the RN told with the data and 911 within 10 min; no opioid or sedating antiemetic | pn-icp |
+| NCLEXRN/oxytocin-tachysystole-late-decels | Interpret the fetal heart rate baseline ... first response is repositioning, or stopping oxytocin | oxytocin stopped (not halved) within 5 min; turned to her side within 5 min, never flat; the obstetrician told the tracing in numbers within 10 min | rn-fhr |
+
+- **Harm endings** are outcomes (a seizure, oversedation, a fall at the
+  door, cardiac arrest, herniation, aspiration while flat, a prolonged fetal deceleration), never an
+  action alone. The x-ray-first choice in the tension pneumothorax case ends in
+  arrest only because the 15-minute film is too slow for the authored
+  course of the tension.
+- **Scope.** The RN and PN act on standing protocols named in the brief
+  (the withdrawal protocol's dose is "the protocol dose", not a number; the
+  facility's 911 policy); the aide reports observations to the nurse.
+- **Sources**, read 2026-11-16 through summarizing fetches with quotes: the
+  ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (2020;
+  CIWA-Ar bands under 10, 10-18 and 19, with the severe band's comparison
+  sign lost in the extracted text), StatPearls on alcohol withdrawal (no
+  title or date shown), one hospital's CIWA-Ar flowsheet (items and the
+  10-point trigger; not a guideline), 42 CFR 483.12 (Cornell LII), Open RN
+  Nursing Assistant 10.5, StatPearls Tension Pneumothorax (2025-07-07) and
+  Increased Intracranial Pressure (2025-09-14), OpenStax Maternal Newborn
+  Nursing 16.4 (2024) and NCC's monograph of the NICHD definitions (2016;
+  tachysystole, moderate variability). The terbutaline order carries no dose
+  number. Relayed with their dates: the
+  NCLEX test plans, the CCRN handbook, the NNAAP outline, 42 CFR 483.152,
+  NICE NG232 through a summary. Every disease course, effect size and local
+  wait is an authored teaching value marked `FLAG`.
+- **Findings while authoring** (FAIL-2240, FAIL-2241): a state variable
+  named `scoring` in the CIWA-Ar case made the client document look as if
+  it carried the server-only scoring block (documents.test.ts); renamed, and
+  a cheap test now checks every document's client-visible ids against the
+  server-only key list. `NBCC_SESSION_DOCUMENTS` was
+  every NCE and NCMHCE entry, so the two NBCC bands would have broken the
+  REQ-239 tests; it now names the five REQ-239 slugs. A chapter whose
+  condition is met only in the last minutes before a terminal ending is
+  unreachable in the goldens (the linter said so); the tension pneumothorax
+  chapter is the stat call instead.
+- **What remains** is in docs/sims-coverage-clinical.md, "REQ-315 progress".
+
+### 22.29 IT sims wave 4: bands for the launch courses and six new cases (REQ-316)
+
+Nick, 2026-11-16 (16:17 PT), approving the lead's recommendations: build a
+sim for every IT, cloud and security objective that fits the selection rule
+on an existing screen, launch courses first, and where another course's sim
+already teaches the objective, register a band (4.7) instead of re-authoring
+the case. No engine, renderer, schema or migration change; everything is on
+the terminal, security console and board screens at engine 1.2. The list is
+`lib/sim/it-wave4.ts`; `lib/sim/it-wave4.test.ts` selects every document by
+slug (FAIL-2002) and checks: an active objective of its own course that no
+other sim of that course already sits on; `endingOrder`; endings in all
+three outcome classes with a debrief each; goldens that reach every ending
+but `time_up`, rate Good, Mediocre and Bad, start the expert path at
+`target`, and score every critical criterion both met and missed; no lint
+error; a first source read on 2026-11-16; and no ISC2, ISACA or EC-Council
+mark outside a document's `sources` (the trademark decision of the same
+day). A behavior test per new case checks the decision it teaches.
+
+**Bands (32).** Each band is a merge-patch that sets the course's objective,
+clears the base's secondary objectives (they belong to the base course) and
+replaces `sources` with the course's own outline, read 2026-11-16, followed by
+the base's technical sources minus the base course's exam outline. A base
+string outside `sources` that names another exam body's mark is patched (one:
+the CISSP recovery case's NIST SP 800-34 note). The golden paths are the
+base's own (`npm run sim:golden -- steps w4-<course>-<slug>` reuses the
+base's steps), and the test checks a band keeps its base's actions, endings,
+ending order and golden outcomes.
+
+| Course | Band | Base | Objective (abridged) |
+|---|---|---|---|
+| SECPLUS | ransomware-recovery-site-secplus | CISSP | Resilience and recovery (sites, backups, testing) |
+| SECPLUS | payroll-supplier-breach-secplus | CISM | Third-party risk assessment and management |
+| SECPLUS | arp-poisoning-finance-vlan-secplus | CEH | Indicators of malware, physical and network attacks |
+| SECPLUS | blind-sqli-search-secplus | CEH | Vulnerability types (web-based: SQLi, XSS) |
+| SECPLUS | triage-phish-correlation-secplus | ISC2CC | Security monitoring, log analysis, SIEM/SOAR |
+| SECPLUS | checkout-skimmer-containment-secplus | CISM | Enterprise mitigation techniques (isolation, segmentation) |
+| SECPLUS | web-tier-data-theft-secplus | CISSP | Data sources for an investigation |
+| SECPLUS | ot-segmentation-breach-secplus | SECURITYX | Endpoint, mobile, embedded/IoT/ICS considerations |
+| APLUS_CORE2 | firewall-change-backout-aplus2 | SECPLUS | Change-management best practices (220-1202 4.2) |
+| NETWORKPLUS | arp-poisoning-finance-vlan-netplus | CEH | Common attack types (ARP/DNS poisoning) |
+| NETWORKPLUS | firewall-change-backout-netplus | SECPLUS | Change and configuration management |
+| NETWORKPLUS | rogue-dhcp-soho-office-netplus | APLUS_CORE1 | Network services: DHCP ... |
+| NETWORKPLUS | ransomware-recovery-site-netplus | CISSP | Disaster recovery concepts (RPO, RTO, site types) |
+| LINUXPLUS | fstab-uuid-typo-emergency-linuxplus | LFCS | Diagnosing boot failures, rescue mode |
+| LINUXPLUS | report-workers-starve-api-linuxplus | LFCS | Diagnosing performance issues |
+| LINUXPLUS | lvm-database-volume-full-linuxplus | LFCS | Disk partitioning, LVM, filesystems |
+| LINUXPLUS | clock-skew-blocks-logins-linuxplus | LFCS | Common network services (time sync) |
+| LINUXPLUS | shared-folder-permission-denied-linuxplus | LINUXFUND | Special permissions: SUID, SGID, sticky bit |
+| LINUXPLUS | nightly-backup-missing-linuxplus | LINUXFUND | Reading and interpreting system logs |
+| KCNA | crashloop-bad-configmap-kcna | CKA | Troubleshooting: Pod phases and container states |
+| KCNA | apiserver-static-pod-bad-flag-kcna | CKA | Administration: control plane components |
+| AWSSOA | waf-login-flood-sqli-soa | AWSSAA | Auditing network protection services (5.1.3) |
+| AWSSOA | nat-gateway-bill-spike-soa | AWSSAA | Optimizing the cost of a network architecture (5.1.4) |
+| AWSSOA | canary-rollback-dlq-soa | AWSDVA | Implementing deployment strategies (3.1.5) |
+| AWSSOA | leaked-access-key-soa | AWSCLF | Troubleshooting and auditing access (4.1.2) |
+| AWSSAA | leaked-access-key-saa | AWSCLF | IAM security practices, root user, MFA (Task 1.1) |
+| AWSSAA | rds-update-without-where-pitr-saa | AWSSOA | Data durability and availability: backups (Task 2.2) |
+| AWSCLF | waf-login-flood-sqli-clf | AWSSAA | Network protection services: WAF, Shield |
+| AWSCLF | nat-gateway-bill-spike-clf | AWSSAA | VPC components (subnets, NAT gateways) |
+| GCPACE | bigquery-dashboard-bill-ace | GCPCDL | Establishing billing budgets and alerts (1.2) |
+| GCPCDL | public-bucket-customer-exports-cdl | GCPACE | Common cybersecurity threats (misconfiguration) |
+| GCPCDL | cloud-run-bad-revision-rollback-cdl | GCPACE | Core DevOps/SRE vocabulary (SLIs, SLOs) |
+
+**New cases (6).** Same pattern as 22.16: learner-paced `turns` phases,
+every task costs minutes through one `work` wait, the problem's next step an
+`interruptsSkip` trigger on the same clock, harm endings first in
+`endingOrder`, one three-part reasoning moment, six golden paths from
+`npm run sim:golden -- steps <name>`. Teaching timings carry an
+"Author's scenario timing (REQ-316)" source (FLAG: not measured values).
+
+| Course / slug | Screen, profile | Core of the case | Steps name |
+|---|---|---|---|
+| SECPLUS/spoofed-ceo-wire-dmarc | security console, security | A forged CEO wire request: headers show SPF fail, no DKIM, DMARC fail at p=none; hold the wire by phone before the 10:30 cutoff, gateway rule and purge, then the aggregate reports show PayrollCo sending unaligned: align it, then p=quarantine. Enforcing first breaks the 11:00 payslips; the gateway rule alone protects only your own staff | secplus-dmarc |
+| SECPLUS/departing-engineer-usb-evidence | security console, security | A leaver's laptop, a USB drive and an 11:00 offboarding job: legal hold first, custody form before collecting, memory before the disk with trusted tools (RFC 3227's order of volatility), write blockers and hashes; shutting down loses memory, browsing taints, confronting tips him off | secplus-forensics |
+| AWSSOA/alb-health-check-login-redirect | board, cloud | A release puts /health behind the login page: ResponseCodeMismatch 302 on every target, the group replacing instances, the load balancer failing open; point the check at /healthz with matcher 200 before the 10:00 campaign. Widening the matcher turns targets green and blind; suspending ReplaceUnhealthy only hides it | soa-elbhc |
+| AWSSAA/guardduty-role-credentials-macie | board, security | GuardDuty InstanceCredentialExfiltration.OutsideAWS on the web role; Macie shows the exports bucket holds card numbers; revoke the role's sessions, then require IMDSv2 (or turn off /preview) before the attacker takes fresh credentials through the request forgery; isolate and snapshot, not terminate | saa-guardduty |
+| LINUXPLUS/retired-dns-server-orders-stuck | terminal, infrastructure | Orders stuck after a DNS server retirement: ip, route, ping by address and traceroute prove the path; dig times out against the retired server; the NetworkManager profile pins it. A hand edit of resolv.conf is rewritten at a 14:10 reactivation; /etc/hosts fixes one name | linuxplus-dns |
+| CKA/etcd-restore-deleted-namespace | terminal, infrastructure | A cleanup job deleted a namespace whose Secrets exist only in etcd: endpoint and certificates from the etcd Pod, snapshot status, a pre-restore snapshot, API server stopped, etcdutl restore to a new directory, the etcd-data hostPath changed, components restarted, the 08:00 changes re-applied from Git | cka-etcd |
+
+**Sources** carry `checkedAt` 2026-11-16 and say how each was read (all
+through summarizing fetches unless noted): the CompTIA Security+ V7, Linux+
+and (copies of) Network+ N10-009 and A+ 220-1202 objectives; the Linux
+Foundation KCNA program changes page; the AWS SAA-C03 and SOA-C03 exam guide
+PDFs and a training provider's copy of the CLF-C02 guide (version 1.0); the
+Google Cloud ACE and Digital Leader exam guides; IETF RFC 9989 (DMARC, May
+2026, which obsoletes RFC 7489; the case uses no `pct` tag) and RFC 3227;
+the ELB target group health check, EC2 Auto Scaling health check, GuardDuty
+EC2 remediation, IAM session revocation and Macie finding types pages and
+the re:Post credential article; NetworkManager.conf(5); the Kubernetes
+"Operating etcd clusters" page. One source is marked "to verify": the CIS
+AWS benchmark recommendation on IMDSv2, of which only the title was seen.
+The CKA case reuses the CKA curriculum read on 2026-11-14.
+
+**Findings** (recorded; none needed a code fix):
+
+1. **DMARC has a new RFC.** RFC 9989 (May 2026) obsoletes RFC 7489 and
+   removes `pct` (replaced by the `t` test flag). Course content that
+   teaches `pct` should be checked by the verification pass (REQ-310).
+2. **Security+ V8.** The Security+ page says V8 comes in November and
+   SY0-701 retires in English on 2027-06-11. The SECPLUS bands and cases
+   are on SY0-701 objectives; SECPLUSV8 objectives are not covered here.
+3. **Bands across certification levels** (as 22.16 finding 6): CISSP, CISM
+   and SecurityX cases on Security+, LFCS cases on Linux+, CKA cases on
+   KCNA, Professional-level ideas on associate courses. The decisions
+   taught match each objective; the level is the base's. A decision for
+   Nick: keep, or replace with simpler cases later.
+4. **The A+ objectives say rollback plan,** where the course objective says
+   backout plan; the band teaches both (the base case calls it a backout
+   plan).
+5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").

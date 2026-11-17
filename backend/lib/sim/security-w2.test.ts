@@ -15,7 +15,9 @@ import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
 import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 
 const COURSES = ["CYSAPLUS", "PENTESTPLUS", "SECURITYX", "SECAIPLUS"] as const;
-const W2 = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
+// FAIL-2221: select the console cases by screen too; REQ-314 added a CySA+
+// band on the sandbox report.
+const W2 = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course) && loadDocument(e).screen.type === "security-console");
 const docOf = (slug: string): ScenarioDoc => loadDocument(W2.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {

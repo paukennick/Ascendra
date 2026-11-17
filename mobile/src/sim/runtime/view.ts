@@ -10,7 +10,15 @@ import { parseCached } from "../engine/v1/parser.ts";
 import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
 import { consoleView, type ConsoleView } from "./consoleView.ts";
+import { facilityView, type FacilityView } from "./facilityView.ts";
+import { sandboxView, type SandboxView } from "./sandboxView.ts";
+import { trainerView, type TrainerView } from "./trainerView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
+import { dashboardView, type DashboardView } from "./dashboardView.ts";
+import { deskView, type DeskView } from "./deskView.ts";
+import { dataView, type DataView } from "./dataView.ts";
+import { governanceView, type GovernanceView } from "./governanceView.ts";
+import { tabletopView, type TabletopView } from "./tabletopView.ts";
 
 type Tile = VitalTile;
 
@@ -161,6 +169,8 @@ export interface SessionView {
   gauges: GaugeView[];
   notes: NoteView[];
   record: { label: string; items: string[] } | null;
+  // REQ-313: the read-aloud button's label (session@2); "Read the client" when unset.
+  readLabel: string;
 }
 
 type Gauge = NonNullable<ScreenSpec["session"]>["gauges"][number];
@@ -198,7 +208,7 @@ export function sessionView(run: Run): SessionView | null {
       return { id: n.id, label: n.label, text: t, alert, a11y: `${alert ? "Alert. " : ""}${n.label}: ${t}` };
     });
   const record = se.record ? { label: se.record.label, items: se.record.items.filter((it) => value(run, it.when) === true).map((it) => text(run, it.label)) } : null;
-  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record };
+  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record, readLabel: se.readLabel?.trim() || "Read the client" };
 }
 
 // Alert notes join the tile alarms: spoken at once on entering and leaving.
@@ -371,6 +381,14 @@ export interface RunView {
   console: ConsoleView | null; // REQ-231: the security operations console
   treatment: TreatmentView | null;
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
+  dashboard: DashboardView | null; // REQ-311: the project dashboard (predictive or Sprint mode)
+  desk: DeskView | null; // REQ-311: the ITIL service desk
+  data: DataView | null; // REQ-312: the data and code console
+  governance: GovernanceView | null; // REQ-313: the governance board
+  tabletop: TabletopView | null; // REQ-313: the tabletop exercise
+  facility: FacilityView | null; // REQ-314: the facility console
+  sandbox: SandboxView | null; // REQ-314: the sandbox report
+  trainer: TrainerView | null; // REQ-314: the client trainer
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -385,6 +403,7 @@ export function runView(run: Run, logLimit = 60): RunView {
   const p = run.state.openPrompt ? (doc.prompts ?? {})[run.state.openPrompt] : null;
   const r = run.state.openReasoning ? doc.reasoning[run.state.openReasoning] : null;
   const banner = (doc.screen.bedside?.banner ?? []).find((b) => value(run, b.when) === true);
+  const actions = actionViews(run);
   const log = run.log
     .map((l, i) => ({ key: `${i}`, time: simTimeText(run, l.tick), kind: l.kind, text: l.text }))
     .slice(-logLimit)
@@ -403,7 +422,15 @@ export function runView(run: Run, logLimit = 60): RunView {
     console: consoleView(run),
     treatment: treatmentView(run),
     terminal: terminalView(run),
-    groups: groupActions(actionViews(run)),
+    facility: facilityView(run),
+    sandbox: sandboxView(run),
+    trainer: trainerView(run),
+    governance: governanceView(run),
+    tabletop: tabletopView(run),
+    dashboard: dashboardView(run),
+    desk: deskView(run),
+    data: dataView(run, actions),
+    groups: groupActions(actions),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
     reasoning: r && run.state.openReasoning ? { id: run.state.openReasoning, question: r.question } : null,

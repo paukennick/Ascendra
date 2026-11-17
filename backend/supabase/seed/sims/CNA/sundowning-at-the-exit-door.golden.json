@@ -1,0 +1,343 @@
+{
+  "slug": "sundowning-at-the-exit-door",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: calm approach, validate, redirect to towels in the quiet lounge, bathroom and pain check, pulse, report observations",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "approach",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "redirect",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "environment",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "engaged",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "needs",
+          "seq": 8,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "pulse",
+          "seq": 9,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 10,
+          "tick": 360
+        }
+      ],
+      "expect": {
+        "ending": "settled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "noRestraint": "met",
+          "validated": "met",
+          "needs": "met",
+          "approach": "met",
+          "redirected": "met",
+          "reported": "met"
+        },
+        "kpis": {
+          "toNeeds": 360,
+          "distress": 5
+        },
+        "stateHash": "8a1e381fa85e5ead"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "argueFirst",
+      "title": "Corrects her first, then approaches, validates and redirects; needs checked late; reports a label",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reorient",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "approach",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "redirect",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "engaged",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 1080
+        },
+        {
+          "type": "act",
+          "action": "needs",
+          "seq": 7,
+          "tick": 1080
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "seq": 8,
+          "tick": 1080
+        }
+      ],
+      "expect": {
+        "ending": "settledLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "noRestraint": "met",
+          "validated": "partial",
+          "needs": "partial",
+          "approach": "met",
+          "redirected": "partial",
+          "reported": "met"
+        },
+        "kpis": {
+          "toNeeds": 1080,
+          "distress": 5
+        },
+        "stateHash": "0cec7cb192eda620"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sedative",
+      "title": "Calm and validating, needs checked, but asks the nurse for a sedative before dinner and never redirects",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "approach",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "needs",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "askSedative",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 6,
+          "tick": 600
+        }
+      ],
+      "expect": {
+        "ending": "settledLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "noRestraint": "missed",
+          "validated": "met",
+          "needs": "met",
+          "approach": "met",
+          "redirected": "missed",
+          "reported": "missed"
+        },
+        "kpis": {
+          "toNeeds": 10,
+          "distress": 48
+        },
+        "stateHash": "9650354c820e71fa"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "trayTable",
+      "title": "Locks her in a recliner with the tray table, then validates and redirects; no needs check, no report",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "chair",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "approach",
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "validate",
+          "seq": 4,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "redirect",
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "settledLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "noRestraint": "missed",
+          "validated": "met",
+          "needs": "missed",
+          "approach": "partial",
+          "redirected": "partial",
+          "reported": "missed"
+        },
+        "kpis": {
+          "toNeeds": -1,
+          "distress": 19
+        },
+        "stateHash": "f6dd3fdf318db1b9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "heldBack",
+      "title": "Failure: tells her the facts, then holds her wrists at the door; she pulls free and falls",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "reorient",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "hold",
+          "seq": 2,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "fell",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "noRestraint": "missed",
+          "validated": "missed",
+          "needs": "missed",
+          "approach": "missed",
+          "redirected": "missed",
+          "reported": "missed"
+        },
+        "kpis": {
+          "toNeeds": -1,
+          "distress": 105
+        },
+        "stateHash": "6f1e470cbbfb209d"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

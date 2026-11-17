@@ -1,0 +1,45 @@
+{
+  "band": "kcna",
+  "label": "KCNA",
+  "base": {
+    "course": "CKA",
+    "slug": "crashloop-bad-configmap"
+  },
+  "slug": "crashloop-bad-configmap-kcna",
+  "patch": {
+    "objective": "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognizing CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Linux Foundation, Kubernetes and Cloud Native Associate (KCNA) program changes: Kubernetes Fundamentals 44%, Container Orchestration 28%, Cloud Native Application Delivery 16%, Cloud Native Architecture 12%",
+        "checkedAt": "2026-11-16",
+        "url": "https://training.linuxfoundation.org/kcna-program-changes/",
+        "note": "Read through a summarizing fetch on 2026-11-16. The updated exam launched no earlier than 2025-11-24 with these domains; Kubernetes Fundamentals includes Administration, Container Orchestration includes Troubleshooting. The curriculum PDF was not re-read; the objective wording is the course seed's."
+      },
+      {
+        "cite": "Kubernetes documentation (v1.37), Pod Lifecycle: container restarts and CrashLoopBackOff",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+        "note": "Relevant text: 'After containers in a Pod exit, the kubelet restarts them with an exponential backoff delay (10s, 20s, 40s, …), that is capped at 300 seconds (5 minutes).' 'CrashLoopBackOff state: This indicates that the backoff delay mechanism is currently in effect for a given container that is in a crash loop, failing and restarting repeatedly.' Steps: check logs, 'Use kubectl describe pod <name-of-pod> to see events', 'Ensure that the Pod configuration, including environment variables and mounted volumes, is correct'. restartPolicy 'The default value is Always.' Read through a summarizing fetch on 2026-11-11."
+      },
+      {
+        "cite": "Kubernetes documentation (v1.37), ConfigMaps",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/concepts/configuration/configmap/",
+        "note": "Relevant text: 'ConfigMaps consumed as environment variables are not updated automatically and require a pod restart.' Read through a summarizing fetch on 2026-11-11. Whether a crash-looping container picks up a corrected value on its own next restart is not modeled (FLAG): the scenario asks for the documented pod restart."
+      },
+      {
+        "cite": "Kubernetes documentation (v1.37), Deployments",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+        "note": "Relevant text: 'when you roll back to an earlier revision, only the Deployment's Pod template part is rolled back'; 'kubectl rollout undo deployment/nginx-deployment'; 'A Deployment's rollout is triggered if and only if the Deployment's Pod template (that is, .spec.template) is changed'; maxUnavailable and maxSurge default to 25% ('at least 75% of the desired number of Pods are up', 'at most 125%'); progressDeadlineSeconds 'defaults to 600'. Read through a summarizing fetch on 2026-11-11."
+      },
+      {
+        "cite": "Kubernetes documentation, kubectl logs reference",
+        "checkedAt": "2026-11-11",
+        "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_logs/",
+        "note": "Relevant text: '-p, --previous: If true, print the logs for the previous instance of the container in a pod if it exists.' Example 'kubectl logs -p -c ruby web-1'. Read through a summarizing fetch on 2026-11-11. The application's own log line and the kubectl output layouts in the scenario are authored renderings."
+      }
+    ]
+  }
+}

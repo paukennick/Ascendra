@@ -1,0 +1,364 @@
+{
+  "slug": "head-strike-on-apixaban",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: neuro check, vital signs, head up and on his side, SBAR to the RN with the data, 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "triad",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 10,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "handedOver",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "neuro": "met",
+          "reported": "met",
+          "ems": "met",
+          "noSedation": "met",
+          "airway": "met",
+          "vitals": "met"
+        },
+        "kpis": {
+          "toRn": 5,
+          "to911": 5
+        },
+        "stateHash": "d75a6684b0e3e0e1"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "vagueReport",
+      "title": "Calls the RN first with no data, then the neuro check, airway and vital signs; the RN calls 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "handedOverLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "neuro": "met",
+          "reported": "partial",
+          "ems": "met",
+          "noSedation": "met",
+          "airway": "met",
+          "vitals": "met"
+        },
+        "kpis": {
+          "toRn": 10,
+          "to911": 190
+        },
+        "stateHash": "088c49c9f3b8819f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "painFirst",
+      "title": "Hydrocodone for the headache, head up and on his side, then neuro check, vital signs, RN and 911",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hydrocodone",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 6,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 7,
+          "tick": 240
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "triad",
+          "seq": 8,
+          "tick": 240
+        }
+      ],
+      "expect": {
+        "ending": "handedOverLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "neuro": "met",
+          "reported": "met",
+          "ems": "met",
+          "noSedation": "missed",
+          "airway": "met",
+          "vitals": "met"
+        },
+        "kpis": {
+          "toRn": 240,
+          "to911": 240
+        },
+        "stateHash": "9ac8dc462cda6a8a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "sleptFlat",
+      "title": "Failure: promethazine and the bed flat to sleep it off; he vomits on his back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "promethazine",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "sleep",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "aspirated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "neuro": "missed",
+          "reported": "missed",
+          "ems": "missed",
+          "noSedation": "missed",
+          "airway": "missed",
+          "vitals": "missed"
+        },
+        "kpis": {
+          "toRn": -1,
+          "to911": -1
+        },
+        "stateHash": "ccd591673b7d0dfa"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Neuro check and airway at once, but waits 15 min to recheck before calling; herniation before the paramedics",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "airway",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "callRn",
+          "seq": 6,
+          "tick": 900
+        },
+        {
+          "type": "act",
+          "action": "call911",
+          "seq": 7,
+          "tick": 900
+        },
+        {
+          "type": "teach",
+          "prompt": "triadQ",
+          "choice": "triad",
+          "seq": 8,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "herniated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 71,
+        "criteria": {
+          "neuro": "met",
+          "reported": "partial",
+          "ems": "partial",
+          "noSedation": "met",
+          "airway": "met",
+          "vitals": "met"
+        },
+        "kpis": {
+          "toRn": 900,
+          "to911": 900
+        },
+        "stateHash": "6145790439e11611"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

@@ -75,7 +75,8 @@ describe("REQ-288: ASWB client sessions", () => {
       assert.ok(d.scoring.kpis!.length >= 3 && d.scoring.kpis!.every((k) => k.expert), e.slug);
       assert.ok(d.scoring.expertPath!.length >= 4, e.slug);
       assert.ok(d.sources.length >= 2, e.slug);
-      for (const s of d.sources) assert.equal(s.checkedAt, "2026-11-14", `${e.slug}: ${s.cite}`);
+      // Read for REQ-288 on 2026-11-14; the REQ-310 verification pass re-read some on 2026-11-16.
+      for (const s of d.sources) assert.ok(["2026-11-14", "2026-11-16"].includes(s.checkedAt ?? ""), `${e.slug}: ${s.cite} checkedAt ${s.checkedAt}`);
       assert.ok(d.sources.some((s) => /aswb\.org/.test(s.url ?? "")), `${e.slug}: cites the ASWB outline`);
       assert.ok(d.sources.some((s) => /socialworkers\.org/.test(s.url ?? "")), `${e.slug}: cites the NASW Code`);
     }

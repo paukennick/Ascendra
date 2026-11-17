@@ -1,0 +1,1144 @@
+{
+  "slug": "web-tier-data-theft-secplus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Reads the correlation, convenes the team, isolates WEB02 at 8 min and cuts egress, images, briefs counsel, scopes, patches, rebuilds, then restores banking",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "activate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb2",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 28,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "counsel",
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 32,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "scope",
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 38,
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "patch",
+          "seq": 15,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 48,
+          "seq": 16,
+          "tick": 38
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 17,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 68,
+          "seq": 18,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "seq": 19,
+          "tick": 68
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 73,
+          "seq": 20,
+          "tick": 68
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 73
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 83,
+          "seq": 22,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 23,
+          "tick": 83
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 24,
+          "tick": 83
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "decide"
+          },
+          "seq": 25,
+          "tick": 83
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upload",
+            "lessons": "review"
+          },
+          "seq": 26,
+          "tick": 83
+        }
+      ],
+      "expect": {
+        "ending": "handled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "contained": "met",
+          "evidence": "met",
+          "reported": "met",
+          "recovery": "met",
+          "scoped": "met",
+          "proportionate": "met",
+          "noPremature": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 8,
+          "transfers": 0,
+          "minToRestore": 68
+        },
+        "stateHash": "d9c68dfdb3ae7881"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "rebuildFast",
+      "title": "Contains fast, then rebuilds WEB02 without capturing memory or disk",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "activate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb2",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "counsel",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "patch",
+          "seq": 11,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 13,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 47,
+          "seq": 14,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "seq": 15,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 52,
+          "seq": 16,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 52
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "decide"
+          },
+          "seq": 19,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upload",
+            "lessons": "review"
+          },
+          "seq": 20,
+          "tick": 52
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "contained": "met",
+          "evidence": "missed",
+          "reported": "met",
+          "recovery": "met",
+          "scoped": "missed",
+          "proportionate": "met",
+          "noPremature": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 8,
+          "transfers": 0,
+          "minToRestore": 47
+        },
+        "stateHash": "c103ed1bd1cf80b0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "restoreUnpatched",
+      "title": "Contains, images and briefs counsel, but restores banking on the rebuilt server before fixing the upload flaw",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "activate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb2",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 13,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 28,
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "counsel",
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 32,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 13,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 52,
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "seq": 15,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 57,
+          "seq": 16,
+          "tick": 52
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 57
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 67,
+          "seq": 18,
+          "tick": 57
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 62
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "decide"
+          },
+          "seq": 20,
+          "tick": 62
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upload",
+            "lessons": "none"
+          },
+          "seq": 21,
+          "tick": 62
+        }
+      ],
+      "expect": {
+        "ending": "reinfected",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "contained": "missed",
+          "evidence": "met",
+          "reported": "met",
+          "recovery": "missed",
+          "scoped": "missed",
+          "proportionate": "met",
+          "noPremature": "met",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": 8,
+          "transfers": 0,
+          "minToRestore": 52
+        },
+        "stateHash": "a81ce311a754c62a"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "imageFirst",
+      "title": "Reads the correlation and images the live server, then watches: the whole member table leaves at 40 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "notice",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 23,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 33,
+          "seq": 9,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 10,
+          "tick": 33
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 43,
+          "seq": 11,
+          "tick": 33
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "insider",
+            "lessons": "blame"
+          },
+          "seq": 14,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "exfiltrated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 22,
+        "criteria": {
+          "contained": "missed",
+          "evidence": "met",
+          "reported": "missed",
+          "recovery": "missed",
+          "scoped": "missed",
+          "proportionate": "met",
+          "noPremature": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "transfers": 2,
+          "minToRestore": -1
+        },
+        "stateHash": "34516494e0373cff"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "noScope",
+      "title": "Images before isolating (the shell reaches WEB03 at 10 min), then contains WEB02 only and never scopes the tier",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 20,
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "activate",
+          "seq": 6,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 23,
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb2",
+          "seq": 8,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 9,
+          "tick": 23
+        },
+        {
+          "type": "act",
+          "action": "blockEgress",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 28,
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "counsel",
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 32,
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "patch",
+          "seq": 14,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 42,
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 16,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 62,
+          "seq": 17,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "seq": 18,
+          "tick": 62
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 67,
+          "seq": 19,
+          "tick": 62
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 20,
+          "tick": 67
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 21,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "decide"
+          },
+          "seq": 22,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upload",
+            "lessons": "review"
+          },
+          "seq": 23,
+          "tick": 67
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 72,
+        "criteria": {
+          "contained": "missed",
+          "evidence": "met",
+          "reported": "met",
+          "recovery": "met",
+          "scoped": "missed",
+          "proportionate": "met",
+          "noPremature": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": -1,
+          "transfers": 1,
+          "minToRestore": 62
+        },
+        "stateHash": "f120db9739047ef2"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateHeavy",
+      "title": "Convenes and briefs counsel before isolating: the shell reaches WEB03 at 10 min; contains both by 25 min, powers off DB01 on the way, then recovers clean",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageSiem",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "activate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "counsel",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb2",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "dbOff",
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 11,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "scope",
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 13,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "isolateWeb3",
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 24,
+          "seq": 15,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 16,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 39,
+          "seq": 17,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "patch",
+          "seq": 18,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 49,
+          "seq": 19,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 20,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 69,
+          "seq": 21,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "restore",
+          "seq": 22,
+          "tick": 69
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 74,
+          "seq": 23,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 24,
+          "tick": 74
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 25,
+          "tick": 74
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "decide"
+          },
+          "seq": 26,
+          "tick": 74
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "upload",
+            "lessons": "review"
+          },
+          "seq": 27,
+          "tick": 74
+        }
+      ],
+      "expect": {
+        "ending": "handledLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "contained": "met",
+          "evidence": "met",
+          "reported": "met",
+          "recovery": "met",
+          "scoped": "met",
+          "proportionate": "missed",
+          "noPremature": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToContain": 22,
+          "transfers": 0,
+          "minToRestore": 69
+        },
+        "stateHash": "d3c8180abdcfbcc0"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

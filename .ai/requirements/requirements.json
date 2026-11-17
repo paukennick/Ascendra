@@ -11249,6 +11249,284 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-311",
+      "category": "feature",
+      "title": "Sims: project dashboard (predictive and Sprint modes) and ITIL service desk screens, with the first Scrum and ITIL cases",
+      "description": "Two screen types behind SIMS_RENDERERS and on by default: project-dashboard (screen.dashboard: commitments, a board by column, a chart from histories and a fixed plan line, impediments or risks, people as gauges in words, events; predictive mode for the PMI courses, Sprint mode for Scrum) and service-desk (screen.desk: the organization's priority matrix and targets, a queue of incidents, requests, problems and changes with impact, urgency, priority, status and due time, services with a tone). Outcome profiles scrum (Scrum Guide 2020 commitments instead of earned value) and service (service level breaches by correct priority). Older app builds get Update the app. First cases: two PSM I Sprints with CSM bands, and one ITIL Foundation (Version 5) service-desk shift at Foundation depth registered to ITIL5FND (REQ-308).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/PSMI",
+        "backend/supabase/seed/sims/CSM",
+        "backend/supabase/seed/sims/ITIL5FND",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md",
+        "docs/sim-coverage-pm-frameworks-cnc.md"
+      ],
+      "acceptance_criteria": [
+        "project-dashboard@1 and service-desk@1 capabilities; an older build is not offered either screen",
+        "accessibility to the console standard: open impediments and breaches spoken at once and news polite and Read the dashboard and Read the queue and 48 dp and words plus color",
+        "scrum profile justified from the Scrum Guide 2020 and refusing looser thresholds",
+        "each case with endings in all three classes and 3 critical criteria and golden paths with Good Mediocre and Bad and endingOrder",
+        "learner-paced",
+        "no engine stepping change and no engine minor"
+      ],
+      "validation_required": [
+        "lib/sim/project-dashboard.test.ts",
+        "mobile src/sim/dashboard.test.ts",
+        "sim lint of the new documents",
+        "backend sim tests",
+        "mobile tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.24",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "ITIL5FND is on feature/itil5: the seed needs it first",
+        "The problem/error/known error definitions were read in a secondary source; the official ITIL (Version 5) glossary was not reachable",
+        "impedimentWindow (one working day) is an author's threshold derived from the Daily Scrum cadence; the Guide gives no number",
+        "The predictive mode has a renderer and validator but no PMI case yet; most Scrum objectives (P-S1 to P-S16) are not built",
+        "Third PSM I Sprint added (sprint-release-before-review, with its CSM band): releasing a Done Increment before the Review, an item not Done on Friday, the Review as a working session, the Retrospective's most helpful improvement."
+      ]
+    },
+    {
+      "id": "REQ-312",
+      "category": "feature",
+      "title": "Sims: data and code console screen type and the first data, code and process sims",
+      "description": "The data and code console designed in docs/sims.md 20.1, built as screen type data (data@1) behind SIMS_RENDERERS and on by default; one screen serves the code courses (PYTHON, JAVASCRIPT, PCEP, PCAP, TSNODE, SQL, PYDATA), PL-300 (model, DAX, report and access) and CSSGB (control charts, capability, process data). Bindings: workspace, quality flags, result tables with choice-only editable cells, bar, line and control charts drawn with plain components with a table view, a read-only code viewer with line marks, meters; results of each step. Nothing the learner types is executed: every step and every edit is an authored choice, evaluated by the engine. Outcome profile data gets default thresholds. Sims on catalog objectives, launch courses first, with bands where another course shares the objective.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md",
+        "docs/sims-coverage-tech.md",
+        "docs/sim-coverage-pm-frameworks-cnc.md"
+      ],
+      "acceptance_criteria": [
+        "data renderer behind SIMS_RENDERERS with data@1 capability and older builds told to update",
+        "accessibility: every element labeled and 48 dp and charts readable as tables and error flags spoken at once and the rest polite and Read the console and web keyboard order",
+        "no learner text executed: every work-phase param is a choice and editable cells name an action with one choice param",
+        "each authored sim has endings in all three classes and 3-4 critical criteria and 5-8 golden paths with Good Mediocre and Bad and endingOrder",
+        "no engine stepping change and no engine minor"
+      ],
+      "validation_required": [
+        "backend lib/sim tests",
+        "npm run sims:lint on the new documents",
+        "mobile tsc and data console test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.25",
+        "docs/sims-coverage-tech.md",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Outputs",
+        "tracebacks",
+        "profiles and query results are authored renderings in each tool's style; the facts they carry are the sources'",
+        "Control chart factor tables (A2 D3 D4) and Pp/Ppk definitions are standard values not on the fetched NIST pages",
+        "The PCAP PCEP and TSNODE bands rest on the course seeds' objective wording; the vendors' syllabi were not re-read"
+      ]
+    },
+    {
+      "id": "REQ-313",
+      "category": "feature",
+      "title": "Sims: governance board and tabletop screens, ethics conversations on the session screen at level 2, and their CISM, CISSP, CC and Security+ sims",
+      "description": "The security builder's screen proposals (docs/sims.md 22.19), approved by Nick on 2026-11-16 ('build all the proposed screens'). A governance board (screen type governance-board) and a tabletop exercise (screen type tabletop) behind SIMS_RENDERERS and on by default, each with its bindings, validator checks, outcome profile (governance, exercise), renderer, view model, announcements and capability. Professional-ethics dilemmas run on the existing client session screen with a new profile (professional-ethics) and an optional read-button label that needs session renderer level 2. Sims for every objective that fits, CISM first, then CISSP, CC and Security+, with bands where another course's objective is taught by the same case. Learner-facing sim text names no certifying body's mark.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/CISM",
+        "backend/supabase/seed/sims/CISSP",
+        "backend/supabase/seed/sims/ISC2CC",
+        "backend/supabase/seed/sims/SECPLUS",
+        "backend/supabase/seed/sims/SECPLUSV8",
+        "backend/scripts/sim-golden",
+        "backend/lib/sims-governance.dbtest.ts",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "governance-board@1 and tabletop@1 renderers behind SIMS_RENDERERS; session@2 for readLabel and older apps told to update",
+        "accessibility to the console standard: every element labeled in words and 48 dp and alarms at once and changes polite and rate-limited and a Read button and web keyboard order",
+        "profiles governance and exercise and professional-ethics with defaults and lint direction",
+        "each authored sim: endings in all three classes and 3-4 critical criteria and endingOrder and 6 golden paths with Good Mediocre Bad and every criterion met and missed",
+        "learner-paced",
+        "no engine stepping change and no engine minor",
+        "no certifying body mark in learner-facing sim text (lint rule)"
+      ],
+      "validation_required": [
+        "backend lib/sim tests for the changed files",
+        "npm run sims:lint",
+        "sims DB test",
+        "mobile tsc and sim tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.26",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "The objective titles of CC 1.8 and CISSP 1.1 name the certifying body; the trademark builder may retitle them and the sims' objective field must follow",
+        "Sources name publishers in citations (not learner text in the sim body); whether citations count as using a mark is for Nick",
+        "NIST SP 800-84 and CSWP 29 themselves were not opened; read through NIST pages and the CSF 2.0 Implementation Examples PDF"
+      ]
+    },
+    {
+      "id": "REQ-314",
+      "category": "content",
+      "title": "Facility console, sandbox report and client trainer screens, with their first sims",
+      "description": "Nick 2026-11-16: build all the proposed screens. Three new screen types behind SIMS_RENDERERS (facility-console@1, sandbox-report@1, trainer@1): bindings in the engine types, zod schema and validator (display and lint only, no engine minor), app view models and panels with words-not-color accessibility, focusable rows for web keyboard order and Read buttons, capability negotiation. New outcome profile facility (responseWindow 600 s, peopleAtRisk 0); fitness gains stopWindow 120 s. Lint: sandboxSafetyProblems keeps the sandbox report defensive (no live links, encoded blobs, runnable script-host lines, live addresses or unreserved domains); seconds-unit checks for the new at fields. Sims: NASMCPT PAR-Q+ screening and overhead squat cases with bands for ACECPT, ACSMCPT, NSCACPT and NCCPTCPT; NASMCNC motivational interviewing with a food record (S-C1, S-C2); CISSP data hall tailgate and cooling failure with a SECPLUS band; CEH malware sandbox report with a CYSAPLUS band. FAIL-2220, FAIL-2221. JavaScript only: ships over the air.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim/",
+        "mobile/src/sim/",
+        "mobile/app/(app)/course/[trackId]/sim/",
+        "backend/supabase/seed/sims/",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each document passes sims:lint with no error and lib/sim/screens-misc.test.ts",
+        "an app without a screen's capability is not offered its sims",
+        "the sandbox report contains nothing runnable and only documentation addresses and reserved domains",
+        "every primary and secondary objective is a catalog objective of its course",
+        "goldens reach every ending but time_up and Good Mediocre and Bad and every criterion met and missed"
+      ],
+      "validation_required": [
+        "npm run sims:lint",
+        "backend npm test",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sims.md 22.27",
+        "docs/sim-coverage-pm-frameworks-cnc.md",
+        "docs/sims-coverage-it.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-316",
+      "category": "content",
+      "title": "IT sims wave 4: bands for launch courses and new sims on existing screens",
+      "description": "Nick (2026-11-16, 16:17 PT) approved the lead's sim recommendations: build a sim for every IT, cloud and security objective that fits the selection rule on an existing screen (terminal, security console, board), launch courses first; where another course's sim already teaches the objective, register a band (band() in lib/sim/documents.ts) instead of re-authoring the case. Order: launch courses (SECPLUS, AWSSAA, AWSMLA, AWSCLF, AWSSOA, GCPCDL, GCPACE, APLUS_CORE1/2, NETWORKPLUS, LINUXPLUS, KCNA, CKA), bands early, then the new security courses, the tech and depth candidates and everything else. Data/code, governance, tabletop, facility and sandbox objectives wait for the new screens other builders are making. Defensive security only. Exam facts checked against current official pages, dated. Teaching timings flagged. Every document: endingOrder, endings in all three outcome classes, goldens rated Good, Mediocre and Bad, tests selecting by slug (FAIL-2002). ISC2, EC-Council and ISACA marks stay out of sim text; courses are named by code.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/it-wave4.ts",
+        "backend/lib/sim/it-wave4.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each band carries its course's outline read 2026-11-16 as its first source and keeps its base's behavior and golden outcomes",
+        "no ISC2 EC-Council or ISACA mark outside a document's sources",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/it-wave4.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "backend npm test in parts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.29",
+        "docs/sims-coverage-it.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "bands across certification levels put a case written for one exam on another exam's objective",
+        "scenario timings are teaching values",
+        "sources read 2026-11-16 mostly through summarizing fetches",
+        "one source (IMDSv2 benchmark) marked to verify",
+        "new documents enter expert review"
+      ]
+    },
+    {
+      "id": "REQ-315",
+      "category": "content",
+      "title": "Clinical sims for every fitting objective on an existing screen, launch courses first, with bands where another course already teaches it",
+      "description": "Nick (2026-11-16, 16:17 PT) approved the lead's recommendations: build a sim for every clinical objective that fits the selection rule (time matters, cues to read, choices with consequences, competing priorities) on an existing screen (bedside, treatment session, client session), launch courses first (NCLEXRN, NCLEXPN, CCRNADULT, CNA, DPT, PTPREREQ, NPTEPT, NCE, NCMHCE); where another course's sim already teaches the objective, register a band (lib/sim/documents.ts band(), docs/sims.md 4.7) instead of re-authoring the case. Then nursing specialty and FNP, ABPTS, ASWB and the remaining mental health objectives. Clinical values from current literature read directly and dated; authored teaching numbers flagged FLAG; no claim of clinician or expert review; mental health graphic content only where pertinent behind the 18+ gate. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/",
+        "docs/sims.md",
+        "docs/sims-coverage-clinical.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band registers another course's case to a fitting catalog objective of its own course and changes only objective secondary objectives sources and brief",
+        "each new scenario has endingOrder endings in all three outcome classes and Good Mediocre and Bad golden paths",
+        "every document lints with zero errors and replays its goldens",
+        "sources say how and when they were read",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-315 documents",
+        "lib/sim/clinical-sims-1116.test.ts",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.28",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-310",
+      "category": "content",
+      "title": "Source verification pass for 'to verify' and summary-only sources",
+      "description": "Read each seed source that builders on 2026-11-14..16 marked 'to verify' or read only through a summary, directly where possible (WebSearch then WebFetch); fix wrong facts with a FAIL entry and regression test; date each note with checkedAt 2026-11-16 or leave it 'to verify' with the reason. Order: clinical, legal, IT, rest.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Every source read on 2026-11-16 has checkedAt 2026-11-16 and a note saying how it was read",
+        "Every corrected fact has a FAIL entry and a regression test",
+        "Unreadable sources stay 'to verify' with the reason"
+      ],
+      "validation_required": [
+        "backend/lib/sim/source-verification.test.ts",
+        "changed sims' goldens rebuilt and tests rerun"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

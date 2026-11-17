@@ -1,0 +1,39 @@
+{
+  "band": "linuxplus",
+  "label": "Linux+ (XK0-006)",
+  "base": {
+    "course": "LINUXFUND",
+    "slug": "nightly-backup-missing"
+  },
+  "slug": "nightly-backup-missing-linuxplus",
+  "patch": {
+    "objective": "Reading and interpreting system logs for root-cause analysis",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CompTIA Linux+ (V8), exam XK0-006, launched 2025-07-15: System management 23%, Services and user management 20%, Security 18%, Automation, orchestration, and scripting 17%, Troubleshooting 22%",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.comptia.org/en/certifications/linux/",
+        "note": "Read through a summarizing fetch on 2026-11-16 for this Linux+ band of a case written for another Linux course. Relevant text: System management covers configuring 'LVM, RAID, partitions, and mounted storage' and reviewing service logs and timers; Troubleshooting covers 'boot, mount, and repair issues' and analyzing 'CPU, memory, I/O' to 'optimize response times'; Files and directories covers permissions and special files. Time synchronization is not named on the page; the objective wording is the course seed's."
+      },
+      {
+        "cite": "journalctl(1) (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+        "note": "Relevant text: -b, 'The argument may be empty, in which case logs for the current boot will be shown' (-1 selects the boot before); -p, 'If a single log level is specified, all messages with this log level or a lower' numeric value, that is more important, are shown; -u, 'Show messages for the specified systemd unit'; -S/--since, 'the strings \"yesterday\", \"today\", \"tomorrow\" are understood'; --list-boots, 'Show a tabular list of boot numbers (relative to the current boot), their IDs' and first and last message times. Read through a summarizing fetch 2026-11-14."
+      },
+      {
+        "cite": "mount(8) (util-linux, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man8/mount.8.html",
+        "note": "Relevant text: 'The previous contents (if any) and owner and mode of dir become invisible, and as long as this filesystem remains mounted, the pathname dir refers to the root of the filesystem on device.' So with nothing mounted, /mnt/backup is an ordinary directory on the root filesystem. Read through a summarizing fetch 2026-11-14. The CIFS 'mount error(13): Permission denied' line is authored in mount.cifs's style."
+      },
+      {
+        "cite": "systemd.unit(5), RequiresMountsFor= (systemd, man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/systemd.unit.5.html",
+        "note": "Relevant text: RequiresMountsFor= 'Takes a space-separated list of absolute paths. Automatically adds dependencies of type Requires= and After= for all mount units required to access the specified path.' Read through a summarizing fetch 2026-11-14. Used in the debrief as the follow-up, not as an action."
+      }
+    ]
+  }
+}

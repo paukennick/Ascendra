@@ -34,12 +34,21 @@ weeks, which a single session cannot show.
 
 ## Not built on an existing screen yet
 
-Two more NASM-CNC objectives fit the session screen (S-C1 motivational
-interviewing with an ambivalent client; S-C2 a food record that does not add
-up). They were not built because their sources (stages of change and
-motivational interviewing; dietary-assessment error such as under-reporting)
-were not read: web page reading was switched off partway through this build,
-and a sim's sources must be read first.
+S-C1 (motivational interviewing with an ambivalent client) and S-C2 (a food
+record that does not add up) are now one case on the client trainer,
+`cnc-ambivalent-food-record` (REQ-314, docs/sims.md 22.27), with the MI,
+stages-of-change and under-reporting sources read on 2026-11-16. S-C2's
+objective is a secondary objective of that case.
+
+## Built since (REQ-311, 2026-11-16)
+
+The project dashboard (with Sprint mode) and the service desk now exist
+(docs/sims.md 22.24). The Sim column below shows the PSMI and CSM objectives
+the first three Sprints cover. ITIL 4 Foundation (ITIL4FND) is hidden and
+replaced by ITIL Foundation (Version 5) (ITIL5FND, REQ-308), whose syllabus
+has no practices-in-detail unit; the ITIL rows below are kept as the
+ITIL 4 record. The service-desk case is registered to ITIL5FND
+(`monday-service-desk-wifi-problem`).
 
 ## Proposed screens
 
@@ -63,12 +72,16 @@ recall exam, so these would be practice for the seven practices, not exam
 items.
 
 **Process and data console** (ASQ CSSGB; overlaps the planned data and code
-console in docs/sims.md 20). A process line producing data by subgroup, a
+console in docs/sims.md 20). Built in REQ-312 as part of the data and code
+console (`screen.type: "data"`, docs/sims.md 22.25): control and other
+charts, tables with editable cells, flags and a deadline; P-Q3 and P-Q7 are
+built, P-Q1, P-Q2, P-Q4 to P-Q6 and P-Q8 can now be authored on it. A process line producing data by subgroup, a
 control chart and capability read-outs, a measurement system study, and a
 DMAIC project tracker; tampering and late reaction both cost. Unlocks P-Q1 to
 P-Q8 (25 objectives).
 
-**Client trainer** (already planned for fitness in docs/sims.md 20). Weeks of
+**Client trainer** (built in REQ-314 as `trainer@1`, docs/sims.md 22.27; T-C1
+and T-C2 are still to author). Weeks of
 coaching: adherence, lapses, measures beyond the scale, eating out and travel.
 Unlocks T-C1 and T-C2 for NASM-CNC (7 objectives).
 
@@ -82,8 +95,8 @@ calculations without a decision); the lessons and labs cover them.
 | Unit | Objective | Fits the rule? | Sim |
 |---|---|---|---|
 | Scrum Theory, Empiricism and Values | Explaining empiricism and lean thinking as the foundations Scrum is built on | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Theory, Empiricism and Values | Applying the three pillars -- transparency, inspection and adaptation -- to spot where a team has stopped inspecting or adapting | Yes: cues to read: a team that stopped inspecting | Proposed screen: P-S1 Sprint with hidden problems |
-| Scrum Theory, Empiricism and Values | Recognizing the five Scrum values in a team's behavior and what happens when they erode | Yes: cues to read: behavior that erodes a value | Proposed screen: P-S1 Sprint with hidden problems |
+| Scrum Theory, Empiricism and Values | Applying the three pillars -- transparency, inspection and adaptation -- to spot where a team has stopped inspecting or adapting | Yes: cues to read: a team that stopped inspecting | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
+| Scrum Theory, Empiricism and Values | Recognizing the five Scrum values in a team's behavior and what happens when they erode | Yes: cues to read: behavior that erodes a value | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
 | Scrum Theory, Empiricism and Values | Distinguishing Scrum as a lightweight framework from a full methodology, and what a team may add to it but not remove | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Theory, Empiricism and Values | Explaining how an iterative, incremental approach controls risk and improves predictability | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Theory, Empiricism and Values | Relating Scrum to the values and principles of the Manifesto for Agile Software Development | No: recall or explanation; lessons and labs cover it | none |
@@ -95,39 +108,39 @@ calculations without a decision); the lessons and labs cover them.
 | The Scrum Team and Its Accountabilities | Organizing several Scrum Teams on one product around one Product Backlog, one Product Owner and one Product Goal | Yes: competing priorities across teams | Proposed screen: P-S3 Three teams, one product |
 | Scrum Events | Explaining the Sprint as the container for every other event, with a fixed length of one month or less | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events | Running Sprint Planning that answers why, what and how within its timebox | Yes: timebox; choices with consequences | Proposed screen: P-S4 Sprint Planning under a timebox |
-| Scrum Events | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Proposed screen: P-S5 The Daily Scrum turns into a status meeting |
-| Scrum Events | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Proposed screen: P-S6 A Sprint Review with an unhappy stakeholder |
-| Scrum Events | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Proposed screen: P-S7 Retrospective that sticks |
-| Scrum Events | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Proposed screen: P-S8 The market moves mid-Sprint |
+| Scrum Events | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` |
+| Scrum Events | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Built (REQ-311, project dashboard): `sprint-release-before-review` (secondary) |
+| Scrum Events | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Built (REQ-311, project dashboard): `sprint-release-before-review` (secondary) |
+| Scrum Events | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` |
 | Scrum Events | Treating Product Backlog refinement as an ongoing activity rather than an event | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events | Choosing a Sprint length from risk, the need for feedback and the cost of planning | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Artifacts, Commitments and Done | Linking each artifact to its commitment: the Product Goal, the Sprint Goal and the Definition of Done | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts, Commitments and Done | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Proposed screen: P-S13 Ordering the backlog under pressure |
-| Scrum Artifacts, Commitments and Done | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Proposed screen: P-S8 The market moves mid-Sprint |
-| Scrum Artifacts, Commitments and Done | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts, Commitments and Done | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary) |
+| Scrum Artifacts, Commitments and Done | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary) |
+| Scrum Artifacts, Commitments and Done | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Built (REQ-311, project dashboard): `sprint-release-before-review` |
 | Scrum Artifacts, Commitments and Done | Writing and evolving a Definition of Done, including organizational standards and teams that share one | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts, Commitments and Done | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts, Commitments and Done | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary), `sprint-release-before-review` (secondary) |
 | Developing People and Teams | Supporting a self-managing team: when the Scrum Master steps in and when the team decides | Yes: choices with consequences: step in or not | Proposed screen: P-S10 Conflict in a self-managing team |
 | Developing People and Teams | Choosing between facilitating, teaching, mentoring and coaching for a given situation | Yes: cues to read; choices with consequences | Proposed screen: P-S10 Conflict in a self-managing team |
 | Developing People and Teams | Facilitating a team decision so every voice is heard and the decision stays the team's | Yes: competing priorities in the room | Proposed screen: P-S10 Conflict in a self-managing team |
-| Developing People and Teams | Causing the removal of impediments to the team's progress without solving everything for them | Yes: time matters; competing priorities | Proposed screen: P-S12 An impediment outside the team |
-| Developing People and Teams | Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, a status-report Daily Scrum, a stabilization Sprint -- and responding to them | Yes: cues to read | Proposed screen: P-S1 Sprint with hidden problems |
-| Developing People and Teams | Leading the organization's Scrum adoption: training, coaching and helping stakeholders work with the team | Yes: competing priorities with management | Proposed screen: P-S16 A manager wants a status report |
+| Developing People and Teams | Causing the removal of impediments to the team's progress without solving everything for them | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
+| Developing People and Teams | Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, a status-report Daily Scrum, a stabilization Sprint -- and responding to them | Yes: cues to read | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
+| Developing People and Teams | Leading the organization's Scrum adoption: training, coaching and helping stakeholders work with the team | Yes: competing priorities with management | Built (REQ-311, project dashboard): `sprint-status-meeting-daily-scrum` (secondary) |
 | Managing Products with Agility | Ordering the Product Backlog to maximize value, and measuring value by outcomes rather than output | Yes: competing priorities: value against requests | Proposed screen: P-S13 Ordering the backlog under pressure |
 | Managing Products with Agility | Forecasting and release planning from empirical data such as burn-down charts, cumulative flow and past throughput, and knowing their limits | Yes: cues to read in throughput data; consequences of a promise | Proposed screen: P-S14 A release date from real data |
-| Managing Products with Agility | Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers | Yes: competing priorities | Proposed screen: P-S6 A Sprint Review with an unhappy stakeholder |
+| Managing Products with Agility | Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers | Yes: competing priorities | Built (REQ-311, project dashboard): `sprint-goal-becomes-obsolete` (secondary), `sprint-release-before-review` (secondary) |
 | Managing Products with Agility | Defining a Product Goal and using it to decide what not to build | No: recall or explanation; lessons and labs cover it | none |
 | Managing Products with Agility | Managing technical debt and its effect on transparency and future value | Yes: delayed consequences; competing priorities | Proposed screen: P-S15 Debt that slows every Sprint |
 
-PSMI: 37 objectives, 23 fit the rule, 0 covered by a built sim.
+PSMI: 37 objectives, 23 fit the rule; REQ-311 covers 14 of them with three Sprints on the project dashboard (see the Sim column).
 
 ### CSM
 
 | Unit | Objective | Fits the rule? | Sim |
 |---|---|---|---|
 | Scrum Theory and Values | Explaining empiricism and lean thinking as the foundations Scrum is built on | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Theory and Values | Applying the three pillars -- transparency, inspection and adaptation -- to spot where a team has stopped inspecting or adapting | Yes: cues to read: a team that stopped inspecting | Proposed screen: P-S1 Sprint with hidden problems |
-| Scrum Theory and Values | Recognizing the five Scrum values in a team's behavior and what happens when they erode | Yes: cues to read: behavior that erodes a value | Proposed screen: P-S1 Sprint with hidden problems |
+| Scrum Theory and Values | Applying the three pillars -- transparency, inspection and adaptation -- to spot where a team has stopped inspecting or adapting | Yes: cues to read: a team that stopped inspecting | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
+| Scrum Theory and Values | Recognizing the five Scrum values in a team's behavior and what happens when they erode | Yes: cues to read: behavior that erodes a value | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Scrum Theory and Values | Distinguishing Scrum as a lightweight framework from a full methodology, and what a team may add to it but not remove | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Theory and Values | Explaining how an iterative, incremental approach controls risk and improves predictability | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Theory and Values | Relating Scrum to the values and principles of the Manifesto for Agile Software Development | No: recall or explanation; lessons and labs cover it | none |
@@ -141,36 +154,36 @@ PSMI: 37 objectives, 23 fit the rule, 0 covered by a built sim.
 | The Scrum Team | Explaining how the Product Owner keeps authority over the Product Backlog while working with the Developers and stakeholders | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Explaining the Sprint as the container for every other event, with a fixed length of one month or less | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Running Sprint Planning that answers why, what and how within its timebox | Yes: timebox; choices with consequences | Proposed screen: P-S4 Sprint Planning under a timebox |
-| Scrum Events and Activities | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Proposed screen: P-S5 The Daily Scrum turns into a status meeting |
-| Scrum Events and Activities | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Proposed screen: P-S6 A Sprint Review with an unhappy stakeholder |
-| Scrum Events and Activities | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Proposed screen: P-S7 Retrospective that sticks |
-| Scrum Events and Activities | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Proposed screen: P-S8 The market moves mid-Sprint |
+| Scrum Events and Activities | Running a Daily Scrum as the Developers' planning event rather than a status report | Yes: timebox; cues (status-report drift) | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` |
+| Scrum Events and Activities | Running a Sprint Review as a working session with stakeholders that can change the Product Backlog | Yes: stakeholder pressure; consequences for the backlog | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` (secondary) |
+| Scrum Events and Activities | Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint | Yes: choices with consequences in later Sprints | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` (secondary) |
+| Scrum Events and Activities | Deciding what happens when a Sprint Goal becomes obsolete, and who may cancel a Sprint | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` |
 | Scrum Events and Activities | Treating Product Backlog refinement as an ongoing activity rather than an event | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Choosing a Sprint length from risk, the need for feedback and the cost of planning | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Events and Activities | Explaining why timeboxes help, and what skipping the Sprint Retrospective costs | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Events and Activities | Comparing the Daily Scrum with a status meeting and why its constraints serve the Developers | No: recall or explanation; lessons and labs cover it | none |
+| Scrum Events and Activities | Comparing the Daily Scrum with a status meeting and why its constraints serve the Developers | No: recall or explanation; lessons and labs cover it | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Scrum Artifacts and Commitments | Linking each artifact to its commitment: the Product Goal, the Sprint Goal and the Definition of Done | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts and Commitments | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Proposed screen: P-S13 Ordering the backlog under pressure |
-| Scrum Artifacts and Commitments | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Proposed screen: P-S8 The market moves mid-Sprint |
-| Scrum Artifacts and Commitments | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts and Commitments | Managing the Product Backlog as an emergent, ordered list and judging when an item is ready for selection | Yes: competing priorities | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary) |
+| Scrum Artifacts and Commitments | Adapting the Sprint Backlog during the Sprint without endangering the Sprint Goal | Yes: competing priorities: new work against the Sprint Goal | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary) |
+| Scrum Artifacts and Commitments | Creating more than one Increment in a Sprint and releasing before the Sprint Review | Yes: time matters: release before the Review | Built (REQ-311, project dashboard): `csm-sprint-release-before-review` |
 | Scrum Artifacts and Commitments | Writing and evolving a Definition of Done, including organizational standards and teams that share one | No: recall or explanation; lessons and labs cover it | none |
-| Scrum Artifacts and Commitments | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Proposed screen: P-S9 Not Done on the last day |
+| Scrum Artifacts and Commitments | Deciding what happens to work that does not meet the Definition of Done when the Sprint ends | Yes: time matters (Sprint end); pressure to show it | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary), `csm-sprint-release-before-review` (secondary) |
 | Scrum Artifacts and Commitments | Explaining why the Sprint Goal stays fixed during the Sprint while the Sprint Backlog can change | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Master Core Competencies | Recognizing situations where facilitation serves the team or the organization | No: recall or explanation; lessons and labs cover it | none |
 | Scrum Master Core Competencies | Facilitating group decisions with techniques such as fist of five, dot voting and a decision rule agreed in advance | Yes: competing priorities in the room | Proposed screen: P-S10 Conflict in a self-managing team |
 | Scrum Master Core Competencies | Choosing between facilitating, teaching, mentoring and coaching for a given situation | Yes: cues to read; choices with consequences | Proposed screen: P-S10 Conflict in a self-managing team |
 | Scrum Master Core Competencies | Facilitating a Scrum event so it reaches its purpose within its timebox | Yes: timebox | Proposed screen: P-S4 Sprint Planning under a timebox |
 | Scrum Master Core Competencies | Coaching with questions so a team member finds their own answer | Yes: cues to read in a one-to-one conversation | Proposed screen: P-S11 Coaching a developer one to one |
-| Scrum Master Core Competencies | Teaching Scrum to a new stakeholder in plain terms | Yes: cues to read | Proposed screen: P-S16 A manager wants a status report |
-| Service to the Team, Product Owner and Organization | Leading the Scrum Team as a servant leader in concrete situations | Yes: choices with consequences | Proposed screen: P-S10 Conflict in a self-managing team |
+| Scrum Master Core Competencies | Teaching Scrum to a new stakeholder in plain terms | Yes: cues to read | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
+| Service to the Team, Product Owner and Organization | Leading the Scrum Team as a servant leader in concrete situations | Yes: choices with consequences | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Service to the Team, Product Owner and Organization | Explaining how technical debt builds up and what it does to the team's ability to deliver | No: recall or explanation; lessons and labs cover it | none |
 | Service to the Team, Product Owner and Organization | Choosing development practices that keep each Increment high quality: test automation, continuous integration, pairing and refactoring | Yes: delayed consequences | Proposed screen: P-S15 Debt that slows every Sprint |
-| Service to the Team, Product Owner and Organization | Supporting the Product Owner with backlog techniques and stakeholder collaboration | Yes: competing priorities: stakeholders against value | Proposed screen: P-S13 Ordering the backlog under pressure |
-| Service to the Team, Product Owner and Organization | Identifying organizational impediments that block Scrum Teams | Yes: cues to read | Proposed screen: P-S12 An impediment outside the team |
-| Service to the Team, Product Owner and Organization | Applying a technique to resolve an impediment, and deciding when the team should solve it themselves | Yes: time matters; competing priorities | Proposed screen: P-S12 An impediment outside the team |
+| Service to the Team, Product Owner and Organization | Supporting the Product Owner with backlog techniques and stakeholder collaboration | Yes: competing priorities: stakeholders against value | Built (REQ-311, project dashboard): `csm-sprint-goal-becomes-obsolete` (secondary), `csm-sprint-release-before-review` (secondary) |
+| Service to the Team, Product Owner and Organization | Identifying organizational impediments that block Scrum Teams | Yes: cues to read | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
+| Service to the Team, Product Owner and Organization | Applying a technique to resolve an impediment, and deciding when the team should solve it themselves | Yes: time matters; competing priorities | Built (REQ-311, project dashboard): `csm-sprint-status-meeting-daily-scrum` (secondary) |
 | Service to the Team, Product Owner and Organization | Explaining the organizational design changes Scrum brings, and why Scrum has no project manager | No: recall or explanation; lessons and labs cover it | none |
 
-CSM: 44 objectives, 23 fit the rule, 0 covered by a built sim.
+CSM: 44 objectives, 23 fit the rule; REQ-311 covers 16 rows with the three CSM bands (15 that fit) (see the Sim column; one, comparing the Daily Scrum with a status meeting, was rated "No" above and is served as a secondary objective).
 
 ### ITIL4FND
 
@@ -253,7 +266,7 @@ ITIL4FND: 40 objectives, 14 fit the rule, 0 covered by a built sim.
 | Measure Phase | Classifying data and measurement scales and writing a data collection plan with sampling and data checks | Yes: choices with consequences | Proposed screen: P-Q2 Is the gauge lying? |
 | Measure Phase | Calculating and interpreting descriptive statistics and graphs: histograms, box plots, scatter diagrams and normal probability plots | No: recall or explanation; lessons and labs cover it | none |
 | Measure Phase | Evaluating a measurement system with gauge R&R, bias, linearity and percent agreement | Yes: cues to read in data; consequence: decisions on bad data | Proposed screen: P-Q2 Is the gauge lying? |
-| Measure Phase | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | Yes: cues to read: an unstable process | Proposed screen: P-Q3 Capability on an unstable process |
+| Measure Phase | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | Yes: cues to read: an unstable process | Built (REQ-312, data console): `cssgb-capability-tool-wear` |
 | Analyze Phase | Using multi-vari studies to separate positional, cyclical and temporal variation | Yes: cues to read | Proposed screen: P-Q4 Root cause hunt |
 | Analyze Phase | Calculating correlation and simple linear regression, and telling correlation from causation | Yes: cues to read: correlation or cause | Proposed screen: P-Q4 Root cause hunt |
 | Analyze Phase | Setting up a hypothesis test: hypotheses, significance level, power, type I and type II errors and sample size | Yes: choices with consequences (errors) | Proposed screen: P-Q4 Root cause hunt |
@@ -269,13 +282,13 @@ ITIL4FND: 40 objectives, 14 fit the rule, 0 covered by a built sim.
 | Improve Phase | Distinguishing kaizen from a kaizen blitz and choosing between them | No: recall or explanation; lessons and labs cover it | none |
 | Control Phase | Explaining the aims of SPC and telling common-cause from special-cause variation | Yes: cues to read: special cause or noise; tampering costs | Proposed screen: P-Q7 Control chart on shift |
 | Control Phase | Using rational subgrouping | Yes: choices with consequences | Proposed screen: P-Q7 Control chart on shift |
-| Control Phase | Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u | Yes: cues to read; time matters | Proposed screen: P-Q7 Control chart on shift |
+| Control Phase | Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u | Yes: cues to read; time matters | Built (REQ-312, data console): `cssgb-fill-weight-chart` |
 | Control Phase | Developing a control plan with the document control and training that sustain it | Yes: delayed consequences: the gain slips | Proposed screen: P-Q8 Holding the gain |
 | Control Phase | Distinguishing first-, second- and third-party audits | No: recall or explanation; lessons and labs cover it | none |
 | Control Phase | Applying plan-do-check-act to sustain and extend a gain | Yes: delayed consequences | Proposed screen: P-Q8 Holding the gain |
 | Control Phase | Using total productive maintenance and the visual factory (andon, jidoka) to hold the improved process | Yes: time matters: a stop on the line | Proposed screen: P-Q8 Holding the gain |
 
-CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
+CSSGB: 43 objectives, 25 fit the rule, 2 covered by a built sim (REQ-312).
 
 ### NASMCNC
 
@@ -297,13 +310,13 @@ CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
 | Nutrition Science | Planning hydration from total water needs, sweat losses and sodium | No: recall or explanation; lessons and labs cover it | none |
 | Nutrition Science | Explaining nutrient timing around training and what the evidence does and does not support | No: recall or explanation; lessons and labs cover it | none |
 | Nutrition Science | Evaluating a supplement: how it is regulated, third-party testing, and when it is a question for a clinician | Yes: cues to read (intake form, label); a protective step | Built: `cnc-greens-powder-warfarin` |
-| Behavior Change Strategies | Identifying a client's barriers and readiness to change with the stages-of-change model | Yes: cues to read | Existing screen, not built: S-C1 Ambivalent client, readiness to change (sources not yet read) |
-| Behavior Change Strategies | Using motivational interviewing: open questions, affirmations, reflections and summaries | Yes: cues to read; choices change the client's state | Existing screen, not built: S-C1 Ambivalent client, readiness to change (sources not yet read) |
+| Behavior Change Strategies | Identifying a client's barriers and readiness to change with the stages-of-change model | Yes: cues to read | Secondary: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
+| Behavior Change Strategies | Using motivational interviewing: open questions, affirmations, reflections and summaries | Yes: cues to read; choices change the client's state | Built: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
 | Behavior Change Strategies | Setting SMART goals and choosing behavior goals over outcome goals | Yes: choices with consequences | Built: `cnc-greens-powder-warfarin` (goal criterion) |
 | Behavior Change Strategies | Tracking progress with measures beyond the scale | Yes: delayed consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Behavior Change Strategies | Building habits with cues, small steps and changes to the environment, and planning for lapses | Yes: delayed consequences: lapses | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Behavior Change Strategies | Personalizing strategies to a client's preferences and daily life | Yes: choices with consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
-| Practical Nutrition Coaching | Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits | Yes: cues to read: under-reporting | Existing screen, not built: S-C2 A food record that does not add up (sources not yet read) |
+| Practical Nutrition Coaching | Assessing dietary intake with food records, 24-hour recalls and food frequency questionnaires, and knowing their limits | Yes: cues to read: under-reporting | Secondary: `cnc-ambivalent-food-record` (client trainer, REQ-314) |
 | Practical Nutrition Coaching | Reading a Nutrition Facts label: serving size, percent Daily Value and added sugars | No: recall or explanation; lessons and labs cover it | none |
 | Practical Nutrition Coaching | Reading a Supplement Facts label and spotting claims a supplement may not lawfully make | Yes: cues to read | Built: `cnc-greens-powder-warfarin` (label criterion) |
 | Practical Nutrition Coaching | Comparing popular eating patterns -- Mediterranean, plant-based, low-carbohydrate and time-restricted eating -- against a client's goals and preferences | No: recall or explanation; lessons and labs cover it | none |
@@ -311,4 +324,4 @@ CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
 | Practical Nutrition Coaching | Building a personalized, food-first nutrition plan within the coaching scope | Yes: choices with consequences over weeks | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 | Practical Nutrition Coaching | Coaching weight management with a modest energy deficit, and recognizing when weight change is a referral question | Yes: delayed consequences; cues for referral | Proposed screen (client trainer): T-C1 Twelve weeks of coaching |
 
-NASMCNC: 29 objectives, 15 fit the rule, 5 covered by a built sim.
+NASMCNC: 29 objectives, 15 fit the rule; 5 were covered by a built sim before REQ-314, which adds one built (motivational interviewing) and two secondary (stages of change, food records).

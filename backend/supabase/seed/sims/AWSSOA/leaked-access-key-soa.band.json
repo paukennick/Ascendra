@@ -1,0 +1,51 @@
+{
+  "band": "soa",
+  "label": "AWS CloudOps Engineer Associate (SOA-C03)",
+  "base": {
+    "course": "AWSCLF",
+    "slug": "leaked-access-key"
+  },
+  "slug": "leaked-access-key-soa",
+  "patch": {
+    "objective": "Troubleshooting and auditing access with CloudTrail, IAM Access Analyzer, and the IAM policy simulator",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide: Monitoring, logging, analysis, remediation, and performance optimization 22%, Reliability and business continuity 22%, Deployment, provisioning, and automation 22%, Security and compliance 16%, Networking and content delivery 18%",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.pdf",
+        "note": "Read through a summarizing fetch of the exam guide PDF on 2026-11-16 (weights from the SOA-C02/C03 comparison page the same day). Relevant skills: 3.1.5 'Implement deployment strategies and services'; 4.1.2 'Troubleshoot and audit access issues by using AWS tools (for example, CloudTrail, IAM Access Analyzer, IAM policy simulator)'; 5.1.3 'Audit AWS network protection services (for example, Route 53 Resolver DNS Firewall, AWS WAF, AWS Shield, AWS Network Firewall) in a single account'; 5.1.4 'Optimize the cost of network architectures.'"
+      },
+      {
+        "cite": "AWS. Shared Responsibility Model",
+        "checkedAt": "2026-11-11",
+        "url": "https://aws.amazon.com/compliance/shared-responsibility-model/",
+        "note": "Read 2026-11-11: 'AWS is responsible for protecting the infrastructure that runs all of the services offered in the AWS Cloud'; customer responsibility 'will be determined by the AWS Cloud services that a customer selects', including 'using IAM tools to apply the appropriate permissions'. The page does not name credentials specifically; managing them is read as part of the customer's IAM duty."
+      },
+      {
+        "cite": "AWS. Managed Policy Reference: AWSCompromisedKeyQuarantineV3",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCompromisedKeyQuarantineV3.html",
+        "note": "Read 2026-11-11: 'applied by AWS in the event that an IAM user's credentials have been compromised or exposed publicly'; denies actions such as iam:CreateUser, iam:CreateAccessKey, iam:AttachUserPolicy, ec2:RunInstances; 'Do NOT remove this policy. Instead, please follow the instructions specified in the support case'."
+      },
+      {
+        "cite": "AWS re:Post Knowledge Center: What do I do if I notice unauthorized activity in my AWS account?",
+        "checkedAt": "2026-11-11",
+        "url": "https://repost.aws/knowledge-center/potential-account-compromise",
+        "note": "Read 2026-11-11 (re:Post article): create an updated access key and deactivate the original ('Don't delete the original access key during this step'); deactivate users you didn't create; review CloudTrail event history for unsanctioned keys, policies and roles; 'check for all resources in all AWS Regions, even in Regions that you didn't launch resources'; 'Back up any resources you need for investigation before deleting them'; enable MFA on the root user. It names the V2 quarantine policy; the policy reference (read the same day) documents V3."
+      },
+      {
+        "cite": "AWS. IAM User Guide: Security best practices in IAM",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+        "note": "Read 2026-11-11: workloads should use 'temporary credentials with IAM roles'; 'AWS managed policies might not grant least-privilege permissions for your specific use cases because they are available for use by all AWS customers. As a result, we recommend that you reduce permissions further by defining customer managed policies that are specific to your use cases'; require MFA; protect root user credentials."
+      },
+      {
+        "cite": "AWS. IAM User Guide: Managed policies and inline policies",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html",
+        "note": "Read 2026-11-11: an AWS managed policy is 'created and administered by AWS' and 'You cannot change the permissions defined in AWS managed policies'; customer managed policies you 'create ... for your specific use cases'."
+      }
+    ]
+  }
+}

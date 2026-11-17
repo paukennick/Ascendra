@@ -1,0 +1,491 @@
+{
+  "slug": "parkinson-freezing-session-npte",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: belt, orthostatic test, call the neurologist, 10 min hard on the stepper with RPE, stand in stages, cue at the doorway, 5 min of gait training, home program",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 2,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cue",
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "callMd",
+          "seq": 6,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "cycle",
+          "params": {
+            "dose": "hard"
+          },
+          "seq": 7,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "askRpe",
+          "seq": 8,
+          "tick": 74
+        },
+        {
+          "type": "act",
+          "action": "stopCycle",
+          "seq": 9,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 10,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 11,
+          "tick": 170
+        },
+        {
+          "type": "chapter",
+          "chapter": "walk",
+          "choice": "continue",
+          "seq": 12,
+          "tick": 179
+        },
+        {
+          "type": "act",
+          "action": "cue",
+          "params": {
+            "kind": "visual"
+          },
+          "seq": 13,
+          "tick": 179
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 14,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "home": "cpg"
+          },
+          "seq": 15,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 16,
+          "tick": 230
+        }
+      ],
+      "expect": {
+        "ending": "goodVisit",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "guard": "met",
+          "cue": "met",
+          "oh": "met",
+          "aerobic": "met",
+          "gait": "met",
+          "home": "met"
+        },
+        "kpis": {
+          "aero": 10,
+          "gaitMin": 5,
+          "dizzy": 0
+        },
+        "stateHash": "53800c85908ae5eb"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "easy",
+      "title": "Light intensity on the stepper and no call about the drop; an auditory cue at the doorway",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 2,
+          "tick": 2
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cue",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "cycle",
+          "params": {
+            "dose": "easy"
+          },
+          "seq": 5,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "stopCycle",
+          "seq": 6,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 7,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 8,
+          "tick": 170
+        },
+        {
+          "type": "chapter",
+          "chapter": "walk",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 179
+        },
+        {
+          "type": "act",
+          "action": "cue",
+          "params": {
+            "kind": "auditory"
+          },
+          "seq": 10,
+          "tick": 179
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 11,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "home": "cpg"
+          },
+          "seq": 12,
+          "tick": 230
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 13,
+          "tick": 230
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "guard": "met",
+          "cue": "met",
+          "oh": "partial",
+          "aerobic": "missed",
+          "gait": "met",
+          "home": "met"
+        },
+        "kpis": {
+          "aero": 0,
+          "gaitMin": 5,
+          "dizzy": 0
+        },
+        "stateHash": "dabfb5833d77ed36"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noTraining",
+      "title": "Tests, calls the neurologist and sends him home to rest: no training",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 2,
+          "tick": 2
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cue",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "callMd",
+          "seq": 5,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "decide",
+          "params": {
+            "home": "rest"
+          },
+          "seq": 6,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 7,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "noTraining",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "guard": "met",
+          "cue": "missed",
+          "oh": "met",
+          "aerobic": "missed",
+          "gait": "missed",
+          "home": "missed"
+        },
+        "kpis": {
+          "aero": 0,
+          "gaitMin": 0,
+          "dizzy": 0
+        },
+        "stateHash": "b43817719e554be3"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "rushed",
+      "title": "Stands him straight off the stepper and leaves him woozy; pulls him through the freeze (caught by the belt)",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "belt",
+          "seq": 1,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "orthoTest",
+          "seq": 2,
+          "tick": 2
+        },
+        {
+          "type": "teach",
+          "prompt": "cueQ",
+          "choice": "cue",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "cycle",
+          "params": {
+            "dose": "hard"
+          },
+          "seq": 5,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "stopCycle",
+          "seq": 6,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 7,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "standPrepared",
+          "seq": 8,
+          "tick": 178
+        },
+        {
+          "type": "act",
+          "action": "walk",
+          "seq": 9,
+          "tick": 178
+        },
+        {
+          "type": "chapter",
+          "chapter": "walk",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 187
+        },
+        {
+          "type": "act",
+          "action": "pull",
+          "seq": 11,
+          "tick": 187
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 12,
+          "tick": 199
+        },
+        {
+          "type": "act",
+          "action": "endSession",
+          "seq": 13,
+          "tick": 199
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 29,
+        "criteria": {
+          "guard": "met",
+          "cue": "missed",
+          "oh": "missed",
+          "aerobic": "partial",
+          "gait": "partial",
+          "home": "missed"
+        },
+        "kpis": {
+          "aero": 10,
+          "gaitMin": 2,
+          "dizzy": 40
+        },
+        "stateHash": "13820fc2d0c4c766"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "fall",
+      "title": "Failure: no gait belt, no test, straight to the hall; waits out the freeze",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stand",
+          "seq": 1,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "guard": "missed",
+          "cue": "missed",
+          "oh": "missed",
+          "aerobic": "missed",
+          "gait": "missed",
+          "home": "missed"
+        },
+        "kpis": {
+          "aero": 0,
+          "gaitMin": 0,
+          "dizzy": 40
+        },
+        "stateHash": "4a84b572ddecffae"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

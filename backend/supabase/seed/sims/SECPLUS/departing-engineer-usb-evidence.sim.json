@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "departing-engineer-usb-evidence",
+  "title": "Forensics: a departing engineer, a USB drive and an 11:00 offboarding job",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "dlp",
+          "severity": "high",
+          "title": "DLP: 4.1 GB of design files copied from ENG-LT-22 to a USB drive at 22:40 last night",
+          "detail": "ENG-LT-22 belongs to an engineer who resigned yesterday to join a competitor. Legal asks you to preserve evidence.",
+          "when": "true",
+          "at": "0",
+          "status": "{seized ? \"Laptop in your custody\" : \"Laptop at the engineer's desk, on and locked, USB drive plugged in\"}",
+          "open": "not seized"
+        },
+        {
+          "id": "off",
+          "severity": "high",
+          "title": "Offboarding job ran: leaver's mailbox and cloud drive deleted{seized ? \"\" : \", laptop reimaged over the network\"}",
+          "when": "not isNull(offboardAt) and not legalHold",
+          "at": "timeAt(offboardAt)",
+          "status": "Evidence gone",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "DLP",
+          "text": "22:40-22:52: 312 files from the turbine-v4 folder on the engineering share copied to removable drive 'KINGSTON 64GB' (serial ending 7Q2); 23:05 the same folder zipped in the user's temp folder",
+          "when": "not isNull(dlpAt)",
+          "at": "timeAt(dlpAt)"
+        },
+        {
+          "id": "e2",
+          "source": "Legal",
+          "text": "Legal hold placed on the engineer's mailbox and cloud drive; the 11:00 offboarding job is paused for this account",
+          "when": "legalHold",
+          "at": "timeAt(holdAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Chain of custody",
+          "text": "Form COC-0412 opened: items, who collected them, when, where, and every transfer",
+          "when": "not isNull(custodyAt)",
+          "at": "timeAt(custodyAt)"
+        },
+        {
+          "id": "e4",
+          "source": "Response kit",
+          "text": "{memCaptured ? \"Memory and live state captured with the response kit's own tools: a running sync client and an open connection to a personal cloud storage service\" : \"Memory lost: the laptop was shut down first\"}",
+          "when": "memCaptured or memLost",
+          "at": "memCaptured ? timeAt(memAt) : timeAt(shutAt)"
+        },
+        {
+          "id": "e5",
+          "source": "Forensic workstation",
+          "text": "Disk image of ENG-LT-22 through a write blocker; SHA-256 of the original and the image match",
+          "when": "imaged",
+          "at": "timeAt(imageAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Forensic workstation",
+          "text": "USB drive imaged through a write blocker; SHA-256 recorded; 312 design files present",
+          "when": "usbImaged",
+          "at": "timeAt(usbAt)"
+        },
+        {
+          "id": "e7",
+          "source": "Your notes",
+          "text": "You opened and copied files on the laptop itself: last-access times on the project folder now show today",
+          "when": "tainted",
+          "at": "timeAt(taintAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "lt",
+          "label": "ENG-LT-22",
+          "spokenLabel": "the engineer's laptop",
+          "kind": "Running, locked, USB drive attached",
+          "status": "{laptopWiped ? \"Reimaged: evidence gone\" : imaged ? \"Imaged and hashed\" : memLost ? \"Shut down: memory gone\" : seized ? \"In custody, running\" : \"At the desk\"}",
+          "tone": "laptopWiped or tainted ? \"bad\" : imaged ? \"ok\" : \"watch\""
+        },
+        {
+          "id": "mail",
+          "label": "Mailbox and cloud drive",
+          "spokenLabel": "the mailbox and cloud drive",
+          "kind": "Offboarding job deletes them at 11:00",
+          "status": "{mailLost ? \"Deleted\" : legalHold ? \"On legal hold\" : \"Not held\"}",
+          "tone": "mailLost ? \"bad\" : legalHold ? \"ok\" : \"watch\""
+        },
+        {
+          "id": "usb",
+          "label": "USB drive",
+          "spokenLabel": "the USB drive",
+          "kind": "64 GB, serial ending 7Q2",
+          "status": "{usbImaged ? \"Imaged and hashed\" : seized ? \"Bagged\" : \"Plugged into the laptop\"}",
+          "tone": "usbImaged ? \"ok\" : \"watch\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "offMin",
+          "label": "Minutes until the offboarding job",
+          "value": "{max(0, round((offboardAfter - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "Digital forensics basics: chain of custody, order of volatility, legal holds",
+  "sources": [
+    {
+      "cite": "CompTIA Security+ (V7), exam SY0-701: domains General security concepts 12%, Threats, vulnerabilities, and mitigations 22%, Security architecture 18%, Security operations 28%, Security program management and oversight 20%",
+      "checkedAt": "2026-11-16",
+      "url": "https://comptia.org/en-us/certifications/security/v7/",
+      "note": "Read through a summarizing fetch on 2026-11-16. The page lists the five domains and weights above and says English SY0-701 retires on June 11, 2027. The objectives PDF was not re-read; the objective wording (digital forensics: legal hold, chain of custody, acquisition, preservation, order of volatility) is the course seed's."
+    },
+    {
+      "cite": "IETF RFC 3227 (BCP 55), Guidelines for Evidence Collection and Archiving",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.rfc-editor.org/rfc/rfc3227.html",
+      "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: 'When collecting evidence you should proceed from the volatile to the less volatile': registers and cache; routing table, arp cache, process table, kernel statistics, memory; temporary file systems; disk; remote logging and monitoring data; physical configuration and network topology; archival media. Things to avoid: 'Don't shutdown until you've completed evidence collection'; 'Don't trust the programs on the system'; 'Don't run programs that modify the access time of all files on the system'. Chain of custody: 'You should be able to clearly describe how the evidence was found, how it was handled and everything that happened to it.' Privacy: 'Do not intrude on people's privacy without strong justification.'"
+    },
+    {
+      "cite": "Scenario data (authored)",
+      "checkedAt": "2026-11-16",
+      "note": "Fictional company and people. The offboarding job, the times and the file sizes are the author's. Whether a hash, a write blocker or a legal hold is required in a given jurisdiction is a legal question; the scenario follows the general practice the objective names."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security analyst at Corrin Turbines, a fictional manufacturer. At 10:00 legal calls: an engineer resigned yesterday to join a competitor, and DLP flagged design files copied to a USB drive last night. His laptop is on and locked at his desk with the drive still plugged in. IT's offboarding job runs at 11:00 for yesterday's leavers.",
+    "handover": [
+      "You have a response kit: trusted collection tools on USB, write blockers and evidence bags.",
+      "Legal can place holds; HR handles any conversation with the engineer."
+    ],
+    "howItWorks": [
+      "The console shows alerts, evidence events as they arrive, and the items at stake.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. The offboarding job keeps to its schedule on the same clock.",
+      "When you close the collection, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "offboardAfter": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "The nightly offboarding job for yesterday's leavers runs at 11:00, an hour after the 10:00 start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "dlpAt": {
+      "type": "time",
+      "init": null
+    },
+    "legalHold": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "custodyAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstCollectAt": {
+      "type": "time",
+      "init": null
+    },
+    "seized": {
+      "type": "bool",
+      "init": false
+    },
+    "memCaptured": {
+      "type": "bool",
+      "init": false
+    },
+    "memAt": {
+      "type": "time",
+      "init": null
+    },
+    "memLost": {
+      "type": "bool",
+      "init": false
+    },
+    "shutAt": {
+      "type": "time",
+      "init": null
+    },
+    "imaged": {
+      "type": "bool",
+      "init": false
+    },
+    "imageAt": {
+      "type": "time",
+      "init": null
+    },
+    "usbImaged": {
+      "type": "bool",
+      "init": false
+    },
+    "usbAt": {
+      "type": "time",
+      "init": null
+    },
+    "tainted": {
+      "type": "bool",
+      "init": false
+    },
+    "taintAt": {
+      "type": "time",
+      "init": null
+    },
+    "confronted": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "offboardAt": {
+      "type": "time",
+      "init": null
+    },
+    "mailLost": {
+      "type": "bool",
+      "init": false
+    },
+    "laptopWiped": {
+      "type": "bool",
+      "init": false
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "volatility",
+        "shutdown",
+        "interview"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "dlp",
+        "legalHold",
+        "custody",
+        "memory",
+        "shutdown",
+        "browse",
+        "image",
+        "usb",
+        "confront",
+        "notify",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "dlp": {
+      "label": "Read the DLP events for the laptop and the user",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(dlpAt)",
+          "then": [
+            {
+              "set": "dlpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "312 design files went to a 64 GB USB drive at 22:40, and the same folder was zipped in the user's temp folder at 23:05.",
+          "kind": "act"
+        },
+        {
+          "finding": "Evidence is on three things: the running laptop (memory and disk), the USB drive, and the mailbox and cloud drive the offboarding job deletes at 11:00."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "legalHold": {
+      "label": "Ask legal to place a legal hold on the mailbox and cloud drive, and pause the offboarding job",
+      "group": "Preserve",
+      "available": "not busy and (not legalHold and isNull(offboardAt))",
+      "why": "Done, or too late.",
+      "effects": [
+        {
+          "set": "legalHold",
+          "to": "true"
+        },
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Legal hold placed; the 11:00 job skips this account.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "custody": {
+      "label": "Open a chain-of-custody form before touching anything",
+      "group": "Preserve",
+      "available": "not busy and (isNull(custodyAt))",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(custodyAt)",
+          "then": [
+            {
+              "set": "custodyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Form COC-0412 opened. Every item gets a tag, a time, a place and a name at each transfer.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "memory": {
+      "label": "Capture memory and live state (processes, connections) with your response kit's tools",
+      "group": "Collect",
+      "available": "not busy and (not memCaptured and not memLost)",
+      "why": "Done, or the memory is gone.",
+      "effects": [
+        {
+          "if": "isNull(firstCollectAt)",
+          "then": [
+            {
+              "set": "firstCollectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "set": "memCaptured",
+          "to": "true"
+        },
+        {
+          "set": "memAt",
+          "to": "t"
+        },
+        {
+          "log": "Memory captured from the kit's USB, not the laptop's own programs. A sync client is uploading to a personal cloud storage account.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "shutdown": {
+      "label": "Shut the laptop down cleanly to stop any further copying",
+      "group": "Collect",
+      "available": "not busy and (not memCaptured and not memLost)",
+      "why": "Done already.",
+      "effects": [
+        {
+          "if": "isNull(firstCollectAt)",
+          "then": [
+            {
+              "set": "firstCollectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "set": "memLost",
+          "to": "true"
+        },
+        {
+          "set": "shutAt",
+          "to": "t"
+        },
+        {
+          "log": "The laptop is off. Whatever was only in memory (running processes, open connections, encryption keys) is gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "browse": {
+      "label": "Unlock the laptop with IT's admin account and copy the project folder off it to see what was taken",
+      "group": "Collect",
+      "available": "not busy and (not tainted and not memLost)",
+      "why": "Done, or the laptop is off.",
+      "effects": [
+        {
+          "set": "tainted",
+          "to": "true"
+        },
+        {
+          "set": "taintAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstCollectAt)",
+          "then": [
+            {
+              "set": "firstCollectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "log": "You see the files, and you have changed their last-access times and run programs on the suspect system.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "image": {
+      "label": "Power down after collection and image the disk through a write blocker; hash the original and the image",
+      "group": "Collect",
+      "available": "not busy and (not imaged)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstCollectAt)",
+          "then": [
+            {
+              "set": "firstCollectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "set": "imaged",
+          "to": "true"
+        },
+        {
+          "set": "imageAt",
+          "to": "t"
+        },
+        {
+          "if": "not memCaptured",
+          "then": [
+            {
+              "set": "memLost",
+              "to": "true"
+            },
+            {
+              "if": "isNull(shutAt)",
+              "then": [
+                {
+                  "set": "shutAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Disk imaged; SHA-256 of the original and the image match.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "usb": {
+      "label": "Bag and tag the USB drive, image it through a write blocker and hash it",
+      "group": "Collect",
+      "available": "not busy and (not usbImaged)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstCollectAt)",
+          "then": [
+            {
+              "set": "firstCollectAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "seized",
+          "to": "true"
+        },
+        {
+          "set": "usbImaged",
+          "to": "true"
+        },
+        {
+          "set": "usbAt",
+          "to": "t"
+        },
+        {
+          "log": "USB drive imaged and hashed; 312 design files on it.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "confront": {
+      "label": "Ask the engineer at his desk to explain the copying",
+      "group": "Communicate",
+      "available": "not busy and (not confronted)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "confronted",
+          "to": "true"
+        },
+        {
+          "log": "He says nothing and leaves early. You have told him what you know before the evidence was safe.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Brief legal and HR: what was collected, the hashes and the custody form",
+      "group": "Communicate",
+      "available": "not busy and (not notified)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Legal and HR have the evidence list and decide the next step with the engineer.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the collection and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the collection.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "lesson",
+              "label": "What made the evidence usable",
+              "options": [
+                {
+                  "value": "volatility",
+                  "label": "Hold first, then custody, then collect from most to least volatile with trusted tools: memory before the disk, nothing run on the suspect system"
+                },
+                {
+                  "value": "shutdown",
+                  "label": "Shut the device down at once to stop the copying, then image the disk"
+                },
+                {
+                  "value": "interview",
+                  "label": "Ask the employee first; collect evidence only if he denies it"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "offboard",
+      "when": "t >= offboardAfter and not legalHold and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "offboardAt",
+          "to": "t"
+        },
+        {
+          "set": "mailLost",
+          "to": "true"
+        },
+        {
+          "if": "not seized",
+          "then": [
+            {
+              "set": "laptopWiped",
+              "to": "true"
+            },
+            {
+              "log": "11:00: the offboarding job deletes the mailbox and cloud drive and reimages the laptop over the network.",
+              "kind": "alarm"
+            }
+          ],
+          "else": [
+            {
+              "log": "11:00: the offboarding job deletes the mailbox and cloud drive.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: what you preserved first, in what order you collected, and how the evidence stays trustworthy.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Preserve",
+          "criteria": "Places the legal hold and pauses the job before 11:00, and opens the custody form before collecting.",
+          "modelAnswer": "Legal hold on the mailbox and cloud drive with the 11:00 offboarding job paused; custody form COC-0412 opened before I touched the laptop."
+        },
+        {
+          "label": "Order",
+          "criteria": "Collects memory and live state with trusted tools before powering down and imaging the disk, then the USB drive.",
+          "modelAnswer": "Memory and live state first, from my kit, which showed a sync client uploading to a personal cloud account; then power down and image the disk through a write blocker; then the USB drive."
+        },
+        {
+          "label": "Integrity",
+          "criteria": "Hashes every image, runs nothing on the suspect system, records each transfer, and does not tip off the employee.",
+          "modelAnswer": "SHA-256 of each original and image match and are on the form; I ran no programs on the laptop and changed no access times; legal and HR decide when to speak to him."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-16",
+          "note": "The profile default; the offboarding job runs at 60 minutes."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-16",
+          "note": "No evidence destroyed."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(firstCollectAt) and not legalHold",
+      "class": "harm",
+      "rationale": "Closing without preserving or collecting anything leaves the evidence to the offboarding job.",
+      "source": {
+        "cite": "IETF RFC 3227 (BCP 55), Guidelines for Evidence Collection and Archiving",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.rfc-editor.org/rfc/rfc3227.html",
+        "note": "Read through a summarizing fetch on 2026-11-16. Relevant text: 'When collecting evidence you should proceed from the volatile to the less volatile': registers and cache; routing table, arp cache, process table, kernel statistics, memory; temporary file systems; disk; remote logging and monitoring data; physical configuration and network topology; archival media. Things to avoid: 'Don't shutdown until you've completed evidence collection'; 'Don't trust the programs on the system'; 'Don't run programs that modify the access time of all files on the system'. Chain of custody: 'You should be able to clearly describe how the evidence was found, how it was handled and everything that happened to it.' Privacy: 'Do not intrude on people's privacy without strong justification.'"
+      }
+    }
+  },
+  "endings": {
+    "destroyed": {
+      "label": "Evidence destroyed by the offboarding job",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (mailLost or laptopWiped)",
+      "narrative": "The leaver's data was deleted on schedule because nothing held it."
+    },
+    "tainted": {
+      "label": "Evidence collected, but tainted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and tainted",
+      "narrative": "Programs run on the suspect laptop changed what it holds; the other side can challenge everything taken from it."
+    },
+    "preserved": {
+      "label": "Preserved, collected in order, custody intact",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and legalHold and memCaptured and imaged and usbImaged and not tainted and not confronted and not isNull(custodyAt) and timeAt(custodyAt) <= timeAt(firstCollectAt) and notified and lessonDoc == \"volatility\"",
+      "narrative": "The hold beat the job, memory came before the disk, every item is hashed and on the custody form, and the engineer was not tipped off."
+    },
+    "gaps": {
+      "label": "Collected, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Most evidence is safe, but the order, the custody record, the briefing or a lost artifact weakens it."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "destroyed",
+    "tainted",
+    "preserved",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "hold",
+        "label": "Legal hold before the 11:00 offboarding job",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "legalHold",
+            "score": "met",
+            "why": "Held {timeAt(holdAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The job deleted the mailbox and cloud drive."
+          }
+        ]
+      },
+      {
+        "id": "volatility",
+        "label": "Memory and live state before the disk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "memCaptured",
+            "score": "met",
+            "why": "Most volatile first."
+          },
+          {
+            "when": "imaged or usbImaged",
+            "score": "partial",
+            "why": "The disk is safe; memory was lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing collected from the laptop."
+          }
+        ]
+      },
+      {
+        "id": "integrity",
+        "label": "Custody form first, hashes, nothing run on the suspect system",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not tainted and not isNull(custodyAt) and not isNull(firstCollectAt) and timeAt(custodyAt) <= timeAt(firstCollectAt)",
+            "score": "met",
+            "why": "Custody before collection; trusted tools only."
+          },
+          {
+            "when": "not tainted",
+            "score": "partial",
+            "why": "{isNull(custodyAt) ? \"No custody form.\" : \"Custody form opened after collecting.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Programs were run on the suspect system."
+          }
+        ]
+      },
+      {
+        "id": "complete",
+        "label": "Disk and USB imaged, legal and HR briefed, the employee not tipped off",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "imaged and usbImaged and notified and not confronted",
+            "score": "met",
+            "why": "Everything collected and handed over."
+          },
+          {
+            "when": "imaged or usbImaged",
+            "score": "partial",
+            "why": "{confronted ? \"The employee was confronted first.\" : \"Some items or the briefing are missing.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing imaged."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Lesson names hold, custody and order of volatility",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lessonDoc == \"volatility\"",
+            "score": "met",
+            "why": "Lesson right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lesson would lose evidence next time."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written preservation, order and integrity",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minHold",
+        "label": "Minutes until the legal hold",
+        "value": "isNull(holdAt) ? -1 : timeAt(holdAt) / 60",
+        "format": "number",
+        "expert": "about 10"
+      },
+      {
+        "id": "minMem",
+        "label": "Minutes until memory was captured",
+        "value": "isNull(memAt) ? -1 : timeAt(memAt) / 60",
+        "format": "number",
+        "expert": "about 30"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00-10:10",
+        "text": "DLP events; legal hold on mailbox and cloud drive, offboarding paused."
+      },
+      {
+        "at": "10:10-10:30",
+        "text": "Custody form; memory and live state with the kit's tools (a personal cloud sync client is running)."
+      },
+      {
+        "at": "10:30-11:15",
+        "text": "USB drive and disk imaged through write blockers and hashed; brief legal and HR."
+      }
+    ],
+    "debrief": {
+      "preserved": {
+        "headline": "Good: evidence that will stand up",
+        "body": "You stopped the scheduled deletion first, opened custody before touching anything, took memory before the disk with your own tools, and hashed every image. Legal and HR now decide how to speak to the engineer."
+      },
+      "gaps": {
+        "headline": "Collected, with gaps",
+        "body": "The criteria show what weakens the case: memory lost to a shutdown, a late custody form, a missing image or a premature conversation."
+      },
+      "destroyed": {
+        "headline": "Deleted on schedule",
+        "body": "The offboarding job did exactly what it was built to do. A legal hold and a paused job in the first minutes would have kept the mailbox and cloud drive."
+      },
+      "tainted": {
+        "headline": "Tainted",
+        "body": "Browsing and copying on the suspect system changed access times and ran untrusted programs. Collect with your own tools and examine the image, never the original."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Preserve first: a legal hold on the mailbox and cloud drive, with the 11:00 offboarding job paused for the account. Open the chain-of-custody form before touching anything. Collect from most to least volatile with trusted tools from your kit: memory and live state from the running laptop (which shows a sync client uploading to a personal cloud account), then power down and image the disk through a write blocker, then the USB drive; hash each original and image. Run nothing on the suspect system, do not shut it down before memory is taken, and do not confront the employee; brief legal and HR with the evidence list and hashes."
+  }
+}

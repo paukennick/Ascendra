@@ -1,0 +1,1495 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "py-report-too-slow-profile",
+  "title": "The overdue report takes 95 minutes",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "overdue_report.py, the nightly overdue-notice job (Northfield Library District, fictional)",
+      "flags": [
+        {
+          "id": "late",
+          "label": "Job monitor",
+          "text": "Last night's run took 95 min. The branches need the notice file by 07:00, when they open.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "crash",
+          "label": "Test run",
+          "text": "TypeError: unhashable type: 'list' (the cache cannot hash the blocked list)",
+          "when": "crashed and fix == \"cache\"",
+          "severity": "error"
+        },
+        {
+          "id": "diff",
+          "label": "Diff against yesterday's output",
+          "text": "412 of 40,212 rows differ: blocked patrons got a normal notice instead of hold-desk.",
+          "when": "verifyFailed and fix == \"nocheck\"",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Branches",
+          "text": "07:00: the branches opened without tonight's notice file.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "sent",
+          "label": "Branches",
+          "text": "Notice file received ({mailedAs == \"nocheck\" ? \"blocked patrons were not marked\" : \"40,212 rows\"}).",
+          "when": "mailed",
+          "severity": "info"
+        }
+      ],
+      "charts": [
+        {
+          "id": "runtime",
+          "label": "Run time by night (minutes)",
+          "spokenLabel": "Run time by night",
+          "kind": "bar",
+          "unit": "min",
+          "min": 0,
+          "max": 100,
+          "points": [
+            {
+              "id": "mon",
+              "label": "Mon",
+              "value": "3"
+            },
+            {
+              "id": "tue",
+              "label": "Tue",
+              "value": "3"
+            },
+            {
+              "id": "wed",
+              "label": "Wed",
+              "value": "4"
+            },
+            {
+              "id": "thu",
+              "label": "Thu",
+              "value": "41",
+              "flag": "true"
+            },
+            {
+              "id": "fri",
+              "label": "Fri",
+              "value": "88",
+              "flag": "true"
+            },
+            {
+              "id": "sat",
+              "label": "Sat",
+              "value": "92",
+              "flag": "true"
+            },
+            {
+              "id": "sun",
+              "label": "Sun",
+              "value": "95",
+              "flag": "true"
+            },
+            {
+              "id": "now",
+              "label": "Now (est.)",
+              "value": "runMin",
+              "flag": "runMin > 80"
+            }
+          ],
+          "lines": [
+            {
+              "id": "window",
+              "label": "Time left before 07:00",
+              "value": "80"
+            }
+          ],
+          "note": "Flagged: nights longer than the time left before the branches open."
+        }
+      ],
+      "tables": [
+        {
+          "id": "inputs",
+          "label": "Input files",
+          "spokenLabel": "the input files",
+          "columns": [
+            {
+              "id": "file",
+              "label": "File"
+            },
+            {
+              "id": "rows",
+              "label": "Rows",
+              "numeric": true
+            },
+            {
+              "id": "changed",
+              "label": "Last changed"
+            }
+          ],
+          "rows": [
+            {
+              "id": "loans",
+              "cells": [
+                "loans_overdue.csv",
+                "40,212",
+                "nightly"
+              ]
+            },
+            {
+              "id": "blocked",
+              "cells": [
+                "blocked_patrons.csv",
+                "26,480",
+                "Thu (consortium merge; was 3,100)"
+              ],
+              "flag": "true"
+            }
+          ]
+        },
+        {
+          "id": "prof",
+          "label": "cProfile on a 2,000-loan sample, sorted by cumulative time",
+          "spokenLabel": "the profile",
+          "columns": [
+            {
+              "id": "fn",
+              "label": "Function"
+            },
+            {
+              "id": "ncalls",
+              "label": "ncalls",
+              "numeric": true
+            },
+            {
+              "id": "tottime",
+              "label": "tottime (s)",
+              "numeric": true
+            },
+            {
+              "id": "cumtime",
+              "label": "cumtime (s)",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "main",
+              "cells": [
+                "overdue_report.py:main",
+                "1",
+                "0.02",
+                "4.71"
+              ]
+            },
+            {
+              "id": "isb",
+              "cells": [
+                "overdue_report.py:is_blocked",
+                "2,000",
+                "4.58",
+                "4.58"
+              ],
+              "flag": "true"
+            },
+            {
+              "id": "read",
+              "cells": [
+                "overdue_report.py:read_rows",
+                "2",
+                "0.07",
+                "0.09"
+              ]
+            },
+            {
+              "id": "write",
+              "cells": [
+                "csv.writer.writerow",
+                "2,000",
+                "0.02",
+                "0.02"
+              ]
+            }
+          ],
+          "when": "not isNull(profiledAt)",
+          "note": "is_blocked spends its time in itself (tottime equals cumtime): the line inside it, a membership test against a list."
+        },
+        {
+          "id": "timeit",
+          "label": "timeit: is_blocked on one patron ID",
+          "spokenLabel": "the timeit result",
+          "columns": [
+            {
+              "id": "what",
+              "label": "Statement"
+            },
+            {
+              "id": "per",
+              "label": "Per call",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "list",
+              "cells": [
+                "patron_id in blocked (list of 26,480)",
+                "2.3 ms"
+              ]
+            },
+            {
+              "id": "set",
+              "cells": [
+                "patron_id in blocked (set of 26,480)",
+                "0.04 µs"
+              ],
+              "when": "not isNull(profiledAt)"
+            }
+          ],
+          "when": "not isNull(timedAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "src",
+          "label": "overdue_report.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "l0",
+              "text": "import csv"
+            },
+            {
+              "id": "l1",
+              "text": ""
+            },
+            {
+              "id": "l2",
+              "text": "def read_rows(path):"
+            },
+            {
+              "id": "l3",
+              "text": "    with open(path, newline=\"\", encoding=\"utf-8\") as f:"
+            },
+            {
+              "id": "l4",
+              "text": "        return list(csv.DictReader(f))"
+            },
+            {
+              "id": "l5",
+              "text": ""
+            },
+            {
+              "id": "l6",
+              "text": "@functools.lru_cache(maxsize=None)",
+              "when": "fix == \"cache\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "l7",
+              "text": "def is_blocked(patron_id, blocked):"
+            },
+            {
+              "id": "l8",
+              "text": "    return patron_id in blocked",
+              "mark": "not isNull(profiledAt) and fix == \"none\" ? \"focus\" : \"none\""
+            },
+            {
+              "id": "l9",
+              "text": ""
+            },
+            {
+              "id": "l10",
+              "text": "def main():"
+            },
+            {
+              "id": "l11",
+              "text": "    loans = read_rows(\"loans_overdue.csv\")"
+            },
+            {
+              "id": "l12",
+              "text": "    blocked = [r[\"patron_id\"] for r in read_rows(\"blocked_patrons.csv\")]",
+              "when": "fix != \"set\"",
+              "mark": "not isNull(profiledAt) and fix == \"none\" ? \"focus\" : \"none\""
+            },
+            {
+              "id": "l13",
+              "text": "    blocked = {r[\"patron_id\"] for r in read_rows(\"blocked_patrons.csv\")}",
+              "when": "fix == \"set\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "l14",
+              "text": "    rows = []",
+              "when": "fix != \"pool\""
+            },
+            {
+              "id": "l15",
+              "text": "    for loan in loans:",
+              "when": "fix != \"pool\""
+            },
+            {
+              "id": "l16",
+              "text": "        if is_blocked(loan[\"patron_id\"], blocked):",
+              "when": "fix != \"pool\" and fix != \"nocheck\""
+            },
+            {
+              "id": "l17",
+              "text": "        if False:  # check skipped tonight",
+              "when": "fix == \"nocheck\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "l18",
+              "text": "            loan[\"notice\"] = \"hold-desk\"",
+              "when": "fix != \"pool\""
+            },
+            {
+              "id": "l19",
+              "text": "        rows.append(loan)",
+              "when": "fix != \"pool\""
+            },
+            {
+              "id": "l20",
+              "text": "    with multiprocessing.Pool(8) as pool:",
+              "when": "fix == \"pool\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "l21",
+              "text": "        rows = pool.map(partial(mark, blocked=blocked), loans)",
+              "when": "fix == \"pool\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "l22",
+              "text": "    write_rows(\"overdue_notices.csv\", rows)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "deadline",
+          "label": "Branches open",
+          "value": "07:00"
+        },
+        {
+          "id": "est",
+          "label": "Estimated run time now",
+          "value": "{runMin} min"
+        }
+      ]
+    }
+  },
+  "objective": "Basic performance profiling (timeit, cProfile) before optimizing",
+  "secondaryObjectives": [
+    "Sets: membership testing and set operations (union, intersection, difference)"
+  ],
+  "sources": [
+    {
+      "cite": "pstats -- Statistics for profilers, Python documentation (3.16 development version)",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.python.org/fr/dev/library/pstats.html",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: SortKey.CUMULATIVE, 'Sort by cumulative time'; SortKey.TIME, 'Sort by internal time (time in function excluding subcalls)'; 'All sorts on statistics are in descending order (most time consuming first)'. The column definitions (ncalls, tottime, cumtime) were not on the fetched text; the case uses them as the pstats report labels them."
+    },
+    {
+      "cite": "profile -- Pure Python profiler, Python 3.15 documentation",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.python.org/library/profile",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'The cProfile module remains available as a backward-compatible alias to profiling.tracing. Existing code using import cProfile will continue to work without modification'; the example sorts a Stats object by SortKey.CUMULATIVE. The case uses python -m cProfile -s cumulative, which is the long-standing command line."
+    },
+    {
+      "cite": "Time complexity of operations on built-in types, Python 3.15 documentation",
+      "checkedAt": "2026-11-16",
+      "url": "https://docs.python.org/3/builtins/time-complexity.html",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant rows: list 'x in l | O(n)'; set 'x in s | O(1)', with 'In the worst case, O(1) operations instead take O(n) time'. 'This page documents the time complexity of various operations on built-in types in CPython.'"
+    }
+  ],
+  "brief": {
+    "situation": "You maintain overdue_report.py for the Northfield Library District (fictional). It marks overdue loans whose patron is blocked so the hold desk handles them, and writes the notice file the nine branches use when they open at 07:00. Since Thursday it takes 95 minutes instead of 3. It is 05:40 and tonight's file is not written yet.",
+    "handover": [
+      "A colleague's note: 'Probably needs more cores. Try multiprocessing?'",
+      "yesterday_expected.csv is last night's checked output, kept for testing."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "05:40",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 4800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The run times follow from the complexity rows above (a list scan per loan against a set lookup); the minutes themselves are invented. The branches open at 07:00, 80 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "timedAt": {
+      "type": "time",
+      "init": null
+    },
+    "profiledAt": {
+      "type": "time",
+      "init": null
+    },
+    "measuredAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixAt": {
+      "type": "time",
+      "init": null
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "set",
+        "pool",
+        "cache",
+        "nocheck"
+      ],
+      "init": "none"
+    },
+    "verifiedFor": {
+      "type": "enum",
+      "values": [
+        "unrun",
+        "none",
+        "set",
+        "pool",
+        "cache",
+        "nocheck"
+      ],
+      "init": "unrun"
+    },
+    "verifyFailed": {
+      "type": "bool",
+      "init": false
+    },
+    "crashed": {
+      "type": "bool",
+      "init": false
+    },
+    "ranFix": {
+      "type": "enum",
+      "values": [
+        "unrun",
+        "none",
+        "set",
+        "pool",
+        "nocheck"
+      ],
+      "init": "unrun"
+    },
+    "reportReady": {
+      "type": "bool",
+      "init": false
+    },
+    "mailedAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "none",
+        "set",
+        "pool",
+        "nocheck"
+      ],
+      "init": "unsent"
+    },
+    "mailedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "scan",
+        "cpu",
+        "disk"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "diff",
+        "ran",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "runMin": {
+      "expr": "fix == \"set\" or fix == \"nocheck\" ? 2 : fix == \"pool\" ? 14 : 95"
+    },
+    "mailed": {
+      "expr": "mailedAs != \"unsent\""
+    },
+    "mailedRight": {
+      "expr": "mailedAs == \"set\" or mailedAs == \"pool\" or mailedAs == \"none\""
+    },
+    "mailedSec": {
+      "expr": "not isNull(mailedAt) ? timeAt(mailedAt) : -1"
+    },
+    "measuredFirst": {
+      "expr": "not isNull(measuredAt) and (isNull(fixAt) or timeAt(measuredAt) <= timeAt(fixAt))"
+    },
+    "verifiedMailed": {
+      "expr": "mailed and verifiedFor == mailedAs and mailedAs != \"none\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "timeitStep",
+        "profileStep",
+        "fixSet",
+        "fixPool",
+        "fixCache",
+        "fixSkip",
+        "revert",
+        "verify",
+        "runFull",
+        "mail",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "timeitStep": {
+      "label": "python -m timeit on is_blocked with one patron ID",
+      "group": "Measure",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(timedAt)",
+          "then": [
+            {
+              "set": "timedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(measuredAt)",
+          "then": [
+            {
+              "set": "measuredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ python -m timeit -s \"from overdue_report import *; b = load_blocked()\" \"is_blocked('P-48213', b)\"\n100 loops, best of 5: 2.3 msec per loop"
+        },
+        {
+          "finding": "One membership check costs 2.3 ms; 40,212 of them is over 90 minutes."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "profileStep": {
+      "label": "python -m cProfile -s cumulative on a 2,000-loan sample",
+      "group": "Measure",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(profiledAt)",
+          "then": [
+            {
+              "set": "profiledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(measuredAt)",
+          "then": [
+            {
+              "set": "measuredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "$ python -m cProfile -s cumulative overdue_report.py --sample 2000\n4.71 s total; is_blocked 4.58 s cumulative (97%)"
+        },
+        {
+          "finding": "Almost all the time is inside is_blocked: the membership test against a list."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "fixSet": {
+      "label": "Build the blocked IDs once as a set",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fix",
+          "to": "\"set\""
+        },
+        {
+          "set": "crashed",
+          "to": "false"
+        },
+        {
+          "set": "verifyFailed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Build the blocked IDs once as a set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixPool": {
+      "label": "Spread the loop over 8 processes with multiprocessing.Pool",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fix",
+          "to": "\"pool\""
+        },
+        {
+          "set": "crashed",
+          "to": "false"
+        },
+        {
+          "set": "verifyFailed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Spread the loop over 8 processes with multiprocessing.Pool.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixCache": {
+      "label": "Add functools.lru_cache to is_blocked",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fix",
+          "to": "\"cache\""
+        },
+        {
+          "set": "crashed",
+          "to": "false"
+        },
+        {
+          "set": "verifyFailed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Add functools.lru_cache to is_blocked.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixSkip": {
+      "label": "Skip the blocked-patron check tonight",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(fixAt)",
+          "then": [
+            {
+              "set": "fixAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "fix",
+          "to": "\"nocheck\""
+        },
+        {
+          "set": "crashed",
+          "to": "false"
+        },
+        {
+          "set": "verifyFailed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Skip the blocked-patron check tonight.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "revert": {
+      "label": "git restore overdue_report.py (undo the change)",
+      "group": "Change the code",
+      "available": "not busy and fix != \"none\"",
+      "why": "Nothing has changed.",
+      "effects": [
+        {
+          "set": "fix",
+          "to": "\"none\""
+        },
+        {
+          "set": "crashed",
+          "to": "false"
+        },
+        {
+          "set": "verifyFailed",
+          "to": "false"
+        },
+        {
+          "log": "Reverted to last night's code.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run yesterday's input through the changed job and diff the output",
+      "group": "Check",
+      "available": "not busy and not crashed",
+      "why": "Fix the crash first.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "fix == \"cache\"",
+              "then": [
+                {
+                  "set": "crashed",
+                  "to": "true"
+                },
+                {
+                  "output": "Traceback (most recent call last):\n  File \"overdue_report.py\", line 17, in main\n    if is_blocked(loan[\"patron_id\"], blocked):\nTypeError: unhashable type: 'list'"
+                },
+                {
+                  "log": "The cached version crashes: lru_cache needs hashable arguments, and a list is not.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"nocheck\"",
+              "then": [
+                {
+                  "set": "verifyFailed",
+                  "to": "true"
+                },
+                {
+                  "set": "verifiedFor",
+                  "to": "\"nocheck\""
+                },
+                {
+                  "output": "$ diff <(sort yesterday_expected.csv) <(sort out.csv) | grep -c '^>'\n412"
+                },
+                {
+                  "log": "412 rows differ from yesterday's correct output.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"none\"",
+              "then": [
+                {
+                  "output": "Nothing changed: the same code gives the same output (it still takes 95 min on the full file)."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "verifiedFor",
+                  "to": "fix"
+                },
+                {
+                  "output": "$ diff <(sort yesterday_expected.csv) <(sort out.csv) | grep -c '^>'\n0"
+                },
+                {
+                  "log": "No rows differ from yesterday's correct output.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "runFull": {
+      "label": "Run the full job now",
+      "group": "Ship",
+      "available": "not busy and not reportReady and not mailed",
+      "why": "Wait for the running step, or the file is already written.",
+      "effects": [
+        {
+          "if": "fix == \"cache\"",
+          "then": [
+            {
+              "set": "crashed",
+              "to": "true"
+            },
+            {
+              "output": "TypeError: unhashable type: 'list' (the job stopped; no file written)"
+            },
+            {
+              "log": "The job crashed at the first loan.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "ranFix",
+              "to": "fix"
+            },
+            {
+              "set": "busy",
+              "to": "true"
+            },
+            {
+              "schedule": "fullRun",
+              "after": "runMin * 60"
+            },
+            {
+              "output": "$ python overdue_report.py   (running, about {runMin} min)"
+            }
+          ]
+        }
+      ]
+    },
+    "mail": {
+      "label": "Send the notice file to the branches",
+      "group": "Ship",
+      "available": "not busy and reportReady and not mailed",
+      "why": "No new file is written yet.",
+      "effects": [
+        {
+          "set": "mailedAs",
+          "to": "ranFix"
+        },
+        {
+          "set": "mailedAt",
+          "to": "t"
+        },
+        {
+          "output": "(overdue_notices.csv sent to 9 branches)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why it got slow",
+              "options": [
+                {
+                  "value": "scan",
+                  "label": "A membership test scans a list that grew from 3,100 to 26,480 IDs, once per loan"
+                },
+                {
+                  "value": "cpu",
+                  "label": "The server needs more CPU cores"
+                },
+                {
+                  "value": "disk",
+                  "label": "Reading the CSV files is slow"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the output is right",
+              "options": [
+                {
+                  "value": "diff",
+                  "label": "The changed job reproduced yesterday's output exactly (no rows differ)"
+                },
+                {
+                  "value": "ran",
+                  "label": "The job finished without an error"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The run times follow from the complexity rows above (a list scan per loan against a set lookup); the minutes themselves are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "fullRun": {
+      "label": "Full job running",
+      "wait": {
+        "skipLabel": "Let the job finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The run times follow from the complexity rows above (a list scan per loan against a set lookup); the minutes themselves are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "reportReady",
+          "to": "true"
+        },
+        {
+          "output": "overdue_notices.csv written: 40,212 rows"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not mailed",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "07:00: the branches opened without the notice file.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the next person on call: where the time went, how you found it, why your change fixes it, and how you know the output is still right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Where the time went",
+          "criteria": "Names the membership test inside is_blocked: a list scanned once per loan, which grew from 3,100 to 26,480 IDs on Thursday.",
+          "modelAnswer": "patron_id in blocked scans a list; 40,212 loans times 26,480 IDs. The list grew eightfold on Thursday."
+        },
+        {
+          "label": "How you found it",
+          "criteria": "Measured before changing anything: cProfile sorted by cumulative time (is_blocked 97%, tottime equal to cumtime) or timeit on the call.",
+          "modelAnswer": "cProfile on a sample: is_blocked was 4.58 of 4.71 s, all of it in the function itself; timeit put one check at 2.3 ms."
+        },
+        {
+          "label": "Why the change works and how you know",
+          "criteria": "A set makes the membership test O(1) on average; the output was diffed against a known good file before sending. More processes, a cache on a list argument, or skipping the check do not fix it.",
+          "modelAnswer": "blocked = {...} turns each check into a hash lookup; the job ran in 2 min and the diff against yesterday's output was empty."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 4800,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The run times follow from the complexity rows above (a list scan per loan against a set lookup); the minutes themselves are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not mailed",
+      "class": "recovered",
+      "rationale": "Sending nothing ships no wrong notice, but the branches open without the list; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The run times follow from the complexity rows above (a list scan per loan against a set lookup); the minutes themselves are invented."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong notices went out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and mailed and not mailedRight",
+      "narrative": "The branches got a file that does not mark blocked patrons, so 412 people get a normal notice instead of being sent to the hold desk."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not mailed",
+      "narrative": "No wrong file went out, but the branches opened without the overdue list."
+    },
+    "right": {
+      "label": "Right file, on time, checked",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and mailedRight and mailedSec <= deadline and verifiedMailed and not isNull(measuredAt)",
+      "narrative": "The notice file reached the branches before they opened, and it matches what the job produced before it slowed down."
+    },
+    "rightGaps": {
+      "label": "Right file, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The file is right, but late, unmeasured, or not checked against a known good output."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "rightGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "measured",
+        "label": "Measured before changing the code (cProfile or timeit)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "measuredFirst",
+            "score": "met",
+            "why": "Measured first: the time is in is_blocked."
+          },
+          {
+            "when": "not isNull(measuredAt)",
+            "score": "partial",
+            "why": "Measured, but only after changing the code."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed the code without measuring where the time goes."
+          }
+        ]
+      },
+      {
+        "id": "hotspot",
+        "label": "Fixed the hot spot the profile shows (a set for the membership test)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mailedAs == \"set\" or (not mailed and fix == \"set\")",
+            "score": "met",
+            "why": "Set lookup: O(1) average instead of a list scan."
+          },
+          {
+            "when": "mailedAs == \"pool\" or (not mailed and fix == \"pool\")",
+            "score": "partial",
+            "why": "Eight processes hide the cost; each still scans the list."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The membership test was not fixed."
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Checked the changed job against a known good output before sending",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "verifiedMailed",
+            "score": "met",
+            "why": "The diff against yesterday's output was empty."
+          },
+          {
+            "when": "mailed and verifyFailed",
+            "score": "partial",
+            "why": "The diff showed a difference and the file went anyway."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not checked against a known good output."
+          }
+        ]
+      },
+      {
+        "id": "onTime",
+        "label": "File at the branches by 07:00",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "mailed and mailedSec <= deadline",
+            "score": "met",
+            "why": "Sent {mailedSec / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not at the branches by 07:00."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"scan\" and checkDoc == \"diff\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"scan\" or checkDoc == \"diff\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither the cause nor the check is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "sentAt",
+        "label": "Minutes until the file reached the branches",
+        "value": "mailed ? mailedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 16"
+      },
+      {
+        "id": "runtime",
+        "label": "Run time of the version sent (min)",
+        "value": "mailed ? runMin : 0",
+        "format": "number",
+        "expert": "2"
+      },
+      {
+        "id": "wrongRows",
+        "label": "Rows wrong in the file sent",
+        "value": "mailedAs == \"nocheck\" ? 412 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "cProfile on a sample, sorted by cumulative time: is_blocked is 97%, and its time is its own (the list membership test)."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Build blocked as a set once; nothing else changes."
+      },
+      {
+        "at": "10-13 min",
+        "text": "Run yesterday's input through it and diff against the checked output: no differences."
+      },
+      {
+        "at": "13-16 min",
+        "text": "Run the full job (2 min) and send the file well before 07:00."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: measured, fixed the hot spot, checked",
+        "body": "You measured first, changed the one line the profile pointed at, and proved the output unchanged before sending."
+      },
+      "rightGaps": {
+        "headline": "Right file, with gaps",
+        "body": "The branches got a correct file. The criteria show the gap: late, unchecked, or a change that hides the cost rather than removing it."
+      },
+      "wrongSent": {
+        "headline": "A wrong file went out",
+        "body": "Skipping the check made the job fast and wrong. A diff against a known good output would have shown 412 rows."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the branches opened without the list. A profile takes minutes and points at one line."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Profile before optimizing: cProfile sorted by cumulative time shows is_blocked taking 97% of the run, and its time is its own, so the cost is the membership test against a list (O(n) per check in CPython). The blocked list grew from 3,100 to 26,480 IDs on Thursday, which is exactly when the run time jumped. Building it once as a set (O(1) average) brings the job to 2 minutes. More processes divide the same quadratic work; lru_cache cannot hash a list argument; skipping the check is fast and wrong. Diffing against yesterday's checked output proves the change kept the result."
+  }
+}

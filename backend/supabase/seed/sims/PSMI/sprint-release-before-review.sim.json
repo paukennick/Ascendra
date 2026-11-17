@@ -1,0 +1,1262 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sprint-release-before-review",
+  "title": "Sprint 21: release before the Review, and one item not Done on Friday",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 21 · day {day} of 5",
+      "commitments": [
+        {
+          "id": "productGoal",
+          "label": "Product Goal",
+          "text": "Shoppers find gear that fits, in stock, in two searches or fewer."
+        },
+        {
+          "id": "sprintGoal",
+          "label": "Sprint Goal",
+          "text": "Shoppers can filter search results by size and by what is in stock."
+        },
+        {
+          "id": "dod",
+          "label": "Definition of Done",
+          "text": "Code reviewed; automated tests pass; accessibility checked, keyboard included; deployable on its own."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "doing",
+          "label": "In progress"
+        },
+        {
+          "id": "done",
+          "label": "Done"
+        }
+      ],
+      "items": [
+        {
+          "id": "f1",
+          "label": "Filter by size",
+          "column": "f1",
+          "when": "true",
+          "size": "5 points",
+          "note": "{released == \"now\" or released == \"withF2\" ? \"Live since Wednesday\" : \"\"}"
+        },
+        {
+          "id": "f2",
+          "label": "Filter by in-stock",
+          "column": "f2",
+          "when": "true",
+          "size": "5 points",
+          "note": "{released == \"withF2\" and f2 != \"done\" ? \"Released half-built\" : \"\"}",
+          "flag": "released == \"withF2\" and f2 != \"done\""
+        },
+        {
+          "id": "f3",
+          "label": "Filters on the mobile layout",
+          "column": "f3",
+          "when": "true",
+          "size": "3 points",
+          "note": "{day == 5 ? \"Failed the keyboard accessibility check\" : \"\"}",
+          "flag": "day == 5 and lastDay != \"returned\""
+        },
+        {
+          "id": "f4",
+          "label": "Fix the search speed regression",
+          "column": "f4",
+          "when": "true",
+          "size": "3 points"
+        }
+      ],
+      "chart": {
+        "label": "Sprint burn-down",
+        "unit": "points",
+        "slots": 5,
+        "slotLabel": "Day",
+        "series": [
+          {
+            "id": "remaining",
+            "label": "Points remaining",
+            "style": "actual",
+            "history": "burn"
+          },
+          {
+            "id": "plan",
+            "label": "Plan",
+            "style": "plan",
+            "values": [
+              16,
+              12,
+              8,
+              4,
+              0
+            ]
+          }
+        ]
+      },
+      "issues": [
+        {
+          "id": "a11y",
+          "label": "Mobile filter chips cannot be reached by keyboard",
+          "when": "day == 5",
+          "at": "332100",
+          "status": "{lastDay == \"returned\" ? \"Back in the Product Backlog\" : lastDay == \"extend\" ? \"Sprint stretched to fix it\" : lastDay == \"showDone\" ? \"To be shown as done\" : \"Not Done; decision pending\"}",
+          "open": "lastDay == \"none\" or lastDay == \"showDone\""
+        }
+      ],
+      "people": [
+        {
+          "id": "dev",
+          "label": "Developers",
+          "spokenLabel": "The Developers",
+          "value": "devTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "po",
+          "label": "Maya, Product Owner",
+          "spokenLabel": "Maya, the Product Owner",
+          "value": "poTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        },
+        {
+          "id": "kim",
+          "label": "Kim, support lead",
+          "spokenLabel": "Kim, the support lead",
+          "value": "kimTrust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "strained",
+            "uneasy",
+            "working well",
+            "strong"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "release",
+          "label": "Release of filter by size",
+          "at": "159300",
+          "status": "{released == \"none\" ? \"Not decided\" : released == \"wait\" ? \"Held for the Review\" : \"Live since Wednesday\"}"
+        },
+        {
+          "id": "reviewEv",
+          "label": "Sprint Review",
+          "at": "349200",
+          "status": "{review == \"none\" ? (lastDay == \"extend\" ? \"Moved to Tuesday\" : \"Upcoming\") : review == \"working\" ? \"Held as a working session\" : review == \"presentation\" ? \"Held as a presentation\" : \"Held as a sign-off\"}"
+        },
+        {
+          "id": "retroEv",
+          "label": "Sprint Retrospective",
+          "at": "354600",
+          "status": "{retro == \"none\" ? \"Upcoming\" : retro == \"skip\" ? \"Skipped\" : \"Held\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "rem",
+          "label": "Points remaining",
+          "value": "{remaining} of 16"
+        }
+      ]
+    }
+  },
+  "objective": "Creating more than one Increment in a Sprint and releasing before the Sprint Review",
+  "secondaryObjectives": [
+    "Running a Sprint Review as a working session with stakeholders that can change the Product Backlog",
+    "Running a Sprint Retrospective that finds the most helpful improvements for the next Sprint",
+    "Deciding what happens to work that does not meet the Definition of Done when the Sprint ends",
+    "Engaging stakeholders and customers through the Sprint Review and the Product Owner without taking the plan from the Developers"
+  ],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Increment: 'Multiple Increments may be created within a Sprint'; 'an Increment may be delivered to stakeholders prior to the end of the Sprint'; 'The Sprint Review should never be considered a gate to releasing value.'"
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Definition of Done: 'If a Product Backlog item does not meet the Definition of Done, it cannot be released or even presented at the Sprint Review. Instead, it returns to the Product Backlog for future consideration.' Sprints are fixed length."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Sprint Review: 'The purpose of the Sprint Review is to inspect the outcome of the Sprint and determine future adaptations'; 'a working session and the Scrum Team should avoid limiting it to a presentation'; the Product Backlog may be adjusted to meet new opportunities."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Sprint Retrospective: 'The purpose of the Sprint Retrospective is to plan ways to increase quality and effectiveness'; the most impactful improvements are addressed as soon as possible and may be added to the Sprint Backlog for the next Sprint."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master of the search team at Harbor Lane Outfitters, a fictional online outdoor-gear shop. Sprint 21 runs one week, Monday 1 March to Friday 5 March 2027, with the Sprint Review at 14:00 and the Retrospective at 15:30 on Friday. Sprint Goal: shoppers can filter search results by size and by what is in stock.",
+    "handover": [
+      "Developers: Dev, Lena and Ana. Product Owner: Maya. Kim leads customer support and hears every search complaint.",
+      "Sprint Backlog: 16 points in four items. The team can release any Done item on its own."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the board, the burn-down, issues, the people and the events. Decisions come to you as the week unfolds; between them you can act from the action groups.",
+      "Move the week on when you are ready. Each morning the board shows what the Developers finished the day before.",
+      "On Friday you run the Sprint Review and the Retrospective, then write a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T13:00",
+    "tick": "15min",
+    "maxDuration": "5d",
+    "calendar": "date"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "day": {
+      "type": "number",
+      "init": 1,
+      "min": 1,
+      "max": 5
+    },
+    "f1": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "f2": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "doing"
+    },
+    "f3": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "f4": {
+      "type": "enum",
+      "values": [
+        "todo",
+        "doing",
+        "done"
+      ],
+      "init": "todo"
+    },
+    "released": {
+      "type": "enum",
+      "values": [
+        "none",
+        "now",
+        "wait",
+        "withF2"
+      ],
+      "init": "none"
+    },
+    "releasedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastDay": {
+      "type": "enum",
+      "values": [
+        "none",
+        "returned",
+        "extend",
+        "showDone"
+      ],
+      "init": "none"
+    },
+    "review": {
+      "type": "enum",
+      "values": [
+        "none",
+        "working",
+        "presentation",
+        "signoff"
+      ],
+      "init": "none"
+    },
+    "retro": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cause",
+        "list",
+        "blame",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "kimInvited": {
+      "type": "bool",
+      "init": false
+    },
+    "devTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "poTrust": {
+      "type": "number",
+      "init": 65,
+      "min": 0,
+      "max": 100
+    },
+    "kimTrust": {
+      "type": "number",
+      "init": 50,
+      "min": 0,
+      "max": 100
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "burn": {
+      "of": "remaining",
+      "every": "1d",
+      "keep": "5d"
+    }
+  },
+  "derived": {
+    "remaining": {
+      "expr": "(f1 == \"done\" ? 0 : 5) + (f2 == \"done\" ? 0 : 5) + (f3 == \"done\" ? 0 : 3) + (f4 == \"done\" ? 0 : 3)",
+      "unit": "pts"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "sprint": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "board",
+        "kim"
+      ]
+    },
+    "review": {
+      "label": "Sprint Review and Retrospective",
+      "clock": "stopped",
+      "actions": [
+        "reviewAct",
+        "retroAct",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "sprint",
+  "actions": {
+    "board": {
+      "label": "Walk the board and the burn-down with the Developers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"sprint\"",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "log": "You look at the board and the burn-down with the Developers.",
+          "kind": "act"
+        },
+        {
+          "finding": "{remaining} points remain with {5 - day} days to go{f1 == \"done\" ? \"; filter by size is Done and could ship today\" : \"\"}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "kim": {
+      "label": "Invite Kim, the support lead, to the Sprint Review and ask her to bring what shoppers are saying",
+      "group": "Stakeholders",
+      "available": "not busy and phase == \"sprint\" and (not kimInvited)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "kimInvited",
+          "to": "true"
+        },
+        {
+          "add": "kimTrust",
+          "by": "15"
+        },
+        {
+          "log": "Kim will come Friday with the week's search complaints.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "reviewAct": {
+      "label": "Run the Sprint Review",
+      "group": "Sprint Review",
+      "available": "review == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "rv",
+          "kind": "form",
+          "label": "Sprint Review",
+          "fields": [
+            {
+              "id": "how",
+              "label": "How you run it",
+              "options": [
+                {
+                  "value": "working",
+                  "label": "A working session: the stakeholders try the Done filters, Kim brings what shoppers say, and everyone adapts the Product Backlog together"
+                },
+                {
+                  "value": "presentation",
+                  "label": "A slide presentation of what the team did, with questions at the end"
+                },
+                {
+                  "value": "signoff",
+                  "label": "A sign-off meeting: Maya approves the Increment so it can be released"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "review",
+          "to": "how"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"working\"",
+              "then": [
+                {
+                  "add": "poTrust",
+                  "by": "10"
+                },
+                {
+                  "add": "kimTrust",
+                  "by": "kimInvited ? 15 : 5"
+                },
+                {
+                  "log": "Kim's notes move 'remember my size' to the top of the Product Backlog; the mobile chips are ordered next.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "how == \"presentation\"",
+              "then": [
+                {
+                  "add": "kimTrust",
+                  "by": "-5"
+                },
+                {
+                  "log": "Polite questions, no change to the Product Backlog.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "-5"
+                },
+                {
+                  "add": "kimTrust",
+                  "by": "-5"
+                },
+                {
+                  "log": "The Review became a gate to releasing value.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "retroAct": {
+      "label": "Choose the Sprint Retrospective's improvement",
+      "group": "Sprint Retrospective",
+      "available": "review != \"none\" and retro == \"none\"",
+      "why": "Hold the Sprint Review first (or it is chosen).",
+      "params": [
+        {
+          "id": "pick",
+          "kind": "choice",
+          "label": "What the team takes into the next Sprint",
+          "options": [
+            {
+              "value": "cause",
+              "label": "Run the accessibility check in the build on every change, so an item cannot reach Friday untested"
+            },
+            {
+              "value": "list",
+              "label": "Ten improvements, one per team member, all starting Monday"
+            },
+            {
+              "value": "blame",
+              "label": "Ask who built the chips and make sure it doesn't happen again"
+            },
+            {
+              "value": "skip",
+              "label": "Skip it; the team is tired"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "retro",
+          "to": "pick"
+        },
+        {
+          "cases": [
+            {
+              "when": "pick == \"cause\"",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "10"
+                },
+                {
+                  "log": "One improvement, aimed at what went wrong, in the next Sprint Backlog.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "pick == \"list\"",
+              "then": [
+                {
+                  "log": "Ten improvements; by Wednesday nobody remembers them.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "pick == \"blame\"",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "-25"
+                },
+                {
+                  "log": "Blame: openness and respect take a hit.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "devTrust",
+                  "by": "-5"
+                },
+                {
+                  "log": "No Retrospective.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "close": {
+      "label": "Close the Sprint",
+      "group": "Sprint Retrospective",
+      "available": "retro != \"none\" and not closed",
+      "why": "Choose the Retrospective's improvement first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The Sprint is over.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Carry on with the day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "morning": {
+      "label": "The next Daily Scrum",
+      "wait": {
+        "skipLabel": "Go to the next Daily Scrum"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "day",
+          "by": "1"
+        },
+        {
+          "if": "day == 3",
+          "then": [
+            {
+              "set": "f1",
+              "to": "\"done\""
+            },
+            {
+              "set": "f3",
+              "to": "\"doing\""
+            },
+            {
+              "log": "Filter by size is Done: reviewed, tested, accessible, deployable.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "day == 4",
+          "then": [
+            {
+              "set": "f4",
+              "to": "\"done\""
+            },
+            {
+              "log": "The search speed regression is fixed and Done.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "if": "day == 5",
+          "then": [
+            {
+              "set": "f2",
+              "to": "\"done\""
+            },
+            {
+              "log": "Filter by in-stock is Done.",
+              "kind": "good"
+            },
+            {
+              "log": "Filters on the mobile layout failed its accessibility check last night: the filter chips cannot be reached by keyboard. It is not Done.",
+              "kind": "alarm"
+            }
+          ]
+        },
+        {
+          "if": "day < 5",
+          "then": [
+            {
+              "schedule": "morning",
+              "after": "24h"
+            }
+          ],
+          "else": [
+            {
+              "schedule": "review",
+              "after": "285min"
+            }
+          ]
+        }
+      ]
+    },
+    "review": {
+      "label": "The Sprint Review",
+      "wait": {
+        "skipLabel": "Go to the Sprint Review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-311)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each Scrum Master action takes and how a day's work moves the board are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "Friday 14:00: the Sprint Review.",
+          "kind": "sys"
+        },
+        {
+          "phase": "review"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "morning",
+          "after": "1215min"
+        }
+      ]
+    },
+    {
+      "id": "wednesday",
+      "when": "day == 3 and phase == \"sprint\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Wednesday: filter by size is Done.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "releasePrompt"
+        }
+      ]
+    },
+    {
+      "id": "friday",
+      "when": "day == 5 and phase == \"sprint\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Friday 09:15: one item is not Done.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fridayPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"review\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "releasePrompt": {
+      "title": "Wednesday, 09:30: filter by size is Done",
+      "context": "Kim from support: \"Shoppers have been asking for a size filter for months.\" Maya, the Product Owner: \"It's Done. Can we put it live today, or do we wait for the Review on Friday?\"",
+      "choices": [
+        {
+          "id": "now",
+          "label": "Release the Done filter today; the Review will inspect it with real use",
+          "effects": [
+            {
+              "set": "released",
+              "to": "\"now\""
+            },
+            {
+              "set": "releasedAt",
+              "to": "t"
+            },
+            {
+              "add": "poTrust",
+              "by": "10"
+            },
+            {
+              "add": "kimTrust",
+              "by": "10"
+            },
+            {
+              "log": "Filter by size is live on Wednesday.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "'An Increment may be delivered to stakeholders prior to the end of the Sprint.' The Review is not a gate to releasing value."
+        },
+        {
+          "id": "wait",
+          "label": "Wait: nothing goes live before the Sprint Review approves it",
+          "effects": [
+            {
+              "set": "released",
+              "to": "\"wait\""
+            },
+            {
+              "add": "kimTrust",
+              "by": "-10"
+            },
+            {
+              "log": "Shoppers wait three more days for a Done feature.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The Sprint Review should never be considered a gate to releasing value."
+        },
+        {
+          "id": "withF2",
+          "label": "Release it together with the half-built in-stock filter, so shoppers get both",
+          "effects": [
+            {
+              "set": "released",
+              "to": "\"withF2\""
+            },
+            {
+              "set": "releasedAt",
+              "to": "t"
+            },
+            {
+              "add": "devTrust",
+              "by": "-10"
+            },
+            {
+              "log": "A half-built filter went live with the Done one.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Only work that meets the Definition of Done may be released."
+        }
+      ]
+    },
+    "fridayPrompt": {
+      "title": "Friday, 09:15: one item is not Done",
+      "context": "Filters on the mobile layout failed its accessibility check: keyboard users cannot reach the filter chips. The Review is at 14:00. Dev: \"We could fix it over the weekend and call it done for the Review.\"",
+      "choices": [
+        {
+          "id": "returned",
+          "label": "It is not Done: say so at the Review and return it to the Product Backlog for Maya to order",
+          "effects": [
+            {
+              "set": "lastDay",
+              "to": "\"returned\""
+            },
+            {
+              "add": "poTrust",
+              "by": "5"
+            },
+            {
+              "log": "The mobile chips go back to the Product Backlog, re-estimated.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An item that does not meet the Definition of Done returns to the Product Backlog for future consideration."
+        },
+        {
+          "id": "extend",
+          "label": "Move the Review to Tuesday so the item can be finished in this Sprint",
+          "effects": [
+            {
+              "set": "lastDay",
+              "to": "\"extend\""
+            },
+            {
+              "add": "poTrust",
+              "by": "-10"
+            },
+            {
+              "log": "The Sprint is stretched to fit the work.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Sprints are a fixed length; the event cadence is what makes inspection regular."
+        },
+        {
+          "id": "showDone",
+          "label": "Show it at the Review as done; the fix is small",
+          "effects": [
+            {
+              "set": "lastDay",
+              "to": "\"showDone\""
+            },
+            {
+              "log": "Undone work will be presented as done.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It 'cannot be released or even presented at the Sprint Review'."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Reflect on the Sprint: when value could reach shoppers, what happened to the item that was not Done, and how the Review and the Retrospective served their purpose.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Increments and Done",
+          "criteria": "A Done Increment can be released before the Sprint Review, which is not a gate; only Done work is released or presented; the undone item returns to the Product Backlog and the Sprint keeps its length.",
+          "modelAnswer": "Filter by size met the Definition of Done on Wednesday, so we released it then: an Increment may be delivered before the end of the Sprint, and the Review is not a gate. The mobile chips failed the keyboard check, so they were not Done; we said so at the Review and returned the item to the Product Backlog. The Sprint kept its length."
+        },
+        {
+          "label": "The Review and the Retrospective",
+          "criteria": "The Review as a working session where stakeholders inspect the Increment and the Product Backlog is adapted; the Retrospective picks the most helpful improvement, aimed at the cause, without blame.",
+          "modelAnswer": "At the Review the stakeholders used the filters, Kim brought what shoppers are saying, and Maya reordered the Product Backlog with them. The Retrospective chose one improvement aimed at the cause: run the accessibility check in the build on every change."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Nothing that misses the Definition of Done is released or presented."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+          "note": "Working relationships at the Sprint's end (author's teaching model)."
+        }
+      },
+      "trustRecovered": {
+        "value": 40,
+        "source": {
+          "cite": "Scrum outcome profile (docs/sims.md 9.2, 22.24), from the Scrum Guide 2020",
+          "checkedAt": "2026-11-16",
+          "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf"
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and released == \"wait\" and review != \"working\"",
+      "class": "recovered",
+      "rationale": "Nothing reached shoppers early and the Review changed nothing, but nothing undone was released or shown; recovered, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Increment: 'Multiple Increments may be created within a Sprint'; 'an Increment may be delivered to stakeholders prior to the end of the Sprint'; 'The Sprint Review should never be considered a gate to releasing value.'"
+      }
+    }
+  },
+  "endings": {
+    "undone": {
+      "label": "Undone work released or presented",
+      "class": "harm",
+      "when": "closed and (released == \"withF2\" ? 1 : 0) + (lastDay == \"showDone\" ? 1 : 0) > undoneShown",
+      "terminal": true,
+      "narrative": "{released == \"withF2\" ? \"A half-built in-stock filter went live on Wednesday and showed sold-out boots as available.\" : \"The Review showed mobile filters as done that keyboard users cannot use.\"}"
+    },
+    "broken": {
+      "label": "Trust broken",
+      "class": "harm",
+      "when": "closed and (devTrust < trustRecovered or poTrust < trustRecovered or kimTrust < trustRecovered)",
+      "terminal": true,
+      "narrative": "{devTrust < trustRecovered ? \"The Developers left the Retrospective feeling blamed; next Sprint, problems will surface later.\" : \"Kim has stopped bringing what shoppers say; she does not see it change anything.\"}"
+    },
+    "delivered": {
+      "label": "Value early, Done honest, a real Review",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and released == \"now\" and lastDay == \"returned\" and review == \"working\" and retro == \"cause\" and devTrust >= trustTarget and poTrust >= trustTarget and kimTrust >= trustTarget",
+      "narrative": "Shoppers had the size filter from Wednesday. The Review changed what comes next, the mobile chips wait honestly in the Product Backlog, and the build will catch the next accessibility slip."
+    },
+    "partly": {
+      "label": "A Sprint with gaps",
+      "class": "recovered",
+      "when": "closed",
+      "terminal": true,
+      "narrative": "Nothing undone was released or shown, but the criteria show where value waited, the Sprint stretched, or the Review and Retrospective fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "undone",
+    "broken",
+    "delivered",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "releaseCrit",
+        "label": "Released the Done Increment before the Sprint Review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "released == \"now\"",
+            "score": "met",
+            "why": "Live on Wednesday."
+          },
+          {
+            "when": "released == \"wait\"",
+            "score": "partial",
+            "why": "Held for the Review."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Released with undone work."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "undoneCrit",
+        "label": "Returned the item that was not Done to the Product Backlog, and kept the Sprint's length",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lastDay == \"returned\"",
+            "score": "met",
+            "why": "Said so, and returned it."
+          },
+          {
+            "when": "lastDay == \"extend\"",
+            "score": "partial",
+            "why": "The Sprint was stretched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shown as done."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "reviewCrit",
+        "label": "Ran the Sprint Review as a working session",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "review == \"working\"",
+            "score": "met",
+            "why": "Stakeholders inspected and the Product Backlog changed."
+          },
+          {
+            "when": "review == \"presentation\"",
+            "score": "partial",
+            "why": "A presentation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A sign-off gate."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "retroCrit",
+        "label": "Chose the most helpful improvement, aimed at the cause, without blame",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "retro == \"cause\"",
+            "score": "met",
+            "why": "One improvement at the cause."
+          },
+          {
+            "when": "retro == \"list\"",
+            "score": "partial",
+            "why": "Too many to stick."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{retro == \"blame\" ? \"Blame.\" : \"No Retrospective.\"}"
+          }
+        ]
+      },
+      {
+        "id": "kimCrit",
+        "label": "Brought the support lead's view into the Review",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "kimInvited and review == \"working\"",
+            "score": "met",
+            "why": "Kim's notes reshaped the Product Backlog."
+          },
+          {
+            "when": "kimInvited",
+            "score": "partial",
+            "why": "Kim came, but the Review did not use her input."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Kim was not there."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "daysEarly",
+        "label": "Days the size filter was live before the Review",
+        "value": "isNull(releasedAt) ? 0 : round((349200 - timeAt(releasedAt)) / 86400)",
+        "format": "number",
+        "expert": "2 or more"
+      },
+      {
+        "id": "pointsLeft",
+        "label": "Points not Done at the Review",
+        "value": "remaining",
+        "format": "number",
+        "expert": "3 (the item that failed its check)"
+      },
+      {
+        "id": "kimEnd",
+        "label": "Kim's trust at the end",
+        "value": "round(kimTrust)",
+        "format": "number",
+        "expert": "60 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Monday",
+        "text": "Invite Kim to the Review and ask her to bring what shoppers say."
+      },
+      {
+        "at": "Wednesday",
+        "text": "Release the Done size filter at once; the Review is not a gate."
+      },
+      {
+        "at": "Friday 09:15",
+        "text": "The mobile chips are not Done: say so and return them to the Product Backlog; keep the Sprint's length."
+      },
+      {
+        "at": "Friday",
+        "text": "Run the Review as a working session, and leave the Retrospective with one improvement aimed at the cause."
+      }
+    ],
+    "debrief": {
+      "delivered": {
+        "headline": "Good: value early, Done honest",
+        "body": "A Done Increment went out mid-Sprint, the undone item went back to the Product Backlog, the Review was a working session and the Retrospective aimed at the cause."
+      },
+      "partly": {
+        "headline": "A Sprint with gaps",
+        "body": "The criteria below show where value waited for the Review, the Sprint was stretched, or the Review and Retrospective fell short of their purpose."
+      },
+      "undone": {
+        "headline": "Undone work released or shown",
+        "body": "Only work that meets the Definition of Done may be released or presented; the rest returns to the Product Backlog."
+      },
+      "broken": {
+        "headline": "A working relationship broke",
+        "body": "Blame in a Retrospective, or a Review that ignores stakeholders, erodes the openness and respect that inspection depends on."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The Sprint was not closed before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Release a Done Increment as soon as it is valuable: several Increments may be created in a Sprint and delivered before its end, and the Review is never a gate to releasing value. Work that misses the Definition of Done is not released or presented; it returns to the Product Backlog and the Sprint keeps its fixed length. The Review is a working session in which stakeholders inspect the Increment and the Product Backlog is adapted; the Retrospective picks the most helpful improvement, aimed at the cause, without blame."
+  }
+}

@@ -1,0 +1,856 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sundowning-at-the-exit-door",
+  "title": "At the exit door before dinner",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse you counted",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 100
+          },
+          "announce": {
+            "bands": [
+              90,
+              100
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "pulseTaken"
+        }
+      ],
+      "banner": [
+        {
+          "when": "a >= 0.75",
+          "text": "Mrs. Halloran is pulling hard at the door handle and shouting for her children."
+        },
+        {
+          "when": "a < 0.75 and a >= 0.4 and not engaged",
+          "text": "Mrs. Halloran paces by the locked door, coat on, asking for her children."
+        },
+        {
+          "when": "engaged",
+          "text": "Mrs. Halloran is busy with you, calmer."
+        },
+        {
+          "when": "held",
+          "text": "She is being held back from the door."
+        }
+      ]
+    }
+  },
+  "objective": "Responding to behavior without escalating it",
+  "secondaryObjectives": [
+    "Never use a physical or chemical restraint for discipline or staff convenience; a restraint may be used only to treat a medical symptom, the least restrictive way, for the shortest time",
+    "Observation versus interpretation, and why the aide reports the first"
+  ],
+  "sources": [
+    {
+      "cite": "Credentia, 2024 National Nurse Aide Assessment Program (NNAAP) Written (Oral) Examination Content Outline (effective April 2024)",
+      "checkedAt": "2026-11-10",
+      "url": "https://kb-pa.credentia.com/en/article/the-2024-national-nurse-aide-assessment-program-nnaap",
+      "note": "Relayed from the REQ-223 CNA cases (read 2026-11-10), not re-read: the objective titles are the course's own, built from this outline (Role of the Nurse Aide includes Communication and Resident Rights; Basic Nursing Skills includes Safety)."
+    },
+    {
+      "cite": "Ascendra CNA course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-16",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "42 CFR 483.12(a)(1)-(2): freedom from abuse and from restraints",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.law.cornell.edu/cfr/text/42/483.12",
+      "note": "Read 2026-11-16 (Cornell LII copy, summarizing fetch with quotes): the facility must 'ensure that the resident is free from physical or chemical restraints imposed for purposes of discipline or convenience' and 'that are not required to treat the resident's medical symptoms'; when indicated, 'the least restrictive alternative' 'for the least amount of time'; no 'involuntary seclusion'."
+    },
+    {
+      "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 10.5 Caring for Clients With Dementia",
+      "checkedAt": "2026-11-16",
+      "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/10-5-caring-for-clients-with-dementia/",
+      "note": "Read 2026-11-16 (summarizing fetch with quotes): behaviors can come from unmet needs, 'untreated pain, hunger, anxiety, or the need to use the bathroom'; validation: 'support the reality the person with dementia is experiencing and do not attempt to reorient them'; 'Focus on the person's feelings, not the facts'; speak slowly in a soft tone; 'Shift the focus to another activity (redirect)'; 'Rule out pain as the cause of the behavior'; sundowning is late-day 'restlessness, agitation, irritability, or confusion', eased by reducing noise and clutter and drawing the shades at dusk; seek help from other staff if calming fails. The chapter does not cover restraints or reporting to the nurse."
+    },
+    {
+      "cite": "42 CFR 483.152(b): nurse aide training program content",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.law.cornell.edu/cfr/text/42/483.152",
+      "note": "Relayed from the REQ-223 CNA cases (read 2026-11-10, Cornell LII copy), not re-read: (b)(2)(iv) recognizing abnormal changes in body functioning and the importance of reporting such changes to a supervisor."
+    }
+  ],
+  "brief": {
+    "situation": "17:30 in a secured memory care unit. You are the nurse aide. Mrs. Halloran, 86, who has Alzheimer disease, has her coat on and is pulling at the locked exit door: 'I have to get the children from school, they'll be waiting.' Dinner is at 18:00 and the dining room is noisy.",
+    "handover": [
+      "She walks without an aid and is usually calm in the morning. Late afternoons she is often restless.",
+      "Her care plan: approach from the front, use her name, she likes folding laundry and talking about her four children (now grown). Toileting every 2-3 hours; last toileted at 13:30.",
+      "The nurse is passing medications at the other end of the hall and answers if you call."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "What you say and do changes how upset she is; her mood is shown in words.",
+      "Partway through you are asked to write what you think is behind it. The case ends at 18:00, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "17:30",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "aRise": {
+      "value": 0.6,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Left alone at the door, her distress climbs to a fall-risk struggle in about 40 min. FLAG. Simplified teaching model written for exam practice; not a validated behavioral model."
+      }
+    },
+    "aFall": {
+      "value": 0.9,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "While she is engaged in something she likes, distress eases. FLAG. Simplified teaching model written for exam practice; not a validated behavioral model."
+      }
+    },
+    "fallA": {
+      "value": 0.95,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "At this level she pushes past or pulls free and falls. FLAG. Simplified teaching model written for exam practice; not a validated behavioral model."
+      }
+    },
+    "calmA": {
+      "value": 0.35,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Calm enough to walk to dinner. FLAG. Simplified teaching model written for exam practice; not a validated behavioral model."
+      }
+    },
+    "needsBy": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Memory care unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: unmet needs checked within 15 min. FLAG."
+      }
+    },
+    "reportBy": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Memory care unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Authored target: the nurse told within 20 min. FLAG."
+      }
+    },
+    "endAt": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Memory care unit practice (authored estimate)",
+        "checkedAt": "2026-11-16",
+        "note": "Dinner at 18:00 ends the case."
+      }
+    }
+  },
+  "state": {
+    "a": {
+      "type": "number",
+      "init": 0.55,
+      "min": 0,
+      "max": 2
+    },
+    "engaged": {
+      "type": "bool",
+      "init": false
+    },
+    "held": {
+      "type": "bool",
+      "init": false
+    },
+    "approachAt": {
+      "type": "time",
+      "init": null
+    },
+    "validateAt": {
+      "type": "time",
+      "init": null
+    },
+    "reorientAt": {
+      "type": "time",
+      "init": null
+    },
+    "argued": {
+      "type": "bool",
+      "init": false
+    },
+    "needsAt": {
+      "type": "time",
+      "init": null
+    },
+    "toileted": {
+      "type": "bool",
+      "init": false
+    },
+    "painSeen": {
+      "type": "bool",
+      "init": false
+    },
+    "envAt": {
+      "type": "time",
+      "init": null
+    },
+    "restraintUsed": {
+      "type": "bool",
+      "init": false
+    },
+    "chemAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportFull": {
+      "type": "bool",
+      "init": false
+    },
+    "pulseTaken": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(clamp(76 + 30 * a, 50, 140))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "mood": {
+      "expr": "a >= 0.75 ? \"frantic\" : (a >= 0.4 ? \"anxious\" : \"settled\")"
+    }
+  },
+  "processes": [
+    {
+      "id": "distress",
+      "when": "true",
+      "update": {
+        "a": "max(0.05, a + (engaged ? -aFall : aRise) * dt / 3600)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "In the hallway",
+      "clock": "running",
+      "actions": [
+        "approach",
+        "reorient",
+        "validate",
+        "redirect",
+        "needs",
+        "pulse",
+        "environment",
+        "hold",
+        "chair",
+        "askSedative",
+        "report"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "approach": {
+      "label": "Approach from the front, at her eye level; use her name and a calm, slow voice",
+      "group": "Approach",
+      "available": "isNull(approachAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "approachAt",
+          "to": "t"
+        },
+        {
+          "set": "a",
+          "to": "max(0.05, a - 0.05)"
+        },
+        {
+          "log": "She turns to you: 'Oh, it's you. I'm late for the children.' (She is {mood}.)",
+          "kind": "find"
+        }
+      ]
+    },
+    "reorient": {
+      "label": "Tell her the facts: her children are grown, it is 2026, and she lives here now",
+      "group": "Respond",
+      "effects": [
+        {
+          "if": "isNull(reorientAt)",
+          "then": [
+            {
+              "set": "reorientAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "argued",
+          "to": "true"
+        },
+        {
+          "set": "engaged",
+          "to": "false"
+        },
+        {
+          "set": "a",
+          "to": "a + 0.2"
+        },
+        {
+          "log": "'That's a lie! Let me out!' She bangs the door. (She is {mood}.)",
+          "kind": "bad"
+        }
+      ]
+    },
+    "validate": {
+      "label": "Acknowledge the feeling: 'You're worried about them. Tell me about your children.'",
+      "group": "Respond",
+      "effects": [
+        {
+          "if": "isNull(validateAt)",
+          "then": [
+            {
+              "set": "validateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "a",
+          "to": "max(0.05, a - (isNull(approachAt) ? 0.05 : 0.12))"
+        },
+        {
+          "log": "Her grip on the handle loosens. 'Four of them. Mary is the eldest, she minds the others.' (She is {mood}.)",
+          "kind": "good"
+        }
+      ]
+    },
+    "redirect": {
+      "label": "Invite her to help you: 'Mary would want them to have clean towels. Will you help me fold?'",
+      "group": "Respond",
+      "available": "not engaged",
+      "why": "She is already busy with you.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "not isNull(validateAt) and a < 0.8",
+              "then": [
+                {
+                  "set": "engaged",
+                  "to": "true"
+                },
+                {
+                  "set": "held",
+                  "to": "false"
+                },
+                {
+                  "log": "She takes your arm and walks with you to the laundry basket in the quiet lounge.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "a",
+                  "to": "a + 0.05"
+                },
+                {
+                  "log": "'I don't have time for towels!' She turns back to the door. Her worry hasn't been heard yet.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "needs": {
+      "label": "Check for unmet needs: bathroom, pain, hunger, thirst",
+      "group": "Care",
+      "available": "isNull(needsAt)",
+      "why": "Already checked.",
+      "effects": [
+        {
+          "set": "needsAt",
+          "to": "t"
+        },
+        {
+          "set": "toileted",
+          "to": "true"
+        },
+        {
+          "set": "painSeen",
+          "to": "true"
+        },
+        {
+          "set": "a",
+          "to": "max(0.05, a - 0.1)"
+        },
+        {
+          "log": "Her brief is soaked; you help her to the bathroom and change her. She winces and rubs her right hip when she sits: 'It aches.' You offer water; she drinks a full cup.",
+          "kind": "find"
+        }
+      ]
+    },
+    "pulse": {
+      "label": "Count her pulse",
+      "group": "Care",
+      "available": "not pulseTaken",
+      "why": "Already taken.",
+      "effects": [
+        {
+          "set": "pulseTaken",
+          "to": "true"
+        },
+        {
+          "log": "Pulse {hr}, regular.",
+          "kind": "find"
+        }
+      ]
+    },
+    "environment": {
+      "label": "Lower the stimulation: steer her away from the noisy dining room, lights up, shades drawn",
+      "group": "Care",
+      "available": "isNull(envAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "envAt",
+          "to": "t"
+        },
+        {
+          "set": "a",
+          "to": "max(0.05, a - 0.05)"
+        },
+        {
+          "log": "The lounge is quieter and brighter.",
+          "kind": "act"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Stand in front of the door and hold her wrists so she stops pulling",
+      "group": "Restrict",
+      "effects": [
+        {
+          "set": "held",
+          "to": "true"
+        },
+        {
+          "set": "restraintUsed",
+          "to": "true"
+        },
+        {
+          "set": "engaged",
+          "to": "false"
+        },
+        {
+          "set": "a",
+          "to": "a + 0.25"
+        },
+        {
+          "log": "She twists against your grip, crying out. Holding a resident to stop her moving is a physical restraint.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "chair": {
+      "label": "Sit her in a recliner with the tray table locked across her until dinner",
+      "group": "Restrict",
+      "effects": [
+        {
+          "set": "restraintUsed",
+          "to": "true"
+        },
+        {
+          "set": "engaged",
+          "to": "false"
+        },
+        {
+          "set": "a",
+          "to": "a + 0.2"
+        },
+        {
+          "log": "She pushes at the tray and tries to climb out over the side. A tray she cannot remove is a physical restraint.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "askSedative": {
+      "label": "Ask the nurse for something to calm her down before dinner",
+      "group": "Restrict",
+      "available": "not chemAsked",
+      "why": "Already asked.",
+      "effects": [
+        {
+          "set": "chemAsked",
+          "to": "true"
+        },
+        {
+          "log": "Nurse: 'A drug to keep her quiet for us would be a chemical restraint. Tell me what you're seeing and what you've tried.'",
+          "kind": "bad"
+        }
+      ]
+    },
+    "report": {
+      "label": "Tell the nurse what you observed",
+      "group": "Report",
+      "available": "isNull(reportAt)",
+      "why": "Already reported.",
+      "effects": [
+        {
+          "set": "reportAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "painSeen",
+              "then": [
+                {
+                  "set": "reportFull",
+                  "to": "true"
+                },
+                {
+                  "log": "You report what you saw: at the door at 17:30 asking for her children, soaked brief, a full cup of water, wincing and rubbing her right hip, and what calmed her. Nurse: 'Thank you. I'll assess the hip now.'",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "You tell the nurse she is 'acting up again'. Nurse: 'What exactly is she doing, and have you checked her needs?'",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {},
+  "triggers": [
+    {
+      "id": "frantic",
+      "when": "a >= 0.8",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "She is shouting and yanking the handle; another resident starts crying.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(approachAt) or t >= 300",
+      "question": "What might be behind Mrs. Halloran's behavior, and how will you respond without making it worse?",
+      "parts": [
+        {
+          "label": "What is behind it",
+          "criteria": "Names late-day sundowning in dementia and looks for unmet needs (toileting, pain, thirst, noise) as causes; separates what was observed from what it might mean.",
+          "modelAnswer": "Late-afternoon restlessness in dementia, and possibly an unmet need: she hasn't been toileted since 13:30 and the dining room is noisy. I'll check the bathroom, pain and a drink, and report what I see, not a label."
+        },
+        {
+          "label": "How to respond",
+          "criteria": "Calm approach from the front, validates the feeling instead of correcting her, redirects to something she likes, lowers stimulation; no holding, no locked tray, no drug for convenience; tells the nurse the observations.",
+          "modelAnswer": "Approach calmly, use her name, don't argue that her children are grown. Acknowledge the worry, then invite her to fold towels in the quiet lounge. Never hold her or lock her in a chair, and never ask for a drug to keep her quiet. Tell the nurse exactly what I saw."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "t >= endAt + 300",
+      "class": "harm",
+      "rationale": "Still distressed at the door after dinner has started is distress left unrelieved.",
+      "source": {
+        "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 10.5 Caring for Clients With Dementia",
+        "checkedAt": "2026-11-16",
+        "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/10-5-caring-for-clients-with-dementia/",
+        "note": "Read 2026-11-16 (summarizing fetch with quotes): behaviors can come from unmet needs, 'untreated pain, hunger, anxiety, or the need to use the bathroom'; validation: 'support the reality the person with dementia is experiencing and do not attempt to reorient them'; 'Focus on the person's feelings, not the facts'; speak slowly in a soft tone; 'Shift the focus to another activity (redirect)'; 'Rule out pain as the cause of the behavior'; sundowning is late-day 'restlessness, agitation, irritability, or confusion', eased by reducing noise and clutter and drawing the shades at dusk; seek help from other staff if calming fails. The chapter does not cover restraints or reporting to the nurse."
+      }
+    }
+  },
+  "endings": {
+    "fell": {
+      "label": "She fell",
+      "class": "harm",
+      "when": "a >= fallA",
+      "terminal": true,
+      "narrative": "{t|clock}: Mrs. Halloran pulls away hard, loses her balance and falls on the hallway floor. The nurse is called."
+    },
+    "settled": {
+      "label": "Settled without restraint",
+      "class": "target",
+      "when": "t >= endAt and a < calmA and not restraintUsed and not chemAsked and not argued and not isNull(validateAt) and not isNull(needsAt) and timeAt(needsAt) <= needsBy",
+      "terminal": true,
+      "narrative": "18:00: Mrs. Halloran walks into dinner on your arm, talking about Mary. Her needs were met and nobody restrained her."
+    },
+    "settledLate": {
+      "label": "18:00, by a harder or riskier route",
+      "class": "recovered",
+      "when": "t >= endAt",
+      "terminal": true,
+      "narrative": "18:00: no fall, but the route was harder on her: an argument, a restraint, a request for a sedative, or needs checked late or not at all."
+    },
+    "time_up": {
+      "label": "Still at the door",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "18:10 and she is still distressed at the door."
+    }
+  },
+  "endingOrder": [
+    "fell",
+    "settled",
+    "settledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noRestraint",
+        "label": "No physical hold, locked tray or sedative for convenience",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "restraintUsed",
+            "score": "missed",
+            "why": "A physical restraint was used to stop her moving."
+          },
+          {
+            "when": "chemAsked",
+            "score": "missed",
+            "why": "A drug was asked for to keep her quiet."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No restraint of any kind."
+          }
+        ]
+      },
+      {
+        "id": "validated",
+        "label": "Validated her feeling instead of correcting her",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(validateAt)",
+            "score": "missed",
+            "why": "Her worry was never acknowledged."
+          },
+          {
+            "when": "argued and timeAt(reorientAt) < timeAt(validateAt)",
+            "score": "partial",
+            "why": "Argued with her first, then acknowledged the feeling."
+          },
+          {
+            "when": "argued",
+            "score": "partial",
+            "why": "Acknowledged the feeling but also argued with her reality."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Acknowledged the worry at {timeAt(validateAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "needs",
+        "label": "Checked unmet needs within 15 min",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(needsAt)",
+            "score": "missed",
+            "why": "Toileting, pain and thirst never checked."
+          },
+          {
+            "when": "timeAt(needsAt) <= needsBy",
+            "score": "met",
+            "why": "Needs checked at {timeAt(needsAt)|clock}: soaked brief, hip pain."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Needs checked at {timeAt(needsAt)|clock}, late."
+          }
+        ]
+      },
+      {
+        "id": "approach",
+        "label": "Calm approach from the front with her name, before anything else",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(approachAt)",
+            "score": "missed",
+            "why": "No calm approach."
+          },
+          {
+            "when": "(isNull(validateAt) or timeAt(approachAt) <= timeAt(validateAt)) and (isNull(reorientAt) or timeAt(approachAt) <= timeAt(reorientAt)) and not restraintUsed",
+            "score": "met",
+            "why": "Approached calmly first."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Approached, but not first."
+          }
+        ]
+      },
+      {
+        "id": "redirected",
+        "label": "Redirected her to something she likes, somewhere quiet",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "engaged and not isNull(envAt)",
+            "score": "met",
+            "why": "Folding towels in the quiet lounge."
+          },
+          {
+            "when": "engaged or not isNull(envAt)",
+            "score": "partial",
+            "why": "{engaged ? \"Redirected, but left near the noise\" : \"Quieter, but not redirected\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not redirected."
+          }
+        ]
+      },
+      {
+        "id": "reported",
+        "label": "Told the nurse the observations (not a label) within 20 min",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "reportFull and timeAt(reportAt) <= reportBy",
+            "score": "met",
+            "why": "Observations reported at {timeAt(reportAt)|clock}, hip pain included."
+          },
+          {
+            "when": "not isNull(reportAt)",
+            "score": "partial",
+            "why": "{reportFull ? \"Reported late\" : \"Reported a label, not observations\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The nurse was not told."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: unmet needs, validation, no restraint",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toNeeds",
+        "label": "17:30 to checking her needs",
+        "value": "isNull(needsAt) ? -1 : timeAt(needsAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      },
+      {
+        "id": "distress",
+        "label": "Distress at the end (0 calm, 100 at the fall line)",
+        "value": "round(100 * a / fallA)",
+        "format": "number",
+        "expert": "under 35"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "17:30",
+        "text": "Approach from the front, at eye level, with her name. Acknowledge the worry about her children; let her talk about them."
+      },
+      {
+        "at": "17:33",
+        "text": "Invite her to fold towels in the quiet lounge, away from the dining room noise."
+      },
+      {
+        "at": "17:36",
+        "text": "Bathroom: soaked brief; she winces at her right hip. A cup of water. Count her pulse."
+      },
+      {
+        "at": "17:40",
+        "text": "Tell the nurse what you saw: the time, what she said, the wet brief, the hip, what calmed her."
+      }
+    ],
+    "debrief": {
+      "fell": {
+        "headline": "She fell",
+        "body": "Correcting her reality or holding her back raised her distress until she pulled free. Calm, validate, redirect, and look for the need behind the behavior."
+      },
+      "settled": {
+        "headline": "Settled without restraint",
+        "body": "You approached calmly, acknowledged her worry instead of correcting it, redirected her to something she likes, found the wet brief and the hip pain, and told the nurse what you saw. That is the expert path."
+      },
+      "settledLate": {
+        "headline": "No fall, by a harder route",
+        "body": "Check whether you argued with her reality, held her or locked her in a chair, asked for a drug to quiet her, or left her needs unchecked."
+      },
+      "time_up": {
+        "headline": "Still at the door",
+        "body": "Behavior in dementia is often a need: look for it, validate, redirect."
+      }
+    },
+    "modelReasoning": "Late-afternoon restlessness in Alzheimer disease is sundowning, and behavior often signals an unmet need: she had not been toileted since 13:30, she was thirsty, and her hip hurt. Approach from the front with her name in a calm voice, and acknowledge the feeling rather than correcting the facts; arguing that her children are grown escalates her. Redirect to something she likes, folding towels, somewhere quieter. Holding her wrists or locking a tray across her chair are physical restraints, and a drug to keep her quiet would be a chemical restraint; federal rules forbid restraints for discipline or staff convenience. Report observations, not labels, so the nurse can assess the hip."
+  },
+  "chapters": [
+    {
+      "id": "engaged",
+      "label": "She is folding towels with you",
+      "when": "engaged"
+    }
+  ]
+}

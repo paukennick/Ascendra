@@ -40,7 +40,10 @@ let simIds: Record<string, string> = {};
 const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1,security-console@1";
 const NO_CONSOLE = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1";
 
-const SOURCES = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course));
+// FAIL-2201 (FAIL-2002): the REQ-274 documents by slug; REQ-313 added other
+// sims to the same courses (lib/sims-governance.dbtest.ts).
+const REQ274 = ["cc-triage-phish-correlation", "cc-leaver-account-still-active", "cissp-web-tier-data-theft", "cissp-ransomware-recovery-site", "cism-payroll-supplier-breach", "cism-checkout-skimmer-containment", "ceh-arp-poisoning-finance-vlan", "ceh-blind-sqli-search"];
+const SOURCES = ALL_DOCUMENTS.filter((e) => REQ274.includes(e.slug) && (COURSES as readonly string[]).includes(e.course));
 const entries = (): DocumentEntry[] => SOURCES.map((e) => ({ ...e, course: standIn(e.course) }));
 const entryOf = (slug: string) => SOURCES.find((e) => e.slug === slug)!;
 const docOf = (slug: string): ScenarioDoc => loadDocument(entryOf(slug));

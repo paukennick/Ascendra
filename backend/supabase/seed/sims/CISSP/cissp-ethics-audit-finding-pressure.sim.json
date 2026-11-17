@@ -1,0 +1,1177 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cissp-ethics-audit-finding-pressure",
+  "title": "Asked to soften an audit finding",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Dana Whitfield, Chief Information Officer",
+        "presentation": "{pressure >= 8 ? \"Standing, the draft report in her hand\" : pressure >= 6 ? \"Tapping the finding with her pen\" : pressure >= 3 ? \"Leaning back, waiting for your answer\" : \"Relaxed, notebook open\"}; {relation >= 6 ? \"she is weighing what you say\" : relation >= 3 ? \"she is losing patience\" : \"she has stopped listening\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "finding",
+          "label": "The finding",
+          "text": "Critical: nightly backups of 210,000 members' records go to an off-site vendor unencrypted. Remediation is funded in next year's budget.",
+          "when": "true"
+        },
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Rate it medium in Thursday's report to the audit committee: 'it's funded anyway, and critical findings spook the committee.'",
+          "when": "true"
+        },
+        {
+          "id": "offer",
+          "label": "Also said",
+          "text": "She wants you to lead the new cloud program, 'so let's not start that with a fight'.",
+          "when": "not isNull(offerAt)",
+          "alert": "not isNull(offerAt) and isNull(coiAt)"
+        },
+        {
+          "id": "facts",
+          "label": "What you found out",
+          "text": "{not isNull(vendorAt) ? \"The vendor's contract has no encryption clause; a lost tape would be a notifiable breach.\" : \"\"} {not isNull(compAt) ? \"Encrypting at the source with the existing backup software would take about three weeks; no new budget needed.\" : \"\"}",
+          "when": "not isNull(vendorAt) or not isNull(compAt)"
+        },
+        {
+          "id": "code",
+          "label": "Codes",
+          "text": "The company's code of conduct: report findings accurately; raise pressure to change them with the chief audit executive or the ethics office. Your professional code: act honorably and honestly; serve your principals diligently.",
+          "when": "not isNull(codeAt)"
+        },
+        {
+          "id": "edit",
+          "label": "Now",
+          "text": "Dana says she will change the rating in the draft herself.",
+          "when": "not isNull(editAt)",
+          "alert": "not isNull(editAt) and isNull(escalateAt)"
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Kept the finding critical",
+            "when": "rating == \"critical\""
+          },
+          {
+            "label": "Proposed: encrypt at source in three weeks; a formal acceptance by the risk owner until then",
+            "when": "not isNull(proposeAt)"
+          },
+          {
+            "label": "Disclosed the cloud program offer to your manager as a possible conflict of interest",
+            "when": "not isNull(coiAt)"
+          },
+          {
+            "label": "Raised the pressure with the chief audit executive",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Apply the ISC2 Code of Professional Ethics and an organizational code of ethics to a professional dilemma",
+  "secondaryObjectives": [
+    "Evaluate security governance: alignment with business strategy and mission, organizational processes such as acquisitions and divestitures, roles and responsibilities, control frameworks (ISO, NIST, COBIT, SABSA, PCI, FedRAMP), and due care and due diligence"
+  ],
+  "sources": [
+    {
+      "cite": "ISC2, CISSP Certification Exam Outline (effective 2024-04-15), Domain 1: Security and Risk Management (1.1 Understand, adhere to, and promote professional ethics: the ISC2 Code of Professional Ethics; organizational code of ethics)",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline",
+      "note": "Headings read in the English PDF on 2026-11-14 for REQ-271 and not re-read. The course's objective wording is its own."
+    },
+    {
+      "cite": "ISC2 Code of Ethics: preamble and the four mandatory canons",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.isc2.org/ethics",
+      "note": "Read 2026-11-16 through a summarizing fetch of the code's page. Canon I 'Protect society, the common good, necessary public trust and confidence, and the infrastructure'; Canon II 'Act honorably, honestly, justly, responsibly, and legally'; Canon III 'Provide diligent and competent service to principals'; Canon IV 'Advance and protect the profession'. The page does not rank the canons. Members who observe a breach by a member must follow the complaint procedure (complaints in writing, as a sworn affidavit). Learner-facing text in the sim names 'your professional code of ethics', not the certifying body."
+    },
+    {
+      "cite": "ISACA Code of Professional Ethics (for comparison only)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.isaca.org/credentialing/code-of-professional-ethics",
+      "note": "Read 2026-11-16 through a summarizing fetch of the code's page: members and certification holders shall, among other things, 'Perform their duties with objectivity, due diligence and professional care'; 'Maintain the privacy and confidentiality of information obtained in the course of their activities'; and 'Inform appropriate parties of the results of work performed', disclosing significant facts that would otherwise distort the results. Failure to comply 'can result in an investigation'. Used to show the same duties in a second professional code; no CISM objective names it."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security architect at Lakeshore Savings, a fictional bank. On Tuesday afternoon the CIO, Dana, calls you in about your draft report to Thursday's audit committee. You rated one finding critical: unencrypted backups of members' records go to an off-site vendor. Dana wants it rated medium. Work out the facts, act on your professional code and the company's code of conduct, and keep the working relationship where you can.",
+    "handover": [
+      "Your professional code asks you to protect society and the infrastructure; act honorably, honestly, justly, responsibly and legally; serve your principals diligently and competently; and advance and protect the profession.",
+      "The company's code of conduct says findings are reported accurately, and pressure to change one is raised with the chief audit executive or the ethics office."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes; Dana answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Dana, how hard she is pushing, your working relationship, what you know so far, and your note.",
+      "When the meeting ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "offerDelay": {
+      "value": 360,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Dana mentions the cloud program six minutes in."
+      },
+      "unit": "s"
+    },
+    "editDelay": {
+      "value": 900,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "Fifteen minutes in, with nothing proposed, Dana says she will edit the draft herself."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "The meeting ends after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "leaked": {
+      "type": "bool",
+      "init": false
+    },
+    "boardDirect": {
+      "type": "bool",
+      "init": false
+    },
+    "vendorAt": {
+      "type": "time",
+      "init": null
+    },
+    "compAt": {
+      "type": "time",
+      "init": null
+    },
+    "codeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "proposeAt": {
+      "type": "time",
+      "init": null
+    },
+    "offerAt": {
+      "type": "time",
+      "init": null
+    },
+    "coiAt": {
+      "type": "time",
+      "init": null
+    },
+    "editAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "decideAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "rating": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "critical",
+        "medium"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(rating == \"medium\" ? 1 : 0) + (leaked ? 1 : 0)"
+    },
+    "heldInTime": {
+      "expr": "rating == \"critical\" and not isNull(decideAt) and timeAt(decideAt) <= actWindow"
+    },
+    "escalatedIfNeeded": {
+      "expr": "isNull(editAt) or not isNull(escalateAt)"
+    },
+    "properChannel": {
+      "expr": "not leaked and not boardDirect"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Meeting",
+      "clock": "turns",
+      "actions": [
+        "askVendor",
+        "askComp",
+        "readCode",
+        "ack",
+        "propose",
+        "hold",
+        "downgrade",
+        "coi",
+        "escalate",
+        "boardChair",
+        "leak",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the meeting",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askVendor": {
+      "label": "Ask what the backup vendor's contract says about encryption",
+      "group": "Ask",
+      "available": "not talking and (isNull(vendorAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "vendorAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"Nothing, as far as I know. It's an old contract.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askComp": {
+      "label": "Ask IT, on speaker, how fast encryption at the source could be switched on",
+      "group": "Ask",
+      "available": "not talking and (isNull(compAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "compAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "IT: \"The backup software already supports it. About three weeks, no new budget.\" Dana looks surprised."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "readCode": {
+      "label": "Check the company's code of conduct on reporting findings",
+      "group": "Ask",
+      "available": "not talking and (isNull(codeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "codeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Dana waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge her concern: 'You don't want the committee to think we're out of control'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"Exactly. One red line and they'll want a special session.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "propose": {
+      "label": "Keep it critical and propose what makes it defensible: encrypt at the source in three weeks, with the risk owner's formal acceptance until then",
+      "group": "Respond",
+      "available": "not talking and (isNull(proposeAt) and rating != \"medium\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "proposeAt",
+          "to": "t"
+        },
+        {
+          "set": "decideAt",
+          "to": "t"
+        },
+        {
+          "set": "rating",
+          "to": "\"critical\""
+        },
+        {
+          "add": "pressure",
+          "by": "isNull(compAt) ? 0 : -3"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "{isNull(compAt) ? \"'And who pays for that? It's funded next year.'\" : \"'Three weeks and no money? Then I can live with a critical that's already being fixed.'\"}"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "hold": {
+      "label": "Say plainly that you will not change the rating",
+      "group": "Respond",
+      "available": "not talking and (rating == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "decideAt",
+          "to": "t"
+        },
+        {
+          "set": "rating",
+          "to": "\"critical\""
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "add": "relation",
+          "by": "-1"
+        },
+        {
+          "finding": "\"That's not the answer I need.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "downgrade": {
+      "label": "Agree to rate it medium this quarter",
+      "group": "Respond",
+      "available": "not talking and (rating != \"medium\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "decideAt",
+          "to": "t"
+        },
+        {
+          "set": "rating",
+          "to": "\"medium\""
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "2"
+        },
+        {
+          "log": "You agree to report a critical finding as medium.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Thank you. That's what a team player does.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "coi": {
+      "label": "Tell your manager about the cloud program offer, as a possible conflict of interest, before you go on",
+      "group": "Escalate",
+      "available": "not talking and (not isNull(offerAt) and isNull(coiAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "coiAt",
+          "to": "t"
+        },
+        {
+          "finding": "Your manager: \"Thanks for telling me. The offer has nothing to do with the rating, and I'll make sure it stays that way.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Raise the pressure to change the finding with the chief audit executive, as the code of conduct says",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "relation",
+          "by": "-1"
+        },
+        {
+          "finding": "The chief audit executive: \"The report goes as you wrote it. I'll speak to Dana; this is what the process is for.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "boardChair": {
+      "label": "Email the audit committee chair directly tonight about Dana",
+      "group": "Escalate",
+      "available": "not talking and (not boardDirect)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "boardDirect",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "log": "You go around the process to the committee chair.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "leak": {
+      "label": "Send the draft finding to a reporter friend 'so it can't be buried'",
+      "group": "Escalate",
+      "available": "not talking and (not leaked)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "leaked",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "A confidential draft leaves the company.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let her talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the meeting and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let her finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The meeting ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note: the request, your answer, the conflict disclosed, what was escalated"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: better not to put it in writing"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-313)",
+        "checkedAt": "2026-11-16",
+        "note": "How long each task takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "offer",
+      "when": "isNull(offerAt) and t >= offerDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "offerAt",
+          "to": "t"
+        },
+        {
+          "log": "Dana: \"I want you to lead the cloud program next year. Let's not start that with a fight.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "edit",
+      "when": "isNull(editAt) and t >= editDelay and rating == \"critical\" and isNull(proposeAt) and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "editAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Dana: \"Then I'll change the rating in the draft myself.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Dana has another meeting. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the ethical problem was, how the two codes guided you, and what you did about the pressure and the offer.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The problem",
+          "criteria": "Names that reporting a critical finding as medium would mislead the audit committee (act honestly; serve the principal, which is the bank and its governance, not one executive); the offer creates a conflict of interest to disclose.",
+          "modelAnswer": "Rating it medium would mislead the committee that oversees the risk; the cloud program offer made it a conflict of interest I had to disclose."
+        },
+        {
+          "label": "A defensible answer",
+          "criteria": "Finds the facts (no encryption clause; encryption at source is three weeks with existing tools) and keeps the finding critical while proposing remediation and a formal acceptance by the risk owner until it is done.",
+          "modelAnswer": "The finding stays critical, with encryption at the source in three weeks at no cost, and the risk owner's formal acceptance until then: a critical that is already being fixed."
+        },
+        {
+          "label": "The channel",
+          "criteria": "If the CIO moves to edit the report, raises it with the chief audit executive as the company's code says; never leaks the draft or goes around the process; writes a factual note.",
+          "modelAnswer": "Had she edited the draft, I would have gone to the chief audit executive. Not the press, not a private email to the chair."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-16",
+          "note": "The rating kept and the answer given within 20 minutes, before the meeting ends (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-16",
+          "note": "No misreported finding and no confidential draft leaked."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and rating == \"unset\" and not leaked",
+      "class": "recovered",
+      "rationale": "The finding was never changed, but the CIO left without an answer and may change it herself; deferred, not handled.",
+      "source": {
+        "cite": "ISC2 Code of Ethics: preamble and the four mandatory canons",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.isc2.org/ethics",
+        "note": "Read 2026-11-16 through a summarizing fetch of the code's page. Canon I 'Protect society, the common good, necessary public trust and confidence, and the infrastructure'; Canon II 'Act honorably, honestly, justly, responsibly, and legally'; Canon III 'Provide diligent and competent service to principals'; Canon IV 'Advance and protect the profession'. The page does not rank the canons. Members who observe a breach by a member must follow the complaint procedure (complaints in writing, as a sworn affidavit). Learner-facing text in the sim names 'your professional code of ethics', not the certifying body."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "A canon breached",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "The committee will see a critical risk as medium, or a confidential draft is with a reporter. Either way, the people relying on your work were let down."
+    },
+    "upheld": {
+      "label": "Honest, defensible and still working together",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and heldInTime and not isNull(proposeAt) and not isNull(coiAt) and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "The finding stays critical with a fix in three weeks, the conflict is on record, and the CIO can stand behind the report."
+    },
+    "costly": {
+      "label": "Honest, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The finding stayed honest, but without a way forward, without the conflict disclosed, through the wrong channel, or with the relationship damaged."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "honest",
+        "label": "The finding reported as critical",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rating == \"critical\"",
+            "score": "met",
+            "why": "Accurate."
+          },
+          {
+            "when": "rating == \"unset\"",
+            "score": "partial",
+            "why": "No answer given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Downgraded."
+          }
+        ]
+      },
+      {
+        "id": "defensible",
+        "label": "Proposed remediation and the risk owner's formal acceptance within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "heldInTime and not isNull(proposeAt)",
+            "score": "met",
+            "why": "A critical already being fixed."
+          },
+          {
+            "when": "rating == \"critical\"",
+            "score": "partial",
+            "why": "{isNull(proposeAt) ? \"Held the line with no way forward.\" : \"Proposed late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No proposal."
+          }
+        ]
+      },
+      {
+        "id": "coi",
+        "label": "Disclosed the job offer as a possible conflict of interest",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(coiAt)",
+            "score": "met",
+            "why": "On record with your manager."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not disclosed."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Used the code of conduct's channel if pressed, never a leak or a way around the process",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The chief audit executive.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "She said she would edit it, and nobody heard."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{leaked ? \"A leaked draft.\" : \"Around the process to the chair.\"}"
+          }
+        ]
+      },
+      {
+        "id": "facts",
+        "label": "Found the facts before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(vendorAt) and not isNull(compAt)",
+            "score": "met",
+            "why": "Contract and remediation known."
+          },
+          {
+            "when": "not isNull(vendorAt) or not isNull(compAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without the facts."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with the CIO",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written problem, defensible answer and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minDecide",
+        "label": "Minutes until you answered on the rating",
+        "value": "isNull(decideAt) ? -1 : timeAt(decideAt) / 60",
+        "format": "number",
+        "expert": "15 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Canon breaches",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-8 min",
+        "text": "Ask what the vendor contract says; get IT on speaker about encryption at the source; acknowledge her concern."
+      },
+      {
+        "at": "6-10 min",
+        "text": "When the cloud program comes up, disclose it to your manager as a possible conflict."
+      },
+      {
+        "at": "10-15 min",
+        "text": "Keep it critical and propose the three-week fix with the risk owner's formal acceptance until then."
+      },
+      {
+        "at": "After",
+        "text": "Write a factual note. If she moves to edit the draft, go to the chief audit executive."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Good: honest and useful",
+        "body": "An accurate finding with a fix attached gives the committee the truth and the CIO a story she can stand behind. Disclosing the offer keeps your judgment above question."
+      },
+      "costly": {
+        "headline": "Honest, at a cost",
+        "body": "The criteria show the cost: no way forward, an undisclosed conflict, the wrong channel, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "The canons were breached",
+        "body": "A misreported finding misleads the people who govern the risk; a leaked draft breaks the confidence your principal placed in you. Both codes ask for the opposite."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Find the facts: no encryption clause, and encryption at the source is three weeks with tools the bank already owns. Acknowledge her concern, then keep the finding critical and propose the fix with the risk owner's formal acceptance until it is done, so the committee sees a critical already being fixed. Disclose the cloud program offer to your manager as a possible conflict. If she moves to edit the draft, raise it with the chief audit executive as the code of conduct says; never leak it or go around the process. Write a factual note."
+  }
+}

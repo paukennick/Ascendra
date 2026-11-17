@@ -90,7 +90,10 @@ import { source } from "../sources";
 //     cumulative blood loss of 1,000 mL or more, or blood loss with signs or
 //     symptoms of hypovolemia, within 24 hours of birth; rising rates driven
 //     by atony. Read 2026-11-09 on the Oklahoma Perinatal Quality Improvement
-//     Collaborative's summary page (the full bulletin needs access).
+//     Collaborative's summary page (the full bulletin needs access); that
+//     page read again 2026-11-16 (REQ-310), and the bulletin's full text was
+//     still not reachable (journal page failed, PMC copies behind a browser
+//     check).
 //   ENDOCRINE_INPATIENT_2022 -- Endocrine Society guideline, hyperglycemia in
 //     hospitalized adults in non-critical care (J Clin Endocrinol Metab 2022;
 //     107:2101, DOI 10.1210/clinem/dgac278): target glucose 100-180 mg/dL.

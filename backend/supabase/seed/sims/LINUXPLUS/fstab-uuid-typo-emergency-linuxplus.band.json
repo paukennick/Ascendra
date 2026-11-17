@@ -1,0 +1,45 @@
+{
+  "band": "linuxplus",
+  "label": "Linux+ (XK0-006)",
+  "base": {
+    "course": "LFCS",
+    "slug": "fstab-uuid-typo-emergency"
+  },
+  "slug": "fstab-uuid-typo-emergency-linuxplus",
+  "patch": {
+    "objective": "Diagnosing boot failures and using rescue/single-user mode",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CompTIA Linux+ (V8), exam XK0-006, launched 2025-07-15: System management 23%, Services and user management 20%, Security 18%, Automation, orchestration, and scripting 17%, Troubleshooting 22%",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.comptia.org/en/certifications/linux/",
+        "note": "Read through a summarizing fetch on 2026-11-16 for this Linux+ band of a case written for another Linux course. Relevant text: System management covers configuring 'LVM, RAID, partitions, and mounted storage' and reviewing service logs and timers; Troubleshooting covers 'boot, mount, and repair issues' and analyzing 'CPU, memory, I/O' to 'optimize response times'; Files and directories covers permissions and special files. Time synchronization is not named on the page; the objective wording is the course seed's."
+      },
+      {
+        "cite": "systemd.special(7), emergency.target (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/systemd.special.7.html",
+        "note": "Relevant text: emergency.target 'starts an emergency shell on the main console' and 'does not pull in other services or mounts'; it 'allows starting individual units in order to continue the boot process in steps'; 'depending on how emergency.target is reached, the root file system might be mounted read-only or read-write'. Read in full 2026-11-14. That a required mount's failure ends in emergency mode is how this case models local-fs.target failing (FLAG: the OnFailure= wiring itself was not quoted from a page read)."
+      },
+      {
+        "cite": "systemd.mount(5) and systemd-fstab-generator(8) (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/systemd.mount.5.html",
+        "note": "Relevant text: 'With nofail, this mount will be only wanted, not required, by local-fs.target'; x-systemd.device-timeout= sets 'how long systemd should wait for a device to show up before giving up on an entry from /etc/fstab'. systemd-fstab-generator(8): it 'translates /etc/fstab ... into native systemd units early at boot and when configuration of the system manager is reloaded' -- so after editing fstab, systemctl daemon-reload is what makes systemd use the new entry. Read in full 2026-11-14. The 90-second wait shown is systemd's usual device timeout (FLAG: the default value was not read on these pages)."
+      },
+      {
+        "cite": "fstab(5), blkid(8) and mount(8) (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man5/fstab.5.html",
+        "note": "Relevant text: fstab names a filesystem by UUID=; blkid prints a device's UUID and TYPE; mount -a mounts the fstab entries not yet mounted. Read in full 2026-11-14. Command output layouts are authored in each tool's style."
+      },
+      {
+        "cite": "xfs_repair(8) (man7.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man8/xfs_repair.8.html",
+        "note": "Relevant text: '-L Force Log Zeroing. Forces xfs_repair to zero the log even if it is dirty (contains metadata changes). When using this option the filesystem will likely appear to be corrupt, and can cause the loss of user files and/or data.' Read in full 2026-11-14."
+      }
+    ]
+  }
+}

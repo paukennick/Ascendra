@@ -1,0 +1,1110 @@
+{
+  "slug": "ceh-sandbox-invoice-loader",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Isolate the reporter, static analysis, indicators, fleet hunt, isolate WS-131, block, detonate in the sandbox; specific YARA and Sigma tested and deployed; shared; image then rebuild",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "iso114",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "iocs",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "hunt",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "iso131",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "block",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "detonate",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "yaraTight",
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "sigma",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 42,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 19,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 47,
+          "seq": 20,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "deploy",
+          "seq": 21,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 22,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "share",
+          "seq": 23,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 51,
+          "seq": 24,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 25,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 61,
+          "seq": 26,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 27,
+          "tick": 61
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 76,
+          "seq": 28,
+          "tick": 61
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 29,
+          "tick": 76
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 30,
+          "tick": 76
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 31,
+          "tick": 76
+        }
+      ],
+      "expect": {
+        "ending": "contained",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "isolatedLab": "met",
+          "scoped": "met",
+          "detection": "met",
+          "eradication": "met",
+          "shared": "met"
+        },
+        "kpis": {
+          "minContain": 17,
+          "spread": 0,
+          "fp": 0
+        },
+        "stateHash": "69ceab6fe5dbec87"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "deleteOnly",
+      "title": "Contained in time, but the dropped file and Run key deleted instead of a rebuild, and no image",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "iso114",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "iocs",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "hunt",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "iso131",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "block",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "detonate",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "yaraTight",
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "sigma",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 42,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 19,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 47,
+          "seq": 20,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "deploy",
+          "seq": 21,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 22,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "share",
+          "seq": 23,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 51,
+          "seq": 24,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "clean",
+          "seq": 25,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 56,
+          "seq": 26,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 27,
+          "tick": 56
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 28,
+          "tick": 56
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 29,
+          "tick": 56
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "isolatedLab": "met",
+          "scoped": "met",
+          "detection": "met",
+          "eradication": "partial",
+          "shared": "met"
+        },
+        "kpis": {
+          "minContain": 17,
+          "spread": 0,
+          "fp": 0
+        },
+        "stateHash": "9c12cb008b0d066a"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "broadRule",
+      "title": "Contained, but a YARA rule for every macro document; only the Sigma rule tested and deployed",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "iso114",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "iocs",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "hunt",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "iso131",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "block",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 22,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "detonate",
+          "seq": 13,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 32,
+          "seq": 14,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "yaraBroad",
+          "seq": 15,
+          "tick": 32
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 37,
+          "seq": 16,
+          "tick": 32
+        },
+        {
+          "type": "act",
+          "action": "sigma",
+          "seq": 17,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 42,
+          "seq": 18,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 19,
+          "tick": 42
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 47,
+          "seq": 20,
+          "tick": 42
+        },
+        {
+          "type": "act",
+          "action": "deploy",
+          "seq": 21,
+          "tick": 47
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 22,
+          "tick": 47
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 23,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 59,
+          "seq": 24,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 25,
+          "tick": 59
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 74,
+          "seq": 26,
+          "tick": 59
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 27,
+          "tick": 74
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 28,
+          "tick": 74
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "brief"
+          },
+          "seq": 29,
+          "tick": 74
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "isolatedLab": "met",
+          "scoped": "met",
+          "detection": "partial",
+          "eradication": "met",
+          "shared": "partial"
+        },
+        "kpis": {
+          "minContain": 17,
+          "spread": 0,
+          "fp": 312
+        },
+        "stateHash": "174a305e6474d785"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noHunt",
+      "title": "Deep analysis of the sample first, no fleet search: WS-131's second stage runs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "detonate",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 15,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "iocs",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 6,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "yaraTight",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "sigma",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 30,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "test",
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "deploy",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 37,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "iso114",
+          "seq": 15,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 39,
+          "seq": 16,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "image",
+          "seq": 17,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 49,
+          "seq": 18,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 19,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 64,
+          "seq": 20,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 21,
+          "tick": 64
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 64
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "full"
+          },
+          "seq": 23,
+          "tick": 64
+        }
+      ],
+      "expect": {
+        "ending": "spread",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "isolatedLab": "met",
+          "scoped": "missed",
+          "detection": "met",
+          "eradication": "met",
+          "shared": "partial"
+        },
+        "kpis": {
+          "minContain": -1,
+          "spread": 1,
+          "fp": 0
+        },
+        "stateHash": "51f8d365bb43e28d"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "laptop",
+      "title": "The attachment opened on the analyst's own laptop",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "prodRun",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "iocs",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "iso114",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "block",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "rebuild",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "brief"
+          },
+          "seq": 15,
+          "tick": 35
+        }
+      ],
+      "expect": {
+        "ending": "selfInfected",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "isolatedLab": "missed",
+          "scoped": "missed",
+          "detection": "missed",
+          "eradication": "partial",
+          "shared": "partial"
+        },
+        "kpis": {
+          "minContain": -1,
+          "spread": 1,
+          "fp": 0
+        },
+        "stateHash": "8b71224b1c53039f"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "closedEarly",
+      "title": "Static analysis only, then closed with WS-114 never isolated or cleaned",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "static",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "what": "nothing"
+          },
+          "seq": 5,
+          "tick": 5
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 8,
+        "criteria": {
+          "isolatedLab": "partial",
+          "scoped": "missed",
+          "detection": "missed",
+          "eradication": "missed",
+          "shared": "missed"
+        },
+        "kpis": {
+          "minContain": -1,
+          "spread": 0,
+          "fp": 0
+        },
+        "stateHash": "a8c0b6c04a71b12c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,784 @@
+{
+  "slug": "py-report-too-slow-profile",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "cProfile first; a set for the blocked IDs; diff against yesterday's output; run and send well before 07:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "profileStep",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSet",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 16,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 11,
+          "tick": 16
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "scan",
+            "check": "diff"
+          },
+          "seq": 13,
+          "tick": 16
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "measured": "met",
+          "hotspot": "met",
+          "verified": "met",
+          "onTime": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "sentAt": 15,
+          "runtime": 2,
+          "wrongRows": 0
+        },
+        "stateHash": "cf3b2022b1f832d8"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "poolUnmeasured",
+      "title": "Takes the colleague's advice: 8 processes without measuring; the diff is clean and the file is on time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixPool",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 3,
+          "to": 21,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "cpu",
+            "check": "diff"
+          },
+          "seq": 11,
+          "tick": 22
+        }
+      ],
+      "expect": {
+        "ending": "rightGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "measured": "missed",
+          "hotspot": "partial",
+          "verified": "met",
+          "onTime": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "sentAt": 21,
+          "runtime": 14,
+          "wrongRows": 0
+        },
+        "stateHash": "73a6625822ff3b70"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "skipCheck",
+      "title": "Skips the blocked-patron check to make the job fast and sends it unchecked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixSkip",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 7,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "disk",
+            "check": "ran"
+          },
+          "seq": 9,
+          "tick": 7
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 17,
+        "criteria": {
+          "measured": "missed",
+          "hotspot": "missed",
+          "verified": "missed",
+          "onTime": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "sentAt": 6,
+          "runtime": 2,
+          "wrongRows": 412
+        },
+        "stateHash": "4f2fcd952c5403ba"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "diffIgnored",
+      "title": "Skips the check, sees 412 rows differ, and sends it anyway",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "timeitStep",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "fixSkip",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 4,
+          "to": 12,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 9,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 13,
+          "seq": 10,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "scan",
+            "check": "ran"
+          },
+          "seq": 13,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "measured": "met",
+          "hotspot": "missed",
+          "verified": "met",
+          "onTime": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "sentAt": 12,
+          "runtime": 2,
+          "wrongRows": 412
+        },
+        "stateHash": "cf9e21b28e65ec0c"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "cacheThenSlow",
+      "title": "Adds lru_cache, the test run crashes, reverts, and runs the slow job, which arrives late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixCache",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "revert",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 4,
+          "to": 103,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 4,
+          "to": 103,
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 10,
+          "tick": 103
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 104,
+          "seq": 11,
+          "tick": 103
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 12,
+          "tick": 104
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 13,
+          "tick": 104
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "cpu",
+            "check": "none"
+          },
+          "seq": 14,
+          "tick": 104
+        }
+      ],
+      "expect": {
+        "ending": "rightGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 8,
+        "criteria": {
+          "measured": "missed",
+          "hotspot": "missed",
+          "verified": "missed",
+          "onTime": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "sentAt": 103,
+          "runtime": 95,
+          "wrongRows": 0
+        },
+        "stateHash": "24669168e71a7283"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateProfile",
+      "title": "Tries the pool first, then profiles, switches to a set, checks and sends on time",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "fixPool",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "profileStep",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "fixSet",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 14,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "runFull",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "fullRun",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "mail",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 20,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 13,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "scan",
+            "check": "ran"
+          },
+          "seq": 15,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 83,
+        "criteria": {
+          "measured": "partial",
+          "hotspot": "met",
+          "verified": "met",
+          "onTime": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "sentAt": 19,
+          "runtime": 2,
+          "wrongRows": 0
+        },
+        "stateHash": "851e6d2c4d4821f5"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "holdBack",
+      "title": "Profiles, finds the cause, and stops without sending anything",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "profileStep",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 6,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 3,
+          "tick": 6
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "scan",
+            "check": "none"
+          },
+          "seq": 5,
+          "tick": 6
+        }
+      ],
+      "expect": {
+        "ending": "notSent",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "measured": "met",
+          "hotspot": "missed",
+          "verified": "missed",
+          "onTime": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "sentAt": 0,
+          "runtime": 0,
+          "wrongRows": 0
+        },
+        "stateHash": "ba2fefeb1c2e7431"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

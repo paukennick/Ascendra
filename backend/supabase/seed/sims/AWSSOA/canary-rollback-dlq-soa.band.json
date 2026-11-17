@@ -1,0 +1,57 @@
+{
+  "band": "soa",
+  "label": "AWS CloudOps Engineer Associate (SOA-C03)",
+  "base": {
+    "course": "AWSDVA",
+    "slug": "canary-rollback-dlq"
+  },
+  "slug": "canary-rollback-dlq-soa",
+  "patch": {
+    "objective": "Implementing deployment strategies and the services that carry them out",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide: Monitoring, logging, analysis, remediation, and performance optimization 22%, Reliability and business continuity 22%, Deployment, provisioning, and automation 22%, Security and compliance 16%, Networking and content delivery 18%",
+        "checkedAt": "2026-11-16",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.pdf",
+        "note": "Read through a summarizing fetch of the exam guide PDF on 2026-11-16 (weights from the SOA-C02/C03 comparison page the same day). Relevant skills: 3.1.5 'Implement deployment strategies and services'; 4.1.2 'Troubleshoot and audit access issues by using AWS tools (for example, CloudTrail, IAM Access Analyzer, IAM policy simulator)'; 5.1.3 'Audit AWS network protection services (for example, Route 53 Resolver DNS Firewall, AWS WAF, AWS Shield, AWS Network Firewall) in a single account'; 5.1.4 'Optimize the cost of network architectures.'"
+      },
+      {
+        "cite": "AWS. Lambda Developer Guide: Error handling for asynchronous invocation",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html",
+        "note": "Read 2026-11-11: 'If the function returns an error, by default Lambda attempts to run it two more times, with a one-minute wait between the first two attempts, and two minutes between the second and third attempts'; throttling (429) and system errors (500-series) are retried 'for up to 6 hours by default'; 'When an event expires or fails all processing attempts, Lambda discards it' unless a dead-letter queue or on-failure destination keeps it."
+      },
+      {
+        "cite": "AWS. Lambda Developer Guide: Capturing records of asynchronous invocations (dead-letter queues)",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html",
+        "note": "Read 2026-11-11: a DLQ (SQS standard queue or SNS standard topic) 'is used when an event fails all processing attempts'; Lambda sends 'the event to the dead-letter queue as-is', with RequestID, ErrorCode and ErrorMessage ('The first 1 KB of the error message') attributes; 'To reprocess events in a dead-letter queue, you can set it as an event source for your Lambda function. Alternatively, you can manually retrieve the events.'"
+      },
+      {
+        "cite": "AWS. CodeDeploy User Guide: Deployment configurations (AWS Lambda compute platform)",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
+        "note": "Read 2026-11-11: CodeDeployDefault.LambdaCanary10Percent5Minutes 'Shifts 10 percent of traffic in the first increment. The remaining 90 percent is deployed five minutes later'; LambdaAllAtOnce 'Shifts all traffic to the updated Lambda functions at once'."
+      },
+      {
+        "cite": "AWS. SAM Developer Guide: Deploying serverless applications gradually",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html",
+        "note": "Read 2026-11-11: with DeploymentPreference, 'if your pre-traffic or post-traffic tests fail, or if a CloudWatch alarm is triggered, CodeDeploy rolls back your deployment'; Alarms 'automatically roll back your deployment'; AutoPublishAlias publishes a new version and points the alias at it."
+      },
+      {
+        "cite": "AWS. Amazon SQS API Reference: SetQueueAttributes",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html",
+        "note": "Read 2026-11-11: MessageRetentionPeriod 'from 60 (1 minute) to 1,209,600 (14 days). Default: 345,600 (4 days)'. The scenario's DLQ was created with 2 days."
+      },
+      {
+        "cite": "AWS. IAM User Guide: Security best practices in IAM",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+        "note": "Read 2026-11-11: AWS managed policies 'might not grant least-privilege permissions for your specific use cases'; reduce permissions further with customer managed policies specific to the use case."
+      }
+    ]
+  }
+}

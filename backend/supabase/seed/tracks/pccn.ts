@@ -47,9 +47,11 @@
 //     2026-11-14.
 //   - AHA/ASA 2026 acute ischemic stroke guideline: the AHA "Top things to
 //     know" page re-read 2026-11-14 (4.5-hour window; no intensive lowering
-//     below 140 after reperfusion). The 185/110 and 180/105 limits are carried
-//     from the CCRN course's 2026-11-11 reading (a summary, the full text
-//     refused access) and dated as read then.
+//     below 140 after reperfusion). The 185/110 and 180/105 limits were read
+//     2026-11-16 in the full guideline text (REQ-310; a copy of the Stroke
+//     PDF posted by the Nebraska DHHS stroke task force), section 4.3: SBP
+//     <185 and DBP <110 before IVT (COR 1, LOE B-NR); <180/105 for at least
+//     the first 24 hours after IVT (COR 1, LOE B-R).
 //   - Hyperglycemic crises consensus 2024 (DKA/HHS criteria): carried from the
 //     CCRN course's 2026-11-11 reading.
 //   - KDIGO 2012 AKI guideline PDF, read 2026-11-14 (definition and stages;
@@ -114,7 +116,7 @@ const AIS_2026 = guide(
   CHECKED,
   [
     "IV thrombolysis (alteplase or tenecteplase) within 4.5 hours of onset; selected patients to 9 hours or unknown onset with advanced imaging",
-    "blood pressure below 185/110 mm Hg before IV thrombolysis and below 180/105 mm Hg for at least 24 hours after (as read 2026-11-11 through a summary)",
+    "blood pressure below 185/110 mm Hg before IV thrombolysis and below 180/105 mm Hg for at least 24 hours after (section 4.3, COR 1; full text read 2026-11-16)",
     "intensive systolic lowering below 140 mm Hg after reperfusion is not recommended",
   ]
 );

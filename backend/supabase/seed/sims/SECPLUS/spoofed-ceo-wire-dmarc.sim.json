@@ -1,0 +1,1096 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "spoofed-ceo-wire-dmarc",
+  "title": "Email: a forged CEO request and a domain that publishes p=none",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "spoof",
+          "severity": "high",
+          "title": "Mail gateway: 37 messages 'From: ceo@haldensupply.example' sent from 198.51.100.40 to finance staff; SPF fail, no DKIM, DMARC fail, policy none: delivered",
+          "detail": "The finance clerk asks whether the CEO's request to wire $48,000 to a new supplier account before the 10:30 bank cutoff is real.",
+          "when": "true",
+          "at": "0",
+          "status": "{gatewayRule ? \"Now quarantined at the gateway\" : \"Delivered\"}",
+          "open": "not gatewayRule"
+        },
+        {
+          "id": "wave2",
+          "severity": "high",
+          "title": "Mail gateway: 60 more spoofed messages from 198.51.100.40, to accounts payable",
+          "when": "not isNull(wave2At)",
+          "at": "timeAt(wave2At)",
+          "status": "{gatewayRule ? \"Quarantined\" : \"Delivered\"}",
+          "open": "inboxSpoofs > 0"
+        },
+        {
+          "id": "wire",
+          "severity": "critical",
+          "title": "Bank: $48,000 wire to the new account released at the 10:30 cutoff",
+          "when": "not isNull(wireSentAt)",
+          "at": "timeAt(wireSentAt)",
+          "status": "Funds sent",
+          "open": "true"
+        }
+      ],
+      "events": [
+        {
+          "id": "e1",
+          "source": "Message headers",
+          "text": "Authentication-Results: spf=fail (198.51.100.40 is not in haldensupply.example's SPF record); dkim=none; dmarc=fail (p=none) header.from=haldensupply.example. Reply-To: ceo.office@haldensupp1y.example",
+          "when": "not isNull(headersAt)",
+          "at": "timeAt(headersAt)"
+        },
+        {
+          "id": "e2",
+          "source": "DMARC aggregate reports, last 30 days",
+          "text": "Sources sending as haldensupply.example: the company's hosted mail (SPF and DKIM pass, aligned); PayrollCo's payslip service (SPF pass for payrollco.example, DKIM d=payrollco.example: neither aligned, so DMARC fails today); 198.51.100.40 (fails everything)",
+          "when": "not isNull(reportsAt)",
+          "at": "timeAt(reportsAt)"
+        },
+        {
+          "id": "e3",
+          "source": "Finance",
+          "text": "{wireHeld ? \"Wire held; the CEO, reached on his known mobile number, never asked for it\" : \"Wire queued for the 10:30 cutoff\"}",
+          "when": "wireHeld or not isNull(wireSentAt)",
+          "at": "wireHeld ? timeAt(heldAt) : timeAt(wireSentAt)"
+        },
+        {
+          "id": "e4",
+          "source": "DNS",
+          "text": "{policy == \"none\" ? \"_dmarc.haldensupply.example: p=none\" : policy == \"quarantine\" ? \"_dmarc.haldensupply.example: p=quarantine\" : \"_dmarc.haldensupply.example: p=reject\"}",
+          "when": "not isNull(policyAt)",
+          "at": "timeAt(policyAt)"
+        },
+        {
+          "id": "e5",
+          "source": "PayrollCo",
+          "text": "Payslip mail now DKIM-signed as d=haldensupply.example with the selector published in your DNS: aligned",
+          "when": "payrollAligned",
+          "at": "timeAt(alignedAt)"
+        },
+        {
+          "id": "e6",
+          "source": "Mail admin",
+          "text": "Search and purge: {purgedCount} spoofed messages removed from mailboxes",
+          "when": "not isNull(purgedAt)",
+          "at": "timeAt(purgedAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "money",
+          "label": "Wire of $48,000",
+          "spokenLabel": "the wire",
+          "kind": "Cutoff 10:30",
+          "status": "{not isNull(wireSentAt) ? \"Sent to the fraudster\" : wireHeld ? \"Held\" : \"Queued\"}",
+          "tone": "not isNull(wireSentAt) ? \"bad\" : wireHeld ? \"ok\" : \"watch\""
+        },
+        {
+          "id": "inbox",
+          "label": "Spoofed messages in mailboxes",
+          "spokenLabel": "the spoofed messages",
+          "kind": "Finance and accounts payable",
+          "status": "{inboxSpoofs}",
+          "tone": "inboxSpoofs > 0 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "domain",
+          "label": "haldensupply.example DMARC policy",
+          "spokenLabel": "the domain's DMARC policy",
+          "kind": "Seen by every receiver, including partners",
+          "status": "{policy == \"none\" ? \"p=none: spoofs delivered everywhere\" : breaksPayroll ? \"Enforcing: payslips will fail DMARC\" : \"Enforcing: spoofs refused, payslips aligned\"}",
+          "tone": "policy == \"none\" ? \"watch\" : breaksPayroll ? \"bad\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "cut",
+          "label": "Minutes to the bank cutoff",
+          "value": "{max(0, round((cutoff - t) / 60))}"
+        }
+      ]
+    }
+  },
+  "objective": "Host, protocol, and email defenses: operating system security (Group Policy, SELinux); implementation of secure protocols (protocol selection, port selection, transport method); email security (DMARC, DKIM, SPF, gateway); file integrity monitoring, DLP, network access control (NAC), EDR/XDR, and user behavior analytics",
+  "sources": [
+    {
+      "cite": "CompTIA Security+ (V7), exam SY0-701: domains General security concepts 12%, Threats, vulnerabilities, and mitigations 22%, Security architecture 18%, Security operations 28%, Security program management and oversight 20%",
+      "checkedAt": "2026-11-16",
+      "url": "https://comptia.org/en-us/certifications/security/v7/",
+      "note": "Read through a summarizing fetch on 2026-11-16. The page lists the five domains and weights above and says English SY0-701 retires on June 11, 2027. The objectives PDF was not re-read; the objective wording (SY0-701 4.5, email security: DMARC, DKIM, SPF, gateway) is the course seed's."
+    },
+    {
+      "cite": "IETF RFC 9989, Domain-Based Message Authentication, Reporting, and Conformance (DMARC), May 2026 (obsoletes RFC 7489 and RFC 9091)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.rfc-editor.org/rfc/rfc9989.html",
+      "note": "Read through a summarizing fetch on 2026-11-16 (the first half of the page). Relevant text: p=none, 'The Domain Owner offers no expression of preference'; p=quarantine, 'The Domain Owner considers such mail to be suspicious'; p=reject, failures are 'a clear indication that the use of the domain name is not valid'. A message passes DMARC when SPF or DKIM gives an aligned pass: 'Only an SPF-Authenticated Identifier that has Identifier Alignment with the Author Domain is enough'; a message 'is considered to produce a DMARC \"pass\" result if any DKIM-Authenticated Identifier aligns with the Author Domain.' There is 'currently no generally accepted mechanism' to list authorized third-party signing domains, so third parties must send aligned. Domain owners usually start at p=none and use aggregate reports to find every sending source, fixing legitimate streams before enforcement. The pct tag of RFC 7489 is gone (replaced by the t test flag), so the scenario does not use it."
+    },
+    {
+      "cite": "Scenario data (authored)",
+      "checkedAt": "2026-11-16",
+      "note": "Fictional company and people. Domains use the reserved .example top-level domain (IETF RFC 2606) and addresses the documentation range 198.51.100.0/24 (IETF RFC 5737). The payment amount, cutoff and payslip run are the author's."
+    }
+  ],
+  "brief": {
+    "situation": "You are the security analyst at Halden Supply, a fictional wholesaler. At 09:00 a finance clerk forwards an email from the CEO's address asking her to wire $48,000 to a new supplier account before the bank's 10:30 cutoff. The mail gateway shows 37 such messages to finance staff. Payslips for 412 staff go out by email at 11:00 through PayrollCo, an outside service.",
+    "handover": [
+      "haldensupply.example publishes a DMARC record with p=none and sends aggregate reports to the security team.",
+      "The CEO is travelling but answers his known mobile number."
+    ],
+    "howItWorks": [
+      "The console shows alerts, mail and DNS events as they arrive, and what is at stake.",
+      "Each task takes your time: start it, then let the work finish, which moves the clock by the minutes it takes. The attacker and the bank keep working on the same clock.",
+      "When you close the incident, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cutoff": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-16",
+        "note": "The bank's wire cutoff is 10:30, 90 minutes after the 09:00 start."
+      }
+    },
+    "wave2After": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values. A second wave to accounts payable arrives 20 minutes in."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "headersAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportsAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstActAt": {
+      "type": "time",
+      "init": null
+    },
+    "wireHeld": {
+      "type": "bool",
+      "init": false
+    },
+    "heldAt": {
+      "type": "time",
+      "init": null
+    },
+    "wireSentAt": {
+      "type": "time",
+      "init": null
+    },
+    "gatewayRule": {
+      "type": "bool",
+      "init": false
+    },
+    "purgedAt": {
+      "type": "time",
+      "init": null
+    },
+    "purgedCount": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000
+    },
+    "inboxSpoofs": {
+      "type": "number",
+      "init": 37,
+      "min": 0,
+      "max": 1000
+    },
+    "wave2At": {
+      "type": "time",
+      "init": null
+    },
+    "policy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "quarantine",
+        "reject"
+      ],
+      "init": "none"
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "payrollAligned": {
+      "type": "bool",
+      "init": false
+    },
+    "alignedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ceoReset": {
+      "type": "bool",
+      "init": false
+    },
+    "notified": {
+      "type": "bool",
+      "init": false
+    },
+    "lessonDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "align",
+        "reject",
+        "training"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "breaksPayroll": {
+      "expr": "policy != \"none\" and not payrollAligned"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Incident in progress",
+      "clock": "turns",
+      "actions": [
+        "headers",
+        "reports",
+        "holdWire",
+        "gatewayRule",
+        "purge",
+        "resetCeo",
+        "alignPayroll",
+        "setPolicy",
+        "notify",
+        "watch",
+        "closeIncident"
+      ]
+    },
+    "report": {
+      "label": "Report",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "headers": {
+      "label": "Read the full headers of one spoofed message",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(headersAt)",
+          "then": [
+            {
+              "set": "headersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "SPF fails for 198.51.100.40, there is no DKIM signature, DMARC fails, and the domain publishes p=none, so receivers deliver it. Replies go to a look-alike domain, haldensupp1y.example.",
+          "kind": "act"
+        },
+        {
+          "finding": "Exact-domain spoofing from outside. The CEO's mailbox was not used; the domain's p=none policy let the forgery through."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "reports": {
+      "label": "Review the DMARC aggregate reports for every source sending as the domain",
+      "group": "Investigate",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(reportsAt)",
+          "then": [
+            {
+              "set": "reportsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Three sources: your hosted mail (aligned pass), PayrollCo's payslip service (passes SPF and DKIM for payrollco.example only, so DMARC fails), and the spoofer.",
+          "kind": "act"
+        },
+        {
+          "finding": "PayrollCo sends the 11:00 payslips as hr@haldensupply.example without alignment. Any enforcement before PayrollCo aligns will quarantine or bounce every payslip."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "holdWire": {
+      "label": "Call finance on a known number: hold the wire, and confirm with the CEO by phone",
+      "group": "Contain",
+      "available": "not busy and (not wireHeld and isNull(wireSentAt))",
+      "why": "Done, or too late.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "wireHeld",
+          "to": "true"
+        },
+        {
+          "set": "heldAt",
+          "to": "t"
+        },
+        {
+          "log": "The wire is held. The CEO, reached on his known mobile number, never asked for it.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "gatewayRule": {
+      "label": "Gateway rule: quarantine inbound mail that claims our domain and fails DMARC",
+      "group": "Contain",
+      "available": "not busy and (not gatewayRule)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "gatewayRule",
+          "to": "true"
+        },
+        {
+          "log": "New spoofs of your domain to your own staff are quarantined at the gateway. Receivers outside the company still follow your published policy.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "purge": {
+      "label": "Search and purge the spoofed messages from every mailbox",
+      "group": "Contain",
+      "available": "not busy and (inboxSpoofs > 0)",
+      "why": "Nothing to purge, or wait for the running task.",
+      "effects": [
+        {
+          "if": "isNull(firstActAt)",
+          "then": [
+            {
+              "set": "firstActAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "purgedCount",
+          "to": "purgedCount + inboxSpoofs"
+        },
+        {
+          "set": "inboxSpoofs",
+          "to": "0"
+        },
+        {
+          "set": "purgedAt",
+          "to": "t"
+        },
+        {
+          "log": "Spoofed messages removed from finance and accounts payable mailboxes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "resetCeo": {
+      "label": "Reset the CEO's password and revoke his sessions",
+      "group": "Contain",
+      "available": "not busy and (not ceoReset)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "ceoReset",
+          "to": "true"
+        },
+        {
+          "log": "Done. His sign-in log shows nothing unusual: the messages never came from his account.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "alignPayroll": {
+      "label": "Have PayrollCo sign payslip mail with DKIM as d=haldensupply.example (publish their selector in your DNS)",
+      "group": "Fix",
+      "available": "not busy and (not payrollAligned)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "payrollAligned",
+          "to": "true"
+        },
+        {
+          "set": "alignedAt",
+          "to": "t"
+        },
+        {
+          "log": "PayrollCo's payslip mail now carries an aligned DKIM signature and passes DMARC.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "setPolicy": {
+      "label": "Publish a new DMARC policy for haldensupply.example",
+      "group": "Fix",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Policy",
+          "options": [
+            {
+              "value": "none",
+              "label": "p=none (monitor only)"
+            },
+            {
+              "value": "quarantine",
+              "label": "p=quarantine"
+            },
+            {
+              "value": "reject",
+              "label": "p=reject"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "policy",
+          "to": "p"
+        },
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "p == \"none\"",
+              "then": [
+                {
+                  "log": "Policy stays p=none: receivers everywhere keep delivering the forgeries.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "not payrollAligned",
+              "then": [
+                {
+                  "log": "Enforcement published. Receivers will now junk or bounce mail that fails DMARC, and PayrollCo's 11:00 payslips still fail it.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Enforcement published: forgeries of your domain are refused by receivers that honor DMARC, and every legitimate source passes.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "notify": {
+      "label": "Warn finance and accounts payable, and tell key suppliers about the spoofing",
+      "group": "Communicate",
+      "available": "not busy and (not notified)",
+      "why": "Done, or wait for the running task to finish.",
+      "effects": [
+        {
+          "set": "notified",
+          "to": "true"
+        },
+        {
+          "log": "Staff are told to verify payment changes by phone; suppliers know forged mail used your domain.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (10 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeIncident": {
+      "label": "Close the incident and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the incident.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "lesson",
+              "label": "What changes so this cannot happen again",
+              "options": [
+                {
+                  "value": "align",
+                  "label": "Find every legitimate sender in the DMARC reports, align them, then enforce the policy; keep out-of-band checks for payment changes"
+                },
+                {
+                  "value": "reject",
+                  "label": "Publish p=reject on every domain at once; reports are optional"
+                },
+                {
+                  "value": "training",
+                  "label": "Phishing training for finance is enough; email authentication cannot stop this"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "lessonDoc",
+          "to": "lesson"
+        },
+        {
+          "log": "Recorded: {lesson}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-316)",
+        "checkedAt": "2026-11-16",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "wave2",
+      "when": "t >= wave2After and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "wave2At",
+          "to": "t"
+        },
+        {
+          "if": "gatewayRule",
+          "then": [
+            {
+              "log": "09:20: 60 more spoofs to accounts payable; the gateway rule quarantines them.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "inboxSpoofs",
+              "to": "inboxSpoofs + 60"
+            },
+            {
+              "log": "09:20: 60 more spoofs arrive in accounts payable's mailboxes.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cutoff",
+      "when": "t >= cutoff and not wireHeld and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "wireSentAt",
+          "to": "t"
+        },
+        {
+          "log": "10:30: the bank releases the $48,000 wire to the new account.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: how you knew it was forged, what you did first, and how you enforced DMARC without breaking legitimate mail.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Evidence",
+          "criteria": "Uses the headers (SPF fail, no DKIM, DMARC fail at p=none, look-alike Reply-To) to show exact-domain spoofing from outside, not a compromised mailbox.",
+          "modelAnswer": "Authentication-Results showed SPF failing for 198.51.100.40, no DKIM and a DMARC fail that p=none let through; replies went to a look-alike domain. The CEO's account was not involved."
+        },
+        {
+          "label": "First moves",
+          "criteria": "Stops the money first by an out-of-band check before the cutoff, then quarantines spoofs at the gateway and purges the mailboxes.",
+          "modelAnswer": "I had finance hold the wire and confirmed with the CEO on his known number, added a gateway rule for mail claiming our domain that fails DMARC, and purged the delivered messages."
+        },
+        {
+          "label": "Enforcement",
+          "criteria": "Reads the aggregate reports before enforcing, aligns the legitimate third-party sender, then moves to quarantine or reject.",
+          "modelAnswer": "The reports showed PayrollCo sending unaligned payslips. PayrollCo now signs with DKIM as our domain, and only then did I publish p=quarantine, so forgeries are junked by receivers while payslips pass."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-16",
+          "note": "The profile default: contained within 60 minutes of the first alert, inside the 10:30 wire cutoff."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Security outcome profile (docs/sims.md 9.2, 22.7)",
+          "checkedAt": "2026-11-16",
+          "note": "No money leaves."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and policy == \"none\" and not gatewayRule",
+      "class": "harm",
+      "rationale": "Closing while forgeries of the domain are still delivered to staff is never a safe outcome.",
+      "source": {
+        "cite": "IETF RFC 9989, Domain-Based Message Authentication, Reporting, and Conformance (DMARC), May 2026 (obsoletes RFC 7489 and RFC 9091)",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.rfc-editor.org/rfc/rfc9989.html",
+        "note": "Read through a summarizing fetch on 2026-11-16 (the first half of the page). Relevant text: p=none, 'The Domain Owner offers no expression of preference'; p=quarantine, 'The Domain Owner considers such mail to be suspicious'; p=reject, failures are 'a clear indication that the use of the domain name is not valid'. A message passes DMARC when SPF or DKIM gives an aligned pass: 'Only an SPF-Authenticated Identifier that has Identifier Alignment with the Author Domain is enough'; a message 'is considered to produce a DMARC \"pass\" result if any DKIM-Authenticated Identifier aligns with the Author Domain.' There is 'currently no generally accepted mechanism' to list authorized third-party signing domains, so third parties must send aligned. Domain owners usually start at p=none and use aggregate reports to find every sending source, fixing legitimate streams before enforcement. The pct tag of RFC 7489 is gone (replaced by the t test flag), so the scenario does not use it."
+      }
+    }
+  },
+  "endings": {
+    "moneyLost": {
+      "label": "The wire went to the fraudster",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(wireSentAt)",
+      "narrative": "Nobody stopped the payment before the bank's cutoff."
+    },
+    "spoofable": {
+      "label": "Closed with forgeries still delivered",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and policy == \"none\" and not gatewayRule",
+      "narrative": "The domain still publishes p=none and nothing filters the forgeries."
+    },
+    "payrollBroken": {
+      "label": "Spoofing stopped, payslips broken",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and breaksPayroll",
+      "narrative": "Enforcement went out before PayrollCo was aligned, so the 11:00 payslips fail DMARC for 412 staff."
+    },
+    "governed": {
+      "label": "Money held, forgeries refused, legitimate mail intact",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and wireHeld and gatewayRule and not isNull(purgedAt) and inboxSpoofs == 0 and policy != \"none\" and payrollAligned and not isNull(headersAt) and not isNull(reportsAt) and timeAt(reportsAt) <= timeAt(policyAt) and timeAt(alignedAt) <= timeAt(policyAt) and notified and lessonDoc == \"align\"",
+      "narrative": "The wire was held by an out-of-band check, the forgeries were quarantined and purged, and the domain moved to enforcement only after its one unaligned sender was fixed."
+    },
+    "gaps": {
+      "label": "Contained, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The money is safe, but the domain's policy, the mailboxes or the record were left unfinished."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "moneyLost",
+    "spoofable",
+    "payrollBroken",
+    "governed",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evidence",
+        "label": "Read the headers before acting, and the aggregate reports before changing the policy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(headersAt) and timeAt(headersAt) <= timeAt(firstActAt) and not isNull(reportsAt) and (isNull(policyAt) or timeAt(reportsAt) <= timeAt(policyAt))",
+            "score": "met",
+            "why": "Headers first; reports before the policy."
+          },
+          {
+            "when": "not isNull(headersAt) or not isNull(reportsAt)",
+            "score": "partial",
+            "why": "Some of the evidence, or after acting."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Acted without reading the headers or the reports."
+          }
+        ]
+      },
+      {
+        "id": "money",
+        "label": "Wire held by an out-of-band check before the cutoff",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wireHeld",
+            "score": "met",
+            "why": "Held {timeAt(heldAt) / 60|0dp} min in."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The money left at 10:30."
+          }
+        ]
+      },
+      {
+        "id": "enforce",
+        "label": "Moved to quarantine or reject without breaking a legitimate sender",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "policy != \"none\" and payrollAligned and timeAt(alignedAt) <= timeAt(policyAt)",
+            "score": "met",
+            "why": "Enforced after aligning PayrollCo."
+          },
+          {
+            "when": "policy != \"none\" or gatewayRule",
+            "score": "partial",
+            "why": "{policy != \"none\" ? \"Enforced before the payslips were aligned.\" : \"Protected your own staff only; receivers outside still deliver the forgeries.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing stops the forgeries."
+          }
+        ]
+      },
+      {
+        "id": "contain",
+        "label": "Gateway rule and mailboxes purged",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gatewayRule and not isNull(purgedAt) and inboxSpoofs == 0",
+            "score": "met",
+            "why": "Filtered and cleaned."
+          },
+          {
+            "when": "gatewayRule or not isNull(purgedAt)",
+            "score": "partial",
+            "why": "One of the two, or spoofs left behind."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Spoofs stay in the mailboxes and keep arriving."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Lesson names alignment before enforcement",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "lessonDoc == \"align\" and notified",
+            "score": "met",
+            "why": "Lesson right, and staff and suppliers told."
+          },
+          {
+            "when": "lessonDoc == \"align\"",
+            "score": "partial",
+            "why": "Lesson right; nobody was warned."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The lesson misses why DMARC failed here."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written evidence, first moves and enforcement",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minHold",
+        "label": "Minutes until the wire was held",
+        "value": "isNull(heldAt) ? -1 : timeAt(heldAt) / 60",
+        "format": "number",
+        "expert": "about 10"
+      },
+      {
+        "id": "minPolicy",
+        "label": "Minutes until enforcement was published",
+        "value": "isNull(policyAt) ? -1 : timeAt(policyAt) / 60",
+        "format": "number",
+        "expert": "under 60, after aligning PayrollCo"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00-09:10",
+        "text": "Headers: SPF fail, no DKIM, DMARC fail at p=none, look-alike Reply-To. Hold the wire and confirm with the CEO by phone."
+      },
+      {
+        "at": "09:10-09:25",
+        "text": "Gateway rule for mail claiming the domain that fails DMARC; purge the delivered messages."
+      },
+      {
+        "at": "09:25-10:00",
+        "text": "Aggregate reports show PayrollCo unaligned; have it sign with DKIM as the domain; publish p=quarantine; warn staff and suppliers."
+      }
+    ],
+    "debrief": {
+      "governed": {
+        "headline": "Good: money safe, domain enforced, payroll intact",
+        "body": "You stopped the payment by an out-of-band check, contained the forgeries for your own staff with the gateway, and moved the domain to enforcement only after the reports showed every legitimate sender and the one unaligned sender was fixed."
+      },
+      "gaps": {
+        "headline": "Contained, with gaps",
+        "body": "The money is safe. The criteria show what was left: the domain's policy, the mailboxes or the warning to staff and suppliers."
+      },
+      "payrollBroken": {
+        "headline": "Enforced too soon",
+        "body": "The aggregate reports showed PayrollCo sending as your domain without alignment. Publishing quarantine or reject first makes receivers junk or bounce its payslips; align every legitimate sender, then enforce."
+      },
+      "moneyLost": {
+        "headline": "The money left",
+        "body": "The request was a forgery from the first header you could have read. A phone call on a known number before the cutoff was the step that mattered most."
+      },
+      "spoofable": {
+        "headline": "Still spoofable",
+        "body": "With p=none and no gateway rule, the next forgery is delivered like the first."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The headers show exact-domain spoofing from 198.51.100.40: SPF fails, there is no DKIM, DMARC fails, and p=none tells receivers nothing, so they deliver it; replies go to a look-alike domain. First hold the wire with an out-of-band call before the 10:30 cutoff, then quarantine inbound mail that claims the domain and fails DMARC at the gateway and purge what was delivered. The gateway protects only your own staff; to stop forgeries reaching suppliers the domain must enforce. The aggregate reports show PayrollCo sending payslips as the domain without alignment, so have it sign with DKIM as d=haldensupply.example first, then publish p=quarantine (moving to reject after more report review). Warn finance and suppliers, and record that legitimate senders are aligned before enforcement."
+  }
+}

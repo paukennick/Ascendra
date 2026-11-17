@@ -1,0 +1,39 @@
+{
+  "band": "kcna",
+  "label": "KCNA",
+  "base": {
+    "course": "CKA",
+    "slug": "apiserver-static-pod-bad-flag"
+  },
+  "slug": "apiserver-static-pod-bad-flag-kcna",
+  "patch": {
+    "objective": "Administration: the control plane components (kube-apiserver, etcd, kube-scheduler, kube-controller-manager, cloud-controller-manager) and the node components (kubelet, kube-proxy, container runtime) and how they cooperate",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Linux Foundation, Kubernetes and Cloud Native Associate (KCNA) program changes: Kubernetes Fundamentals 44%, Container Orchestration 28%, Cloud Native Application Delivery 16%, Cloud Native Architecture 12%",
+        "checkedAt": "2026-11-16",
+        "url": "https://training.linuxfoundation.org/kcna-program-changes/",
+        "note": "Read through a summarizing fetch on 2026-11-16. The updated exam launched no earlier than 2025-11-24 with these domains; Kubernetes Fundamentals includes Administration, Container Orchestration includes Troubleshooting. The curriculum PDF was not re-read; the objective wording is the course seed's."
+      },
+      {
+        "cite": "Kubernetes documentation, Create static Pods",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/configure-pod-container/static-pod/",
+        "note": "Read in primary text from the kubernetes/website main branch (raw Markdown source of kubernetes.io) through a summarizing fetch on 2026-11-14. Relevant text: the kubelet 'periodically scans the directory and creates/deletes static Pods as YAML/JSON files appear/disappear there'; deleting the mirror Pod with kubectl does not stop it ('the kubelet doesn't remove the static Pod'); if a container is stopped manually the kubelet 'will notice and will restart the Pod'."
+      },
+      {
+        "cite": "Kubernetes documentation, Troubleshooting Clusters",
+        "checkedAt": "2026-11-14",
+        "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/",
+        "note": "Read in primary text from the kubernetes/website main branch (raw Markdown) through a summarizing fetch on 2026-11-14. Relevant text: with the API server down you are 'unable to stop, update, or start new pods, services, replication controller'; 'existing pods and services should continue to work normally unless they depend on the Kubernetes API'; 'On systemd-based systems, you may need to use journalctl instead of examining log files.' crictl appears under 'What's next' for debugging nodes. The crictl and kubelet output lines in the scenario are authored renderings."
+      },
+      {
+        "cite": "Kubernetes documentation, Ports and Protocols",
+        "checkedAt": "2026-11-16",
+        "url": "https://kubernetes.io/docs/reference/networking/ports-and-protocols/",
+        "note": "Read 2026-11-16 on kubernetes.io (page modified 2024-09-18; summarizing fetch with quotes). Control plane rows: TCP inbound 6443 'Kubernetes API server', used by all; TCP inbound 2379-2380 'etcd server client API', used by kube-apiserver and etcd; 10250 Kubelet API; 10259 kube-scheduler; 10257 kube-controller-manager. The page notes etcd can also run externally or on custom ports. The scenario's etcd client port 2379 and API server port 6443 match."
+      }
+    ]
+  }
+}

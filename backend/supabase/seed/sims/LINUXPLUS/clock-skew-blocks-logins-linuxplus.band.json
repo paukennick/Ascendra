@@ -1,0 +1,39 @@
+{
+  "band": "linuxplus",
+  "label": "Linux+ (XK0-006)",
+  "base": {
+    "course": "LFCS",
+    "slug": "clock-skew-blocks-logins"
+  },
+  "slug": "clock-skew-blocks-logins-linuxplus",
+  "patch": {
+    "objective": "Common network services: SSH, web servers, printing, time sync (NTP)",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "CompTIA Linux+ (V8), exam XK0-006, launched 2025-07-15: System management 23%, Services and user management 20%, Security 18%, Automation, orchestration, and scripting 17%, Troubleshooting 22%",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.comptia.org/en/certifications/linux/",
+        "note": "Read through a summarizing fetch on 2026-11-16 for this Linux+ band of a case written for another Linux course. Relevant text: System management covers configuring 'LVM, RAID, partitions, and mounted storage' and reviewing service logs and timers; Troubleshooting covers 'boot, mount, and repair issues' and analyzing 'CPU, memory, I/O' to 'optimize response times'; Files and directories covers permissions and special files. Time synchronization is not named on the page; the objective wording is the course seed's."
+      },
+      {
+        "cite": "chrony.conf(5), chrony 4.6 (chrony-project.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://chrony-project.org/doc/4.6/chrony.conf.html",
+        "note": "Relevant text: makestep 'forces chronyd to step the system clock if the adjustment is larger than a threshold value, but only if there were no more clock updates since chronyd was started than the specified limit' ('makestep 0.1 3' steps 'only in the first three clock updates'); 'By default, the maximum slew rate is set to 83333.333 ppm (one twelfth)'; iburst starts 'with a burst of 4-8 requests in order to make the first update of the clock sooner'. Read through a summarizing fetch 2026-11-14. At one twelfth, slewing out a 580 s error takes about 6,960 s: arithmetic from that default."
+      },
+      {
+        "cite": "chronyc(1), chrony 4.6 (chrony-project.org)",
+        "checkedAt": "2026-11-14",
+        "url": "https://chrony-project.org/doc/4.6/chronyc.html",
+        "note": "Relevant text: sources, '^ means a server'; '* indicates the best source which is currently selected for synchronisation'; '? indicates a source which is not considered to be selectable'; Reach '377 indicates that a valid reply was received for all from the last eight transmissions'. makestep (no arguments) 'tells chronyd to cancel any remaining correction that was being slewed and jump the system clock by the equivalent amount'. 'The add server command allows a new NTP server to be added whilst chronyd is running.' Read through summarizing fetches 2026-11-14. That a source added at run time is not written to chrony.conf, so a restart loses it, is inferred from chronyd reading its sources from the file at start."
+      },
+      {
+        "cite": "krb5.conf, MIT Kerberos documentation (web.mit.edu)",
+        "checkedAt": "2026-11-14",
+        "url": "https://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html",
+        "note": "Relevant text: clockskew 'Sets the maximum allowable amount of clockskew in seconds that the library will tolerate before assuming that a Kerberos message is invalid. The default value is 300 seconds, or five minutes.' Read through a summarizing fetch 2026-11-14. The smbclient error text is authored."
+      }
+    ]
+  }
+}

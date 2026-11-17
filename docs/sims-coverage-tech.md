@@ -137,3 +137,24 @@ behind `SIMS_RENDERERS`, with these first cases:
 
 This is a decision for Nick: the renderer is new work (a screen, its
 accessibility pass and its tests), not a scenario.
+
+## Update, REQ-312 (2026-11-16): the data and code console is built
+
+Nick approved building every proposed screen (2026-11-16). The console is
+`screen.type: "data"` (`data@1`, docs/sims.md 22.25). Built on it for the
+courses in this document:
+
+| Course / slug | Kind | Objective (primary) |
+|---|---|---|
+| PL300/pl300-rls-region-manager | authored | Implementing row-level security roles with DAX filters and mapping groups to them |
+| PL300/pl300-stock-on-hand-summed | authored | Writing semi-additive measures, such as a closing balance, that must not sum over time |
+| SQL/sql-not-in-null-empty-list | authored | Diagnose a NOT IN filter that returns nothing because the list contains a NULL, and fix it with NOT EXISTS |
+| PCAP/py-import-crash-traceback-pcap | band of PYTHON/py-import-crash-traceback | Diagnose syntax, runtime and logic errors from tracebacks and step-by-step tracing, then verify the fix with tests |
+| PCEP/py-import-crash-traceback-pcep | band of PYTHON/py-import-crash-traceback | Handle runtime errors with try and one or more specific except branches, and trace the flow when one is raised |
+| TSNODE/js-rate-board-zero-percent-tsnode | band of JAVASCRIPT/js-rate-board-zero-percent | Call another service with fetch, check response.ok, and set a timeout with AbortSignal |
+
+The PYTHON and JAVASCRIPT launch-course cases these bands reuse, and the
+CSSGB cases, are in docs/sims.md 22.25. Still candidates on the console: the
+other eight PL300 objectives listed above, PCEP CSV conversion, PCAP review
+and CI, AI-generated code and merge conflicts, and the SQL row-multiplication
+case (better here than on the terminal: the inflated totals are a table).
