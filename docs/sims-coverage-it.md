@@ -290,3 +290,71 @@ console shaped). At the pace of this wave (a sim with sources, six golden
 paths and a behavior test each) that is weeks of authoring; the generator
 (12.2) was built for exactly this breadth and its first 20 measured drafts
 are still pending Nick's monthly budget.
+
+## Wave 4 (REQ-316, 2026-11-16)
+
+Nick approved building every fitting objective on an existing screen,
+launch courses first, with bands where another course's sim already teaches
+the objective (docs/sims.md 22.29). This wave added 32 bands and 6 new
+cases, all on launch courses:
+
+| Course | Bands | New cases | Objectives newly covered |
+|---|---|---|---|
+| SECPLUS | 8 | 2 (DMARC email defenses; digital forensics) | 10 |
+| NETWORKPLUS | 4 | 0 | 4 |
+| LINUXPLUS | 6 | 1 (network troubleshooting) | 7 |
+| AWSSOA | 4 | 1 (ELB health checks) | 5 |
+| AWSSAA | 2 | 1 (GuardDuty and Macie) | 3 |
+| AWSCLF | 2 | 0 | 2 |
+| KCNA | 2 | 0 | 2 |
+| CKA | 0 | 1 (etcd backup and restore) | 1 |
+| GCPACE | 1 | 0 | 1 |
+| GCPCDL | 2 | 0 | 2 |
+| APLUS_CORE2 | 1 | 0 | 1 |
+| AWSMLA, APLUS_CORE1 | 0 | 0 | 0 |
+
+**Still open on existing screens, launch courses** (from the lists above,
+less what waves 3 and 4 covered):
+
+- SECPLUS: tuning network defenses (firewall rules, IDS/IPS, web and DNS
+  filtering); vulnerability response and remediation (exceptions,
+  compensating controls, rescanning); automation and orchestration (guard
+  rails, escalation); authentication and privileged access (MFA, PAM);
+  security awareness (responding to reported phishing); wireless and
+  mobile hardening; hardware, software and data asset disposal. The risk
+  analysis and governance objectives wait for the governance and tabletop
+  screens.
+- AWSSAA: load balancing strategy; purchasing options and instance
+  selection on cost; backup or archival solution on cost; throttling
+  strategy; Route 53 in a resilient design; cost-effective database choice.
+- AWSSOA: EBS performance and volume type; KMS and ACM troubleshooting;
+  Security Hub, GuardDuty and Config findings; CloudFront caching issues;
+  compliance with Config conformance packs; compute performance
+  remediation.
+- AWSMLA: real-time versus batch inference; model selection and inference
+  cost; training-data integrity; ML security risks; performance, time and
+  cost trade-offs (14 fits, no new case yet).
+- AWSCLF: one-time operations versus repeatable processes; when a workload
+  needs multiple Regions.
+- GCPACE: load balancer choice; autoscaled managed instance groups; Cloud
+  NGFW rules day to day; Cloud Monitoring alerts; snapshots and database
+  backup; service account impersonation.
+- GCPCDL: why data has business value and threat intelligence sources are
+  better taught by the data and governance screens; security offerings
+  and modern application development remain board candidates.
+- APLUS_CORE1: storage and RAID failures; printer problems; VM resource
+  allocation. APLUS_CORE2: Windows boot failures and BSOD; Windows Update,
+  backup and System Restore; PC security symptoms.
+- NETWORKPLUS: wireless and performance troubleshooting; high availability
+  (FHRP).
+- LINUXPLUS: SSH hardening; firewall (firewalld/nftables); cron and timers.
+- KCNA: debugging a delivery (rollback and drift between Git and the
+  cluster). CKA: highly available control plane; storage access modes and
+  reclaim policies; cluster upgrades with kubeadm.
+
+**Not started in this wave:** the new security courses' remaining
+objectives (docs/sims.md 22.19's 46), the tech and depth candidates
+(docs/sims-coverage-tech.md, docs/sims-coverage-depth.md) and the
+non-launch AWS, Azure, Google Cloud and CNCF courses (about 300 keyword
+fits). Data and code, governance, tabletop, facility and sandbox objectives
+wait for the screens other builders are making.
