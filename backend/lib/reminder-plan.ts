@@ -165,6 +165,11 @@ export function shortCourseName(p: {
   for (let i = 0; i < 3 && VENDOR_PREFIX.test(name); i++) name = name.replace(VENDOR_PREFIX, "");
   name = name.replace(/\s+Coach$/i, "").trim();
   if (name.length <= COURSE_NAME_MAX) return name;
+  // REQ-324 (FAIL-2371): a long name that ends in its own acronym
+  // ("Certified Information Systems Security Professional (CISSP)") is
+  // known by that acronym, not by its cut-off first words.
+  const acronym = /\(([A-Z][A-Za-z0-9+-]{1,15})[®™]?\)$/.exec(name)?.[1];
+  if (acronym) return acronym;
   if (p.examCode && p.examCode.length <= COURSE_NAME_MAX) return p.examCode;
   return ellipsize(name, COURSE_NAME_MAX);
 }

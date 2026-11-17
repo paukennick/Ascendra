@@ -18843,6 +18843,30 @@
       "prevention_rules": [],
       "prevention_notes": "A change to the catalog title form greps for readers that parse titles (prefix strips, short names) in the same change.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2371",
+      "date": "2026-11-17",
+      "title": "Reminder short name cut a long credential name to its first words",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
+      "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
+      "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
+      "requirement": "REQ-324",
+      "affected": [
+        "backend/lib/reminder-plan.ts"
+      ],
+      "fix_summary": "A long name ending in '(ACRONYM)' uses the acronym before the exam code or an ellipsis.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/reminder-plan.test.ts",
+        "backend/lib/unbranded.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Turning a naming switch back on reruns the readers' tests with real names, not only the hidden ones.",
+      "recurrence_of": ""
     }
   ]
 }

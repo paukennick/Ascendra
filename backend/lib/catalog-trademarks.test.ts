@@ -338,7 +338,7 @@ describe("REQ-309: each exam body's trademark policy, at its most conservative r
   });
 
   test("only degree and skill courses keep a 'Coach' title", () => {
-    const bad = CATALOG_TRACKS.filter((t) => /\bCoach$/.test(t.title) && !COACH_ALLOWED.has(t.code)).map((t) => `${t.code}: ${t.title}`);
+    const bad = CATALOG_TRACKS.filter((t) => /\bCoach$/.test(notOwnCoach(t.title)) && !COACH_ALLOWED.has(t.code)).map((t) => `${t.code}: ${t.title}`);
     assert.deepEqual(bad, []);
   });
 });

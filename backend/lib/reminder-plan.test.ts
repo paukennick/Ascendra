@@ -140,6 +140,9 @@ describe("time estimate", () => {
 describe("short names", () => {
   test("course", () => {
     assert.equal(shortCourseName({ credentialName: "CompTIA Security+", providerName: "CompTIA", examCode: "SY0-701", trackTitle: "Prep for CompTIA Security+" }), "Security+");
+    // REQ-324 (FAIL-2371): a long name ending in its acronym is known by the acronym.
+    assert.equal(shortCourseName({ credentialName: "Certified Information Systems Security Professional (CISSP)", providerName: "ISC2", examCode: null, trackTitle: "Exam Prep for CISSP®" }), "CISSP");
+    assert.equal(shortCourseName({ credentialName: "Certified Ethical Hacker (CEH)", providerName: "EC-Council", examCode: "312-50", trackTitle: "Exam Prep for CEH® (312-50)" }), "CEH");
     // REQ-324 (FAIL-2370): a title-only fallback drops the new "Exam Prep for" prefix too.
     assert.equal(shortCourseName({ credentialName: null, providerName: null, examCode: null, trackTitle: "Exam Prep for CISSP®" }), "CISSP®");
     assert.doesNotMatch(shortCourseName({ credentialName: null, providerName: null, examCode: null, trackTitle: "Exam Prep for CompTIA Security+ (SY0-701)" }), /^(Exam|Prep|CompTIA)/);
