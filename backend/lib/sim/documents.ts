@@ -220,6 +220,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // ---- REQ-314: the client trainer, the facility console and the sandbox
   // report (docs/sims.md 22.27). Keep these entries together. ----
   entry("NASMCPT", "cpt-parq-chest-tightness"),
+  band("ACECPT", "ace-parq-chest-tightness"),
+  band("ACSMCPT", "acsm-parq-chest-tightness"),
+  band("NSCACPT", "nscacpt-parq-chest-tightness"),
+  band("NCCPTCPT", "nccpt-parq-chest-tightness"),
   // ---- end REQ-314 ----
   // ---- REQ-288: ASWB client sessions, courses ASWBCLINICAL and ASWBMASTERS
   // (session renderer, clinical-session profile; ASWB_SESSION_DOCUMENTS
