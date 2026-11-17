@@ -214,4 +214,47 @@ describe("what each new cloud case teaches (REQ-320)", () => {
     until(f, 46);
     assert.equal(f.value("batchMissAt"), null);
   });
+  test("PCA p99: a gate on the mean still passes and v2 is promoted at 14:00; aborting holds it", () => {
+    const d = docOf("canary-gate-wrong-p99-query");
+    const m = driver(d);
+    m.act("fixGate", { g: "mean" });
+    until(m, 31);
+    assert.equal(m.value("promoted"), true);
+    const a = driver(d);
+    a.act("query", { q: "right" });
+    a.act("abort");
+    until(a, 31);
+    assert.equal(a.value("promoted"), false);
+  });
+  test("ICA retries: more retries take the healthy pods down at the sale; bounded retries hold; a 100% ejection limit is flagged", () => {
+    const d = docOf("retry-storm-one-bad-ratings-pod");
+    const more = driver(d);
+    more.act("setRetries", { r: "more" });
+    until(more, 41);
+    assert.notEqual(more.value("saleDownAt"), null);
+    const ok = driver(d);
+    ok.act("setRetries", { r: "sane" });
+    ok.act("setOutlier", { e: "half" });
+    until(ok, 41);
+    assert.equal(ok.value("saleDownAt"), null);
+    assert.equal(ok.value("healthy"), true);
+    const all = driver(d);
+    all.act("setOutlier", { e: "all" });
+    assert.equal(all.value("outlierOk"), false);
+  });
+  test("OTCA propagation: sampling everything does not join the traces; switching checkout to B3 splits inventory; setting payments to W3C joins them", () => {
+    const d = docOf("split-traces-b3-propagator");
+    const s = driver(d);
+    s.act("sampleAll");
+    assert.equal(s.value("linked"), false);
+    const c = driver(d);
+    c.act("setCheckout");
+    assert.equal(c.value("linked"), true);
+    assert.equal(c.value("checkoutProp"), "b3");
+    const p = driver(d);
+    p.act("setPay");
+    p.act("readTrace");
+    assert.equal(p.value("linked"), true);
+    assert.notEqual(p.value("foundAt"), null);
+  });
 });

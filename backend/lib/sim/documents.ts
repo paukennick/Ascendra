@@ -441,6 +441,15 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CKS", "falco-shell-in-catalog-pod"),
   entry("DP300", "sleeping-session-blocks-orders"),
   entry("AZ700", "stale-udr-to-retired-nva"),
+  entry("PCA", "canary-gate-wrong-p99-query"),
+  band("CGOA", "service-selector-no-endpoints-cgoa"),
+  band("CNPA", "service-selector-no-endpoints-cnpa"),
+  band("CNPE", "service-selector-no-endpoints-cnpe"),
+  entry("ICA", "retry-storm-one-bad-ratings-pod"),
+  entry("OTCA", "split-traces-b3-propagator"),
+  band("GCPGAIL", "agent-indirect-prompt-injection-gail"),
+  band("AI901", "rag-assistant-data-leak-ai901"),
+  band("GCPGAIL", "rag-assistant-data-leak-gail"),
   // ---- end REQ-320 ----
 ];
 

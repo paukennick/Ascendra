@@ -6592,3 +6592,106 @@ The CKA case reuses the CKA curriculum read on 2026-11-14.
    backout plan; the band teaches both (the base case calls it a backout
    plan).
 5. **What remains** is in docs/sims-coverage-it.md ("Wave 4").
+
+### 22.30 Cloud sims, round of 2026-11-17: breadth for the Azure, AWS, Google Cloud and CNCF courses that had none (REQ-320)
+
+Nick, 2026-11-17 (03:20 PT): "Build the breadth and depth sims that are
+needed still." This round's rules: every course gets at least one sim on its
+highest-weighted domain, then depth, highest weight first; reuse a case
+another course already has (a band, 4.7) before authoring; existing screens
+only. No engine, renderer, schema or migration change (engine 1.2). The list
+is `lib/sim/it-cloud.ts`; `lib/sim/it-cloud.test.ts` selects every document
+by slug (FAIL-2002) and checks what `it-wave4.test.ts` checks (22.29), with
+the course outline read on 2026-11-17 as each document's first source and no
+permission-only body's marks outside `sources` (REQ-309/319). A behavior test
+per new case checks the decision it teaches.
+
+**Bands (42).** Same construction as 22.29: the course's objective, no
+secondary objectives, the course's outline first, then the base's technical
+sources without the base course's outline; the base's golden paths
+(`npm run sim:golden -- steps c20-<course>-<slug>`). Highest-weighted domain
+first (B), then depth (D).
+
+| Course | Band (base) | Objective (abridged) | |
+|---|---|---|---|
+| AZ104 | containerapp-keyvault-revision-az104 (AI200) | Provisioning a container with Azure Container Apps (compute 20-25%) | B |
+| AZ104 | backup-vault-sabotage-az104 (SC500) | Backup and restore operations with Azure Backup | D |
+| AZ104 | kql-checkout-latency-az104 (AI200) | Querying and analyzing logs in Azure Monitor | D |
+| AZ900 | backup-vault-sabotage-az900 (SC500) | The defense-in-depth model (architecture and services 35-40%) | B |
+| AZ900 | kql-checkout-latency-az900 (AI200) | Azure Monitor, Log Analytics, alerts, Application Insights | D |
+| AZ305 | containerapp-keyvault-revision-az305 (AI200) | Recommending an application configuration management solution (infrastructure 30-35%) | B |
+| AZ305 | kql-checkout-latency-az305, backup-vault-sabotage-az305 | Recommending a monitoring solution; backup and recovery for compute | D |
+| AZ400 | kql-checkout-latency-az400 (AI200) | Designing a deployment strategy incl. feature flags (pipelines 50-55%) | B |
+| AZ400 | containerapp-keyvault-revision-az400 (AI200) | Minimizing downtime during deployments | D |
+| DP900 | stock-on-hand-summed-dp900 (PL300) | Features of data models in Power BI (analytics 25-30%) | B |
+| AWSAIF | agent-indirect-prompt-injection-aif (SECAIPLUS) | Risks of prompt engineering: exposure, poisoning, hijacking, jailbreaking (28%) | B |
+| AWSAIF | rag-assistant-data-leak-aif, loan-data-bias-aif | AI security and privacy risks; dataset characteristics (balance) | D |
+| AWSANS | alb-health-check-login-redirect-ans (AWSSOA) | Integrating load balancers with existing application deployments (design 30%) | B |
+| AWSANS | waf-login-flood-sqli-ans, nat-gateway-bill-spike-ans | Securing inbound flows; weighing risk against cost | D |
+| AWSDOP | canary-rollback-dlq-dop (AWSDVA) | Blue/green and canary deployment methods (SDLC 22%) | B |
+| AWSDOP | ec2-status-check-recovery-dop, alb-health-check-login-redirect-dop, stack-update-rollback-failed-dop | Alarms and EC2 recovery; ALB health checks; failed CloudFormation deployments | D |
+| AWSSCS | leaked-access-key-scs (AWSCLF) | Least-privilege IAM policies (IAM 20%) | B |
+| AWSSCS | waf-login-flood-sqli-scs, phi-in-application-logs-scs, guardduty-role-credentials-macie-scs | Edge protection; log data masking; GuardDuty and Macie findings | D |
+| GCPDEV | cloud-run-bad-revision-rollback-pcd (GCPACE) | Traffic splitting on Cloud Run: rollouts, rollbacks (~32%) | B |
+| GCPDEV | public-bucket-customer-exports-pcd (GCPACE) | Signed URLs for Cloud Storage objects | D |
+| GCPDEVOPS | cloud-run-bad-revision-rollback-devops (GCPACE) | Choosing a deployment strategy and success metrics (CI/CD ~30%) | B |
+| GCPDEVOPS | bigquery-dashboard-bill-devops (GCPCDL) | Optimizing resource usage for cost | D |
+| GCPPCA | bigquery-dashboard-bill-pca (GCPCDL) | Weighing cost optimization against other requirements (~25%) | B |
+| GCPPCA | public-bucket-customer-exports-pca (GCPACE) | Security and access management for storage | D |
+| GCPSEC | public-bucket-customer-exports-sec (GCPACE) | Managing IAM and ACL permissions (access ~25%) | B |
+| GCPGAIL | agent-indirect-prompt-injection-gail (SECAIPLUS) | How agents use tools: extensions, functions, data stores, plugins (~35%) | B |
+| GCPGAIL | rag-assistant-data-leak-gail (SECAIPLUS) | Privacy considerations | D |
+| GCPPDE | bigquery-dashboard-bill-pde (GCPCDL) | Planning for storage cost and performance (~20%; not the top domain) | D |
+| AI901 | rag-assistant-data-leak-ai901 (SECAIPLUS) | Privacy and security in an AI solution (40-45%; not the top domain) | D |
+| CKAD | crashloop-bad-configmap-ckad (CKA) | ConfigMaps (environment, configuration and security 25%) | B |
+| CKAD | service-selector-no-endpoints-ckad (KCNA) | Access to applications via Services and EndpointSlices | D |
+| KCSA | etcd-restore-deleted-namespace-kcsa (CKA) | etcd security: TLS, certificates, backups as sensitive data (22%) | B |
+| CGOA | service-selector-no-endpoints-cgoa (KCNA) | Continuously reconciled: manual changes and drift (principles 30%) | B |
+| CNPA | service-selector-no-endpoints-cnpa (KCNA) | Continuous delivery and GitOps, the role of reconcilers (core 36%) | B |
+| CNPE | service-selector-no-endpoints-cnpe (KCNA) | GitOps workflows: sync, health, drift correction (GitOps and CD 25%) | B |
+
+**New cases (6), terminal screen.** Same pattern as 22.29: learner-paced
+`turns` phase, one `work` wait per command, the problem's next step an
+`interruptsSkip` trigger, harm endings first, one three-part write-up, six
+goldens. Teaching timings carry an "Author's scenario timing (REQ-320)"
+source (FLAG: not measured values). The cases were generated from compact
+specs by a factory script in the builder's scratchpad; the committed JSON is
+the source of truth.
+
+| Course / slug | Profile | Core of the case | Steps |
+|---|---|---|---|
+| CKS/falco-shell-in-catalog-pod | security | Falco: a shell from java fetching a script, then the pod's token calling the API for Secrets; audit log shows db-password read. Save evidence, cut the RoleBinding, quarantine with a label and a deny-all NetworkPolicy; deleting loses evidence and the ReplicaSet brings back the same image and token; muting the rule hides the next attempt | cks-falco |
+| DP300/sleeping-session-blocks-orders | infrastructure | Blocking chain to a sleeping SSMS session with an open archive UPDATE; KILL the head blocker after asking its owner, not the victims; a service restart drops everyone; NOLOCK reads dirty data; then a blocked process report in Extended Events | dp300-blocking |
+| AZ700/stale-udr-to-retired-nva | infrastructure | Next hop and effective routes show 0.0.0.0/0 to a deallocated appliance; point it at Azure Firewall's private IP; deleting the route restores traffic around the firewall; NSG rules and restarts change nothing | az700-udr |
+| PCA/canary-gate-wrong-p99-query | infrastructure | A canary gate runs histogram_quantile on raw cumulative buckets; the right query sums the rate of buckets by le over 5m; a [30s] window over a 30 s scrape and the _sum/_count mean are traps; abort, fix the gate, add a recording rule | pca-p99 |
+| ICA/retry-storm-one-bad-ratings-pod | infrastructure | Ten 30 s retries with no timeout multiply load while round robin keeps sending to a failing pod; bound retries inside a route timeout and eject with outlier detection at maxEjectionPercent 50; 100% can empty the pool | ica-retries |
+| OTCA/split-traces-b3-propagator | infrastructure | payments extracts only B3 while checkout injects W3C traceparent; set payments to tracecontext,baggage; switching checkout to B3 splits everything else; sampling and the collector do not join traces | otca-propagation |
+
+**Still without a sim** (no existing case teaches their top domain, and
+no new case was written this round): AZ120, AZ140, AWSDEA, GCPDBE, GCPMLE,
+GCPNET, KCA, CCA, CBA. AI901 (Foundry, 55-60%) and GCPPDE (ingesting and
+processing, ~25%) have a sim only below their top domain. All fit the
+terminal or data console; none needs a new screen.
+
+**Findings** (recorded; none needed a code fix):
+
+1. **Course seed vs current outlines.** Google Cloud PCA v6.1 weights
+   (~25/18/19/15/11/12) differ slightly from the course seed's
+   (25/17.5/17.5/15/12.5/12.5). A third-party CNPE page lists different
+   domains from the seed's; the official curriculum was not re-read. The
+   Professional Cloud DevOps Engineer guide has a new version live on
+   November 23 (weights match the seed). For the verification pass.
+2. **Official pages that did not load.** The AWS AIF-C01 domain 3 page
+   returned only metadata; its weight was taken from a third-party guide and
+   the course seed. CNCF ecosystem weights (PCA, CGOA, CNPA, ICA) come from
+   the course seed and third-party study pages; the cncf/curriculum PDFs
+   were not re-read. Marked "to verify" in the sources.
+3. **Bands across levels** (as 22.29 finding 3): security-analyst incident
+   cases on AZ900, AWSAIF, GCPGAIL and AI901; an SC-500 incident on AZ305
+   and AZ104. The decision taught matches the objective; the level is the
+   base's. A decision for Nick: keep, or replace with simpler cases later.
+4. **The CKA case's prompt says `cka-lab`** in the CKAD band; CKA is not a
+   permission-only mark, so it was left.
+5. **Template braces.** A literal `{` in terminal output must be written
+   `{{` (parser.ts `parseTemplate`); PromQL label matchers and kubectl
+   jsonpath in the new cases are escaped or reworded.

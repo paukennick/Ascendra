@@ -43,4 +43,13 @@ export const CLOUD: readonly CloudEntry[] = [
   { course: "CKS", slug: "falco-shell-in-catalog-pod", screen: "terminal", profile: "security", kind: "scenario", steps: "cks-falco" },
   { course: "DP300", slug: "sleeping-session-blocks-orders", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "dp300-blocking" },
   { course: "AZ700", slug: "stale-udr-to-retired-nva", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az700-udr" },
+  { course: "PCA", slug: "canary-gate-wrong-p99-query", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "pca-p99" },
+  { course: "CGOA", slug: "service-selector-no-endpoints-cgoa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-cgoa-service-selector-no-endpoints-cgoa", base: "KCNA/service-selector-no-endpoints" },
+  { course: "CNPA", slug: "service-selector-no-endpoints-cnpa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-cnpa-service-selector-no-endpoints-cnpa", base: "KCNA/service-selector-no-endpoints" },
+  { course: "CNPE", slug: "service-selector-no-endpoints-cnpe", screen: "terminal", profile: "infrastructure", kind: "band", steps: "c20-cnpe-service-selector-no-endpoints-cnpe", base: "KCNA/service-selector-no-endpoints" },
+  { course: "ICA", slug: "retry-storm-one-bad-ratings-pod", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "ica-retries" },
+  { course: "OTCA", slug: "split-traces-b3-propagator", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "otca-propagation" },
+  { course: "GCPGAIL", slug: "agent-indirect-prompt-injection-gail", screen: "security-console", profile: "security", kind: "band", steps: "c20-gcpgail-agent-indirect-prompt-injection-gail", base: "SECAIPLUS/agent-indirect-prompt-injection" },
+  { course: "AI901", slug: "rag-assistant-data-leak-ai901", screen: "security-console", profile: "security", kind: "band", steps: "c20-ai901-rag-assistant-data-leak-ai901", base: "SECAIPLUS/rag-assistant-data-leak" },
+  { course: "GCPGAIL", slug: "rag-assistant-data-leak-gail", screen: "security-console", profile: "security", kind: "band", steps: "c20-gcpgail-rag-assistant-data-leak-gail", base: "SECAIPLUS/rag-assistant-data-leak" },
 ];

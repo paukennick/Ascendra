@@ -367,3 +367,48 @@ objectives (docs/sims.md 22.19's 46), the tech and depth candidates
 non-launch AWS, Azure, Google Cloud and CNCF courses (about 300 keyword
 fits). Data and code, governance, tabletop, facility and sandbox objectives
 wait for the screens other builders are making.
+
+## Round of 2026-11-17: the Azure, AWS, Google Cloud and CNCF courses (REQ-320)
+
+Breadth first: each course that had no sim got one on its highest-weighted
+domain where an existing case or a new terminal case teaches it, then depth
+by bands (docs/sims.md 22.30 lists every document).
+
+| Course | Sims added | Top domain covered |
+|---|---|---|
+| AZ104 | 3 bands | yes (compute) |
+| AZ900 | 2 bands | yes |
+| AZ305 | 3 bands | yes |
+| AZ400 | 2 bands | yes |
+| AZ700 | 1 case | yes |
+| DP300 | 1 case | yes (monitor and optimize, tied) |
+| DP900 | 1 band | yes (analytics, tied) |
+| AI901 | 1 band | no (concepts 40-45%; Foundry 55-60% open) |
+| AWSAIF | 3 bands | yes |
+| AWSANS | 3 bands | yes |
+| AWSDOP | 4 bands | yes |
+| AWSSCS | 4 bands | yes |
+| GCPDEV | 2 bands | yes |
+| GCPDEVOPS | 2 bands | yes |
+| GCPPCA | 2 bands | yes |
+| GCPSEC | 1 band | yes |
+| GCPGAIL | 2 bands | yes |
+| GCPPDE | 1 band | no (storing the data; ingesting and processing open) |
+| CKAD | 2 bands | yes |
+| CKS | 1 case | yes (runtime security, tied) |
+| KCSA | 1 band | yes (cluster component security, tied) |
+| CGOA, CNPA, CNPE | 1 band each | yes |
+| ICA, OTCA, PCA | 1 case each | yes |
+
+**Still none:** AZ120 (SAP workloads), AZ140 (virtual desktop), AWSDEA
+(ingestion and transformation), GCPDBE, GCPMLE, GCPNET, KCA (Kyverno policy
+writing), CCA (Cilium architecture), CBA (Backstage customizing). Candidate
+terminal cases, highest weight first: AWSDEA a Kinesis-to-Lambda poison
+record and replay; GCPNET a Cloud VPN route or MTU fault; GCPDBE a Cloud SQL
+connection-pool exhaustion and failover; KCA a validate rule moved from
+Audit to Enforce without reading the policy reports; CCA a datapath or IPAM
+misconfiguration seen with cilium status and Hubble; GCPMLE a training job
+that fails on accelerator quota; AZ140 a host pool whose FSLogix profile
+share is unreachable; AZ120 an SAP VM size or Accelerated Networking
+mismatch; CBA (Backstage React customization) fits the data and code console
+better than the terminal.
