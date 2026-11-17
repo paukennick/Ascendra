@@ -18,6 +18,7 @@ import { schemaProblems } from "./schema.ts";
 import { DEFAULT_RENDERERS, pacingEligible, parseCaps, renderersOn, runnable } from "./server-run.ts";
 import { backslashEscapeProblems, safetyFamilyOf, sandboxSafetyProblems, secondsUnitProblems } from "./lint.ts";
 import { CATALOG_TRACKS, activeUnits } from "../../supabase/seed/catalog";
+import { clientDocument } from "./content-hash.ts";
 
 const clone = (d: ScenarioDoc): ScenarioDoc => JSON.parse(JSON.stringify(d)) as ScenarioDoc;
 const errors = (d: ScenarioDoc): string[] => validateScenario(d).map(String);
@@ -87,6 +88,18 @@ describe("REQ-314 documents", () => {
       const g = JSON.parse(readFileSync(e.golden!, "utf8")) as GoldenFile;
       assert.equal(g.slug, e.slug);
       assert.ok(g.paths.length >= 5, e.slug);
+    }
+  });
+});
+
+describe("the client document leaks no server-only text (as documents.test.ts, for these cases)", () => {
+  test("no debrief, model answer or expert path text appears in what the app receives", () => {
+    for (const e of REQ314_DOCUMENTS) {
+      const d = loadDocument(e);
+      const text = JSON.stringify(clientDocument(d));
+      const secret: string[] = [d.scoring.modelReasoning, ...Object.values(d.scoring.debrief).map((x) => x.body), ...d.scoring.expertPath.map((x) => x.text)];
+      for (const m of Object.values(d.reasoning)) for (const p of m.parts) secret.push(p.modelAnswer, p.criteria);
+      for (const s of secret.filter((x) => x.length >= 24)) assert.ok(!text.includes(JSON.stringify(s).slice(1, -1)), `${e.slug}: ${s.slice(0, 60)}`);
     }
   });
 });
