@@ -9,6 +9,8 @@ import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
 import { matchesSimsFilter, showSimsFilter } from "@/lib/courseSims";
 import { CourseCard } from "@/components/CourseCard";
 import { colors, spacing } from "@/lib/theme";
+import { GridRow, useGridColumns } from "@/components/WebColumn";
+import { chunkRows } from "@/lib/webColumn";
 
 interface Section {
   title: string;
@@ -135,6 +137,20 @@ export default function Explore() {
   }, [tracks, query, categorySlug, freshnessFilter, simsActive]);
 
   const sections = useMemo(() => groupByCategory(filtered), [filtered]);
+  // REQ-322: two cards per row on a wide web window; one everywhere else.
+  const columns = useGridColumns();
+  const listSections: { title: string; data: (Track | Track[])[] }[] = useMemo(
+    () => (columns > 1 ? sections.map((s) => ({ title: s.title, data: chunkRows(s.data, columns) })) : sections),
+    [sections, columns]
+  );
+  const renderCourse = (item: Track, style?: { flex: number }) => (
+    <CourseCard
+      track={item}
+      style={style}
+      onPress={() => router.push(`/course/${item.id}`)}
+      onToggleFavorite={() => toggleFavorite(item)}
+    />
+  );
 
   // REQ-119 (Audit 3 product L2): a course that isn't here can be asked
   // for. The request is stored and rate-limited by POST /api/support; the
@@ -148,9 +164,9 @@ export default function Explore() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
       <Stack.Screen options={{ title: "Explore" }} />
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
+      <SectionList<Track | Track[], { title: string; data: (Track | Track[])[] }>
+        sections={listSections}
+        keyExtractor={(item) => (Array.isArray(item) ? item.map((t) => t.id).join("+") : item.id)}
         contentContainerStyle={styles.content}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
@@ -210,13 +226,13 @@ export default function Explore() {
           </View>
         }
         renderSectionHeader={({ section }) => <SectionHeader label={section.title} />}
-        renderItem={({ item }) => (
-          <CourseCard
-            track={item}
-            onPress={() => router.push(`/course/${item.id}`)}
-            onToggleFavorite={() => toggleFavorite(item)}
-          />
-        )}
+        renderItem={({ item }) =>
+          Array.isArray(item) ? (
+            <GridRow columns={columns} cells={item.map((t) => renderCourse(t, { flex: 1 }))} />
+          ) : (
+            renderCourse(item)
+          )
+        }
         ListEmptyComponent={
           tracks && sections.length === 0 ? (
             <Card>

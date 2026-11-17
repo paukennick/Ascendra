@@ -2,7 +2,7 @@
 import "@/updates/appIdentity";
 import "@/updates/deviceIdentity";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { AppState, Platform, Pressable, Text, View } from "react-native";
+import { AppState, Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -40,10 +40,14 @@ const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
+import { installDesktopWebStyles } from "@/lib/webDesktopStyles";
+import { bottomBannerInsets } from "@/lib/webColumn";
 import { startWebAnalytics } from "@/lib/webAnalytics";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
 installWebAutofillStyles();
+// REQ-322: hover and keyboard focus rings on wide web windows only.
+installDesktopWebStyles();
 // REQ-261: visitor analytics, web build only (a no-op on the phone), once.
 // Skipped when the build has it off or the browser sends GPC / Do Not Track.
 startWebAnalytics();
@@ -58,12 +62,15 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 // signed in", already resets the idle clock via that effect's own window
 // listeners, so this needs no dismiss handler of its own.
 function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
+  // REQ-322: over the column on a wide web window, not across the monitor.
+  const { width } = useWindowDimensions();
+  const sides = bottomBannerInsets(Platform.OS, width, spacing.lg);
   return (
     <View
       style={{
         position: "absolute",
-        left: spacing.lg,
-        right: spacing.lg,
+        left: sides.left,
+        right: sides.right,
         bottom: spacing.lg,
         backgroundColor: colors.warnDim,
         borderWidth: 1,
