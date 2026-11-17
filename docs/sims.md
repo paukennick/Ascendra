@@ -6739,3 +6739,78 @@ Contracting: Business and Legal Principles, ch. 22 (claims).
    a P5 impact review on the governance board (CSPP), and an Argo
    Workflows DAG failure on the terminal (CAPA). PMI-RMP's identification
    and analysis domains want a risk-register case on the governance board.
+
+#### 22.31, second part: the six courses still without a sim, PMI-RMP's top domain, and PMP depth (sims-pm-2)
+
+Same rules as the first part: existing screens only, no migration, engine
+1.2, learner-paced, each case with endings in all three classes and an
+`endingOrder` with harm first, four critical criteria met and missed across
+its goldens, Good, Mediocre and Bad goldens, one written-reasoning moment,
+and its own course outline as its first source with the date read. Every
+document is listed by slug in `lib/sim/pm-comptia.ts`; the review-paced cases
+share a golden driver, `scripts/sim-golden/pm2-helpers.ts` (move a period
+on, answer each prompt, run the inspect tasks named for a period, close).
+
+**New cases** (author's fictional organizations and teaching figures):
+
+| Course / slug | Screen, profile | Objective (start) | Core of the case | Steps |
+|---|---|---|---|---|
+| PGMP/pgmp-transit-program-steering-review | governance board, governance | Analyzing cost/schedule/quality/risk variances... (Program Life Cycle 44%) | Four monthly steering reviews of a transit fare program: consolidate the four projects' data (integration at SPI 0.82 holding up the kiosks) and correct the plan; escalate a certification risk that threatens the fare benefit to the committee and its reserve; ask the committee for conditional authorization at the deployment gate; analyze the adoption variance with the benefit owner | pgmp-steering |
+| PFMP/pfmp-water-utility-rebalance | governance board, governance | Determining how a change in strategic goals impacts the portfolio... (Strategic Alignment 25%) | A water utility's board puts water loss first: re-score six components, evaluate three scenarios (C saves 10 million but breaks the meters' dependency on billing), recommend B to the governance board, move four engineers from the paused app | pfmp-rebalance |
+| CSPP/cspp-school-laptop-p5-review | governance board, governance | Performing a P5 Impact Analysis: Product lenses... (P5 36%) | A school district's 2,000-laptop refresh: a P5 impact analysis with stakeholders, the repairable offer on lifespan and servicing (about 1,460 against 2,560 thousand dollars over six years), a certified recycler with reuse, and an announcement without a 'zero-impact' claim | cspp-p5 |
+| PMIRMP/pmirmp-warehouse-risk-register | governance board, governance | Developing a risk register... (Risk Identification 23%) | A warehouse automation project: validate thirty workshop lines into a register (issues and assumptions out, an opportunity classified), rate on the plan's matrix with urgency, EMV 200 to 50 thousand dollars for an 80 thousand mitigation, a trigger (pass rate below 95% by week 10) that starts the peak-season fallback | pmirmp-register |
+| PMIPBA/pmipba-claims-portal-baseline-signoff | project dashboard (predictive), project | Obtaining sign-off on the requirements baseline... (Analysis 35%) | An insurer's claims portal: a scored workshop for conflicting payout rules, 33 requirements baselined and 9 deferred with their trace, sign-off by the plan's decision rule after a prototype walk-through, a change after sign-off through traced impact analysis and the board | pmipba-baseline |
+| CAPA/argo-nightly-dag-region-failure | terminal, infrastructure | Build DAGs: tasks with dependencies... (Argo Workflows 36%) | A nightly DAG fans out over 12 regions and fans in to aggregate; eu-west's extract failed on a transient reset, fail fast stopped the DAG, and the exit handler said 'ready'. argo retry (failed node and dependents, about 25 minutes) before 05:30, not resubmit (late) or a run without eu-west (a wrong total); retryStrategy OnFailure with backoff (OnError does not cover a container that exits 1) and an exit handler that reads workflow.status | capa-dag |
+| PMP/pmp-contact-center-move-procurement | project dashboard (predictive), project | Planning and managing resources, procurement... and project finances (Process 41%) | A city contact center move: time and materials with a ceiling for an uncertain data migration, a critical-path engineer negotiated with the IT director before escalating, a vendor's missed milestone handled by the contract's cure step, an EAC above budget funded from the management reserve through change control | pmp-move |
+| PMP/pmp-permit-portal-hybrid-plan | project dashboard (predictive), project | Developing and maintaining an integrated project management plan... (Process 41%) | A county permit portal: a hybrid approach (the fee module fixed in law baselined, the wizard in iterations), PERT (8 + 4 x 12 + 22) / 6 = 13 days and parametric estimates, a legal amendment assessed across the plan and taken through change control, the wizard's scope flexed to the date with the product owner | pmp-permits |
+
+**New bands** (steps `pmc-<course>-<slug>`):
+
+| Course / slug | Base | Objective (start) |
+|---|---|---|
+| PMIPMOCP/water-utility-rebalance-pmipmocp | PFMP rebalance | Establishing and maintaining PMO governance... (PMO Strategic Elements 18%) |
+| PMP/warehouse-risk-register-pmp | PMI-RMP register | Planning and managing risk... (Business Environment 26%) |
+| CAPM/warehouse-risk-register-capm | PMI-RMP register | Following and executing a planned strategy or framework... (36%) |
+| PROJECTPLUS/warehouse-risk-register-projectplus | PMI-RMP register | Risk management (33%) |
+| PROJECTPLUS/contact-center-move-procurement-projectplus | PMP move | Procurement and vendor selection (33%) |
+| PMICP/contact-center-move-contracts-pmicp | PMP move | Recognizing how contract type and delivery method selection affect claims... (50%) |
+
+**Breadth after this part.** Every course of 22.31 has a sim on (one of)
+its highest-weighted domains, including PgMP, PfMP, PMI-PMOCP, PMI-PBA, CSPP,
+CAPA and PMI-RMP; `pm-comptia.test.ts` checks it for all 22 courses.
+
+**Depth after this part.** PMP's Process objectives that meet the selection
+rule (`sims:generate -- --select`) all have a sim: the integrated plan and
+resources/procurement/finances (new predictive cases), schedule (the fit-out)
+and value-based delivery (a Scrum band). PMP's Business Environment risk
+objective is a band. CAPM gains the executing-a-planned-strategy objective.
+Not built (a decision of scope, not a screen gap): PMP's People objectives
+(conflict, stakeholders, expectations), governance and compliance as primary
+objectives; CAPM's core-concepts, ethics and roadmap objectives; further
+depth in the other courses of the first part.
+
+**Sources** (read 2026-11-17; WebSearch, then summarizing fetches of pages
+that came up in search): PfMP outline (PRA-206-2017, a training provider's
+copy of PMI's PDF); PMI-PMOCP weights (a study page citing PMI's January 2025
+v2 outline; task text not shown, to verify); PgMP weights (a training
+provider's article; PMI's PDF did not come up, tasks to verify); PMI-PBA
+weights and tasks (two study pages; PMI's PDF not opened, to verify); CSPP
+(pmi.org's CSPP bundle page, direct); CAPA (the Linux Foundation's exam
+page, direct, and a study page); PMI-RMP outline (January 2023, a training
+provider's copy); GPM P5 Standard v2.0 (a third-party copy of the PDF); Argo
+Workflows documentation (Retries and the DAG walk-through, release 3.4; argo
+retry, latest), a retry-versus-resubmit article and KodeKloud's exit-handler
+notes (to verify against Argo's own walk-through); Jama Software's guide to
+the requirements baseline; Watt, Project Management 2e, ch. 13 (contract
+types); PMI's projectmanagement.com wiki on three-point estimating.
+
+**Findings for Nick** (recorded; no code defect, so no FAIL entry):
+
+1. **CSPP's weights in the seed differ from PMI's page.** The course seed has
+   five domains with P5 at 36%; pmi.org's CSPP page (read today) lists six,
+   with P5 at 24%, PRiSM 23% and a "Project Management Considerations"
+   domain at 23% that the seed does not have (the page's weights add to
+   101%). The sim is on P5, the largest domain either way. The course itself
+   needs a verification pass.
+2. **Outline texts not read directly** for PgMP, PMI-PBA and PMI-PMOCP (PMI's
+   PDFs did not come up in search); their objective wording is the seed's.
