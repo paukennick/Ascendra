@@ -36,7 +36,8 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 // REQ-231 adds the security operations console ("security-console").
 // REQ-232 adds the PT treatment session ("treatment-session") the same way.
 // REQ-237 adds the terminal and network screen ("terminal").
-export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal"] as const;
+// REQ-312 adds the data and code console ("data").
+export const DEFAULT_RENDERERS = ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "data"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];

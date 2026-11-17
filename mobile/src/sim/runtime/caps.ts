@@ -6,6 +6,7 @@
 // REQ-225: the client session (screen.session bindings), level 1.
 // REQ-232: the PT treatment session (screen.treatment bindings), level 1.
 // REQ-237: the terminal and network screen (screen.terminal bindings), level 1.
+// REQ-312: the data and code console (screen.data bindings), level 1.
 import { ENGINE_MAJOR, ENGINE_MINOR } from "../engine/v1/engine.ts";
 
 export const SIM_RENDERERS = [
@@ -15,6 +16,7 @@ export const SIM_RENDERERS = [
   { type: "security-console", level: 1 }, // REQ-231 (screen.console bindings)
   { type: "treatment-session", level: 1 },
   { type: "terminal", level: 1 }, // REQ-237 (screen.terminal bindings)
+  { type: "data", level: 1 }, // REQ-312 (screen.data bindings)
 ] as const;
 
 export const SIM_CAPS_HEADER = "x-sim-caps";

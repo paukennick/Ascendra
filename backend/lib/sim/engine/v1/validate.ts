@@ -138,7 +138,18 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
     restoreWindow: { value: 3600, tighter: "lower", note: "service restored <= 60 min after the first report" },
     newFaults: { value: 0, tighter: "lower", note: "faults the fix itself introduced; none is the target" },
   },
-  data: {},
+  // REQ-312 (docs/sims.md 9.2, 20.1, 22.25): a case on the data and code
+  // console. Target: the right root cause found and the right result
+  // delivered within the window, with no data altered beyond the fix;
+  // recovered: delivered late, or with a reversible side effect a check
+  // caught; harm: a wrong result shipped to the stakeholder (a published
+  // report, a deployed change, a release on a bad measurement), or data
+  // deleted or corrupted beyond recovery. Times are sim seconds from the
+  // request; altered rows are a state counter written at command time (20.1).
+  data: {
+    deliverWindow: { value: 7200, tighter: "lower", note: "right result delivered <= 2 h after the request" },
+    rowsAlteredOutsideFix: { value: 0, tighter: "lower", note: "rows changed beyond the fix; none is the target" },
+  },
   // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
   // session's safety or diagnostic task done within its window with the
   // alliance intact; recovered: done late, partly, or at a cost to the
@@ -1528,6 +1539,143 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
   }
   consoleCheck(doc, root, info, col);
   terminalCheck(doc, root, info, col);
+  dataCheck(doc, root, info, col);
+}
+
+// REQ-312 (docs/sims.md 20.1, 22.25): the data and code console's bindings,
+// checked like the terminal's. Display only: nothing here changes stepping.
+// An editable cell names an action whose one param is a choice, listed in a
+// phase, so an edit is a bounded choice the engine already validates.
+export const DATA_SEVERITIES: readonly string[] = ["error", "warning", "info"];
+export const DATA_MARKS: readonly string[] = ["none", "error", "warning", "changed", "focus"];
+export const DATA_CHART_KINDS: readonly string[] = ["bar", "line", "control"];
+const T_MARK: Ty = { k: "enum", values: [...DATA_MARKS] };
+const DATA_CODE_LINE_MAX = 160;
+const DATA_TABLE_ROWS_MAX = 60;
+const DATA_CHART_POINTS_MAX = 60;
+
+function dataCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (s.type === "data" && !s.data) col.error("screen.data", "a data and code console needs its workspace, flag, table, chart and code bindings");
+  const d = s.data;
+  if (!d) return;
+  if (s.type !== "data") col.error("screen.data", "data bindings belong on a screen of type data");
+  const ids = new Set<string>();
+  const unique = (id: string, path: string): void => {
+    if (ids.has(id)) col.error(path, `duplicate id ${id}`);
+    ids.add(id);
+  };
+  const optBool = (e: string | undefined, path: string): void => {
+    if (e !== undefined) checkOne(e, root, WHERE_TICK, path, info, col, "bool");
+  };
+  if (typeof d.workspace !== "string" || !d.workspace) col.error("screen.data.workspace", "names what is open (a file, a report, a process line)");
+  else checkTemplate(d.workspace, root, WHERE_TICK, "screen.data.workspace", info, col);
+  for (const k of ["flags", "tables", "charts", "code"] as const) {
+    if (!Array.isArray(d[k])) col.error(`screen.data.${k}`, `needs a ${k} list (it may be empty)`);
+  }
+  if (!(d.tables ?? []).length && !(d.charts ?? []).length && !(d.code ?? []).length) col.error("screen.data", "needs at least one table, chart or code file to show");
+  (d.flags ?? []).forEach((f, i) => {
+    const path = `screen.data.flags[${i}]`;
+    unique(f.id, path);
+    if (!f.label) col.error(`${path}.label`, "names the flag (a check, a stakeholder, a rule)");
+    if (!DATA_SEVERITIES.includes(f.severity)) col.error(`${path}.severity`, `must be one of ${DATA_SEVERITIES.join(", ")}`);
+    checkTemplate(f.text, root, WHERE_TICK, `${path}.text`, info, col);
+    checkOne(f.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+  });
+  const phaseActions = new Set(Object.values(doc.phases).flatMap((p) => p.actions));
+  (d.tables ?? []).forEach((t, i) => {
+    const path = `screen.data.tables[${i}]`;
+    unique(t.id, path);
+    if (!t.spokenLabel) col.error(path, "needs a spokenLabel");
+    optBool(t.when, `${path}.when`);
+    if (!Array.isArray(t.columns) || !t.columns.length) col.error(`${path}.columns`, "needs at least one column");
+    if (!Array.isArray(t.rows)) col.error(`${path}.rows`, "needs a rows list");
+    if ((t.rows ?? []).length > DATA_TABLE_ROWS_MAX) col.error(`${path}.rows`, `at most ${DATA_TABLE_ROWS_MAX} rows on screen; a larger dataset is a catalogue shown through an output table`);
+    const colIds = new Set<string>();
+    (t.columns ?? []).forEach((c, j) => {
+      if (colIds.has(c.id)) col.error(`${path}.columns[${j}]`, `duplicate column ${c.id}`);
+      colIds.add(c.id);
+      if (!c.label) col.error(`${path}.columns[${j}].label`, "needs a heading");
+    });
+    const rowIds = new Set<string>();
+    (t.rows ?? []).forEach((r, j) => {
+      const rp = `${path}.rows[${j}]`;
+      if (rowIds.has(r.id)) col.error(rp, `duplicate row ${r.id}`);
+      rowIds.add(r.id);
+      if (!Array.isArray(r.cells) || r.cells.length !== (t.columns ?? []).length) col.error(`${rp}.cells`, `needs one cell per column (${(t.columns ?? []).length})`);
+      (r.cells ?? []).forEach((c, k) => checkTemplate(c, root, WHERE_TICK, `${rp}.cells[${k}]`, info, col));
+      optBool(r.when, `${rp}.when`);
+      optBool(r.flag, `${rp}.flag`);
+    });
+    if (t.note !== undefined) checkTemplate(t.note, root, WHERE_TICK, `${path}.note`, info, col);
+    const cells = new Set<string>();
+    (t.edits ?? []).forEach((e, j) => {
+      const ep = `${path}.edits[${j}]`;
+      if (!rowIds.has(e.row)) col.error(`${ep}.row`, `no row ${e.row}`);
+      if (!colIds.has(e.column)) col.error(`${ep}.column`, `no column ${e.column}`);
+      const key = `${e.row}/${e.column}`;
+      if (cells.has(key)) col.error(ep, `cell ${key} is editable twice`);
+      cells.add(key);
+      const a = doc.actions[e.action];
+      if (!a) col.error(`${ep}.action`, `no action ${e.action}`);
+      else if (!a.params || a.params.length !== 1 || a.params[0].kind !== "choice") col.error(`${ep}.action`, "an editable cell's action has exactly one param, of kind choice (an edit is a bounded choice)");
+      if (a && !phaseActions.has(e.action)) col.error(`${ep}.action`, `action ${e.action} is in no phase`);
+    });
+  });
+  (d.charts ?? []).forEach((c, i) => {
+    const path = `screen.data.charts[${i}]`;
+    unique(c.id, path);
+    if (!c.spokenLabel) col.error(path, "needs a spokenLabel");
+    if (!DATA_CHART_KINDS.includes(c.kind)) col.error(`${path}.kind`, `must be one of ${DATA_CHART_KINDS.join(", ")}`);
+    if (!(typeof c.min === "number" && typeof c.max === "number" && c.min < c.max)) col.error(`${path}.min`, "min and max are numbers with min below max (the axis)");
+    if (typeof c.unit !== "string") col.error(`${path}.unit`, "says the unit in words (it may be empty)");
+    optBool(c.when, `${path}.when`);
+    if (!Array.isArray(c.points) || !c.points.length) col.error(`${path}.points`, "needs at least one point");
+    if ((c.points ?? []).length > DATA_CHART_POINTS_MAX) col.error(`${path}.points`, `at most ${DATA_CHART_POINTS_MAX} points`);
+    const pids = new Set<string>();
+    (c.points ?? []).forEach((p, j) => {
+      const pp = `${path}.points[${j}]`;
+      if (pids.has(p.id)) col.error(pp, `duplicate point ${p.id}`);
+      pids.add(p.id);
+      if (!p.label) col.error(`${pp}.label`, "needs a label (a subgroup, a month, a category)");
+      checkOne(p.value, root, WHERE_TICK, `${pp}.value`, info, col, T_NUM);
+      optBool(p.when, `${pp}.when`);
+      optBool(p.flag, `${pp}.flag`);
+    });
+    if (c.kind === "control" && !(c.lines ?? []).length) col.error(`${path}.lines`, "a control chart needs its center line and limits");
+    (c.lines ?? []).forEach((l, j) => {
+      const lp = `${path}.lines[${j}]`;
+      if (pids.has(l.id)) col.error(lp, `duplicate id ${l.id}`);
+      pids.add(l.id);
+      if (!l.label) col.error(`${lp}.label`, "names the line (center line, UCL, LSL, target)");
+      checkOne(l.value, root, WHERE_TICK, `${lp}.value`, info, col, T_NUM);
+      optBool(l.when, `${lp}.when`);
+    });
+    if (c.note !== undefined) checkTemplate(c.note, root, WHERE_TICK, `${path}.note`, info, col);
+  });
+  (d.code ?? []).forEach((f, i) => {
+    const path = `screen.data.code[${i}]`;
+    unique(f.id, path);
+    if (!f.label) col.error(`${path}.label`, "names the file or cell");
+    if (!f.language) col.error(`${path}.language`, "names the language (Python, JavaScript, SQL, DAX, M)");
+    optBool(f.when, `${path}.when`);
+    if (!Array.isArray(f.lines) || !f.lines.length) col.error(`${path}.lines`, "needs at least one line");
+    const lids = new Set<string>();
+    (f.lines ?? []).forEach((l, j) => {
+      const lp = `${path}.lines[${j}]`;
+      if (lids.has(l.id)) col.error(lp, `duplicate line ${l.id}`);
+      lids.add(l.id);
+      if (typeof l.text !== "string") col.error(`${lp}.text`, "is literal text");
+      else if (l.text.length > DATA_CODE_LINE_MAX) col.error(`${lp}.text`, `at most ${DATA_CODE_LINE_MAX} characters (wrap long lines)`);
+      else if (l.text.includes("\n") || l.text.includes("\t")) col.error(`${lp}.text`, "one line per entry, spaces for indentation (no newline or tab)");
+      optBool(l.when, `${lp}.when`);
+      if (l.mark !== undefined) checkOne(l.mark, root, WHERE_TICK, `${lp}.mark`, info, col, T_MARK);
+    });
+  });
+  (d.meters ?? []).forEach((m, i) => {
+    unique(m.id, `screen.data.meters[${i}]`);
+    checkTemplate(m.value, root, WHERE_TICK, `screen.data.meters[${i}].value`, info, col);
+  });
 }
 
 // REQ-237 (docs/sims.md 20.1, 22.10): the terminal screen's bindings,
