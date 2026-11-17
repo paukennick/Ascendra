@@ -1,0 +1,1153 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "fever-ten-days-after-chemo",
+  "title": "38.4 at 21:00",
+  "objective": "Grade neutropenia by count, protect the patient from infection, and treat fever in neutropenia as an emergency",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Adult critical care nursing certification exam handbook and test plan: hematology and immunology, including immunocompromised patients, within the body-system categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Relayed from the CCRN Adult course seed (backend/supabase/seed/tracks/ccrn.ts), which read the handbook 2026-10-31, not re-read: hematology and immunology, including immunocompromised patients, within the body-system categories is tested. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Adult course catalog (backend/supabase/seed/tracks/ccrn.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Neutropenic Fever (point-of-care), last updated not shown on the page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.statpearls.com/point-of-care/65103",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'In severe neutropenia, the ANC is less than 500 per microliter', profound below 100; neutropenic fever is 'a single oral temperature greater than or equal to 101 F (38.3 C)' or at least 100.4 F (38 C) sustained for an hour, with an ANC below 1,500; 'Two sets of blood cultures should be obtained from a peripheral vein and any venous catheters' before empiric broad-spectrum therapy; for high-risk patients 'intravenous antibiotic therapy should be given within 1 hour after triage'; avoid exposure to people with respiratory infections. The page does not address rectal temperatures."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "21:00 in a medical ICU. You are Mr. Novak's nurse. He is 64, ten days after chemotherapy for lymphoma, admitted yesterday for atrial fibrillation with a fast rate, now controlled. He says he feels cold and shaky; the monitor shows a temperature of 38.4 C.",
+    "handover": [
+      "Lines: an implanted chest port, accessed, and one peripheral IV.",
+      "This morning's blood count posted at noon and has not been reviewed.",
+      "Unit policy for fever in a patient after chemotherapy: two sets of blood cultures (peripheral and port), call the intensivist, and the first dose of the ordered broad-spectrum antibiotic within 60 minutes of the fever. A PRN acetaminophen order is in place."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each assessment takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "21:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.015,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bacteremia progresses toward septic shock without an antibiotic. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "treatedRate": {
+      "value": 0.0,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It stops progressing once the antibiotic is in. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shockAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of septic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "callWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of the count (unit practice)."
+      }
+    },
+    "abxWindow": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Neutropenic Fever (point-of-care), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "note": "The first antibiotic dose within 1 hour of the fever."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused assessment: about 1 min."
+      }
+    },
+    "orderTime": {
+      "value": 240,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist reviews and orders: about 4 min."
+      }
+    },
+    "review": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist reassesses him: about 30 min."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.3,
+      "min": 0,
+      "max": 2
+    },
+    "countAt": {
+      "type": "time",
+      "init": null
+    },
+    "temp2At": {
+      "type": "time",
+      "init": null
+    },
+    "sourceAt": {
+      "type": "time",
+      "init": null
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "count",
+        "temp2",
+        "source",
+        "perf"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "icu",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fn",
+        "mild",
+        "line"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "cultAt": {
+      "type": "time",
+      "init": null
+    },
+    "abxAt": {
+      "type": "time",
+      "init": null
+    },
+    "apapAt": {
+      "type": "time",
+      "init": null
+    },
+    "precAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "ordered": {
+      "expr": "route == \"icu\" and t >= timeAt(callAt) + orderTime"
+    },
+    "masked": {
+      "expr": "not isNull(apapAt)"
+    },
+    "temp": {
+      "expr": "masked ? 37.6 : round((38.4 + 0.8 * prog) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "hr": {
+      "expr": "round(96 + 30 * prog + sin(t / 13) * 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(122 - 40 * max(0, prog - 0.3))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round((sbp + 2 * dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "96",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(abxAt) ? progRate : treatedRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              100,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "ART",
+          "spokenLabel": "Arterial pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "alarm": {
+            "high": 38.2
+          },
+          "announce": {
+            "bands": [
+              38.3,
+              39
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Blood cultures drawn: {not isNull(cultAt)|yesno}. Broad-spectrum antibiotic: {not isNull(abxAt)|yesno}. Neutropenic precautions: {not isNull(precAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ordered and isNull(abxAt)",
+          "text": "The intensivist has ordered blood cultures and a broad-spectrum antibiotic now."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "count": {
+      "label": "Read this morning's blood count and work out the absolute neutrophil count",
+      "group": "Assess",
+      "available": "not testPending and isNull(countAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"count\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "temp2": {
+      "label": "Confirm the temperature by mouth and check for rigors",
+      "group": "Assess",
+      "available": "not testPending and isNull(temp2At)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"temp2\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "source": {
+      "label": "Look for a source: port site, mouth, lungs, skin, urine",
+      "group": "Assess",
+      "available": "not testPending and isNull(sourceAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"source\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "perf": {
+      "label": "Perfusion: capillary refill, mentation, urine output, lactate",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cultures": {
+      "label": "Draw two sets of blood cultures, one peripheral and one from the port",
+      "group": "Treat",
+      "available": "isNull(cultAt) and inClinic",
+      "why": "Already drawn.",
+      "effects": [
+        {
+          "set": "cultAt",
+          "to": "t"
+        },
+        {
+          "log": "Two sets of blood cultures drawn: peripheral and port.",
+          "kind": "act"
+        }
+      ]
+    },
+    "abx": {
+      "label": "Give the ordered broad-spectrum antibiotic",
+      "group": "Treat",
+      "available": "ordered and isNull(abxAt) and inClinic",
+      "why": "Not ordered yet, or given.",
+      "effects": [
+        {
+          "set": "abxAt",
+          "to": "t"
+        },
+        {
+          "log": "Antibiotic running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "prec": {
+      "label": "Neutropenic precautions: hand hygiene, a mask for anyone with a cough, no fresh flowers, visitors screened",
+      "group": "Treat",
+      "available": "isNull(precAt) and inClinic",
+      "why": "Already in place.",
+      "effects": [
+        {
+          "set": "precAt",
+          "to": "t"
+        },
+        {
+          "log": "Precautions posted and explained to him and his wife.",
+          "kind": "act"
+        }
+      ]
+    },
+    "apap": {
+      "label": "Give the PRN acetaminophen and recheck the temperature in an hour before calling",
+      "group": "Treat",
+      "available": "isNull(apapAt) and inClinic",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "apapAt",
+          "to": "t"
+        },
+        {
+          "log": "Acetaminophen given; you plan to recheck at 22:00.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Grade it and name the problem",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "fn",
+              "label": "Neutropenic fever: ANC about 180 (severe, under 500) with a temperature of 38.4: an emergency"
+            },
+            {
+              "value": "mild",
+              "label": "Mild neutropenia with a low-grade fever: recheck in the morning"
+            },
+            {
+              "value": "line",
+              "label": "A port infection only: send a swab"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"fn\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fn\""
+                },
+                {
+                  "log": "Neutropenic fever with severe neutropenia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"mild\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"mild\""
+                },
+                {
+                  "log": "Impression: mild neutropenia, low-grade fever.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"line\""
+                },
+                {
+                  "log": "Impression: port-site infection.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call the intensivist",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "Your report",
+          "options": [
+            {
+              "value": "icu",
+              "label": "Temperature 38.4 with rigors, ANC about 180 ten days after chemotherapy, port site red: neutropenic fever. Cultures going; ask for the broad-spectrum antibiotic now"
+            },
+            {
+              "value": "morning",
+              "label": "Give it an hour and report at the 06:00 labs if it persists"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"icu\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"icu\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "review"
+                },
+                {
+                  "log": "The intensivist agrees: cultures, a broad-spectrum antibiotic now, lactate and a repeat count; she will review him.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "You plan to see how he is in the morning.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document: fever time, ANC, cultures, antibiotic time, precautions",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Documented: fever 38.4 at 21:00, ANC about 180, cultures drawn, antibiotic time, precautions.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "ICU room",
+      "clock": "running",
+      "actions": [
+        "count",
+        "temp2",
+        "source",
+        "perf",
+        "cultures",
+        "abx",
+        "prec",
+        "apap",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"count\"",
+              "then": [
+                {
+                  "set": "countAt",
+                  "to": "t"
+                },
+                {
+                  "log": "White count 0.6; neutrophils 30%: ANC about 180 per microliter. Severe neutropenia (under 500).",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"temp2\"",
+              "then": [
+                {
+                  "set": "temp2At",
+                  "to": "t"
+                },
+                {
+                  "log": "Oral temperature {temp} C; shaking chills.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"source\"",
+              "then": [
+                {
+                  "set": "sourceAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Port site slightly red; mouth sore with mucositis; lungs clear; no rash.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "perfAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Capillary refill 3 s, alert, urine 40 mL last hour; lactate 1.9.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the intensivist's review",
+      "wait": {
+        "skipLabel": "the review"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min until the intensivist reassesses him."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The intensivist reviews him at the bedside.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 900",
+      "question": "How severe is his neutropenia, what does the fever mean, and how fast must you act?",
+      "parts": [
+        {
+          "label": "Grade and meaning",
+          "criteria": "ANC under 500 is severe (under 100 profound); a single temperature of 38.3 C or more with an ANC under 1,500 is neutropenic fever, an emergency because infection spreads without the usual signs.",
+          "modelAnswer": "His ANC is about 180, so severe neutropenia. A temperature of 38.4 with that count is neutropenic fever, and it's an emergency."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls now; two sets of cultures (peripheral and port) before the antibiotic; the broad-spectrum antibiotic within 1 hour of the fever; precautions; acetaminophen does not replace or delay any of it.",
+          "modelAnswer": "Call the intensivist now, draw two sets of cultures, one from the port, and get the antibiotic in within the hour. Acetaminophen doesn't buy time; it just hides the fever. Put precautions in place."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Neutropenic fever without an antibiotic an hour on is harm here.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Neutropenic Fever (point-of-care), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/65103",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'In severe neutropenia, the ANC is less than 500 per microliter', profound below 100; neutropenic fever is 'a single oral temperature greater than or equal to 101 F (38.3 C)' or at least 100.4 F (38 C) sustained for an hour, with an ANC below 1,500; 'Two sets of blood cultures should be obtained from a peripheral vein and any venous catheters' before empiric broad-spectrum therapy; for high-risk patients 'intravenous antibiotic therapy should be given within 1 hour after triage'; avoid exposure to people with respiratory infections. The page does not address rectal temperatures."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Septic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= shockAt and inClinic",
+      "narrative": "His pressure falls to 78/40, he is confused and mottled, and his lactate is 5. He is in septic shock."
+    },
+    "treated": {
+      "label": "Neutropenic fever treated as an emergency",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow and not isNull(abxAt) and timeAt(abxAt) <= abxWindow and not isNull(cultAt) and timeAt(cultAt) <= timeAt(abxAt) and isNull(apapAt)",
+      "narrative": "{timeAt(leftAt)|clock}: cultures drawn, the antibiotic in within the hour, his pressure holding. You treated the fever as the emergency it is."
+    },
+    "treatedGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the antibiotic is in, but the call was late, cultures were missed or came after it, or acetaminophen delayed the response."
+    },
+    "time_up": {
+      "label": "No antibiotic at 22:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "22:00 and he still has not had an antibiotic."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "treated",
+    "treatedGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "callC",
+        "label": "Called the intensivist within 5 minutes of the count",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"icu\" and timeAt(callAt) <= timeAt(redFlagAt) + callWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"icu\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "route == \"morning\"",
+            "score": "missed",
+            "why": "Left for the morning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not called."
+          }
+        ]
+      },
+      {
+        "id": "abxC",
+        "label": "Antibiotic within 1 hour of the fever, after cultures",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(abxAt) and timeAt(abxAt) <= abxWindow and not isNull(cultAt) and timeAt(cultAt) <= timeAt(abxAt)",
+            "score": "met",
+            "why": "At {timeAt(abxAt)|clock}."
+          },
+          {
+            "when": "not isNull(abxAt)",
+            "score": "partial",
+            "why": "Given, but before cultures or late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not given."
+          }
+        ]
+      },
+      {
+        "id": "noMask",
+        "label": "Did not mask the fever with acetaminophen instead of acting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(apapAt)",
+            "score": "missed",
+            "why": "Acetaminophen and wait."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Acted on the fever."
+          }
+        ]
+      },
+      {
+        "id": "countC",
+        "label": "Worked out the ANC",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(countAt)",
+            "score": "met",
+            "why": "About 180."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read."
+          }
+        ]
+      },
+      {
+        "id": "precC",
+        "label": "Put neutropenic precautions in place",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(precAt)",
+            "score": "met",
+            "why": "In place."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Graded it severe and named neutropenic fever",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"fn\"",
+            "score": "met",
+            "why": "Named."
+          },
+          {
+            "when": "dxEnum == \"mild\"",
+            "score": "missed",
+            "why": "Graded mild."
+          },
+          {
+            "when": "dxEnum == \"line\"",
+            "score": "missed",
+            "why": "Called it the port only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not named."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the times",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Documented."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not documented."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: severe neutropenia; neutropenic fever is an emergency; cultures and antibiotic within the hour",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toAbx",
+        "label": "Fever to antibiotic",
+        "value": "isNull(abxAt) ? -1 : timeAt(abxAt)",
+        "format": "duration",
+        "expert": "under 15 min"
+      },
+      {
+        "id": "toCall",
+        "label": "Count to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:00",
+        "text": "ANC about 180: severe neutropenia. Temperature 38.4 by mouth with rigors."
+      },
+      {
+        "at": "~21:02",
+        "text": "Neutropenic fever. Call the intensivist; draw two sets of cultures, peripheral and port."
+      },
+      {
+        "at": "~21:07",
+        "text": "Give the ordered antibiotic; precautions; document the times."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Septic shock",
+        "body": "Fever with an ANC under 500 is an emergency: cultures and a broad-spectrum antibiotic within the hour. Acetaminophen and waiting lets the infection spread."
+      },
+      "treated": {
+        "headline": "Treated as an emergency",
+        "body": "You graded the neutropenia, called within minutes, drew cultures and had the antibiotic in well within the hour. That is the expert path."
+      },
+      "treatedGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you called, whether cultures came before the antibiotic, and whether acetaminophen delayed things."
+      },
+      "time_up": {
+        "headline": "No antibiotic",
+        "body": "Neutropenic fever needs an antibiotic within the hour."
+      }
+    },
+    "modelReasoning": "Ten days after chemotherapy his ANC is about 180: severe neutropenia (under 500). A single temperature of 38.3 C or more with an ANC under 1,500 is neutropenic fever, and it is an emergency because infection spreads fast without the usual signs. Call the intensivist now, draw two sets of blood cultures (peripheral and port), give the broad-spectrum antibiotic within 1 hour of the fever, and put precautions in place. Acetaminophen and a recheck later only hide the fever and lose time."
+  },
+  "chapters": [
+    {
+      "id": "abx",
+      "label": "Antibiotic in",
+      "when": "not isNull(abxAt)"
+    }
+  ],
+  "teaching": {
+    "ancQ": {
+      "during": "testT",
+      "ask": "While you assess: which ANC is severe neutropenia?",
+      "choices": [
+        {
+          "id": "under500",
+          "label": "Under 500 per microliter"
+        },
+        {
+          "id": "under1500",
+          "label": "Under 1,500 is always severe"
+        },
+        {
+          "id": "under2000",
+          "label": "Under 2,000"
+        }
+      ],
+      "expect": "under500",
+      "explain": "Severe neutropenia is an ANC under 500; profound is under 100.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Neutropenic Fever (point-of-care), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/65103",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'In severe neutropenia, the ANC is less than 500 per microliter', profound below 100; neutropenic fever is 'a single oral temperature greater than or equal to 101 F (38.3 C)' or at least 100.4 F (38 C) sustained for an hour, with an ANC below 1,500; 'Two sets of blood cultures should be obtained from a peripheral vein and any venous catheters' before empiric broad-spectrum therapy; for high-risk patients 'intravenous antibiotic therapy should be given within 1 hour after triage'; avoid exposure to people with respiratory infections. The page does not address rectal temperatures."
+      }
+    },
+    "timeQ": {
+      "during": "leaveT",
+      "ask": "While the intensivist reviews him: how soon should the first antibiotic go in?",
+      "choices": [
+        {
+          "id": "hour",
+          "label": "Within 1 hour"
+        },
+        {
+          "id": "cultures",
+          "label": "When the cultures come back"
+        },
+        {
+          "id": "morning",
+          "label": "With the morning medicines"
+        }
+      ],
+      "expect": "hour",
+      "explain": "For high-risk patients, IV antibiotic therapy is given within 1 hour, after two sets of blood cultures.",
+      "source": {
+        "cite": "StatPearls (StatPearls Publishing, NCBI Bookshelf): Neutropenic Fever (point-of-care), last updated not shown on the page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.statpearls.com/point-of-care/65103",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes of the statpearls.com copy (NCBI refuses automated fetches): 'In severe neutropenia, the ANC is less than 500 per microliter', profound below 100; neutropenic fever is 'a single oral temperature greater than or equal to 101 F (38.3 C)' or at least 100.4 F (38 C) sustained for an hour, with an ANC below 1,500; 'Two sets of blood cultures should be obtained from a peripheral vein and any venous catheters' before empiric broad-spectrum therapy; for high-risk patients 'intravenous antibiotic therapy should be given within 1 hour after triage'; avoid exposure to people with respiratory infections. The page does not address rectal temperatures."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
