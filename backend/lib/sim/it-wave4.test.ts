@@ -234,4 +234,21 @@ describe("what each wave 4 case teaches (2)", () => {
     assert.notEqual(late.value("campaignFailedAt"), null);
     assert.ok((late.value("replaced") as number) > 14, "the group keeps replacing");
   });
+  test("SAA GuardDuty: a revocation alone lets the attacker take new credentials through the open request forgery; IMDSv2 keeps it out", () => {
+    const d = docOf("guardduty-role-credentials-macie");
+    const only = driver(d);
+    only.act("revoke");
+    assert.equal(only.value("attackerActive"), false);
+    while (only.minutes() < 31) only.act("watch");
+    assert.equal(only.value("attackerActive"), true, "new sessions are not covered by the revocation");
+    const fixed = driver(d);
+    fixed.act("revoke");
+    fixed.act("imds");
+    while (fixed.minutes() < 61) fixed.act("watch");
+    assert.equal(fixed.value("attackerActive"), false);
+    assert.equal(fixed.value("cardsOutAt"), null);
+    const iso = driver(d);
+    iso.act("terminate");
+    assert.equal(iso.value("attackerActive"), true, "terminating one instance stops nothing");
+  });
 });

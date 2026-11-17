@@ -38,4 +38,5 @@ export const WAVE4: readonly Wave4Entry[] = [
   { course: "SECPLUS", slug: "spoofed-ceo-wire-dmarc", screen: "security-console", profile: "security", kind: "scenario", steps: "secplus-dmarc" },
   { course: "SECPLUS", slug: "departing-engineer-usb-evidence", screen: "security-console", profile: "security", kind: "scenario", steps: "secplus-forensics" },
   { course: "AWSSOA", slug: "alb-health-check-login-redirect", screen: "board", profile: "cloud", kind: "scenario", steps: "soa-elbhc" },
+  { course: "AWSSAA", slug: "guardduty-role-credentials-macie", screen: "board", profile: "security", kind: "scenario", steps: "saa-guardduty" },
 ];
