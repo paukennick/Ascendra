@@ -97,12 +97,14 @@ export const SESSION_RETRY_MAX_WIDTH = 440;
 /**
  * REQ-322 (FAIL-2340): the root "couldn't reach Ascendra" screen sits outside
  * every stack, so the column never reached it. On a wide web window its
- * content is capped and centered, and it names the browser rather than a
- * phone. Everywhere else it is exactly as before.
+ * content is capped and centered. In any browser window it names the browser
+ * (Nick 2026-11-17: a phone's browser is still a browser); the native apps
+ * keep "this phone".
  */
+export const SESSION_RETRY_WEB_MESSAGE = "This browser is still signed in. Check your connection and try again.";
+export const SESSION_RETRY_NATIVE_MESSAGE = "You're still signed in on this phone. Check your connection and try again.";
+
 export function sessionRetryLayout(platform: string, wide: boolean): { maxWidth: number | null; message: string } {
-  if (platform === "web" && wide) {
-    return { maxWidth: SESSION_RETRY_MAX_WIDTH, message: "This browser is still signed in. Check your connection and try again." };
-  }
-  return { maxWidth: null, message: "You're still signed in on this phone. Check your connection and try again." };
+  if (platform === "web") return { maxWidth: wide ? SESSION_RETRY_MAX_WIDTH : null, message: SESSION_RETRY_WEB_MESSAGE };
+  return { maxWidth: null, message: SESSION_RETRY_NATIVE_MESSAGE };
 }

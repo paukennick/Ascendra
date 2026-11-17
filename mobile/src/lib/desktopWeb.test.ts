@@ -1,6 +1,8 @@
 // Desktop web sizing, step 2 (REQ-322): header alignment, course grids, the
 // root error screen, bottom banners, and hover/focus styles. Every rule must
-// leave native apps and web windows of 900px or less exactly as before.
+// leave native apps and web windows of 900px or less exactly as before, except
+// two (Nick 2026-11-17): the keyboard focus ring shows at every web width, and
+// the retry screen says "this browser" in any browser window.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -43,19 +45,30 @@ describe("nothing changes on phones, native apps or narrow windows", () => {
     assert.deepEqual(bottomBannerInsets("ios", 1440, 16), { left: 16, right: 16 });
   });
 
-  test("the retry screen is uncapped and keeps its wording off wide web", () => {
-    const before = "You're still signed in on this phone. Check your connection and try again.";
-    assert.deepEqual(sessionRetryLayout("ios", false), { maxWidth: null, message: before });
-    assert.deepEqual(sessionRetryLayout("web", false), { maxWidth: null, message: before });
+  test("the retry screen is uncapped off wide web; native apps keep 'this phone', every browser window says 'this browser'", () => {
+    const phone = "You're still signed in on this phone. Check your connection and try again.";
+    const browser = "This browser is still signed in. Check your connection and try again.";
+    for (const os of ["ios", "android"]) {
+      assert.deepEqual(sessionRetryLayout(os, false), { maxWidth: null, message: phone });
+      assert.deepEqual(sessionRetryLayout(os, true), { maxWidth: null, message: phone });
+    }
+    assert.deepEqual(sessionRetryLayout("web", false), { maxWidth: null, message: browser });
   });
 
-  test("every CSS rule is inside a min-width query above the breakpoint", () => {
+  test("only the keyboard focus ring applies at every web width; hover stays inside the min-width query", () => {
     const css = desktopWebCss();
     const outside = css.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g, "").trim();
-    assert.equal(outside, "", "no rule may apply at every width");
+    // Outside any media query: the focus ring rule and nothing else.
+    const outsideRules = outside.match(/\{[^{}]*\}/g) ?? [];
+    assert.equal(outsideRules.length, 1, "one rule at every width");
+    assert.match(outside, /^[^{]*:focus-visible[^{]*\{\s*outline: 2px solid [^;]+;\s*outline-offset: 2px;\s*\}$/);
+    assert.doesNotMatch(outside, /:hover/);
     const queries = css.match(/@media[^{]*/g) ?? [];
-    assert.ok(queries.length >= 2);
+    assert.ok(queries.length >= 1);
     for (const q of queries) assert.match(q, new RegExp(`min-width: ${WEB_COLUMN_BREAKPOINT + 1}px`));
+    const media = css.slice(css.indexOf("@media"));
+    assert.match(media, /:hover/);
+    assert.doesNotMatch(media, /:focus-visible/);
   });
 });
 
