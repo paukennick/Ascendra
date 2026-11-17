@@ -57,9 +57,9 @@ export const MATURE_NOTICE_LINES: readonly string[] = [
 ];
 
 // REQ-327: the notice for a course's 18+ simulations.
-export const MATURE_SIM_NOTICE_TITLE = "Adults only: mature clinical simulation";
+export const MATURE_SIM_NOTICE_TITLE = "Adults only: simulations on sensitive topics";
 export const MATURE_SIM_NOTICE_LINES: readonly string[] = [
-  "Some simulations in this course are marked 18+. To teach what the exam tests, they involve suicide or homicide risk, self-harm or other behavioral emergencies, described frankly and in clinical detail. The rest of the course doesn't need this confirmation.",
+  "Some simulations in this course are marked 18+. To teach what the exam tests, they involve suicide or homicide risk, self-harm or other behavioral emergencies, described frankly and in detail. The rest of the course doesn't need this confirmation.",
   "The cases are fictional exam practice, not advice about you or anyone you know, and not a substitute for care.",
   "If you're struggling yourself, you can stop at any time. In the US, call or text 988 (Suicide & Crisis Lifeline); elsewhere, contact your local emergency number.",
 ];
@@ -100,7 +100,7 @@ export class MatureContentDeclinedError extends Error {
   constructor(scope?: MatureScope) {
     super(
       scope === "sims"
-        ? "This simulation has mature clinical content for adults. Open it again whenever you're ready to confirm you're 18 or older."
+        ? "This simulation covers a sensitive topic and is for adults. Open it again whenever you're ready to confirm you're 18 or older."
         : "This course has mature clinical content for adults. Open it again whenever you're ready to confirm you're 18 or older."
     );
     this.name = "MatureContentDeclinedError";

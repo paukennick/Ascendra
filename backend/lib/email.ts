@@ -240,8 +240,8 @@ export async function sendUnderMinimumAgeNotice(to: string, accountId: string, a
     subject: "Ascendra: an account entered a date of birth below the minimum age",
     html:
       `<p>Account <strong>${escapeHtml(accountId)}</strong> (${escapeHtml(accountEmail)}) entered a date of birth below the account minimum age of ${minimumAge} ` +
-      `when asked to confirm they are 18 or older for a mental health course.</p>` +
-      `<p>The course stays locked for that account. Nothing has been deleted or changed. The date of birth is on the account (app_users.date_of_birth) if you need to review it; ` +
+      `when asked to confirm they are 18 or older for a mental health course or an 18+ simulation (REQ-327).</p>` +
+      `<p>That content stays locked for that account. Nothing has been deleted or changed. The date of birth is on the account (app_users.date_of_birth) if you need to review it; ` +
       `it is not repeated here.</p>`,
   });
 }

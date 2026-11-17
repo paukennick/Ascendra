@@ -33,7 +33,7 @@ test("a build that sends features=mature is capable; every older header is not",
   assert.deepEqual(parseCaps("protocol=1;engine=1.2;renderers=bedside@3;features=other,mature")?.features, ["other", "mature"]);
 });
 
-test("the course gate counts only course acknowledgements; the sim gate counts course and sims ones", () => {
+test("the course gate counts only course acknowledgments; the sim gate counts course and sims ones", () => {
   const course = matureContentNeededSql("st", "$2");
   assert.match(course, /mca\.scope = 'course'/);
   assert.match(course, new RegExp(`notice_version = '${MATURE_CONTENT_NOTICE_VERSION}'`));

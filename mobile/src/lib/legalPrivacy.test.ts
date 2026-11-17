@@ -138,17 +138,17 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    // REQ-317: the newer of the Terms (2026-11-13) and the Privacy Policy (2026-11-17).
-    assert.equal(TERMS_VERSION, "2026-11-17");
+    // REQ-327: both the Terms and the Privacy Policy are 2026-11-18.
+    assert.equal(TERMS_VERSION, "2026-11-18");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("each document carries its own version and date: the Terms stay 2026-11-13, the Privacy Policy is 2026-11-17 (REQ-317), Cookies 2026-11-16 (REQ-306)", () => {
+  test("each document carries its own version and date: the Terms and the Privacy Policy are 2026-11-18 (REQ-327), Cookies 2026-11-16 (REQ-306)", () => {
     const content = read("src", "content", "legal.ts");
     const expected: Record<string, [string, string]> = {
-      TERMS: ["2026-11-13", "November 13, 2026"],
-      PRIVACY: ["2026-11-17", "November 17, 2026"],
+      TERMS: ["2026-11-18", "November 18, 2026"],
+      PRIVACY: ["2026-11-18", "November 18, 2026"],
       COOKIES: ["2026-11-16", "November 16, 2026"],
     };
     for (const [n, want] of Object.entries(expected)) {
@@ -263,9 +263,11 @@ describe("website analytics in the policy (REQ-261)", () => {
   });
 
   test("only the Privacy Policy and Cookies moved; the Terms are unchanged by this", () => {
-    assert.equal(TERMS.version, "2026-11-13");
+    // REQ-327 moved the Terms and the Privacy Policy to 2026-11-18 (18+
+    // simulations); the analytics text above is unchanged.
+    assert.equal(TERMS.version, "2026-11-18");
     // REQ-306 moved both again (2026-11-16); the analytics text above is unchanged.
-    assert.equal(PRIVACY.version, "2026-11-17");
+    assert.equal(PRIVACY.version, "2026-11-18");
     assert.equal(COOKIES.version, "2026-11-16");
   });
 });
@@ -296,5 +298,41 @@ describe("predicted recall is named in the Privacy Policy (REQ-317)", () => {
     assert.match(privacy, /the memory model's estimate of how likely you were to remember the answer at that moment \(predicted recall\)/);
     assert.match(privacy, /To improve review timing: we compare predicted recall with how you actually did/);
     assert.match(privacy, /no one is shown these numbers and they change nothing in your study/);
+  });
+});
+
+// REQ-327 (Nick, 2026-11-17: "The gate should work across sensitive sims
+// regardless of profession. Update the policy and terms"): the Terms and the
+// Privacy Policy say that simulations on sensitive topics in ANY course are
+// 18+, what triggers the prompt, that the date of birth is asked once and
+// can't be changed in the app, that the attestation is kept per course, the
+// under-18 and under-16 handling, and (unchanged) how long it is kept.
+describe("18+ simulations in any course are disclosed (REQ-327)", () => {
+  const src = read("src", "content", "legal.ts");
+  const terms = src.slice(src.indexOf("export const TERMS"), src.indexOf("export const PRIVACY"));
+  const privacy = src.slice(src.indexOf("export const PRIVACY"), src.indexOf("export const COOKIES"));
+  const faq = src.slice(src.indexOf("export const FAQ"));
+  const SENSITIVE = /simulations on sensitive topics \(?such as suicide-risk assessment or behavioral emergencies\)? in any course/;
+  test("the Terms: who is asked, when, the date of birth once and fixed, under 18 locked", () => {
+    assert.match(terms, SENSITIVE);
+    assert.match(terms, /Before you open or start each mental health course, or the first such simulation in a course, you confirm that you are 18 or older/);
+    assert.match(terms, /you also give your date of birth, once; you can't change it in the app afterwards/);
+    assert.match(terms, /If it shows you are under 18, that content stays locked/);
+  });
+  test("the Privacy Policy: what is kept, per course, why, the children's section; retention unchanged", () => {
+    assert.match(privacy, /• Age for adults-only content \(mental health courses, and simulations on sensitive topics such as suicide-risk assessment or behavioral emergencies in any course\)/);
+    assert.match(privacy, /you can't change it in the app afterwards/);
+    assert.match(privacy, /Then, per course, that you confirmed you are 18 or older/);
+    assert.match(privacy, /whether it was for a whole mental health course or for that course's adults-only simulations/);
+    assert.match(privacy, /Nothing is asked until you open such a course or simulation/);
+    assert.match(privacy, /To check you're old enough for content meant for adults \(mental health courses, and simulations on sensitive topics/);
+    assert.match(privacy, /that content stays locked and the rest of Ascendra stays open; if it shows someone under \$\{OWNER\.minimumAge\}, we also review the account/);
+    assert.match(privacy, /age confirmations and date of birth, coach and support data: while your account is open/);
+    assert.doesNotMatch(privacy, /Age for mental health courses:|courses meant for adults \(mental health courses\)/);
+    assert.doesNotMatch(terms, /Mental health courses are for adults only: before you start each one/);
+  });
+  test("the FAQ says the same", () => {
+    assert.match(faq, /Why do some courses and simulations ask my age and date of birth\?/);
+    assert.match(faq, /Simulations on sensitive topics in any course/);
   });
 });

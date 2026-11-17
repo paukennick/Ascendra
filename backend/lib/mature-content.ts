@@ -82,7 +82,7 @@ export function isMatureScope(s: unknown): s is MatureScope {
 }
 
 export const MATURE_SIM_REQUIRED_MESSAGE =
-  "This simulation includes frank clinical material for adults. Confirm you're 18 or older to open it (update the app if you don't see the notice).";
+  "This simulation covers a sensitive topic and is for adults. Confirm you're 18 or older to open it (update the app if you don't see the notice).";
 export function matureSimUnderageMessage(): string {
   return (
     `This simulation is for learners who are ${MATURE_CONTENT_MIN_AGE} or older, so it stays locked on this account. ` +

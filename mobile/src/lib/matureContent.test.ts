@@ -297,7 +297,7 @@ describe("REQ-327: 18+ simulations", () => {
     await assert.rejects(api.get(`/api/sims/${SIM}`), (e: unknown) => e instanceof MatureContentBlockedError && /simulation.*Support/.test((e as Error).message));
     assert.match(friendlyError(new MatureContentBlockedError("sims")), /simulation is for learners who are 18/);
   });
-  test("the state reads the sims acknowledgements, and an older server's answer still parses", () => {
+  test("the state reads the sims acknowledgments, and an older server's answer still parses", () => {
     const base = { noticeVersion: MATURE_CONTENT_NOTICE_VERSION, dateOfBirthOnFile: true, ageStatus: "adult", acknowledgedTrackIds: [] };
     assert.deepEqual(parseMatureState({ ...base, acknowledgedSimTrackIds: [TRACK2, 3] })?.acknowledgedSimTrackIds, [TRACK2]);
     assert.equal(parseMatureState(base)?.acknowledgedSimTrackIds, undefined);

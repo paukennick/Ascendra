@@ -495,7 +495,7 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     // mature_course_acknowledgements on scope; without the column every mental
     // health course route and every 18+ sim fails.
     migration: "087_mature_sim_acknowledgements.sql",
-    what: "mature_course_acknowledgements.scope (course or sims: the per-sim 18+ gate for sims marked mature in courses outside mental health)",
+    what: "the scope of the per-course 18+ acknowledgment table (course or sims: the per-sim 18+ gate for sims marked mature in courses outside mental health)",
     sql: `select exists(select 1 from information_schema.columns
                        where table_schema = 'public' and table_name = 'mature_course_acknowledgements' and column_name = 'scope')
              and exists(select 1 from pg_constraint where conname = 'mature_course_acknowledgements_scope_087') as ok`,
