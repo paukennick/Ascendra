@@ -397,6 +397,16 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "head-strike-on-apixaban"),
   entry("NCLEXRN", "oxytocin-tachysystole-late-decels"),
   // ---- end REQ-315 ----
+  // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
+  // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
+  band("ABPTSGCS", "stroke-balance-fall-risk-geri"),
+  band("ABPTSNCS", "dizziness-central-red-flags-neuro"),
+  band("ABPTSNCS", "parkinson-freezing-session-neuro"),
+  band("ABPTSCCS", "icu-early-mobility-cardiopulm"),
+  band("ABPTSOCS", "tka-gait-dvt-red-flag-ortho"),
+  band("NPTEPTA", "icu-early-mobility-pta"),
+  band("NSCACSCS", "cscs-squat-knees-cave"),
+  // ---- end REQ-323 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
