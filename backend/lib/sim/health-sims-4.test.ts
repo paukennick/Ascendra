@@ -18,6 +18,7 @@ export const REQ326_CASES: readonly { course: string; slug: string; screen: "bed
   { course: "CEN", slug: "dizzy-slow-pulse-atropine-not-working", screen: "bedside" },
   { course: "CEN", slug: "cold-leg-new-numbness", screen: "bedside" },
   { course: "CEN", slug: "bike-crash-breath-sounds-gone", screen: "bedside" },
+  { course: "CEN", slug: "copd-drowsy-on-high-flow", screen: "bedside" },
 ];
 
 export const REQ326_BANDS: readonly { course: string; slug: string; base: string }[] = [];
