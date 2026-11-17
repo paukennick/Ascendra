@@ -264,6 +264,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("PL300", "pl300-rls-region-manager"),
   entry("PL300", "pl300-stock-on-hand-summed"),
   entry("CSSGB", "cssgb-fill-weight-chart"),
+  entry("JAVASCRIPT", "js-rate-board-zero-percent"),
+  band("TSNODE", "js-rate-board-zero-percent-tsnode"),
   // ---- end REQ-312 ----
 ];
 
@@ -274,6 +276,8 @@ export const DATA_CONSOLE_SLUGS: readonly string[] = [
   "pl300-rls-region-manager",
   "pl300-stock-on-hand-summed",
   "cssgb-fill-weight-chart",
+  "js-rate-board-zero-percent",
+  "js-rate-board-zero-percent-tsnode",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
