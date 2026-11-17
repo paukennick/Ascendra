@@ -1,0 +1,413 @@
+{
+  "slug": "delegation-morning-assignment-nclexrn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: RN keeps the admission and teaching, LPN the oral medicines, specific directions to the assistant; on the report, see him yourself, SBAR, check back, note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "assign",
+          "params": {
+            "admit": "rn",
+            "teach": "rn",
+            "meds": "lpn",
+            "vs": "clear"
+          },
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "dQ",
+          "choice": "dir",
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 4,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "seeLane",
+          "seq": 6,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "seq": 7,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "follow",
+          "seq": 8,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "obj"
+          },
+          "seq": 9,
+          "tick": 920
+        }
+      ],
+      "expect": {
+        "ending": "teamTarget",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "rnTasks": "met",
+          "directions": "met",
+          "evaluate": "met",
+          "escalate": "met",
+          "meds": "met",
+          "supervise": "met"
+        },
+        "kpis": {
+          "toEval": 0
+        },
+        "stateHash": "eca580d5d2d392ec"
+      },
+      "reasoning": {
+        "cues": "met"
+      }
+    },
+    {
+      "id": "lpnFirst",
+      "title": "Good plan, but the report goes to the LPN to recheck first; assessed at 12 minutes, no follow-up",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assign",
+          "params": {
+            "admit": "rn",
+            "teach": "rn",
+            "meds": "lpn",
+            "vs": "clear"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "dQ",
+          "choice": "dir",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "lpnRecheck",
+          "seq": 5,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "seeLane",
+          "seq": 6,
+          "tick": 1640
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "seq": 7,
+          "tick": 1640
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "kind": "opinion"
+          },
+          "seq": 8,
+          "tick": 1640
+        }
+      ],
+      "expect": {
+        "ending": "teamLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "rnTasks": "met",
+          "directions": "met",
+          "evaluate": "partial",
+          "escalate": "met",
+          "meds": "met",
+          "supervise": "missed"
+        },
+        "kpis": {
+          "toEval": 720
+        },
+        "stateHash": "3383dc3ed39ec6df"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "vague",
+      "title": "Right people, vague directions: the low pressure surfaces at the 09:45 huddle; seen and escalated at once",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assign",
+          "params": {
+            "admit": "rn",
+            "teach": "rn",
+            "meds": "lpn",
+            "vs": "vague"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "dQ",
+          "choice": "dir",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 2720
+        },
+        {
+          "type": "act",
+          "action": "seeLane",
+          "seq": 5,
+          "tick": 2720
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "seq": 6,
+          "tick": 2720
+        },
+        {
+          "type": "act",
+          "action": "follow",
+          "seq": 7,
+          "tick": 2720
+        }
+      ],
+      "expect": {
+        "ending": "teamLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "rnTasks": "met",
+          "directions": "missed",
+          "evaluate": "met",
+          "escalate": "met",
+          "meds": "met",
+          "supervise": "met"
+        },
+        "kpis": {
+          "toEval": 0
+        },
+        "stateHash": "0131f68162322e4b"
+      },
+      "reasoning": {
+        "cues": "partial"
+      }
+    },
+    {
+      "id": "outOfScope",
+      "title": "Failure: the admission to the LPN, teaching and medicines to the assistant; report handled late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assign",
+          "params": {
+            "admit": "lpn",
+            "teach": "uap",
+            "meds": "uap",
+            "vs": "clear"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "dQ",
+          "choice": "dir",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "lpnRecheck",
+          "seq": 5,
+          "tick": 920
+        },
+        {
+          "type": "act",
+          "action": "seeLane",
+          "seq": 6,
+          "tick": 2420
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "seq": 7,
+          "tick": 2420
+        }
+      ],
+      "expect": {
+        "ending": "teamLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "rnTasks": "missed",
+          "directions": "met",
+          "evaluate": "partial",
+          "escalate": "met",
+          "meds": "missed",
+          "supervise": "missed"
+        },
+        "kpis": {
+          "toEval": 1500
+        },
+        "stateHash": "d67a929d19a0ea31"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    },
+    {
+      "id": "neverSeen",
+      "title": "Failure: vague directions and the report handed to the LPN; no RN assessment, no call",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "assign",
+          "params": {
+            "admit": "lpn",
+            "teach": "rn",
+            "meds": "lpn",
+            "vs": "vague"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "teach",
+          "prompt": "dQ",
+          "choice": "dir",
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "cues",
+          "answered": true,
+          "seq": 3,
+          "tick": 300
+        },
+        {
+          "type": "chapter",
+          "chapter": "reported",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 2720
+        },
+        {
+          "type": "act",
+          "action": "lpnRecheck",
+          "seq": 5,
+          "tick": 2720
+        }
+      ],
+      "expect": {
+        "ending": "faint",
+        "class": "harm",
+        "rating": "bad",
+        "score": 21,
+        "criteria": {
+          "rnTasks": "partial",
+          "directions": "missed",
+          "evaluate": "missed",
+          "escalate": "missed",
+          "meds": "met",
+          "supervise": "missed"
+        },
+        "kpis": {
+          "toEval": -1
+        },
+        "stateHash": "8164583f8bfb89d6"
+      },
+      "reasoning": {
+        "cues": "missed"
+      }
+    }
+  ]
+}

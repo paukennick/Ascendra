@@ -11140,6 +11140,42 @@
       "risk_notes": [
         "A seed that grows past 75 minutes needs to be made faster (batching), not given more time"
       ]
+    },
+    {
+      "id": "REQ-315",
+      "category": "content",
+      "title": "Clinical sims for every fitting objective on an existing screen, launch courses first, with bands where another course already teaches it",
+      "description": "Nick (2026-11-16, 16:17 PT) approved the lead's recommendations: build a sim for every clinical objective that fits the selection rule (time matters, cues to read, choices with consequences, competing priorities) on an existing screen (bedside, treatment session, client session), launch courses first (NCLEXRN, NCLEXPN, CCRNADULT, CNA, DPT, PTPREREQ, NPTEPT, NCE, NCMHCE); where another course's sim already teaches the objective, register a band (lib/sim/documents.ts band(), docs/sims.md 4.7) instead of re-authoring the case. Then nursing specialty and FNP, ABPTS, ASWB and the remaining mental health objectives. Clinical values from current literature read directly and dated; authored teaching numbers flagged FLAG; no claim of clinician or expert review; mental health graphic content only where pertinent behind the 18+ gate. No engine, renderer, schema or migration change.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/",
+        "docs/sims.md",
+        "docs/sims-coverage-clinical.md",
+        "docs/sims-coverage-nursing-specialty.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band registers another course's case to a fitting catalog objective of its own course and changes only objective secondary objectives sources and brief",
+        "each new scenario has endingOrder endings in all three outcome classes and Good Mediocre and Bad golden paths",
+        "every document lints with zero errors and replays its goldens",
+        "sources say how and when they were read",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "sims lint of the REQ-315 documents",
+        "lib/sim/clinical-sims-1116.test.ts",
+        "backend npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.28",
+        "docs/sims-coverage-clinical.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

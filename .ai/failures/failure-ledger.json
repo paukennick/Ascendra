@@ -18141,6 +18141,30 @@
       "prevention_rules": [],
       "prevention_notes": "Watch the seed's duration in the post-deploy log; make it faster before it nears 75 minutes.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2240",
+      "date": "2026-11-16",
+      "title": "NBCC session list selected by course, so any new NCE or NCMHCE sim broke the REQ-239 tests",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Registering an NCE or NCMHCE band (REQ-315) adds it to NBCC_SESSION_DOCUMENTS, whose test asserts exactly five REQ-239 documents with fixed objectives",
+      "how_detected": "review before registering the NCE and NCMHCE bands",
+      "root_cause": "NBCC_SESSION_DOCUMENTS filtered ALL_DOCUMENTS by course code, the pattern FAIL-2000/FAIL-2002 retired for DPT and the IT waves; this list was missed",
+      "requirement": "REQ-315",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "NBCC_SESSION_DOCUMENTS now names the five REQ-239 slugs (NBCC_FIRST_SET)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/clinical-sims-1116.test.ts::FAIL-2240: the REQ-239 NBCC session list is named by slug",
+        "so NCE and NCMHCE bands do not join it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select by slug from their requirement's own list (pre-completion checklist, FAIL-2002); the new regression test pins the NBCC list",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

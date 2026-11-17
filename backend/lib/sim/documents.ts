@@ -258,6 +258,29 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-315 (clinical sims, round of 2026-11-16): bands that register a
+  // case another course already teaches to this course's objective (4.7),
+  // then new cases on the launch courses. Keep these entries together. ----
+  band("NCLEXRN", "delegation-morning-assignment-nclexrn"),
+  band("NCLEXRN", "postop-hemorrhage-early-signs-nclexrn"),
+  band("NCLEXRN", "heart-failure-pulmonary-edema-nclexrn"),
+  band("NCLEXRN", "pca-oversedation-naloxone-nclexrn"),
+  band("NCLEXRN", "copd-exacerbation-niv-nclexrn"),
+  band("NCLEXRN", "sepsis-to-septic-shock-nclexrn"),
+  band("NCLEXPN", "ltc-insulin-hypoglycemia-nclexpn"),
+  band("NCLEXPN", "ltc-pressure-injury-infection-nclexpn"),
+  band("CCRNADULT", "copd-exacerbation-niv-ccrn"),
+  band("CCRNADULT", "post-op-transfusion-reaction-ccrn"),
+  band("CCRNADULT", "pca-oversedation-naloxone-ccrn"),
+  band("CCRNADULT", "heart-failure-pulmonary-edema-ccrn"),
+  band("NPTEPT", "tka-gait-dvt-red-flag-npte"),
+  band("NPTEPT", "parkinson-freezing-session-npte"),
+  band("NPTEPT", "dizziness-central-red-flags-npte"),
+  band("NPTEPT", "icu-early-mobility-npte"),
+  band("NPTEPT", "stroke-balance-fall-risk-npte"),
+  band("NCE", "nce-suicide-safety-plan"),
+  band("NCMHCE", "ncmhce-boundary-dual-relationship"),
+  // ---- end REQ-315 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
@@ -273,6 +296,7 @@ export const EPPP_OBJECTIVES = [
 // objective titles they are registered to (active objectives of course DPT).
 // REQ-296: later DPT sims (docs/sims-coverage-clinical.md) are not part of
 // this first set, so the set is named by slug.
+const NBCC_FIRST_SET = ["nce-boundary-dual-relationship", "nce-substance-use-screen", "ncmhce-intake-ptsd-alcohol", "ncmhce-suicide-safety-plan", "ncmhce-trauma-treatment-plan"];
 const DPT_FIRST_SET = ["icu-early-mobility", "tka-gait-dvt-red-flag", "stroke-balance-fall-risk"];
 export const DPT_TREATMENT_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "DPT" && DPT_FIRST_SET.includes(e.slug));
 export const DPT_OBJECTIVES = [
@@ -284,7 +308,10 @@ export const DPT_OBJECTIVES = [
 // REQ-239: the NCE and NCMHCE client-session documents and the objective
 // titles they are registered to (active objectives of their course; the
 // titles are exported by seed/tracks/nbcc.ts too, and the tests compare).
-export const NBCC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "NCE" || e.course === "NCMHCE");
+// FAIL-2240: selected by slug (the REQ-239 set), not by course, so a later
+// NCE or NCMHCE sim or band (REQ-315) cannot break the REQ-239 tests
+// (FAIL-2002); NBCC_FIRST_SET is declared with the DPT set above.
+export const NBCC_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => (e.course === "NCE" || e.course === "NCMHCE") && NBCC_FIRST_SET.includes(e.slug));
 export const NBCC_OBJECTIVES: Readonly<Record<string, string>> = {
   "nce-boundary-dual-relationship": "Manage boundaries and multiple relationships under the ACA Code of Ethics",
   "nce-substance-use-screen": "Screen for substance use and match the client to a level of care",
