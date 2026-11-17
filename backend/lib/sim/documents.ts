@@ -422,6 +422,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSOCS", "acute-back-pain-mri-request-cauda-equina"),
   entry("ABPTSONC", "post-mastectomy-strength-start-back-pain"),
   entry("ABPTSECS", "carpal-tunnel-referral-demyelinating-gbs"),
+  // REQ-323, round 2 (docs/sims.md 22.32): the PTA musculoskeletal case, the
+  // emergency department cases, nursing depth and the launch courses.
+  entry("NPTEPTA", "pta-back-pain-new-bladder-symptoms"),
   // ---- end REQ-323 ----
 ];
 

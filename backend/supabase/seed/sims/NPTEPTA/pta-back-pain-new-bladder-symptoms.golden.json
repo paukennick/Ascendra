@@ -1,0 +1,511 @@
+{
+  "slug": "pta-back-pain-new-bladder-symptoms",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: check-in, the bladder and saddle screen, strength and reflexes; no treatment; the PT now; data in the note; hand-off documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 4,
+          "tick": 25
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 6,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "data"
+          },
+          "seq": 7,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pt"
+          },
+          "seq": 8,
+          "tick": 49
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "saddle",
+          "seq": 9,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "ptNow",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "screen": "met",
+          "hold": "met",
+          "report": "met",
+          "neuroC": "met",
+          "note": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toScreen": 185,
+          "toPt": 60
+        },
+        "stateHash": "af17898c453f6550"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateReport",
+      "title": "Screens and collects data, then measures more and tells the PT more than 5 minutes after the first red flag",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "outcome",
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "data"
+          },
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "pt"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "saddle",
+          "seq": 10,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "screen": "met",
+          "hold": "met",
+          "report": "partial",
+          "neuroC": "met",
+          "note": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toScreen": 180,
+          "toPt": 370
+        },
+        "stateHash": "1d4ba3296dc156c1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "bypassPt",
+      "title": "Screens and collects data, writes a diagnosis and sends her to the emergency department without the PT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "diagnosis"
+          },
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ed"
+          },
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "saddle",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "sentGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "screen": "met",
+          "hold": "met",
+          "report": "partial",
+          "neuroC": "met",
+          "note": "partial",
+          "told": "met"
+        },
+        "kpis": {
+          "toScreen": 180,
+          "toPt": 60
+        },
+        "stateHash": "7aa892b21b6eb57f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "saveForVisit8",
+      "title": "Failure: hears the bladder symptoms, exercises her anyway, notes 'tolerated well' and leaves it for visit 8",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "exercise",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "routine"
+          },
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "note"
+          },
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "saddle",
+          "seq": 8,
+          "tick": 36
+        }
+      ],
+      "expect": {
+        "ending": "delayed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "screen": "partial",
+          "hold": "missed",
+          "report": "missed",
+          "neuroC": "missed",
+          "note": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toScreen": 180,
+          "toPt": 0
+        },
+        "stateHash": "353a3637e7cd59f9"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "callYourDoctor",
+      "title": "Failure: hears the bladder symptoms and tells her to call her doctor if it gets worse",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "scopeQ",
+          "choice": "data",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ces",
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "home"
+          },
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "teach",
+          "prompt": "cesQ",
+          "choice": "saddle",
+          "seq": 7,
+          "tick": 48
+        }
+      ],
+      "expect": {
+        "ending": "delayed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "screen": "met",
+          "hold": "met",
+          "report": "missed",
+          "neuroC": "met",
+          "note": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toScreen": 180,
+          "toPt": 60
+        },
+        "stateHash": "fa73318179e8eed8"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "tractionFirst",
+      "title": "Failure: no screen; traction and exercise straight away, no decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "traction",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "exercise",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "retention",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "screen": "missed",
+          "hold": "missed",
+          "report": "missed",
+          "neuroC": "missed",
+          "note": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toScreen": -1,
+          "toPt": -1
+        },
+        "stateHash": "ced5475ae76f7840"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
