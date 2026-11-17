@@ -99,6 +99,33 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    // REQ-319 (Nick, 2026-11-16, Option 2): course pages name the exam in one
+    // plain reference line with a specific disclaimer, and show its published
+    // facts; the six courses REQ-318 hid are listed again. Not gated.
+    id: "2026-11-17-b",
+    date: "2026-11-17",
+    appVersion: "2.0.0",
+    covers: ["REQ-319"],
+    title: "Course pages now say which exam each course prepares for",
+    items: [
+      {
+        icon: "info",
+        headline: "The exam, named once, with its facts",
+        body: "The top of a course page shows the exam's published facts: questions, time, format, passing standard, eligibility and the domains with their weights.",
+      },
+      {
+        icon: "book-open",
+        headline: "Six courses are back",
+        body: "Entry-level cybersecurity, advanced information security, ethical hacking, emergency nursing and the two counselor licensure courses are listed again.",
+      },
+      {
+        icon: "shield",
+        headline: "Clear about who we are",
+        body: "Next to the exam's name, the course says that Ascendra is independent and not endorsed by the organization that runs the exam.",
+      },
+    ],
+  },
+  {
     // 2026-11-17: new sim screens (REQ-311..314) and the sims on them, more
     // sims on existing screens (REQ-315, REQ-316), source corrections (REQ-310).
     // Every item is gated like every sims mention.

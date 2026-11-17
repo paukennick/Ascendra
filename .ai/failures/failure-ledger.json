@@ -18698,6 +18698,128 @@
       "prevention_rules": [],
       "prevention_notes": "Sim tests select documents by slug (round rule, FAIL-2002); run the sims DB tests when a branch adds sims to a course another suite seeds.",
       "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2290",
+      "date": "2026-11-16",
+      "title": "Exam card, provider line, practice-exam title, emails and prompts named permission-only exam bodies",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "After REQ-309 the course title and description of a permission-only body's course named no mark, but the course view returned providerName/credentialName/examCode (e.g. ISC2, CISSP, 312-50), the practice exam was titled by the exam code, reminder emails' shortCourseName used the credential name, and every model prompt said 'pass the <credential> (exam <code>) from <body> exam'.",
+      "how_detected": "review (Nick, option A)",
+      "root_cause": "REQ-309 changed the two seed fields it scanned (title, description); the credential_* tables are read in four places (exam-blueprint, coach-context, reminder-plan-store, service-emails), each handing the stored names straight on, with no single place deciding what a learner may see.",
+      "requirement": "REQ-319",
+      "affected": [
+        "backend/lib/exam-blueprint.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/service-emails.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/current-facts.ts"
+      ],
+      "fix_summary": "lib/unbranded.ts learnerExamNames nulls the names and code for a permission provider; all four readers use it; prompts carry unbrandedPromptRule; current-facts names no exam.",
+      "fix_commits": [
+        "7d54de74"
+      ],
+      "regression_tests": [
+        "backend/lib/unbranded.test.ts",
+        "backend/lib/unbranded.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A static test fails when a file joins credential_providers without learnerExamNames; the checklist names the rule.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2291",
+      "date": "2026-11-16",
+      "title": "Course cards showed permission-only exam codes (CISSP, CEH, NCMHCE, ITIL5FND ...)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "CourseCard prints track.code under the title; the stored codes of permission-only courses are their marks.",
+      "how_detected": "review",
+      "root_cause": "Course codes double as identifiers (kept for mastery mapping) and as display text; REQ-309 left codes unchanged on purpose and nothing separated the two uses.",
+      "requirement": "REQ-319",
+      "affected": [
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/courses/[id]/favorite/route.ts",
+        "mobile/src/components/CourseCard.tsx"
+      ],
+      "fix_summary": "learnerTrackRow returns a neutral display code for a catalog course of a permission body; stored codes unchanged; the app never sends a code back.",
+      "fix_commits": [
+        "7d54de74"
+      ],
+      "regression_tests": [
+        "backend/lib/unbranded.test.ts",
+        "backend/lib/unbranded.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2292",
+      "date": "2026-11-16",
+      "title": "Objectives, unit titles, outlines, labs and exam-format text of permission-only courses named the body's marks",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "e.g. 'Apply the ISC2 Code of Ethics canons ...', 'the CEH ethical hacking framework', 'ACE's Integrated Fitness Training model', 'The ITIL Value System', 'APTA guideline', and passing/eligibility text 'ISC2 reports ...', 'NBCC sets the cut score ...'.",
+      "how_detected": "in-memory scan (lib/unbranded.test.ts)",
+      "root_cause": "The REQ-309 test scanned only titles and descriptions; nothing scanned the rest of a course's learner-facing text.",
+      "requirement": "REQ-319",
+      "affected": [
+        "backend/supabase/seed/tracks",
+        "backend/supabase/seed/labs",
+        "backend/supabase/seed/sims/ISC2CC",
+        "backend/supabase/seed/sims/CISSP"
+      ],
+      "fix_summary": "Rewritten to the topic's own words; citations kept; the two ethics sims follow the renamed objectives.",
+      "fix_commits": [
+        "7d54de74"
+      ],
+      "regression_tests": [
+        "backend/lib/unbranded.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2293",
+      "date": "2026-11-16",
+      "title": "FAQ said every course page names its exam body and the trademark pages list them all; they did not",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "FAQ: 'Each course page names the body behind its exam, and the Disclaimer and Sources & Trademarks pages list them all', while REQ-309 had left the 12 permission bodies off TRADEMARK_OWNERS and their course pages named no body.",
+      "how_detected": "research memo (nominative-use options, 2026-11-16)",
+      "root_cause": "REQ-309 removed the bodies from the list without updating the FAQ sentence that described the list.",
+      "requirement": "REQ-319",
+      "affected": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/vendor.ts"
+      ],
+      "fix_summary": "Verified owners listed in plain, disclaimed form; FAQ says most course pages name the body.",
+      "fix_commits": [
+        "7d54de74"
+      ],
+      "regression_tests": [
+        "backend/lib/catalog-trademarks.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }
