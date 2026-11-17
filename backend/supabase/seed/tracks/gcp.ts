@@ -354,6 +354,21 @@ export const GCP_ACE_TRACK: SeedTrack = {
 // give exam questions context): Altostrat Media, Cymbal Retail, EHR
 // Healthcare, KnightMotives Automotive.
 // Sections: 25% / 17.5% / 17.5% / 15% / 12.5% / 12.5%.
+//
+// REQ-310 (verify-2, read 2026-11-17): the English certification page
+// (https://cloud.google.com/learn/certification/cloud-architect?hl=en) links
+// "View standard exam guide" to the unversioned PDF named below; read in full
+// that day, it prints ~25 / ~17.5 / ~17.5 / ~15 / ~12.5 / ~12.5 and names the
+// ML sections "Gemini Enterprise Agent Platform" / "Agent Platform" -- the
+// units below, unchanged. A second PDF, v6.1_pca_professional_cloud_architect_
+// exam_guide_english.pdf (~25/18/19/15/11/12, "Vertex AI", a 4.3 on
+// production reliability, for exams "on or after October 30"), is still
+// hosted but is NOT the one the certification page links, so its weights
+// were not applied. (Inference, not stated by Google: it is the earlier guide,
+// since it still uses the Vertex AI name the linked guide has replaced.) (The French guide page shows a still older 24/15/18/18/11/14.)
+// Exam facts on the page: 2 hours, $200, 50-60 multiple choice and multiple
+// select, English and Japanese, 2 case studies at 20-30%.
+const GCP_PCA_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const GCP_PCA_TRACK: SeedTrack = {
   code: "GCPPCA",
@@ -364,7 +379,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-  sourceVerifiedAt: OUTLINE_CHECKED_AT,
+  sourceVerifiedAt: GCP_PCA_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-architect",
@@ -378,7 +393,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
     versionNote:
       "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
+    lastVendorVerifiedAt: GCP_PCA_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud. Experience with common open-source technologies and multitiered distributed application design across legacy, multicloud, or hybrid environments.",
     durationMinutes: 120,
@@ -712,6 +727,13 @@ const GCP_DEVOPS_OLD_GUIDE_RETIRED_AT = "2026-11-23T12:00:00Z";
 // choice questions, no retirement notice) differed from the exam facts below
 // in two wordings, fixed here (FAIL-1542).
 const GCP_DEVOPS_CHECKED_AT = "2026-11-11T00:00:00Z";
+// REQ-310 (verify-2, 2026-11-17): the new guide was read again (direct PDF,
+// the 112326_ URL below). It still says "This exam guide will be live on
+// November 23" and points exams before then to the current guide; sections
+// ~18 / ~30 / ~18 / ~22 / ~12 with 25/14/10/20/10 considerations, matching the
+// new units at sort_order 5-9. The switch is already modeled: old units
+// retired at GCP_DEVOPS_OLD_GUIDE_RETIRED_AT (2026-11-23T12:00Z), new units
+// live, credential effectiveDate 2026-11-23. Nothing changed.
 // REQ-244 (FAIL-1541): the next review. The seed once set contentReviewDueAt
 // to 2026-11-23 (the new guide's date) and b5c4cf7 deleted the line; the
 // seed writes it with coalesce, so the stored date would have stayed and the

@@ -907,6 +907,14 @@ export const CNPA_TRACK: SeedTrack = {
 // (CNPE_Curriculum.pdf). The curriculum lists example tools: Argo,
 // Crossplane, Flagger, Flux, Gatekeeper, Grafana, Istio, Jaeger, Kyverno,
 // Linkerd, OPA, OpenCost, OpenTelemetry, Prometheus, Tekton.
+//
+// REQ-310 (verify-2, read 2026-11-17): the Linux Foundation's CNPE page
+// (training.linuxfoundation.org/certification/certified-cloud-native-platform-
+// engineer-cnpe/, direct page) lists the same five domains, weights
+// (15/25/25/20/15) and 18 competencies in the same order as the units below;
+// performance-based, 2 hours, $445, intermediate, no prerequisites. A
+// third-party page that listed other domains was not followed. Nothing changed.
+const CNPE_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CNPE_TRACK: SeedTrack = {
   code: "CNPE",
@@ -917,7 +925,7 @@ export const CNPE_TRACK: SeedTrack = {
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineer-cnpe/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: CNPE_CHECKED_AT,
   credential: {
     ...LF_PROVIDER,
     credentialSlug: "cnpe",
@@ -928,7 +936,7 @@ export const CNPE_TRACK: SeedTrack = {
     objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
     status: "active",
     officialObjectivesUrl: `${CURRICULUM}/CNPE_Curriculum.pdf`,
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: CNPE_CHECKED_AT,
     recommendedExperience: "No prerequisites, but intermediate level: comfortable operating Kubernetes and completing tasks with unfamiliar CNCF tools from their documentation. The curriculum lists the example tools candidates may meet.",
     durationMinutes: 120,
     questionFormat: "Online, proctored, performance-based: multiple tasks solved in a Linux-based remote desktop using the terminal and web interfaces, with the tools' documentation available; 2 hours.",

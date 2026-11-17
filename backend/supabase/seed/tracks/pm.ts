@@ -375,6 +375,11 @@ export const PGMP_TRACK: SeedTrack = {
     objectivesRevision: "March 2024 ECO",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pgmp-exam-content-outline.pdf",
+    // REQ-310 (verify-2, 2026-11-17): not re-verified. The ECO PDF above
+    // needed a fetch approval that was not answered, and PMI's PgMP pages
+    // either failed to load or (program-management-pgmp) showed only PDU
+    // rules. Domain weights and task wording stay as read on 2026-09-26: to
+    // verify against the ECO.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Secondary diploma/GED + 48 months project management experience + 84 months program management experience, or bachelor's degree + 36 months project management experience + 36 months program management experience -- all within the past 15 years, plus 21 hours of program-management-specific training.",
@@ -922,6 +927,12 @@ export const PMIPMOCP_TRACK: SeedTrack = {
     objectivesRevision: "January 2025 ECO (V2)",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pmi-pmocp-exam-content-outline_2025-1.pdf",
+    // REQ-310 (verify-2, 2026-11-17): PMI's PMI-PMOCP page (direct page,
+    // https://www.pmi.org/certifications/pmo-certified-professional-pmi-pmocp)
+    // lists the same six domains and weights (16/18/18/15/18/15), 120 questions
+    // and 165 minutes. The ECO PDF above could not be read that day (the fetch
+    // needed an approval that was not answered), so the task wording below is
+    // still as read on 2026-09-27: to verify against the ECO.
     lastVendorVerifiedAt: VERIFIED_AT_20260927,
     recommendedExperience:
       "Secondary diploma + 36 months of project-related experience within the past 8 years (waived if the candidate holds an active PMP) + 10 contact hours of PMO-specific education.",
@@ -1044,6 +1055,14 @@ export const PMIPBA_TRACK: SeedTrack = {
     recommendedExperience:
       "Secondary diploma + 60 months of business analysis experience within 8 years + 35 contact hours, or bachelor's degree + 36 months + 35 hours, or a GAC-accredited bachelor's/postgraduate degree + 24 months.",
     questionFormat: "200 questions (175 scored, 25 unscored pretest); multiple choice",
+    // REQ-310 (verify-2, read 2026-11-17, direct page,
+    // https://www.pmi.org/certifications/business-analysis-pba): 200 questions,
+    // 240 minutes; Needs Assessment 18%, Planning 22%, Analysis 35%,
+    // Traceability and Monitoring 15%, Evaluation 10% -- the units' weights.
+    // The page gave the exam time this seed had left unset. The ECO PDF above
+    // could not be read that day (the fetch needed an approval that was not
+    // answered), so the task wording is still as read on 2026-11-08: to verify.
+    durationMinutes: 240,
     passingScorePolicy: "Pass/fail against a criterion-referenced standard; PMI does not publish a numeric cut score.",
   },
   units: [
@@ -1157,6 +1176,12 @@ export const PMICPMAI_TRACK: SeedTrack = {
     objectivesRevision: "September 2025 ECO",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/pmicpmai-exam-content-outline2025-updated.pdf",
+    // REQ-310 (verify-2, read 2026-11-17, direct page,
+    // https://www.pmi.org/certifications/ai-project-management-cpmai): 120
+    // questions, 160 minutes, no notice of a newer outline. The page shows no
+    // domains; the ECO PDF above needed a fetch approval that was not
+    // answered, so domains and task wording stay as read on 2026-09-27 from
+    // that PDF: to verify. Third-party restatements were not used.
     lastVendorVerifiedAt: VERIFIED_AT_20260927,
     recommendedExperience:
       "None required -- the only gate is completing PMI's own PMI-CPMAI Exam Prep Course first, then scheduling via Pearson VUE.",
@@ -1255,6 +1280,9 @@ export const PMICPMAI_TRACK: SeedTrack = {
 // weights, since Ascendra's other PM tracks assume a learner already
 // working from PMI's credential ladder -- noted explicitly below rather
 // than silently picking one.
+// REQ-310: the CSPP outline was re-read in full on this day (see the note in
+// the credential block).
+const CSPP_CHECKED_AT = "2026-11-17T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const CSPP_TRACK: SeedTrack = {
   code: "CSPP",
@@ -1265,7 +1293,7 @@ export const CSPP_TRACK: SeedTrack = {
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/sustainability-cspp",
-  sourceVerifiedAt: VERIFIED_AT_20260927,
+  sourceVerifiedAt: CSPP_CHECKED_AT,
   credential: {
     ...PMI_PROVIDER,
     credentialSlug: "cspp",
@@ -1277,7 +1305,7 @@ export const CSPP_TRACK: SeedTrack = {
     objectivesRevision: "March 2026 ECO (V2), Certified Practitioner pathway",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/cspp/cspp-exam-content-outline_2026.pdf",
-    lastVendorVerifiedAt: VERIFIED_AT_20260927,
+    lastVendorVerifiedAt: CSPP_CHECKED_AT,
     recommendedExperience:
       "Certified Practitioner pathway: an active qualifying PM credential (PMP, CAPM, PfMP, PgMP, or equivalent) or a Master's degree in project/program management, plus 12 hours of sustainability-specific education. (A separate Non-Certified Practitioner pathway exists for candidates without a qualifying credential -- secondary diploma + 20 hours of education, but a longer 6-domain exam.)",
     durationMinutes: 120,
@@ -1288,6 +1316,20 @@ export const CSPP_TRACK: SeedTrack = {
     // -- both pathways' printed weights total 101, with no rounding note.
     publishedWeightsNote:
       "PMI's 2026 CSPP outline prints 18+18+36+18+11 (=101) for the Certified Practitioner pathway, with no rounding note; kept as printed.",
+    // REQ-310 (verify-2, read 2026-11-17, direct PDF, the officialObjectivesUrl above;
+    // running header "February 2026", CSPP cover "MARCH 2026 V2"): the Certified
+    // Practitioner pathway is unchanged -- 100 questions (85 scored, 15 pretest),
+    // 120 minutes, domains I-V at 18/18/36/18/11 (=101), domain VI "Project
+    // Management Considerations" printed "N/A" (not tested). For the record, the
+    // Non-Certified Practitioner pathway (not modeled; Nick 2026-11-17: keep the
+    // Certified Practitioner pathway) is 145 questions (130 scored, 15 pretest),
+    // 175 minutes with one 10-minute break, domains I-VI at 12/23/24/12/7/23
+    // (=101, as published, no rounding note). Domain VI's tasks: value management,
+    // change control aligned to sustainability, sustainable project success,
+    // project artifacts, sustainability activities in each PM phase. The 24/23/23
+    // weights a review quoted for "the CSPP page" are this NCP column. Task
+    // titles for domains I-V match the objectives below in order; domain IV
+    // tasks 4 (KPIs) and 5 (sustainable procurement) share one objective.
   },
   units: [
     {
