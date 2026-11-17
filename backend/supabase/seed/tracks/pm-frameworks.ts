@@ -445,8 +445,16 @@ const ITIL_STRUCTURE = [
   "six value chain activities: plan; improve; engage; design and transition; obtain/build; deliver and support",
 ];
 
+// REQ-308 (Nick, 2026-11-16): switched to ITIL Foundation (Version 5),
+// ITIL5FND below. This track is hidden from the catalog, not deleted (the
+// REQ-194 mechanism): it reached production in #193 with no learners, and
+// hiding keeps its row, units and labs consistent if it is ever restored.
+// Remove hiddenAt and re-seed to bring it back.
 export const ITIL4FND_TRACK: SeedTrack = {
   code: "ITIL4FND",
+  hiddenAt: "2026-11-16T00:00:00Z",
+  hiddenReason:
+    "Replaced by ITIL5FND (Nick, 2026-11-16). PeopleCert sells ITIL Foundation (Version 5) and plans to sunset all ITIL 4 modules on 2027-12-31 (https://peoplecert.org/help-and-support/faq-itil, read 2026-11-16).",
   title: "Prep for the ITIL 4 Foundation Exam",
   description:
     "Preparation for PeopleCert's ITIL 4 Foundation exam, weighted by the syllabus's marks: the key concepts of service management, the seven guiding principles, the four dimensions, the service value system and value chain, the purpose of 15 practices and seven of them in depth. PeopleCert plans to sunset ITIL 4 at the end of 2027 and already offers ITIL Foundation (Version 5). Independently developed exam prep; not affiliated with or endorsed by PeopleCert or Axelos. ITIL is a registered trademark of PeopleCert.",
@@ -468,7 +476,10 @@ export const ITIL4FND_TRACK: SeedTrack = {
     credentialType: "certification",
     credentialUrl: ITIL_URL,
     basis: "vendor_exam_unpublished_code",
-    status: "active",
+    // REQ-308: PeopleCert's FAQ (read 2026-11-16) plans to sunset all ITIL 4
+    // modules on 2027-12-31, with ITIL (Version 5) on sale in parallel.
+    status: "transitioning",
+    retirementDate: "2027-12-31",
     examRevision: "ITIL 4 Foundation (2019)",
     objectivesRevision: "Candidate syllabus v1.4, September 2019 (read in a training organization's copy)",
     versionNote:
@@ -583,6 +594,269 @@ export const ITIL4FND_TRACK: SeedTrack = {
         "Handling service requests with predefined, standardized workflows",
         "Designing a service desk's channels and skills and its part in the user's experience",
         "Setting service levels with customers and measuring them by experience, not only technical metrics",
+      ],
+    },
+  ],
+};
+
+// ===========================================================================
+// ITIL Foundation (Version 5) (PeopleCert) -- REQ-308
+// ===========================================================================
+//
+// Nick (2026-11-16): switch the ITIL course to ITIL Foundation (Version 5).
+// What was read on 2026-11-16 (WebSearch first, then the fetch tool on URLs
+// from those results; the fetch tool returns an extraction of the page, not
+// the raw page):
+//   - PeopleCert's ITIL Foundation (Version 5) product page (the jp locale of
+//     peoplecert.org; the exam facts are in English): 40 multiple-choice
+//     questions, 60 minutes, closed book, 65% to pass, 9 languages; renew
+//     every 3 years with 60 CPD points or another exam in the same product
+//     suite; a short Bridge exam for ITIL 4 Foundation holders. The page
+//     lists the topics but links no syllabus.
+//   - PeopleCert's ITIL FAQ: "The current plan is to sunset all ITIL 4
+//     modules on 31 December 2027"; ITIL 4 and ITIL (Version 5) run in
+//     parallel for a period; the Version 5 Foundation stays a closed-book
+//     multiple-choice exam; ITIL 4 Foundation holders need not retake it.
+//   - PeopleCert's ITIL Foundation (Version 5) Syllabus, Version 5.0
+//     (February 2026), as reproduced under licence in Van Haren Publishing's
+//     "ITIL 5 Foundation Courseware" (Maarten Bordewijk, first edition July
+//     2026, ISBN 978 94 018 1471 3), in the publisher's public sample PDF on
+//     boekhuis.nl. Seven categories with exam weights 30 / 10 / 10 / 40 / 5 /
+//     2.5 / 2.5 % of 40 one-mark questions, Bloom's levels 1 and 2, 75
+//     minutes in a non-native language. NovelVista's syllabus article prints
+//     the same seven weights (corroboration, not a primary source).
+// PeopleCert does not publish the syllabus itself. The category and section
+// headings below are as reproduced in that courseware (read through the
+// fetch tool's extraction, which condensed the assessment criteria), so the
+// course is left UNVERIFIED (no sourceVerifiedAt), as ITIL4FND was, until a
+// copy of PeopleCert's own syllabus is checked.
+//
+// Unit weights are the published category weights. The questions per unit
+// in rangeLabel are the weights applied to 40 questions (12 / 4 / 4 / 16 /
+// 2 / 1 / 1); the syllabus prints the percentages.
+//
+// Trademarks: PeopleCert's Marks Usage Policy (v4.0, 2024-07-04, read
+// 2026-11-16) asks for the (R) on the first use of ITIL in a document, the
+// mark used only as an adjective, and the acknowledgement "ITIL(R) is a
+// registered trademark of the PeopleCert group"; it addresses licensees and
+// grants no use to others, so the title stays descriptive ("Prep for the
+// ... Exam", REQ-097/194), carries no "Used under licence" line (we hold
+// none) and the description says the course is independent.
+
+const ITIL5_CHECKED = "2026-11-16";
+// Version 5.0 is the first syllabus of a new edition: recheck in six months
+// rather than the usual twelve.
+const ITIL5_RECHECK = "2027-05-16";
+const ITIL5_REVIEW_DUE_AT = "2027-05-16T00:00:00Z";
+export const ITIL5_PRODUCT_URL =
+  "https://www.peoplecert.org/jp/browse-certifications/it-governance-and-service-management/ITIL-1/itil-5-foundation-version-50-4154";
+const ITIL5_FAQ_URL = "https://peoplecert.org/help-and-support/faq-itil";
+// Van Haren's public sample of its ITIL 5 Foundation Courseware, which
+// reproduces PeopleCert's syllabus v5.0 under licence.
+export const ITIL5_SYLLABUS_COPY_URL = "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf";
+
+const itil5Src = (title: string, url: string, kind: UnitSource["kind"], extra: Partial<UnitSource> = {}): UnitSource => ({
+  title,
+  ...source(url, kind, ITIL5_CHECKED, ITIL5_RECHECK),
+  ...extra,
+});
+
+const itil5Syllabus = (category: string, sections: string[], keyValues: string[] = []): UnitSource =>
+  itil5Src(
+    "ITIL Foundation (Version 5) Syllabus v5.0 (PeopleCert, February 2026), category and section headings, as reproduced under licence in Van Haren's ITIL 5 Foundation Courseware (PeopleCert does not publish the syllabus)",
+    ITIL5_SYLLABUS_COPY_URL,
+    "exam_outline",
+    { outline: [category, ...sections], ...(keyValues.length ? { keyValues } : {}) }
+  );
+
+const ITIL5_FORMAT = itil5Src("PeopleCert, ITIL Foundation (Version 5) exam page and ITIL FAQ", ITIL5_PRODUCT_URL, "exam_outline", {
+  keyValues: [
+    "40 multiple-choice questions, 60 minutes, closed book, 65% to pass (26 of 40); 9 languages",
+    "one mark per question, no negative marking; questions at Bloom's levels 1 and 2 (recall and understanding); 75 minutes when not taken in the candidate's native language (syllabus v5.0)",
+    "category weights: key terms 30%, four dimensions 10%, lifecycle 10%, ITIL value system 40%, value streams 5%, ITIL and AI 2.5%, ITIL and other frameworks 2.5%",
+    "renew every 3 years with 60 CPD points, or by passing another exam in the same product suite",
+    "PeopleCert's FAQ: the current plan is to sunset all ITIL 4 modules on 2027-12-31; ITIL 4 Foundation holders need not retake Foundation and may take the ITIL Foundation Bridge (Version 5) instead",
+  ],
+});
+
+export const ITIL5FND_TRACK: SeedTrack = {
+  code: "ITIL5FND",
+  title: "Prep for the ITIL® Foundation (Version 5) Exam",
+  description:
+    "Preparation for PeopleCert's ITIL® Foundation (Version 5) exam, weighted as the syllabus publishes: the key terms of digital product and service management, the four dimensions, the product and service lifecycle, the ITIL value system (guiding principles, governance, value chain, management practices and continual improvement), value streams, ITIL and AI, and how ITIL works with DevOps and PRINCE2®. PeopleCert plans to sunset ITIL 4 at the end of 2027. Independently developed exam prep; not affiliated with or endorsed by PeopleCert. ITIL® and PRINCE2® are registered trademarks of the PeopleCert group.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  // No sourceUrl / sourceVerifiedAt: PeopleCert does not publish the
+  // syllabus, and it was read only in a publisher's licensed reproduction
+  // through an extraction (header). Set both together once PeopleCert's own
+  // syllabus is checked (lib/content-currency.ts refuses a sourceUrl
+  // without a date).
+  contentReviewDueAt: ITIL5_REVIEW_DUE_AT,
+  credential: {
+    providerSlug: "peoplecert",
+    providerName: "PeopleCert",
+    providerUrl: "https://www.peoplecert.org/",
+    subcategorySlug: "it-certifications",
+    credentialSlug: "itil-foundation-version-5",
+    credentialName: "ITIL Foundation (Version 5)",
+    credentialType: "certification",
+    credentialUrl: ITIL5_PRODUCT_URL,
+    basis: "vendor_exam_unpublished_code",
+    status: "active",
+    examRevision: "ITIL Foundation (Version 5)",
+    objectivesRevision: "Syllabus v5.0, February 2026 (read in a publisher's licensed reproduction)",
+    versionNote:
+      "PeopleCert does not publish the ITIL Foundation (Version 5) syllabus; v5.0 (February 2026) was read on 2026-11-16 as reproduced in Van Haren's ITIL 5 Foundation Courseware. Version 5.0 is the first syllabus of the edition, so the course is due for review by 2027-05-16.",
+    officialObjectivesUrl: ITIL5_PRODUCT_URL,
+    lastVendorVerifiedAt: "2026-11-16T00:00:00Z",
+    recommendedExperience: "None required. PeopleCert does not mandate training for Foundation; ITIL 4 Foundation holders can take the shorter Bridge exam instead.",
+    durationMinutes: 60,
+    questionFormat:
+      "40 multiple-choice questions in 60 minutes, closed book, one mark each, no negative marking; questions test recall and understanding. Available in 9 languages (75 minutes when not taken in your native language, per the syllabus).",
+    passingScorePolicy: "65%: 26 of 40 correct. Renew every three years with 60 CPD points or by passing another exam in the same product suite.",
+  },
+  units: [
+    {
+      title: "Key ITIL Terms and Definitions",
+      rangeLabel: "30% of the exam (12 of 40 questions)",
+      weight: 30,
+      gate: "Given a service description, name the provider, consumer, vendor, sponsor, customer and user, split the offering into goods, access to resources and service actions, and say which outcomes, costs and risks it changes for the consumer.",
+      sources: [
+        itil5Syllabus("1. Key ITIL terms and definitions", [
+          "1.1 Product and service management",
+          "1.2 Experience, Strategy and Transformation",
+          "1.3 Service offerings",
+          "1.4 Value co-creation",
+          "1.5 Service relationships",
+        ]),
+        ITIL5_FORMAT,
+      ],
+      objectives: [
+        "Explaining what digital product and service management covers, and how products, services, digital products and digital services differ",
+        "Analyzing a service description for its utility, warranty, user experience and sustainability",
+        "Recognizing the basic terms of ITIL's experience, strategy and transformation guidance",
+        "Decomposing a service offering into goods transferred, access to resources and service actions, and the interactions around them",
+        "Explaining value co-creation: how outcomes, costs, risks and feedback shape the value a consumer gets",
+        "Telling an output from an outcome in a scenario",
+        "Identifying the service provider, service consumer, digital product vendor, sponsor, customer and user in a scenario",
+        "Choosing whether a service relationship is basic, cooperative or collaborative",
+        "Explaining the service journey, service quality, service levels and what a service level agreement records",
+        "Explaining why enterprises, managed service providers and digital product vendors adopt ITIL",
+      ],
+    },
+    {
+      title: "The Four Dimensions of Product and Service Management",
+      rangeLabel: "10% of the exam (4 of 40 questions)",
+      weight: 10,
+      gate: "Given a rollout that went wrong, say which of the four dimensions was neglected, which external factors acted on it, and what a holistic plan would have changed.",
+      sources: [
+        itil5Syllabus("2. The ITIL Four Dimensions of Product and Service Management", ["2.1 Introduction", "2.2 Internal and external factors"], [
+          "four dimensions: organizations and people; partners and suppliers; information and technology; value streams and processes",
+          "external factors acting on the dimensions are summarized as PESTLE: political, economic, social, technological, legal and environmental",
+        ]),
+        ITIL5_FORMAT,
+      ],
+      objectives: [
+        "Naming the four dimensions and what each covers",
+        "Explaining why a product or service needs all four dimensions considered together",
+        "Assessing how political, economic, social, technological, legal and environmental factors act on the dimensions",
+        "Analyzing a failed rollout for the dimension that was neglected",
+        "Explaining what each dimension contributes to a product or service's success",
+      ],
+    },
+    {
+      title: "The ITIL Product and Service Lifecycle",
+      rangeLabel: "10% of the exam (4 of 40 questions)",
+      weight: 10,
+      gate: "Given a new digital service, name the lifecycle activity each piece of work belongs to, state that activity's purpose, and show where the activities repeat or overlap instead of running in sequence.",
+      sources: [
+        itil5Syllabus("3. The ITIL Product and Service Lifecycle", ["3.1 Introduction", "3.2 Purpose of lifecycle activities"], [
+          "eight lifecycle activities: discover; design; acquire; build; transition; operate; deliver; support",
+          "the lifecycle activities are not sequential or linear and can be used iteratively",
+        ]),
+        ITIL5_FORMAT,
+      ],
+      objectives: [
+        "Naming the eight lifecycle activities in the order ITIL lists them",
+        "Explaining the purpose of each lifecycle activity",
+        "Explaining why lifecycle activities are not a fixed sequence and can repeat or overlap",
+        "Recognizing which lifecycle activity a piece of work belongs to",
+        "Planning how a new digital service moves through the lifecycle activities iteratively",
+      ],
+    },
+    {
+      title: "The ITIL Value System",
+      rangeLabel: "40% of the exam (16 of 40 questions)",
+      weight: 40,
+      gate: "Given an improvement initiative or an operational event, choose the guiding principle it most needs, say what governance and the value chain do with it, tell a problem from an error and a known error, and walk it through the continual improvement model.",
+      sources: [
+        itil5Syllabus(
+          "4. The ITIL Value System",
+          ["4.1 Components", "4.2 Guiding Principles", "4.3 Governance", "4.4 Value chain", "4.5 Management practices", "4.6 Continual Improvement Model"],
+          [
+            "seven guiding principles: focus on value; start where you are; progress iteratively with feedback; collaborate and promote visibility; think and work holistically; keep it simple and practical; optimize and automate",
+            "two practice groups: general management practices, and product and service management practices",
+            "value chain terms the syllabus asks for: product specification, product prototype, incident, event, release, test, continuous integration, continuous delivery, continuous deployment, reliability, site reliability engineering, observability, service request, disaster, problem, error, known error, operating model",
+          ]
+        ),
+        ITIL5_FORMAT,
+      ],
+      objectives: [
+        "Explaining the value system's components and how they turn opportunity and demand into value",
+        "Applying focus on value and start where you are to an improvement initiative",
+        "Applying progress iteratively with feedback and collaborate and promote visibility",
+        "Applying think and work holistically and keep it simple and practical",
+        "Applying optimize and automate, and why optimizing comes before automating",
+        "Choosing the guiding principle a scenario most calls for, and explaining how the principles work together",
+        "Explaining governance and how it enables the organization rather than only controlling it",
+        "Explaining the value chain's terms: product specifications and prototypes, events and incidents, releases and tests, service requests, disasters and operating models",
+        "Telling continuous integration, delivery and deployment apart, and explaining reliability, site reliability engineering and observability",
+        "Distinguishing a problem, an error and a known error in an operational scenario",
+        "Explaining how value chain activities and practices serve the organization's purpose and operating model, and how their success is measured",
+        "Explaining management practices, the two practice groups and how the ITIL Practice Guides are structured and why they help",
+        "Selecting metrics and critical success factors for a practice",
+        "Applying the steps of the continual improvement model to an improvement initiative",
+        "Explaining continual improvement's place in the value system and in the organization",
+      ],
+    },
+    {
+      title: "Value Stream Identification, Mapping and Management",
+      rangeLabel: "5% of the exam (2 of 40 questions)",
+      weight: 5,
+      gate: "Given a value stream map of a request, say whether the stream is core or enabling, read where the work waits, and explain how value stream management would act on it.",
+      sources: [itil5Syllabus("5. Value stream identification, mapping, and management", ["5.1 Key concepts", "5.2 Application", "5.3 Purpose"]), ITIL5_FORMAT],
+      objectives: [
+        "Explaining value streams and telling core value streams from enabling ones",
+        "Explaining value stream mapping and value stream management and how they relate",
+        "Interpreting the elements of a value stream map to find where work waits",
+        "Explaining complexity thinking and why workflows must be shaped for complex work",
+      ],
+    },
+    {
+      title: "ITIL and AI",
+      rangeLabel: "2.5% of the exam (1 of 40 questions)",
+      weight: 2.5,
+      gate: "Given a service team's plan to use AI, say which lifecycle and value chain activities it assists or automates, and what AI governance asks of the plan.",
+      sources: [itil5Syllabus("6. ITIL and AI", ["6.1 Introduction to AI", "6.2 ITIL AI Governance"]), ITIL5_FORMAT],
+      objectives: [
+        "Explaining AI, AI maturity, generative AI and agentic AI in service management terms",
+        "Identifying where AI can assist product and service development and automate work across lifecycle activities",
+        "Explaining how AI can support the value chain activities",
+        "Explaining AI governance and the ITIL AI capability model",
+      ],
+    },
+    {
+      title: "ITIL and Other Frameworks",
+      rangeLabel: "2.5% of the exam (1 of 40 questions)",
+      weight: 2.5,
+      gate: "Given a team running DevOps pipelines and a PRINCE2 project, explain where ITIL complements each across the lifecycle and why project management matters to service management.",
+      sources: [itil5Syllabus("7. ITIL and other frameworks", ["7.1 ITIL and DevOps", "7.2 ITIL and PRINCE2"]), ITIL5_FORMAT],
+      objectives: [
+        "Explaining how ITIL works alongside DevOps practices",
+        "Explaining where ITIL and DevOps complement each other across the lifecycle",
+        "Explaining why project management matters to ITIL",
+        "Explaining where ITIL and PRINCE2 complement each other across the lifecycle",
       ],
     },
   ],
@@ -739,4 +1013,4 @@ export const CSSGB_TRACK: SeedTrack = {
   ],
 };
 
-export const PM_FRAMEWORK_TRACKS: readonly SeedTrack[] = [PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, CSSGB_TRACK];
+export const PM_FRAMEWORK_TRACKS: readonly SeedTrack[] = [PSMI_TRACK, CSM_TRACK, ITIL4FND_TRACK, ITIL5FND_TRACK, CSSGB_TRACK];
