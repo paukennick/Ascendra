@@ -438,6 +438,13 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("PMICPMAI", "loan-data-bias-pmicpmai"),
   band("PMICPMAI", "fraud-model-drift-pmicpmai"),
   band("CMPCBS", "phish-to-account-takeover-cmpcbs"),
+  // The first predictive case on the project dashboard (PMP), and its bands.
+  entry("PMP", "pmp-clinic-fitout-schedule-variance"),
+  band("CAPM", "clinic-fitout-variance-capm"),
+  band("PMISP", "clinic-fitout-variance-pmisp"),
+  band("PROJECTPLUS", "clinic-fitout-variance-projectplus"),
+  band("PMICP", "clinic-fitout-claim-pmicp"),
+  band("PMIRMP", "clinic-fitout-contingency-pmirmp"),
   // ---- end REQ-321 ----
 ];
 

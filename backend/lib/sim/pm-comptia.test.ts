@@ -13,8 +13,8 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
-import { lintScenario, validateScenario } from "./engine/v1/index.ts";
-import type { ScenarioDoc } from "./engine/v1/index.ts";
+import { applyCommand, createRun, lintScenario, readValue, validateScenario, waits } from "./engine/v1/index.ts";
+import type { Command, ScenarioDoc } from "./engine/v1/index.ts";
 import type { GoldenFile } from "./engine/v1/validate.ts";
 import { clientDocument } from "./content-hash.ts";
 import { pacingEligible } from "./server-run.ts";
@@ -29,8 +29,10 @@ const goldenOf = (slug: string): GoldenFile => JSON.parse(readFileSync(entryOf(s
 const unitOf = (course: string, objective: string) => activeUnits(CATALOG_TRACKS.find((t) => t.code === course)!).find((u) => u.objectives.includes(objective));
 
 // The courses this round covers, and the round's breadth rule: each has a sim
-// on (one of) its highest-weighted domains.
-const COURSES = ["PMP", "CAPM", "PMIACP", "PROJECTPLUS", "SERVERPLUS", "CLOUDNETX", "CLOUDPLUS", "AUTOOPSPLUS", "DATAPLUS", "DATAAI", "TECHPLUS", "PMICPMAI", "CMPCBS"];
+// on (one of) its highest-weighted domains. PMI-RMP is not listed: its one sim
+// (a band of the PMP fit-out) is on Risk Response (13%); its 23% domains,
+// identification and analysis, need a new case (docs/sims.md 22.31, open).
+const COURSES = ["PMP", "CAPM", "PMIACP", "PROJECTPLUS", "PMISP", "PMICP", "SERVERPLUS", "CLOUDNETX", "CLOUDPLUS", "AUTOOPSPLUS", "DATAPLUS", "DATAAI", "TECHPLUS", "PMICPMAI", "CMPCBS"];
 
 describe("REQ-321: sims for the PMI and CompTIA courses that had none", () => {
   test("every document is registered by slug, valid, learner-paced, engine 1.2 with an ending order, on its screen and profile", () => {
@@ -158,5 +160,68 @@ describe("REQ-321: sims for the PMI and CompTIA courses that had none", () => {
       const c = clientDocument(d) as unknown as Record<string, unknown>;
       assert.equal(c.scoring, undefined);
     }
+  });
+});
+
+describe("REQ-321: the first predictive case on the project dashboard (PMP clinic fit-out)", () => {
+  const SLUG = "pmp-clinic-fitout-schedule-variance";
+  type Choices = { change: string; risk: string; report: string; claim: string; lessons: string };
+  const PROMPT_KEY: Record<string, keyof Choices> = { sinkPrompt: "change", panelPrompt: "risk", reportPrompt: "report", claimPrompt: "claim" };
+  function play(ch: Choices, stopAtWeek = 99) {
+    const d = docOf(SLUG);
+    const run = createRun(d, 1);
+    let seq = 0;
+    const send = (c: Record<string, unknown>) => {
+      const r = applyCommand(run, { ...c, seq: ++seq, tick: run.state.tick } as Command);
+      assert.ok(r.ok, `${JSON.stringify(c)}: ${r.ok ? "" : r.reason}`);
+    };
+    while (run.state.phase === "build" && !run.state.ended && (readValue(run, "week") as number) < stopAtWeek) {
+      const w = waits(run).find((x) => x.timer === "week")!;
+      send({ type: "skip", timer: w.timer, instance: w.instance, to: w.due });
+      while (run.state.openPrompt) send({ type: "choose", prompt: run.state.openPrompt, choice: ch[PROMPT_KEY[run.state.openPrompt]] });
+    }
+    return { run, v: (n: string) => readValue(run, n) as number };
+  }
+  const EXPERT: Choices = { change: "ccb", risk: "contingency", report: "honest", claim: "review", lessons: "held" };
+
+  test("predictive mode, the project (earned value) profile, a PMP objective in the Process domain", () => {
+    const d = docOf(SLUG);
+    assert.equal(d.screen.dashboard!.mode, "predictive");
+    assert.equal(d.outcome.profile, "project");
+    assert.equal(unitOf("PMP", d.objective)?.title, "Process");
+    assert.ok(d.screen.dashboard!.chart!.series.some((s) => s.style === "plan"), "planned value line");
+  });
+
+  test("earned value: SPI = EV / PV and CPI = EV / AC; the clinic's late drawings put every path behind at week 5", () => {
+    for (const risk of ["contingency", "wait", "crash"]) {
+      const { v } = play({ ...EXPERT, risk }, 5);
+      assert.equal(v("week"), 5);
+      assert.equal(v("pv"), 150);
+      assert.ok(Math.abs(v("spi") - v("ev") / v("pv")) < 1e-9);
+      assert.ok(Math.abs(v("cpi") - v("ev") / v("ac")) < 1e-9);
+      assert.ok(v("spi") < 0.95, `${risk}: behind at the status report (${v("spi")})`);
+    }
+  });
+
+  test("waiting past R4's trigger costs two critical-path weeks; the planned contingency costs $3,000 and no time", () => {
+    const planned = play(EXPERT);
+    const waited = play({ ...EXPERT, risk: "wait" });
+    assert.equal(planned.v("ev") - waited.v("ev"), 30);
+    assert.equal(planned.v("spi"), 1);
+    assert.ok(waited.v("spi") < 0.95);
+  });
+
+  test("the claim is half owed: assessed, $4,500; signed unread, $9,000", () => {
+    const reviewed = play(EXPERT);
+    const signed = play({ ...EXPERT, claim: "signed" });
+    assert.equal(signed.v("ac") - reviewed.v("ac"), 4.5);
+  });
+
+  test("reporting green while behind is harm, whatever else went well; scope added outside change control is never the target", () => {
+    const g = goldenOf(SLUG);
+    assert.equal(g.paths.find((p) => p.id === "green")!.expect.class, "harm");
+    for (const p of g.paths.filter((x) => x.expect.criteria?.changeCrit === "missed")) assert.notEqual(p.expect.class, "target", p.id);
+    const d = docOf(SLUG);
+    assert.equal(d.endingOrder![0], "misreported");
   });
 });

@@ -42,4 +42,10 @@ export const PM_COMPTIA: readonly PmComptiaEntry[] = [
   { course: "PMICPMAI", slug: "loan-data-bias-pmicpmai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-pmicpmai-loan-data-bias-pmicpmai", base: "AWSMLA/loan-data-bias" },
   { course: "PMICPMAI", slug: "fraud-model-drift-pmicpmai", screen: "board", profile: "cloud", kind: "band", steps: "pmc-pmicpmai-fraud-model-drift-pmicpmai", base: "AWSMLA/fraud-model-drift" },
   { course: "CMPCBS", slug: "phish-to-account-takeover-cmpcbs", screen: "security-console", profile: "security", kind: "band", steps: "pmc-cmpcbs-phish-to-account-takeover-cmpcbs", base: "SECPLUS/phish-to-account-takeover" },
+  { course: "PMP", slug: "pmp-clinic-fitout-schedule-variance", screen: "project-dashboard", profile: "project", kind: "scenario", steps: "pmp-fitout" },
+  { course: "CAPM", slug: "clinic-fitout-variance-capm", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-capm-clinic-fitout-variance-capm", base: "PMP/pmp-clinic-fitout-schedule-variance" },
+  { course: "PMISP", slug: "clinic-fitout-variance-pmisp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmisp-clinic-fitout-variance-pmisp", base: "PMP/pmp-clinic-fitout-schedule-variance" },
+  { course: "PROJECTPLUS", slug: "clinic-fitout-variance-projectplus", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-projectplus-clinic-fitout-variance-projectplus", base: "PMP/pmp-clinic-fitout-schedule-variance" },
+  { course: "PMICP", slug: "clinic-fitout-claim-pmicp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmicp-clinic-fitout-claim-pmicp", base: "PMP/pmp-clinic-fitout-schedule-variance" },
+  { course: "PMIRMP", slug: "clinic-fitout-contingency-pmirmp", screen: "project-dashboard", profile: "project", kind: "band", steps: "pmc-pmirmp-clinic-fitout-contingency-pmirmp", base: "PMP/pmp-clinic-fitout-schedule-variance" },
 ];
