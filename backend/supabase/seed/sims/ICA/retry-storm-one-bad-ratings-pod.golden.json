@@ -1068,8 +1068,8 @@
       }
     },
     {
-      "id": "retriesOnly",
-      "title": "Reads the policy, bounds retries and checks, no outlier detection",
+      "id": "noCheck",
+      "title": "Reads the policy and metrics, bounds retries and adds outlier detection, never checks p99",
       "seed": 1,
       "commands": [
         {
@@ -1119,7 +1119,10 @@
         },
         {
           "type": "act",
-          "action": "verify",
+          "action": "setOutlier",
+          "params": {
+            "e": "half"
+          },
           "seq": 7,
           "tick": 3
         },
@@ -1127,7 +1130,7 @@
           "type": "skip",
           "timer": "work",
           "instance": 4,
-          "to": 5,
+          "to": 4,
           "seq": 8,
           "tick": 3
         },
@@ -1135,126 +1138,134 @@
           "type": "act",
           "action": "watch",
           "seq": 9,
-          "tick": 5
+          "tick": 4
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 5,
-          "to": 10,
+          "to": 9,
           "seq": 10,
-          "tick": 5
+          "tick": 4
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 11,
-          "tick": 10
+          "tick": 9
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 6,
-          "to": 15,
+          "to": 14,
           "seq": 12,
-          "tick": 10
+          "tick": 9
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 13,
-          "tick": 15
+          "tick": 14
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 7,
-          "to": 20,
+          "to": 19,
           "seq": 14,
-          "tick": 15
+          "tick": 14
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 15,
-          "tick": 20
+          "tick": 19
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 8,
-          "to": 25,
+          "to": 24,
           "seq": 16,
-          "tick": 20
+          "tick": 19
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 17,
-          "tick": 25
+          "tick": 24
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 9,
-          "to": 30,
+          "to": 29,
           "seq": 18,
-          "tick": 25
+          "tick": 24
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 19,
-          "tick": 30
+          "tick": 29
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 10,
-          "to": 35,
+          "to": 34,
           "seq": 20,
-          "tick": 30
+          "tick": 29
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 21,
-          "tick": 35
+          "tick": 34
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 11,
-          "to": 40,
+          "to": 39,
           "seq": 22,
-          "tick": 35
+          "tick": 34
         },
         {
           "type": "act",
           "action": "watch",
           "seq": 23,
-          "tick": 40
+          "tick": 39
         },
         {
           "type": "skip",
           "timer": "work",
           "instance": 12,
-          "to": 45,
+          "to": 44,
           "seq": 24,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 44,
+          "seq": 25,
           "tick": 40
         },
         {
           "type": "act",
           "action": "closeOutage",
-          "seq": 25,
-          "tick": 45
+          "seq": 26,
+          "tick": 44
         },
         {
           "type": "reason",
           "moment": "writeup",
           "answered": true,
-          "seq": 26,
-          "tick": 45
+          "seq": 27,
+          "tick": 44
         },
         {
           "type": "act",
@@ -1262,26 +1273,26 @@
           "params": {
             "cause": "retries"
           },
-          "seq": 27,
-          "tick": 45
+          "seq": 28,
+          "tick": 44
         }
       ],
       "expect": {
         "ending": "gaps",
         "class": "recovered",
-        "rating": "bad",
-        "score": 58,
+        "rating": "mediocre",
+        "score": 75,
         "criteria": {
           "diagnose": "met",
           "retries": "met",
-          "outlier": "missed",
+          "outlier": "met",
           "clean": "missed",
           "record": "met"
         },
         "kpis": {
           "storm": 1
         },
-        "stateHash": "3884b61211909887"
+        "stateHash": "b9a449698705b749"
       },
       "reasoning": {
         "writeup": "partial"
