@@ -472,6 +472,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NPTEPTA", "pta-six-minute-walk-saturation-drops"),
   entry("NPTEPTA", "pta-glucose-before-exercise-low"),
   // ---- end REQ-326 ----
+  // ---- REQ-329 (docs/sims.md 22.36): sensitive objectives held back until the
+  // per-sim 18+ gate (REQ-327). Session screen, clinical-session profile; every
+  // one is marked `mature: true`. Keep these entries together. ----
+  entry("CEN", "ed-screen-positive-wants-to-go-home"),
+  // ---- end REQ-329 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
