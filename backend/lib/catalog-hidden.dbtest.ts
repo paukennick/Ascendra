@@ -130,10 +130,11 @@ describe("learners already on a hidden course keep access", () => {
 });
 
 // The seeded rows (the DB test run seeds the catalog first): exactly the
-// three courses are hidden, and their content is still there.
+// listed courses are hidden, and their content is still there. REQ-308:
+// ITIL4FND is hidden since ITIL Foundation (Version 5) replaced it.
 describe("the seeded catalog", () => {
-  const CODES = ["DCA", "EX188", "EX280"];
-  test("EX188, EX280 and DCA are hidden with their units kept; no other shared course is", async (t) => {
+  const CODES = ["DCA", "EX188", "EX280", "ITIL4FND"];
+  test("EX188, EX280, DCA and ITIL4FND are hidden with their units kept; no other shared course is", async (t) => {
     const seeded = await query<{ n: number }>(`select count(*)::int as n from subject_tracks where user_id is null and code = 'EX188'`);
     if (seeded[0].n === 0) return t.skip("catalog not seeded in this database");
     const rows = await query<{ code: string; units: number }>(

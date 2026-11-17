@@ -107,6 +107,7 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...NURSING_SPECIALTY_TRACKS,
   // REQ-280: Scrum (PSM I, CSM), ITIL 4 Foundation and ASQ Six Sigma Green
   // Belt (migration 084 subcategories; ITIL under IT Certifications).
+  // REQ-308: ITIL Foundation (Version 5) replaces ITIL 4 (hidden).
   ...PM_FRAMEWORK_TRACKS,
   // REQ-286: ASWB social work licensing exams, Clinical and Masters (same category).
   ...ASWB_TRACKS,
