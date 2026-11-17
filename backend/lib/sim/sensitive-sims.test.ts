@@ -30,6 +30,9 @@ export const REQ329_CASES: readonly { course: string; slug: string; harmPath: st
   { course: "FNPANCC", slug: "clinic-widower-thoughts-right-now", harmPath: "nextWeek" },
   { course: "CCRNADULT", slug: "sah-day-six-not-herself-on-levetiracetam", harmPath: "writtenOff" },
   { course: "CCRNADULT", slug: "icu-threatens-staff-pulls-cannula", harmPath: "restrainedFirst" },
+  { course: "NCLEXRN", slug: "after-amputation-im-done", harmPath: "neverScreened" },
+  { course: "NCLEXRN", slug: "visiting-hours-threat-on-the-unit", harmPath: "secretAndVisit" },
+  { course: "NCLEXRN", slug: "crash-survivor-wishes-she-had-died-too", harmPath: "sedatedAlone" },
 ];
 
 export const REQ329_BANDS: readonly { course: string; slug: string; base: string }[] = [
