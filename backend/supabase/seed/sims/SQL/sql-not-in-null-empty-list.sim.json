@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sql-not-in-null-empty-list",
+  "title": "No inactive customers at all?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "inactive_customers.sql in psql, shop database (Maple & Pine Home Goods, fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Marketing, Ana Silva",
+          "text": "Can I have the customers who haven't ordered since 1 October by 12:00? The win-back mailing goes to the printer then.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "zero",
+          "label": "Query result",
+          "text": "0 rows: no inactive customers?",
+          "when": "not isNull(ranAt) and resultRows == 0",
+          "severity": "warning"
+        },
+        {
+          "id": "deleted",
+          "label": "Finance",
+          "text": "Q4 revenue dropped by 212 orders overnight. Who deleted guest orders?",
+          "when": "deletedGuests",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Marketing",
+          "text": "12:00: the mailing went to the printer without a list.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "counts",
+          "label": "Quick counts",
+          "spokenLabel": "the quick counts",
+          "columns": [
+            {
+              "id": "what",
+              "label": "What"
+            },
+            {
+              "id": "n",
+              "label": "Count",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "cust",
+              "cells": [
+                "customers",
+                "18,240"
+              ]
+            },
+            {
+              "id": "ordered",
+              "cells": [
+                "distinct customers with an order since 1 Oct",
+                "15,911"
+              ]
+            },
+            {
+              "id": "guest",
+              "cells": [
+                "guest orders since 1 Oct (customer_id IS NULL)",
+                "{deletedGuests ? 0 : 212}"
+              ],
+              "when": "not isNull(nullsAt)",
+              "flag": "not deletedGuests"
+            }
+          ]
+        },
+        {
+          "id": "result",
+          "label": "Result (first rows)",
+          "spokenLabel": "the query result",
+          "columns": [
+            {
+              "id": "id",
+              "label": "customer_id",
+              "numeric": true
+            },
+            {
+              "id": "name",
+              "label": "name"
+            },
+            {
+              "id": "email",
+              "label": "email"
+            }
+          ],
+          "rows": [
+            {
+              "id": "r1",
+              "cells": [
+                "10042",
+                "Dana Whit",
+                "dana.whit@example.com"
+              ],
+              "when": "resultRows > 0"
+            },
+            {
+              "id": "r2",
+              "cells": [
+                "10117",
+                "Omar Haddad",
+                "o.haddad@example.net"
+              ],
+              "when": "resultRows > 0"
+            },
+            {
+              "id": "r3",
+              "cells": [
+                "10230",
+                "Lena Fischer",
+                "lena.f@example.org"
+              ],
+              "when": "resultRows > 0"
+            }
+          ],
+          "when": "not isNull(ranAt)",
+          "note": "{resultRows} rows in all."
+        }
+      ],
+      "code": [
+        {
+          "id": "sql",
+          "label": "inactive_customers.sql",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "s0",
+              "text": "SELECT c.customer_id, c.name, c.email"
+            },
+            {
+              "id": "s1",
+              "text": "FROM customers c"
+            },
+            {
+              "id": "s2",
+              "text": "WHERE c.customer_id NOT IN (",
+              "when": "query == \"notin\" or query == \"notnull\"",
+              "mark": "not isNull(nullsAt) and query == \"notin\" ? \"error\" : \"none\""
+            },
+            {
+              "id": "s3",
+              "text": "  SELECT o.customer_id FROM orders o",
+              "when": "query == \"notin\" or query == \"notnull\""
+            },
+            {
+              "id": "s4",
+              "text": "  WHERE o.ordered_at >= DATE '2026-10-01'",
+              "when": "query == \"notin\" or query == \"notnull\""
+            },
+            {
+              "id": "s5",
+              "text": "    AND o.customer_id IS NOT NULL",
+              "when": "query == \"notnull\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s6",
+              "text": ")",
+              "when": "query == \"notin\" or query == \"notnull\""
+            },
+            {
+              "id": "s7",
+              "text": "WHERE NOT EXISTS (",
+              "when": "query == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s8",
+              "text": "  SELECT 1 FROM orders o",
+              "when": "query == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s9",
+              "text": "  WHERE o.customer_id = c.customer_id",
+              "when": "query == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s10",
+              "text": "    AND o.ordered_at >= DATE '2026-10-01'",
+              "when": "query == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s11",
+              "text": ")",
+              "when": "query == \"notexists\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s12",
+              "text": "LEFT JOIN orders o ON o.customer_id = c.customer_id",
+              "when": "query == \"leftwhere\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "s13",
+              "text": "WHERE o.ordered_at >= DATE '2026-10-01' AND o.order_id IS NULL",
+              "when": "query == \"leftwhere\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "s14",
+              "text": "ORDER BY c.customer_id;"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "List due",
+          "value": "12:00"
+        },
+        {
+          "id": "altered",
+          "label": "Rows changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnose a NOT IN filter that returns nothing because the list contains a NULL, and fix it with NOT EXISTS",
+  "secondaryObjectives": [
+    "Evaluate comparisons and AND, OR, NOT when an operand is NULL, using true, false and unknown",
+    "Test for missing values with IS NULL, IS NOT NULL and IS DISTINCT FROM instead of = NULL"
+  ],
+  "sources": [
+    {
+      "cite": "PostgreSQL 16 documentation, 9.23 Subquery Expressions (9.23.3 NOT IN)",
+      "checkedAt": "2026-11-16",
+      "url": "https://www.postgresql.org/docs/16/functions-subquery.html",
+      "note": "Read through a summarizing fetch 2026-11-16 (PostgreSQL 16.16 documentation). Relevant text: 'Note that if the left-hand expression yields null, or if there are no equal right-hand values and at least one right-hand row yields null, the result of the NOT IN construct will be null, not true. This is in accordance with SQL's normal rules for Boolean combinations of null values.' The page documents EXISTS (9.23.1); NOT EXISTS is its negation, and the summary did not quote a NOT EXISTS paragraph. A WHERE clause keeps only rows whose condition is true, so a null NOT IN drops every row."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst at Maple & Pine Home Goods (fictional). Marketing wants every customer who has not ordered since 1 October for a win-back mailing that goes to the printer at 12:00. Your usual query, which worked last quarter, returns no rows. Guest checkout went live in September. It is 11:15.",
+    "handover": [
+      "Guest checkout stores an order without a customer_id."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "11:15",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The customers, orders and counts are invented. The mailing goes to the printer at 12:00, 45 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "query": {
+      "type": "enum",
+      "values": [
+        "notin",
+        "notexists",
+        "notnull",
+        "leftwhere"
+      ],
+      "init": "notin"
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "nullsAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "countAt": {
+      "type": "time",
+      "init": null
+    },
+    "countMatched": {
+      "type": "bool",
+      "init": false
+    },
+    "deletedGuests": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "zero",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "null",
+        "date",
+        "all"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "count",
+        "rows",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "resultRows": {
+      "expr": "deletedGuests ? 2329 : query == \"notexists\" or query == \"notnull\" ? 2329 : 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(nullsAt) and (isNull(changedAt) or timeAt(nullsAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "countMatched and not isNull(countAt) and timeAt(countAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "run",
+        "nulls",
+        "rewrite",
+        "deleteGuests",
+        "count",
+        "send",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "run": {
+      "label": "Run the query in psql",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(ranAt)",
+          "then": [
+            {
+              "set": "ranAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "{resultRows == 0 ? \"(0 rows)\" : \"(2329 rows)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "nulls": {
+      "label": "SELECT count(*) FROM orders WHERE customer_id IS NULL AND ordered_at >= DATE '2026-10-01'",
+      "group": "Query",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(nullsAt)",
+          "then": [
+            {
+              "set": "nullsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "deletedGuests",
+          "then": [
+            {
+              "output": " count\n-------\n     0"
+            }
+          ],
+          "else": [
+            {
+              "output": " count\n-------\n   212"
+            }
+          ]
+        },
+        {
+          "finding": "212 guest orders this quarter have no customer_id."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rewrite": {
+      "label": "Rewrite the filter",
+      "group": "Change the query",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "q",
+          "kind": "choice",
+          "label": "Filter",
+          "options": [
+            {
+              "value": "notexists",
+              "label": "WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id AND o.ordered_at >= DATE '2026-10-01')"
+            },
+            {
+              "value": "notnull",
+              "label": "Keep NOT IN; add AND o.customer_id IS NOT NULL inside the subquery"
+            },
+            {
+              "value": "leftwhere",
+              "label": "LEFT JOIN orders o ON o.customer_id = c.customer_id WHERE o.ordered_at >= DATE '2026-10-01' AND o.order_id IS NULL"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "query",
+          "to": "q"
+        },
+        {
+          "set": "countMatched",
+          "to": "false"
+        },
+        {
+          "log": "The filter is now the {q} version.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "deleteGuests": {
+      "label": "DELETE FROM orders WHERE customer_id IS NULL",
+      "group": "Change the data",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "deletedGuests",
+          "to": "true"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "212"
+        },
+        {
+          "output": "DELETE 212"
+        },
+        {
+          "log": "212 guest orders this quarter are gone from the orders table.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "count": {
+      "label": "Check: all customers minus distinct customers who ordered this quarter",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "countAt",
+          "to": "t"
+        },
+        {
+          "output": "SELECT (SELECT count(*) FROM customers) - (SELECT count(DISTINCT customer_id) FROM orders WHERE ordered_at >= DATE '2026-10-01');\n ?column?\n----------\n     2329\nYour query: {resultRows} rows"
+        },
+        {
+          "if": "resultRows == 2329",
+          "then": [
+            {
+              "set": "countMatched",
+              "to": "true"
+            },
+            {
+              "log": "The list has the expected 2,329 customers.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "The list does not have the expected 2,329 customers.",
+              "kind": "bad"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "send": {
+      "label": "Send the list to marketing for the win-back mailing",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "resultRows == 0 ? \"zero\" : \"right\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "Sent: {resultRows} customers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the query returned no rows",
+              "options": [
+                {
+                  "value": "null",
+                  "label": "Guest orders have a NULL customer_id, so NOT IN is never true for anyone"
+                },
+                {
+                  "value": "date",
+                  "label": "The date filter was wrong"
+                },
+                {
+                  "value": "all",
+                  "label": "Every customer really ordered this quarter"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the list is complete",
+              "options": [
+                {
+                  "value": "count",
+                  "label": "Its count equals all customers minus the distinct customers who ordered (2,329)"
+                },
+                {
+                  "value": "rows",
+                  "label": "It returns rows now"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The customers, orders and counts are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the mailing went to the printer without a list.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the analytics channel: why the query returned nothing, what you changed, and how you know the list is complete.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why nothing came back",
+          "criteria": "The subquery's list contains NULLs (guest orders); for a customer not in the list, NOT IN compares with NULL and is unknown, never true, so WHERE keeps no row.",
+          "modelAnswer": "212 guest orders have customer_id NULL; x NOT IN (..., NULL) is null when x matches nothing, so every row is dropped."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "NOT EXISTS with a correlated subquery (or NOT IN over non-NULL values); no data changed; not a LEFT JOIN with the date filter in WHERE.",
+          "modelAnswer": "WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id AND o.ordered_at >= DATE '2026-10-01')."
+        },
+        {
+          "label": "How you know",
+          "criteria": "An independent count: all customers minus the distinct customers who ordered equals the rows returned.",
+          "modelAnswer": "18,240 - 15,911 = 2,329, and the query returns 2,329."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The customers, orders and counts are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing sends nothing wrong, but the mailing goes without a list; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The customers, orders and counts are invented."
+      }
+    }
+  },
+  "endings": {
+    "deleted": {
+      "label": "Orders deleted to make the query work",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "212 real guest orders were deleted from the orders table; this quarter's revenue is now wrong."
+    },
+    "wrongSent": {
+      "label": "An empty list went out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"zero\"",
+      "narrative": "Marketing was told no customer is inactive, and the win-back mailing was cancelled."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong list went out, but the mailing went to the printer without one."
+    },
+    "right": {
+      "label": "The full list, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent",
+      "narrative": "Marketing has all 2,329 inactive customers, and the count proves none is missing."
+    },
+    "gaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The list is right, but late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "deleted",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "nulls",
+        "label": "Looked for NULLs in the subquery's column before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Found 212 NULL customer_ids first."
+          },
+          {
+            "when": "not isNull(nullsAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked for NULLs."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "A filter that is NULL-safe (NOT EXISTS, or NOT IN over non-NULL values)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "query == \"notexists\"",
+            "score": "met",
+            "why": "NOT EXISTS is true when no matching order exists, NULLs or not."
+          },
+          {
+            "when": "query == \"notnull\"",
+            "score": "met",
+            "why": "NOT IN over a list without NULLs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{query == \"leftwhere\" ? \"The date filter in WHERE turns the LEFT JOIN back into an inner join.\" : \"NOT IN over a list with a NULL is never true.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed no data to make the query work",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "No rows changed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted {rowsAlteredOutsideFix} guest orders."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked the row count against an independent count after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(countAt) <= sentSec)",
+            "score": "met",
+            "why": "2,329 against 2,329."
+          },
+          {
+            "when": "not isNull(countAt)",
+            "score": "partial",
+            "why": "Counted, but it did not match or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked the count."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"null\" and checkDoc == \"count\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"null\" or checkDoc == \"count\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "listed",
+        "label": "Customers on the list sent",
+        "value": "sentAs == \"right\" ? 2329 : 0",
+        "format": "number",
+        "expert": "2329"
+      },
+      {
+        "id": "deletedRows",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until sent",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 9"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-1 min",
+        "text": "Run it: 0 rows."
+      },
+      {
+        "at": "1-2 min",
+        "text": "Count NULL customer_ids in this quarter's orders: 212 guest orders."
+      },
+      {
+        "at": "2-5 min",
+        "text": "Rewrite with NOT EXISTS and a correlated subquery."
+      },
+      {
+        "at": "5-7 min",
+        "text": "18,240 - 15,911 = 2,329; the query returns 2,329."
+      },
+      {
+        "at": "7-8 min",
+        "text": "Send the list."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: NULL-safe and proved",
+        "body": "NOT IN against a list with a NULL is never true. NOT EXISTS asks the question you meant, and an independent count proved the list complete."
+      },
+      "gaps": {
+        "headline": "Sent, with gaps",
+        "body": "The list is right; it went late or without a count to prove it."
+      },
+      "wrongSent": {
+        "headline": "An empty list went out",
+        "body": "Zero rows was a symptom, not an answer: a NULL in a NOT IN list makes the condition unknown for every customer."
+      },
+      "deleted": {
+        "headline": "Data was deleted to fix a query",
+        "body": "The guest orders were real sales. The query needed to change, not the data."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the mailing needed the list, and the fix is one clause."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "If the subquery returns a NULL, then for a customer that matches nothing, customer_id NOT IN (...) is null rather than true, and WHERE keeps only true rows, so the query returns nothing. Guest checkout put 212 NULL customer_ids in this quarter's orders. NOT EXISTS with a correlated subquery is true exactly when no matching order exists; NOT IN over non-NULL values also works. A LEFT JOIN with the date filter in WHERE discards the unmatched rows it was meant to find, and deleting guest orders destroys real sales. An independent count (18,240 - 15,911 = 2,329) proves the list complete."
+  }
+}

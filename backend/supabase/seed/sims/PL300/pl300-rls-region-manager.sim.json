@@ -1,0 +1,1247 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pl300-rls-region-manager",
+  "title": "A region manager sees every region",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Sales Analytics workspace: Regional Sales report and its semantic model (Cascade Outdoor Supply, fictional)",
+      "flags": [
+        {
+          "id": "ticket",
+          "label": "Ticket from Priya Raman, North region manager",
+          "text": "Why can I see every region's margins? I'm supposed to see North only.",
+          "when": "true",
+          "severity": "warning"
+        },
+        {
+          "id": "refused",
+          "label": "Role membership",
+          "text": "Microsoft 365 groups aren't supported for RLS role membership.",
+          "when": "m365Refused and mapping != \"sg\"",
+          "severity": "warning"
+        },
+        {
+          "id": "broke",
+          "label": "Finance",
+          "text": "The monthly close report shows errors: the Margin columns are gone.",
+          "when": "marginsRemoved",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Quarterly review",
+          "text": "12:00: the review started without the report.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "exposed",
+          "label": "Quarterly review",
+          "text": "Managers opened the report: each can see all four regions' margins.",
+          "when": "shippedAs == \"all\"",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "seen",
+          "label": "Regions a North manager sees now (rows of Sales)",
+          "spokenLabel": "Regions a North manager sees now",
+          "kind": "bar",
+          "unit": "thousand rows",
+          "min": 0,
+          "max": 400,
+          "points": [
+            {
+              "id": "n",
+              "label": "North",
+              "value": "managerView == \"all\" or managerView == \"north\" ? 312 : 0"
+            },
+            {
+              "id": "s",
+              "label": "South",
+              "value": "managerView == \"all\" ? 287 : 0",
+              "flag": "managerView == \"all\""
+            },
+            {
+              "id": "e",
+              "label": "East",
+              "value": "managerView == \"all\" ? 341 : 0",
+              "flag": "managerView == \"all\""
+            },
+            {
+              "id": "w",
+              "label": "West",
+              "value": "managerView == \"all\" ? 266 : 0",
+              "flag": "managerView == \"all\""
+            }
+          ],
+          "note": "What the semantic model would return to Priya under the current settings. Flagged: regions she should not see."
+        }
+      ],
+      "tables": [
+        {
+          "id": "access",
+          "label": "Workspace access (Manage access)",
+          "spokenLabel": "workspace access",
+          "columns": [
+            {
+              "id": "who",
+              "label": "Person or group"
+            },
+            {
+              "id": "role",
+              "label": "Workspace role"
+            }
+          ],
+          "rows": [
+            {
+              "id": "you",
+              "cells": [
+                "You (BI developer)",
+                "Admin"
+              ]
+            },
+            {
+              "id": "fin",
+              "cells": [
+                "sg-finance-analysts",
+                "Contributor"
+              ]
+            },
+            {
+              "id": "mgr",
+              "cells": [
+                "sg-region-managers (4 people)",
+                "{grpRole == \"removed\" ? \"(removed)\" : grpRole}"
+              ],
+              "flag": "grpRole != \"viewer\""
+            },
+            {
+              "id": "vp",
+              "cells": [
+                "Dana Ortiz, VP Sales",
+                "Viewer"
+              ]
+            }
+          ],
+          "note": "RLS filters only people whose workspace role is Viewer.",
+          "edits": [
+            {
+              "row": "mgr",
+              "column": "role",
+              "action": "setGroupRole"
+            }
+          ]
+        },
+        {
+          "id": "roles",
+          "label": "Semantic model security roles",
+          "spokenLabel": "the security roles",
+          "columns": [
+            {
+              "id": "role",
+              "label": "Role"
+            },
+            {
+              "id": "table",
+              "label": "Filtered table"
+            },
+            {
+              "id": "members",
+              "label": "Members"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rm",
+              "cells": [
+                "Region Manager",
+                "Region",
+                "{mapping == \"sg\" ? \"sg-region-managers\" : \"(nobody)\"}"
+              ],
+              "flag": "mapping != \"sg\""
+            }
+          ],
+          "edits": [
+            {
+              "row": "rm",
+              "column": "members",
+              "action": "mapRole"
+            }
+          ]
+        },
+        {
+          "id": "region",
+          "label": "Region table (ManagerUPN column)",
+          "spokenLabel": "the Region table",
+          "columns": [
+            {
+              "id": "region",
+              "label": "Region"
+            },
+            {
+              "id": "upn",
+              "label": "ManagerUPN"
+            }
+          ],
+          "rows": [
+            {
+              "id": "n",
+              "cells": [
+                "North",
+                "priya.raman@example.com"
+              ]
+            },
+            {
+              "id": "s",
+              "cells": [
+                "South",
+                "luis.ortega@example.com"
+              ]
+            },
+            {
+              "id": "e",
+              "cells": [
+                "East",
+                "mei.chen@example.com"
+              ]
+            },
+            {
+              "id": "w",
+              "cells": [
+                "West",
+                "sam.okafor@example.com"
+              ]
+            }
+          ]
+        }
+      ],
+      "code": [
+        {
+          "id": "dax",
+          "label": "Region Manager role: table filter on Region",
+          "language": "DAX",
+          "lines": [
+            {
+              "id": "d0",
+              "text": "[ManagerUPN] = USERPRINCIPALNAME()",
+              "mark": "not isNull(rolesCheckedAt) ? \"focus\" : \"none\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "review",
+          "label": "Quarterly review",
+          "value": "12:00 (40 region managers)"
+        },
+        {
+          "id": "view",
+          "label": "What a region manager sees now",
+          "value": "{managerView == \"all\" ? \"all four regions\" : managerView == \"north\" ? \"their own region\" : managerView == \"blank\" ? \"no data\" : \"no access\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Implementing row-level security roles with DAX filters and mapping groups to them",
+  "secondaryObjectives": [
+    "Assigning workspace roles and item-level and semantic model permissions on least privilege"
+  ],
+  "sources": [
+    {
+      "cite": "Row-level security (RLS) with Power BI, Microsoft Learn (last updated 2026-05-13)",
+      "checkedAt": "2026-11-16",
+      "url": "https://learn.microsoft.com/en-us/power-bi/service-admin-rls",
+      "note": "Read through summarizing fetches 2026-11-16. Relevant text: 'RLS only restricts data access for users with Viewer permissions. It doesn't apply to workspace Admin, Member, or Contributor roles'; 'If you want RLS to apply to people in a workspace, you can only assign them the Viewer role'; 'Microsoft 365 groups aren't supported and can't be added to any RLS roles'; supported: distribution groups, mail-enabled groups and Microsoft Entra security groups; 'Users who aren't assigned to any RLS role typically see no data (empty results)' (stated in the B2B troubleshooting section); dynamic example [UserEmail] = USERPRINCIPALNAME(); in the service USERPRINCIPALNAME() returns the user's UPN."
+    }
+  ],
+  "brief": {
+    "situation": "You are the BI developer at Cascade Outdoor Supply (fictional). The Regional Sales report has a Region Manager role that filters the Region table to the signed-in manager. This morning Priya Raman, the North region manager, wrote that she can see every region's margins. At 12:00 the 40 region managers open the report for the quarterly review. It is 10:30.",
+    "handover": [
+      "The role was added last quarter; nobody checked it with a manager's account.",
+      "Finance's monthly close report and two others use the same semantic model, margin columns included."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:30",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The review starts at 12:00, 90 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "grpRole": {
+      "type": "enum",
+      "values": [
+        "admin",
+        "member",
+        "contributor",
+        "viewer",
+        "removed"
+      ],
+      "init": "member"
+    },
+    "mapping": {
+      "type": "enum",
+      "values": [
+        "nobody",
+        "sg",
+        "m365"
+      ],
+      "init": "nobody"
+    },
+    "m365Refused": {
+      "type": "bool",
+      "init": false
+    },
+    "accessCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rolesCheckedAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testedView": {
+      "type": "enum",
+      "values": [
+        "untested",
+        "all",
+        "north",
+        "blank",
+        "noaccess"
+      ],
+      "init": "untested"
+    },
+    "testedAt": {
+      "type": "time",
+      "init": null
+    },
+    "marginsRemoved": {
+      "type": "bool",
+      "init": false
+    },
+    "shippedAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "all",
+        "north",
+        "blank",
+        "noaccess"
+      ],
+      "init": "unsent"
+    },
+    "shippedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "member",
+        "filter",
+        "cache"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "manager",
+        "desktop",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "managerView": {
+      "expr": "grpRole == \"removed\" ? \"noaccess\" : grpRole != \"viewer\" ? \"all\" : mapping == \"sg\" ? \"north\" : \"blank\""
+    },
+    "shipped": {
+      "expr": "shippedAs != \"unsent\""
+    },
+    "shippedSec": {
+      "expr": "not isNull(shippedAt) ? timeAt(shippedAt) : -1"
+    },
+    "testedCurrent": {
+      "expr": "not isNull(testedAt) and (isNull(lastChangeAt) or timeAt(testedAt) >= timeAt(lastChangeAt))"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(accessCheckedAt) and (isNull(changedAt) or timeAt(accessCheckedAt) <= timeAt(changedAt))"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "checkAccess",
+        "checkRoles",
+        "setGroupRole",
+        "mapRole",
+        "dropMargin",
+        "askPriya",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "checkAccess": {
+      "label": "Open Manage access for the Sales Analytics workspace",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(accessCheckedAt)",
+          "then": [
+            {
+              "set": "accessCheckedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Workspace access: sg-region-managers is a Member (4 people, Priya Raman among them)."
+        },
+        {
+          "finding": "The region managers' group is a workspace Member: RLS does not apply to Admin, Member or Contributor."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkRoles": {
+      "label": "Open the semantic model's security roles",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(rolesCheckedAt)",
+          "then": [
+            {
+              "set": "rolesCheckedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Role 'Region Manager': filter on Region, [ManagerUPN] = USERPRINCIPALNAME(). Members: none."
+        },
+        {
+          "finding": "The Region Manager role has no members: nobody has ever been filtered by it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "setGroupRole": {
+      "label": "Change the workspace role of sg-region-managers",
+      "group": "Change access",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "role",
+          "kind": "choice",
+          "label": "Workspace role",
+          "options": [
+            {
+              "value": "admin",
+              "label": "Admin"
+            },
+            {
+              "value": "member",
+              "label": "Member"
+            },
+            {
+              "value": "contributor",
+              "label": "Contributor"
+            },
+            {
+              "value": "viewer",
+              "label": "Viewer"
+            },
+            {
+              "value": "removed",
+              "label": "Remove from the workspace"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "grpRole",
+          "to": "role"
+        },
+        {
+          "log": "sg-region-managers: workspace role is now {role}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "mapRole": {
+      "label": "Change who is in the Region Manager role",
+      "group": "Change access",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "who",
+          "kind": "choice",
+          "label": "Members",
+          "options": [
+            {
+              "value": "nobody",
+              "label": "(nobody)"
+            },
+            {
+              "value": "sg",
+              "label": "sg-region-managers (Microsoft Entra security group)"
+            },
+            {
+              "value": "m365",
+              "label": "Regional Managers (Microsoft 365 group)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "who == \"m365\"",
+          "then": [
+            {
+              "set": "m365Refused",
+              "to": "true"
+            },
+            {
+              "output": "Can't add Regional Managers: Microsoft 365 groups aren't supported for RLS role membership."
+            },
+            {
+              "log": "The Microsoft 365 group was refused.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "if": "isNull(changedAt)",
+              "then": [
+                {
+                  "set": "changedAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "lastChangeAt",
+              "to": "t"
+            },
+            {
+              "set": "mapping",
+              "to": "who"
+            },
+            {
+              "log": "Region Manager role members: {who}.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dropMargin": {
+      "label": "Remove the margin columns from the semantic model and republish",
+      "group": "Change the model",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "marginsRemoved",
+          "to": "true"
+        },
+        {
+          "output": "Published. 3 reports that use Margin now show errors (Finance monthly close, Pricing, Sales)."
+        },
+        {
+          "log": "Finance's close report broke: it used the margin columns.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "askPriya": {
+      "label": "Ask Priya Raman to open the report and send a screenshot",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testedView",
+          "to": "managerView"
+        },
+        {
+          "set": "testedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "managerView == \"all\"",
+              "then": [
+                {
+                  "output": "Priya: 'I still see North, South, East and West, margins included.'"
+                }
+              ]
+            },
+            {
+              "when": "managerView == \"north\"",
+              "then": [
+                {
+                  "output": "Priya: 'North only now. Revenue and margin for my stores.'"
+                }
+              ]
+            },
+            {
+              "when": "managerView == \"blank\"",
+              "then": [
+                {
+                  "output": "Priya: 'Every visual is empty now.'"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Priya: 'I can't open the workspace any more.'"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Tell the 40 region managers the report is ready for the 12:00 review",
+      "group": "Ship",
+      "available": "not busy and not shipped",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "shippedAs",
+          "to": "managerView"
+        },
+        {
+          "set": "shippedAt",
+          "to": "t"
+        },
+        {
+          "output": "Message sent to the region managers."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why every manager saw every region",
+              "options": [
+                {
+                  "value": "member",
+                  "label": "Their group was a workspace Member, and RLS applies only to Viewers; the role had no members"
+                },
+                {
+                  "value": "filter",
+                  "label": "The DAX filter in the role was wrong"
+                },
+                {
+                  "value": "cache",
+                  "label": "The report was cached from before RLS was added"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know a manager now sees only their region",
+              "options": [
+                {
+                  "value": "manager",
+                  "label": "A manager opened the report after the change and saw only North"
+                },
+                {
+                  "value": "desktop",
+                  "label": "Test as role in Desktop with my own account"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not shipped",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "12:00: the review started without the report.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the security review: why the role did not filter the managers, what you changed, and how you know each manager now sees only their region.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it did not filter",
+          "criteria": "RLS applies only to workspace Viewers; the managers' group was a Member, and the role had no members, so nothing ever filtered them.",
+          "modelAnswer": "sg-region-managers was a workspace Member, and RLS does not apply to Admin, Member or Contributor; the Region Manager role was empty."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Made the group a Viewer and added the security group (not a Microsoft 365 group) to the role; left the shared model's columns alone.",
+          "modelAnswer": "Workspace role Viewer for sg-region-managers; sg-region-managers added to Region Manager. No columns removed."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A real manager checked after the last change and saw only their region, before the managers were told.",
+          "modelAnswer": "Priya opened it after the change: North only."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 5400,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not shipped",
+      "class": "recovered",
+      "rationale": "Holding the report back leaks nothing, but the review runs without it; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values."
+      }
+    }
+  },
+  "endings": {
+    "brokeModel": {
+      "label": "A shared model was broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and marginsRemoved",
+      "narrative": "Removing the margin columns broke three reports, Finance's monthly close among them, and did not fix who sees what."
+    },
+    "exposed": {
+      "label": "Every manager saw every region",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and shippedAs == \"all\"",
+      "narrative": "Forty managers opened a report showing every region's margins."
+    },
+    "notShipped": {
+      "label": "Not sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not shipped",
+      "narrative": "Nothing leaked, but the review ran without the report."
+    },
+    "right": {
+      "label": "Each manager sees their region, on time, checked",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and shippedAs == \"north\" and shippedSec <= deadline and testedCurrent and testedView == \"north\"",
+      "narrative": "Managers are Viewers, the role holds their security group, and a manager confirmed the filter before the review."
+    },
+    "gaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Nothing leaked, but the managers saw empty visuals or no report, or it was late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "brokeModel",
+    "exposed",
+    "notShipped",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Checked workspace access before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw the managers' group is a Member first."
+          },
+          {
+            "when": "not isNull(accessCheckedAt)",
+            "score": "partial",
+            "why": "Checked access only after changing something."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked who has which workspace role."
+          }
+        ]
+      },
+      {
+        "id": "viewer",
+        "label": "Region managers are Viewers (RLS applies only to Viewers)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "grpRole == \"viewer\"",
+            "score": "met",
+            "why": "Viewer: the role's filter now applies to them."
+          },
+          {
+            "when": "grpRole == \"removed\"",
+            "score": "partial",
+            "why": "Removed: nothing leaks, but they can't open the report either."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Still {grpRole}: RLS does not apply to them."
+          }
+        ]
+      },
+      {
+        "id": "mapped",
+        "label": "Mapped a supported group (a security group) to the role",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mapping == \"sg\"",
+            "score": "met",
+            "why": "sg-region-managers is in the Region Manager role."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The role has no members, so Viewers see no data."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "A manager confirmed the result after the last change, before it was sent",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "testedCurrent and testedView == \"north\" and (not shipped or timeAt(testedAt) <= shippedSec)",
+            "score": "met",
+            "why": "Priya saw North only."
+          },
+          {
+            "when": "not isNull(testedAt)",
+            "score": "partial",
+            "why": "Checked, but not after the last change or not showing North only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked as a manager."
+          }
+        ]
+      },
+      {
+        "id": "model",
+        "label": "Left the shared semantic model's columns alone",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not marginsRemoved",
+            "score": "met",
+            "why": "No column removed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the margin columns three reports use."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"member\" and checkDoc == \"manager\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"member\" or checkDoc == \"manager\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "regions",
+        "label": "Regions a manager could see when told it was ready",
+        "value": "shippedAs == \"all\" ? 4 : shippedAs == \"north\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "sentAt",
+        "label": "Minutes until the managers were told",
+        "value": "shipped ? shippedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 20"
+      },
+      {
+        "id": "broken",
+        "label": "Reports broken by model changes",
+        "value": "marginsRemoved ? 3 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Manage access: sg-region-managers is a Member. Security roles: Region Manager has no members."
+      },
+      {
+        "at": "4-8 min",
+        "text": "Make the group a Viewer; add sg-region-managers (a security group) to the role."
+      },
+      {
+        "at": "8-13 min",
+        "text": "Ask Priya to open the report: North only."
+      },
+      {
+        "at": "13-14 min",
+        "text": "Tell the managers it is ready for 12:00."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: least privilege, a mapped role, a real check",
+        "body": "RLS filters Viewers only. You moved the managers to Viewer, put their security group in the role, and had a manager confirm it before the review."
+      },
+      "gaps": {
+        "headline": "Nothing leaked, with gaps",
+        "body": "The managers saw empty visuals, had no access, or the change went unchecked or late. An RLS role with no members shows a Viewer no data."
+      },
+      "exposed": {
+        "headline": "Every region went to every manager",
+        "body": "As workspace Members the managers bypass RLS. Least privilege (Viewer) is what makes the role apply."
+      },
+      "brokeModel": {
+        "headline": "A shared model was broken",
+        "body": "Removing columns from a shared semantic model breaks every report on it, and it does not change who sees which rows."
+      },
+      "notShipped": {
+        "headline": "Held back",
+        "body": "Safe, but the review needed the report. Two settings and a check fix it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "RLS restricts only people whose workspace role is Viewer; Admin, Member and Contributor have edit permission on the semantic model and bypass it. The managers' group was a Member and the role was empty, so the filter never ran. The fix is least privilege plus a mapping: Viewer for sg-region-managers, and that security group in the Region Manager role (Microsoft 365 groups can't be added). A Viewer in no role sees no data, so both changes are needed, and a manager should confirm the result before the review. Dropping columns from a shared model breaks other reports and leaves row access unchanged."
+  }
+}

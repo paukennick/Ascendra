@@ -274,6 +274,38 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // the titles against ITIL5_DESK_OBJECTIVES below instead.
   entry("ITIL5FND", "monday-service-desk-wifi-problem"),
   // ---- end REQ-311 ----
+  // ---- REQ-312: the data and code console (screen type data, data profile;
+  // docs/sims.md 22.25), launch courses first. Keep these entries together. ----
+  entry("PYTHON", "py-report-too-slow-profile"),
+  entry("PL300", "pl300-rls-region-manager"),
+  entry("PL300", "pl300-stock-on-hand-summed"),
+  entry("CSSGB", "cssgb-fill-weight-chart"),
+  entry("JAVASCRIPT", "js-rate-board-zero-percent"),
+  band("TSNODE", "js-rate-board-zero-percent-tsnode"),
+  entry("PYTHON", "py-import-crash-traceback"),
+  band("PCAP", "py-import-crash-traceback-pcap"),
+  band("PCEP", "py-import-crash-traceback-pcep"),
+  entry("SQL", "sql-not-in-null-empty-list"),
+  entry("CSSGB", "cssgb-capability-tool-wear"),
+  entry("JAVASCRIPT", "js-checkout-shipping-concatenated"),
+  // ---- end REQ-312 ----
+];
+
+// REQ-312: the data and code console documents (docs/sims.md 22.25), by
+// slug so a later sim in the same course cannot change this set (FAIL-2002).
+export const DATA_CONSOLE_SLUGS: readonly string[] = [
+  "py-report-too-slow-profile",
+  "pl300-rls-region-manager",
+  "pl300-stock-on-hand-summed",
+  "cssgb-fill-weight-chart",
+  "js-rate-board-zero-percent",
+  "js-rate-board-zero-percent-tsnode",
+  "py-import-crash-traceback",
+  "py-import-crash-traceback-pcap",
+  "py-import-crash-traceback-pcep",
+  "sql-not-in-null-empty-list",
+  "cssgb-capability-tool-wear",
+  "js-checkout-shipping-concatenated",
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

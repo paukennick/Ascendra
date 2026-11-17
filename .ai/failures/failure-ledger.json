@@ -18141,6 +18141,30 @@
       "prevention_rules": [],
       "prevention_notes": "Watch the seed's duration in the post-deploy log; make it faster before it nears 75 minutes.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2180",
+      "date": "2026-11-16",
+      "title": "REQ-269 sim test selected its documents by course code",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/sim/tech-courses-sims.test.ts failed 4 tests (two per course; SQL and TSNODE now had three) after REQ-312 added a data console SQL sim and a TSNODE band",
+      "how_detected": "test run while adding REQ-312 sims",
+      "root_cause": "The test built its set with ALL_DOCUMENTS.filter(e => e.course in SCREEN), so any later sim registered to SQL or TSNODE joined a set whose rules (terminal screen, two per course, terminal profile) were written for REQ-269 only; the FAIL-2002 rule had not been applied to this older test",
+      "requirement": "REQ-312",
+      "affected": [
+        "backend/lib/sim/tech-courses-sims.test.ts"
+      ],
+      "fix_summary": "The test lists its eight REQ-269 slugs; REQ-312's own tests select by DATA_CONSOLE_SLUGS",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/tech-courses-sims.test.ts",
+        "backend/lib/sim/data-console.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug from their own requirement's list (FAIL-2002); a new sim on an existing course is checked against every test that filters by that course code",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }

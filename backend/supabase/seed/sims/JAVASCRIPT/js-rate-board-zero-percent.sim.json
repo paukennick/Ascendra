@@ -1,0 +1,1212 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "js-rate-board-zero-percent",
+  "title": "The rate board shows 0.00%",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "rates.js on the teller rate board (Lakeside Credit Union, fictional)",
+      "flags": [
+        {
+          "id": "ticket",
+          "label": "Branch, Elm Street",
+          "text": "The rate board showed 30-year fixed 0.00% twice this morning. A member asked about it.",
+          "when": "true",
+          "severity": "warning"
+        },
+        {
+          "id": "svc",
+          "label": "Rate service status",
+          "text": "Degraded since 09:10: some requests return 503 or hang.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "lock",
+          "label": "Deploy train",
+          "text": "11:00: the train left without the fix.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        },
+        {
+          "id": "hammer",
+          "label": "Rate service on-call",
+          "text": "Your board is sending thousands of requests a minute. We have blocked it.",
+          "when": "shipped and shippedRetry",
+          "severity": "error"
+        },
+        {
+          "id": "zero",
+          "label": "Branches",
+          "text": "The board still shows 0.00% whenever the service fails.",
+          "when": "shipped and shippedOnError == \"zero\"",
+          "severity": "error"
+        }
+      ],
+      "charts": [
+        {
+          "id": "status",
+          "label": "Rate requests since 09:00 by status",
+          "spokenLabel": "Rate requests by status",
+          "kind": "bar",
+          "unit": "requests",
+          "min": 0,
+          "max": 400,
+          "points": [
+            {
+              "id": "ok",
+              "label": "200",
+              "value": "312"
+            },
+            {
+              "id": "e503",
+              "label": "503",
+              "value": "57",
+              "flag": "true"
+            },
+            {
+              "id": "hung",
+              "label": "No reply after 60 s",
+              "value": "9",
+              "flag": "true"
+            }
+          ]
+        }
+      ],
+      "tables": [
+        {
+          "id": "board",
+          "label": "Rate board on a 503 (current code)",
+          "spokenLabel": "the rate board on a failed request",
+          "columns": [
+            {
+              "id": "product",
+              "label": "Product"
+            },
+            {
+              "id": "shown",
+              "label": "Shown"
+            }
+          ],
+          "rows": [
+            {
+              "id": "m30",
+              "cells": [
+                "30-year fixed",
+                "{onError == \"zero\" ? \"0.00%\" : onError == \"crash\" ? \"(blank page)\" : \"6.125% (as of 09:58, rates unavailable)\"}"
+              ],
+              "flag": "onError != \"unavailable\""
+            },
+            {
+              "id": "sav",
+              "cells": [
+                "12-month certificate",
+                "{onError == \"zero\" ? \"0.00%\" : onError == \"crash\" ? \"(blank page)\" : \"4.10% (as of 09:58, rates unavailable)\"}"
+              ],
+              "flag": "onError != \"unavailable\""
+            }
+          ]
+        }
+      ],
+      "code": [
+        {
+          "id": "src",
+          "label": "rates.js",
+          "language": "JavaScript",
+          "lines": [
+            {
+              "id": "j0",
+              "text": "async function loadRates() {"
+            },
+            {
+              "id": "j1",
+              "text": "  try {",
+              "when": "catchZero or okCheck"
+            },
+            {
+              "id": "j2",
+              "text": "    const res = await fetch(RATES_URL);",
+              "when": "not timeoutSet"
+            },
+            {
+              "id": "j3",
+              "text": "    const res = await fetch(RATES_URL, { signal: AbortSignal.timeout(5000) });",
+              "when": "timeoutSet",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "j4",
+              "text": "    if (!res.ok) throw new Error(`rates: HTTP ${res.status}`);",
+              "when": "okCheck",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "j5",
+              "text": "    while (!res.ok) res = await fetch(RATES_URL);",
+              "when": "retryLoop",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "j6",
+              "text": "    const data = await res.json();",
+              "mark": "not isNull(netAt) and not okCheck ? \"error\" : \"none\""
+            },
+            {
+              "id": "j7",
+              "text": "    lastGood = { rates: data.rates, at: new Date() };",
+              "when": "okCheck",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "j8",
+              "text": "    return data.rates;"
+            },
+            {
+              "id": "j9",
+              "text": "  } catch (e) {",
+              "when": "catchZero or okCheck"
+            },
+            {
+              "id": "j10",
+              "text": "    return {};",
+              "when": "catchZero",
+              "mark": "not isNull(netAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "j11",
+              "text": "    showBanner(`Rates unavailable. Showing ${lastGood.at}`);",
+              "when": "okCheck",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "j12",
+              "text": "    return lastGood.rates;",
+              "when": "okCheck",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "j13",
+              "text": "  }",
+              "when": "catchZero or okCheck"
+            },
+            {
+              "id": "j14",
+              "text": "}"
+            },
+            {
+              "id": "j15",
+              "text": ""
+            },
+            {
+              "id": "j16",
+              "text": "// render: (rates.mortgage30 ?? 0).toFixed(2) + \"%\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "train",
+          "label": "Deploy train",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Fetching data with the Fetch API and handling JSON responses",
+  "secondaryObjectives": [
+    "async/await syntax and error handling with try/catch",
+    "Promises: states, .then/.catch/.finally, Promise.all"
+  ],
+  "sources": [
+    {
+      "cite": "Using the Fetch API, MDN Web Docs (last modified 2025-08-20)",
+      "checkedAt": "2026-11-16",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch%5FAPI/Using%5FFetch",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: 'The promise returned by fetch() will reject on some errors, such as a network error or a bad scheme. However, if the server responds with an error like 404, then fetch() fulfills with a Response, so we have to check the status before we can read the response body'; 'A common pattern is to check the value of ok and throw if it is false'; json() 'will throw an exception if the response body is not in the appropriate format'."
+    },
+    {
+      "cite": "Response: ok property, MDN Web Docs (last modified 2025-03-13)",
+      "checkedAt": "2026-11-16",
+      "url": "https://developer.mozilla.org/docs/Web/API/Response/ok",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: ok 'contains a Boolean stating whether the response was successful (status in the range 200-299) or not'."
+    },
+    {
+      "cite": "AbortSignal: timeout() static method, MDN Web Docs (last modified 2026-09-01)",
+      "checkedAt": "2026-11-16",
+      "url": "https://developer.mozilla.org/docs/Web/API/AbortSignal/timeout_static",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: it 'returns an AbortSignal that will automatically abort after a specified time'; 'The signal will abort with its AbortSignal.reason property set to a TimeoutError DOMException on timeout'; the example passes { signal: AbortSignal.timeout(5000) } to fetch and checks err.name === \"TimeoutError\"."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the teller rate board for Lakeside Credit Union (fictional), a page whose rates.js fetches today's rates from the internal rate service. Since 09:10 the service has been degraded, and twice this morning a branch board showed a 30-year fixed rate of 0.00%. The next deploy train leaves at 11:00. It is 10:15.",
+    "handover": [
+      "The console is clean: whatever is going wrong is not being logged."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: open or profile something, run a query, a check or a test, change the code or the model, or ship the result. A cell marked with a pencil can be changed by picking a value. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, charts, tables and code, and the result of each step. 'Read the console' reads it aloud, and every chart can be shown as a table.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:15",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The rate service's failures (503 pages, a hung request) are invented. The deploy train leaves at 11:00, 45 minutes after the start."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "netAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "okCheck": {
+      "type": "bool",
+      "init": false
+    },
+    "catchZero": {
+      "type": "bool",
+      "init": true
+    },
+    "retryLoop": {
+      "type": "bool",
+      "init": false
+    },
+    "timeoutSet": {
+      "type": "bool",
+      "init": false
+    },
+    "testedAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "shipped": {
+      "type": "bool",
+      "init": false
+    },
+    "shippedAt": {
+      "type": "time",
+      "init": null
+    },
+    "shippedOnError": {
+      "type": "enum",
+      "values": [
+        "none",
+        "zero",
+        "crash",
+        "unavailable"
+      ],
+      "init": "none"
+    },
+    "shippedRetry": {
+      "type": "bool",
+      "init": false
+    },
+    "shippedTimeout": {
+      "type": "bool",
+      "init": false
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "status",
+        "cors",
+        "rates"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "mock",
+        "reload",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "onError": {
+      "expr": "okCheck ? \"unavailable\" : catchZero ? \"zero\" : \"crash\""
+    },
+    "shippedSec": {
+      "expr": "not isNull(shippedAt) ? timeAt(shippedAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(netAt) and (isNull(changedAt) or timeAt(netAt) <= timeAt(changedAt))"
+    },
+    "testedCurrent": {
+      "expr": "testPassed and not isNull(testedAt) and timeAt(testedAt) >= timeAt(lastChangeAt)"
+    },
+    "shippedWrong": {
+      "expr": "shipped and (shippedOnError == \"zero\" or shippedRetry)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "network",
+        "console",
+        "fixOk",
+        "fixTimeout",
+        "fixRetry",
+        "removeCatch",
+        "test",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "network": {
+      "label": "Open the browser's Network panel on the rate board",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(netAt)",
+          "then": [
+            {
+              "set": "netAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "GET /v2/rates  200  application/json   180 ms\nGET /v2/rates  503  text/html          40 ms\nGET /v2/rates  200  application/json   210 ms\nGET /v2/rates  503  text/html          35 ms\nGET /v2/rates  (pending)              61 s"
+        },
+        {
+          "finding": "Some requests come back 503 with an HTML error page, and one has been pending for a minute."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "console": {
+      "label": "Log the swallowed error in the catch and reload",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "output": "SyntaxError: Unexpected token '<', \"<html><hea\"... is not valid JSON\n    at loadRates (rates.js:4)"
+        },
+        {
+          "finding": "json() is parsing the 503's HTML page; the catch hides it and returns {{}}."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "fixOk": {
+      "label": "Check res.ok and throw with the status before parsing; show 'Rates unavailable' with the last good rates",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "set": "okCheck",
+          "to": "true"
+        },
+        {
+          "set": "catchZero",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Check res.ok and throw with the status before parsing; show 'Rates unavailable' with the last good rates.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "fixTimeout": {
+      "label": "Pass signal: AbortSignal.timeout(5000) to fetch",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "set": "timeoutSet",
+          "to": "true"
+        },
+        {
+          "log": "Changed: Pass signal: AbortSignal.timeout(5000) to fetch.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "fixRetry": {
+      "label": "Retry the request in a loop until it succeeds",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "set": "retryLoop",
+          "to": "true"
+        },
+        {
+          "log": "Changed: Retry the request in a loop until it succeeds.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "removeCatch": {
+      "label": "Remove the try/catch so errors surface",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "set": "catchZero",
+          "to": "false"
+        },
+        {
+          "log": "Changed: Remove the try/catch so errors surface.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "test": {
+      "label": "Run the Jest test with a mocked 503 response",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testedAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "okCheck and not retryLoop",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "PASS rates.test.js\n  shows 'Rates unavailable' and the 09:58 rates on a 503 (12 ms)"
+                },
+                {
+                  "log": "The 503 test passes.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "retryLoop",
+              "then": [
+                {
+                  "output": "FAIL rates.test.js\n  Exceeded timeout of 5000 ms: the mocked 503 never ends, and the loop never stops."
+                },
+                {
+                  "log": "The retry loop never ends on a lasting 503.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "catchZero",
+              "then": [
+                {
+                  "output": "FAIL rates.test.js\n  Expected: 'Rates unavailable'\n  Received: '30-year fixed 0.00%'"
+                },
+                {
+                  "log": "On a 503 the board shows 0.00%.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "FAIL rates.test.js\n  SyntaxError: Unexpected token '<' (unhandled; the board is blank)"
+                },
+                {
+                  "log": "On a 503 the board is blank.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Merge into the 11:00 deploy train",
+      "group": "Ship",
+      "available": "not busy and not shipped",
+      "why": "Already merged.",
+      "effects": [
+        {
+          "set": "shipped",
+          "to": "true"
+        },
+        {
+          "set": "shippedAt",
+          "to": "t"
+        },
+        {
+          "set": "shippedOnError",
+          "to": "onError"
+        },
+        {
+          "set": "shippedRetry",
+          "to": "retryLoop"
+        },
+        {
+          "set": "shippedTimeout",
+          "to": "timeoutSet"
+        },
+        {
+          "output": "Merged. Deploying with the 11:00 train."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 15 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "15min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the board showed 0.00%",
+              "options": [
+                {
+                  "value": "status",
+                  "label": "fetch resolved on a 503; json() threw on the HTML error page, and the catch returned {} so the board showed zeros"
+                },
+                {
+                  "value": "cors",
+                  "label": "A CORS error blocked the request"
+                },
+                {
+                  "value": "rates",
+                  "label": "The rate service sent zero rates"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the fix works",
+              "options": [
+                {
+                  "value": "mock",
+                  "label": "A test with a mocked 503 shows 'Rates unavailable' and keeps the last good rates"
+                },
+                {
+                  "value": "reload",
+                  "label": "The board loaded fine when I reloaded it"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The rate service's failures (503 pages, a hung request) are invented."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not shipped",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the deploy train left without the fix.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the code review: why a failed request became 0.00%, what the code does on a failure now, and how you tested it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "fetch fulfills on an HTTP error status; json() then threw on the 503's HTML body; the catch returned {} and the render turned a missing rate into 0.00.",
+          "modelAnswer": "A 503 resolves the fetch; res.json() throws on '<html>'; catch returns {}; (undefined ?? 0).toFixed(2) is 0.00."
+        },
+        {
+          "label": "What it does now",
+          "criteria": "Checks res.ok and throws with the status before parsing; the board says rates are unavailable and keeps the last good rates with their time; a timeout stops a hung request; no unbounded retry.",
+          "modelAnswer": "if (!res.ok) throw ...; banner with the 09:58 rates; AbortSignal.timeout(5000)."
+        },
+        {
+          "label": "How you tested",
+          "criteria": "A test with a mocked 503 after the last change.",
+          "modelAnswer": "Jest with fetch mocked to a 503: the banner and the last good rates."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Author's scenario timing (REQ-312)",
+          "checkedAt": "2026-11-16",
+          "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The rate service's failures (503 pages, a hung request) are invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not shipped",
+      "class": "recovered",
+      "rationale": "Shipping nothing makes nothing worse, but the zero rates stay until the next train; safe, with no progress.",
+      "source": {
+        "cite": "Author's scenario timing (REQ-312)",
+        "checkedAt": "2026-11-16",
+        "note": "How many working minutes each step takes, run times and deadlines, and every dataset in the case are invented teaching values for exam practice, not measured values. The rate service's failures (503 pages, a hung request) are invented."
+      }
+    }
+  },
+  "endings": {
+    "wrongShipped": {
+      "label": "A harmful change went out",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and shippedWrong",
+      "narrative": "{shippedRetry ? \"The retry loop flooded the struggling rate service, which blocked the board.\" : \"The board still shows 0.00% to tellers whenever the service fails.\"}"
+    },
+    "notShipped": {
+      "label": "Not shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not shipped",
+      "narrative": "Nothing worse went out, but the board will keep showing 0.00% until the next train."
+    },
+    "right": {
+      "label": "Failures shown honestly, tested, on the train",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and shipped and shippedOnError == \"unavailable\" and not shippedRetry and shippedSec <= deadline and testedCurrent",
+      "narrative": "On a failed request the board says rates are unavailable and keeps the last good rates with their time."
+    },
+    "gaps": {
+      "label": "Shipped, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "No zero rate goes out, but the board goes blank on a failure, or the fix was late or untested."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongShipped",
+    "notShipped",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Looked at what the requests returned before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw the 503s with HTML bodies first."
+          },
+          {
+            "when": "not isNull(netAt)",
+            "score": "partial",
+            "why": "Looked only after changing code."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at the responses."
+          }
+        ]
+      },
+      {
+        "id": "okCheck",
+        "label": "Checks response.ok before parsing, and says so on screen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(shipped ? shippedOnError : onError) == \"unavailable\"",
+            "score": "met",
+            "why": "Throws on a non-2xx status; the board says rates are unavailable."
+          },
+          {
+            "when": "(shipped ? shippedOnError : onError) == \"crash\"",
+            "score": "partial",
+            "why": "Errors surface, but as a blank page."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A failed request still becomes 0.00%."
+          }
+        ]
+      },
+      {
+        "id": "tested",
+        "label": "Tested a 503 after the last change, before merging",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "testedCurrent and (not shipped or timeAt(testedAt) <= shippedSec)",
+            "score": "met",
+            "why": "The mocked 503 test passed."
+          },
+          {
+            "when": "not isNull(testedAt)",
+            "score": "partial",
+            "why": "Tested, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never tested a failed response."
+          }
+        ]
+      },
+      {
+        "id": "noLoop",
+        "label": "No unbounded retry against a failing service",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not (shipped ? shippedRetry : retryLoop)",
+            "score": "met",
+            "why": "No retry loop."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A loop retries a lasting 503 forever."
+          }
+        ]
+      },
+      {
+        "id": "timeout",
+        "label": "A hung request times out (AbortSignal.timeout)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "shipped ? shippedTimeout : timeoutSet",
+            "score": "met",
+            "why": "Aborts after 5 s with a TimeoutError."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A hung request leaves the board loading."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"status\" and checkDoc == \"mock\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"status\" or checkDoc == \"mock\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "zeroes",
+        "label": "Boards that still show 0.00% on a failure after the deploy (of 14)",
+        "value": "shipped and shippedOnError == \"zero\" ? 14 : 0",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "mergedAt",
+        "label": "Minutes until merged",
+        "value": "shipped ? shippedSec / 60 : 0",
+        "format": "number",
+        "expert": "about 16"
+      },
+      {
+        "id": "loops",
+        "label": "Retry loops shipped",
+        "value": "shippedRetry ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-2 min",
+        "text": "Network panel: 503s with HTML bodies, and a request pending for a minute."
+      },
+      {
+        "at": "2-6 min",
+        "text": "Check res.ok and throw before parsing; show 'Rates unavailable' with the last good rates."
+      },
+      {
+        "at": "6-8 min",
+        "text": "Add AbortSignal.timeout(5000)."
+      },
+      {
+        "at": "8-11 min",
+        "text": "Mocked 503 test passes."
+      },
+      {
+        "at": "11-13 min",
+        "text": "Merge into the 11:00 train."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: honest failures, tested",
+        "body": "fetch only rejects on network-level errors; you check ok yourself, say the rates are unavailable, keep the last good ones, time out a hung call, and proved it with a 503 test."
+      },
+      "gaps": {
+        "headline": "Shipped, with gaps",
+        "body": "No zero rate goes out. The criteria show the gap: a blank page instead of a message, no test of a failure, or late."
+      },
+      "wrongShipped": {
+        "headline": "A harmful change went out",
+        "body": "A catch that turns any error into empty data shows a wrong number; a loop that retries a lasting 503 floods the service. Check ok, show the failure, back off."
+      },
+      "notShipped": {
+        "headline": "Not shipped",
+        "body": "Safe, but tellers keep seeing 0.00% until the next train."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "fetch() fulfills with a Response even when the server answers 503; only network-level failures reject. The code called res.json() on the 503's HTML page, which threw, and a catch that returned {} let the render show 0.00%. Check res.ok (status 200-299) and throw with the status before parsing; on any failure show that rates are unavailable with the last good rates and their time; pass AbortSignal.timeout so a hung request ends with a TimeoutError. A retry loop with no limit floods a failing service. Test the failure path with a mocked 503."
+  }
+}

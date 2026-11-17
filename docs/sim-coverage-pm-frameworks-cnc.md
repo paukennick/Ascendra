@@ -73,7 +73,10 @@ recall exam, so these would be practice for the seven practices, not exam
 items.
 
 **Process and data console** (ASQ CSSGB; overlaps the planned data and code
-console in docs/sims.md 20). A process line producing data by subgroup, a
+console in docs/sims.md 20). Built in REQ-312 as part of the data and code
+console (`screen.type: "data"`, docs/sims.md 22.25): control and other
+charts, tables with editable cells, flags and a deadline; P-Q3 and P-Q7 are
+built, P-Q1, P-Q2, P-Q4 to P-Q6 and P-Q8 can now be authored on it. A process line producing data by subgroup, a
 control chart and capability read-outs, a measurement system study, and a
 DMAIC project tracker; tampering and late reaction both cost. Unlocks P-Q1 to
 P-Q8 (25 objectives).
@@ -263,7 +266,7 @@ ITIL4FND: 40 objectives, 14 fit the rule, 0 covered by a built sim.
 | Measure Phase | Classifying data and measurement scales and writing a data collection plan with sampling and data checks | Yes: choices with consequences | Proposed screen: P-Q2 Is the gauge lying? |
 | Measure Phase | Calculating and interpreting descriptive statistics and graphs: histograms, box plots, scatter diagrams and normal probability plots | No: recall or explanation; lessons and labs cover it | none |
 | Measure Phase | Evaluating a measurement system with gauge R&R, bias, linearity and percent agreement | Yes: cues to read in data; consequence: decisions on bad data | Proposed screen: P-Q2 Is the gauge lying? |
-| Measure Phase | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | Yes: cues to read: an unstable process | Proposed screen: P-Q3 Capability on an unstable process |
+| Measure Phase | Calculating Cp, Cpk, Pp and Ppk and the sigma level, and allowing for the shift between short- and long-term data | Yes: cues to read: an unstable process | Built (REQ-312, data console): `cssgb-capability-tool-wear` |
 | Analyze Phase | Using multi-vari studies to separate positional, cyclical and temporal variation | Yes: cues to read | Proposed screen: P-Q4 Root cause hunt |
 | Analyze Phase | Calculating correlation and simple linear regression, and telling correlation from causation | Yes: cues to read: correlation or cause | Proposed screen: P-Q4 Root cause hunt |
 | Analyze Phase | Setting up a hypothesis test: hypotheses, significance level, power, type I and type II errors and sample size | Yes: choices with consequences (errors) | Proposed screen: P-Q4 Root cause hunt |
@@ -279,13 +282,13 @@ ITIL4FND: 40 objectives, 14 fit the rule, 0 covered by a built sim.
 | Improve Phase | Distinguishing kaizen from a kaizen blitz and choosing between them | No: recall or explanation; lessons and labs cover it | none |
 | Control Phase | Explaining the aims of SPC and telling common-cause from special-cause variation | Yes: cues to read: special cause or noise; tampering costs | Proposed screen: P-Q7 Control chart on shift |
 | Control Phase | Using rational subgrouping | Yes: choices with consequences | Proposed screen: P-Q7 Control chart on shift |
-| Control Phase | Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u | Yes: cues to read; time matters | Proposed screen: P-Q7 Control chart on shift |
+| Control Phase | Selecting and interpreting a control chart: X-bar and R, X-bar and s, individuals and moving range, median, p, np, c and u | Yes: cues to read; time matters | Built (REQ-312, data console): `cssgb-fill-weight-chart` |
 | Control Phase | Developing a control plan with the document control and training that sustain it | Yes: delayed consequences: the gain slips | Proposed screen: P-Q8 Holding the gain |
 | Control Phase | Distinguishing first-, second- and third-party audits | No: recall or explanation; lessons and labs cover it | none |
 | Control Phase | Applying plan-do-check-act to sustain and extend a gain | Yes: delayed consequences | Proposed screen: P-Q8 Holding the gain |
 | Control Phase | Using total productive maintenance and the visual factory (andon, jidoka) to hold the improved process | Yes: time matters: a stop on the line | Proposed screen: P-Q8 Holding the gain |
 
-CSSGB: 43 objectives, 25 fit the rule, 0 covered by a built sim.
+CSSGB: 43 objectives, 25 fit the rule, 2 covered by a built sim (REQ-312).
 
 ### NASMCNC
 

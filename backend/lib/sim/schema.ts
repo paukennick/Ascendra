@@ -288,6 +288,50 @@ export const screenSpecSchema = z.object({
       meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
     })
     .optional(),
+  // REQ-312: the data and code console (engine types.ts ScreenSpec.data).
+  data: z
+    .object({
+      workspace: template,
+      flags: z.array(z.object({ id, label: z.string(), text: template, when: expr, severity: z.enum(["error", "warning", "info"]) })),
+      tables: z.array(
+        z.object({
+          id,
+          label: z.string(),
+          spokenLabel: z.string(),
+          when: expr.optional(),
+          columns: z.array(z.object({ id, label: z.string(), numeric: z.boolean().optional() })),
+          rows: z.array(z.object({ id, cells: z.array(template), when: expr.optional(), flag: expr.optional() })),
+          note: template.optional(),
+          edits: z.array(z.object({ row: id, column: id, action: id })).optional(),
+        }),
+      ),
+      charts: z.array(
+        z.object({
+          id,
+          label: z.string(),
+          spokenLabel: z.string(),
+          kind: z.enum(["bar", "line", "control"]),
+          unit: z.string(),
+          min: z.number(),
+          max: z.number(),
+          when: expr.optional(),
+          points: z.array(z.object({ id, label: z.string(), value: expr, when: expr.optional(), flag: expr.optional() })),
+          lines: z.array(z.object({ id, label: z.string(), value: expr, when: expr.optional() })).optional(),
+          note: template.optional(),
+        }),
+      ),
+      code: z.array(
+        z.object({
+          id,
+          label: z.string(),
+          language: z.string(),
+          when: expr.optional(),
+          lines: z.array(z.object({ id, text: z.string().max(160), when: expr.optional(), mark: expr.optional() })),
+        }),
+      ),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
 });
 
 const criterionScoreSchema = z.enum(["met", "partial", "missed"]);

@@ -13,6 +13,7 @@ import { consoleView, type ConsoleView } from "./consoleView.ts";
 import { terminalView, type TerminalView } from "./terminalView.ts";
 import { dashboardView, type DashboardView } from "./dashboardView.ts";
 import { deskView, type DeskView } from "./deskView.ts";
+import { dataView, type DataView } from "./dataView.ts";
 
 type Tile = VitalTile;
 
@@ -375,6 +376,7 @@ export interface RunView {
   terminal: TerminalView | null; // REQ-237: the terminal and network screen
   dashboard: DashboardView | null; // REQ-311: the project dashboard (predictive or Sprint mode)
   desk: DeskView | null; // REQ-311: the ITIL service desk
+  data: DataView | null; // REQ-312: the data and code console
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -389,6 +391,7 @@ export function runView(run: Run, logLimit = 60): RunView {
   const p = run.state.openPrompt ? (doc.prompts ?? {})[run.state.openPrompt] : null;
   const r = run.state.openReasoning ? doc.reasoning[run.state.openReasoning] : null;
   const banner = (doc.screen.bedside?.banner ?? []).find((b) => value(run, b.when) === true);
+  const actions = actionViews(run);
   const log = run.log
     .map((l, i) => ({ key: `${i}`, time: simTimeText(run, l.tick), kind: l.kind, text: l.text }))
     .slice(-logLimit)
@@ -409,7 +412,8 @@ export function runView(run: Run, logLimit = 60): RunView {
     terminal: terminalView(run),
     dashboard: dashboardView(run),
     desk: deskView(run),
-    groups: groupActions(actionViews(run)),
+    data: dataView(run, actions),
+    groups: groupActions(actions),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
     reasoning: r && run.state.openReasoning ? { id: run.state.openReasoning, question: r.question } : null,

@@ -39,7 +39,7 @@ describe("switches", () => {
     assert.equal(simsEnabled({ SIMS_ENABLED: "on" }), true);
   });
   test("renderers default to bedside and board; the env narrows them", () => {
-    assert.deepEqual(renderersOn({}), ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "project-dashboard", "service-desk"]);
+    assert.deepEqual(renderersOn({}), ["bedside", "board", "session", "security-console", "treatment-session", "terminal", "project-dashboard", "service-desk", "data"]);
     assert.deepEqual(renderersOn({ SIMS_RENDERERS: "bedside" }), ["bedside"]);
   });
   test("unreviewed content is served unless switched off", () => {

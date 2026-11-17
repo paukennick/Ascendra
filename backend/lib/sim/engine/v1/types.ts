@@ -313,6 +313,7 @@ export interface ScreenSpec {
   // (the design's "security" placeholder stays unused). REQ-232:
   // "treatment-session" is the PT treatment session. REQ-237: "terminal" is
   // the terminal and network screen as built (screen.terminal bindings).
+  // REQ-312: "data" is the data and code console as built (screen.data).
   // REQ-311: "project-dashboard" is the project dashboard as built (the
   // design's "dashboard" placeholder stays unused), with a predictive mode and
   // a Sprint mode (screen.dashboard); "service-desk" is the ITIL service desk
@@ -445,6 +446,63 @@ export interface ScreenSpec {
     services: { id: Id; label: string; spokenLabel: string; status: Template; tone: Expr }[];
     meters?: { id: Id; label: string; value: Template }[];
   };
+  // REQ-312: the data and code console (docs/sims.md 20, 20.1, 22.25),
+  // display-only like the terminal. Nothing the learner types is executed:
+  // "running" a query, a cell, a measure or a fix is one of the phase's
+  // actions, and what it shows is authored (its `output` effects, shown as
+  // the results, and these bindings over state). `workspace` names what is
+  // open ("orders_import.py", "Sales.pbix", "Line 3 fill weights").
+  // `flags` are quality flags, failing checks and stakeholder messages shown
+  // while `when` holds; an "error" flag is spoken at once, like an alarm.
+  // `tables` are authored result or data tables (rows shown while `when`
+  // holds, `flag` marking a row the screen calls out); a table's `edits`
+  // make a cell editable by choice: the cell names an action whose one
+  // param is a `choice`, and picking an option sends that action, so an
+  // edit is a bounded choice, never typed text. `charts` are bar, line or
+  // control charts drawn from number expressions, with reference `lines`
+  // (center line, control or spec limits, a target); a point's `flag`
+  // marks it (a point beyond a limit, a run). `code` is a read-only code
+  // viewer: lines are literal text (never templates, so braces are code),
+  // shown while `when` holds and marked by `mark` (none, error, warning,
+  // changed, focus); a line's number is its place among the lines shown.
+  data?: {
+    workspace: Template;
+    flags: { id: Id; label: string; text: Template; when: Expr; severity: DataSeverity }[];
+    tables: DataTable[];
+    charts: DataChart[];
+    code: { id: Id; label: string; language: string; when?: Expr; lines: { id: Id; text: string; when?: Expr; mark?: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+}
+
+// REQ-312: the data and code console's parts (ScreenSpec.data).
+export type DataSeverity = "error" | "warning" | "info";
+export type DataMark = "none" | "error" | "warning" | "changed" | "focus";
+export type DataChartKind = "bar" | "line" | "control";
+
+export interface DataTable {
+  id: Id;
+  label: string;
+  spokenLabel: string;
+  when?: Expr;
+  columns: { id: Id; label: string; numeric?: boolean }[];
+  rows: { id: Id; cells: Template[]; when?: Expr; flag?: Expr }[];
+  note?: Template;
+  edits?: { row: Id; column: Id; action: Id }[];
+}
+
+export interface DataChart {
+  id: Id;
+  label: string;
+  spokenLabel: string;
+  kind: DataChartKind;
+  unit: string;
+  min: number;
+  max: number;
+  when?: Expr;
+  points: { id: Id; label: string; value: Expr; when?: Expr; flag?: Expr }[];
+  lines?: { id: Id; label: string; value: Expr; when?: Expr }[];
+  note?: Template;
 }
 
 // REQ-311: the service desk's ticket kinds and service tones.
