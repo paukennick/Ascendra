@@ -1,0 +1,38 @@
+// REQ-316 (docs/sims.md 22.29): the wave 4 IT sims and bands by slug, shared by
+// lib/sim/it-wave4.test.ts and lib/sims-it-wave4.dbtest.ts. Tests select their
+// documents from this list, never by course code (FAIL-2002).
+export interface Wave4Entry { course: string; slug: string; screen: string; profile: string; kind: "scenario" | "band"; steps: string; base?: string }
+export const WAVE4: readonly Wave4Entry[] = [
+  { course: "SECPLUS", slug: "ransomware-recovery-site-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-ransomware-recovery-site-secplus", base: "CISSP/cissp-ransomware-recovery-site" },
+  { course: "SECPLUS", slug: "payroll-supplier-breach-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-payroll-supplier-breach-secplus", base: "CISM/cism-payroll-supplier-breach" },
+  { course: "SECPLUS", slug: "arp-poisoning-finance-vlan-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-arp-poisoning-finance-vlan-secplus", base: "CEH/ceh-arp-poisoning-finance-vlan" },
+  { course: "SECPLUS", slug: "blind-sqli-search-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-blind-sqli-search-secplus", base: "CEH/ceh-blind-sqli-search" },
+  { course: "SECPLUS", slug: "triage-phish-correlation-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-triage-phish-correlation-secplus", base: "ISC2CC/cc-triage-phish-correlation" },
+  { course: "SECPLUS", slug: "checkout-skimmer-containment-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-checkout-skimmer-containment-secplus", base: "CISM/cism-checkout-skimmer-containment" },
+  { course: "SECPLUS", slug: "web-tier-data-theft-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-web-tier-data-theft-secplus", base: "CISSP/cissp-web-tier-data-theft" },
+  { course: "SECPLUS", slug: "ot-segmentation-breach-secplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-secplus-ot-segmentation-breach-secplus", base: "SECURITYX/ot-segmentation-breach" },
+  { course: "APLUS_CORE2", slug: "firewall-change-backout-aplus2", screen: "security-console", profile: "security", kind: "band", steps: "w4-apluscore2-firewall-change-backout-aplus2", base: "SECPLUS/firewall-change-backout" },
+  { course: "NETWORKPLUS", slug: "arp-poisoning-finance-vlan-netplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-networkplus-arp-poisoning-finance-vlan-netplus", base: "CEH/ceh-arp-poisoning-finance-vlan" },
+  { course: "NETWORKPLUS", slug: "firewall-change-backout-netplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-networkplus-firewall-change-backout-netplus", base: "SECPLUS/firewall-change-backout" },
+  { course: "NETWORKPLUS", slug: "rogue-dhcp-soho-office-netplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-networkplus-rogue-dhcp-soho-office-netplus", base: "APLUS_CORE1/rogue-dhcp-soho-office" },
+  { course: "NETWORKPLUS", slug: "ransomware-recovery-site-netplus", screen: "security-console", profile: "security", kind: "band", steps: "w4-networkplus-ransomware-recovery-site-netplus", base: "CISSP/cissp-ransomware-recovery-site" },
+  { course: "LINUXPLUS", slug: "fstab-uuid-typo-emergency-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-fstab-uuid-typo-emergency-linuxplus", base: "LFCS/fstab-uuid-typo-emergency" },
+  { course: "LINUXPLUS", slug: "report-workers-starve-api-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-report-workers-starve-api-linuxplus", base: "LFCS/report-workers-starve-api" },
+  { course: "LINUXPLUS", slug: "lvm-database-volume-full-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-lvm-database-volume-full-linuxplus", base: "LFCS/lvm-database-volume-full" },
+  { course: "LINUXPLUS", slug: "clock-skew-blocks-logins-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-clock-skew-blocks-logins-linuxplus", base: "LFCS/clock-skew-blocks-logins" },
+  { course: "LINUXPLUS", slug: "shared-folder-permission-denied-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-shared-folder-permission-denied-linuxplus", base: "LINUXFUND/shared-folder-permission-denied" },
+  { course: "LINUXPLUS", slug: "nightly-backup-missing-linuxplus", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-linuxplus-nightly-backup-missing-linuxplus", base: "LINUXFUND/nightly-backup-missing" },
+  { course: "KCNA", slug: "crashloop-bad-configmap-kcna", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-kcna-crashloop-bad-configmap-kcna", base: "CKA/crashloop-bad-configmap" },
+  { course: "KCNA", slug: "apiserver-static-pod-bad-flag-kcna", screen: "terminal", profile: "infrastructure", kind: "band", steps: "w4-kcna-apiserver-static-pod-bad-flag-kcna", base: "CKA/apiserver-static-pod-bad-flag" },
+  { course: "AWSSOA", slug: "waf-login-flood-sqli-soa", screen: "board", profile: "security", kind: "band", steps: "w4-awssoa-waf-login-flood-sqli-soa", base: "AWSSAA/waf-login-flood-sqli" },
+  { course: "AWSSOA", slug: "nat-gateway-bill-spike-soa", screen: "board", profile: "cloud", kind: "band", steps: "w4-awssoa-nat-gateway-bill-spike-soa", base: "AWSSAA/nat-gateway-bill-spike" },
+  { course: "AWSSOA", slug: "canary-rollback-dlq-soa", screen: "board", profile: "cloud", kind: "band", steps: "w4-awssoa-canary-rollback-dlq-soa", base: "AWSDVA/canary-rollback-dlq" },
+  { course: "AWSSOA", slug: "leaked-access-key-soa", screen: "board", profile: "cloud", kind: "band", steps: "w4-awssoa-leaked-access-key-soa", base: "AWSCLF/leaked-access-key" },
+  { course: "AWSSAA", slug: "leaked-access-key-saa", screen: "board", profile: "cloud", kind: "band", steps: "w4-awssaa-leaked-access-key-saa", base: "AWSCLF/leaked-access-key" },
+  { course: "AWSSAA", slug: "rds-update-without-where-pitr-saa", screen: "board", profile: "cloud", kind: "band", steps: "w4-awssaa-rds-update-without-where-pitr-saa", base: "AWSSOA/rds-update-without-where-pitr" },
+  { course: "AWSCLF", slug: "waf-login-flood-sqli-clf", screen: "board", profile: "security", kind: "band", steps: "w4-awsclf-waf-login-flood-sqli-clf", base: "AWSSAA/waf-login-flood-sqli" },
+  { course: "AWSCLF", slug: "nat-gateway-bill-spike-clf", screen: "board", profile: "cloud", kind: "band", steps: "w4-awsclf-nat-gateway-bill-spike-clf", base: "AWSSAA/nat-gateway-bill-spike" },
+  { course: "GCPACE", slug: "bigquery-dashboard-bill-ace", screen: "board", profile: "cloud", kind: "band", steps: "w4-gcpace-bigquery-dashboard-bill-ace", base: "GCPCDL/bigquery-dashboard-bill" },
+  { course: "GCPCDL", slug: "public-bucket-customer-exports-cdl", screen: "board", profile: "security", kind: "band", steps: "w4-gcpcdl-public-bucket-customer-exports-cdl", base: "GCPACE/public-bucket-customer-exports" },
+  { course: "GCPCDL", slug: "cloud-run-bad-revision-rollback-cdl", screen: "board", profile: "cloud", kind: "band", steps: "w4-gcpcdl-cloud-run-bad-revision-rollback-cdl", base: "GCPACE/cloud-run-bad-revision-rollback" },
+];

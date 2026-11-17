@@ -258,6 +258,42 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("FNPAANP", "clinic-severe-bp-stroke-signs"),
   entry("FNPANCC", "clinic-sulfonylurea-hypoglycemia"),
   // ---- end REQ-275 to REQ-278 ----
+  // ---- REQ-316 (IT sims, wave 4): launch courses first; bands register a case another course
+  // already teaches on this course's objective (docs/sims.md 22.29). Keep
+  // these entries together. ----
+  band("SECPLUS", "ransomware-recovery-site-secplus"),
+  band("SECPLUS", "payroll-supplier-breach-secplus"),
+  band("SECPLUS", "arp-poisoning-finance-vlan-secplus"),
+  band("SECPLUS", "blind-sqli-search-secplus"),
+  band("SECPLUS", "triage-phish-correlation-secplus"),
+  band("SECPLUS", "checkout-skimmer-containment-secplus"),
+  band("SECPLUS", "web-tier-data-theft-secplus"),
+  band("SECPLUS", "ot-segmentation-breach-secplus"),
+  band("APLUS_CORE2", "firewall-change-backout-aplus2"),
+  band("NETWORKPLUS", "arp-poisoning-finance-vlan-netplus"),
+  band("NETWORKPLUS", "firewall-change-backout-netplus"),
+  band("NETWORKPLUS", "rogue-dhcp-soho-office-netplus"),
+  band("NETWORKPLUS", "ransomware-recovery-site-netplus"),
+  band("LINUXPLUS", "fstab-uuid-typo-emergency-linuxplus"),
+  band("LINUXPLUS", "report-workers-starve-api-linuxplus"),
+  band("LINUXPLUS", "lvm-database-volume-full-linuxplus"),
+  band("LINUXPLUS", "clock-skew-blocks-logins-linuxplus"),
+  band("LINUXPLUS", "shared-folder-permission-denied-linuxplus"),
+  band("LINUXPLUS", "nightly-backup-missing-linuxplus"),
+  band("KCNA", "crashloop-bad-configmap-kcna"),
+  band("KCNA", "apiserver-static-pod-bad-flag-kcna"),
+  band("AWSSOA", "waf-login-flood-sqli-soa"),
+  band("AWSSOA", "nat-gateway-bill-spike-soa"),
+  band("AWSSOA", "canary-rollback-dlq-soa"),
+  band("AWSSOA", "leaked-access-key-soa"),
+  band("AWSSAA", "leaked-access-key-saa"),
+  band("AWSSAA", "rds-update-without-where-pitr-saa"),
+  band("AWSCLF", "waf-login-flood-sqli-clf"),
+  band("AWSCLF", "nat-gateway-bill-spike-clf"),
+  band("GCPACE", "bigquery-dashboard-bill-ace"),
+  band("GCPCDL", "public-bucket-customer-exports-cdl"),
+  band("GCPCDL", "cloud-run-bad-revision-rollback-cdl"),
+  // ---- end REQ-316 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they

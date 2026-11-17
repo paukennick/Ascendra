@@ -1,0 +1,726 @@
+{
+  "slug": "firewall-change-backout-aplus2",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Change record and diff, the backout plan, an emergency change for the corrected rule, logons, stakeholders, test and records",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readChange",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "backout",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "emergency",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "logons",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 35,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 11,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 40,
+          "seq": 12,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "implement",
+          "seq": 13,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 45,
+          "seq": 14,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "vendorTest",
+          "seq": 15,
+          "tick": 45
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 50,
+          "seq": 16,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "docs",
+          "seq": 17,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 55,
+          "seq": 18,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 19,
+          "tick": 55
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 20,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "review"
+          },
+          "seq": 21,
+          "tick": 55
+        }
+      ],
+      "expect": {
+        "ending": "governed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "contained": "met",
+          "process": "met",
+          "delivered": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minClose": 10,
+          "minTest": 45
+        },
+        "stateHash": "aca35db2cbe3e27e"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "hotfix",
+      "title": "Finds the wrong rule and fixes it live by hand, outside the change process",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readChange",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "hotfix",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "logons",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 30,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "vendorTest",
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "docs",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 40,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 40
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "review"
+          },
+          "seq": 17,
+          "tick": 40
+        }
+      ],
+      "expect": {
+        "ending": "governedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "evidence": "met",
+          "contained": "met",
+          "process": "missed",
+          "delivered": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "minClose": 10,
+          "minTest": 30
+        },
+        "stateHash": "b161a3487a1ec4e3"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "lateBackout",
+      "title": "Checks logons and calls people first; backs out after the guessing succeeds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readChange",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "logons",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 15,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 5,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 6,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 25,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 30,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 35,
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 35
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 40,
+          "seq": 14,
+          "tick": 35
+        },
+        {
+          "type": "act",
+          "action": "backout",
+          "seq": 15,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 50,
+          "seq": 16,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 17,
+          "tick": 50
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 18,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "review"
+          },
+          "seq": 19,
+          "tick": 50
+        }
+      ],
+      "expect": {
+        "ending": "compromised",
+        "class": "harm",
+        "rating": "bad",
+        "score": 75,
+        "criteria": {
+          "evidence": "met",
+          "contained": "partial",
+          "process": "met",
+          "delivered": "partial",
+          "record": "met"
+        },
+        "kpis": {
+          "minClose": 40,
+          "minTest": -1
+        },
+        "stateHash": "dc8ae11d84d70b8a"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "deleteOnly",
+      "title": "Deletes the inbound rule by hand and closes, blaming the firewall",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "deleteRule",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "firewall"
+          },
+          "seq": 7,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "governedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 25,
+        "criteria": {
+          "evidence": "partial",
+          "contained": "met",
+          "process": "missed",
+          "delivered": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minClose": 5,
+          "minTest": -1
+        },
+        "stateHash": "25be05a77d36e668"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "stillExposed",
+      "title": "Closes at once, blaming the vendor",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "vendor"
+          },
+          "seq": 3,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "stillExposed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "contained": "missed",
+          "process": "missed",
+          "delivered": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minClose": -1,
+          "minTest": -1
+        },
+        "stateHash": "fc9820236b57ca49"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "backoutOnly",
+      "title": "Backs out by the plan and checks logons, but leaves the vendor change and the records for later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "readChange",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diff",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "backout",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "logons",
+          "seq": 7,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 30,
+          "seq": 8,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 9,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "lesson": "review"
+          },
+          "seq": 11,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "governedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "evidence": "met",
+          "contained": "met",
+          "process": "met",
+          "delivered": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minClose": 10,
+          "minTest": -1
+        },
+        "stateHash": "62e2bf5e059e76d6"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

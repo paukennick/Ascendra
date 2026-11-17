@@ -1,0 +1,1017 @@
+{
+  "slug": "triage-phish-correlation-secplus",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Correlates first, declares at 7 min, reset and revoke by 10, rule check, evidence, sender block, purge, staff warning, then closes the noise",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "correlate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "cut",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "checkRule",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "blockSender",
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 20,
+          "seq": 12,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 13,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 26,
+          "seq": 14,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "warnStaff",
+          "seq": 15,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 29,
+          "seq": 16,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "triageFw",
+          "params": {
+            "verdict": "noise"
+          },
+          "seq": 17,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 34,
+          "seq": 18,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "triageAv",
+          "params": {
+            "verdict": "benign"
+          },
+          "seq": 19,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 37,
+          "seq": 20,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 21,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 22,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 23,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "use": "credphish"
+          },
+          "seq": 24,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "handled",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "declared": "met",
+          "cutFast": "met",
+          "evidence": "met",
+          "noSecond": "met",
+          "noise": "met",
+          "rule": "met",
+          "blocked": "met",
+          "warned": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToDeclare": 4,
+          "minToCut": 7,
+          "accounts": 1
+        },
+        "stateHash": "500e95d6cde4d0df"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "byLabel",
+      "title": "Works the queue by label: escalates the firewall drops, blocks and warns, declares at 24 min; the internal phish goes out at 25",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageFw",
+          "params": {
+            "verdict": "critical"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "triageAv",
+          "params": {
+            "verdict": "benign"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "blockSender",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "warnStaff",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 17,
+          "seq": 11,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "correlate",
+          "seq": 12,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 13,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 24,
+          "seq": 15,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "cut",
+          "seq": 16,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 27,
+          "seq": 17,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "checkRule",
+          "seq": 18,
+          "tick": 27
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 31,
+          "seq": 19,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 20,
+          "tick": 31
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 37,
+          "seq": 21,
+          "tick": 31
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 22,
+          "tick": 37
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 23,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 24,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "use": "credphish"
+          },
+          "seq": 25,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "handledLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 80,
+        "criteria": {
+          "declared": "partial",
+          "cutFast": "met",
+          "evidence": "met",
+          "noSecond": "met",
+          "noise": "missed",
+          "rule": "met",
+          "blocked": "met",
+          "warned": "met",
+          "record": "met"
+        },
+        "kpis": {
+          "minToDeclare": 21,
+          "minToCut": 27,
+          "accounts": 1
+        },
+        "stateHash": "9c47a4670498bc70"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "noiseOnly",
+      "title": "Closes the firewall and antivirus alerts and the queue, never correlating the report with the sign-in",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "triageFw",
+          "params": {
+            "verdict": "noise"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "triageAv",
+          "params": {
+            "verdict": "benign"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "nobody"
+          },
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "rdp",
+            "use": "noise"
+          },
+          "seq": 8,
+          "tick": 8
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 20,
+        "criteria": {
+          "declared": "missed",
+          "cutFast": "missed",
+          "evidence": "missed",
+          "noSecond": "met",
+          "noise": "met",
+          "rule": "missed",
+          "blocked": "missed",
+          "warned": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToDeclare": -1,
+          "minToCut": -1,
+          "accounts": 1
+        },
+        "stateHash": "db77c073bdce7142"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "purgeFirst",
+      "title": "Correlates, declares and cuts fast, then pulls every copy before saving one",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "correlate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "cut",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 16,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "checkRule",
+          "seq": 9,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 20,
+          "seq": 10,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 11,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 24,
+          "seq": 12,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 13,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 15,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "use": "credphish"
+          },
+          "seq": 16,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "evidenceLost",
+        "class": "harm",
+        "rating": "bad",
+        "score": 55,
+        "criteria": {
+          "declared": "met",
+          "cutFast": "met",
+          "evidence": "missed",
+          "noSecond": "met",
+          "noise": "missed",
+          "rule": "met",
+          "blocked": "missed",
+          "warned": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToDeclare": 4,
+          "minToCut": 7,
+          "accounts": 1
+        },
+        "stateHash": "90a656439e3a9f41"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "watchFraud",
+      "title": "Correlates and saves the evidence, then watches: a colleague is caught and the bank details change at 45 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "correlate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 18,
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 8,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 28,
+          "seq": 9,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 28,
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 38,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 48,
+          "seq": 14,
+          "tick": 38
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 48,
+          "seq": 15,
+          "tick": 40
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "everyone"
+          },
+          "seq": 17,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "use": "credphish"
+          },
+          "seq": 18,
+          "tick": 45
+        }
+      ],
+      "expect": {
+        "ending": "fraud",
+        "class": "harm",
+        "rating": "bad",
+        "score": 10,
+        "criteria": {
+          "declared": "missed",
+          "cutFast": "missed",
+          "evidence": "met",
+          "noSecond": "missed",
+          "noise": "missed",
+          "rule": "missed",
+          "blocked": "missed",
+          "warned": "missed",
+          "record": "missed"
+        },
+        "kpis": {
+          "minToDeclare": -1,
+          "minToCut": -1,
+          "accounts": 2
+        },
+        "stateHash": "95a40a62cd0da149"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "ruleMissed",
+      "title": "Correlates and saves, blocks and closes the firewall alert, declares at 18 min and cuts at 21, but never checks the mailbox rules",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "correlate",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 4,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "preserve",
+          "seq": 3,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "blockSender",
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 10,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "triageFw",
+          "params": {
+            "verdict": "noise"
+          },
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 15,
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "declare",
+          "seq": 9,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 18,
+          "seq": 10,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "cut",
+          "seq": 11,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 21,
+          "seq": 12,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "purge",
+          "seq": 13,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 27,
+          "seq": 14,
+          "tick": 21
+        },
+        {
+          "type": "act",
+          "action": "closeIncident",
+          "seq": 15,
+          "tick": 27
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 16,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "params": {
+            "who": "handler"
+          },
+          "seq": 17,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "phish",
+            "use": "credphish"
+          },
+          "seq": 18,
+          "tick": 27
+        }
+      ],
+      "expect": {
+        "ending": "leftOpen",
+        "class": "harm",
+        "rating": "bad",
+        "score": 55,
+        "criteria": {
+          "declared": "met",
+          "cutFast": "missed",
+          "evidence": "met",
+          "noSecond": "met",
+          "noise": "missed",
+          "rule": "missed",
+          "blocked": "met",
+          "warned": "missed",
+          "record": "met"
+        },
+        "kpis": {
+          "minToDeclare": 15,
+          "minToCut": -1,
+          "accounts": 1
+        },
+        "stateHash": "af350765627d617b"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

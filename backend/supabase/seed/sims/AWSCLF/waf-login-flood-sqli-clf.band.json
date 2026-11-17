@@ -1,0 +1,51 @@
+{
+  "band": "clf",
+  "label": "AWS Cloud Practitioner (CLF-C02)",
+  "base": {
+    "course": "AWSSAA",
+    "slug": "waf-login-flood-sqli"
+  },
+  "slug": "waf-login-flood-sqli-clf",
+  "patch": {
+    "objective": "Network protection services: AWS WAF, AWS Shield, AWS Firewall Manager",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified Cloud Practitioner (CLF-C02) exam guide, version 1.0: Cloud concepts 24%, Security and compliance 30%, Cloud technology and services 34%, Billing, pricing, and support 12%",
+        "checkedAt": "2026-11-16",
+        "url": "https://www.newhorizons.com/Portals/2/downloads/AWS/AWS-Certified-Cloud-Practitioner_Exam-Guide_C02.pdf",
+        "note": "Read through a summarizing fetch on 2026-11-16 of a copy of AWS's exam guide hosted by a training provider (AWS's own exam guide page returned only its index). Relevant text: Task 2.2 names AWS Shield among the security services; Task 2.4 'Identify components and resources for security' (for example, security groups, network ACLs, AWS WAF); Task 3.5 'Identifying the components of a VPC (for example, subnets, gateways)'. AWS Firewall Manager is in the appendix of in-scope services; NAT gateways are not named. This copy is version 1.0; a later AWS version was not read."
+      },
+      {
+        "cite": "AWS Shield Developer Guide: AWS Shield Standard overview",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-standard-summary.html",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'Shield Standard defends against the most common, frequently occurring network and transport layer DDoS attacks'; 'All AWS customers benefit from the automatic protection of Shield Standard, at no additional charge.' The page does not say it handles application-layer (layer 7) floods; the Shield Advanced overview (same day) describes 'automatic application layer DDoS mitigation' as a Shield Advanced feature that adds a rule group to the web ACL. Shield Advanced prices and commitment were not read, so the scenario does not offer a subscription."
+      },
+      {
+        "cite": "AWS WAF Developer Guide: Rate-based rule high-level settings",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html",
+        "note": "Read through a summarizing fetch on 2026-11-14 (no last-updated date shown). Relevant text: evaluation window 'Valid settings are 60 (1 minute), 120 (2 minutes), 300 (5 minutes), and 600 (10 minutes), and 300 (5 minutes) is the default'; 'The lowest limit setting allowed is 10'; 'You can use any rule action except Allow'; 'AWS WAF applies rate limiting near the limit that you set, but does not guarantee an exact limit match.'"
+      },
+      {
+        "cite": "AWS WAF Developer Guide: Use-case specific rule groups, SQL database managed rule group (AWSManagedRulesSQLiRuleSet)",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-use-case.html",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text: 'The SQL database rule group contains rules to block request patterns associated with exploitation of SQL databases, like SQL injection attacks. This can help prevent remote injection of unauthorized queries.' WCU 200; its rules inspect query arguments, body, headers, URI path and cookies."
+      },
+      {
+        "cite": "Amazon VPC User Guide: Infrastructure security, Compare security groups and network ACLs",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html",
+        "note": "Read through a summarizing fetch on 2026-11-14. Relevant text (table): security group rule type 'Allow rules only'; network ACL 'Allow and deny rules'."
+      },
+      {
+        "cite": "Amazon CloudFront Developer Guide: Locations and IP address ranges of CloudFront edge servers, the CloudFront managed prefix list",
+        "checkedAt": "2026-11-14",
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html",
+        "note": "Read in primary text on 2026-11-14. Relevant text: 'The prefix list allows inbound traffic to your origin only from CloudFront origin-facing servers, which prevents non-CloudFront traffic from reaching your origin'; 'If you remove all other inbound rules from the security group, you prevent any non-CloudFront traffic from reaching the instance.' Prefix list com.amazonaws.global.cloudfront.origin-facing."
+      }
+    ]
+  }
+}
