@@ -20,6 +20,7 @@ import {
   type VaultStorage,
 } from "./tokenVault.ts";
 import { refreshAfter401 } from "./sessionStore.ts";
+import { prepareForReload, registerReloadGuard, reloadAbandoned } from "./reloadGuard.ts";
 
 const K = TOKEN_KEYS;
 const SEAL: SealOptions = { requireAuthentication: true, authenticationPrompt: "Unlock Ascendra" };
@@ -364,6 +365,40 @@ describe("REQ-339 (FAIL-2553): an update reload never cuts a refresh in half", (
     await inFlight;
     server.now += 20 * 60_000;
     assert.equal((await app.refresh()).ok, true);
+  });
+});
+
+describe("REQ-339 (FAIL-2553): the reload guard", () => {
+  test("with no session registered (signed out, web) a reload goes ahead", async () => {
+    assert.equal(await prepareForReload({ silent: true }), true);
+  });
+  test("a silent reload the session can't settle is skipped, an asked-for one goes ahead", async () => {
+    let lifted = 0;
+    const off = registerReloadGuard(async () => false, () => lifted++);
+    try {
+      assert.equal(await prepareForReload({ silent: true }), false);
+      assert.equal(await prepareForReload({ silent: false }), true);
+      reloadAbandoned();
+      assert.equal(lifted, 1, "a failed reload lifts the stop on refreshes");
+    } finally {
+      off();
+    }
+  });
+  test("the guard is the vault's quiesce: it waits for the exchange in flight", async () => {
+    const { server, app } = await eveningState(fixedApp);
+    const off = registerReloadGuard((ms) => app.vault.quiesce(ms), () => app.vault.resume());
+    try {
+      const hold = deferred();
+      server.hold = hold.promise;
+      void app.refresh();
+      await tick();
+      const decision = prepareForReload({ silent: true });
+      setTimeout(() => hold.resolve(), 20);
+      assert.equal(await decision, true);
+      assert.equal(app.vault.current, "t3", "the rotated token was taken in before the reload");
+    } finally {
+      off();
+    }
   });
 });
 
