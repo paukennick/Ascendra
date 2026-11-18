@@ -239,6 +239,10 @@
       "type": "time",
       "init": null
     },
+    "camcfgAt": {
+      "type": "time",
+      "init": null
+    },
     "record": {
       "type": "enum",
       "values": [
@@ -264,7 +268,7 @@
       "clock": "turns",
       "actions": [
         "router",
-        "cam"
+        "camcfg"
       ]
     },
     "close": {
@@ -305,14 +309,14 @@
         }
       ]
     },
-    "cam": {
+    "camcfg": {
       "label": "Read the camera's settings",
       "group": "Inspect",
-      "available": "not busy and phase == \"run\" and isNull(camAt)",
+      "available": "not busy and phase == \"run\" and isNull(camcfgAt)",
       "why": "Done, or finish what you are doing first.",
       "effects": [
         {
-          "set": "camAt",
+          "set": "camcfgAt",
           "to": "t"
         },
         {
@@ -929,12 +933,12 @@
         "weight": 1,
         "rows": [
           {
-            "when": "not isNull(routerAt) and not isNull(camAt)",
+            "when": "not isNull(routerAt) and not isNull(camcfgAt)",
             "score": "met",
             "why": "Both read."
           },
           {
-            "when": "not isNull(routerAt) or not isNull(camAt)",
+            "when": "not isNull(routerAt) or not isNull(camcfgAt)",
             "score": "partial",
             "why": "One of the two read."
           },
