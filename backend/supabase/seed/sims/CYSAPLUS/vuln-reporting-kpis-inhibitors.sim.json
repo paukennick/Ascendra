@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "vuln-reporting-kpis-inhibitors",
+  "title": "The quarterly vulnerability report: the right report for each audience, remediation inhibitors, and SOC metrics that mean something",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rAud",
+          "label": "Reports that don't fit their readers",
+          "spokenLabel": "Reports that don't fit their readers",
+          "owner": "\"Vulnerability lead\"",
+          "rating": "aud == \"tailored\" ? \"low\" : aud == \"summaryAll\" ? \"medium\" : aud == \"rawDump\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "aud == \"tailored\" ? \"within\" : aud == \"summaryAll\" ? \"within\" : aud == \"rawDump\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{aud == \"tailored\" ? \"Scorecard, scan detail and compliance mapping\" : aud == \"summaryAll\" ? \"One deck for all\" : aud == \"rawDump\" ? \"Raw export to the board\" : \"Open\"}"
+        },
+        {
+          "id": "rInh",
+          "label": "Criticals blocked by a vendor contract",
+          "spokenLabel": "Criticals blocked by a vendor contract",
+          "owner": "\"IT operations lead\"",
+          "rating": "inh == \"plan\" ? \"low\" : inh == \"waitVendor\" ? \"medium\" : inh == \"patchAnyway\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "inh == \"plan\" ? \"within\" : inh == \"waitVendor\" ? \"within\" : inh == \"patchAnyway\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{inh == \"plan\" ? \"Segmented; vendor validation requested; escalated\" : inh == \"waitVendor\" ? \"Waiting on vendor\" : inh == \"patchAnyway\" ? \"Patched against the contract\" : \"Open\"}"
+        },
+        {
+          "id": "rKpi",
+          "label": "SOC measured by volume",
+          "spokenLabel": "SOC measured by volume",
+          "owner": "\"CISO\"",
+          "rating": "kpi == \"meaningful\" ? \"low\" : kpi == \"volumePlus\" ? \"medium\" : kpi == \"targetVolume\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "kpi == \"meaningful\" ? \"within\" : kpi == \"volumePlus\" ? \"within\" : kpi == \"targetVolume\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{kpi == \"meaningful\" ? \"MTTD, MTTR, false-positive rate, alert-to-incident ratio\" : kpi == \"volumePlus\" ? \"Volume and tickets closed\" : kpi == \"targetVolume\" ? \"50% volume-reduction target\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sCiso",
+          "label": "CISO",
+          "spokenLabel": "the CISO's support",
+          "value": "ciso",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "IT operations lead",
+          "spokenLabel": "the IT operations lead's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business unit heads",
+          "spokenLabel": "the business unit heads' support",
+          "value": "biz",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dAud",
+          "kind": "Report",
+          "label": "Week 1: the reports for each audience",
+          "status": "{aud == \"tailored\" ? \"Scorecard, scan detail and compliance mapping\" : aud == \"summaryAll\" ? \"One deck for all\" : aud == \"rawDump\" ? \"Raw export to the board\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and aud == \"none\""
+        },
+        {
+          "id": "dInh",
+          "kind": "Remediation plan",
+          "label": "Week 2: the radiology criticals",
+          "status": "{inh == \"plan\" ? \"Segmented; vendor validation requested; escalated\" : inh == \"waitVendor\" ? \"Waiting on vendor\" : inh == \"patchAnyway\" ? \"Patched against the contract\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and inh == \"none\""
+        },
+        {
+          "id": "dKpi",
+          "kind": "Metrics",
+          "label": "Week 3: SOC metrics",
+          "status": "{kpi == \"meaningful\" ? \"MTTD, MTTR, false-positive rate, alert-to-incident ratio\" : kpi == \"volumePlus\" ? \"Volume and tickets closed\" : kpi == \"targetVolume\" ? \"50% volume-reduction target\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and kpi == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Vulnerability scan reports, compliance findings, and risk scorecards -- and who each one is written for",
+  "secondaryObjectives": [
+    "Action plans (escalation, dependencies) and inhibitors to remediation: contractual agreements, organizational governance, business process interruption, degrading functionality, legacy and proprietary systems",
+    "SOC metrics and KPIs: alert volume, false-positive rate, true-positive rate, mean time to close, mean time to detect, mean time to respond, mean time to remediate, percentage of alerts escalated, and alert-to-incident ratio"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+      "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22. Reused for REQ-336 from this course's alert-triage-lolbin-hunt (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the findings and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run vulnerability management reporting at Glenhaven Health, a fictional hospital network. The quarter closes in three weeks; the board's risk committee, IT operations and the SOC each expect something from you.",
+    "handover": [
+      "Open: 14,200 findings, 61 critical; 9 criticals are on a radiology system whose vendor contract forbids patching without its approval.",
+      "The SOC reports alert volume only."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "ciso": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "biz": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "aud": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tailored",
+        "summaryAll",
+        "rawDump"
+      ],
+      "init": "none"
+    },
+    "audAt": {
+      "type": "time",
+      "init": null
+    },
+    "inh": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plan",
+        "waitVendor",
+        "patchAnyway"
+      ],
+      "init": "none"
+    },
+    "inhAt": {
+      "type": "time",
+      "init": null
+    },
+    "kpi": {
+      "type": "enum",
+      "values": [
+        "none",
+        "meaningful",
+        "volumePlus",
+        "targetVolume"
+      ],
+      "init": "none"
+    },
+    "kpiAt": {
+      "type": "time",
+      "init": null
+    },
+    "trendAt": {
+      "type": "time",
+      "init": null
+    },
+    "inhibAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(ciso, ops), biz)"
+    },
+    "missCount": {
+      "expr": "((aud == \"rawDump\") ? 1 : 0) + ((inh == \"patchAnyway\") ? 1 : 0) + ((kpi == \"targetVolume\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(aud == \"none\" or (aud == \"rawDump\") ? 1 : 0) + (inh == \"none\" or (inh == \"patchAnyway\") ? 1 : 0) + (kpi == \"none\" or (kpi == \"targetVolume\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The reporting cycle",
+      "clock": "turns",
+      "actions": [
+        "trend",
+        "inhib"
+      ]
+    },
+    "close": {
+      "label": "Report record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "trend": {
+      "label": "Pull the quarter's trends and SLA performance",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(trendAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "trendAt",
+          "to": "t"
+        },
+        {
+          "log": "You pull the trends.",
+          "kind": "act"
+        },
+        {
+          "finding": "Critical findings fell from 88 to 61; 70% of criticals were fixed within the 15-day SLA; the 9 radiology criticals are 140 days old."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "inhib": {
+      "label": "Read the radiology vendor contract and the change calendar",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(inhibAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "inhibAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the contract.",
+          "kind": "act"
+        },
+        {
+          "finding": "The vendor must validate any patch; validation takes 60 days; the hospital can segment the system meanwhile."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the reports",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Reports tailored to each audience, an action plan for the vendor-blocked criticals with escalation, and outcome-based SOC metrics"
+                },
+                {
+                  "value": "summary",
+                  "label": "Quarterly reports sent"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "aud == \"rawDump\"",
+              "then": [
+                {
+                  "log": "Week 2: the committee, unable to read the export, defers its decisions a quarter; the radiology risk stays unaddressed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "inh == \"patchAnyway\"",
+              "then": [
+                {
+                  "log": "Week 3: the unvalidated patch breaks image transfer; radiology falls back to CDs for two days and the vendor refuses support.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "kpi == \"targetVolume\"",
+              "then": [
+                {
+                  "log": "Week 4: the SOC hits the target by disabling 30 detection rules, including the one that caught last quarter's intrusion.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The quarter's reports are out.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_aud",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: report design.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "audPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_inh",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the blocked criticals.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "inhPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_kpi",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: SOC metrics.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "kpiPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "audPrompt": {
+      "title": "One report for everyone?",
+      "context": "The risk committee, IT operations and auditors each read different things.",
+      "choices": [
+        {
+          "id": "tailored",
+          "label": "A one-page risk scorecard for the committee (trend, top risks, decisions needed), detailed scan reports for IT operations, and compliance findings mapped to controls for audit",
+          "effects": [
+            {
+              "set": "aud",
+              "to": "\"tailored\""
+            },
+            {
+              "set": "audAt",
+              "to": "t"
+            },
+            {
+              "add": "ciso",
+              "by": "1"
+            },
+            {
+              "log": "Three reports, each for its reader.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Executives need risk and decisions; operators need specifics; auditors need control mapping."
+        },
+        {
+          "id": "summaryAll",
+          "label": "One summary deck for everyone",
+          "effects": [
+            {
+              "set": "aud",
+              "to": "\"summaryAll\""
+            },
+            {
+              "set": "audAt",
+              "to": "t"
+            },
+            {
+              "add": "ciso",
+              "by": "-1"
+            },
+            {
+              "log": "One deck goes to all.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Easy, but operations can't act on it and the committee wades through detail."
+        },
+        {
+          "id": "rawDump",
+          "label": "Send the 14,200-line scan export to the risk committee",
+          "effects": [
+            {
+              "set": "aud",
+              "to": "\"rawDump\""
+            },
+            {
+              "set": "audAt",
+              "to": "t"
+            },
+            {
+              "add": "ciso",
+              "by": "-2"
+            },
+            {
+              "log": "The raw export goes to the committee.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The committee can't find the nine decisions it must make in 14,200 lines."
+        }
+      ]
+    },
+    "inhPrompt": {
+      "title": "A contract blocks patching",
+      "context": "Nine criticals, 140 days old, need vendor validation (60 days).",
+      "choices": [
+        {
+          "id": "plan",
+          "label": "An action plan: segment the radiology system now, request vendor validation with a dated escalation path, and put the residual risk to the committee for formal acceptance until then",
+          "effects": [
+            {
+              "set": "inh",
+              "to": "\"plan\""
+            },
+            {
+              "set": "inhAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Plan agreed: segmentation, vendor request, committee decision.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An inhibitor needs a plan: compensating controls, the dependency chased, and the risk decision escalated to its owner."
+        },
+        {
+          "id": "waitVendor",
+          "label": "Note 'waiting on vendor' in the report",
+          "effects": [
+            {
+              "set": "inh",
+              "to": "\"waitVendor\""
+            },
+            {
+              "set": "inhAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "Marked as waiting.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "True, but nothing reduces the risk while you wait."
+        },
+        {
+          "id": "patchAnyway",
+          "label": "Patch the radiology system without the vendor",
+          "effects": [
+            {
+              "set": "inh",
+              "to": "\"patchAnyway\""
+            },
+            {
+              "set": "inhAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-2"
+            },
+            {
+              "log": "The system is patched without validation.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Unvalidated patches on a medical imaging system void support and can break it."
+        }
+      ]
+    },
+    "kpiPrompt": {
+      "title": "Alert volume as the KPI",
+      "context": "The SOC reports alert volume only; the CISO wants to know if detection is improving.",
+      "choices": [
+        {
+          "id": "meaningful",
+          "label": "Report mean time to detect, respond and remediate, false-positive rate and alert-to-incident ratio, with trends against targets",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"meaningful\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "1"
+            },
+            {
+              "log": "Outcome metrics with trends are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Time-to metrics and quality ratios show whether detection and response improve."
+        },
+        {
+          "id": "volumePlus",
+          "label": "Keep alert volume and add tickets closed",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"volumePlus\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-1"
+            },
+            {
+              "log": "Volume and tickets closed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Activity counts, not outcomes."
+        },
+        {
+          "id": "targetVolume",
+          "label": "Set a target to cut alert volume 50% next quarter",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"targetVolume\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-2"
+            },
+            {
+              "log": "A volume target is set.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A volume target rewards turning detections off."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the cover note for the risk committee: the quarter's trend, the decisions needed and how the SOC will be measured.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Trend and decisions",
+          "criteria": "Criticals 88 to 61, 70% within SLA; the radiology criticals' plan and the decision needed.",
+          "modelAnswer": "Critical findings fell from 88 to 61, 70% inside SLA. The nine radiology criticals are segmented while the vendor validates; we ask you to accept the residual risk until then."
+        },
+        {
+          "label": "Metrics",
+          "criteria": "MTTD, MTTR, false-positive rate and alert-to-incident ratio with targets.",
+          "modelAnswer": "The SOC will report time to detect, respond and remediate, false-positive rate and alert-to-incident ratio."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (aud == \"summaryAll\") and (inh == \"waitVendor\") and (kpi == \"volumePlus\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA CySA+ CS0-004 Exam Objectives, Exam Objectives Document Version 2.0 (exam launched 2026-06-23; domains 34/26/24/16)",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+        "note": "Relevant text: 1.2 'Given a scenario, analyze indicators of potential malicious activity' (host-related indicators: resource consumption, unauthorized software, anomalous activity: suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration); 2.3 'Given a scenario, analyze data to prioritize and mitigate vulnerabilities' (exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives; CVSS metrics, EPSS); 3.2 'Summarize the incident response process' (containment, recovery); 3.3 'Given a scenario, implement incident response techniques' (triage, establishment of a timeline, determining severity and impact, escalation; isolating affected targets, remediation and verification, release from isolation, performing restoration). Read in the official objectives PDF (the course's officialObjectivesUrl) through a summarizing fetch, and the CompTIA V4 page, on 2026-11-11. CS0-003 retires for English on 2026-12-22. Reused for REQ-336 from this course's alert-triage-lolbin-hunt (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "audHarm": {
+      "label": "Decisions deferred",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and aud == \"rawDump\"",
+      "narrative": "The committee couldn't use the raw export and deferred its decisions; the radiology risk stayed open."
+    },
+    "inhHarm": {
+      "label": "Radiology broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and inh == \"patchAnyway\"",
+      "narrative": "The unvalidated patch broke image transfer; radiology was degraded for two days and the vendor withdrew support."
+    },
+    "kpiHarm": {
+      "label": "Detections switched off",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and kpi == \"targetVolume\"",
+      "narrative": "To meet the volume target, the SOC disabled 30 rules, including one that had caught a real intrusion."
+    },
+    "target": {
+      "label": "Reports that drive decisions",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (aud == \"tailored\") and (inh == \"plan\") and (kpi == \"meaningful\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The committee made its decisions, operations knows what to fix and the SOC is measured on what matters."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "audHarm",
+    "inhHarm",
+    "kpiHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "audCrit",
+        "label": "Wrote each report for its audience",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "aud == \"tailored\"",
+            "score": "met",
+            "why": "Fits each audience."
+          },
+          {
+            "when": "aud == \"summaryAll\"",
+            "score": "partial",
+            "why": "One size."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong report for the reader."
+          }
+        ]
+      },
+      {
+        "id": "inhCrit",
+        "label": "Wrote an action plan around the inhibitor with escalation and compensating controls",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "inh == \"plan\"",
+            "score": "met",
+            "why": "Planned around the inhibitor."
+          },
+          {
+            "when": "inh == \"waitVendor\"",
+            "score": "partial",
+            "why": "Passive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke the contract and the system."
+          }
+        ]
+      },
+      {
+        "id": "kpiCrit",
+        "label": "Chose SOC metrics that show detection and response performance",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "kpi == \"meaningful\"",
+            "score": "met",
+            "why": "Meaningful metrics."
+          },
+          {
+            "when": "kpi == \"volumePlus\"",
+            "score": "partial",
+            "why": "Activity only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Gameable target."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(trendAt) and not isNull(inhibAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(trendAt) or not isNull(inhibAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Pull trends, SLA performance and the inhibitors before writing."
+      },
+      {
+        "at": "Week 1",
+        "text": "Give the committee a scorecard, operations the detail, audit the control mapping."
+      },
+      {
+        "at": "Week 2",
+        "text": "Segment now, chase vendor validation with dates, and escalate the residual risk."
+      },
+      {
+        "at": "Week 3",
+        "text": "Report MTTD, MTTR, false-positive rate and alert-to-incident ratio with trends."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "audHarm": {
+        "headline": "Report for the reader",
+        "body": "A scorecard for executives, detail for operators, control mapping for auditors."
+      },
+      "inhHarm": {
+        "headline": "Plan around inhibitors",
+        "body": "Compensate, chase the dependency and escalate; don't break contracts or systems."
+      },
+      "kpiHarm": {
+        "headline": "Measure outcomes",
+        "body": "Time-to-detect, time-to-respond and quality ratios, not volume targets."
+      },
+      "target": {
+        "headline": "Good: reports that drive decisions",
+        "body": "Audience-fit reports, a plan around the inhibitor, and outcome metrics."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Vulnerability reporting fits the reader: risk scorecards with trends and decisions for executives, detailed scan reports for operators, findings mapped to controls for auditors. Inhibitors (contracts, legacy systems, business interruption) need an action plan: compensating controls, the dependency chased with dates, and escalation of the residual risk to its owner. SOC KPIs should measure outcomes (MTTD, MTTR, false-positive and alert-to-incident ratios); volume targets are gamed."
+  }
+}
